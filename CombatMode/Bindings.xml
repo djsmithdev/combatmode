@@ -1,0 +1,10 @@
+<Bindings>
+	<Binding name="Combat Mode Toggle" description="Toggle Combat Mode" header="Combat Mode Toggle" category="Combat Mode">
+		CombatModeToggleKey()
+	</Binding>
+	<Binding name="(Hold) Switch Mode" description="Hold to Switch Modes" header="Combat Mode Switch" category="Combat Mode" runOnUp="true">
+		if keystate == "down" or keystate == "up" then
+  			 CombatModeHold(keystate)
+		end
+	</Binding>
+</Bindings>

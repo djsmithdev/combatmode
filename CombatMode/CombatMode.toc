@@ -1,0 +1,10 @@
+## Interface: 80100
+## Title: Combat Mode
+## Version: 1.5.3
+## Author: justice7ca
+## Notes: Combat Mode
+## DefaultState: enabled
+## X-Category: Misc
+## LoadOnDemand: 0
+## SavedVariables: CombatModeDB
+CombatMode.xml
