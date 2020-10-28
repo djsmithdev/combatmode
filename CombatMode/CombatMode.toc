@@ -1,6 +1,6 @@
-## Interface: 80100
+## Interface: 80205
 ## Title: Combat Mode
-## Version: 1.5.3
+## Version: 1.6.0
 ## Author: justice7ca
 ## Notes: Combat Mode
 ## DefaultState: enabled
