@@ -22,19 +22,32 @@ local FramesToCheck = {
 }
 
 function CombatMode:OnInitialize()
+
 	defaultButtonValues = {
 		MOVEANDSTEER = "MOVEANDSTEER",
 		MOVEBACKWARD = "MOVEBACKWARD",
 		MOVEFORWARD = "MOVEFORWARD",
 		JUMP = "JUMP",
 		CAMERAORSELECTORMOVE = "CAMERAORSELECTORMOVE",
+		FOCUSTARGET = "FOCUSTARGET",
+		FOLLOWTARGET = "FOLLOWTARGET",
 		TARGETSCANENEMY = "TARGETSCANENEMY",
-		TARGETPREVIOUSFRIEND = "TARGETPREVIOUSFRIEND",
 		INTERACTTARGET = "INTERACTTARGET",
+		TARGETFOCUS = "TARGETFOCUS",
+		TARGETLASTHOSTILE = "TARGETLASTHOSTILE",
+		TARGETLASTTARGET = "TARGETLASTTARGET",
+		TARGETNEAREST = "TARGETNEAREST",
 		TARGETNEARESTENEMY = "TARGETNEARESTENEMY",
 		TARGETNEARESTENEMYPLAYER = "TARGETNEARESTENEMYPLAYER",
 		TARGETNEARESTFRIEND = "TARGETNEARESTFRIEND",
 		TARGETNEARESTFRIENDPLAYER = "TARGETNEARESTFRIENDPLAYER",
+		TARGETPET = "TARGETPET",
+		TARGETPREVIOUS = "TARGETPREVIOUS",
+		TARGETPREVIOUSENEMY = "TARGETPREVIOUSENEMY",
+		TARGETPREVIOUSENEMYPLAYER = "TARGETPREVIOUSENEMYPLAYER",
+		TARGETPREVIOUSFRIEND = "TARGETPREVIOUSFRIEND",
+		TARGETPREVIOUSFRIENDPLAYER = "TARGETPREVIOUSFRIENDPLAYER",
+		TARGETSELF = "TARGETSELF",
 		ACTIONBUTTON1 = "ACTIONBUTTON1",
 		ACTIONBUTTON2 = "ACTIONBUTTON2",
 		ACTIONBUTTON3 = "ACTIONBUTTON3",
@@ -70,6 +83,22 @@ function CombatMode:OnInitialize()
 				ctrlbutton2 = {
 					key = "CTRL-BUTTON2",
 					value = "TARGETNEARESTFRIEND",
+				},
+				altbutton1 = {
+					key = "ALT-BUTTON1",
+					value = "INTERACTTARGET",
+				},
+				altbutton2 = {
+					key = "ALT-BUTTON2",
+					value = "INTERACTTARGET",
+				},
+				shiftbutton1 = {
+					key = "ALT-BUTTON1",
+					value = "INTERACTTARGET",
+				},
+				shiftbutton2 = {
+					key = "ALT-BUTTON2",
+					value = "INTERACTTARGET",
 				},
 			},
 		  }
@@ -136,6 +165,62 @@ function CombatMode:OnInitialize()
 				get = function()
 					return self.db.profile.bindings.ctrlbutton2.value
 				end
+			},
+			altbutton1 = {
+				name = "Alt + Left Click",
+				desc = "Alt + Left Click",
+				type = "select",
+				width = "full",
+				order = 5,
+				values = defaultButtonValues,
+				set = function(info, value)
+					self.db.profile.bindings.altbutton1.value = value
+				end,
+				get = function()
+					return self.db.profile.bindings.altbutton1.value
+				end
+			},	
+			altbutton2 = {
+				name = "Alt + Right Click",
+				desc = "Alt + Right Click",
+				type = "select",
+				width = "full",
+				order = 6,
+				values = defaultButtonValues,
+				set = function(info, value)
+					self.db.profile.bindings.altbutton2.value = value
+				end,
+				get = function()
+					return self.db.profile.bindings.altbutton2.value
+				end
+			},
+			shiftbutton1 = {
+				name = "Shift + Left Click",
+				desc = "Shift + Left Click",
+				type = "select",
+				width = "full",
+				order = 7,
+				values = defaultButtonValues,
+				set = function(info, value)
+					self.db.profile.bindings.altbutton1.value = value
+				end,
+				get = function()
+					return self.db.profile.bindings.altbutton1.value
+				end
+			},	
+			shiftbutton2 = {
+				name = "Shift + Right Click",
+				desc = "Shift + Right Click",
+				type = "select",
+				width = "full",
+				order = 8,
+				values = defaultButtonValues,
+				set = function(info, value)
+					self.db.profile.bindings.shiftbutton2.value = value
+				end,
+				get = function()
+					return self.db.profile.bindings.shiftbutton2.value
+				end
 			}
 		}
 		
@@ -184,6 +269,10 @@ function CombatMode:BindBindingOverrides()
 	SetMouselookOverrideBinding("BUTTON2", self.db.profile.bindings.button2.value)
 	SetMouselookOverrideBinding("CTRL-BUTTON1", self.db.profile.bindings.ctrlbutton1.value)
 	SetMouselookOverrideBinding("CTRL-BUTTON2", self.db.profile.bindings.ctrlbutton2.value)
+	SetMouselookOverrideBinding("ALT-BUTTON1", self.db.profile.bindings.altbutton1.value)
+	SetMouselookOverrideBinding("ALT-BUTTON2", self.db.profile.bindings.altbutton2.value)
+	SetMouselookOverrideBinding("SHIFT-BUTTON1", self.db.profile.bindings.shiftbutton1.value)
+	SetMouselookOverrideBinding("SHIFT-BUTTON2", self.db.profile.bindings.shiftbutton2.value)
 	MouselookStart()
 end
 
@@ -208,11 +297,15 @@ function CombatMode:CMPrint(statement)
 end
 
 -- Start Mouselook
-function CombatMode:startMouselook()
-	ResetCursor()
+function CombatMode:startMouselook()	
 	if combatModeTemporaryDisable and not CombatMode:checkForDisableState() then
+		ResetCursor()
 		combatModeTemporaryDisable = false
 		MouselookStart()
+	else
+		ResetCursor()
+		combatModeTemporaryDisable = true
+		MouselookStop()		
 	end
 end
 
@@ -241,12 +334,13 @@ function CombatMode:updateState()
 end
 
 function CombatMode:Toggle()
-	combatModeAddonSwitch = not combatModeAddonSwitch
-	if combatModeAddonSwitch then
+	if combatModeAddonSwitch == false then
+		combatModeAddonSwitch = true
 		CombatMode:BindBindingOverrides()
 		CombatMode:startMouselook()
 	else
-		CombatMode:stopMouselook()
+		combatModeAddonSwitch = false
+		CombatMode:stopMouselook()		
 	end
 end
 
@@ -263,11 +357,12 @@ function CombatModeToggleKey()
 end
 
 function CombatModeHold(keystate)
-	CombatMode:Toggle()
 	if keystate == "down" then
-		combatModeTemporaryDisable = true
+		combatModeAddonSwitch = false
+		CombatMode:stopMouselook()
 	else
-		combatModeTemporaryDisable = false
+		combatModeAddonSwitch = true
+		CombatMode:startMouselook()
 	end
 end
 
