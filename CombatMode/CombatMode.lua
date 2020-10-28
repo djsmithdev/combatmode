@@ -18,7 +18,7 @@ local FramesToCheck = {
 	"ContainerFrame10", "ContainerFrame11", "ContainerFrame12", "ContainerFrame13", "ContainerFrame14", "ContainerFrame15", "ContainerFrame16", "ContainerFrame17", "AutoPotion_Template_Dialog","NxSocial",
 	"ARKINV_Frame1", "AchievementFrame", "LookingForGuildFrame", "PVPUIFrame", "GuildFrame", "WorldMapFrame", "VideoOptionsFrame", "InterfaceOptionsFrame", "WardrobeFrame", "ACP_AddonList", "PlayerTalentFrame",
 	"PVEFrame", "EncounterJournal", "PetJournalParent", "AccountantFrame", "ImmersionFrame", "BagnonFrameinventory", "GwCharacterWindow", "GwCharacterWindowsMoverFrame", "StaticPopup1", "FlightMapFrame",
-	"CommunitiesFrame", "DungeonReadyPopup", "LFGDungeonReadyDialog", "BossBanner", "PVPMatchResults", "WeakAurasOptions", "ReadyCheckListenerFrame", "BonusRollFrame", "QuickKeybindFrame", "MAOptions", "PVPReadyDialog"
+	"CommunitiesFrame", "DungeonReadyPopup", "LFGDungeonReadyDialog", "BossBanner", "PVPMatchResults", "WeakAurasOptions", "ReadyCheckListenerFrame", "BonusRollFrame", "QuickKeybindFrame", "MAOptions",
 }
 
 function CombatMode:OnInitialize()
