@@ -8,34 +8,17 @@ local mouseLookStarted = false
 
 
 local FramesToCheck = {
-	"AuctionFrame",       "BankFrame",          "BattlefieldFrame",   "CharacterFrame",
-	"ChatMenu",           "EmoteMenu",          "LanguageMenu",       "VoiceMacroMenu",
-	"ClassTrainerFrame",  "CoinPickupFrame",    "CraftFrame",         "FriendsFrame",
-	"GameMenuFrame",      "GossipFrame",        "GuildRegistrarFrame","HelpFrame",
-	"InspectFrame",       "KeyBindingFrame",    "LoXXXotFrame",       "MacroFrame",
-	"MailFrame",          "MerchantFrame",      "OptionsFrame",       "PaperDollFrame",
-	"PetPaperDollFrame",  "PetRenamePopup",     "PetStable",          "QuestFrame",
-	"QuestLogFrame",      "RaidFrame",          "ReputationFrame",    "ScriptErrors",
-	"SkillFrame",         "SoundOptionsFrame",  "SpellBookFrame",     "StackSplitFrame",
-	"StatsFrame",         "SuggestFrame",       "TabardFrame",        "TalentFrame",
-	"TalentTrainerFrame", "TaxiFrame",          "TradeFrame",         "TradeSkillFrame",
-	"TutorialFrame",      "UIOptionsFrame",     "UnitPopup",          "WorldMapFrame",
-	"CosmosMasterFrame",  "CosmosDropDown",     "ChooseItemsFrame",   "ImprovedErrorFrame",
-	"TicTacToeFrame",     "OthelloFrame",       "MinesweeperFrame",   "GamesListFrame",
-	"ConnectFrame",       "ChessFrame",         "QuestShareFrame",    "TotemStomperFrame",
-	"StaticPopXXXup1",    "StaticPopup2",       "StaticPopup3",       "StaticPopup4",
-	"DropDownList1",      "DropDownList2",      "DropDownList3",      "WantAds",
-	"CosmosDropDownBis",  "InventoryManagerFrame", "InspectPaperDollFrame",
-	"ContainerFrame1",    "ContainerFrame2", "ContainerFrame3", "ContainerFrame4",
-	"ContainerFrame5",    "ContainerFrame6",    "ContainerFrame7",    "ContainerFrame8",
-	"ContainerFrame9",    "ContainerFrame10",   "ContainerFrame11",   "ContainerFrame12",
-	"ContainerFrame13",   "ContainerFrame14",   "ContainerFrame15",   "ContainerFrame16",
-	"ContainerFrame17",   "AutoPotion_Template_Dialog","NxSocial",    "ARKINV_Frame1",
-	"AchievementFrame",   "LookingForGuildFrame", "PVPUIFrame",       "GuildFrame",
-	"WorldMapFrame",      "VideoOptionsFrame",  "InterfaceOptionsFrame", "WardrobeFrame",
-    "ACP_AddonList",      "PlayerTalentFrame",  "PVEFrame",           "EncounterJournal",
-	"PetJournalParent",   "AccountantFrame", "ImmersionFrame", "BagnonFrameinventory",
-	"GwCharacterWindow", "GwCharacterWindowsMoverFrame", "StaticPopup1", "FlightMapFrame"
+	"AuctionFrame", "BankFrame", "BattlefieldFrame", "CharacterFrame", "ChatMenu", "EmoteMenu", "LanguageMenu", "VoiceMacroMenu", "ClassTrainerFrame", "CoinPickupFrame", "CraftFrame", "FriendsFrame",
+	"GameMenuFrame", "GossipFrame", "GuildRegistrarFrame","HelpFrame", "InspectFrame", "KeyBindingFrame", "LoXXXotFrame", "MacroFrame", "MailFrame", "MerchantFrame", "OptionsFrame", "PaperDollFrame",
+	"PetPaperDollFrame", "PetRenamePopup", "PetStable", "QuestFrame", "QuestLogFrame", "RaidFrame", "ReputationFrame", "ScriptErrors", "SkillFrame", "SoundOptionsFrame",  "SpellBookFrame", "StackSplitFrame",
+	"StatsFrame", "SuggestFrame", "TabardFrame", "TalentFrame", "TalentTrainerFrame", "TaxiFrame", "TradeFrame", "TradeSkillFrame", "TutorialFrame", "UIOptionsFrame", "UnitPopup", "WorldMapFrame",
+	"CosmosMasterFrame", "CosmosDropDown", "ChooseItemsFrame", "ImprovedErrorFrame", "TicTacToeFrame", "OthelloFrame", "MinesweeperFrame", "GamesListFrame", "ConnectFrame", "ChessFrame", "QuestShareFrame",
+	"TotemStomperFrame", "StaticPopXXXup1", "StaticPopup2", "StaticPopup3", "StaticPopup4", "DropDownList1", "DropDownList2", "DropDownList3", "WantAds", "CosmosDropDownBis", "InventoryManagerFrame",
+	"InspectPaperDollFrame", "ContainerFrame1", "ContainerFrame2", "ContainerFrame3", "ContainerFrame4", "ContainerFrame5", "ContainerFrame6", "ContainerFrame7", "ContainerFrame8", "ContainerFrame9",
+	"ContainerFrame10", "ContainerFrame11", "ContainerFrame12", "ContainerFrame13", "ContainerFrame14", "ContainerFrame15", "ContainerFrame16", "ContainerFrame17", "AutoPotion_Template_Dialog","NxSocial",
+	"ARKINV_Frame1", "AchievementFrame", "LookingForGuildFrame", "PVPUIFrame", "GuildFrame", "WorldMapFrame", "VideoOptionsFrame", "InterfaceOptionsFrame", "WardrobeFrame", "ACP_AddonList", "PlayerTalentFrame",
+	"PVEFrame", "EncounterJournal", "PetJournalParent", "AccountantFrame", "ImmersionFrame", "BagnonFrameinventory", "GwCharacterWindow", "GwCharacterWindowsMoverFrame", "StaticPopup1", "FlightMapFrame",
+	"CommunitiesFrame", "DungeonReadyPopup", "LFGDungeonReadyDialog", "BossBanner", "PVPMatchResults", "WeakAurasOptions", "ReadyCheckListenerFrame", "BonusRollFrame", "QuickKeybindFrame", "MAOptions", "PVPReadyDialog"
 }
 
 function CombatMode:OnInitialize()
@@ -314,12 +297,12 @@ function CombatMode_OnEvent(event, ...)
 		end
 		
 		if event == "QUEST_FINISHED" and CursorActionActive then
-			MouselookStart()
+			CombatMode:startMouselook()
 			CursorActionActive = false
 		end
 
 		if event == "QUEST_PROGRESS" then
-			MouselookStop()
+			CombatMode:stopMouselook()
 			CursorActionActive = true
 		end
 	end
