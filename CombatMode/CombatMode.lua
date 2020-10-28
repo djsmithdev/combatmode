@@ -35,11 +35,11 @@ local FramesToCheck = {
   "WorldMapFrame",      "VideoOptionsFrame",  "InterfaceOptionsFrame", "WardrobeFrame",
   "ACP_AddonList",      "PlayerTalentFrame",  "PVEFrame",           "EncounterJournal",
   "PetJournalParent",   "AccountantFrame",    "ImmersionFrame",     "BagnonFrameinventory",
-	"GwCharacterWindow",  "GwCharacterWindowsMoverFrame", "StaticPopup1", "FlightMapFrame",
+  "GwCharacterWindow",  "GwCharacterWindowsMoverFrame", "StaticPopup1", "FlightMapFrame",
 
-	"CommunitiesFrame", 	"DungeonReadyPopup", 	"LFGDungeonReadyDialog", "BossBanner",
-	"PVPMatchResults", 		"WeakAurasOptions", 	"ReadyCheckListenerFrame", "BonusRollFrame",
-	"QuickKeybindFrame",  "MAOptions", 					"PVPReadyDialog???"
+  "CommunitiesFrame",   "DungeonReadyPopup",   "LFGDungeonReadyDialog", "BossBanner",
+  "PVPMatchResults",     "WeakAurasOptions",   "ReadyCheckListenerFrame", "BonusRollFrame",
+  "QuickKeybindFrame",  "MAOptions",           "PVPReadyDialog???"
 }
 
 function CombatMode:OnInitialize()
