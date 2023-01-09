@@ -6,7 +6,6 @@ local CursorActionActive = false
 local CombatModeQuiet = true
 local mouseLookStarted = false
 
-
 local FramesToCheck = {
 	"AuctionFrame", "BankFrame", "BattlefieldFrame", "CharacterFrame", "ChatMenu", "EmoteMenu", "LanguageMenu", "VoiceMacroMenu", "ClassTrainerFrame", "CoinPickupFrame", "CraftFrame", "FriendsFrame",
 	"GameMenuFrame", "GossipFrame", "GuildRegistrarFrame","HelpFrame", "InspectFrame", "KeyBindingFrame", "LoXXXotFrame", "MacroFrame", "MailFrame", "MerchantFrame", "OptionsFrame", "PaperDollFrame",
