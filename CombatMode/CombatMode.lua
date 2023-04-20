@@ -92,11 +92,11 @@ function CombatMode:OnInitialize()
 					value = "INTERACTTARGET",
 				},
 				shiftbutton1 = {
-					key = "ALT-BUTTON1",
+					key = "SHIFT-BUTTON1",
 					value = "INTERACTTARGET",
 				},
 				shiftbutton2 = {
-					key = "ALT-BUTTON2",
+					key = "SHIFT-BUTTON2",
 					value = "INTERACTTARGET",
 				},
 			},
