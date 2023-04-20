@@ -201,10 +201,10 @@ function CombatMode:OnInitialize()
 				order = 7,
 				values = defaultButtonValues,
 				set = function(info, value)
-					self.db.profile.bindings.altbutton1.value = value
+					self.db.profile.bindings.shiftbutton1.value = value
 				end,
 				get = function()
-					return self.db.profile.bindings.altbutton1.value
+					return self.db.profile.bindings.shiftbutton1.value
 				end
 			},	
 			shiftbutton2 = {
