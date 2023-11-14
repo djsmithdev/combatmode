@@ -226,7 +226,11 @@ function CombatMode:OnInitialize()
 					value = "ACTIONBUTTON8",
 				},
 			},
-		  }
+			watchlist = {
+				"SortedPrimaryFrame", 
+				"WeakAurasOptions",
+			},
+		}
 	}
 
 	CombatModeOptions = { 
@@ -349,7 +353,7 @@ function CombatMode:OnInitialize()
 			},
 			watchlist = {
 				name = "Frame Watchlist",
-				desc = "Add custom frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible. OBS: Case sensitive. Separate frame names with commas. Use command /fstack in chat to check frame names.",
+				desc = "Add custom frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.\n|cff909090Use command /fstack in chat to check frame names.|r \n|cff909090Separate names with commas.|r \n|cff909090Names are case sensitive.|r",
 				type = "input",
 				width = "full",
 				order = 9,
