@@ -1,93 +1,109 @@
 ------------------------------------------------------------------------
-r1240 | nevcairiel | 2020-10-13 07:59:32 +0000 (Tue, 13 Oct 2020) | 1 line
+r1308 | nevcairiel | 2023-07-12 10:15:09 +0000 (Wed, 12 Jul 2023) | 1 line
 Changed paths:
-   M /trunk/Ace3.toc
+   M /trunk
    M /trunk/changelog.txt
 
-Update changelog and TOC
+Update changelog
 ------------------------------------------------------------------------
-r1239 | nevcairiel | 2020-09-20 10:22:02 +0000 (Sun, 20 Sep 2020) | 1 line
+r1307 | funkehdude | 2023-07-12 02:24:07 +0000 (Wed, 12 Jul 2023) | 1 line
 Changed paths:
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-DropDown.lua
+   M /trunk/Ace3.toc
 
-AceGUI-3.0: DropDown: Anchor all items to the dropdown frame instead of chaining anchors, fixes anchoring on WoW 9.0 with many items
+bump toc
 ------------------------------------------------------------------------
-r1238 | nevcairiel | 2020-08-28 16:18:42 +0000 (Fri, 28 Aug 2020) | 3 lines
+r1306 | nevcairiel | 2023-06-23 14:55:09 +0000 (Fri, 23 Jun 2023) | 9 lines
 Changed paths:
-   M /trunk/AceAddon-3.0/AceAddon-3.0.lua
+   M /trunk
+   M /trunk/.luacheckrc
+   M /trunk/AceDB-3.0/AceDB-3.0.lua
 
-AceAddon-3.0: Blacklist more Blizzard addons from triggering Ace3 load events
+AceDB-3.0: Add fallbacks for region names
 
-These addons can be loaded very early by UIParent, which causes issues with loading certain addons
+PTRs now return region 72, instead of extending the table fallback to
+GetCurrentRegionName(), and an absolute fallback if even that fails, so
+AceDB does not error out on loading.
+
+GetCurrentRegionName() could be used as the primary source, instead of
+the look-up table, however we need to confirm first that the region keys
+would remain stable.
 ------------------------------------------------------------------------
-r1237 | nevcairiel | 2020-07-17 22:50:38 +0000 (Fri, 17 Jul 2020) | 1 line
+r1305 | funkehdude | 2023-06-21 11:59:15 +0000 (Wed, 21 Jun 2023) | 1 line
 Changed paths:
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-DropDownGroup.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-Frame.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-InlineGroup.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-TabGroup.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-TreeGroup.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-DropDown.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-Keybinding.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-MultiLineEditBox.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-Slider.lua
+   M /trunk/Ace3_Wrath.toc
 
-Use BackdropTemplate in WoW 9.0
+bump wrath toc
 ------------------------------------------------------------------------
-r1236 | nevcairiel | 2020-04-16 07:36:45 +0000 (Thu, 16 Apr 2020) | 1 line
+r1304 | nevcairiel | 2023-05-19 19:50:10 +0000 (Fri, 19 May 2023) | 1 line
 Changed paths:
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-DropDown.lua
+   M /trunk
+   M /trunk/AceDBOptions-3.0/AceDBOptions-3.0.lua
 
-AceGUI-3.0: DropDown: Initialize the widget with an empty item list (instead of nil), this allows AddItem to be used right away (Fixes #542)
+AceDBOptions-3.0: Minor locale fixes for russian
 ------------------------------------------------------------------------
-r1235 | nevcairiel | 2020-04-15 10:27:55 +0000 (Wed, 15 Apr 2020) | 1 line
+r1303 | nevcairiel | 2023-05-16 15:05:10 +0000 (Tue, 16 May 2023) | 3 lines
 Changed paths:
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-TreeGroup.lua
+   M /trunk
+   M /trunk/AceDBOptions-3.0/AceDBOptions-3.0.lua
 
-Cleanup debug
-------------------------------------------------------------------------
-r1234 | nevcairiel | 2020-04-15 10:14:35 +0000 (Wed, 15 Apr 2020) | 1 line
-Changed paths:
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-TreeGroup.lua
+AceDBOptions-3.0: Update locale strings
 
-AceGUI-3.0: TreeGroup: Remove pre-8.0 compat
+Fixes WoWAce #629
 ------------------------------------------------------------------------
-r1233 | nevcairiel | 2020-04-15 10:09:47 +0000 (Wed, 15 Apr 2020) | 1 line
+r1302 | nevcairiel | 2023-05-03 07:00:09 +0000 (Wed, 03 May 2023) | 1 line
 Changed paths:
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-Label.lua
+   M /trunk
+   M /trunk/Ace3.toc
 
-AceGUI-3.0: Label: Refresh anchoring after changing the font (Fixes #540)
+Update TOC for 10.1
 ------------------------------------------------------------------------
-r1232 | nevcairiel | 2020-04-14 22:21:22 +0000 (Tue, 14 Apr 2020) | 1 line
+r1301 | funkehdude | 2023-03-22 02:53:32 +0000 (Wed, 22 Mar 2023) | 1 line
 Changed paths:
+   M /trunk/Ace3.toc
+
+bump toc
+------------------------------------------------------------------------
+r1300 | funkehdude | 2023-01-28 00:06:37 +0000 (Sat, 28 Jan 2023) | 1 line
+Changed paths:
+   M /trunk/Ace3.toc
+
+bump toc
+------------------------------------------------------------------------
+r1299 | funkehdude | 2023-01-22 03:36:39 +0000 (Sun, 22 Jan 2023) | 1 line
+Changed paths:
+   M /trunk/Ace3_Wrath.toc
+
+bump toc
+------------------------------------------------------------------------
+r1298 | nevcairiel | 2022-12-12 15:10:10 +0000 (Mon, 12 Dec 2022) | 1 line
+Changed paths:
+   M /trunk
+   M /trunk/.luacheckrc
+   M /trunk/CallbackHandler-1.0/CallbackHandler-1.0.lua
+
+Update CallbackHandler to rev 8
+------------------------------------------------------------------------
+r1297 | funkehdude | 2022-11-15 01:19:09 +0000 (Tue, 15 Nov 2022) | 1 line
+Changed paths:
+   M /trunk/Ace3.toc
+
+bump toc
+------------------------------------------------------------------------
+r1296 | nevcairiel | 2022-11-04 18:50:10 +0000 (Fri, 04 Nov 2022) | 4 lines
+Changed paths:
+   M /trunk
    M /trunk/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.lua
+   M /trunk/AceConfig-3.0/AceConfigRegistry-3.0/AceConfigRegistry-3.0.lua
 
-AceConfigDialog-3.0: Prevent a dialog refresh when a multiselect control is closed during release (Fixes #539)
-------------------------------------------------------------------------
-r1231 | nevcairiel | 2020-04-14 22:20:36 +0000 (Tue, 14 Apr 2020) | 1 line
-Changed paths:
-   M /trunk/AceGUI-3.0/AceGUI-3.0.lua
+AceConfigDialog-3.0: Add support for displaying items on hover in GameTooltip
 
-AceGUI-3.0: Add a getter to allow callers to check if a widget is currently being released, which can be used as part of some callbacks to alter behavior
+This adds a new element to the config table, "tooltipHyperlink", which
+will be used to fill the tooltip when hovering over the element.
 ------------------------------------------------------------------------
-r1230 | funkydude | 2020-01-14 17:01:25 +0000 (Tue, 14 Jan 2020) | 1 line
+r1295 | funkehdude | 2022-10-26 01:18:39 +0000 (Wed, 26 Oct 2022) | 1 line
 Changed paths:
    M /trunk/Ace3.toc
 
 bump toc
-------------------------------------------------------------------------
-r1229 | funkydude | 2019-10-11 20:48:50 +0000 (Fri, 11 Oct 2019) | 1 line
-Changed paths:
-   M /trunk/Ace3.toc
-
-bump toc
-------------------------------------------------------------------------
-r1228 | nevcairiel | 2019-09-06 08:51:17 +0000 (Fri, 06 Sep 2019) | 3 lines
-Changed paths:
-   M /trunk/AceGUI-3.0/AceGUI-3.0.lua
-
-AceGUI-3.0: Avoid re-entrance into the Release function
-
-This can happen if a frame is released in a callback fired in the release process, and may in some cases throw errors.
 ------------------------------------------------------------------------
 
