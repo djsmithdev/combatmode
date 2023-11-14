@@ -1,6 +1,6 @@
-## Interface: 90001
+## Interface: 10002
 ## Title: Combat Mode
-## Version: 1.7.1
+## Version: 1.8.0
 ## Author: justice7ca
 ## Notes: Combat Mode
 ## DefaultState: enabled

@@ -1,11 +1,14 @@
+-- Author: justice7ca
 CombatMode = LibStub("AceAddon-3.0"):NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 
+-- Local variables
 local combatModeAddonSwitch = false
 local combatModeTemporaryDisable = false
 local CursorActionActive = false
 local CombatModeQuiet = true
 local mouseLookStarted = false
 
+-- Default frames to check
 local FramesToCheck = {
 	"AuctionFrame", "BankFrame", "BattlefieldFrame", "CharacterFrame", "ChatMenu", "EmoteMenu", "LanguageMenu", "VoiceMacroMenu", "ClassTrainerFrame", "CoinPickupFrame", "CraftFrame", "FriendsFrame",
 	"GameMenuFrame", "GossipFrame", "GuildRegistrarFrame","HelpFrame", "InspectFrame", "KeyBindingFrame", "LoXXXotFrame", "MacroFrame", "MailFrame", "MerchantFrame", "OptionsFrame", "PaperDollFrame",
@@ -18,8 +21,10 @@ local FramesToCheck = {
 	"ARKINV_Frame1", "AchievementFrame", "LookingForGuildFrame", "PVPUIFrame", "GuildFrame", "WorldMapFrame", "VideoOptionsFrame", "InterfaceOptionsFrame", "WardrobeFrame", "ACP_AddonList", "PlayerTalentFrame",
 	"PVEFrame", "EncounterJournal", "PetJournalParent", "AccountantFrame", "ImmersionFrame", "BagnonFrameinventory", "GwCharacterWindow", "GwCharacterWindowsMoverFrame", "StaticPopup1", "FlightMapFrame",
 	"CommunitiesFrame", "DungeonReadyPopup", "LFGDungeonReadyDialog", "BossBanner", "PVPMatchResults", "WeakAurasOptions", "ReadyCheckListenerFrame", "BonusRollFrame", "QuickKeybindFrame", "MAOptions",
+	"SettingsPanel"
 }
 
+-- Default button values
 function CombatMode:OnInitialize()
 
 	defaultButtonValues = {
@@ -77,27 +82,27 @@ function CombatMode:OnInitialize()
 				},
 				ctrlbutton1 = {
 					key = "CTRL-BUTTON1",
-					value = "TARGETSCANENEMY",
+					value = "ACTIONBUTTON3",
 				},
 				ctrlbutton2 = {
 					key = "CTRL-BUTTON2",
-					value = "TARGETNEARESTFRIEND",
+					value = "ACTIONBUTTON4",
 				},
 				altbutton1 = {
 					key = "ALT-BUTTON1",
-					value = "INTERACTTARGET",
+					value = "ACTIONBUTTON5",
 				},
 				altbutton2 = {
 					key = "ALT-BUTTON2",
-					value = "INTERACTTARGET",
+					value = "ACTIONBUTTON6",
 				},
 				shiftbutton1 = {
 					key = "ALT-BUTTON1",
-					value = "INTERACTTARGET",
+					value = "ACTIONBUTTON7",
 				},
 				shiftbutton2 = {
 					key = "ALT-BUTTON2",
-					value = "INTERACTTARGET",
+					value = "ACTIONBUTTON8",
 				},
 			},
 		  }
@@ -245,7 +250,7 @@ end
 function CombatMode:OnEnable()
 	-- Register Events
 	self:RegisterEvent("PLAYER_TARGET_CHANGED", CombatMode_OnEvent)
-	self:RegisterEvent("CURSOR_UPDATE", CombatMode_OnEvent)
+	-- self:RegisterEvent("CURSOR_UPDATE", CombatMode_OnEvent)
 	self:RegisterEvent("PET_BAR_UPDATE", CombatMode_OnEvent)
 	self:RegisterEvent("ACTIONBAR_UPDATE_STATE", CombatMode_OnEvent)
 	self:RegisterEvent("QUEST_FINISHED", CombatMode_OnEvent)
@@ -371,9 +376,9 @@ function CombatMode_OnEvent(event, ...)
 			-- target changed		
 		end
 
-		if event == "CURSOR_UPDATE" and not CombatMode:checkForDisableState() then
-			CursorActionActive = true
-		end
+		--if event == "CURSOR_UPDATE" and not CombatMode:checkForDisableState() then
+		--	CursorActionActive = true
+		--end
 
 		if event == "PET_BAR_UPDATE" and CursorActionActive then
 			CursorActionActive = false
@@ -410,3 +415,4 @@ end
 
 function CombatMode_OnLoad(self, elapsed)
 end
+
