@@ -201,27 +201,27 @@ function CombatMode:OnInitialize()
 					key = "BUTTON2",
 					value = "ACTIONBUTTON2",
 				},
+				shiftbutton1 = {
+					key = "SHIFT-BUTTON1",
+					value = "ACTIONBUTTON3",
+				},
+				shiftbutton2 = {
+					key = "SHIFT-BUTTON2",
+					value = "ACTIONBUTTON4",
+				},
 				ctrlbutton1 = {
 					key = "CTRL-BUTTON1",
-					value = "ACTIONBUTTON3",
+					value = "ACTIONBUTTON5",
 				},
 				ctrlbutton2 = {
 					key = "CTRL-BUTTON2",
-					value = "ACTIONBUTTON4",
+					value = "ACTIONBUTTON6",
 				},
 				altbutton1 = {
 					key = "ALT-BUTTON1",
-					value = "ACTIONBUTTON5",
-				},
-				altbutton2 = {
-					key = "ALT-BUTTON2",
-					value = "ACTIONBUTTON6",
-				},
-				shiftbutton1 = {
-					key = "ALT-BUTTON1",
 					value = "ACTIONBUTTON7",
 				},
-				shiftbutton2 = {
+				altbutton2 = {
 					key = "ALT-BUTTON2",
 					value = "ACTIONBUTTON8",
 				},
