@@ -1,8 +1,6 @@
 # **Combat Mode**
 AddOn for World of Warcraft that adds Action Combat (Free Look, Reticle Targeting, ability casting w/ mouse click) to the game for a more dynamic combat experience.
 
-Based on the great work done on the original [Combat Mode](https://www.curseforge.com/wow/addons/combat-mode) AddOn.
-
 <br />
 
 ## Features
