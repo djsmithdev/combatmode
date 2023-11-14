@@ -1,8 +1,10 @@
-## Interface: 90001
+## Interface: 100200
 ## Title: Combat Mode
-## Version: 1.7.1
-## Author: justice7ca
-## Notes: Combat Mode
+## Title: |cff69ccf0Combat Mode|r
+## Version: 2.0
+## Author: justice7ca w/ contributions from sampconrad
+## Notes: Adds a keybind toggle and smart mouselook locking to World of Warcraft.
+## IconTexture: Interface\ICONS\Pet_Type_Elemental
 ## DefaultState: enabled
 ## X-Category: Misc
 ## LoadOnDemand: 0

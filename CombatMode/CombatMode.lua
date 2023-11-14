@@ -1,25 +1,151 @@
+-- Author: justice7ca
 CombatMode = LibStub("AceAddon-3.0"):NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 
+-- Local variables
 local combatModeAddonSwitch = false
 local combatModeTemporaryDisable = false
 local CursorActionActive = false
 local CombatModeQuiet = true
 local mouseLookStarted = false
 
+-- Default frames to check
 local FramesToCheck = {
-	"AuctionFrame", "BankFrame", "BattlefieldFrame", "CharacterFrame", "ChatMenu", "EmoteMenu", "LanguageMenu", "VoiceMacroMenu", "ClassTrainerFrame", "CoinPickupFrame", "CraftFrame", "FriendsFrame",
-	"GameMenuFrame", "GossipFrame", "GuildRegistrarFrame","HelpFrame", "InspectFrame", "KeyBindingFrame", "LoXXXotFrame", "MacroFrame", "MailFrame", "MerchantFrame", "OptionsFrame", "PaperDollFrame",
-	"PetPaperDollFrame", "PetRenamePopup", "PetStable", "QuestFrame", "QuestLogFrame", "RaidFrame", "ReputationFrame", "ScriptErrors", "SkillFrame", "SoundOptionsFrame",  "SpellBookFrame", "StackSplitFrame",
-	"StatsFrame", "SuggestFrame", "TabardFrame", "TalentFrame", "TalentTrainerFrame", "TaxiFrame", "TradeFrame", "TradeSkillFrame", "TutorialFrame", "UIOptionsFrame", "UnitPopup", "WorldMapFrame",
-	"CosmosMasterFrame", "CosmosDropDown", "ChooseItemsFrame", "ImprovedErrorFrame", "TicTacToeFrame", "OthelloFrame", "MinesweeperFrame", "GamesListFrame", "ConnectFrame", "ChessFrame", "QuestShareFrame",
-	"TotemStomperFrame", "StaticPopXXXup1", "StaticPopup2", "StaticPopup3", "StaticPopup4", "DropDownList1", "DropDownList2", "DropDownList3", "WantAds", "CosmosDropDownBis", "InventoryManagerFrame",
-	"InspectPaperDollFrame", "ContainerFrame1", "ContainerFrame2", "ContainerFrame3", "ContainerFrame4", "ContainerFrame5", "ContainerFrame6", "ContainerFrame7", "ContainerFrame8", "ContainerFrame9",
-	"ContainerFrame10", "ContainerFrame11", "ContainerFrame12", "ContainerFrame13", "ContainerFrame14", "ContainerFrame15", "ContainerFrame16", "ContainerFrame17", "AutoPotion_Template_Dialog","NxSocial",
-	"ARKINV_Frame1", "AchievementFrame", "LookingForGuildFrame", "PVPUIFrame", "GuildFrame", "WorldMapFrame", "VideoOptionsFrame", "InterfaceOptionsFrame", "WardrobeFrame", "ACP_AddonList", "PlayerTalentFrame",
-	"PVEFrame", "EncounterJournal", "PetJournalParent", "AccountantFrame", "ImmersionFrame", "BagnonFrameinventory", "GwCharacterWindow", "GwCharacterWindowsMoverFrame", "StaticPopup1", "FlightMapFrame",
-	"CommunitiesFrame", "DungeonReadyPopup", "LFGDungeonReadyDialog", "BossBanner", "PVPMatchResults", "WeakAurasOptions", "ReadyCheckListenerFrame", "BonusRollFrame", "QuickKeybindFrame", "MAOptions",
+	 "AuctionFrame",
+	 "BankFrame",
+	 "BattlefieldFrame",
+	 "CharacterFrame",
+	 "ChatMenu",
+	 "EmoteMenu",
+	 "LanguageMenu",
+	 "VoiceMacroMenu",
+	 "ClassTrainerFrame",
+	 "CoinPickupFrame",
+	 "CraftFrame",
+	 "FriendsFrame",
+	 "GameMenuFrame",
+	 "GossipFrame",
+	 "GuildRegistrarFrame",
+	 "HelpFrame",
+	 "InspectFrame",
+	 "KeyBindingFrame",
+	 "LoXXXotFrame",
+	 "MacroFrame",
+	 "MailFrame",
+	 "MerchantFrame",
+	 "OptionsFrame",
+	 "PaperDollFrame",
+	 "PetPaperDollFrame",
+	 "PetRenamePopup",
+	 "PetStable",
+	 "QuestFrame",
+	 "QuestLogFrame",
+	 "RaidFrame",
+	 "ReputationFrame",
+	 "ScriptErrors",
+	 "SkillFrame",
+	 "SoundOptionsFrame",
+	 "SpellBookFrame",
+	 "StackSplitFrame",
+	 "StatsFrame",
+	 "SuggestFrame",
+	 "TabardFrame",
+	 "TalentFrame",
+	 "TalentTrainerFrame",
+	 "TaxiFrame",
+	 "TradeFrame",
+	 "TradeSkillFrame",
+	 "TutorialFrame",
+	 "UIOptionsFrame",
+	 "UnitPopup",
+	 "WorldMapFrame",
+	 "CosmosMasterFrame",
+	 "CosmosDropDown",
+	 "ChooseItemsFrame",
+	 "ImprovedErrorFrame",
+	 "TicTacToeFrame",
+	 "OthelloFrame",
+	 "MinesweeperFrame",
+	 "GamesListFrame",
+	 "ConnectFrame",
+	 "ChessFrame",
+	 "QuestShareFrame",
+	 "TotemStomperFrame",
+	 "StaticPopXXXup1",
+	 "StaticPopup2",
+	 "StaticPopup3",
+	 "StaticPopup4",
+	 "DropDownList1",
+	 "DropDownList2",
+	 "DropDownList3",
+	 "WantAds",
+	 "CosmosDropDownBis",
+	 "InventoryManagerFrame",
+	 "InspectPaperDollFrame",
+	 "ContainerFrame1",
+	 "ContainerFrame2",
+	 "ContainerFrame3",
+	 "ContainerFrame4",
+	 "ContainerFrame5",
+	 "ContainerFrame6",
+	 "ContainerFrame7",
+	 "ContainerFrame8",
+	 "ContainerFrame9",
+	 "ContainerFrame10",
+	 "ContainerFrame11",
+	 "ContainerFrame12",
+	 "ContainerFrame13",
+	 "ContainerFrame14",
+	 "ContainerFrame15",
+	 "ContainerFrame16",
+	 "ContainerFrame17",
+	 "AutoPotion_Template_Dialog",
+	 "NxSocial",
+	 "ARKINV_Frame1",
+	 "AchievementFrame",
+	 "LookingForGuildFrame",
+	 "PVPUIFrame",
+	 "GuildFrame",
+	 "WorldMapFrame",
+	 "VideoOptionsFrame",
+	 "InterfaceOptionsFrame",
+	 "WardrobeFrame",
+	 "ACP_AddonList",
+	 "PlayerTalentFrame",
+	 "PVEFrame",
+	 "EncounterJournal",
+	 "PetJournalParent",
+	 "AccountantFrame",
+	 "ImmersionFrame",
+	 "BagnonFrameinventory",
+	 "GwCharacterWindow",
+	 "GwCharacterWindowsMoverFrame",
+	 "StaticPopup1",
+	 "FlightMapFrame",
+	 "CommunitiesFrame",
+	 "DungeonReadyPopup",
+	 "LFGDungeonReadyDialog",
+	 "BossBanner",
+	 "PVPMatchResults",
+	 "WeakAurasOptions",
+	 "ReadyCheckListenerFrame",
+	 "BonusRollFrame",
+	 "QuickKeybindFrame",
+	 "MAOptions",
+	 "ClassTalentFrame",
+	 "CollectionsJournal",
+	 "ProfessionsFrame",
+	 "ItemUpgradeFrame",
+	 "ContainerFrameCombinedBags",
+	 "LootFrame",
+	 "DressUpFrame",
+	 "PetitionFrame",
+	 "QuestLogPopupDetailFrame",
+	 "SettingsPanel",
+	 "EditModeManagerFrame",
+	 "DeathRecapFrame",
 }
 
+-- Default button values
 function CombatMode:OnInitialize()
 
 	defaultButtonValues = {
@@ -77,27 +203,27 @@ function CombatMode:OnInitialize()
 				},
 				ctrlbutton1 = {
 					key = "CTRL-BUTTON1",
-					value = "TARGETSCANENEMY",
+					value = "ACTIONBUTTON3",
 				},
 				ctrlbutton2 = {
 					key = "CTRL-BUTTON2",
-					value = "TARGETNEARESTFRIEND",
+					value = "ACTIONBUTTON4",
 				},
 				altbutton1 = {
 					key = "ALT-BUTTON1",
-					value = "INTERACTTARGET",
+					value = "ACTIONBUTTON5",
 				},
 				altbutton2 = {
 					key = "ALT-BUTTON2",
-					value = "INTERACTTARGET",
+					value = "ACTIONBUTTON6",
 				},
 				shiftbutton1 = {
 					key = "ALT-BUTTON1",
-					value = "INTERACTTARGET",
+					value = "ACTIONBUTTON7",
 				},
 				shiftbutton2 = {
 					key = "ALT-BUTTON2",
-					value = "INTERACTTARGET",
+					value = "ACTIONBUTTON8",
 				},
 			},
 		  }
@@ -136,13 +262,41 @@ function CombatMode:OnInitialize()
 				get = function()
 					return self.db.profile.bindings.button2.value
 				end
-			},			
+			},
+			shiftbutton1 = {
+				name = "Shift + Left Click",
+				desc = "Shift + Left Click",
+				type = "select",
+				width = "full",
+				order = 3,
+				values = defaultButtonValues,
+				set = function(info, value)
+					self.db.profile.bindings.shiftbutton1.value = value
+				end,
+				get = function()
+					return self.db.profile.bindings.shiftbutton1.value
+				end
+			},	
+			shiftbutton2 = {
+				name = "Shift + Right Click",
+				desc = "Shift + Right Click",
+				type = "select",
+				width = "full",
+				order = 4,
+				values = defaultButtonValues,
+				set = function(info, value)
+					self.db.profile.bindings.shiftbutton2.value = value
+				end,
+				get = function()
+					return self.db.profile.bindings.shiftbutton2.value
+				end
+			},
 			ctrlbutton1 = {
 				name = "Control + Left Click",
 				desc = "Control + Left Click",
 				type = "select",
 				width = "full",
-				order = 3,
+				order = 5,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.ctrlbutton1.value = value
@@ -156,7 +310,7 @@ function CombatMode:OnInitialize()
 				desc = "Control + Right Click",
 				type = "select",
 				width = "full",
-				order = 4,
+				order = 6,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.ctrlbutton2.value = value
@@ -170,7 +324,7 @@ function CombatMode:OnInitialize()
 				desc = "Alt + Left Click",
 				type = "select",
 				width = "full",
-				order = 5,
+				order = 7,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.altbutton1.value = value
@@ -184,7 +338,7 @@ function CombatMode:OnInitialize()
 				desc = "Alt + Right Click",
 				type = "select",
 				width = "full",
-				order = 6,
+				order = 8,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.altbutton2.value = value
@@ -193,37 +347,27 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.altbutton2.value
 				end
 			},
-			shiftbutton1 = {
-				name = "Shift + Left Click",
-				desc = "Shift + Left Click",
-				type = "select",
+			watchlist = {
+				name = "Frame Watchlist",
+				desc = "Add custom frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible. OBS: Case sensitive. Separate frame names with commas. Use command /fstack in chat to check frame names.",
+				type = "input",
 				width = "full",
-				order = 7,
-				values = defaultButtonValues,
-				set = function(info, value)
-					self.db.profile.bindings.altbutton1.value = value
-				end,
-				get = function()
-					return self.db.profile.bindings.altbutton1.value
+				order = 9,
+				set = function(info, input)
+					self.db.profile.watchlist = {}
+					for value in string.gmatch(input, "[^,]+") do -- Split at the ", "
+						value = value:gsub("^%s*(.-)%s*$", "%1") -- Trim spaces
+						table.insert(self.db.profile.watchlist, value)
+					end
+				end,				
+				get = function(info)
+					return table.concat(self.db.profile.watchlist, ", ")
 				end
-			},	
-			shiftbutton2 = {
-				name = "Shift + Right Click",
-				desc = "Shift + Right Click",
-				type = "select",
-				width = "full",
-				order = 8,
-				values = defaultButtonValues,
-				set = function(info, value)
-					self.db.profile.bindings.shiftbutton2.value = value
-				end,
-				get = function()
-					return self.db.profile.bindings.shiftbutton2.value
-				end
-			}
+			},
 		}
 		
 	}
+
 		
 	self.db = LibStub("AceDB-3.0"):New("CombatModeDB")
     LibStub("AceConfig-3.0"):RegisterOptionsTable("Combat Mode", CombatModeOptions)
@@ -245,7 +389,7 @@ end
 function CombatMode:OnEnable()
 	-- Register Events
 	self:RegisterEvent("PLAYER_TARGET_CHANGED", CombatMode_OnEvent)
-	self:RegisterEvent("CURSOR_UPDATE", CombatMode_OnEvent)
+	-- self:RegisterEvent("CURSOR_UPDATE", CombatMode_OnEvent)
 	self:RegisterEvent("PET_BAR_UPDATE", CombatMode_OnEvent)
 	self:RegisterEvent("ACTIONBAR_UPDATE_STATE", CombatMode_OnEvent)
 	self:RegisterEvent("QUEST_FINISHED", CombatMode_OnEvent)
@@ -275,9 +419,9 @@ function CombatMode:BindBindingOverrides()
 	MouselookStart()
 end
 
-function CombatMode:UnmouseableFrameOnScreen()
-	for index in pairs(FramesToCheck) do
-		local curFrame = getglobal(FramesToCheck[index])
+function CombatMode:UnmouseableFrameOnScreen(frameArr)
+	for index in pairs(frameArr) do
+		local curFrame = getglobal(frameArr[index])
 		if (curFrame and curFrame:IsVisible()) then
 			return true
 		end
@@ -285,7 +429,7 @@ function CombatMode:UnmouseableFrameOnScreen()
 end
 
 function CombatMode:checkForDisableState()
-	return (CombatMode:UnmouseableFrameOnScreen() or SpellIsTargeting() or CursorActionActive)
+	return (CombatMode:UnmouseableFrameOnScreen(FramesToCheck) or CombatMode:UnmouseableFrameOnScreen(self.db.profile.watchlist) or SpellIsTargeting() or CursorActionActive)
 end
 
 
@@ -371,9 +515,9 @@ function CombatMode_OnEvent(event, ...)
 			-- target changed		
 		end
 
-		if event == "CURSOR_UPDATE" and not CombatMode:checkForDisableState() then
-			CursorActionActive = true
-		end
+		--if event == "CURSOR_UPDATE" and not CombatMode:checkForDisableState() then
+		--	CursorActionActive = true
+		--end
 
 		if event == "PET_BAR_UPDATE" and CursorActionActive then
 			CursorActionActive = false
@@ -410,3 +554,4 @@ end
 
 function CombatMode_OnLoad(self, elapsed)
 end
+
