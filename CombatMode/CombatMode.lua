@@ -173,7 +173,7 @@ function CombatMode:loadReticleTargetCvars()
   SetCVar("SoftTargetNameplateEnemy", 1)
   SetCVar("SoftTargetNameplateInteract", 0)
 
-  print("Combat Mode: Reticle Target CVars LOADED")
+  -- print("Combat Mode: Reticle Target CVars LOADED")
 end
 
 -- DEFAULT BLIZZARD VALUES
@@ -201,11 +201,10 @@ function CombatMode:loadDefaultCvars()
   -- -- general
   SetCVar("SoftTargetForce", 1)
   SetCVar("SoftTargetMatchLocked", 1)
-  SetCVar("SoftTargetWithLocked", 1)
   SetCVar("SoftTargetNameplateEnemy", 1)
   SetCVar("SoftTargetNameplateInteract", 0)
 
-  print("Combat Mode: Reticle Target CVars RESET")
+  -- print("Combat Mode: Reticle Target CVars RESET")
 end
 
 -- Default button values
@@ -253,6 +252,12 @@ function CombatMode:OnInitialize()
 	databaseDefaults = {
 		global = {
 		  version = "1.0.0",
+			watchlist = {
+				"SortedPrimaryFrame", 
+				"WeakAurasOptions",
+			},
+			frameWatching = true,
+			reticleTargeting = false,
 		},
 		profile = {
 			bindings = {
@@ -288,12 +293,15 @@ function CombatMode:OnInitialize()
 					key = "ALT-BUTTON2",
 					value = "ACTIONBUTTON8",
 				},
+				toggle = {
+					key = "Combat Mode Toggle",
+					value = "BUTTON3",
+				},
+				hold = {
+					key = "(Hold) Switch Mode",
+					value = "BUTTON4",
+				},
 			},
-			watchlist = {
-				"SortedPrimaryFrame", 
-				"WeakAurasOptions",
-			},
-			reticleTargeting = false,
 		}
 	}
 
@@ -302,21 +310,62 @@ function CombatMode:OnInitialize()
 		handler = CombatMode,
 		type = "group",
 		args = {
+			freelookkeybindHeader = {
+				type = "header",
+				name = "|cff00FF7FFree Look Camera|r",
+				order = 0,
+			},
+			freelookKeybindDescription= {
+				type = "description",
+				name = "Set keybinds for the Free Look camera. You can use Toggle and Press & Hold together by binding them to separate keys.",
+				order = 1,
+			},
+			blank1 = {type = "description", name = " ", width = "full", order = 2, },
+			toggle = {
+				type = "keybinding",
+				name = "|cff69ccf0Toggle|r",
+				desc = "Toggles the Free Look camera ON or OFF.",
+				width = 1.5,
+				set = function(info, key)
+					local oldKey = (GetBindingKey("Combat Mode Toggle"))
+					if oldKey then SetBinding(oldKey) end
+					SetBinding(key, "Combat Mode Toggle")
+					SaveBindings(GetCurrentBindingSet())
+				end,
+	get = function(info) return (GetBindingKey("Combat Mode Toggle")) end,
+				order = 3,
+			},
+			blank2 = {type = "description", name = " ", width = 0.2, order = 4, },
+			hold  = {
+				type = "keybinding",
+				name = "|cff69ccf0Press & Hold|r",
+				desc = "Hold to temporarily deactivate the Free Look camera.",
+				width = 1.5,
+				set = function(info, key)
+								local oldKey = (GetBindingKey("(Hold) Switch Mode"))
+								if oldKey then SetBinding(oldKey) end
+								SetBinding(key, "(Hold) Switch Mode")
+								SaveBindings(GetCurrentBindingSet())
+							end,
+				get = function(info) return (GetBindingKey("(Hold) Switch Mode")) end,
+				order = 5,
+			},
+			blank3 = {type = "description", name = " ", width = "full", order = 6, },
 			keybindHeader = {
 				type = "header",
 				name = "|cff00FF7FMouse Button Keybinds|r",
-				order = 0,
+				order = 7,
 			},
 			keybindDescription= {
 				type = "description",
 				name = "Select which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.",
-				order = 1,
+				order = 8,
 			},
-			blank1 = {type = "description", name = " ", width = "full", order = 1.5, },
+			blank4 = {type = "description", name = " ", width = "full", order = 9, },
 			unmodifiedDescription= {
 				type = "description",
 				name = "|cff69ccf0Unmodified Base Clicks|r",
-				order = 2,
+				order = 10,
 				fontSize = "medium",
 			},
 			button1 = {
@@ -324,7 +373,7 @@ function CombatMode:OnInitialize()
 				desc = "Left Click",
 				type = "select",
 				width = 1.5,
-				order = 3,
+				order = 11,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.button1.value = value
@@ -333,13 +382,13 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.button1.value
 				end
 			},
-			blank2 = {type = "description", name = " ", width = 0.2, order = 3.5, },
+			blank5 = {type = "description", name = " ", width = 0.2, order = 12, },
 			button2 = {
 				name = "Right Click",
 				desc = "Right Click",
 				type = "select",
 				width = 1.5,
-				order = 4,
+				order = 13,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.button2.value = value
@@ -348,11 +397,11 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.button2.value
 				end
 			},
-			blank3 = {type = "description", name = " ", width = "full", order = 4.5, },
+			blank6 = {type = "description", name = " ", width = "full", order = 14, },
 			shiftDescription= {
 				type = "description",
 				name = "|cff69ccf0Shift-modified Clicks|r",
-				order = 6,
+				order = 15,
 				fontSize = "medium",
 			},
 			shiftbutton1 = {
@@ -360,7 +409,7 @@ function CombatMode:OnInitialize()
 				desc = "Shift + Left Click",
 				type = "select",
 				width = 1.5,
-				order = 7,
+				order = 16,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.shiftbutton1.value = value
@@ -369,13 +418,13 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.shiftbutton1.value
 				end
 			},	
-			blank4 = {type = "description", name = " ", width = 0.2, order = 7.5, },
+			blank7 = {type = "description", name = " ", width = 0.2, order = 17, },
 			shiftbutton2 = {
 				name = "Shift + Right Click",
 				desc = "Shift + Right Click",
 				type = "select",
 				width = 1.5,
-				order = 8,
+				order = 18,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.shiftbutton2.value = value
@@ -384,11 +433,11 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.shiftbutton2.value
 				end
 			},
-			blank5 = {type = "description", name = " ", width = "full", order = 8.5, },
+			blank8 = {type = "description", name = " ", width = "full", order = 19, },
 			ctrlDescription= {
 				type = "description",
 				name = "|cff69ccf0CTRL-modified Clicks|r",
-				order = 10,
+				order = 20,
 				fontSize = "medium",
 			},
 			ctrlbutton1 = {
@@ -396,7 +445,7 @@ function CombatMode:OnInitialize()
 				desc = "Control + Left Click",
 				type = "select",
 				width = 1.5,
-				order = 11,
+				order = 21,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.ctrlbutton1.value = value
@@ -405,13 +454,13 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.ctrlbutton1.value
 				end
 			},
-			blank6 = {type = "description", name = " ", width = 0.2, order = 11.5, },
+			blank9 = {type = "description", name = " ", width = 0.2, order = 22, },
 			ctrlbutton2 = {
 				name = "Control + Right Click",
 				desc = "Control + Right Click",
 				type = "select",
 				width = 1.5,
-				order = 12,
+				order = 23,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.ctrlbutton2.value = value
@@ -420,11 +469,11 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.ctrlbutton2.value
 				end
 			},
-			blank7 = {type = "description", name = " ", width = "full", order = 12.5, },
+			blank10 = {type = "description", name = " ", width = "full", order = 24, },
 			altDescription= {
 				type = "description",
 				name = "|cff69ccf0ALT-modified Clicks|r",
-				order = 14,
+				order = 25,
 				fontSize = "medium",
 			},
 			altbutton1 = {
@@ -432,7 +481,7 @@ function CombatMode:OnInitialize()
 				desc = "Alt + Left Click",
 				type = "select",
 				width = 1.5,
-				order = 15,
+				order = 26,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.altbutton1.value = value
@@ -441,13 +490,13 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.altbutton1.value
 				end
 			},	
-			blank8 = {type = "description", name = " ", width = 0.2, order = 15.5, },
+			blank11 = {type = "description", name = " ", width = 0.2, order = 27, },
 			altbutton2 = {
 				name = "Alt + Right Click",
 				desc = "Alt + Right Click",
 				type = "select",
 				width = 1.5,
-				order = 16,
+				order = 28,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.altbutton2.value = value
@@ -456,83 +505,118 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.altbutton2.value
 				end
 			},
-			blank9 = {type = "description", name = " ", width = "full", order = 16.5, },
+			blank12 = {type = "description", name = " ", width = "full", order = 29, },
 			watchlistHeader = {
 				type = "header",
 				name = "|cff00FF7FFrame Watchlist|r",
-				order = 17,
+				order = 30,
 			},
 			watchlistDescription= {
 				type = "description",
 				name = "Add custom frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.",
-				order = 18,
+				order = 31,
 			},
 			watchlistWarning= {
 				type = "description",
 				name = "\n|cffff0000Names are case sensitive. Separate them with commas.|r",
 				fontSize = "medium",
-				order = 19,
+				order = 32,
 			},
 			watchlist = {
 				name = "Frame Watchlist",
 				desc = "Add custom frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.\n|cff909090Use command /fstack in chat to check frame names.|r \n|cff909090Separate names with commas.|r \n|cffff0000Names are case sensitive.|r",
 				type = "input",
 				width = "full",
-				order = 20,
+				order = 33,
 				set = function(info, input)
-					self.db.profile.watchlist = {}
+					self.db.global.watchlist = {}
 					for value in string.gmatch(input, "[^,]+") do -- Split at the ", "
 						value = value:gsub("^%s*(.-)%s*$", "%1") -- Trim spaces
-						table.insert(self.db.profile.watchlist, value)
+						table.insert(self.db.global.watchlist, value)
 					end
 				end,				
 				get = function(info)
-					return table.concat(self.db.profile.watchlist, ", ")
+					local watchlist = self.db.global.watchlist or {}
+					return table.concat(watchlist, ", ")
 				end
 			},
 			watchlistNote= {
 				type = "description",
 				name = "\n|cff909090Use command /fstack in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: AddonName + Frame. Ex: WeakAuraFrame.|r",
-				order = 21,
+				order = 34,
 			},
-			blank10 = {type = "description", name = " ", width = "full", order = 21.5, },
+			blank13 = {type = "description", name = " ", width = "full", order = 35, },
+			frameWatchingHeader = {
+				type = "header",
+				name = "|cff00FF7FFrame Watching|r",
+				order = 36,
+			},
+			frameWatchingDescription= {
+				type = "description",
+				name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+				order = 37,
+			},
+			frameWatchingWarning= {
+				type = "description",
+				name = "\n|cffff0000Disabling this will also disable the Frame Watchlist.|r",
+				fontSize = "medium",
+				order = 38,
+			},
+			frameWatching = {
+				type = "toggle",
+				name = "Allow Frame Watching",
+				desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+				order = 39,
+				set = function(info, value)
+					self.db.global.frameWatching = value
+					if value then
+						  FrameWatching = true
+					else
+							FrameWatching = false
+					end
+				end,
+				get = function(info)
+					return self.db.global.frameWatching
+				end,
+			},
+			blank14 = {type = "description", name = " ", width = "full", order = 35, },
 			reticleTargetingHeader = {
 				type = "header",
 				name = "|cff00FF7FReticle Targeting|r",
-				order = 22,
+				order = 40,
 			},
 			reticleTargetingDescription= {
 				type = "description",
 				name = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable with predictable behavior.",
-				order = 23,
+				order = 41,
 			},
 			reticleTargetingWarning= {
 				type = "description",
 				name = "\n|cffff0000This will override all Cvar values related to SoftTarget. Uncheck to reset them to the default values.|r",
 				fontSize = "medium",
-				order = 24,
+				order = 42,
 			},
 			reticleTargeting = {
 				type = "toggle",
 				name = "Activate Reticle Targeting",
 				desc = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable w/ predictable behavior.\n|cffff0000This will override all Cvar values related to SoftTarget.|r \n|cff909090Please note that manually changing Cvars with AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
-				order = 25,
+				order = 43,
 				set = function(info, value)
-					self.db.profile.reticleTargeting = value
+					self.db.global.reticleTargeting = value
 					if value then
-							self:loadReticleTargetCvars()
+							CombatMode:loadReticleTargetCvars()
 					else
-							self:loadDefaultCvars()
+							CombatMode:loadDefaultCvars()
 					end
 				end,
 				get = function(info)
-					return self.db.profile.reticleTargeting
+					return self.db.global.reticleTargeting
 				end,
 			},
 			reticleTargetingNote= {
 				type = "description",
 				name = "\n|cff909090Please note that manually changing Cvars w/ AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
-				order = 26,
+				order = 44,
 			},
 		}
 	}
@@ -558,6 +642,7 @@ end
 function CombatMode:OnEnable()
 	-- Register Events
 	self:RegisterEvent("PLAYER_ENTERING_WORLD", CombatMode_OnEvent)
+	self:RegisterEvent("ADDON_LOADED", CombatMode_OnEvent)
 	self:RegisterEvent("PLAYER_TARGET_CHANGED", CombatMode_OnEvent)
 	-- self:RegisterEvent("CURSOR_UPDATE", CombatMode_OnEvent)
 	self:RegisterEvent("PET_BAR_UPDATE", CombatMode_OnEvent)
@@ -590,6 +675,10 @@ function CombatMode:BindBindingOverrides()
 end
 
 function CombatMode:UnmouseableFrameOnScreen(frameArr)
+	local allowFrameWatching = self.db.global.frameWatching == true
+	if not allowFrameWatching then
+		return false
+	end
 	for index in pairs(frameArr) do
 		local curFrame = getglobal(frameArr[index])
 		if (curFrame and curFrame:IsVisible()) then
@@ -599,7 +688,7 @@ function CombatMode:UnmouseableFrameOnScreen(frameArr)
 end
 
 function CombatMode:checkForDisableState()
-	return (CombatMode:UnmouseableFrameOnScreen(FramesToCheck) or CombatMode:UnmouseableFrameOnScreen(self.db.profile.watchlist) or SpellIsTargeting() or CursorActionActive)
+	return (CombatMode:UnmouseableFrameOnScreen(FramesToCheck) or CombatMode:UnmouseableFrameOnScreen(self.db.global.watchlist) or SpellIsTargeting() or CursorActionActive)
 end
 
 
@@ -680,6 +769,10 @@ function CombatModeHold(keystate)
 end
 
 function CombatMode:Rematch()
+	local isReticleTargetingActive = self.db.global.reticleTargeting == true
+	if isReticleTargetingActive then
+		CombatMode:loadReticleTargetCvars()
+	end
   if not IsMouselooking() then
 		combatModeAddonSwitch = true
 		CombatMode:startMouselook()
@@ -689,7 +782,7 @@ function CombatMode:Rematch()
   end
 end
 
-function CombatMode_OnEvent(event, ...)
+function CombatMode_OnEvent(event, addonName, ...)
 	if event == "PLAYER_ENTERING_WORLD" then
 		CombatMode:startMouselook()
 		CombatMode:Rematch()
