@@ -211,7 +211,12 @@ function CombatMode:loadReticleTargetCvars()
 	SetCVar("SoftTargetEnemyRange", 60)
 	SetCVar("SoftTargetIconEnemy", 0)
 
-	-- print("Combat Mode: Reticle Target CVars LOADED")
+	-- -- general
+	SetCVar("SoftTargetForce", 1)    -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
+	SetCVar("SoftTargetMatchLocked", 1) -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
+	SetCVar("SoftTargetWithLocked", 2) -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
+	SetCVar("SoftTargetNameplateEnemy", 1)
+	SetCVar("SoftTargetNameplateInteract", 0)
 end
 
 -- DEFAULT BLIZZARD VALUES
@@ -229,6 +234,12 @@ function CombatMode:loadDefaultCvars()
 	SetCVar("SoftTargetFriendArc", 2)
 	SetCVar("SoftTargetFriendRange", 45)
 	SetCVar("SoftTargetIconFriend", 0)
+
+	-- -- enemy target
+	SetCVar("SoftTargetEnemy", 1)
+	SetCVar("SoftTargetEnemyArc", 2)
+	SetCVar("SoftTargetEnemyRange", 45)
+	SetCVar("SoftTargetIconEnemy", 0)
 
 	-- -- general
 	SetCVar("SoftTargetForce", 1)
