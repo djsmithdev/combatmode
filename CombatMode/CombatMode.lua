@@ -117,6 +117,7 @@ local FramesToCheck = {
 	 "AccountantFrame",
 	 "ImmersionFrame",
 	 "BagnonFrameinventory",
+	 "BagnonInventory1",
 	 "GwCharacterWindow",
 	 "GwCharacterWindowsMoverFrame",
 	 "StaticPopup1",
@@ -143,7 +144,51 @@ local FramesToCheck = {
 	 "EditModeManagerFrame",
 	 "DeathRecapFrame",
 	 "AddonList",
+	 "SplashFrame",
+	 "CalendarFrame"
 }
+
+local defaultButtonValues = {
+	MOVEANDSTEER = "MOVEANDSTEER",
+	MOVEBACKWARD = "MOVEBACKWARD",
+	MOVEFORWARD = "MOVEFORWARD",
+	JUMP = "JUMP",
+	CAMERAORSELECTORMOVE = "CAMERAORSELECTORMOVE",
+	FOCUSTARGET = "FOCUSTARGET",
+	FOLLOWTARGET = "FOLLOWTARGET",
+	TARGETSCANENEMY = "TARGETSCANENEMY",
+	INTERACTTARGET = "INTERACTTARGET",
+	TARGETFOCUS = "TARGETFOCUS",
+	TARGETLASTHOSTILE = "TARGETLASTHOSTILE",
+	TARGETLASTTARGET = "TARGETLASTTARGET",
+	TARGETNEAREST = "TARGETNEAREST",
+	TARGETNEARESTENEMY = "TARGETNEARESTENEMY",
+	TARGETNEARESTENEMYPLAYER = "TARGETNEARESTENEMYPLAYER",
+	TARGETNEARESTFRIEND = "TARGETNEARESTFRIEND",
+	TARGETNEARESTFRIENDPLAYER = "TARGETNEARESTFRIENDPLAYER",
+	TARGETPET = "TARGETPET",
+	TARGETPREVIOUS = "TARGETPREVIOUS",
+	TARGETPREVIOUSENEMY = "TARGETPREVIOUSENEMY",
+	TARGETPREVIOUSENEMYPLAYER = "TARGETPREVIOUSENEMYPLAYER",
+	TARGETPREVIOUSFRIEND = "TARGETPREVIOUSFRIEND",
+	TARGETPREVIOUSFRIENDPLAYER = "TARGETPREVIOUSFRIENDPLAYER",
+	TARGETSELF = "TARGETSELF",
+	ACTIONBUTTON1 = "ACTIONBUTTON1",
+	ACTIONBUTTON2 = "ACTIONBUTTON2",
+	ACTIONBUTTON3 = "ACTIONBUTTON3",
+	ACTIONBUTTON4 = "ACTIONBUTTON4",
+	ACTIONBUTTON5 = "ACTIONBUTTON5",
+	ACTIONBUTTON6 = "ACTIONBUTTON6",
+	ACTIONBUTTON7 = "ACTIONBUTTON7",
+	ACTIONBUTTON8 = "ACTIONBUTTON8",
+	ACTIONBUTTON9 = "ACTIONBUTTON9",
+	ACTIONBUTTON10 = "ACTIONBUTTON10",
+	ACTIONBUTTON11 = "ACTIONBUTTON11",
+	ACTIONBUTTON12 = "ACTIONBUTTON12",
+	MACRO = "MACRO"
+}
+
+local macroFieldDescription = "Enter the name of the macro you wish to be ran here"
 
 -- CVARS FOR RETICLE TARGETING
 function CombatMode:loadReticleTargetCvars()
@@ -209,46 +254,6 @@ end
 
 -- Default button values
 function CombatMode:OnInitialize()
-
-	defaultButtonValues = {
-		MOVEANDSTEER = "MOVEANDSTEER",
-		MOVEBACKWARD = "MOVEBACKWARD",
-		MOVEFORWARD = "MOVEFORWARD",
-		JUMP = "JUMP",
-		CAMERAORSELECTORMOVE = "CAMERAORSELECTORMOVE",
-		FOCUSTARGET = "FOCUSTARGET",
-		FOLLOWTARGET = "FOLLOWTARGET",
-		TARGETSCANENEMY = "TARGETSCANENEMY",
-		INTERACTTARGET = "INTERACTTARGET",
-		TARGETFOCUS = "TARGETFOCUS",
-		TARGETLASTHOSTILE = "TARGETLASTHOSTILE",
-		TARGETLASTTARGET = "TARGETLASTTARGET",
-		TARGETNEAREST = "TARGETNEAREST",
-		TARGETNEARESTENEMY = "TARGETNEARESTENEMY",
-		TARGETNEARESTENEMYPLAYER = "TARGETNEARESTENEMYPLAYER",
-		TARGETNEARESTFRIEND = "TARGETNEARESTFRIEND",
-		TARGETNEARESTFRIENDPLAYER = "TARGETNEARESTFRIENDPLAYER",
-		TARGETPET = "TARGETPET",
-		TARGETPREVIOUS = "TARGETPREVIOUS",
-		TARGETPREVIOUSENEMY = "TARGETPREVIOUSENEMY",
-		TARGETPREVIOUSENEMYPLAYER = "TARGETPREVIOUSENEMYPLAYER",
-		TARGETPREVIOUSFRIEND = "TARGETPREVIOUSFRIEND",
-		TARGETPREVIOUSFRIENDPLAYER = "TARGETPREVIOUSFRIENDPLAYER",
-		TARGETSELF = "TARGETSELF",
-		ACTIONBUTTON1 = "ACTIONBUTTON1",
-		ACTIONBUTTON2 = "ACTIONBUTTON2",
-		ACTIONBUTTON3 = "ACTIONBUTTON3",
-		ACTIONBUTTON4 = "ACTIONBUTTON4",
-		ACTIONBUTTON5 = "ACTIONBUTTON5",
-		ACTIONBUTTON6 = "ACTIONBUTTON6",
-		ACTIONBUTTON7 = "ACTIONBUTTON7",
-		ACTIONBUTTON8 = "ACTIONBUTTON8",
-		ACTIONBUTTON9 = "ACTIONBUTTON9",
-		ACTIONBUTTON10 = "ACTIONBUTTON10",
-		ACTIONBUTTON11 = "ACTIONBUTTON11",
-		ACTIONBUTTON12 = "ACTIONBUTTON12"
-	}
-
 	databaseDefaults = {
 		global = {
 		  version = "1.0.0",
@@ -265,34 +270,50 @@ function CombatMode:OnInitialize()
 					key = "BUTTON1",
 					value = "ACTIONBUTTON1",
 				},
+				button1macro = "",
+
 				button2 = {
 					key = "BUTTON2",
 					value = "ACTIONBUTTON2",
 				},
+				button2macro = "",
+
 				shiftbutton1 = {
 					key = "SHIFT-BUTTON1",
 					value = "ACTIONBUTTON3",
 				},
+				shiftbutton1macro = "",
+
 				shiftbutton2 = {
 					key = "SHIFT-BUTTON2",
 					value = "ACTIONBUTTON4",
 				},
+				shiftbutton2macro = "",
+
 				ctrlbutton1 = {
 					key = "CTRL-BUTTON1",
 					value = "ACTIONBUTTON5",
 				},
+				ctrlbutton1macro = "",
+
 				ctrlbutton2 = {
 					key = "CTRL-BUTTON2",
 					value = "ACTIONBUTTON6",
 				},
+				ctrlbutton2macro = "",
+
 				altbutton1 = {
 					key = "ALT-BUTTON1",
 					value = "ACTIONBUTTON7",
 				},
+				altbutton1macro = "",
+
 				altbutton2 = {
 					key = "ALT-BUTTON2",
 					value = "ACTIONBUTTON8",
 				},
+				altbutton2macro = "",
+
 				toggle = {
 					key = "Combat Mode Toggle",
 					value = "BUTTON3",
@@ -382,13 +403,29 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.button1.value
 				end
 			},
-			blank5 = {type = "description", name = " ", width = 0.2, order = 12, },
+			button1SidePadding = { type = "description", name = " ", width = 0.2, order = 11.1, },
+			button1macro = {
+				name = "Left Click Macro",
+				desc = macroFieldDescription,
+				type = "input",
+				width = 1.5,
+				order = 11.2,
+				set = function(info, value)
+					self.db.profile.bindings.button1macro = value
+				end,
+				get = function()
+					return self.db.profile.bindings.button1macro
+				end,
+				disabled = function()
+					return self.db.profile.bindings.button1.value ~= defaultButtonValues.MACRO
+				end
+			},
 			button2 = {
 				name = "Right Click",
 				desc = "Right Click",
 				type = "select",
 				width = 1.5,
-				order = 13,
+				order = 12,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.button2.value = value
@@ -397,11 +434,28 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.button2.value
 				end
 			},
-			blank6 = {type = "description", name = " ", width = "full", order = 14, },
-			shiftDescription= {
+			button2SidePadding = { type = "description", name = " ", width = 0.2, order = 12.1, },
+			button2macro = {
+				name = "Right Click Macro",
+				desc = macroFieldDescription,
+				type = "input",
+				width = 1.5,
+				order = 12.2,
+				set = function(info, value)
+					self.db.profile.bindings.button2macro = value
+				end,
+				get = function()
+					return self.db.profile.bindings.button2macro
+				end,
+				disabled = function()
+					return self.db.profile.bindings.button2.value ~= defaultButtonValues.MACRO
+				end
+			},
+			unmodifiedToShiftPadding = { type = "description", name = " ", width = "full", order = 12.9, },
+			shiftDescription = {
 				type = "description",
 				name = "|cff69ccf0Shift-modified Clicks|r",
-				order = 15,
+				order = 13,
 				fontSize = "medium",
 			},
 			shiftbutton1 = {
@@ -409,7 +463,7 @@ function CombatMode:OnInitialize()
 				desc = "Shift + Left Click",
 				type = "select",
 				width = 1.5,
-				order = 16,
+				order = 14,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.shiftbutton1.value = value
@@ -417,14 +471,30 @@ function CombatMode:OnInitialize()
 				get = function()
 					return self.db.profile.bindings.shiftbutton1.value
 				end
-			},	
-			blank7 = {type = "description", name = " ", width = 0.2, order = 17, },
+			},
+			shiftbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 14.1, },
+			shiftbutton1macro = {
+				name = "Shift + Left Click Macro",
+				desc = macroFieldDescription,
+				type = "input",
+				width = 1.5,
+				order = 14.2,
+				set = function(info, value)
+					self.db.profile.bindings.shiftbutton1macro = value
+				end,
+				get = function()
+					return self.db.profile.bindings.shiftbutton1macro
+				end,
+				disabled = function()
+					return self.db.profile.bindings.shiftbutton1.value ~= defaultButtonValues.MACRO
+				end
+			},
 			shiftbutton2 = {
 				name = "Shift + Right Click",
 				desc = "Shift + Right Click",
 				type = "select",
 				width = 1.5,
-				order = 18,
+				order = 15,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.shiftbutton2.value = value
@@ -433,11 +503,28 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.shiftbutton2.value
 				end
 			},
-			blank8 = {type = "description", name = " ", width = "full", order = 19, },
-			ctrlDescription= {
+			shiftbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 15.1, },
+			shiftbutton2macro = {
+				name = "Shift + Right Click Macro",
+				desc = macroFieldDescription,
+				type = "input",
+				width = 1.5,
+				order = 15.2,
+				set = function(info, value)
+					self.db.profile.bindings.shiftbutton2macro = value
+				end,
+				get = function()
+					return self.db.profile.bindings.shiftbutton2macro
+				end,
+				disabled = function()
+					return self.db.profile.bindings.shiftbutton2.value ~= defaultButtonValues.MACRO
+				end
+			},
+			shiftToCtrlPadding = { type = "description", name = " ", width = "full", order = 15.9, },
+			ctrlDescription = {
 				type = "description",
 				name = "|cff69ccf0CTRL-modified Clicks|r",
-				order = 20,
+				order = 16,
 				fontSize = "medium",
 			},
 			ctrlbutton1 = {
@@ -445,7 +532,7 @@ function CombatMode:OnInitialize()
 				desc = "Control + Left Click",
 				type = "select",
 				width = 1.5,
-				order = 21,
+				order = 17,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.ctrlbutton1.value = value
@@ -454,13 +541,29 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.ctrlbutton1.value
 				end
 			},
-			blank9 = {type = "description", name = " ", width = 0.2, order = 22, },
+			ctrlbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 17.1, },
+			ctrlbutton1macro = {
+				name = "Control + Left Click Macro",
+				desc = macroFieldDescription,
+				type = "input",
+				width = 1.5,
+				order = 17.2,
+				set = function(info, value)
+					self.db.profile.bindings.ctrlbutton1macro = value
+				end,
+				get = function()
+					return self.db.profile.bindings.ctrlbutton1macro
+				end,
+				disabled = function()
+					return self.db.profile.bindings.ctrlbutton1.value ~= defaultButtonValues.MACRO
+				end
+			},
 			ctrlbutton2 = {
 				name = "Control + Right Click",
 				desc = "Control + Right Click",
 				type = "select",
 				width = 1.5,
-				order = 23,
+				order = 18,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.ctrlbutton2.value = value
@@ -469,11 +572,28 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.ctrlbutton2.value
 				end
 			},
-			blank10 = {type = "description", name = " ", width = "full", order = 24, },
-			altDescription= {
+			ctrlbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 18.1, },
+			ctrlbutton2macro = {
+				name = "Control + Right Click Macro",
+				desc = macroFieldDescription,
+				type = "input",
+				width = 1.5,
+				order = 18.2,
+				set = function(info, value)
+					self.db.profile.bindings.ctrlbutton2macro = value
+				end,
+				get = function()
+					return self.db.profile.bindings.ctrlbutton2macro
+				end,
+				disabled = function()
+					return self.db.profile.bindings.ctrlbutton2.value ~= defaultButtonValues.MACRO
+				end
+			},
+			ctrlToAltPadding = { type = "description", name = " ", width = "full", order = 18.9, },
+			altDescription = {
 				type = "description",
 				name = "|cff69ccf0ALT-modified Clicks|r",
-				order = 25,
+				order = 19,
 				fontSize = "medium",
 			},
 			altbutton1 = {
@@ -481,7 +601,7 @@ function CombatMode:OnInitialize()
 				desc = "Alt + Left Click",
 				type = "select",
 				width = 1.5,
-				order = 26,
+				order = 20,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.altbutton1.value = value
@@ -489,14 +609,30 @@ function CombatMode:OnInitialize()
 				get = function()
 					return self.db.profile.bindings.altbutton1.value
 				end
-			},	
-			blank11 = {type = "description", name = " ", width = 0.2, order = 27, },
+			},
+			altbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 20.1, },
+			altbutton1macro = {
+				name = "Alt + Left Click Macro",
+				desc = macroFieldDescription,
+				type = "input",
+				width = 1.5,
+				order = 20.2,
+				set = function(info, value)
+					self.db.profile.bindings.altbutton1macro = value
+				end,
+				get = function()
+					return self.db.profile.bindings.altbutton1macro
+				end,
+				disabled = function()
+					return self.db.profile.bindings.altbutton1.value ~= defaultButtonValues.MACRO
+				end
+			},
 			altbutton2 = {
 				name = "Alt + Right Click",
 				desc = "Alt + Right Click",
 				type = "select",
 				width = 1.5,
-				order = 28,
+				order = 21,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.altbutton2.value = value
@@ -505,11 +641,28 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.altbutton2.value
 				end
 			},
-			blank12 = {type = "description", name = " ", width = "full", order = 29, },
+			altbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 21.1, },
+			altbutton2macro = {
+				name = "Alt + Right Click Macro",
+				desc = macroFieldDescription,
+				type = "input",
+				width = 1.5,
+				order = 21.2,
+				set = function(info, value)
+					self.db.profile.bindings.altbutton2macro = value
+				end,
+				get = function()
+					return self.db.profile.bindings.altbutton2macro
+				end,
+				disabled = function()
+					return self.db.profile.bindings.altbutton2.value ~= defaultButtonValues.MACRO
+				end
+			},
+			altToWatchlistPadding = { type = "description", name = " ", width = "full", order = 21.9, },
 			watchlistHeader = {
 				type = "header",
 				name = "|cff00FF7FFrame Watchlist|r",
-				order = 30,
+				order = 22,
 			},
 			watchlistDescription= {
 				type = "description",
@@ -655,22 +808,38 @@ function CombatMode:OnDisable()
     -- Called when the addon is disabled
 end
 
-function CombatMode:BindBindingOverride(button, value)
+function CombatMode:BindBindingOverride(button, value, macroValue)
 	MouselookStop()
-	SetMouselookOverrideBinding(button, value)
+
+	local valueToUse
+	if value == defaultButtonValues.MACRO then
+		valueToUse = "MACRO " .. macroValue
+	else
+		valueToUse = value
+	end
+	SetMouselookOverrideBinding(button, valueToUse)
+
 	MouselookStart()
 end
 
 function CombatMode:BindBindingOverrides()
 	MouselookStop()
-	SetMouselookOverrideBinding("BUTTON1", self.db.profile.bindings.button1.value)
-	SetMouselookOverrideBinding("BUTTON2", self.db.profile.bindings.button2.value)
-	SetMouselookOverrideBinding("CTRL-BUTTON1", self.db.profile.bindings.ctrlbutton1.value)
-	SetMouselookOverrideBinding("CTRL-BUTTON2", self.db.profile.bindings.ctrlbutton2.value)
-	SetMouselookOverrideBinding("ALT-BUTTON1", self.db.profile.bindings.altbutton1.value)
-	SetMouselookOverrideBinding("ALT-BUTTON2", self.db.profile.bindings.altbutton2.value)
-	SetMouselookOverrideBinding("SHIFT-BUTTON1", self.db.profile.bindings.shiftbutton1.value)
-	SetMouselookOverrideBinding("SHIFT-BUTTON2", self.db.profile.bindings.shiftbutton2.value)
+	CombatMode:BindBindingOverride("BUTTON1", self.db.profile.bindings.button1.value,
+		self.db.profile.bindings.button1macro)
+	CombatMode:BindBindingOverride("BUTTON2", self.db.profile.bindings.button2.value,
+		self.db.profile.bindings.button2macro)
+	CombatMode:BindBindingOverride("CTRL-BUTTON1", self.db.profile.bindings.ctrlbutton1.value,
+		self.db.profile.bindings.ctrlbutton1macro)
+	CombatMode:BindBindingOverride("CTRL-BUTTON2", self.db.profile.bindings.ctrlbutton2.value,
+		self.db.profile.bindings.ctrlbutton2macro)
+	CombatMode:BindBindingOverride("ALT-BUTTON1", self.db.profile.bindings.altbutton1.value,
+		self.db.profile.bindings.altbutton1macro)
+	CombatMode:BindBindingOverride("ALT-BUTTON2", self.db.profile.bindings.altbutton2.value,
+		self.db.profile.bindings.altbutton2macro)
+	CombatMode:BindBindingOverride("SHIFT-BUTTON1", self.db.profile.bindings.shiftbutton1.value,
+		self.db.profile.bindings.shiftbutton1macro)
+	CombatMode:BindBindingOverride("SHIFT-BUTTON2", self.db.profile.bindings.shiftbutton2.value,
+		self.db.profile.bindings.shiftbutton2macro)
 	MouselookStart()
 end
 
