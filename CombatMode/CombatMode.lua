@@ -782,7 +782,7 @@ function CombatMode:Rematch()
   end
 end
 
-function CombatMode_OnEvent(event, addonName, ...)
+function CombatMode_OnEvent(event, ...)
 	if event == "PLAYER_ENTERING_WORLD" then
 		CombatMode:startMouselook()
 		CombatMode:Rematch()
