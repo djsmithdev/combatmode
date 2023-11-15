@@ -556,6 +556,8 @@ end
 
 function CombatMode:OnEnable()
 	-- Register Events
+	self:RegisterEvent("ADDON_LOADED", CombatMode_OnEvent)
+	self:RegisterEvent("PLAYER_ENTERING_WORLD", CombatMode_OnEvent)
 	self:RegisterEvent("PLAYER_TARGET_CHANGED", CombatMode_OnEvent)
 	-- self:RegisterEvent("CURSOR_UPDATE", CombatMode_OnEvent)
 	self:RegisterEvent("PET_BAR_UPDATE", CombatMode_OnEvent)
@@ -711,6 +713,10 @@ function CombatMode_OnEvent(event, ...)
 			CombatMode:stopMouselook()
 			CursorActionActive = true
 		end
+	end
+
+	if event == "ADDON_LOADED" or event == "PLAYER_ENTERING_WORLD" then
+		MouselookStart()
 	end
 end
 
