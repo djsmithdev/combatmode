@@ -10,142 +10,142 @@ local mouseLookStarted = false
 
 -- Default frames to check
 local FramesToCheck = {
-	"AuctionFrame",
-	"BankFrame",
-	"BattlefieldFrame",
-	"CharacterFrame",
-	"ChatMenu",
-	"EmoteMenu",
-	"LanguageMenu",
-	"VoiceMacroMenu",
-	"ClassTrainerFrame",
-	"CoinPickupFrame",
-	"CraftFrame",
-	"FriendsFrame",
-	"GameMenuFrame",
-	"GossipFrame",
-	"GuildRegistrarFrame",
-	"HelpFrame",
-	"InspectFrame",
-	"KeyBindingFrame",
-	"LoXXXotFrame",
-	"MacroFrame",
-	"MailFrame",
-	"MerchantFrame",
-	"OptionsFrame",
-	"PaperDollFrame",
-	"PetPaperDollFrame",
-	"PetRenamePopup",
-	"PetStable",
-	"QuestFrame",
-	"QuestLogFrame",
-	"RaidFrame",
-	"ReputationFrame",
-	"ScriptErrors",
-	"SkillFrame",
-	"SoundOptionsFrame",
-	"SpellBookFrame",
-	"StackSplitFrame",
-	"StatsFrame",
-	"SuggestFrame",
-	"TabardFrame",
-	"TalentFrame",
-	"TalentTrainerFrame",
-	"TaxiFrame",
-	"TradeFrame",
-	"TradeSkillFrame",
-	"TutorialFrame",
-	"UIOptionsFrame",
-	"UnitPopup",
-	"WorldMapFrame",
-	"CosmosMasterFrame",
-	"CosmosDropDown",
-	"ChooseItemsFrame",
-	"ImprovedErrorFrame",
-	"TicTacToeFrame",
-	"OthelloFrame",
-	"MinesweeperFrame",
-	"GamesListFrame",
-	"ConnectFrame",
-	"ChessFrame",
-	"QuestShareFrame",
-	"TotemStomperFrame",
-	"StaticPopXXXup1",
-	"StaticPopup2",
-	"StaticPopup3",
-	"StaticPopup4",
-	"DropDownList1",
-	"DropDownList2",
-	"DropDownList3",
-	"WantAds",
-	"CosmosDropDownBis",
-	"InventoryManagerFrame",
-	"InspectPaperDollFrame",
-	"ContainerFrame1",
-	"ContainerFrame2",
-	"ContainerFrame3",
-	"ContainerFrame4",
-	"ContainerFrame5",
-	"ContainerFrame6",
-	"ContainerFrame7",
-	"ContainerFrame8",
-	"ContainerFrame9",
-	"ContainerFrame10",
-	"ContainerFrame11",
-	"ContainerFrame12",
-	"ContainerFrame13",
-	"ContainerFrame14",
-	"ContainerFrame15",
-	"ContainerFrame16",
-	"ContainerFrame17",
-	"AutoPotion_Template_Dialog",
-	"NxSocial",
-	"ARKINV_Frame1",
-	"AchievementFrame",
-	"LookingForGuildFrame",
-	"PVPUIFrame",
-	"GuildFrame",
-	"WorldMapFrame",
-	"VideoOptionsFrame",
-	"InterfaceOptionsFrame",
-	"WardrobeFrame",
-	"ACP_AddonList",
-	"PlayerTalentFrame",
-	"PVEFrame",
-	"EncounterJournal",
-	"PetJournalParent",
-	"AccountantFrame",
-	"ImmersionFrame",
-	"BagnonFrameinventory",
-	"BagnonInventory1",
-	"GwCharacterWindow",
-	"GwCharacterWindowsMoverFrame",
-	"StaticPopup1",
-	"FlightMapFrame",
-	"CommunitiesFrame",
-	"DungeonReadyPopup",
-	"LFGDungeonReadyDialog",
-	"BossBanner",
-	"PVPMatchResults",
-	"ReadyCheckListenerFrame",
-	"BonusRollFrame",
-	"QuickKeybindFrame",
-	"MAOptions",
-	"ClassTalentFrame",
-	"CollectionsJournal",
-	"ProfessionsFrame",
-	"ItemUpgradeFrame",
-	"ContainerFrameCombinedBags",
-	"LootFrame",
-	"DressUpFrame",
-	"PetitionFrame",
-	"QuestLogPopupDetailFrame",
-	"SettingsPanel",
-	"EditModeManagerFrame",
-	"DeathRecapFrame",
-	"AddonList",
-	"SplashFrame",
-	"CalendarFrame"
+	 "AuctionFrame",
+	 "BankFrame",
+	 "BattlefieldFrame",
+	 "CharacterFrame",
+	 "ChatMenu",
+	 "EmoteMenu",
+	 "LanguageMenu",
+	 "VoiceMacroMenu",
+	 "ClassTrainerFrame",
+	 "CoinPickupFrame",
+	 "CraftFrame",
+	 "FriendsFrame",
+	 "GameMenuFrame",
+	 "GossipFrame",
+	 "GuildRegistrarFrame",
+	 "HelpFrame",
+	 "InspectFrame",
+	 "KeyBindingFrame",
+	 "LoXXXotFrame",
+	 "MacroFrame",
+	 "MailFrame",
+	 "MerchantFrame",
+	 "OptionsFrame",
+	 "PaperDollFrame",
+	 "PetPaperDollFrame",
+	 "PetRenamePopup",
+	 "PetStable",
+	 "QuestFrame",
+	 "QuestLogFrame",
+	 "RaidFrame",
+	 "ReputationFrame",
+	 "ScriptErrors",
+	 "SkillFrame",
+	 "SoundOptionsFrame",
+	 "SpellBookFrame",
+	 "StackSplitFrame",
+	 "StatsFrame",
+	 "SuggestFrame",
+	 "TabardFrame",
+	 "TalentFrame",
+	 "TalentTrainerFrame",
+	 "TaxiFrame",
+	 "TradeFrame",
+	 "TradeSkillFrame",
+	 "TutorialFrame",
+	 "UIOptionsFrame",
+	 "UnitPopup",
+	 "WorldMapFrame",
+	 "CosmosMasterFrame",
+	 "CosmosDropDown",
+	 "ChooseItemsFrame",
+	 "ImprovedErrorFrame",
+	 "TicTacToeFrame",
+	 "OthelloFrame",
+	 "MinesweeperFrame",
+	 "GamesListFrame",
+	 "ConnectFrame",
+	 "ChessFrame",
+	 "QuestShareFrame",
+	 "TotemStomperFrame",
+	 "StaticPopXXXup1",
+	 "StaticPopup2",
+	 "StaticPopup3",
+	 "StaticPopup4",
+	 "DropDownList1",
+	 "DropDownList2",
+	 "DropDownList3",
+	 "WantAds",
+	 "CosmosDropDownBis",
+	 "InventoryManagerFrame",
+	 "InspectPaperDollFrame",
+	 "ContainerFrame1",
+	 "ContainerFrame2",
+	 "ContainerFrame3",
+	 "ContainerFrame4",
+	 "ContainerFrame5",
+	 "ContainerFrame6",
+	 "ContainerFrame7",
+	 "ContainerFrame8",
+	 "ContainerFrame9",
+	 "ContainerFrame10",
+	 "ContainerFrame11",
+	 "ContainerFrame12",
+	 "ContainerFrame13",
+	 "ContainerFrame14",
+	 "ContainerFrame15",
+	 "ContainerFrame16",
+	 "ContainerFrame17",
+	 "AutoPotion_Template_Dialog",
+	 "NxSocial",
+	 "ARKINV_Frame1",
+	 "AchievementFrame",
+	 "LookingForGuildFrame",
+	 "PVPUIFrame",
+	 "GuildFrame",
+	 "WorldMapFrame",
+	 "VideoOptionsFrame",
+	 "InterfaceOptionsFrame",
+	 "WardrobeFrame",
+	 "ACP_AddonList",
+	 "PlayerTalentFrame",
+	 "PVEFrame",
+	 "EncounterJournal",
+	 "PetJournalParent",
+	 "AccountantFrame",
+	 "ImmersionFrame",
+	 "BagnonFrameinventory",
+	 "BagnonInventory1",
+	 "GwCharacterWindow",
+	 "GwCharacterWindowsMoverFrame",
+	 "StaticPopup1",
+	 "FlightMapFrame",
+	 "CommunitiesFrame",
+	 "DungeonReadyPopup",
+	 "LFGDungeonReadyDialog",
+	 "BossBanner",
+	 "PVPMatchResults",
+	 "ReadyCheckListenerFrame",
+	 "BonusRollFrame",
+	 "QuickKeybindFrame",
+	 "MAOptions",
+	 "ClassTalentFrame",
+	 "CollectionsJournal",
+	 "ProfessionsFrame",
+	 "ItemUpgradeFrame",
+	 "ContainerFrameCombinedBags",
+	 "LootFrame",
+	 "DressUpFrame",
+	 "PetitionFrame",
+	 "QuestLogPopupDetailFrame",
+	 "SettingsPanel",
+	 "EditModeManagerFrame",
+	 "DeathRecapFrame",
+	 "AddonList",
+	 "SplashFrame",
+	 "CalendarFrame"
 }
 
 local defaultButtonValues = {
@@ -192,71 +192,73 @@ local macroFieldDescription = "Enter the name of the macro you wish to be ran he
 
 -- CVARS FOR RETICLE TARGETING
 function CombatMode:loadReticleTargetCvars()
-	-- -- interact
-	SetCVar("SoftTargetInteract", 3) -- 3 = always on
-	SetCVar("SoftTargetInteractArc", 1)
-	SetCVar("SoftTargetInteractRange", 15)
-	SetCVar("SoftTargetIconInteract", 1)
-	SetCVar("SoftTargetIconGameObject", 1)
+  -- -- interact
+  SetCVar("SoftTargetInteract", 3) -- 3 = always on
+  SetCVar("SoftTargetInteractArc", 1)
+  SetCVar("SoftTargetInteractRange", 15)
+  SetCVar("SoftTargetIconInteract", 1)
+  SetCVar("SoftTargetIconGameObject", 1)
+  
+  -- -- friendly target
+  SetCVar("SoftTargetFriend", 3)
+  SetCVar("SoftTargetFriendArc", 1)
+  SetCVar("SoftTargetFriendRange", 15)
+  SetCVar("SoftTargetIconFriend", 1)
 
-	-- -- friendly target
-	SetCVar("SoftTargetFriend", 3)
-	SetCVar("SoftTargetFriendArc", 1)
-	SetCVar("SoftTargetFriendRange", 15)
-	SetCVar("SoftTargetIconFriend", 1)
+  -- -- enemy target
+  SetCVar("SoftTargetEnemy", 3)
+  SetCVar("SoftTargetEnemyArc", 0) -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
+  SetCVar("SoftTargetEnemyRange", 60)
+  SetCVar("SoftTargetIconEnemy", 0)
 
-	-- -- enemy target
-	SetCVar("SoftTargetEnemy", 3)
-	SetCVar("SoftTargetEnemyArc", 0) -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
-	SetCVar("SoftTargetEnemyRange", 60)
-	SetCVar("SoftTargetIconEnemy", 0)
+  -- -- general
+  SetCVar("SoftTargetForce", 1) -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
+  SetCVar("SoftTargetMatchLocked", 1) -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
+  SetCVar("SoftTargetWithLocked", 2) -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
+  SetCVar("SoftTargetNameplateEnemy", 1)
+  SetCVar("SoftTargetNameplateInteract", 0)
 
-	-- -- general
-	SetCVar("SoftTargetForce", 1)    -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
-	SetCVar("SoftTargetMatchLocked", 1) -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
-	SetCVar("SoftTargetWithLocked", 2) -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
-	SetCVar("SoftTargetNameplateEnemy", 1)
-	SetCVar("SoftTargetNameplateInteract", 0)
+  -- print("Combat Mode: Reticle Target CVars LOADED")
 end
 
 -- DEFAULT BLIZZARD VALUES
 -- !! DO NOT CHANGE !!
 function CombatMode:loadDefaultCvars()
-	-- -- interact
-	SetCVar("SoftTargetInteract", 1)
-	SetCVar("SoftTargetInteractArc", 0)
-	SetCVar("SoftTargetInteractRange", 10)
-	SetCVar("SoftTargetIconInteract", 1)
-	SetCVar("SoftTargetIconGameObject", 0)
+  -- -- interact
+  SetCVar("SoftTargetInteract", 1)
+  SetCVar("SoftTargetInteractArc", 0)
+  SetCVar("SoftTargetInteractRange", 10)
+  SetCVar("SoftTargetIconInteract", 1)
+  SetCVar("SoftTargetIconGameObject", 0)
+  
+  -- -- friendly target
+  SetCVar("SoftTargetFriend", 0)
+  SetCVar("SoftTargetFriendArc", 2)
+  SetCVar("SoftTargetFriendRange", 45)
+  SetCVar("SoftTargetIconFriend", 0)
 
-	-- -- friendly target
-	SetCVar("SoftTargetFriend", 0)
-	SetCVar("SoftTargetFriendArc", 2)
-	SetCVar("SoftTargetFriendRange", 45)
-	SetCVar("SoftTargetIconFriend", 0)
+  -- -- enemy target
+  SetCVar("SoftTargetEnemy", 1)
+  SetCVar("SoftTargetEnemyArc", 2)
+  SetCVar("SoftTargetEnemyRange", 45)
+  SetCVar("SoftTargetIconEnemy", 0)
 
-	-- -- enemy target
-	SetCVar("SoftTargetEnemy", 1)
-	SetCVar("SoftTargetEnemyArc", 2)
-	SetCVar("SoftTargetEnemyRange", 45)
-	SetCVar("SoftTargetIconEnemy", 0)
+  -- -- general
+  SetCVar("SoftTargetForce", 1)
+  SetCVar("SoftTargetMatchLocked", 1)
+  SetCVar("SoftTargetNameplateEnemy", 1)
+  SetCVar("SoftTargetNameplateInteract", 0)
 
-	-- -- general
-	SetCVar("SoftTargetForce", 1)
-	SetCVar("SoftTargetMatchLocked", 1)
-	SetCVar("SoftTargetNameplateEnemy", 1)
-	SetCVar("SoftTargetNameplateInteract", 0)
-
-	-- print("Combat Mode: Reticle Target CVars RESET")
+  -- print("Combat Mode: Reticle Target CVars RESET")
 end
 
 -- Default button values
 function CombatMode:OnInitialize()
 	databaseDefaults = {
 		global = {
-			version = "1.0.0",
+		  version = "1.0.0",
 			watchlist = {
-				"SortedPrimaryFrame",
+				"SortedPrimaryFrame", 
 				"WeakAurasOptions",
 			},
 			frameWatching = true,
@@ -324,24 +326,23 @@ function CombatMode:OnInitialize()
 		}
 	}
 
-	CombatModeOptions = {
+	CombatModeOptions = { 
 		name = "Combat Mode Settings",
 		handler = CombatMode,
 		type = "group",
 		args = {
-			freelookkeybindHeader       = {
+			freelookkeybindHeader = {
 				type = "header",
 				name = "|cff00FF7FFree Look Camera|r",
 				order = 0,
 			},
-			freelookKeybindDescription  = {
+			freelookKeybindDescription= {
 				type = "description",
-				name =
-				"Set keybinds for the Free Look camera. You can use Toggle and Press & Hold together by binding them to separate keys.",
+				name = "Set keybinds for the Free Look camera. You can use Toggle and Press & Hold together by binding them to separate keys.",
 				order = 1,
 			},
-			blank1                      = { type = "description", name = " ", width = "full", order = 2, },
-			toggle                      = {
+			blank1 = {type = "description", name = " ", width = "full", order = 2, },
+			toggle = {
 				type = "keybinding",
 				name = "|cff69ccf0Toggle|r",
 				desc = "Toggles the Free Look camera ON or OFF.",
@@ -352,49 +353,48 @@ function CombatMode:OnInitialize()
 					SetBinding(key, "Combat Mode Toggle")
 					SaveBindings(GetCurrentBindingSet())
 				end,
-				get = function(info) return (GetBindingKey("Combat Mode Toggle")) end,
+	get = function(info) return (GetBindingKey("Combat Mode Toggle")) end,
 				order = 3,
 			},
-			blank2                      = { type = "description", name = " ", width = 0.2, order = 4, },
-			hold                        = {
+			blank2 = {type = "description", name = " ", width = 0.2, order = 4, },
+			hold  = {
 				type = "keybinding",
 				name = "|cff69ccf0Press & Hold|r",
 				desc = "Hold to temporarily deactivate the Free Look camera.",
 				width = 1.5,
 				set = function(info, key)
-					local oldKey = (GetBindingKey("(Hold) Switch Mode"))
-					if oldKey then SetBinding(oldKey) end
-					SetBinding(key, "(Hold) Switch Mode")
-					SaveBindings(GetCurrentBindingSet())
-				end,
+								local oldKey = (GetBindingKey("(Hold) Switch Mode"))
+								if oldKey then SetBinding(oldKey) end
+								SetBinding(key, "(Hold) Switch Mode")
+								SaveBindings(GetCurrentBindingSet())
+							end,
 				get = function(info) return (GetBindingKey("(Hold) Switch Mode")) end,
 				order = 5,
 			},
-			blank3                      = { type = "description", name = " ", width = "full", order = 6, },
-			keybindHeader               = {
+			blank3 = {type = "description", name = " ", width = "full", order = 6, },
+			keybindHeader = {
 				type = "header",
 				name = "|cff00FF7FMouse Button Keybinds|r",
 				order = 7,
 			},
-			keybindDescription          = {
+			keybindDescription= {
 				type = "description",
-				name =
-				"Select which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.",
+				name = "Select which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.",
 				order = 8,
 			},
-			headerToUnmodifiedPadding   = { type = "description", name = " ", width = "full", order = 8.9, },
-			unmodifiedDescription       = {
+			blank4 = {type = "description", name = " ", width = "full", order = 9, },
+			unmodifiedDescription= {
 				type = "description",
 				name = "|cff69ccf0Unmodified Base Clicks|r",
-				order = 9,
+				order = 10,
 				fontSize = "medium",
 			},
-			button1                     = {
+			button1 = {
 				name = "Left Click",
 				desc = "Left Click",
 				type = "select",
 				width = 1.5,
-				order = 10,
+				order = 11,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.button1.value = value
@@ -403,13 +403,13 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.button1.value
 				end
 			},
-			button1SidePadding          = { type = "description", name = " ", width = 0.2, order = 10.1, },
-			button1macro                = {
+			button1SidePadding = { type = "description", name = " ", width = 0.2, order = 11.1, },
+			button1macro = {
 				name = "Left Click Macro",
 				desc = macroFieldDescription,
 				type = "input",
 				width = 1.5,
-				order = 10.2,
+				order = 11.2,
 				set = function(info, value)
 					self.db.profile.bindings.button1macro = value
 				end,
@@ -420,12 +420,12 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.button1.value ~= defaultButtonValues.MACRO
 				end
 			},
-			button2                     = {
+			button2 = {
 				name = "Right Click",
 				desc = "Right Click",
 				type = "select",
 				width = 1.5,
-				order = 11,
+				order = 12,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.button2.value = value
@@ -434,13 +434,13 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.button2.value
 				end
 			},
-			button2SidePadding          = { type = "description", name = " ", width = 0.2, order = 11.1, },
-			button2macro                = {
+			button2SidePadding = { type = "description", name = " ", width = 0.2, order = 12.1, },
+			button2macro = {
 				name = "Right Click Macro",
 				desc = macroFieldDescription,
 				type = "input",
 				width = 1.5,
-				order = 11.2,
+				order = 12.2,
 				set = function(info, value)
 					self.db.profile.bindings.button2macro = value
 				end,
@@ -451,19 +451,19 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.button2.value ~= defaultButtonValues.MACRO
 				end
 			},
-			unmodifiedToShiftPadding    = { type = "description", name = " ", width = "full", order = 11.9, },
-			shiftDescription            = {
+			unmodifiedToShiftPadding = { type = "description", name = " ", width = "full", order = 12.9, },
+			shiftDescription = {
 				type = "description",
 				name = "|cff69ccf0Shift-modified Clicks|r",
-				order = 12,
+				order = 13,
 				fontSize = "medium",
 			},
-			shiftbutton1                = {
+			shiftbutton1 = {
 				name = "Shift + Left Click",
 				desc = "Shift + Left Click",
 				type = "select",
 				width = 1.5,
-				order = 13,
+				order = 14,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.shiftbutton1.value = value
@@ -472,13 +472,13 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.shiftbutton1.value
 				end
 			},
-			shiftbutton1SidePadding     = { type = "description", name = " ", width = 0.2, order = 13.1, },
-			shiftbutton1macro           = {
+			shiftbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 14.1, },
+			shiftbutton1macro = {
 				name = "Shift + Left Click Macro",
 				desc = macroFieldDescription,
 				type = "input",
 				width = 1.5,
-				order = 13.2,
+				order = 14.2,
 				set = function(info, value)
 					self.db.profile.bindings.shiftbutton1macro = value
 				end,
@@ -489,12 +489,12 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.shiftbutton1.value ~= defaultButtonValues.MACRO
 				end
 			},
-			shiftbutton2                = {
+			shiftbutton2 = {
 				name = "Shift + Right Click",
 				desc = "Shift + Right Click",
 				type = "select",
 				width = 1.5,
-				order = 14,
+				order = 15,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.shiftbutton2.value = value
@@ -503,13 +503,13 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.shiftbutton2.value
 				end
 			},
-			shiftbutton2SidePadding     = { type = "description", name = " ", width = 0.2, order = 14.1, },
-			shiftbutton2macro           = {
+			shiftbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 15.1, },
+			shiftbutton2macro = {
 				name = "Shift + Right Click Macro",
 				desc = macroFieldDescription,
 				type = "input",
 				width = 1.5,
-				order = 14.2,
+				order = 15.2,
 				set = function(info, value)
 					self.db.profile.bindings.shiftbutton2macro = value
 				end,
@@ -520,19 +520,19 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.shiftbutton2.value ~= defaultButtonValues.MACRO
 				end
 			},
-			shiftToCtrlPadding          = { type = "description", name = " ", width = "full", order = 14.9, },
-			ctrlDescription             = {
+			shiftToCtrlPadding = { type = "description", name = " ", width = "full", order = 15.9, },
+			ctrlDescription = {
 				type = "description",
 				name = "|cff69ccf0CTRL-modified Clicks|r",
-				order = 15,
+				order = 16,
 				fontSize = "medium",
 			},
-			ctrlbutton1                 = {
+			ctrlbutton1 = {
 				name = "Control + Left Click",
 				desc = "Control + Left Click",
 				type = "select",
 				width = 1.5,
-				order = 16,
+				order = 17,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.ctrlbutton1.value = value
@@ -541,13 +541,13 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.ctrlbutton1.value
 				end
 			},
-			ctrlbutton1SidePadding      = { type = "description", name = " ", width = 0.2, order = 16.1, },
-			ctrlbutton1macro            = {
+			ctrlbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 17.1, },
+			ctrlbutton1macro = {
 				name = "Control + Left Click Macro",
 				desc = macroFieldDescription,
 				type = "input",
 				width = 1.5,
-				order = 16.2,
+				order = 17.2,
 				set = function(info, value)
 					self.db.profile.bindings.ctrlbutton1macro = value
 				end,
@@ -558,12 +558,12 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.ctrlbutton1.value ~= defaultButtonValues.MACRO
 				end
 			},
-			ctrlbutton2                 = {
+			ctrlbutton2 = {
 				name = "Control + Right Click",
 				desc = "Control + Right Click",
 				type = "select",
 				width = 1.5,
-				order = 17,
+				order = 18,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.ctrlbutton2.value = value
@@ -572,13 +572,13 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.ctrlbutton2.value
 				end
 			},
-			ctrlbutton2SidePadding      = { type = "description", name = " ", width = 0.2, order = 17.1, },
-			ctrlbutton2macro            = {
+			ctrlbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 18.1, },
+			ctrlbutton2macro = {
 				name = "Control + Right Click Macro",
 				desc = macroFieldDescription,
 				type = "input",
 				width = 1.5,
-				order = 17.2,
+				order = 18.2,
 				set = function(info, value)
 					self.db.profile.bindings.ctrlbutton2macro = value
 				end,
@@ -589,19 +589,19 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.ctrlbutton2.value ~= defaultButtonValues.MACRO
 				end
 			},
-			ctrlToAltPadding            = { type = "description", name = " ", width = "full", order = 17.9, },
-			altDescription              = {
+			ctrlToAltPadding = { type = "description", name = " ", width = "full", order = 18.9, },
+			altDescription = {
 				type = "description",
 				name = "|cff69ccf0ALT-modified Clicks|r",
-				order = 18,
+				order = 19,
 				fontSize = "medium",
 			},
-			altbutton1                  = {
+			altbutton1 = {
 				name = "Alt + Left Click",
 				desc = "Alt + Left Click",
 				type = "select",
 				width = 1.5,
-				order = 19,
+				order = 20,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.altbutton1.value = value
@@ -610,13 +610,13 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.altbutton1.value
 				end
 			},
-			altbutton1SidePadding       = { type = "description", name = " ", width = 0.2, order = 19.1, },
-			altbutton1macro             = {
+			altbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 20.1, },
+			altbutton1macro = {
 				name = "Alt + Left Click Macro",
 				desc = macroFieldDescription,
 				type = "input",
 				width = 1.5,
-				order = 19.2,
+				order = 20.2,
 				set = function(info, value)
 					self.db.profile.bindings.altbutton1macro = value
 				end,
@@ -627,12 +627,12 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.altbutton1.value ~= defaultButtonValues.MACRO
 				end
 			},
-			altbutton2                  = {
+			altbutton2 = {
 				name = "Alt + Right Click",
 				desc = "Alt + Right Click",
 				type = "select",
 				width = 1.5,
-				order = 20,
+				order = 21,
 				values = defaultButtonValues,
 				set = function(info, value)
 					self.db.profile.bindings.altbutton2.value = value
@@ -641,13 +641,13 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.altbutton2.value
 				end
 			},
-			altbutton2SidePadding       = { type = "description", name = " ", width = 0.2, order = 20.1, },
-			altbutton2macro             = {
+			altbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 21.1, },
+			altbutton2macro = {
 				name = "Alt + Right Click Macro",
 				desc = macroFieldDescription,
 				type = "input",
 				width = 1.5,
-				order = 20.2,
+				order = 21.2,
 				set = function(info, value)
 					self.db.profile.bindings.altbutton2macro = value
 				end,
@@ -658,142 +658,138 @@ function CombatMode:OnInitialize()
 					return self.db.profile.bindings.altbutton2.value ~= defaultButtonValues.MACRO
 				end
 			},
-			altToWatchlistPadding       = { type = "description", name = " ", width = "full", order = 20.9, },
-			watchlistHeader             = {
+			altToWatchlistPadding = { type = "description", name = " ", width = "full", order = 21.9, },
+			watchlistHeader = {
 				type = "header",
 				name = "|cff00FF7FFrame Watchlist|r",
-				order = 21,
-			},
-			watchlistDescription        = {
-				type = "description",
-				name =
-				"Add custom frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.",
 				order = 22,
 			},
-			watchlistWarning            = {
+			watchlistDescription= {
+				type = "description",
+				name = "Add custom frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.",
+				order = 31,
+			},
+			watchlistWarning= {
 				type = "description",
 				name = "\n|cffff0000Names are case sensitive. Separate them with commas.|r",
 				fontSize = "medium",
-				order = 23,
+				order = 32,
 			},
-			watchlist                   = {
+			watchlist = {
 				name = "Frame Watchlist",
-				desc =
-				"Add custom frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.\n|cff909090Use command /fstack in chat to check frame names.|r \n|cff909090Separate names with commas.|r \n|cffff0000Names are case sensitive.|r",
+				desc = "Add custom frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.\n|cff909090Use command /fstack in chat to check frame names.|r \n|cff909090Separate names with commas.|r \n|cffff0000Names are case sensitive.|r",
 				type = "input",
 				width = "full",
-				order = 24,
+				order = 33,
 				set = function(info, input)
-					table.insert(self.db.global.watchlist, value)
-				end,
+					self.db.global.watchlist = {}
+					for value in string.gmatch(input, "[^,]+") do -- Split at the ", "
+						value = value:gsub("^%s*(.-)%s*$", "%1") -- Trim spaces
+						table.insert(self.db.global.watchlist, value)
+					end
+				end,				
 				get = function(info)
 					local watchlist = self.db.global.watchlist or {}
 					return table.concat(watchlist, ", ")
 				end
 			},
-			watchlistNote               = {
+			watchlistNote= {
 				type = "description",
-				name =
-				"\n|cff909090Use command /fstack in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: AddonName + Frame. Ex: WeakAuraFrame.|r",
-				order = 25,
+				name = "\n|cff909090Use command /fstack in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: AddonName + Frame. Ex: WeakAuraFrame.|r",
+				order = 34,
 			},
-			blank13                     = { type = "description", name = " ", width = "full", order = 26, },
-			frameWatchingHeader         = {
+			blank13 = {type = "description", name = " ", width = "full", order = 35, },
+			frameWatchingHeader = {
 				type = "header",
 				name = "|cff00FF7FFrame Watching|r",
-				order = 27,
+				order = 36,
 			},
-			frameWatchingDescription    = {
+			frameWatchingDescription= {
 				type = "description",
-				name =
-				"Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc).",
-				order = 28,
+				name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+				order = 37,
 			},
-			frameWatchingWarning        = {
+			frameWatchingWarning= {
 				type = "description",
 				name = "\n|cffff0000Disabling this will also disable the Frame Watchlist.|r",
 				fontSize = "medium",
-				order = 29,
+				order = 38,
 			},
-			frameWatching               = {
+			frameWatching = {
 				type = "toggle",
 				name = "Allow Frame Watching",
-				desc =
-				"Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
-				order = 30,
+				desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+				order = 39,
 				set = function(info, value)
 					self.db.global.frameWatching = value
 					if value then
-						FrameWatching = true
+						  FrameWatching = true
 					else
-						FrameWatching = false
+							FrameWatching = false
 					end
 				end,
 				get = function(info)
 					return self.db.global.frameWatching
 				end,
 			},
-			blank14                     = { type = "description", name = " ", width = "full", order = 31, },
-			reticleTargetingHeader      = {
+			blank14 = {type = "description", name = " ", width = "full", order = 35, },
+			reticleTargetingHeader = {
 				type = "header",
 				name = "|cff00FF7FReticle Targeting|r",
-				order = 32,
+				order = 40,
 			},
-			reticleTargetingDescription = {
+			reticleTargetingDescription= {
 				type = "description",
-				name =
-				"Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable with predictable behavior.",
-				order = 33,
+				name = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable with predictable behavior.",
+				order = 41,
 			},
-			reticleTargetingWarning     = {
+			reticleTargetingWarning= {
 				type = "description",
-				name =
-				"\n|cffff0000This will override all Cvar values related to SoftTarget. Uncheck to reset them to the default values.|r",
+				name = "\n|cffff0000This will override all Cvar values related to SoftTarget. Uncheck to reset them to the default values.|r",
 				fontSize = "medium",
-				order = 34,
+				order = 42,
 			},
-			reticleTargeting            = {
+			reticleTargeting = {
 				type = "toggle",
 				name = "Activate Reticle Targeting",
-				desc =
-				"Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable w/ predictable behavior.\n|cffff0000This will override all Cvar values related to SoftTarget.|r \n|cff909090Please note that manually changing Cvars with AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
-				order = 35,
+				desc = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable w/ predictable behavior.\n|cffff0000This will override all Cvar values related to SoftTarget.|r \n|cff909090Please note that manually changing Cvars with AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
+				order = 43,
 				set = function(info, value)
 					self.db.global.reticleTargeting = value
 					if value then
-						CombatMode:loadReticleTargetCvars()
+							CombatMode:loadReticleTargetCvars()
 					else
-						CombatMode:loadDefaultCvars()
+							CombatMode:loadDefaultCvars()
 					end
 				end,
 				get = function(info)
 					return self.db.global.reticleTargeting
 				end,
 			},
-			reticleTargetingNote        = {
+			reticleTargetingNote= {
 				type = "description",
-				name =
-				"\n|cff909090Please note that manually changing Cvars w/ AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
-				order = 36,
+				name = "\n|cff909090Please note that manually changing Cvars w/ AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
+				order = 44,
 			},
 		}
 	}
 
-
+		
 	self.db = LibStub("AceDB-3.0"):New("CombatModeDB")
-	LibStub("AceConfig-3.0"):RegisterOptionsTable("Combat Mode", CombatModeOptions)
-	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Combat Mode", "Combat Mode")
-	self:RegisterChatCommand("cm", "ChatCommand")
-	self:RegisterChatCommand("combatmode", "ChatCommand")
+    LibStub("AceConfig-3.0"):RegisterOptionsTable("Combat Mode", CombatModeOptions)
+    self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Combat Mode", "Combat Mode")
+    self:RegisterChatCommand("cm", "ChatCommand")
+    self:RegisterChatCommand("combatmode", "ChatCommand")
 	self.db = LibStub("AceDB-3.0"):New("CombatModeDB", databaseDefaults, true)
+
 end
 
 function CombatMode:ChatCommand(input)
-	if not input or input:trim() == "" then
-		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
-	else
-		LibStub("AceConfigCmd-3.0"):HandleCommand("cm", "CombatMode", input)
-	end
+    if not input or input:trim() == "" then
+        InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+    else
+        LibStub("AceConfigCmd-3.0"):HandleCommand("cm", "CombatMode", input)
+    end
 end
 
 function CombatMode:OnEnable()
@@ -809,7 +805,7 @@ function CombatMode:OnEnable()
 end
 
 function CombatMode:OnDisable()
-	-- Called when the addon is disabled
+    -- Called when the addon is disabled
 end
 
 function CombatMode:BindBindingOverride(button, value, macroValue)
@@ -864,6 +860,7 @@ function CombatMode:checkForDisableState()
 	return (CombatMode:UnmouseableFrameOnScreen(FramesToCheck) or CombatMode:UnmouseableFrameOnScreen(self.db.global.watchlist) or SpellIsTargeting() or CursorActionActive)
 end
 
+
 function CombatMode:CMPrint(statement)
 	if not CombatModeQuiet then
 		print(statement)
@@ -871,7 +868,7 @@ function CombatMode:CMPrint(statement)
 end
 
 -- Start Mouselook
-function CombatMode:startMouselook()
+function CombatMode:startMouselook()	
 	if combatModeTemporaryDisable and not CombatMode:checkForDisableState() then
 		ResetCursor()
 		combatModeTemporaryDisable = false
@@ -904,6 +901,7 @@ function CombatMode:updateState()
 			mouseLookStarted = true
 		end
 	end
+	
 end
 
 function CombatMode:Toggle()
@@ -913,19 +911,19 @@ function CombatMode:Toggle()
 		CombatMode:startMouselook()
 	else
 		combatModeAddonSwitch = false
-		CombatMode:stopMouselook()
+		CombatMode:stopMouselook()		
 	end
 end
 
 function CombatModeToggleKey()
 	CombatMode:Toggle()
 	if combatModeAddonSwitch then
-		CombatMode:CMPrint("Combat Mode Enabled")
+		CombatMode:CMPrint ("Combat Mode Enabled")
 		if SmartTargetingEnabled then
 			CombatMode:SmartTarget()
 		end
 	else
-		CombatMode:CMPrint("Combat Mode Disabled")
+		CombatMode:CMPrint ("Combat Mode Disabled")
 	end
 end
 
@@ -944,13 +942,13 @@ function CombatMode:Rematch()
 	if isReticleTargetingActive then
 		CombatMode:loadReticleTargetCvars()
 	end
-	if not IsMouselooking() then
+  if not IsMouselooking() then
 		combatModeAddonSwitch = true
 		CombatMode:startMouselook()
-	elseif IsMouselooking() then
+  elseif IsMouselooking() then
 		combatModeAddonSwitch = false
 		CombatMode:stopMouselook()
-	end
+  end
 end
 
 function CombatMode_OnEvent(event, ...)
@@ -960,7 +958,7 @@ function CombatMode_OnEvent(event, ...)
 	end
 
 	if combatModeAddonSwitch then
-		if event == "PLAYER_TARGET_CHANGED" and not CombatMode:checkForDisableState() then
+		if event == "PLAYER_TARGET_CHANGED" and not CombatMode:checkForDisableState() then			
 			-- target changed		
 		end
 
@@ -982,7 +980,7 @@ function CombatMode_OnEvent(event, ...)
 			CursorActionActive = false
 			ResetCursor()
 		end
-
+		
 		if event == "QUEST_FINISHED" and CursorActionActive then
 			CombatMode:startMouselook()
 			CursorActionActive = false
@@ -1003,3 +1001,4 @@ end
 
 function CombatMode_OnLoad(self, elapsed)
 end
+
