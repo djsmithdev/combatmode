@@ -142,6 +142,7 @@ local FramesToCheck = {
 	 "SettingsPanel",
 	 "EditModeManagerFrame",
 	 "DeathRecapFrame",
+	 "AddonList",
 }
 
 -- CVARS FOR RETICLE TARGETING
