@@ -1,75 +1,109 @@
 ------------------------------------------------------------------------
-r1165 | nevcairiel | 2017-08-29 02:16:45 -0500 (Tue, 29 Aug 2017) | 1 line
+r1308 | nevcairiel | 2023-07-12 10:15:09 +0000 (Wed, 12 Jul 2023) | 1 line
 Changed paths:
+   M /trunk
    M /trunk/changelog.txt
 
 Update changelog
 ------------------------------------------------------------------------
-r1164 | nevcairiel | 2017-08-29 02:13:47 -0500 (Tue, 29 Aug 2017) | 1 line
+r1307 | funkehdude | 2023-07-12 02:24:07 +0000 (Wed, 12 Jul 2023) | 1 line
 Changed paths:
    M /trunk/Ace3.toc
 
-Update TOC for 7.3
+bump toc
 ------------------------------------------------------------------------
-r1163 | nevcairiel | 2017-08-14 09:04:39 -0500 (Mon, 14 Aug 2017) | 1 line
+r1306 | nevcairiel | 2023-06-23 14:55:09 +0000 (Fri, 23 Jun 2023) | 9 lines
 Changed paths:
-   M /trunk/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.lua
+   M /trunk
+   M /trunk/.luacheckrc
+   M /trunk/AceDB-3.0/AceDB-3.0.lua
 
-AceConfigDialog-3.0: implement fallback validation feedback in a StaticPopup (Ticket #2)
+AceDB-3.0: Add fallbacks for region names
+
+PTRs now return region 72, instead of extending the table fallback to
+GetCurrentRegionName(), and an absolute fallback if even that fails, so
+AceDB does not error out on loading.
+
+GetCurrentRegionName() could be used as the primary source, instead of
+the look-up table, however we need to confirm first that the region keys
+would remain stable.
 ------------------------------------------------------------------------
-r1162 | nevcairiel | 2017-08-14 08:49:36 -0500 (Mon, 14 Aug 2017) | 4 lines
+r1305 | funkehdude | 2023-06-21 11:59:15 +0000 (Wed, 21 Jun 2023) | 1 line
 Changed paths:
-   M /trunk/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.lua
+   M /trunk/Ace3_Wrath.toc
 
-AceConfigDialog-3.0: refactor validation handling
-
-This simplifies the code so validation is only shown in one place.
-Based on a patch by rainraider, part of Ticket #2
+bump wrath toc
 ------------------------------------------------------------------------
-r1161 | funkydude | 2017-08-12 09:30:16 -0500 (Sat, 12 Aug 2017) | 1 line
+r1304 | nevcairiel | 2023-05-19 19:50:10 +0000 (Fri, 19 May 2023) | 1 line
 Changed paths:
-   M /trunk/AceComm-3.0/AceComm-3.0.lua
-   M /trunk/AceConfig-3.0/AceConfig-3.0.lua
-   M /trunk/AceConfig-3.0/AceConfigCmd-3.0/AceConfigCmd-3.0.lua
+   M /trunk
+   M /trunk/AceDBOptions-3.0/AceDBOptions-3.0.lua
+
+AceDBOptions-3.0: Minor locale fixes for russian
+------------------------------------------------------------------------
+r1303 | nevcairiel | 2023-05-16 15:05:10 +0000 (Tue, 16 May 2023) | 3 lines
+Changed paths:
+   M /trunk
+   M /trunk/AceDBOptions-3.0/AceDBOptions-3.0.lua
+
+AceDBOptions-3.0: Update locale strings
+
+Fixes WoWAce #629
+------------------------------------------------------------------------
+r1302 | nevcairiel | 2023-05-03 07:00:09 +0000 (Wed, 03 May 2023) | 1 line
+Changed paths:
+   M /trunk
+   M /trunk/Ace3.toc
+
+Update TOC for 10.1
+------------------------------------------------------------------------
+r1301 | funkehdude | 2023-03-22 02:53:32 +0000 (Wed, 22 Mar 2023) | 1 line
+Changed paths:
+   M /trunk/Ace3.toc
+
+bump toc
+------------------------------------------------------------------------
+r1300 | funkehdude | 2023-01-28 00:06:37 +0000 (Sat, 28 Jan 2023) | 1 line
+Changed paths:
+   M /trunk/Ace3.toc
+
+bump toc
+------------------------------------------------------------------------
+r1299 | funkehdude | 2023-01-22 03:36:39 +0000 (Sun, 22 Jan 2023) | 1 line
+Changed paths:
+   M /trunk/Ace3_Wrath.toc
+
+bump toc
+------------------------------------------------------------------------
+r1298 | nevcairiel | 2022-12-12 15:10:10 +0000 (Mon, 12 Dec 2022) | 1 line
+Changed paths:
+   M /trunk
+   M /trunk/.luacheckrc
+   M /trunk/CallbackHandler-1.0/CallbackHandler-1.0.lua
+
+Update CallbackHandler to rev 8
+------------------------------------------------------------------------
+r1297 | funkehdude | 2022-11-15 01:19:09 +0000 (Tue, 15 Nov 2022) | 1 line
+Changed paths:
+   M /trunk/Ace3.toc
+
+bump toc
+------------------------------------------------------------------------
+r1296 | nevcairiel | 2022-11-04 18:50:10 +0000 (Fri, 04 Nov 2022) | 4 lines
+Changed paths:
+   M /trunk
    M /trunk/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.lua
    M /trunk/AceConfig-3.0/AceConfigRegistry-3.0/AceConfigRegistry-3.0.lua
-   M /trunk/AceEvent-3.0/AceEvent-3.0.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-Frame.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-TabGroup.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-Window.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-Button.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-CheckBox.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-DropDown-Items.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-DropDown.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-EditBox.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-Slider.lua
 
-Bump minor versions where required (As affected by PlaySound changes, or by loading order problem)
+AceConfigDialog-3.0: Add support for displaying items on hover in GameTooltip
+
+This adds a new element to the config table, "tooltipHyperlink", which
+will be used to fill the tooltip when hovering over the element.
 ------------------------------------------------------------------------
-r1160 | funkydude | 2017-08-12 00:21:06 -0500 (Sat, 12 Aug 2017) | 1 line
+r1295 | funkehdude | 2022-10-26 01:18:39 +0000 (Wed, 26 Oct 2022) | 1 line
 Changed paths:
-   M /trunk/AceComm-3.0/AceComm-3.0.lua
-   M /trunk/AceConfig-3.0/AceConfig-3.0.lua
-   M /trunk/AceConfig-3.0/AceConfigCmd-3.0/AceConfigCmd-3.0.lua
-   M /trunk/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.lua
-   M /trunk/AceConfig-3.0/AceConfigRegistry-3.0/AceConfigRegistry-3.0.lua
-   M /trunk/AceEvent-3.0/AceEvent-3.0.lua
+   M /trunk/Ace3.toc
 
-If we are loading a library that depends on a separate library, we need to verify that separate library exists prior to telling LibStub to create our library. This resolves addons with broken library setups affecting addons with working library setups.
-------------------------------------------------------------------------
-r1159 | funkydude | 2017-06-28 21:45:04 -0500 (Wed, 28 Jun 2017) | 1 line
-Changed paths:
-   M /trunk/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-Frame.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-TabGroup.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIContainer-Window.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-Button.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-CheckBox.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-DropDown-Items.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-DropDown.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-EditBox.lua
-   M /trunk/AceGUI-3.0/widgets/AceGUIWidget-Slider.lua
-
-Update PlaySound usage to work with patch 7.3 PTR, sounds were all audibly verified to be matching.
+bump toc
 ------------------------------------------------------------------------
 

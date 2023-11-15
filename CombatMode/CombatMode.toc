@@ -1,8 +1,10 @@
-## Interface: 10002
+## Interface: 100200
 ## Title: Combat Mode
-## Version: 1.8.0
-## Author: justice7ca
-## Notes: Combat Mode
+## Title: |cffff0000Combat|r |cff69ccf0Mode|r
+## Version: 1.9.0
+## Author: justice7ca w/ contributions from DKulan and sampconrad.
+## Notes: Adds Action Combat - free look, reticle targeting, ability cating w/ mouse clicks - to the game for a more dynamic combat experience.
+## IconTexture: Interface\ICONS\Pet_Type_Elemental
 ## DefaultState: enabled
 ## X-Category: Misc
 ## LoadOnDemand: 0
