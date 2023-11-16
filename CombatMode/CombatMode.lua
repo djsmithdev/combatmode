@@ -916,8 +916,8 @@ function CombatMode:InitializeWildcardFrameTracking(frameArr)
 		for frameName in pairs(_G) do
 			if string.match(frameName, frameNameToFind) then
 				CombatMode:print("Matched " .. frameNameToFind .. " to frame " .. frameName)
-				local tes = wildcardFramesToCheck[frameNameToFind]
-				wildcardFramesToCheck[frameNameToFind][#tes+1] = frameName
+				local frameGroup = wildcardFramesToCheck[frameNameToFind]
+				frameGroup[#frameGroup+1] = frameName
 			end
 		end
 	end
