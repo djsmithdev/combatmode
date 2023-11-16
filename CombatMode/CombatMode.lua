@@ -188,35 +188,33 @@ local defaultButtonValues = {
 	MACRO = "MACRO"
 }
 
-local macroFieldDescription = "Enter the name of the macro you wish to be ran here"
+local macroFieldDescription = "Enter the name of the macro you wish to be ran here."
 
 -- CVARS FOR RETICLE TARGETING
+-- !! DO NOT CHANGE !!
 function CombatMode:loadReticleTargetCvars()
-  -- -- interact
+	-- general
+	SetCVar("SoftTargetForce", 1) -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
+	SetCVar("SoftTargetMatchLocked", 1) -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
+	SetCVar("SoftTargetWithLocked", 2) -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
+	SetCVar("SoftTargetNameplateEnemy", 1)
+	SetCVar("SoftTargetNameplateInteract", 0)
+  -- interact
   SetCVar("SoftTargetInteract", 3) -- 3 = always on
   SetCVar("SoftTargetInteractArc", 1)
   SetCVar("SoftTargetInteractRange", 15)
-  SetCVar("SoftTargetIconInteract", 1)
-  SetCVar("SoftTargetIconGameObject", 1)
-  
-  -- -- friendly target
+	SetCVar("SoftTargetIconInteract", 1)
+	SetCVar("SoftTargetIconGameObject", 1)
+  -- friendly target
   SetCVar("SoftTargetFriend", 3)
   SetCVar("SoftTargetFriendArc", 1)
   SetCVar("SoftTargetFriendRange", 15)
-  SetCVar("SoftTargetIconFriend", 1)
-
-  -- -- enemy target
+	SetCVar("SoftTargetIconFriend", 0)
+  -- enemy target
   SetCVar("SoftTargetEnemy", 3)
   SetCVar("SoftTargetEnemyArc", 0) -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
   SetCVar("SoftTargetEnemyRange", 60)
-  SetCVar("SoftTargetIconEnemy", 0)
-
-  -- -- general
-  SetCVar("SoftTargetForce", 1) -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
-  SetCVar("SoftTargetMatchLocked", 1) -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
-  SetCVar("SoftTargetWithLocked", 2) -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
-  SetCVar("SoftTargetNameplateEnemy", 1)
-  SetCVar("SoftTargetNameplateInteract", 0)
+	SetCVar("SoftTargetIconEnemy", 0)
 
   -- print("Combat Mode: Reticle Target CVars LOADED")
 end
@@ -224,30 +222,28 @@ end
 -- DEFAULT BLIZZARD VALUES
 -- !! DO NOT CHANGE !!
 function CombatMode:loadDefaultCvars()
-  -- -- interact
+  -- general
+  SetCVar("SoftTargetForce", 1)
+  SetCVar("SoftTargetMatchLocked", 1)
+	SetCVar("SoftTargetWithLocked", 1)
+  SetCVar("SoftTargetNameplateEnemy", 1)
+  SetCVar("SoftTargetNameplateInteract", 0)
+  -- interact
   SetCVar("SoftTargetInteract", 1)
   SetCVar("SoftTargetInteractArc", 0)
   SetCVar("SoftTargetInteractRange", 10)
-  SetCVar("SoftTargetIconInteract", 1)
-  SetCVar("SoftTargetIconGameObject", 0)
-  
-  -- -- friendly target
+	SetCVar("SoftTargetIconInteract", 1)
+	SetCVar("SoftTargetIconGameObject", 0)
+  -- friendly target
   SetCVar("SoftTargetFriend", 0)
   SetCVar("SoftTargetFriendArc", 2)
   SetCVar("SoftTargetFriendRange", 45)
-  SetCVar("SoftTargetIconFriend", 0)
-
-  -- -- enemy target
+	SetCVar("SoftTargetIconFriend", 0)
+  -- enemy target
   SetCVar("SoftTargetEnemy", 1)
   SetCVar("SoftTargetEnemyArc", 2)
   SetCVar("SoftTargetEnemyRange", 45)
-  SetCVar("SoftTargetIconEnemy", 0)
-
-  -- -- general
-  SetCVar("SoftTargetForce", 1)
-  SetCVar("SoftTargetMatchLocked", 1)
-  SetCVar("SoftTargetNameplateEnemy", 1)
-  SetCVar("SoftTargetNameplateInteract", 0)
+	SetCVar("SoftTargetIconEnemy", 0)
 
   -- print("Combat Mode: Reticle Target CVars RESET")
 end
@@ -327,16 +323,71 @@ function CombatMode:OnInitialize()
 	}
 
 	CombatModeOptions = { 
-		name = "Combat Mode Settings",
+		name = "|cffff0000Combat Mode|r",
 		handler = CombatMode,
 		type = "group",
 		args = {
+			-- ABOUT
+			aboutHeader = {
+				type = "header",
+				name = "|cffffffffABOUT|r",
+				order = 0,
+			},
+			aboutHeaderPaddingBottom = {type = "description", name = " ", width = "full", order = 0.1, },
+			aboutDescription = {
+				type = "description",
+				name = "Combat Mode adds Action Combat to World of Warcraft for a more dynamic combat experience.",
+				order = 1,
+				fontSize = "medium",
+			},
+			aboutDescriptionPaddingBottom = {type = "description", name = " ", width = "full", order = 1.1, },
+			featuresHeader = {
+				type = "description",
+				name = "|cffffd700Features:|r",
+				order = 2,
+				fontSize = "medium",
+			},
+			featuresList = {
+				type = "description",
+				name = "|cff909090• Free Look - Move your camera without having to perpetually hold right mouse button.|r \n|cff909090• Reticle Targeting - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them.|r \n|cff909090• Ability casting w/ mouse click - When Combat Mode is enabled, frees your left and right mouse click so you can cast abilities with them.|r \n|cff909090• Automatically toggles Free Look when opening interface panels like bags, map, character panel, etc.|r \n|cff909090• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection.|r",
+				order = 3,
+				fontSize = "small",
+			},
+			featuresListPaddingBottom = {type = "description", name = " ", width = "full", order = 3.1, },
+			curse = {
+				name = "Download From:",
+				desc = "curseforge.com/wow/addons/combat-mode",
+				type = "input",
+				width = 2,
+				order = 4,
+				get = function()
+					return "curseforge.com/wow/addons/combat-mode"
+				end,
+			},
+			gitDiscordSpacing = { type = "description", name = " ", width = 0.25, order = 4.1, },
+			discord = {
+				name = "Feedback & Support:",
+				desc = "discord.gg/5mwBSmz",
+				type = "input",
+				width = 1.1,
+				order = 5,
+				get = function()
+					return "discord.gg/5mwBSmz"
+				end,
+			},
+			-- CONFIGURATION
+			configurationHeaderPaddingTop = {type = "description", name = " ", width = "full", order = 5.1, },
+			configurationHeader = {
+				type = "header",
+				name = "|cffffffffCONFIGURATION|r",
+				order = 6,
+			},
 			-- FREELOOK CAMERA
 			freeLookCameraGroup = {
 				type = "group",
 				name = " ",
 				inline = true,
-				order = 1,
+				order = 7,
 				args = {
 					freelookKeybindHeader = {
 						type = "header",
@@ -388,7 +439,7 @@ function CombatMode:OnInitialize()
 				type = "group",
 				name = " ",
 				inline = true,
-				order = 2,
+				order = 8,
 				args = {
 					keybindHeader = {
 						type = "header",
@@ -700,7 +751,7 @@ function CombatMode:OnInitialize()
 			watchlistGroup = {
 				type = "group",
 				name = " ",
-				order = 3,
+				order = 9,
 				inline = true,
 				args = {
 					frameWatchingHeader = {
@@ -780,7 +831,7 @@ function CombatMode:OnInitialize()
 			reticleTargetingGroup = {
 				type = "group",
 				name = " ",
-				order = 4,
+				order = 10,
 				inline = true,
 				args = {
 					reticleTargetingHeader = {
