@@ -1,7 +1,7 @@
 ## Interface: 100200
 ## Title: Combat Mode
 ## Title: |cffff0000Combat Mode|r
-## Version: 1.9.1
+## Version: 1.9.2
 ## Author: justice7ca w/ contributions from DKulan, sampconrad, and ThomasDigio.
 ## Notes: Adds Action Combat - free look, reticle targeting, ability cating w/ mouse clicks - to the game for a more dynamic combat experience.
 ## IconTexture: Interface\AddOns\CombatMode\assets\logo-64
