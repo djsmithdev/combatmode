@@ -331,445 +331,499 @@ function CombatMode:OnInitialize()
 		handler = CombatMode,
 		type = "group",
 		args = {
-			freelookkeybindHeader = {
-				type = "header",
-				name = "|cff00FF7FFree Look Camera|r",
-				order = 0,
-			},
-			freelookKeybindDescription= {
-				type = "description",
-				name = "Set keybinds for the Free Look camera. You can use Toggle and Press & Hold together by binding them to separate keys.",
+			-- FREELOOK CAMERA
+			freeLookCameraGroup = {
+				type = "group",
+				name = " ",
+				inline = true,
 				order = 1,
+				args = {
+					freelookKeybindHeader = {
+						type = "header",
+						name = "|cffE52B50Free Look Camera|r",
+						order = 1,
+					},
+					freelookKeybindHeaderPaddingBottom = {type = "description", name = " ", width = "full", order = 1.1, },
+					freelookKeybindDescription= {
+						type = "description",
+						name = "Set keybinds for the Free Look camera. You can use Toggle and Press & Hold together by binding them to separate keys.",
+						order = 2,
+					},
+					freelookKeybindDescriptionBottomPadding = {type = "description", name = " ", width = "full", order = 2.1, },
+					toggleLeftPadding = {type = "description", name = " ", width = 0.5, order = 2.2, },
+					toggle = {
+						type = "keybinding",
+						name = "|cffffd700Toggle|r",
+						desc = "Toggles the Free Look camera ON or OFF.",
+						width = 1,
+						order = 3,
+						set = function(info, key)
+							local oldKey = (GetBindingKey("Combat Mode Toggle"))
+							if oldKey then SetBinding(oldKey) end
+							SetBinding(key, "Combat Mode Toggle")
+							SaveBindings(GetCurrentBindingSet())
+						end,
+						get = function(info) return (GetBindingKey("Combat Mode Toggle")) end,
+					},
+					holdLeftPadding = {type = "description", name = " ", width = 0.5, order = 3.1, },
+					hold  = {
+						type = "keybinding",
+						name = "|cffffd700Press & Hold|r",
+						desc = "Hold to temporarily deactivate the Free Look camera.",
+						width = 1,
+						order = 4,
+						set = function(info, key)
+										local oldKey = (GetBindingKey("(Hold) Switch Mode"))
+										if oldKey then SetBinding(oldKey) end
+										SetBinding(key, "(Hold) Switch Mode")
+										SaveBindings(GetCurrentBindingSet())
+									end,
+						get = function(info) return (GetBindingKey("(Hold) Switch Mode")) end,
+					},
+					holdBottomPadding = {type = "description", name = " ", width = "full", order = 4.1, },
+				},
 			},
-			blank1 = {type = "description", name = " ", width = "full", order = 2, },
-			toggle = {
-				type = "keybinding",
-				name = "|cff69ccf0Toggle|r",
-				desc = "Toggles the Free Look camera ON or OFF.",
-				width = 1.5,
-				set = function(info, key)
-					local oldKey = (GetBindingKey("Combat Mode Toggle"))
-					if oldKey then SetBinding(oldKey) end
-					SetBinding(key, "Combat Mode Toggle")
-					SaveBindings(GetCurrentBindingSet())
-				end,
-	get = function(info) return (GetBindingKey("Combat Mode Toggle")) end,
+			-- MOUSE BUTTON
+			mouseButtonGroup = {
+				type = "group",
+				name = " ",
+				inline = true,
+				order = 2,
+				args = {
+					keybindHeader = {
+						type = "header",
+						name = "|cffB47EDEMouse Button Keybinds|r",
+						order = 1,
+					},
+					keybindHeaderPaddingBottom = {type = "description", name = " ", width = "full", order = 1.1, },
+					keybindDescription= {
+						type = "description",
+						name = "Select which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.",
+						order = 2,
+					},
+					keybindNote= {
+						type = "description",
+						name = "\n|cff909090To use a macro when clicking, select |cff69ccf0MACRO|r as the action and then type the exact name of the macro you'd like to cast.|r",
+						order = 3,
+					},
+					keybindDescriptionBottomPadding = {type = "description", name = " ", width = "full", order = 3.1, },
+					-- BASE CLICK GROUP
+					unmodifiedGroup = {
+						type = "group",
+						name = "|cff97a2ffBase Clicks|r",
+						inline = true,
+						order = 4,
+						args = {
+							button1 = {
+								name = "Left Click",
+								desc = "Left Click",
+								type = "select",
+								width = 1.5,
+								order = 1,
+								values = defaultButtonValues,
+								set = function(info, value)
+									self.db.profile.bindings.button1.value = value
+								end,
+								get = function()
+									return self.db.profile.bindings.button1.value
+								end
+							},
+							button1SidePadding = { type = "description", name = " ", width = 0.2, order = 1.1, },
+							button1macro = {
+								name = "Left Click Macro",
+								desc = macroFieldDescription,
+								type = "input",
+								width = 1.5,
+								order = 2,
+								set = function(info, value)
+									self.db.profile.bindings.button1macro = value
+								end,
+								get = function()
+									return self.db.profile.bindings.button1macro
+								end,
+								disabled = function()
+									return self.db.profile.bindings.button1.value ~= defaultButtonValues.MACRO
+								end
+							},
+							button2 = {
+								name = "Right Click",
+								desc = "Right Click",
+								type = "select",
+								width = 1.5,
+								order = 3,
+								values = defaultButtonValues,
+								set = function(info, value)
+									self.db.profile.bindings.button2.value = value
+								end,
+								get = function()
+									return self.db.profile.bindings.button2.value
+								end
+							},
+							button2SidePadding = { type = "description", name = " ", width = 0.2, order = 3.1, },
+							button2macro = {
+								name = "Right Click Macro",
+								desc = macroFieldDescription,
+								type = "input",
+								width = 1.5,
+								order = 4,
+								set = function(info, value)
+									self.db.profile.bindings.button2macro = value
+								end,
+								get = function()
+									return self.db.profile.bindings.button2macro
+								end,
+								disabled = function()
+									return self.db.profile.bindings.button2.value ~= defaultButtonValues.MACRO
+								end
+							},
+						},
+					},
+					unmodifiedGroupBottomPadding = { type = "description", name = " ", width = "full", order = 4.1, },
+					-- SHIFT CLICK GROUP
+					shiftGroup = {
+						type = "group",
+						name = "|cff97a2ffShift-modified Clicks|r",
+						inline = true,
+						order = 5,
+						args = {
+							shiftbutton1 = {
+								name = "Shift + Left Click",
+								desc = "Shift + Left Click",
+								type = "select",
+								width = 1.5,
+								order = 1,
+								values = defaultButtonValues,
+								set = function(info, value)
+									self.db.profile.bindings.shiftbutton1.value = value
+								end,
+								get = function()
+									return self.db.profile.bindings.shiftbutton1.value
+								end
+							},
+							shiftbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 1.1, },
+							shiftbutton1macro = {
+								name = "Shift + Left Click Macro",
+								desc = macroFieldDescription,
+								type = "input",
+								width = 1.5,
+								order = 2,
+								set = function(info, value)
+									self.db.profile.bindings.shiftbutton1macro = value
+								end,
+								get = function()
+									return self.db.profile.bindings.shiftbutton1macro
+								end,
+								disabled = function()
+									return self.db.profile.bindings.shiftbutton1.value ~= defaultButtonValues.MACRO
+								end
+							},
+							shiftbutton2 = {
+								name = "Shift + Right Click",
+								desc = "Shift + Right Click",
+								type = "select",
+								width = 1.5,
+								order = 3,
+								values = defaultButtonValues,
+								set = function(info, value)
+									self.db.profile.bindings.shiftbutton2.value = value
+								end,
+								get = function()
+									return self.db.profile.bindings.shiftbutton2.value
+								end
+							},
+							shiftbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 3.1, },
+							shiftbutton2macro = {
+								name = "Shift + Right Click Macro",
+								desc = macroFieldDescription,
+								type = "input",
+								width = 1.5,
+								order = 4,
+								set = function(info, value)
+									self.db.profile.bindings.shiftbutton2macro = value
+								end,
+								get = function()
+									return self.db.profile.bindings.shiftbutton2macro
+								end,
+								disabled = function()
+									return self.db.profile.bindings.shiftbutton2.value ~= defaultButtonValues.MACRO
+								end
+							},
+						},
+					},
+					shiftGroupBottomPadding = { type = "description", name = " ", width = "full", order = 5.1, },
+					-- CTRL CLICK GROUP
+					ctrlGroup = {
+						type = "group",
+						name = "|cff97a2ffCTRL-modified Clicks|r",
+						inline = true,
+						order = 6,
+						args = {
+							ctrlbutton1 = {
+								name = "Control + Left Click",
+								desc = "Control + Left Click",
+								type = "select",
+								width = 1.5,
+								order = 1,
+								values = defaultButtonValues,
+								set = function(info, value)
+									self.db.profile.bindings.ctrlbutton1.value = value
+								end,
+								get = function()
+									return self.db.profile.bindings.ctrlbutton1.value
+								end
+							},
+							ctrlbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 1.1, },
+							ctrlbutton1macro = {
+								name = "Control + Left Click Macro",
+								desc = macroFieldDescription,
+								type = "input",
+								width = 1.5,
+								order = 2,
+								set = function(info, value)
+									self.db.profile.bindings.ctrlbutton1macro = value
+								end,
+								get = function()
+									return self.db.profile.bindings.ctrlbutton1macro
+								end,
+								disabled = function()
+									return self.db.profile.bindings.ctrlbutton1.value ~= defaultButtonValues.MACRO
+								end
+							},
+							ctrlbutton2 = {
+								name = "Control + Right Click",
+								desc = "Control + Right Click",
+								type = "select",
+								width = 1.5,
+								order = 3,
+								values = defaultButtonValues,
+								set = function(info, value)
+									self.db.profile.bindings.ctrlbutton2.value = value
+								end,
+								get = function()
+									return self.db.profile.bindings.ctrlbutton2.value
+								end
+							},
+							ctrlbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 3.1, },
+							ctrlbutton2macro = {
+								name = "Control + Right Click Macro",
+								desc = macroFieldDescription,
+								type = "input",
+								width = 1.5,
+								order = 4,
+								set = function(info, value)
+									self.db.profile.bindings.ctrlbutton2macro = value
+								end,
+								get = function()
+									return self.db.profile.bindings.ctrlbutton2macro
+								end,
+								disabled = function()
+									return self.db.profile.bindings.ctrlbutton2.value ~= defaultButtonValues.MACRO
+								end
+							},
+						},
+					},
+					ctrlGroupBottomPadding = { type = "description", name = " ", width = "full", order = 6.1, },
+					-- ALT CLICK GROUP
+					altGroup = {
+						type = "group",
+						name = "|cff97a2ffALT-modified Clicks|r",
+						inline = true,
+						order = 7,
+						args = {
+							altbutton1 = {
+								name = "Alt + Left Click",
+								desc = "Alt + Left Click",
+								type = "select",
+								width = 1.5,
+								order = 1,
+								values = defaultButtonValues,
+								set = function(info, value)
+									self.db.profile.bindings.altbutton1.value = value
+								end,
+								get = function()
+									return self.db.profile.bindings.altbutton1.value
+								end
+							},
+							altbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 1.1, },
+							altbutton1macro = {
+								name = "Alt + Left Click Macro",
+								desc = macroFieldDescription,
+								type = "input",
+								width = 1.5,
+								order = 2,
+								set = function(info, value)
+									self.db.profile.bindings.altbutton1macro = value
+								end,
+								get = function()
+									return self.db.profile.bindings.altbutton1macro
+								end,
+								disabled = function()
+									return self.db.profile.bindings.altbutton1.value ~= defaultButtonValues.MACRO
+								end
+							},
+							altbutton2 = {
+								name = "Alt + Right Click",
+								desc = "Alt + Right Click",
+								type = "select",
+								width = 1.5,
+								order = 3,
+								values = defaultButtonValues,
+								set = function(info, value)
+									self.db.profile.bindings.altbutton2.value = value
+								end,
+								get = function()
+									return self.db.profile.bindings.altbutton2.value
+								end
+							},
+							altbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 3.1, },
+							altbutton2macro = {
+								name = "Alt + Right Click Macro",
+								desc = macroFieldDescription,
+								type = "input",
+								width = 1.5,
+								order = 4,
+								set = function(info, value)
+									self.db.profile.bindings.altbutton2macro = value
+								end,
+								get = function()
+									return self.db.profile.bindings.altbutton2macro
+								end,
+								disabled = function()
+									return self.db.profile.bindings.altbutton2.value ~= defaultButtonValues.MACRO
+								end
+							},
+						},
+					},					
+				},
+			},
+			-- WATCHLIST
+			watchlistGroup = {
+				type = "group",
+				name = " ",
 				order = 3,
+				inline = true,
+				args = {
+					frameWatchingHeader = {
+						type = "header",
+						name = "|cff00FF7FCursor Unlock|r",
+						order = 1,
+					},
+					frameWatchingHeaderPaddingBottom = {type = "description", name = " ", width = "full", order = 1.1, },
+					frameWatchingDescription= {
+						type = "description",
+						name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+						order = 2,
+					},
+					frameWatchingWarning= {
+						type = "description",
+						name = "\n|cffff0000Disabling this will also disable the Frame Watchlist.|r",
+						fontSize = "medium",
+						order = 3,
+					},
+					frameWatching = {
+						type = "toggle",
+						name = "Enable Cursor Unlock",
+						desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+						order = 4,
+						set = function(info, value)
+							self.db.global.frameWatching = value
+							if value then
+									FrameWatching = true
+							else
+									FrameWatching = false
+							end
+						end,
+						get = function(info)
+							return self.db.global.frameWatching
+						end,
+					},
+					frameWatchingHeaderPaddingTop = {type = "description", name = " ", width = "full", order = 4.1, },
+					-- WATCHLIST INPUT
+					watchlistInputGroup = {
+						type = "group",
+						name = "|cff69ccf0Frame Watchlist|r",
+						order = 5,	
+						args = {
+							watchlistDescription= {
+								type = "description",
+								name = "Additional frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.",
+								order = 1,
+							},
+							watchlist = {
+								name = "Frame Watchlist",
+								desc = "Use command |cff69ccf0/fstack|r in chat to check frame names. \n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
+								type = "input",
+								width = "full",
+								order = 2,
+								set = function(info, input)
+									self.db.global.watchlist = {}
+									for value in string.gmatch(input, "[^,]+") do -- Split at the ", "
+										value = value:gsub("^%s*(.-)%s*$", "%1") -- Trim spaces
+										table.insert(self.db.global.watchlist, value)
+									end
+								end,				
+								get = function(info)
+									local watchlist = self.db.global.watchlist or {}
+									return table.concat(watchlist, ", ")
+								end
+							},
+							watchlistNote= {
+								type = "description",
+								name = "\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: AddonName + Frame. Ex: WeakAurasFrame.|r",
+								order = 3,
+							},
+						},
+					},
+				},
 			},
-			blank2 = {type = "description", name = " ", width = 0.2, order = 4, },
-			hold  = {
-				type = "keybinding",
-				name = "|cff69ccf0Press & Hold|r",
-				desc = "Hold to temporarily deactivate the Free Look camera.",
-				width = 1.5,
-				set = function(info, key)
-								local oldKey = (GetBindingKey("(Hold) Switch Mode"))
-								if oldKey then SetBinding(oldKey) end
-								SetBinding(key, "(Hold) Switch Mode")
-								SaveBindings(GetCurrentBindingSet())
-							end,
-				get = function(info) return (GetBindingKey("(Hold) Switch Mode")) end,
-				order = 5,
-			},
-			blank3 = {type = "description", name = " ", width = "full", order = 6, },
-			keybindHeader = {
-				type = "header",
-				name = "|cff00FF7FMouse Button Keybinds|r",
-				order = 7,
-			},
-			keybindDescription= {
-				type = "description",
-				name = "Select which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.",
-				order = 8,
-			},
-			blank4 = {type = "description", name = " ", width = "full", order = 9, },
-			unmodifiedDescription= {
-				type = "description",
-				name = "|cff69ccf0Unmodified Base Clicks|r",
-				order = 10,
-				fontSize = "medium",
-			},
-			button1 = {
-				name = "Left Click",
-				desc = "Left Click",
-				type = "select",
-				width = 1.5,
-				order = 11,
-				values = defaultButtonValues,
-				set = function(info, value)
-					self.db.profile.bindings.button1.value = value
-				end,
-				get = function()
-					return self.db.profile.bindings.button1.value
-				end
-			},
-			button1SidePadding = { type = "description", name = " ", width = 0.2, order = 11.1, },
-			button1macro = {
-				name = "Left Click Macro",
-				desc = macroFieldDescription,
-				type = "input",
-				width = 1.5,
-				order = 11.2,
-				set = function(info, value)
-					self.db.profile.bindings.button1macro = value
-				end,
-				get = function()
-					return self.db.profile.bindings.button1macro
-				end,
-				disabled = function()
-					return self.db.profile.bindings.button1.value ~= defaultButtonValues.MACRO
-				end
-			},
-			button2 = {
-				name = "Right Click",
-				desc = "Right Click",
-				type = "select",
-				width = 1.5,
-				order = 12,
-				values = defaultButtonValues,
-				set = function(info, value)
-					self.db.profile.bindings.button2.value = value
-				end,
-				get = function()
-					return self.db.profile.bindings.button2.value
-				end
-			},
-			button2SidePadding = { type = "description", name = " ", width = 0.2, order = 12.1, },
-			button2macro = {
-				name = "Right Click Macro",
-				desc = macroFieldDescription,
-				type = "input",
-				width = 1.5,
-				order = 12.2,
-				set = function(info, value)
-					self.db.profile.bindings.button2macro = value
-				end,
-				get = function()
-					return self.db.profile.bindings.button2macro
-				end,
-				disabled = function()
-					return self.db.profile.bindings.button2.value ~= defaultButtonValues.MACRO
-				end
-			},
-			unmodifiedToShiftPadding = { type = "description", name = " ", width = "full", order = 12.9, },
-			shiftDescription = {
-				type = "description",
-				name = "|cff69ccf0Shift-modified Clicks|r",
-				order = 13,
-				fontSize = "medium",
-			},
-			shiftbutton1 = {
-				name = "Shift + Left Click",
-				desc = "Shift + Left Click",
-				type = "select",
-				width = 1.5,
-				order = 14,
-				values = defaultButtonValues,
-				set = function(info, value)
-					self.db.profile.bindings.shiftbutton1.value = value
-				end,
-				get = function()
-					return self.db.profile.bindings.shiftbutton1.value
-				end
-			},
-			shiftbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 14.1, },
-			shiftbutton1macro = {
-				name = "Shift + Left Click Macro",
-				desc = macroFieldDescription,
-				type = "input",
-				width = 1.5,
-				order = 14.2,
-				set = function(info, value)
-					self.db.profile.bindings.shiftbutton1macro = value
-				end,
-				get = function()
-					return self.db.profile.bindings.shiftbutton1macro
-				end,
-				disabled = function()
-					return self.db.profile.bindings.shiftbutton1.value ~= defaultButtonValues.MACRO
-				end
-			},
-			shiftbutton2 = {
-				name = "Shift + Right Click",
-				desc = "Shift + Right Click",
-				type = "select",
-				width = 1.5,
-				order = 15,
-				values = defaultButtonValues,
-				set = function(info, value)
-					self.db.profile.bindings.shiftbutton2.value = value
-				end,
-				get = function()
-					return self.db.profile.bindings.shiftbutton2.value
-				end
-			},
-			shiftbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 15.1, },
-			shiftbutton2macro = {
-				name = "Shift + Right Click Macro",
-				desc = macroFieldDescription,
-				type = "input",
-				width = 1.5,
-				order = 15.2,
-				set = function(info, value)
-					self.db.profile.bindings.shiftbutton2macro = value
-				end,
-				get = function()
-					return self.db.profile.bindings.shiftbutton2macro
-				end,
-				disabled = function()
-					return self.db.profile.bindings.shiftbutton2.value ~= defaultButtonValues.MACRO
-				end
-			},
-			shiftToCtrlPadding = { type = "description", name = " ", width = "full", order = 15.9, },
-			ctrlDescription = {
-				type = "description",
-				name = "|cff69ccf0CTRL-modified Clicks|r",
-				order = 16,
-				fontSize = "medium",
-			},
-			ctrlbutton1 = {
-				name = "Control + Left Click",
-				desc = "Control + Left Click",
-				type = "select",
-				width = 1.5,
-				order = 17,
-				values = defaultButtonValues,
-				set = function(info, value)
-					self.db.profile.bindings.ctrlbutton1.value = value
-				end,
-				get = function()
-					return self.db.profile.bindings.ctrlbutton1.value
-				end
-			},
-			ctrlbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 17.1, },
-			ctrlbutton1macro = {
-				name = "Control + Left Click Macro",
-				desc = macroFieldDescription,
-				type = "input",
-				width = 1.5,
-				order = 17.2,
-				set = function(info, value)
-					self.db.profile.bindings.ctrlbutton1macro = value
-				end,
-				get = function()
-					return self.db.profile.bindings.ctrlbutton1macro
-				end,
-				disabled = function()
-					return self.db.profile.bindings.ctrlbutton1.value ~= defaultButtonValues.MACRO
-				end
-			},
-			ctrlbutton2 = {
-				name = "Control + Right Click",
-				desc = "Control + Right Click",
-				type = "select",
-				width = 1.5,
-				order = 18,
-				values = defaultButtonValues,
-				set = function(info, value)
-					self.db.profile.bindings.ctrlbutton2.value = value
-				end,
-				get = function()
-					return self.db.profile.bindings.ctrlbutton2.value
-				end
-			},
-			ctrlbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 18.1, },
-			ctrlbutton2macro = {
-				name = "Control + Right Click Macro",
-				desc = macroFieldDescription,
-				type = "input",
-				width = 1.5,
-				order = 18.2,
-				set = function(info, value)
-					self.db.profile.bindings.ctrlbutton2macro = value
-				end,
-				get = function()
-					return self.db.profile.bindings.ctrlbutton2macro
-				end,
-				disabled = function()
-					return self.db.profile.bindings.ctrlbutton2.value ~= defaultButtonValues.MACRO
-				end
-			},
-			ctrlToAltPadding = { type = "description", name = " ", width = "full", order = 18.9, },
-			altDescription = {
-				type = "description",
-				name = "|cff69ccf0ALT-modified Clicks|r",
-				order = 19,
-				fontSize = "medium",
-			},
-			altbutton1 = {
-				name = "Alt + Left Click",
-				desc = "Alt + Left Click",
-				type = "select",
-				width = 1.5,
-				order = 20,
-				values = defaultButtonValues,
-				set = function(info, value)
-					self.db.profile.bindings.altbutton1.value = value
-				end,
-				get = function()
-					return self.db.profile.bindings.altbutton1.value
-				end
-			},
-			altbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 20.1, },
-			altbutton1macro = {
-				name = "Alt + Left Click Macro",
-				desc = macroFieldDescription,
-				type = "input",
-				width = 1.5,
-				order = 20.2,
-				set = function(info, value)
-					self.db.profile.bindings.altbutton1macro = value
-				end,
-				get = function()
-					return self.db.profile.bindings.altbutton1macro
-				end,
-				disabled = function()
-					return self.db.profile.bindings.altbutton1.value ~= defaultButtonValues.MACRO
-				end
-			},
-			altbutton2 = {
-				name = "Alt + Right Click",
-				desc = "Alt + Right Click",
-				type = "select",
-				width = 1.5,
-				order = 21,
-				values = defaultButtonValues,
-				set = function(info, value)
-					self.db.profile.bindings.altbutton2.value = value
-				end,
-				get = function()
-					return self.db.profile.bindings.altbutton2.value
-				end
-			},
-			altbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 21.1, },
-			altbutton2macro = {
-				name = "Alt + Right Click Macro",
-				desc = macroFieldDescription,
-				type = "input",
-				width = 1.5,
-				order = 21.2,
-				set = function(info, value)
-					self.db.profile.bindings.altbutton2macro = value
-				end,
-				get = function()
-					return self.db.profile.bindings.altbutton2macro
-				end,
-				disabled = function()
-					return self.db.profile.bindings.altbutton2.value ~= defaultButtonValues.MACRO
-				end
-			},
-			altToWatchlistPadding = { type = "description", name = " ", width = "full", order = 21.9, },
-			watchlistHeader = {
-				type = "header",
-				name = "|cff00FF7FFrame Watchlist|r",
-				order = 22,
-			},
-			watchlistDescription= {
-				type = "description",
-				name = "Add custom frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.",
-				order = 31,
-			},
-			watchlistWarning= {
-				type = "description",
-				name = "\n|cffff0000Names are case sensitive. Separate them with commas.|r",
-				fontSize = "medium",
-				order = 32,
-			},
-			watchlist = {
-				name = "Frame Watchlist",
-				desc = "Add custom frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.\n|cff909090Use command /fstack in chat to check frame names.|r \n|cff909090Separate names with commas.|r \n|cffff0000Names are case sensitive.|r",
-				type = "input",
-				width = "full",
-				order = 33,
-				set = function(info, input)
-					self.db.global.watchlist = {}
-					for value in string.gmatch(input, "[^,]+") do -- Split at the ", "
-						value = value:gsub("^%s*(.-)%s*$", "%1") -- Trim spaces
-						table.insert(self.db.global.watchlist, value)
-					end
-				end,				
-				get = function(info)
-					local watchlist = self.db.global.watchlist or {}
-					return table.concat(watchlist, ", ")
-				end
-			},
-			watchlistNote= {
-				type = "description",
-				name = "\n|cff909090Use command /fstack in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: AddonName + Frame. Ex: WeakAuraFrame.|r",
-				order = 34,
-			},
-			blank13 = {type = "description", name = " ", width = "full", order = 35, },
-			frameWatchingHeader = {
-				type = "header",
-				name = "|cff00FF7FFrame Watching|r",
-				order = 36,
-			},
-			frameWatchingDescription= {
-				type = "description",
-				name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc).",
-				order = 37,
-			},
-			frameWatchingWarning= {
-				type = "description",
-				name = "\n|cffff0000Disabling this will also disable the Frame Watchlist.|r",
-				fontSize = "medium",
-				order = 38,
-			},
-			frameWatching = {
-				type = "toggle",
-				name = "Allow Frame Watching",
-				desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
-				order = 39,
-				set = function(info, value)
-					self.db.global.frameWatching = value
-					if value then
-						  FrameWatching = true
-					else
-							FrameWatching = false
-					end
-				end,
-				get = function(info)
-					return self.db.global.frameWatching
-				end,
-			},
-			blank14 = {type = "description", name = " ", width = "full", order = 35, },
-			reticleTargetingHeader = {
-				type = "header",
-				name = "|cff00FF7FReticle Targeting|r",
-				order = 40,
-			},
-			reticleTargetingDescription= {
-				type = "description",
-				name = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable with predictable behavior.",
-				order = 41,
-			},
-			reticleTargetingWarning= {
-				type = "description",
-				name = "\n|cffff0000This will override all Cvar values related to SoftTarget. Uncheck to reset them to the default values.|r",
-				fontSize = "medium",
-				order = 42,
-			},
-			reticleTargeting = {
-				type = "toggle",
-				name = "Activate Reticle Targeting",
-				desc = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable w/ predictable behavior.\n|cffff0000This will override all Cvar values related to SoftTarget.|r \n|cff909090Please note that manually changing Cvars with AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
-				order = 43,
-				set = function(info, value)
-					self.db.global.reticleTargeting = value
-					if value then
-							CombatMode:loadReticleTargetCvars()
-					else
-							CombatMode:loadDefaultCvars()
-					end
-				end,
-				get = function(info)
-					return self.db.global.reticleTargeting
-				end,
-			},
-			reticleTargetingNote= {
-				type = "description",
-				name = "\n|cff909090Please note that manually changing Cvars w/ AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
-				order = 44,
+			-- RETICLE TARGETING
+			reticleTargetingGroup = {
+				type = "group",
+				name = " ",
+				order = 4,
+				inline = true,
+				args = {
+					reticleTargetingHeader = {
+						type = "header",
+						name = "|cff00FFFFReticle Targeting|r",
+						order = 1,
+					},
+					reticleTargetingHeaderPaddingBottom = {type = "description", name = " ", width = "full", order = 1.1, },
+					reticleTargetingDescription= {
+						type = "description",
+						name = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable with predictable behavior.",
+						order = 2,
+					},
+					reticleTargetingWarning= {
+						type = "description",
+						name = "\n|cffff0000This will override all Cvar values related to SoftTarget. Uncheck to reset them to the default values.|r",
+						fontSize = "medium",
+						order = 3,
+					},
+					reticleTargeting = {
+						type = "toggle",
+						name = "Enable Reticle Targeting",
+						desc = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable w/ predictable behavior.",
+						order = 4,
+						set = function(info, value)
+							self.db.global.reticleTargeting = value
+							if value then
+									CombatMode:loadReticleTargetCvars()
+							else
+									CombatMode:loadDefaultCvars()
+							end
+						end,
+						get = function(info)
+							return self.db.global.reticleTargeting
+						end,
+					},
+					reticleTargetingNote= {
+						type = "description",
+						name = "\n|cff909090Please note that manually changing Cvars w/ AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
+						order = 5,
+					},
+					reticleTargetingNotePaddingBottom = {type = "description", name = " ", width = "full", order = 5.1, },
+				},
 			},
 		}
 	}
