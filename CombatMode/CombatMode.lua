@@ -5,7 +5,7 @@ CombatMode = LibStub("AceAddon-3.0"):NewAddon("CombatMode", "AceConsole-3.0", "A
 local combatModeAddonSwitch = false
 local combatModeTemporaryDisable = false
 local CursorActionActive = false
-local CombatModeQuiet = true
+local debugMode = false
 local mouseLookStarted = false
 
 -- Default frames to check
@@ -145,8 +145,17 @@ local FramesToCheck = {
 	 "DeathRecapFrame",
 	 "AddonList",
 	 "SplashFrame",
-	 "CalendarFrame"
+	 "CalendarFrame",
+	 "ExpansionLandingPage",
+	 "GenericTraitFrame",
+	 "PlayerChoiceFrame",
+	 "ItemInteractionFrame",
+	 "ScriptErrorsFrame"
 }
+local wildcardFramesToMatch = {
+	"OPieRT"
+}
+local wildcardFramesToCheck = {}
 
 local defaultButtonValues = {
 	MOVEANDSTEER = "MOVEANDSTEER",
@@ -845,8 +854,29 @@ function CombatMode:ChatCommand(input)
         LibStub("AceConfigCmd-3.0"):HandleCommand("cm", "CombatMode", input)
     end
 end
+ 
+-- Initialise the table by going through ALL available globals once and keeping the ones that match
+function CombatMode:InitializeWildcardFrameTracking(frameArr)
+	CombatMode:print("Looking for wildcard frames...")
+
+	for _, frameNameToFind in pairs(frameArr) do
+		wildcardFramesToCheck[frameNameToFind] = {}
+
+		for frameName in pairs(_G) do
+			if string.match(frameName, frameNameToFind) then
+				CombatMode:print("Matched " .. frameNameToFind .. " to frame " .. frameName)
+				local tes = wildcardFramesToCheck[frameNameToFind]
+				wildcardFramesToCheck[frameNameToFind][#tes+1] = frameName
+			end
+		end
+	end
+
+	CombatMode:print("Wildcard frames initialized")
+end
 
 function CombatMode:OnEnable()
+	CombatMode:InitializeWildcardFrameTracking(wildcardFramesToMatch)
+
 	-- Register Events
 	self:RegisterEvent("PLAYER_ENTERING_WORLD", CombatMode_OnEvent)
 	self:RegisterEvent("ADDON_LOADED", CombatMode_OnEvent)
@@ -902,22 +932,36 @@ function CombatMode:UnmouseableFrameOnScreen(frameArr)
 	if not allowFrameWatching then
 		return false
 	end
-	for index in pairs(frameArr) do
-		local curFrame = getglobal(frameArr[index])
-		if (curFrame and curFrame:IsVisible()) then
+
+	for _, frameName in pairs(frameArr) do
+		local curFrame = getglobal(frameName)
+		if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
+			CombatMode:print(frameName .. " is visible, enabling cursor")
+			return true
+		end
+	end
+end
+
+function CombatMode:UnmouseableFrameGroupOnScreen(frameNameGroups)
+	for _, frameNames in pairs(frameNameGroups) do
+		if CombatMode:UnmouseableFrameOnScreen(frameNames) == true then
 			return true
 		end
 	end
 end
 
 function CombatMode:checkForDisableState()
-	return (CombatMode:UnmouseableFrameOnScreen(FramesToCheck) or CombatMode:UnmouseableFrameOnScreen(self.db.global.watchlist) or SpellIsTargeting() or CursorActionActive)
+	return (CombatMode:UnmouseableFrameOnScreen(FramesToCheck)
+	or CombatMode:UnmouseableFrameOnScreen(self.db.global.watchlist)
+	or CombatMode:UnmouseableFrameGroupOnScreen(wildcardFramesToCheck)
+	or SpellIsTargeting()
+	or CursorActionActive)
 end
 
 
-function CombatMode:CMPrint(statement)
-	if not CombatModeQuiet then
-		print(statement)
+function CombatMode:print(statement)
+	if debugMode then
+		print("CombatMode: " .. statement)
 	end
 end
 
@@ -972,12 +1016,12 @@ end
 function CombatModeToggleKey()
 	CombatMode:Toggle()
 	if combatModeAddonSwitch then
-		CombatMode:CMPrint ("Combat Mode Enabled")
+		CombatMode:print("Combat Mode Enabled")
 		if SmartTargetingEnabled then
 			CombatMode:SmartTarget()
 		end
 	else
-		CombatMode:CMPrint ("Combat Mode Disabled")
+		CombatMode:print("Combat Mode Disabled")
 	end
 end
 
