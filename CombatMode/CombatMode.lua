@@ -271,6 +271,7 @@ function CombatMode:OnInitialize()
 			crosshair = true,
 			crosshairSize = 64,
 			crosshairAlpha = 1,
+			crosshairYAxis = 0,
 		},
 		profile = {
 			bindings = {
@@ -361,7 +362,7 @@ function CombatMode:OnInitialize()
 			},
 			featuresList = {
 				type = "description",
-				name = "|cff909090• Free Look - Move your camera without having to perpetually hold right mouse button.|r \n|cff909090• Reticle Targeting - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them.|r \n|cff909090• Ability casting w/ mouse click - When Combat Mode is enabled, frees your left and right mouse click so you can cast abilities with them.|r \n|cff909090• Automatically toggles Free Look when opening interface panels like bags, map, character panel, etc.|r \n|cff909090• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection.|r",
+				name = "|cff909090• Free Look - Move your camera without having to perpetually hold right mouse button. \n• Reticle Targeting - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Ability casting w/ mouse click - When Combat Mode is enabled, frees your left and right mouse click so you can cast abilities with them. \n• Automatically toggles Free Look when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection. \n• Optional adjustable Crosshair texture to assist with Reticle Targeting.|r",
 				order = 3,
 				fontSize = "small",
 			},
@@ -894,13 +895,13 @@ function CombatMode:OnInitialize()
 						args = {
 							crosshairDescription= {
 								type = "description",
-								name = "Place a crosshair texture in the center of the screen to assist with Reticle Targeting.",
+								name = "Places a crosshair texture in the center of the screen to assist with Reticle Targeting.",
 								order = 1,
 							},
 							crosshair = {
 								type = "toggle",
 								name = "Enable Crosshair",
-								desc = "Place a crosshair texture in the center of the screen to assist with Reticle Targeting.",
+								desc = "Places a crosshair texture in the center of the screen to assist with Reticle Targeting.",
 								width = "full",
 								order = 2,
 								set = function(info, value)
@@ -915,7 +916,12 @@ function CombatMode:OnInitialize()
 									return self.db.global.crosshair
 								end,
 							},
-							crosshairPaddingBottom = {type = "description", name = " ", width = "full", order = 2.1, },
+							crosshairNote= {
+								type = "description",
+								name = "\n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior.|r",
+								order = 3,
+							},
+							crosshairPaddingBottom = {type = "description", name = " ", width = "full", order = 3.1, },
 							crosshairSize = {
 								type = "range",
 								name = "Crosshair Size",
@@ -925,8 +931,11 @@ function CombatMode:OnInitialize()
 								softMin = 16,
 								softMax = 128,
 								step = 16,
-								width = 1.5,
-								order = 3,
+								width = 1.6,
+								order = 4,
+								disabled = function()
+									return self.db.global.crosshair ~= true
+								end,
 								set = function(info, value)
 									self.db.global.crosshairSize = value
 									if value then
@@ -937,7 +946,7 @@ function CombatMode:OnInitialize()
 									return self.db.global.crosshairSize
 								end,
 							},
-							crosshairSlidersSpacing = { type = "description", name = " ", width = 0.2, order = 3.1, },
+							crosshairSlidersSpacing = { type = "description", name = " ", width = 0.2, order = 4.1, },
 							crosshairAlpha = {
 								type = "range",
 								name = "Crosshair Opacity",
@@ -947,9 +956,12 @@ function CombatMode:OnInitialize()
 								softMin = 0.1,
 								softMax = 1.0,
 								step = 0.1,
-								width = 1.5,
-								order = 4,
+								width = 1.6,
+								order = 5,
 								isPercent = true,
+								disabled = function()
+									return self.db.global.crosshair ~= true
+								end,
 								set = function(info, value)
 									self.db.global.crosshairOpacity = value
 									if value then
@@ -960,10 +972,30 @@ function CombatMode:OnInitialize()
 									return self.db.global.crosshairOpacity
 								end,
 							},
-							crosshairNote= {
-								type = "description",
-								name = "\n|cff909090The crosshair will only react to attackable targets, as intended. This prevents erratic behavior when near other players.|r",
-								order = 5,
+							crosshairAlphaPaddingBottom = {type = "description", name = " ", width = "full", order = 5.1, },
+							crosshairYAxis = {
+								type = "range",
+								name = "Crosshair Vertical Position",
+								desc = "Adjusts the vertical position of the crosshair.",
+								min = -500,
+								max = 500,
+								softMin = -500,
+								softMax = 500,
+								step = 10,
+								width = "full",
+								order = 6,
+								disabled = function()
+									return self.db.global.crosshair ~= true
+								end,
+								set = function(info, value)
+									self.db.global.crosshairY = value
+									if value then
+										CombatMode:UpdateCrosshair()
+									end
+								end,
+								get = function(info)
+									return self.db.global.crosshairY
+								end,
 							},
 						},
 					},
@@ -1025,11 +1057,11 @@ function CombatMode:HostileCrosshairState()
 end
 
 function CombatMode:CreateCrosshair()
-	CrosshairFrame:SetPoint("CENTER")
+	CrosshairFrame:SetPoint("CENTER", 0, self.db.global.crosshairY or 0)
 	CrosshairFrame:SetSize(self.db.global.crosshairSize or 64, self.db.global.crosshairSize or 64)
+	CrosshairFrame:SetAlpha(self.db.global.crosshairOpacity or 1)
 	CrosshairFrame.tex = CrosshairFrame:CreateTexture()
 	CrosshairFrame.tex:SetAllPoints(CrosshairFrame)
-	CrosshairFrame:SetAlpha(self.db.global.crosshairOpacity or 1)
 	CombatMode:BaseCrosshairState()
 end
 
@@ -1042,6 +1074,7 @@ function CombatMode:HideCrosshair()
 end
 
 function CombatMode:UpdateCrosshair()
+	CrosshairFrame:SetPoint("CENTER", 0, self.db.global.crosshairY)
 	CrosshairFrame:SetSize(self.db.global.crosshairSize, self.db.global.crosshairSize)
 	CrosshairFrame:SetAlpha(self.db.global.crosshairOpacity)
 end
