@@ -278,50 +278,43 @@ function CombatMode:OnInitialize()
 				button1 = {
 					key = "BUTTON1",
 					value = "ACTIONBUTTON1",
+					macro = ""
 				},
-				button1macro = "",
-
 				button2 = {
 					key = "BUTTON2",
 					value = "ACTIONBUTTON2",
+					macro = ""
 				},
-				button2macro = "",
-
 				shiftbutton1 = {
 					key = "SHIFT-BUTTON1",
 					value = "ACTIONBUTTON3",
+					macro = ""
 				},
-				shiftbutton1macro = "",
-
 				shiftbutton2 = {
 					key = "SHIFT-BUTTON2",
 					value = "ACTIONBUTTON4",
+					macro = ""
 				},
-				shiftbutton2macro = "",
-
 				ctrlbutton1 = {
 					key = "CTRL-BUTTON1",
 					value = "ACTIONBUTTON5",
+					macro = ""
 				},
-				ctrlbutton1macro = "",
-
 				ctrlbutton2 = {
 					key = "CTRL-BUTTON2",
 					value = "ACTIONBUTTON6",
+					macro = ""
 				},
-				ctrlbutton2macro = "",
-
 				altbutton1 = {
 					key = "ALT-BUTTON1",
 					value = "ACTIONBUTTON7",
+					macro = ""
 				},
-				altbutton1macro = "",
-
 				altbutton2 = {
 					key = "ALT-BUTTON2",
 					value = "ACTIONBUTTON8",
+					macro = ""
 				},
-				altbutton2macro = "",
 
 				toggle = {
 					key = "Combat Mode Toggle",
@@ -487,8 +480,7 @@ function CombatMode:OnInitialize()
 								values = defaultButtonValues,
 								set = function(info, value)
 									self.db.profile.bindings.button1.value = value
-									CombatMode:BindBindingOverride("BUTTON1", self.db.profile.bindings.button1.value,
-										self.db.profile.bindings.button1macro)
+									CombatMode:BindBindingOverride("BUTTON1", self.db.profile.bindings.button1)
 								end,
 								get = function()
 									return self.db.profile.bindings.button1.value
@@ -502,12 +494,11 @@ function CombatMode:OnInitialize()
 								width = 1.5,
 								order = 2,
 								set = function(info, value)
-									self.db.profile.bindings.button1macro = value
-									CombatMode:BindBindingOverride("BUTTON1", self.db.profile.bindings.button1.value,
-										self.db.profile.bindings.button1macro)
+									self.db.profile.bindings.button1.macro = value
+									CombatMode:BindBindingOverride("BUTTON1", self.db.profile.bindings.button1)
 								end,
 								get = function()
-									return self.db.profile.bindings.button1macro
+									return self.db.profile.bindings.button1.macro
 								end,
 								disabled = function()
 									return self.db.profile.bindings.button1.value ~= defaultButtonValues.MACRO
@@ -522,8 +513,7 @@ function CombatMode:OnInitialize()
 								values = defaultButtonValues,
 								set = function(info, value)
 									self.db.profile.bindings.button2.value = value
-									CombatMode:BindBindingOverride("BUTTON2", self.db.profile.bindings.button2.value,
-										self.db.profile.bindings.button2macro)
+									CombatMode:BindBindingOverride("BUTTON2", self.db.profile.bindings.button2)
 								end,
 								get = function()
 									return self.db.profile.bindings.button2.value
@@ -537,12 +527,11 @@ function CombatMode:OnInitialize()
 								width = 1.5,
 								order = 4,
 								set = function(info, value)
-									self.db.profile.bindings.button2macro = value
-									CombatMode:BindBindingOverride("BUTTON2", self.db.profile.bindings.button2.value,
-										self.db.profile.bindings.button2macro)
+									self.db.profile.bindings.button2.macro = value
+									CombatMode:BindBindingOverride("BUTTON2", self.db.profile.bindings.button2)
 								end,
 								get = function()
-									return self.db.profile.bindings.button2macro
+									return self.db.profile.bindings.button2.macro
 								end,
 								disabled = function()
 									return self.db.profile.bindings.button2.value ~= defaultButtonValues.MACRO
@@ -567,8 +556,7 @@ function CombatMode:OnInitialize()
 								values = defaultButtonValues,
 								set = function(info, value)
 									self.db.profile.bindings.shiftbutton1.value = value
-									CombatMode:BindBindingOverride("SHIFT-BUTTON1", self.db.profile.bindings.shiftbutton1.value,
-										self.db.profile.bindings.shiftbutton1macro)
+									CombatMode:BindBindingOverride("SHIFT-BUTTON1", self.db.profile.bindings.shiftbutton1)
 								end,
 								get = function()
 									return self.db.profile.bindings.shiftbutton1.value
@@ -582,12 +570,11 @@ function CombatMode:OnInitialize()
 								width = 1.5,
 								order = 2,
 								set = function(info, value)
-									self.db.profile.bindings.shiftbutton1macro = value
-									CombatMode:BindBindingOverride("SHIFT-BUTTON1", self.db.profile.bindings.shiftbutton1.value,
-										self.db.profile.bindings.shiftbutton1macro)
+									self.db.profile.bindings.shiftbutton1.macro = value
+									CombatMode:BindBindingOverride("SHIFT-BUTTON1", self.db.profile.bindings.shiftbutton1)
 								end,
 								get = function()
-									return self.db.profile.bindings.shiftbutton1macro
+									return self.db.profile.bindings.shiftbutton1.macro
 								end,
 								disabled = function()
 									return self.db.profile.bindings.shiftbutton1.value ~= defaultButtonValues.MACRO
@@ -602,8 +589,7 @@ function CombatMode:OnInitialize()
 								values = defaultButtonValues,
 								set = function(info, value)
 									self.db.profile.bindings.shiftbutton2.value = value
-									CombatMode:BindBindingOverride("SHIFT-BUTTON2", self.db.profile.bindings.shiftbutton1.value,
-										self.db.profile.bindings.shiftbutton1macro)
+									CombatMode:BindBindingOverride("SHIFT-BUTTON2", self.db.profile.bindings.shiftbutton2)
 								end,
 								get = function()
 									return self.db.profile.bindings.shiftbutton2.value
@@ -617,12 +603,11 @@ function CombatMode:OnInitialize()
 								width = 1.5,
 								order = 4,
 								set = function(info, value)
-									self.db.profile.bindings.shiftbutton2macro = value
-									CombatMode:BindBindingOverride("SHIFT-BUTTON2", self.db.profile.bindings.shiftbutton1.value,
-										self.db.profile.bindings.shiftbutton1macro)
+									self.db.profile.bindings.shiftbutton2.macro = value
+									CombatMode:BindBindingOverride("SHIFT-BUTTON2", self.db.profile.bindings.shiftbutton2)
 								end,
 								get = function()
-									return self.db.profile.bindings.shiftbutton2macro
+									return self.db.profile.bindings.shiftbutton2.macro
 								end,
 								disabled = function()
 									return self.db.profile.bindings.shiftbutton2.value ~= defaultButtonValues.MACRO
@@ -647,8 +632,7 @@ function CombatMode:OnInitialize()
 								values = defaultButtonValues,
 								set = function(info, value)
 									self.db.profile.bindings.ctrlbutton1.value = value
-									CombatMode:BindBindingOverride("CTRL-BUTTON1", self.db.profile.bindings.ctrlbutton1.value,
-										self.db.profile.bindings.ctrlbutton1macro)
+									CombatMode:BindBindingOverride("CTRL-BUTTON1", self.db.profile.bindings.ctrlbutton1)
 								end,
 								get = function()
 									return self.db.profile.bindings.ctrlbutton1.value
@@ -662,12 +646,11 @@ function CombatMode:OnInitialize()
 								width = 1.5,
 								order = 2,
 								set = function(info, value)
-									self.db.profile.bindings.ctrlbutton1macro = value
-									CombatMode:BindBindingOverride("CTRL-BUTTON1", self.db.profile.bindings.ctrlbutton1.value,
-										self.db.profile.bindings.ctrlbutton1macro)
+									self.db.profile.bindings.ctrlbutton1.macro = value
+									CombatMode:BindBindingOverride("CTRL-BUTTON1", self.db.profile.bindings.ctrlbutton1)
 								end,
 								get = function()
-									return self.db.profile.bindings.ctrlbutton1macro
+									return self.db.profile.bindings.ctrlbutton1.macro
 								end,
 								disabled = function()
 									return self.db.profile.bindings.ctrlbutton1.value ~= defaultButtonValues.MACRO
@@ -682,8 +665,7 @@ function CombatMode:OnInitialize()
 								values = defaultButtonValues,
 								set = function(info, value)
 									self.db.profile.bindings.ctrlbutton2.value = value
-									CombatMode:BindBindingOverride("CTRL-BUTTON2", self.db.profile.bindings.ctrlbutton2.value,
-										self.db.profile.bindings.ctrlbutton2macro)
+									CombatMode:BindBindingOverride("CTRL-BUTTON2", self.db.profile.bindings.ctrlbutton2)
 								end,
 								get = function()
 									return self.db.profile.bindings.ctrlbutton2.value
@@ -697,12 +679,11 @@ function CombatMode:OnInitialize()
 								width = 1.5,
 								order = 4,
 								set = function(info, value)
-									self.db.profile.bindings.ctrlbutton2macro = value
-									CombatMode:BindBindingOverride("CTRL-BUTTON2", self.db.profile.bindings.ctrlbutton2.value,
-										self.db.profile.bindings.ctrlbutton2macro)
+									self.db.profile.bindings.ctrlbutton2.macro = value
+									CombatMode:BindBindingOverride("CTRL-BUTTON2", self.db.profile.bindings.ctrlbutton2)
 								end,
 								get = function()
-									return self.db.profile.bindings.ctrlbutton2macro
+									return self.db.profile.bindings.ctrlbutton2.macro
 								end,
 								disabled = function()
 									return self.db.profile.bindings.ctrlbutton2.value ~= defaultButtonValues.MACRO
@@ -727,8 +708,7 @@ function CombatMode:OnInitialize()
 								values = defaultButtonValues,
 								set = function(info, value)
 									self.db.profile.bindings.altbutton1.value = value
-									CombatMode:BindBindingOverride("ALT-BUTTON1", self.db.profile.bindings.altbutton1.value,
-										self.db.profile.bindings.altbutton1macro)
+									CombatMode:BindBindingOverride("ALT-BUTTON1", self.db.profile.bindings.altbutton1)
 								end,
 								get = function()
 									return self.db.profile.bindings.altbutton1.value
@@ -742,12 +722,11 @@ function CombatMode:OnInitialize()
 								width = 1.5,
 								order = 2,
 								set = function(info, value)
-									self.db.profile.bindings.altbutton1macro = value
-									CombatMode:BindBindingOverride("ALT-BUTTON1", self.db.profile.bindings.altbutton1.value,
-										self.db.profile.bindings.altbutton1macro)
+									self.db.profile.bindings.altbutton1.macro = value
+									CombatMode:BindBindingOverride("ALT-BUTTON1", self.db.profile.bindings.altbutton1)
 								end,
 								get = function()
-									return self.db.profile.bindings.altbutton1macro
+									return self.db.profile.bindings.altbutton1.macro
 								end,
 								disabled = function()
 									return self.db.profile.bindings.altbutton1.value ~= defaultButtonValues.MACRO
@@ -762,8 +741,7 @@ function CombatMode:OnInitialize()
 								values = defaultButtonValues,
 								set = function(info, value)
 									self.db.profile.bindings.altbutton2.value = value
-									CombatMode:BindBindingOverride("ALT-BUTTON2", self.db.profile.bindings.altbutton2.value,
-										self.db.profile.bindings.altbutton2macro)
+									CombatMode:BindBindingOverride("ALT-BUTTON2", self.db.profile.bindings.altbutton2)
 								end,
 								get = function()
 									return self.db.profile.bindings.altbutton2.value
@@ -777,12 +755,11 @@ function CombatMode:OnInitialize()
 								width = 1.5,
 								order = 4,
 								set = function(info, value)
-									self.db.profile.bindings.altbutton2macro = value
-									CombatMode:BindBindingOverride("ALT-BUTTON2", self.db.profile.bindings.altbutton2.value,
-										self.db.profile.bindings.altbutton2macro)
+									self.db.profile.bindings.altbutton2.macro = value
+									CombatMode:BindBindingOverride("ALT-BUTTON2", self.db.profile.bindings.altbutton2)
 								end,
 								get = function()
-									return self.db.profile.bindings.altbutton2macro
+									return self.db.profile.bindings.altbutton2.macro
 								end,
 								disabled = function()
 									return self.db.profile.bindings.altbutton2.value ~= defaultButtonValues.MACRO
@@ -1165,22 +1142,14 @@ end
 
 function CombatMode:BindBindingOverrides()
 	MouselookStop()
-	CombatMode:BindBindingOverride("BUTTON1", self.db.profile.bindings.button1.value,
-		self.db.profile.bindings.button1macro)
-	CombatMode:BindBindingOverride("BUTTON2", self.db.profile.bindings.button2.value,
-		self.db.profile.bindings.button2macro)
-	CombatMode:BindBindingOverride("CTRL-BUTTON1", self.db.profile.bindings.ctrlbutton1.value,
-		self.db.profile.bindings.ctrlbutton1macro)
-	CombatMode:BindBindingOverride("CTRL-BUTTON2", self.db.profile.bindings.ctrlbutton2.value,
-		self.db.profile.bindings.ctrlbutton2macro)
-	CombatMode:BindBindingOverride("ALT-BUTTON1", self.db.profile.bindings.altbutton1.value,
-		self.db.profile.bindings.altbutton1macro)
-	CombatMode:BindBindingOverride("ALT-BUTTON2", self.db.profile.bindings.altbutton2.value,
-		self.db.profile.bindings.altbutton2macro)
-	CombatMode:BindBindingOverride("SHIFT-BUTTON1", self.db.profile.bindings.shiftbutton1.value,
-		self.db.profile.bindings.shiftbutton1macro)
-	CombatMode:BindBindingOverride("SHIFT-BUTTON2", self.db.profile.bindings.shiftbutton2.value,
-		self.db.profile.bindings.shiftbutton2macro)
+	CombatMode:BindBindingOverride("BUTTON1", self.db.profile.bindings.button1)
+	CombatMode:BindBindingOverride("BUTTON2", self.db.profile.bindings.button2)
+	CombatMode:BindBindingOverride("CTRL-BUTTON1", self.db.profile.bindings.ctrlbutton1)
+	CombatMode:BindBindingOverride("CTRL-BUTTON2", self.db.profile.bindings.ctrlbutton2)
+	CombatMode:BindBindingOverride("ALT-BUTTON1", self.db.profile.bindings.altbutton1)
+	CombatMode:BindBindingOverride("ALT-BUTTON2", self.db.profile.bindings.altbutton2)
+	CombatMode:BindBindingOverride("SHIFT-BUTTON1", self.db.profile.bindings.shiftbutton1)
+	CombatMode:BindBindingOverride("SHIFT-BUTTON2", self.db.profile.bindings.shiftbutton2)
 	MouselookStart()
 end
 
