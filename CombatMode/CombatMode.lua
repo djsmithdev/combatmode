@@ -267,7 +267,11 @@ function CombatMode:OnInitialize()
 				"WeakAurasOptions",
 			},
 			frameWatching = true,
-			reticleTargeting = false,
+			reticleTargeting = true,
+			crosshair = true,
+			crosshairSize = 64,
+			crosshairAlpha = 1,
+			crosshairYAxis = 0,
 		},
 		profile = {
 			bindings = {
@@ -358,7 +362,7 @@ function CombatMode:OnInitialize()
 			},
 			featuresList = {
 				type = "description",
-				name = "|cff909090• Free Look - Move your camera without having to perpetually hold right mouse button.|r \n|cff909090• Reticle Targeting - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them.|r \n|cff909090• Ability casting w/ mouse click - When Combat Mode is enabled, frees your left and right mouse click so you can cast abilities with them.|r \n|cff909090• Automatically toggles Free Look when opening interface panels like bags, map, character panel, etc.|r \n|cff909090• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection.|r",
+				name = "|cff909090• Free Look - Move your camera without having to perpetually hold right mouse button. \n• Reticle Targeting - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Ability casting w/ mouse click - When Combat Mode is enabled, frees your left and right mouse click so you can cast abilities with them. \n• Automatically toggles Free Look when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection. \n• Optional adjustable Crosshair texture to assist with Reticle Targeting.|r",
 				order = 3,
 				fontSize = "small",
 			},
@@ -883,6 +887,118 @@ function CombatMode:OnInitialize()
 						order = 5,
 					},
 					reticleTargetingNotePaddingBottom = {type = "description", name = " ", width = "full", order = 5.1, },
+					-- CROSSHAIR
+					crosshairGroup = {
+						type = "group",
+						name = "|cff69ccf0Crosshair|r",
+						order = 6,	
+						args = {
+							crosshairDescription= {
+								type = "description",
+								name = "Places a crosshair texture in the center of the screen to assist with Reticle Targeting.",
+								order = 1,
+							},
+							crosshair = {
+								type = "toggle",
+								name = "Enable Crosshair",
+								desc = "Places a crosshair texture in the center of the screen to assist with Reticle Targeting.",
+								width = "full",
+								order = 2,
+								set = function(info, value)
+									self.db.global.crosshair = value
+									if value then
+											CombatMode:ShowCrosshair()
+									else
+											CombatMode:HideCrosshair()
+									end
+								end,
+								get = function(info)
+									return self.db.global.crosshair
+								end,
+							},
+							crosshairNote= {
+								type = "description",
+								name = "\n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior.|r",
+								order = 3,
+							},
+							crosshairPaddingBottom = {type = "description", name = " ", width = "full", order = 3.1, },
+							crosshairSize = {
+								type = "range",
+								name = "Crosshair Size",
+								desc = "Adjusts the size of the crosshair in 16-pixel increments.",
+								min = 16,
+								max = 128,
+								softMin = 16,
+								softMax = 128,
+								step = 16,
+								width = 1.6,
+								order = 4,
+								disabled = function()
+									return self.db.global.crosshair ~= true
+								end,
+								set = function(info, value)
+									self.db.global.crosshairSize = value
+									if value then
+										CombatMode:UpdateCrosshair()
+									end
+								end,
+								get = function(info)
+									return self.db.global.crosshairSize
+								end,
+							},
+							crosshairSlidersSpacing = { type = "description", name = " ", width = 0.2, order = 4.1, },
+							crosshairAlpha = {
+								type = "range",
+								name = "Crosshair Opacity",
+								desc = "Adjusts the opacity of the crosshair.",
+								min = 0.1,
+								max = 1.0,
+								softMin = 0.1,
+								softMax = 1.0,
+								step = 0.1,
+								width = 1.6,
+								order = 5,
+								isPercent = true,
+								disabled = function()
+									return self.db.global.crosshair ~= true
+								end,
+								set = function(info, value)
+									self.db.global.crosshairOpacity = value
+									if value then
+										CombatMode:UpdateCrosshair()
+									end
+								end,
+								get = function(info)
+									return self.db.global.crosshairOpacity
+								end,
+							},
+							crosshairAlphaPaddingBottom = {type = "description", name = " ", width = "full", order = 5.1, },
+							crosshairYAxis = {
+								type = "range",
+								name = "Crosshair Vertical Position",
+								desc = "Adjusts the vertical position of the crosshair.",
+								min = -500,
+								max = 500,
+								softMin = -500,
+								softMax = 500,
+								step = 10,
+								width = "full",
+								order = 6,
+								disabled = function()
+									return self.db.global.crosshair ~= true
+								end,
+								set = function(info, value)
+									self.db.global.crosshairY = value
+									if value then
+										CombatMode:UpdateCrosshair()
+									end
+								end,
+								get = function(info)
+									return self.db.global.crosshairY
+								end,
+							},
+						},
+					},
 				},
 			},
 		}
@@ -925,13 +1041,59 @@ function CombatMode:InitializeWildcardFrameTracking(frameArr)
 	CombatMode:print("Wildcard frames initialized")
 end
 
+-- CROSSHAIR
+local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
+
+function CombatMode:BaseCrosshairState()
+	local crossBase = "Interface\\AddOns\\CombatMode\\assets\\crosshair.tga"
+	CrosshairFrame.tex:SetTexture(crossBase)
+	CrosshairFrame.tex:SetVertexColor(1, 1, 1, .5)
+end
+
+function CombatMode:HostileCrosshairState()
+	local crossHit = "Interface\\AddOns\\CombatMode\\assets\\crosshair-hit.tga"
+	CrosshairFrame.tex:SetTexture(crossHit)
+	CrosshairFrame.tex:SetVertexColor(1, .2, 0.3, 1)
+end
+
+function CombatMode:CreateCrosshair()
+	CrosshairFrame:SetPoint("CENTER", 0, self.db.global.crosshairY or 0)
+	CrosshairFrame:SetSize(self.db.global.crosshairSize or 64, self.db.global.crosshairSize or 64)
+	CrosshairFrame:SetAlpha(self.db.global.crosshairOpacity or 1)
+	CrosshairFrame.tex = CrosshairFrame:CreateTexture()
+	CrosshairFrame.tex:SetAllPoints(CrosshairFrame)
+	CombatMode:BaseCrosshairState()
+end
+
+function CombatMode:ShowCrosshair()
+	CrosshairFrame.tex:Show()
+end
+
+function CombatMode:HideCrosshair()
+	CrosshairFrame.tex:Hide()
+end
+
+function CombatMode:UpdateCrosshair()
+	CrosshairFrame:SetPoint("CENTER", 0, self.db.global.crosshairY)
+	CrosshairFrame:SetSize(self.db.global.crosshairSize, self.db.global.crosshairSize)
+	CrosshairFrame:SetAlpha(self.db.global.crosshairOpacity)
+end
+
 function CombatMode:OnEnable()
 	CombatMode:InitializeWildcardFrameTracking(wildcardFramesToMatch)
+
+	self:CreateCrosshair()
+	if self.db.global.crosshair then
+		self:ShowCrosshair()
+	else
+		self:HideCrosshair()
+	end
 
 	-- Register Events
 	self:RegisterEvent("PLAYER_ENTERING_WORLD", CombatMode_OnEvent)
 	self:RegisterEvent("ADDON_LOADED", CombatMode_OnEvent)
 	self:RegisterEvent("PLAYER_TARGET_CHANGED", CombatMode_OnEvent)
+	self:RegisterEvent("PLAYER_SOFT_ENEMY_CHANGED", CombatMode_OnEvent)
 	-- self:RegisterEvent("CURSOR_UPDATE", CombatMode_OnEvent)
 	self:RegisterEvent("PET_BAR_UPDATE", CombatMode_OnEvent)
 	self:RegisterEvent("ACTIONBAR_UPDATE_STATE", CombatMode_OnEvent)
@@ -1008,7 +1170,6 @@ function CombatMode:checkForDisableState()
 	or SpellIsTargeting()
 	or CursorActionActive)
 end
-
 
 function CombatMode:print(statement)
 	if debugMode then
@@ -1100,15 +1261,27 @@ function CombatMode:Rematch()
   end
 end
 
-function CombatMode_OnEvent(event, ...)
+function CombatMode_OnEvent(event, unit, ...)
 	if event == "PLAYER_ENTERING_WORLD" then
 		CombatMode:startMouselook()
 		CombatMode:Rematch()
 	end
+	
 
 	if combatModeAddonSwitch then
 		if event == "PLAYER_TARGET_CHANGED" and not CombatMode:checkForDisableState() then			
 			-- target changed		
+		end
+
+		if event == "PLAYER_SOFT_ENEMY_CHANGED" and not CombatMode:checkForDisableState() then
+			local isTargetVisible = UnitIsVisible("target")
+			local isTargetHostile = UnitReaction("player","target") and UnitReaction("player","target") <= 4
+
+			if isTargetVisible and isTargetHostile then
+				CombatMode:HostileCrosshairState()
+			else
+				CombatMode:BaseCrosshairState()
+			end
 		end
 
 		--if event == "CURSOR_UPDATE" and not CombatMode:checkForDisableState() then
