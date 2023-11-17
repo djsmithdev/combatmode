@@ -270,8 +270,8 @@ function CombatMode:OnInitialize()
 			reticleTargeting = true,
 			crosshair = true,
 			crosshairSize = 64,
-			crosshairAlpha = 1,
-			crosshairYAxis = 0,
+			crosshairOpacity = 1.0,
+			crosshairY = 100,
 		},
 		profile = {
 			bindings = {
@@ -973,7 +973,7 @@ function CombatMode:OnInitialize()
 								end,
 							},
 							crosshairAlphaPaddingBottom = {type = "description", name = " ", width = "full", order = 5.1, },
-							crosshairYAxis = {
+							crosshairY = {
 								type = "range",
 								name = "Crosshair Vertical Position",
 								desc = "Adjusts the vertical position of the crosshair.",
@@ -1046,38 +1046,50 @@ local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent
 
 function CombatMode:BaseCrosshairState()
 	local crossBase = "Interface\\AddOns\\CombatMode\\assets\\crosshair.tga"
-	CrosshairFrame.tex:SetTexture(crossBase)
-	CrosshairFrame.tex:SetVertexColor(1, 1, 1, .5)
+	CrosshairFrame.texture:SetTexture(crossBase)
+	CrosshairFrame.texture:SetVertexColor(1, 1, 1, .5)
 end
 
 function CombatMode:HostileCrosshairState()
 	local crossHit = "Interface\\AddOns\\CombatMode\\assets\\crosshair-hit.tga"
-	CrosshairFrame.tex:SetTexture(crossHit)
-	CrosshairFrame.tex:SetVertexColor(1, .2, 0.3, 1)
+	CrosshairFrame.texture:SetTexture(crossHit)
+	CrosshairFrame.texture:SetVertexColor(1, .2, 0.3, 1)
 end
 
 function CombatMode:CreateCrosshair()
-	CrosshairFrame:SetPoint("CENTER", 0, self.db.global.crosshairY or 0)
+	CrosshairFrame.texture = CrosshairFrame:CreateTexture()
+	CrosshairFrame.texture:SetAllPoints(CrosshairFrame)
+	
+	CrosshairFrame:SetPoint("CENTER", 0, self.db.global.crosshairY or 100)
 	CrosshairFrame:SetSize(self.db.global.crosshairSize or 64, self.db.global.crosshairSize or 64)
-	CrosshairFrame:SetAlpha(self.db.global.crosshairOpacity or 1)
-	CrosshairFrame.tex = CrosshairFrame:CreateTexture()
-	CrosshairFrame.tex:SetAllPoints(CrosshairFrame)
+	CrosshairFrame:SetAlpha(self.db.global.crosshairOpacity or 1.0)
 	CombatMode:BaseCrosshairState()
 end
 
 function CombatMode:ShowCrosshair()
-	CrosshairFrame.tex:Show()
+	CrosshairFrame.texture:Show()
 end
 
 function CombatMode:HideCrosshair()
-	CrosshairFrame.tex:Hide()
+	CrosshairFrame.texture:Hide()
 end
 
 function CombatMode:UpdateCrosshair()
-	CrosshairFrame:SetPoint("CENTER", 0, self.db.global.crosshairY)
-	CrosshairFrame:SetSize(self.db.global.crosshairSize, self.db.global.crosshairSize)
-	CrosshairFrame:SetAlpha(self.db.global.crosshairOpacity)
+	local dbValueToUpdate = self.db.global
+
+	if dbValueToUpdate.crosshairY then
+			CrosshairFrame:SetPoint("CENTER", 0, dbValueToUpdate.crosshairY)
+	end
+
+	if dbValueToUpdate.crosshairSize then
+			CrosshairFrame:SetSize(dbValueToUpdate.crosshairSize, dbValueToUpdate.crosshairSize)
+	end
+
+	if dbValueToUpdate.crosshairOpacity then
+			CrosshairFrame:SetAlpha(dbValueToUpdate.crosshairOpacity)
+	end
 end
+
 
 function CombatMode:OnEnable()
 	CombatMode:InitializeWildcardFrameTracking(wildcardFramesToMatch)
