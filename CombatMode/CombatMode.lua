@@ -267,7 +267,10 @@ function CombatMode:OnInitialize()
 				"WeakAurasOptions",
 			},
 			frameWatching = true,
-			reticleTargeting = false,
+			reticleTargeting = true,
+			crosshair = true,
+			crosshairSize = 64,
+			crosshairAlpha = 1,
 		},
 		profile = {
 			bindings = {
@@ -883,6 +886,87 @@ function CombatMode:OnInitialize()
 						order = 5,
 					},
 					reticleTargetingNotePaddingBottom = {type = "description", name = " ", width = "full", order = 5.1, },
+					-- CROSSHAIR
+					crosshairGroup = {
+						type = "group",
+						name = "|cff69ccf0Crosshair|r",
+						order = 6,	
+						args = {
+							crosshairDescription= {
+								type = "description",
+								name = "Place a crosshair texture in the center of the screen to assist with Reticle Targeting.",
+								order = 1,
+							},
+							crosshair = {
+								type = "toggle",
+								name = "Enable Crosshair",
+								desc = "Place a crosshair texture in the center of the screen to assist with Reticle Targeting.",
+								width = "full",
+								order = 2,
+								set = function(info, value)
+									self.db.global.crosshair = value
+									if value then
+											CombatMode:ShowCrosshair()
+									else
+											CombatMode:HideCrosshair()
+									end
+								end,
+								get = function(info)
+									return self.db.global.crosshair
+								end,
+							},
+							crosshairPaddingBottom = {type = "description", name = " ", width = "full", order = 2.1, },
+							crosshairSize = {
+								type = "range",
+								name = "Crosshair Size",
+								desc = "Adjusts the size of the crosshair in 16-pixel increments.",
+								min = 16,
+								max = 128,
+								softMin = 16,
+								softMax = 128,
+								step = 16,
+								width = 1.5,
+								order = 3,
+								set = function(info, value)
+									self.db.global.crosshairSize = value
+									if value then
+										CombatMode:UpdateCrosshair()
+									end
+								end,
+								get = function(info)
+									return self.db.global.crosshairSize
+								end,
+							},
+							crosshairSlidersSpacing = { type = "description", name = " ", width = 0.2, order = 3.1, },
+							crosshairAlpha = {
+								type = "range",
+								name = "Crosshair Opacity",
+								desc = "Adjusts the opacity of the crosshair.",
+								min = 0.1,
+								max = 1.0,
+								softMin = 0.1,
+								softMax = 1.0,
+								step = 0.1,
+								width = 1.5,
+								order = 4,
+								isPercent = true,
+								set = function(info, value)
+									self.db.global.crosshairOpacity = value
+									if value then
+										CombatMode:UpdateCrosshair()
+									end
+								end,
+								get = function(info)
+									return self.db.global.crosshairOpacity
+								end,
+							},
+							crosshairNote= {
+								type = "description",
+								name = "\n|cff909090The crosshair will only react to attackable targets, as intended. This prevents erratic behavior when near other players.|r",
+								order = 5,
+							},
+						},
+					},
 				},
 			},
 		}
@@ -925,13 +1009,58 @@ function CombatMode:InitializeWildcardFrameTracking(frameArr)
 	CombatMode:print("Wildcard frames initialized")
 end
 
+-- CROSSHAIR
+local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
+
+function CombatMode:BaseCrosshairState()
+	local crossBase = "Interface\\AddOns\\CombatMode\\assets\\crosshair.tga"
+	CrosshairFrame.tex:SetTexture(crossBase)
+	CrosshairFrame.tex:SetVertexColor(1, 1, 1, .5)
+end
+
+function CombatMode:HostileCrosshairState()
+	local crossHit = "Interface\\AddOns\\CombatMode\\assets\\crosshair-hit.tga"
+	CrosshairFrame.tex:SetTexture(crossHit)
+	CrosshairFrame.tex:SetVertexColor(1, .2, 0.3, 1)
+end
+
+function CombatMode:CreateCrosshair()
+	CrosshairFrame:SetPoint("CENTER")
+	CrosshairFrame:SetSize(self.db.global.crosshairSize or 64, self.db.global.crosshairSize or 64)
+	CrosshairFrame.tex = CrosshairFrame:CreateTexture()
+	CrosshairFrame.tex:SetAllPoints(CrosshairFrame)
+	CrosshairFrame:SetAlpha(self.db.global.crosshairOpacity or 1)
+	CombatMode:BaseCrosshairState()
+end
+
+function CombatMode:ShowCrosshair()
+	CrosshairFrame.tex:Show()
+end
+
+function CombatMode:HideCrosshair()
+	CrosshairFrame.tex:Hide()
+end
+
+function CombatMode:UpdateCrosshair()
+	CrosshairFrame:SetSize(self.db.global.crosshairSize, self.db.global.crosshairSize)
+	CrosshairFrame:SetAlpha(self.db.global.crosshairOpacity)
+end
+
 function CombatMode:OnEnable()
 	CombatMode:InitializeWildcardFrameTracking(wildcardFramesToMatch)
+
+	self:CreateCrosshair()
+	if self.db.global.crosshair then
+		self:ShowCrosshair()
+	else
+		self:HideCrosshair()
+	end
 
 	-- Register Events
 	self:RegisterEvent("PLAYER_ENTERING_WORLD", CombatMode_OnEvent)
 	self:RegisterEvent("ADDON_LOADED", CombatMode_OnEvent)
 	self:RegisterEvent("PLAYER_TARGET_CHANGED", CombatMode_OnEvent)
+	self:RegisterEvent("PLAYER_SOFT_ENEMY_CHANGED", CombatMode_OnEvent)
 	-- self:RegisterEvent("CURSOR_UPDATE", CombatMode_OnEvent)
 	self:RegisterEvent("PET_BAR_UPDATE", CombatMode_OnEvent)
 	self:RegisterEvent("ACTIONBAR_UPDATE_STATE", CombatMode_OnEvent)
@@ -1008,7 +1137,6 @@ function CombatMode:checkForDisableState()
 	or SpellIsTargeting()
 	or CursorActionActive)
 end
-
 
 function CombatMode:print(statement)
 	if debugMode then
@@ -1100,15 +1228,27 @@ function CombatMode:Rematch()
   end
 end
 
-function CombatMode_OnEvent(event, ...)
+function CombatMode_OnEvent(event, unit, ...)
 	if event == "PLAYER_ENTERING_WORLD" then
 		CombatMode:startMouselook()
 		CombatMode:Rematch()
 	end
+	
 
 	if combatModeAddonSwitch then
 		if event == "PLAYER_TARGET_CHANGED" and not CombatMode:checkForDisableState() then			
 			-- target changed		
+		end
+
+		if event == "PLAYER_SOFT_ENEMY_CHANGED" and not CombatMode:checkForDisableState() then
+			local isTargetVisible = UnitIsVisible("target")
+			local isTargetHostile = UnitReaction("player","target") and UnitReaction("player","target") <= 4
+
+			if isTargetVisible and isTargetHostile then
+				CombatMode:HostileCrosshairState()
+			else
+				CombatMode:BaseCrosshairState()
+			end
 		end
 
 		--if event == "CURSOR_UPDATE" and not CombatMode:checkForDisableState() then
