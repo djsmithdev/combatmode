@@ -210,13 +210,13 @@ function CombatMode:loadReticleTargetCvars()
 	SetCVar("SoftTargetNameplateInteract", 0)
   -- interact
   SetCVar("SoftTargetInteract", 3) -- 3 = always on
-  SetCVar("SoftTargetInteractArc", 1)
+  SetCVar("SoftTargetInteractArc", 0)
   SetCVar("SoftTargetInteractRange", 15)
 	SetCVar("SoftTargetIconInteract", 1)
 	SetCVar("SoftTargetIconGameObject", 1)
   -- friendly target
   SetCVar("SoftTargetFriend", 3)
-  SetCVar("SoftTargetFriendArc", 1)
+  SetCVar("SoftTargetFriendArc", 0)
   SetCVar("SoftTargetFriendRange", 15)
 	SetCVar("SoftTargetIconFriend", 0)
   -- enemy target
@@ -916,6 +916,12 @@ function CombatMode:HostileCrosshairState()
 	CrosshairFrame.texture:SetVertexColor(1, .2, 0.3, 1)
 end
 
+function CombatMode:FriendlyCrosshairState()
+	local crossHit = "Interface\\AddOns\\CombatMode\\assets\\crosshair-hit.tga"
+	CrosshairFrame.texture:SetTexture(crossHit)
+	CrosshairFrame.texture:SetVertexColor(0, 1, 0.3, .8)
+end
+
 function CombatMode:CreateCrosshair()
 	CrosshairFrame.texture = CrosshairFrame:CreateTexture()
 	CrosshairFrame.texture:SetAllPoints(CrosshairFrame)
@@ -965,10 +971,10 @@ function CombatMode:OnEnable()
 
 	-- Register Events
 	self:RegisterEvent("PLAYER_ENTERING_WORLD", CombatMode_OnEvent)
-	self:RegisterEvent("ADDON_LOADED", CombatMode_OnEvent)
+	self:RegisterEvent("PLAYER_LOGIN", CombatMode_OnEvent)
 	self:RegisterEvent("PLAYER_TARGET_CHANGED", CombatMode_OnEvent)
 	self:RegisterEvent("PLAYER_SOFT_ENEMY_CHANGED", CombatMode_OnEvent)
-	-- self:RegisterEvent("CURSOR_UPDATE", CombatMode_OnEvent)
+	self:RegisterEvent("PLAYER_SOFT_INTERACT_CHANGED", CombatMode_OnEvent)
 	self:RegisterEvent("PET_BAR_UPDATE", CombatMode_OnEvent)
 	self:RegisterEvent("ACTIONBAR_UPDATE_STATE", CombatMode_OnEvent)
 	self:RegisterEvent("QUEST_FINISHED", CombatMode_OnEvent)
@@ -996,7 +1002,6 @@ function CombatMode:BindBindingOverride(buttonSettings)
 end
 
 function CombatMode:BindBindingOverrides()
-	MouselookStop()
 	CombatMode:BindBindingOverride(self.db.profile.bindings.button1)
 	CombatMode:BindBindingOverride(self.db.profile.bindings.button2)
 	CombatMode:BindBindingOverride(self.db.profile.bindings.shiftbutton1)
@@ -1005,7 +1010,6 @@ function CombatMode:BindBindingOverrides()
 	CombatMode:BindBindingOverride(self.db.profile.bindings.ctrlbutton2)
 	CombatMode:BindBindingOverride(self.db.profile.bindings.altbutton1)
 	CombatMode:BindBindingOverride(self.db.profile.bindings.altbutton2)
-	MouselookStart()
 end
 
 function CombatMode:UnmouseableFrameOnScreen(frameArr)
@@ -1056,6 +1060,9 @@ function CombatMode:startMouselook()
 		combatModeTemporaryDisable = true
 		MouselookStop()
 	end
+	if self.db.global.crosshair then
+		self:ShowCrosshair()
+	end
 end
 
 -- Stop Mouselook
@@ -1064,6 +1071,9 @@ function CombatMode:stopMouselook()
 		combatModeTemporaryDisable = true
 		CursorActionActive = false
 		MouselookStop()
+	end
+	if self.db.global.crosshair then
+		self:HideCrosshair()
 	end
 end
 
@@ -1083,34 +1093,28 @@ function CombatMode:updateState()
 end
 
 function CombatMode:Toggle()
-	if combatModeAddonSwitch == false then
-		combatModeAddonSwitch = true
+	if not IsMouselooking() then
 		CombatMode:startMouselook()
-	else
+		combatModeAddonSwitch = true
+		CombatMode:print("Combat Mode Enabled")
+  elseif IsMouselooking() then
+		CombatMode:stopMouselook()
 		combatModeAddonSwitch = false
-		CombatMode:stopMouselook()		
-	end
+		CombatMode:print("Combat Mode Disabled")
+  end
 end
 
 function CombatModeToggleKey()
 	CombatMode:Toggle()
-	if combatModeAddonSwitch then
-		CombatMode:print("Combat Mode Enabled")
-		if SmartTargetingEnabled then
-			CombatMode:SmartTarget()
-		end
-	else
-		CombatMode:print("Combat Mode Disabled")
-	end
 end
 
 function CombatModeHold(keystate)
 	if keystate == "down" then
-		combatModeAddonSwitch = false
 		CombatMode:stopMouselook()
+		combatModeAddonSwitch = false
 	else
-		combatModeAddonSwitch = true
 		CombatMode:startMouselook()
+		combatModeAddonSwitch = true
 	end
 end
 
@@ -1119,25 +1123,17 @@ function CombatMode:Rematch()
 	if isReticleTargetingActive then
 		CombatMode:loadReticleTargetCvars()
 	end
-  if not IsMouselooking() then
-		combatModeAddonSwitch = true
-		CombatMode:startMouselook()
-  elseif IsMouselooking() then
-		combatModeAddonSwitch = false
-		CombatMode:stopMouselook()
-  end
+	CombatMode:Toggle()
 end
 
 function CombatMode_OnEvent(event, unit, ...)
-	if event == "PLAYER_ENTERING_WORLD" then
-		CombatMode:startMouselook()
+	if event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_LOGIN" then
 		CombatMode:Rematch()
 	end
-	
 
 	if combatModeAddonSwitch then
 		if event == "PLAYER_TARGET_CHANGED" and not CombatMode:checkForDisableState() then			
-			-- target changed		
+			-- target changed
 		end
 
 		if event == "PLAYER_SOFT_ENEMY_CHANGED" and not CombatMode:checkForDisableState() then
@@ -1146,6 +1142,19 @@ function CombatMode_OnEvent(event, unit, ...)
 
 			if isTargetVisible and isTargetHostile then
 				CombatMode:HostileCrosshairState()
+			else
+				CombatMode:BaseCrosshairState()
+			end
+		end
+
+		if event == "PLAYER_SOFT_INTERACT_CHANGED" and not CombatMode:checkForDisableState() then
+			-- local unitExists = UnitExists("softInteract")
+			-- local unitName = UnitName("softInteract")
+			local isTargetVisible = UnitIsVisible("softInteract")
+			local isTargetFriend = UnitReaction("player","softInteract") and UnitReaction("player","softInteract") > 4
+			
+			if isTargetVisible and isTargetFriend then
+				CombatMode:FriendlyCrosshairState()
 			else
 				CombatMode:BaseCrosshairState()
 			end
