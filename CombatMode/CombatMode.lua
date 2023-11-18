@@ -257,6 +257,145 @@ function CombatMode:loadDefaultCvars()
   -- print("Combat Mode: Reticle Target CVars RESET")
 end
 
+function CombatMode:GetButtonOverrideGroup(modifier, groupOrder)
+	local button1Settings, button2Settings, groupName, button1Name, button1MacroName, button2Name, button2MacroName
+	if modifier then
+		button1Settings = modifier .. "button1"
+		button2Settings = modifier .. "button2"
+
+		local capitalisedModifier = (modifier:gsub("^%l", string.upper))
+		groupName = capitalisedModifier .. "-modified Clicks"
+		button1Name = capitalisedModifier .. " + Left Click"
+		button1MacroName = capitalisedModifier .. " + Left Click Macro"
+		button2Name = capitalisedModifier .. " + Right Click"
+		button2MacroName = capitalisedModifier .. " + Right Click Macro"
+	else
+		button1Settings = "button1"
+		button2Settings = "button2"
+
+		groupName = "Base Clicks"
+		button1Name = "Left Click"
+		button1MacroName = "Left Click Macro"
+		button2Name = "Right Click"
+		button2MacroName = "Right Click Macro"
+	end
+
+	return {
+		type = "group",
+		name = "|cff97a2ff" .. groupName .. "|r",
+		inline = true,
+		order = groupOrder,
+		args = {
+			overrideButton1Toggle = {
+				type = "toggle",
+				name = "",
+				width = 0.2,
+				order = 1,
+				set = function(_, value)
+					self.db.profile.bindings[button1Settings].enabled = value
+					if value then
+						CombatMode:BindBindingOverride(self.db.profile.bindings[button1Settings])
+					else
+						CombatMode:ResetBindingOverride(self.db.profile.bindings[button1Settings])
+					end
+				end,
+				get = function()
+					return self.db.profile.bindings[button1Settings].enabled
+				end,
+			},
+			button1 = {
+				name = button1Name,
+				desc = button1Name,
+				type = "select",
+				width = 1.5,
+				order = 1.1,
+				values = defaultButtonValues,
+				set = function(_, value)
+					self.db.profile.bindings[button1Settings].value = value
+					CombatMode:BindBindingOverride(self.db.profile.bindings[button1Settings])
+				end,
+				get = function()
+					return self.db.profile.bindings[button1Settings].value
+				end,
+				disabled = function()
+					return not self.db.profile.bindings[button1Settings].enabled
+				end
+			},
+			button1SidePadding = { type = "description", name = " ", width = 0.2, order = 1.2, },
+			button1macro = {
+				name = button1MacroName,
+				desc = macroFieldDescription,
+				type = "input",
+				width = 1.5,
+				order = 1.3,
+				set = function(_, value)
+					self.db.profile.bindings[button1Settings].macro = value
+					CombatMode:BindBindingOverride(self.db.profile.bindings[button1Settings])
+				end,
+				get = function()
+					return self.db.profile.bindings[button1Settings].macro
+				end,
+				disabled = function()
+					return not self.db.profile.bindings[button1Settings].enabled or self.db.profile.bindings[button1Settings].value ~= defaultButtonValues.MACRO
+				end
+			},
+			overrideButton2Toggle = {
+				type = "toggle",
+				name = "",
+				width = 0.2,
+				order = 2,
+				set = function(_, value)
+					self.db.profile.bindings[button2Settings].enabled = value
+					if value then
+						CombatMode:BindBindingOverride(self.db.profile.bindings[button2Settings])
+					else
+						CombatMode:ResetBindingOverride(self.db.profile.bindings[button2Settings])
+					end
+				end,
+				get = function()
+					return self.db.profile.bindings[button2Settings].enabled
+				end,
+			},
+			button2 = {
+				name = button2Name,
+				desc = button2Name,
+				type = "select",
+				width = 1.5,
+				order = 2.1,
+				values = defaultButtonValues,
+				set = function(_, value)
+					self.db.profile.bindings[button2Settings].value = value
+					CombatMode:BindBindingOverride(self.db.profile.bindings[button2Settings])
+				end,
+				get = function()
+					return self.db.profile.bindings[button2Settings].value
+				end,
+				disabled = function()
+					return not self.db.profile.bindings[button2Settings].enabled
+				end
+			},
+			button2SidePadding = { type = "description", name = " ", width = 0.2, order = 2.2, },
+			button2macro = {
+				name = button2MacroName,
+				desc = macroFieldDescription,
+				type = "input",
+				width = 1.5,
+				order = 2.3,
+				set = function(_, value)
+					self.db.profile.bindings[button2Settings].macro = value
+					CombatMode:BindBindingOverride(self.db.profile.bindings[button2Settings])
+				end,
+				get = function()
+					return self.db.profile.bindings[button2Settings].macro
+				end,
+				disabled = function()
+					return not self.db.profile.bindings[button2Settings].enabled or self.db.profile.bindings[button2Settings].value ~= defaultButtonValues.MACRO
+				end
+			},
+		},
+	}
+end
+
 -- Default button values
 function CombatMode:OnInitialize()
 	databaseDefaults = {
@@ -276,52 +415,53 @@ function CombatMode:OnInitialize()
 		profile = {
 			bindings = {
 				button1 = {
+					enabled = true,
 					key = "BUTTON1",
 					value = "ACTIONBUTTON1",
+					macro = ""
 				},
-				button1macro = "",
-
 				button2 = {
+					enabled = true,
 					key = "BUTTON2",
 					value = "ACTIONBUTTON2",
+					macro = ""
 				},
-				button2macro = "",
-
 				shiftbutton1 = {
+					enabled = true,
 					key = "SHIFT-BUTTON1",
 					value = "ACTIONBUTTON3",
+					macro = ""
 				},
-				shiftbutton1macro = "",
-
 				shiftbutton2 = {
+					enabled = true,
 					key = "SHIFT-BUTTON2",
 					value = "ACTIONBUTTON4",
+					macro = ""
 				},
-				shiftbutton2macro = "",
-
 				ctrlbutton1 = {
+					enabled = true,
 					key = "CTRL-BUTTON1",
 					value = "ACTIONBUTTON5",
+					macro = ""
 				},
-				ctrlbutton1macro = "",
-
 				ctrlbutton2 = {
+					enabled = true,
 					key = "CTRL-BUTTON2",
 					value = "ACTIONBUTTON6",
+					macro = ""
 				},
-				ctrlbutton2macro = "",
-
 				altbutton1 = {
+					enabled = true,
 					key = "ALT-BUTTON1",
 					value = "ACTIONBUTTON7",
+					macro = ""
 				},
-				altbutton1macro = "",
-
 				altbutton2 = {
+					enabled = true,
 					key = "ALT-BUTTON2",
 					value = "ACTIONBUTTON8",
+					macro = ""
 				},
-				altbutton2macro = "",
 
 				toggle = {
 					key = "Combat Mode Toggle",
@@ -471,293 +611,13 @@ function CombatMode:OnInitialize()
 						order = 3,
 					},
 					keybindDescriptionBottomPadding = {type = "description", name = " ", width = "full", order = 3.1, },
-					-- BASE CLICK GROUP
-					unmodifiedGroup = {
-						type = "group",
-						name = "|cff97a2ffBase Clicks|r",
-						inline = true,
-						order = 4,
-						args = {
-							button1 = {
-								name = "Left Click",
-								desc = "Left Click",
-								type = "select",
-								width = 1.5,
-								order = 1,
-								values = defaultButtonValues,
-								set = function(info, value)
-									self.db.profile.bindings.button1.value = value
-								end,
-								get = function()
-									return self.db.profile.bindings.button1.value
-								end
-							},
-							button1SidePadding = { type = "description", name = " ", width = 0.2, order = 1.1, },
-							button1macro = {
-								name = "Left Click Macro",
-								desc = macroFieldDescription,
-								type = "input",
-								width = 1.5,
-								order = 2,
-								set = function(info, value)
-									self.db.profile.bindings.button1macro = value
-								end,
-								get = function()
-									return self.db.profile.bindings.button1macro
-								end,
-								disabled = function()
-									return self.db.profile.bindings.button1.value ~= defaultButtonValues.MACRO
-								end
-							},
-							button2 = {
-								name = "Right Click",
-								desc = "Right Click",
-								type = "select",
-								width = 1.5,
-								order = 3,
-								values = defaultButtonValues,
-								set = function(info, value)
-									self.db.profile.bindings.button2.value = value
-								end,
-								get = function()
-									return self.db.profile.bindings.button2.value
-								end
-							},
-							button2SidePadding = { type = "description", name = " ", width = 0.2, order = 3.1, },
-							button2macro = {
-								name = "Right Click Macro",
-								desc = macroFieldDescription,
-								type = "input",
-								width = 1.5,
-								order = 4,
-								set = function(info, value)
-									self.db.profile.bindings.button2macro = value
-								end,
-								get = function()
-									return self.db.profile.bindings.button2macro
-								end,
-								disabled = function()
-									return self.db.profile.bindings.button2.value ~= defaultButtonValues.MACRO
-								end
-							},
-						},
-					},
+					unmodifiedGroup = CombatMode:GetButtonOverrideGroup(nil, 4),
 					unmodifiedGroupBottomPadding = { type = "description", name = " ", width = "full", order = 4.1, },
-					-- SHIFT CLICK GROUP
-					shiftGroup = {
-						type = "group",
-						name = "|cff97a2ffShift-modified Clicks|r",
-						inline = true,
-						order = 5,
-						args = {
-							shiftbutton1 = {
-								name = "Shift + Left Click",
-								desc = "Shift + Left Click",
-								type = "select",
-								width = 1.5,
-								order = 1,
-								values = defaultButtonValues,
-								set = function(info, value)
-									self.db.profile.bindings.shiftbutton1.value = value
-								end,
-								get = function()
-									return self.db.profile.bindings.shiftbutton1.value
-								end
-							},
-							shiftbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 1.1, },
-							shiftbutton1macro = {
-								name = "Shift + Left Click Macro",
-								desc = macroFieldDescription,
-								type = "input",
-								width = 1.5,
-								order = 2,
-								set = function(info, value)
-									self.db.profile.bindings.shiftbutton1macro = value
-								end,
-								get = function()
-									return self.db.profile.bindings.shiftbutton1macro
-								end,
-								disabled = function()
-									return self.db.profile.bindings.shiftbutton1.value ~= defaultButtonValues.MACRO
-								end
-							},
-							shiftbutton2 = {
-								name = "Shift + Right Click",
-								desc = "Shift + Right Click",
-								type = "select",
-								width = 1.5,
-								order = 3,
-								values = defaultButtonValues,
-								set = function(info, value)
-									self.db.profile.bindings.shiftbutton2.value = value
-								end,
-								get = function()
-									return self.db.profile.bindings.shiftbutton2.value
-								end
-							},
-							shiftbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 3.1, },
-							shiftbutton2macro = {
-								name = "Shift + Right Click Macro",
-								desc = macroFieldDescription,
-								type = "input",
-								width = 1.5,
-								order = 4,
-								set = function(info, value)
-									self.db.profile.bindings.shiftbutton2macro = value
-								end,
-								get = function()
-									return self.db.profile.bindings.shiftbutton2macro
-								end,
-								disabled = function()
-									return self.db.profile.bindings.shiftbutton2.value ~= defaultButtonValues.MACRO
-								end
-							},
-						},
-					},
+					shiftGroup = CombatMode:GetButtonOverrideGroup("shift", 5),
 					shiftGroupBottomPadding = { type = "description", name = " ", width = "full", order = 5.1, },
-					-- CTRL CLICK GROUP
-					ctrlGroup = {
-						type = "group",
-						name = "|cff97a2ffCTRL-modified Clicks|r",
-						inline = true,
-						order = 6,
-						args = {
-							ctrlbutton1 = {
-								name = "Control + Left Click",
-								desc = "Control + Left Click",
-								type = "select",
-								width = 1.5,
-								order = 1,
-								values = defaultButtonValues,
-								set = function(info, value)
-									self.db.profile.bindings.ctrlbutton1.value = value
-								end,
-								get = function()
-									return self.db.profile.bindings.ctrlbutton1.value
-								end
-							},
-							ctrlbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 1.1, },
-							ctrlbutton1macro = {
-								name = "Control + Left Click Macro",
-								desc = macroFieldDescription,
-								type = "input",
-								width = 1.5,
-								order = 2,
-								set = function(info, value)
-									self.db.profile.bindings.ctrlbutton1macro = value
-								end,
-								get = function()
-									return self.db.profile.bindings.ctrlbutton1macro
-								end,
-								disabled = function()
-									return self.db.profile.bindings.ctrlbutton1.value ~= defaultButtonValues.MACRO
-								end
-							},
-							ctrlbutton2 = {
-								name = "Control + Right Click",
-								desc = "Control + Right Click",
-								type = "select",
-								width = 1.5,
-								order = 3,
-								values = defaultButtonValues,
-								set = function(info, value)
-									self.db.profile.bindings.ctrlbutton2.value = value
-								end,
-								get = function()
-									return self.db.profile.bindings.ctrlbutton2.value
-								end
-							},
-							ctrlbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 3.1, },
-							ctrlbutton2macro = {
-								name = "Control + Right Click Macro",
-								desc = macroFieldDescription,
-								type = "input",
-								width = 1.5,
-								order = 4,
-								set = function(info, value)
-									self.db.profile.bindings.ctrlbutton2macro = value
-								end,
-								get = function()
-									return self.db.profile.bindings.ctrlbutton2macro
-								end,
-								disabled = function()
-									return self.db.profile.bindings.ctrlbutton2.value ~= defaultButtonValues.MACRO
-								end
-							},
-						},
-					},
+					ctrlGroup = CombatMode:GetButtonOverrideGroup("ctrl", 6),
 					ctrlGroupBottomPadding = { type = "description", name = " ", width = "full", order = 6.1, },
-					-- ALT CLICK GROUP
-					altGroup = {
-						type = "group",
-						name = "|cff97a2ffALT-modified Clicks|r",
-						inline = true,
-						order = 7,
-						args = {
-							altbutton1 = {
-								name = "Alt + Left Click",
-								desc = "Alt + Left Click",
-								type = "select",
-								width = 1.5,
-								order = 1,
-								values = defaultButtonValues,
-								set = function(info, value)
-									self.db.profile.bindings.altbutton1.value = value
-								end,
-								get = function()
-									return self.db.profile.bindings.altbutton1.value
-								end
-							},
-							altbutton1SidePadding = { type = "description", name = " ", width = 0.2, order = 1.1, },
-							altbutton1macro = {
-								name = "Alt + Left Click Macro",
-								desc = macroFieldDescription,
-								type = "input",
-								width = 1.5,
-								order = 2,
-								set = function(info, value)
-									self.db.profile.bindings.altbutton1macro = value
-								end,
-								get = function()
-									return self.db.profile.bindings.altbutton1macro
-								end,
-								disabled = function()
-									return self.db.profile.bindings.altbutton1.value ~= defaultButtonValues.MACRO
-								end
-							},
-							altbutton2 = {
-								name = "Alt + Right Click",
-								desc = "Alt + Right Click",
-								type = "select",
-								width = 1.5,
-								order = 3,
-								values = defaultButtonValues,
-								set = function(info, value)
-									self.db.profile.bindings.altbutton2.value = value
-								end,
-								get = function()
-									return self.db.profile.bindings.altbutton2.value
-								end
-							},
-							altbutton2SidePadding = { type = "description", name = " ", width = 0.2, order = 3.1, },
-							altbutton2macro = {
-								name = "Alt + Right Click Macro",
-								desc = macroFieldDescription,
-								type = "input",
-								width = 1.5,
-								order = 4,
-								set = function(info, value)
-									self.db.profile.bindings.altbutton2macro = value
-								end,
-								get = function()
-									return self.db.profile.bindings.altbutton2macro
-								end,
-								disabled = function()
-									return self.db.profile.bindings.altbutton2.value ~= defaultButtonValues.MACRO
-								end
-							},
-						},
-					},					
+					altGroup = CombatMode:GetButtonOverrideGroup("alt", 7),
 				},
 			},
 			-- WATCHLIST
@@ -1092,6 +952,8 @@ end
 
 
 function CombatMode:OnEnable()
+	CombatMode:BindBindingOverrides()
+
 	CombatMode:InitializeWildcardFrameTracking(wildcardFramesToMatch)
 
 	self:CreateCrosshair()
@@ -1117,38 +979,32 @@ function CombatMode:OnDisable()
     -- Called when the addon is disabled
 end
 
-function CombatMode:BindBindingOverride(button, value, macroValue)
-	MouselookStop()
+function CombatMode:ResetBindingOverride(buttonSettings)
+	SetMouselookOverrideBinding(buttonSettings.key, nil)
+	CombatMode:print(buttonSettings.key .. "'s override binding is now cleared")
+end
 
+function CombatMode:BindBindingOverride(buttonSettings)
 	local valueToUse
-	if value == defaultButtonValues.MACRO then
-		valueToUse = "MACRO " .. macroValue
+	if buttonSettings.value == defaultButtonValues.MACRO then
+		valueToUse = "MACRO " .. buttonSettings.macro
 	else
-		valueToUse = value
+		valueToUse = buttonSettings.value
 	end
-	SetMouselookOverrideBinding(button, valueToUse)
-
-	MouselookStart()
+	SetMouselookOverrideBinding(buttonSettings.key, valueToUse)
+	CombatMode:print(buttonSettings.key .. "'s override binding is now " .. valueToUse)
 end
 
 function CombatMode:BindBindingOverrides()
 	MouselookStop()
-	CombatMode:BindBindingOverride("BUTTON1", self.db.profile.bindings.button1.value,
-		self.db.profile.bindings.button1macro)
-	CombatMode:BindBindingOverride("BUTTON2", self.db.profile.bindings.button2.value,
-		self.db.profile.bindings.button2macro)
-	CombatMode:BindBindingOverride("CTRL-BUTTON1", self.db.profile.bindings.ctrlbutton1.value,
-		self.db.profile.bindings.ctrlbutton1macro)
-	CombatMode:BindBindingOverride("CTRL-BUTTON2", self.db.profile.bindings.ctrlbutton2.value,
-		self.db.profile.bindings.ctrlbutton2macro)
-	CombatMode:BindBindingOverride("ALT-BUTTON1", self.db.profile.bindings.altbutton1.value,
-		self.db.profile.bindings.altbutton1macro)
-	CombatMode:BindBindingOverride("ALT-BUTTON2", self.db.profile.bindings.altbutton2.value,
-		self.db.profile.bindings.altbutton2macro)
-	CombatMode:BindBindingOverride("SHIFT-BUTTON1", self.db.profile.bindings.shiftbutton1.value,
-		self.db.profile.bindings.shiftbutton1macro)
-	CombatMode:BindBindingOverride("SHIFT-BUTTON2", self.db.profile.bindings.shiftbutton2.value,
-		self.db.profile.bindings.shiftbutton2macro)
+	CombatMode:BindBindingOverride(self.db.profile.bindings.button1)
+	CombatMode:BindBindingOverride(self.db.profile.bindings.button2)
+	CombatMode:BindBindingOverride(self.db.profile.bindings.shiftbutton1)
+	CombatMode:BindBindingOverride(self.db.profile.bindings.shiftbutton2)
+	CombatMode:BindBindingOverride(self.db.profile.bindings.ctrlbutton1)
+	CombatMode:BindBindingOverride(self.db.profile.bindings.ctrlbutton2)
+	CombatMode:BindBindingOverride(self.db.profile.bindings.altbutton1)
+	CombatMode:BindBindingOverride(self.db.profile.bindings.altbutton2)
 	MouselookStart()
 end
 
@@ -1229,7 +1085,6 @@ end
 function CombatMode:Toggle()
 	if combatModeAddonSwitch == false then
 		combatModeAddonSwitch = true
-		CombatMode:BindBindingOverrides()
 		CombatMode:startMouselook()
 	else
 		combatModeAddonSwitch = false
