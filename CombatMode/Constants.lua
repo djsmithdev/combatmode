@@ -8,8 +8,6 @@ Addon.Constants.BLIZZARD_EVENTS = {
   "PLAYER_ENTERING_WORLD",
   "PLAYER_SOFT_ENEMY_CHANGED",
   "PLAYER_SOFT_INTERACT_CHANGED",
-  "QUEST_FINISHED",
-  "QUEST_PROGRESS"
 }
 
 -- Default frames to check
@@ -201,6 +199,17 @@ Addon.Constants.defaultButtonValues = {
   ACTIONBUTTON11 = "ACTIONBUTTON11",
   ACTIONBUTTON12 = "ACTIONBUTTON12",
   MACRO = "MACRO"
+}
+
+Addon.Constants.buttonsToOverride = {
+  "button1",
+  "button2",
+  "shiftbutton1",
+  "shiftbutton2",
+  "ctrlbutton1",
+  "ctrlbutton2",
+  "altbutton1",
+  "altbutton2"
 }
 
 Addon.Constants.macroFieldDescription = "Enter the name of the macro you wish to be ran here."
