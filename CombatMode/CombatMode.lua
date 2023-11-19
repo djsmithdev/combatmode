@@ -7,29 +7,19 @@ local AceConfig = _G.LibStub("AceConfig-3.0")
 local AceConfigDialog = _G.LibStub("AceConfigDialog-3.0")
 local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 
--- ASSIGNING BLIZZ METHODS TO LOCAL VARS
-local MouselookStart, MouselookStop, IsMouselooking = _G.MouselookStart, _G.MouselookStop, _G.IsMouselooking
-local SpellIsTargeting = _G.SpellIsTargeting
-local UnitIsVisible, UnitReaction = _G.UnitIsVisible, _G.UnitReaction
-local CreateFrame, UIParent, getglobal = _G.CreateFrame, _G.UIParent, _G.getglobal
-local GetBindingKey, GetCurrentBindingSet, SetBinding, SaveBindings, SetMouselookOverrideBinding = _G.GetBindingKey,
-  _G.GetCurrentBindingSet, _G.SetBinding, _G.SaveBindings, _G.SetMouselookOverrideBinding
-
 -- INSTANTIATING ADDON & CREATING FRAME
 local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
-local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
+local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UIParent)
 
 -- INITIAL STATE VARIABLES
-local combatModeAddonSwitch = false
-local combatModeTemporaryDisable = false
-local cursorActionActive = false
-local freeLookStarted = false
 local debugMode = false
+local isFreeLookActive = false
+local lastStateUpdateTime = 0
 
 -- UTILITY FUNCTIONS
 local function DebugPrint(statement)
   if debugMode then
-    print("CombatMode: " .. statement)
+    print("|cffff0000Combat Mode:|r " .. statement)
   end
 end
 
@@ -52,6 +42,14 @@ local function FriendlyCrosshairState()
   CrosshairFrame.texture:SetVertexColor(0, 1, 0.3, .8)
 end
 
+local function ShowCrosshair()
+  CrosshairFrame.texture:Show()
+end
+
+local function HideCrosshair()
+  CrosshairFrame.texture:Hide()
+end
+
 local function CreateCrosshair()
   CrosshairFrame.texture = CrosshairFrame:CreateTexture()
   CrosshairFrame.texture:SetAllPoints(CrosshairFrame)
@@ -60,14 +58,12 @@ local function CreateCrosshair()
   CrosshairFrame:SetSize(CM.DB.global.crosshairSize or 64, CM.DB.global.crosshairSize or 64)
   CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity or 1.0)
   BaseCrosshairState()
-end
 
-local function ShowCrosshair()
-  CrosshairFrame.texture:Show()
-end
-
-local function HideCrosshair()
-  CrosshairFrame.texture:Hide()
+  if CM.DB.global.crosshair then
+    ShowCrosshair()
+  else
+    HideCrosshair()
+  end
 end
 
 local function UpdateCrosshair()
@@ -84,6 +80,21 @@ local function UpdateCrosshair()
   end
 end
 
+local function CrosshairReactToTarget(target, isHostile)
+  local isTargetVisible = _G.UnitIsVisible(target)
+  local isTarget = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) <= 4
+
+  if isTargetVisible and isTarget == isHostile then
+    if isHostile then
+      HostileCrosshairState()
+    else
+      FriendlyCrosshairState()
+    end
+  else
+    BaseCrosshairState()
+  end
+end
+
 -- FRAME WATCHING
 local function CursorUnlockFrameVisible(frameArr)
   local allowFrameWatching = CM.DB.global.frameWatching
@@ -92,7 +103,7 @@ local function CursorUnlockFrameVisible(frameArr)
   end
 
   for _, frameName in pairs(frameArr) do
-    local curFrame = getglobal(frameName)
+    local curFrame = _G.getglobal(frameName)
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
       DebugPrint(frameName .. " is visible, enabling cursor")
       return true
@@ -113,8 +124,7 @@ local function SuspendingCursorLock()
 		CursorUnlockFrameVisible(Addon.Constants.FramesToCheck)
 		or CursorUnlockFrameVisible(CM.DB.global.watchlist)
 		or CursorUnlockFrameGroupVisible(Addon.Constants.wildcardFramesToCheck)
-		or SpellIsTargeting()
-		or cursorActionActive
+		or _G.SpellIsTargeting()
 	)
 end
 
@@ -146,28 +156,18 @@ local function BindBindingOverride(buttonSettings)
   else
     valueToUse = buttonSettings.value
   end
-  SetMouselookOverrideBinding(buttonSettings.key, valueToUse)
+  _G.SetMouselookOverrideBinding(buttonSettings.key, valueToUse)
   DebugPrint(buttonSettings.key .. "'s override binding is now " .. valueToUse)
 end
 
 local function BindBindingOverrides()
-  local buttons = {
-    "button1",
-    "button2",
-    "shiftbutton1",
-    "shiftbutton2",
-    "ctrlbutton1",
-    "ctrlbutton2",
-    "altbutton1",
-    "altbutton2"
-  }
-  for _, button in pairs(buttons) do
+  for _, button in pairs(Addon.Constants.buttonsToOverride) do
     BindBindingOverride(CM.DB.profile.bindings[button])
   end
 end
 
 local function ResetBindingOverride(buttonSettings)
-  SetMouselookOverrideBinding(buttonSettings.key, nil)
+  _G.SetMouselookOverrideBinding(buttonSettings.key, nil)
   DebugPrint(buttonSettings.key .. "'s override binding is now cleared")
 end
 
@@ -324,38 +324,30 @@ end
 
 -- FREE LOOK STATE HANDLING
 local function LockFreeLook()
-  if combatModeTemporaryDisable and not SuspendingCursorLock() then
-    combatModeTemporaryDisable = false
-    MouselookStart()
-  else
-    combatModeTemporaryDisable = true
-    MouselookStop()
+  if not SuspendingCursorLock() then
+    _G.MouselookStart()
   end
   if CM.DB.global.crosshair then
     ShowCrosshair()
   end
+  DebugPrint("Free Look Enabled")
 end
 
 local function UnlockFreeLook()
-  if not combatModeTemporaryDisable then
-    combatModeTemporaryDisable = true
-    cursorActionActive = false
-    MouselookStop()
-  end
+  _G.MouselookStop()
   if CM.DB.global.crosshair then
     HideCrosshair()
   end
+  DebugPrint("Free Look Disabled")
 end
 
 local function ToggleFreeLook()
-  if not IsMouselooking() then
-    LockFreeLook()
-    combatModeAddonSwitch = true
-    DebugPrint("Free Look Enabled")
-  elseif IsMouselooking() then
+  if _G.IsMouselooking() then
     UnlockFreeLook()
-    combatModeAddonSwitch = false
-    DebugPrint("Free Look Disabled")
+    isFreeLookActive = false
+  else
+    LockFreeLook()
+    isFreeLookActive = true
   end
 end
 
@@ -371,25 +363,26 @@ end
 -- This will be fired when changes in game state happen
 -- Responsible for unlocking Free Look when opening frames
 local function UpdateState()
+  local currentTime = _G.GetTime()
+  if currentTime - lastStateUpdateTime < 0.1 then
+    return
+  end
+  lastStateUpdateTime = currentTime
   if SuspendingCursorLock() then
     UnlockFreeLook()
-    freeLookStarted = false
-  else
-    if freeLookStarted ~= true then
-      LockFreeLook()
-      freeLookStarted = true
-    end
+  elseif not _G.IsMouselooking() then
+    LockFreeLook()
   end
 end
 
 -- CREATING /CM CHAT COMMAND
 function CM:OpenConfigCMD(input)
+  ToggleFreeLook()
   if not input or input:trim() == "" then
     AceConfigDialog:Open("Combat Mode")
   else
     AceConfigCmd.HandleCommand(self, "mychat", "Combat Mode", input)
   end
-  UnlockFreeLook()
 end
 
 -- INITIALIZING DEFAULT CONFIG
@@ -598,15 +591,15 @@ function CM:OnInitialize()
             width = 1,
             order = 3,
             set = function(_, key)
-              local oldKey = (GetBindingKey("Combat Mode Toggle"))
+              local oldKey = (_G.GetBindingKey("Combat Mode Toggle"))
               if oldKey then
-                SetBinding(oldKey)
+                _G.SetBinding(oldKey)
               end
-              SetBinding(key, "Combat Mode Toggle")
-              SaveBindings(GetCurrentBindingSet())
+              _G.SetBinding(key, "Combat Mode Toggle")
+              _G.SaveBindings(_G.GetCurrentBindingSet())
             end,
             get = function()
-              return (GetBindingKey("Combat Mode Toggle"))
+              return (_G.GetBindingKey("Combat Mode Toggle"))
             end
           },
           holdLeftPadding = {
@@ -622,15 +615,15 @@ function CM:OnInitialize()
             width = 1,
             order = 4,
             set = function(_, key)
-              local oldKey = (GetBindingKey("(Hold) Switch Mode"))
+              local oldKey = (_G.GetBindingKey("(Hold) Switch Mode"))
               if oldKey then
-                SetBinding(oldKey)
+                _G.SetBinding(oldKey)
               end
-              SetBinding(key, "(Hold) Switch Mode")
-              SaveBindings(GetCurrentBindingSet())
+              _G.SetBinding(key, "(Hold) Switch Mode")
+              _G.SaveBindings(_G.GetCurrentBindingSet())
             end,
             get = function()
-              return (GetBindingKey("(Hold) Switch Mode"))
+              return (_G.GetBindingKey("(Hold) Switch Mode"))
             end
           },
           holdBottomPadding = {
@@ -985,13 +978,7 @@ end
 function CM:OnEnable()
   BindBindingOverrides()
   InitializeWildcardFrameTracking(Addon.Constants.wildcardFramesToMatch)
-
   CreateCrosshair()
-  if CM.DB.global.crosshair then
-    ShowCrosshair()
-  else
-    HideCrosshair()
-  end
 
   -- Registering Blizzard Events from Constants.lua
   for _, event in pairs(Addon.Constants.BLIZZARD_EVENTS) do
@@ -1006,50 +993,25 @@ end
 
 -- FIRES WHEN SPECIFIC EVENTS HAPPEN IN GAME
 function _G.CombatMode_OnEvent(event)
-  if event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_LOGIN" then
-    Rematch()
+  if isFreeLookActive and not SuspendingCursorLock() then
+    if event == "PLAYER_SOFT_ENEMY_CHANGED" then
+      CrosshairReactToTarget("target", true)
+    end
+
+    if event == "PLAYER_SOFT_INTERACT_CHANGED" then
+      CrosshairReactToTarget("softInteract", false)
+    end
   end
 
-  if combatModeAddonSwitch then
-    if event == "PLAYER_SOFT_ENEMY_CHANGED" and not SuspendingCursorLock() then
-      local isTargetVisible = UnitIsVisible("target")
-      local isTargetHostile = UnitReaction("player", "target") and UnitReaction("player", "target") <= 4
-
-      if isTargetVisible and isTargetHostile then
-        HostileCrosshairState()
-      else
-        BaseCrosshairState()
-      end
-    end
-
-    if event == "PLAYER_SOFT_INTERACT_CHANGED" and not SuspendingCursorLock() then
-      -- local unitExists = UnitExists("softInteract")
-      -- local unitName = UnitName("softInteract")
-      local isTargetVisible = UnitIsVisible("softInteract")
-      local isTargetFriend = UnitReaction("player", "softInteract") and UnitReaction("player", "softInteract") > 4
-
-      if isTargetVisible and isTargetFriend then
-        FriendlyCrosshairState()
-      else
-        BaseCrosshairState()
-      end
-    end
-
-    if event == "QUEST_FINISHED" and cursorActionActive then
-      LockFreeLook()
-      cursorActionActive = false
-    end
-
-    if event == "QUEST_PROGRESS" then
-      UnlockFreeLook()
-      cursorActionActive = true
-    end
+  if event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_LOGIN" then
+    Rematch()
+    print("|cffff0000Combat Mode:|r |cff909090 Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings |r")
   end
 end
 
 -- FIRES WHEN GAME STATE CHANGES HAPPEN
 function _G.CombatMode_OnUpdate()
-  if combatModeAddonSwitch then
+  if isFreeLookActive then
     UpdateState()
   end
 end
@@ -1067,9 +1029,9 @@ end
 function _G.CombatModeHoldKey(keystate)
   if keystate == "down" then
     UnlockFreeLook()
-    combatModeAddonSwitch = false
+    isFreeLookActive = false
   else
     LockFreeLook()
-    combatModeAddonSwitch = true
+    isFreeLookActive = true
   end
 end
