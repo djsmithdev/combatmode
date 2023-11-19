@@ -10,11 +10,14 @@ local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 -- INSTANTIATING ADDON & CREATING FRAME
 local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UIParent)
+local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 
 -- INITIAL STATE VARIABLES
+local isCursorFreeState = false
+local isCursorLockedState = false
+local didPreviousStateChange = false
+
 local debugMode = false
-local isFreeLookActive = false
-local lastStateUpdateTime = 0
 
 -- UTILITY FUNCTIONS
 local function DebugPrint(statement)
@@ -26,34 +29,32 @@ end
 -- CROSSHAIR STATE HANDLING FUNCTIONS
 local function BaseCrosshairState()
   local crossBase = "Interface\\AddOns\\CombatMode\\assets\\crosshair.tga"
-  CrosshairFrame.texture:SetTexture(crossBase)
-  CrosshairFrame.texture:SetVertexColor(1, 1, 1, .5)
+  CrosshairTexture:SetTexture(crossBase)
+  CrosshairTexture:SetVertexColor(1, 1, 1, .5)
 end
 
 local function HostileCrosshairState()
   local crossHit = "Interface\\AddOns\\CombatMode\\assets\\crosshair-hit.tga"
-  CrosshairFrame.texture:SetTexture(crossHit)
-  CrosshairFrame.texture:SetVertexColor(1, .2, 0.3, 1)
+  CrosshairTexture:SetTexture(crossHit)
+  CrosshairTexture:SetVertexColor(1, .2, 0.3, 1)
 end
 
 local function FriendlyCrosshairState()
   local crossHit = "Interface\\AddOns\\CombatMode\\assets\\crosshair-hit.tga"
-  CrosshairFrame.texture:SetTexture(crossHit)
-  CrosshairFrame.texture:SetVertexColor(0, 1, 0.3, .8)
+  CrosshairTexture:SetTexture(crossHit)
+  CrosshairTexture:SetVertexColor(0, 1, 0.3, .8)
 end
 
 local function ShowCrosshair()
-  CrosshairFrame.texture:Show()
+  CrosshairTexture:Show()
 end
 
 local function HideCrosshair()
-  CrosshairFrame.texture:Hide()
+  CrosshairTexture:Hide()
 end
 
 local function CreateCrosshair()
-  CrosshairFrame.texture = CrosshairFrame:CreateTexture()
-  CrosshairFrame.texture:SetAllPoints(CrosshairFrame)
-
+  CrosshairTexture:SetAllPoints(CrosshairFrame)
   CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or 100)
   CrosshairFrame:SetSize(CM.DB.global.crosshairSize or 64, CM.DB.global.crosshairSize or 64)
   CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity or 1.0)
@@ -324,31 +325,48 @@ end
 
 -- FREE LOOK STATE HANDLING
 local function LockFreeLook()
-  if not SuspendingCursorLock() then
+  if isCursorFreeState or not SuspendingCursorLock() then
+    isCursorFreeState = false
     _G.MouselookStart()
+
+    if CM.DB.global.crosshair then
+      ShowCrosshair()
+    end
+
+    DebugPrint("Free Look Enabled")
+  -- else
+  --   DebugPrint("Tried to lock but the state prevented it")
+  --   isCursorFreeState = true
+  --   _G.MouselookStop()
   end
-  if CM.DB.global.crosshair then
-    ShowCrosshair()
-  end
-  DebugPrint("Free Look Enabled")
 end
 
 local function UnlockFreeLook()
-  _G.MouselookStop()
-  if CM.DB.global.crosshair then
-    HideCrosshair()
+  if not isCursorFreeState then
+    isCursorFreeState = true
+    _G.MouselookStop()
+
+    if CM.DB.global.crosshair then
+      HideCrosshair()
+    end
+
+    DebugPrint("Free Look Disabled")
   end
-  DebugPrint("Free Look Disabled")
 end
 
 local function ToggleFreeLook()
-  if _G.IsMouselooking() then
-    UnlockFreeLook()
-    isFreeLookActive = false
-  else
+  if not _G.IsMouselooking() then
     LockFreeLook()
-    isFreeLookActive = true
+    isCursorLockedState = true
+  elseif _G.IsMouselooking() then
+    UnlockFreeLook()
+    isCursorLockedState = false
   end
+
+  DebugPrint("__________________NEW STATE___________________")
+  DebugPrint("didPreviousStateChange:" .. tostring(didPreviousStateChange))
+  DebugPrint("isCursorLockedState:" .. tostring(isCursorLockedState))
+  DebugPrint("isCursorFreeState:" .. tostring(isCursorFreeState))
 end
 
 -- Relocking Free Look & setting CVars after reload/portal
@@ -360,18 +378,23 @@ local function Rematch()
   ToggleFreeLook()
 end
 
--- This will be fired when changes in game state happen
+-- UpdateState will be fired when changes in game state happen
 -- Responsible for unlocking Free Look when opening frames
+local lastStateUpdateTime = 0 -- Sets delay for when OnUpdate is allowed to update state vars
+
 local function UpdateState()
   local currentTime = _G.GetTime()
   if currentTime - lastStateUpdateTime < 0.1 then
     return
   end
   lastStateUpdateTime = currentTime
+
   if SuspendingCursorLock() then
     UnlockFreeLook()
-  elseif not _G.IsMouselooking() then
-    LockFreeLook()
+    didPreviousStateChange = false
+  elseif not didPreviousStateChange then
+      LockFreeLook()
+      didPreviousStateChange = true
   end
 end
 
@@ -993,7 +1016,7 @@ end
 
 -- FIRES WHEN SPECIFIC EVENTS HAPPEN IN GAME
 function _G.CombatMode_OnEvent(event)
-  if isFreeLookActive and not SuspendingCursorLock() then
+  if not isCursorFreeState and not SuspendingCursorLock() then
     if event == "PLAYER_SOFT_ENEMY_CHANGED" then
       CrosshairReactToTarget("target", true)
     end
@@ -1003,7 +1026,7 @@ function _G.CombatMode_OnEvent(event)
     end
   end
 
-  if event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_LOGIN" then
+  if event == "PLAYER_ENTERING_WORLD" then
     Rematch()
     print("|cffff0000Combat Mode:|r |cff909090 Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings |r")
   end
@@ -1011,7 +1034,7 @@ end
 
 -- FIRES WHEN GAME STATE CHANGES HAPPEN
 function _G.CombatMode_OnUpdate()
-  if isFreeLookActive then
+  if isCursorLockedState then
     UpdateState()
   end
 end
@@ -1029,9 +1052,7 @@ end
 function _G.CombatModeHoldKey(keystate)
   if keystate == "down" then
     UnlockFreeLook()
-    isFreeLookActive = false
   else
     LockFreeLook()
-    isFreeLookActive = true
   end
 end
