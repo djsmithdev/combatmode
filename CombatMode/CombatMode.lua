@@ -216,7 +216,8 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         end,
         get = function()
           return CM.DB.profile.bindings[button1Settings].enabled
-        end
+        end,
+        disabled = modifier == nil,
       },
       button1 = {
         name = button1Name,
@@ -275,7 +276,8 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         end,
         get = function()
           return CM.DB.profile.bindings[button2Settings].enabled
-        end
+        end,
+        disabled = modifier == nil,
       },
       button2 = {
         name = button2Name,
