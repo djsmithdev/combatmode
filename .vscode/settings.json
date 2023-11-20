@@ -1,9 +1,41 @@
 {
-  "[lua]": {
-    "editor.defaultFormatter": "yinfei.luahelper"
-  },
-  "luahelper.format.indent_width": 2,
-  "luahelper.format.continuation_indent_width": 2,
-  "luahelper.format.chop_down_table": true,
   "editor.formatOnSave": true,
+  "Lua.diagnostics.globals": [
+    "ReloadUI",
+    "DEFAULT_CHAT_FRAME",
+    "SELECTED_CHAT_FRAME",
+    "NORMAL_FONT_COLOR",
+    "GameFontNormal",
+    "GameFontHighlight",
+    "ACCEPT",
+    "CANCEL",
+    "Settings",
+    "InterfaceOptions_AddCategory",
+    "GameFontHighlightLarge",
+    "GameFontHighlightSmall",
+    "SlashCmdList",
+    "hash_SlashCmdList",
+    "NORMAL_FONT_COLOR_CODE",
+    "FONT_COLOR_CODE_CLOSE",
+    "CLOSE",
+    "GameFontDisableSmall",
+    "GameFontNormalSmall",
+    "SetDesaturation",
+    "ColorPickerFrame",
+    "OpacitySliderFrame",
+    "ChatFontNormal",
+    "OKAY",
+    "NOT_BOUND",
+    "IsSecureCmd",
+    "NUM_CHAT_WINDOWS",
+    "ChatEdit_GetActiveWindow",
+    "enabled",
+    "Add",
+    "NOTE"
+  ],
+  "Lua.diagnostics.disable": [
+    "undefined-field",
+    "duplicate-set-field",
+    "inject-field"
+  ]
 }

@@ -1,16 +1,17 @@
-local _, Addon = ...
+local CM = _G.GetGlobalStore()
+
+CM.Constants = {}
 
 local SetCVar = _G.SetCVar
-Addon.Constants = {}
 
-Addon.Constants.BLIZZARD_EVENTS = {
+CM.Constants.BLIZZARD_EVENTS = {
   "PLAYER_ENTERING_WORLD",
   "PLAYER_SOFT_ENEMY_CHANGED",
-  "PLAYER_SOFT_INTERACT_CHANGED",
+  "PLAYER_SOFT_INTERACT_CHANGED"
 }
 
 -- Default frames to check with a static name
-Addon.Constants.FramesToCheck = {
+CM.Constants.FramesToCheck = {
   "AuctionFrame",
   "BankFrame",
   "BattlefieldFrame",
@@ -154,15 +155,15 @@ Addon.Constants.FramesToCheck = {
 }
 
 -- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"
-Addon.Constants.wildcardFramesToMatch = {
+CM.Constants.wildcardFramesToMatch = {
   "OPieRT"
 }
 
 -- The dynamic names of the frames defined right above, determined on loading into the game world. Do not hardcode frame names in this table!
-Addon.Constants.wildcardFramesToCheck = {}
+CM.Constants.wildcardFramesToCheck = {}
 
 -- The name of the actions a user can bind to mouse buttons
-Addon.Constants.actionsToProcess = {
+CM.Constants.actionsToProcess = {
   "ACTIONBUTTON1",
   "ACTIONBUTTON2",
   "ACTIONBUTTON3",
@@ -202,13 +203,13 @@ Addon.Constants.actionsToProcess = {
 }
 
 -- Matches the bindable actions values defined right above with more readable names for the UI
-Addon.Constants.overrideActions = {}
-for _, bindingAction in pairs(Addon.Constants.actionsToProcess) do
+CM.Constants.overrideActions = {}
+for _, bindingAction in pairs(CM.Constants.actionsToProcess) do
   local bindingUiName = _G["BINDING_NAME_" .. bindingAction]
-  Addon.Constants.overrideActions[bindingAction] = bindingUiName or bindingAction
+  CM.Constants.overrideActions[bindingAction] = bindingUiName or bindingAction
 end
 
-Addon.Constants.buttonsToOverride = {
+CM.Constants.buttonsToOverride = {
   "button1",
   "button2",
   "shiftbutton1",
@@ -219,10 +220,10 @@ Addon.Constants.buttonsToOverride = {
   "altbutton2"
 }
 
-Addon.Constants.macroFieldDescription = "Enter the name of the macro you wish to be ran here."
+CM.Constants.macroFieldDescription = "Enter the name of the macro you wish to be ran here."
 
 -- CVARS FOR RETICLE TARGETING
-function Addon.Constants.loadReticleTargetCvars()
+function CM.Constants.loadReticleTargetCvars()
   -- general
   SetCVar("SoftTargetForce", 1) -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
   SetCVar("SoftTargetMatchLocked", 1) -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
@@ -232,7 +233,7 @@ function Addon.Constants.loadReticleTargetCvars()
   SetCVar("deselectOnClick", 0) -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
   -- interact
   SetCVar("SoftTargetInteract", 3) -- 3 = always on
-  SetCVar("SoftTargetInteractArc", 0)-- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
+  SetCVar("SoftTargetInteractArc", 0) -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
   SetCVar("SoftTargetInteractRange", 15)
   SetCVar("SoftTargetIconInteract", 1)
   SetCVar("SoftTargetIconGameObject", 1)
@@ -252,7 +253,7 @@ end
 
 -- DEFAULT BLIZZARD VALUES
 -- !! DO NOT CHANGE !!
-function Addon.Constants.loadDefaultCvars()
+function CM.Constants.loadDefaultCvars()
   -- general
   SetCVar("SoftTargetForce", 1)
   SetCVar("SoftTargetMatchLocked", 1)
