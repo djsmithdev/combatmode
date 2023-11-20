@@ -32,21 +32,6 @@ function CM.DebugPrint(statement)
   end
 end
 
-local function BindBindingOverride(buttonSettings)
-  local valueToUse
-  if buttonSettings.value == CM.Constants.overrideActions.MACRO then
-    valueToUse = "MACRO " .. buttonSettings.macro
-  elseif buttonSettings.value == CM.Constants.overrideActions.CLEARTARGET then
-    valueToUse = "MACRO CM_ClearTarget"
-  elseif buttonSettings.value == CM.Constants.overrideActions.CLEARFOCUS then
-    valueToUse = "MACRO CM_ClearFocus"
-  else
-    valueToUse = buttonSettings.value
-  end
-  _G.SetMouselookOverrideBinding(buttonSettings.key, valueToUse)
-  CM.DebugPrint(buttonSettings.key .. "'s override binding is now " .. valueToUse)
-end
-
 local function CreateTargetMacros()
   local doesClearTargetMacroExist = _G.GetMacroInfo("CM_ClearTarget")
   if not doesClearTargetMacroExist then
@@ -176,6 +161,22 @@ local function InitializeWildcardFrameTracking(frameArr)
   end
 
   CM.DebugPrint("Wildcard frames initialized")
+end
+
+-- OVERRIDE BUTTONS
+function BindBindingOverride(buttonSettings)
+  local valueToUse
+  if buttonSettings.value == CM.Constants.overrideActions.MACRO then
+    valueToUse = "MACRO " .. buttonSettings.macro
+  elseif buttonSettings.value == CM.Constants.overrideActions.CLEARTARGET then
+    valueToUse = "MACRO CM_ClearTarget"
+  elseif buttonSettings.value == CM.Constants.overrideActions.CLEARFOCUS then
+    valueToUse = "MACRO CM_ClearFocus"
+  else
+    valueToUse = buttonSettings.value
+  end
+  _G.SetMouselookOverrideBinding(buttonSettings.key, valueToUse)
+  CM.DebugPrint(buttonSettings.key .. "'s override binding is now " .. valueToUse)
 end
 
 local function OverrideDefaultButtons()
