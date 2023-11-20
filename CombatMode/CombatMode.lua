@@ -40,7 +40,7 @@ local function CreateTargetMacros()
 
   local doesClearFocusMacroExist = _G.GetMacroInfo("CM_ClearFocus")
   if not doesClearFocusMacroExist then
-    _G.CreateMacro("CM_ClearFocus", "INV_MISC_QUESTIONMARK", "/stopmacro [noexists]\n/clearfocus", false);
+    _G.CreateMacro("CM_ClearFocus", "INV_MISC_QUESTIONMARK", "/clearfocus", false);
   end
 end
 
@@ -170,11 +170,11 @@ function CM.SetNewBinding(buttonSettings)
   end
 
   local valueToUse
-  if buttonSettings.value == CM.Constants.overrideActions.MACRO then
-    valueToUse = "MACRO " .. buttonSettings.macro
-  elseif buttonSettings.value == CM.Constants.overrideActions.CLEARTARGET then
+  if buttonSettings.value == "CUSTOMACTION" then
+    valueToUse = buttonSettings.customACtion
+  elseif buttonSettings.value == "CLEARTARGET" then
     valueToUse = "MACRO CM_ClearTarget"
-  elseif buttonSettings.value == CM.Constants.overrideActions.CLEARFOCUS then
+  elseif buttonSettings.value == "CLEARFOCUS" then
     valueToUse = "MACRO CM_ClearFocus"
   else
     valueToUse = buttonSettings.value

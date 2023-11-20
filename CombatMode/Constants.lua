@@ -159,7 +159,7 @@ CM.Constants.wildcardFramesToMatch = {
   "OPieRT"
 }
 
--- The dynamic names of the frames defined right above, determined on loading into the game world. Do not hardcode frame names in this table!
+-- The dynamic names of the frames defined right above, determined on loading into the game world. Do not add frame names in this table, do it above instead!
 CM.Constants.wildcardFramesToCheck = {}
 
 -- The name of the actions a user can bind to mouse buttons
@@ -180,7 +180,6 @@ CM.Constants.actionsToProcess = {
   "FOLLOWTARGET",
   "INTERACTTARGET",
   "JUMP",
-  "MACRO",
   "MOVEANDSTEER",
   "MOVEBACKWARD",
   "MOVEFORWARD",
@@ -203,7 +202,8 @@ CM.Constants.actionsToProcess = {
 -- Matches the bindable actions values defined right above with more readable names for the UI
 CM.Constants.overrideActions = {
   CLEARFOCUS = "Clear Focus",
-  CLEARTARGET = "Clear Target"
+  CLEARTARGET = "Clear Target",
+  CUSTOMACTION = "Custom Action"
 }
 for _, bindingAction in pairs(CM.Constants.actionsToProcess) do
   local bindingUiName = _G["BINDING_NAME_" .. bindingAction]
@@ -221,7 +221,7 @@ CM.Constants.buttonsToOverride = {
   "altbutton2"
 }
 
-CM.Constants.macroFieldDescription = "Enter the name of the macro you wish to be ran here."
+CM.Constants.customActionFieldDescription = "Enter the name of the action you wish to be ran here."
 
 -- CVARS FOR RETICLE TARGETING
 function CM.Constants.loadReticleTargetCvars()
