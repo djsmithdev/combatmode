@@ -1,5 +1,11 @@
 {
   "editor.formatOnSave": true,
+  "[lua]": {
+    "editor.defaultFormatter": "yinfei.luahelper"
+  },
+  "luahelper.format.indent_width": 2,
+  "luahelper.format.continuation_indent_width": 2,
+  "luahelper.format.chop_down_table": true,
   "Lua.diagnostics.globals": [
     "ReloadUI",
     "DEFAULT_CHAT_FRAME",
