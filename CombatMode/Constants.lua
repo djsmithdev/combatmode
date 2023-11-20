@@ -176,8 +176,6 @@ CM.Constants.actionsToProcess = {
   "ACTIONBUTTON10",
   "ACTIONBUTTON11",
   "ACTIONBUTTON12",
-  "CLEARTARGET",
-  "CLEARFOCUS",
   "FOCUSTARGET",
   "FOLLOWTARGET",
   "INTERACTTARGET",
@@ -203,7 +201,10 @@ CM.Constants.actionsToProcess = {
 }
 
 -- Matches the bindable actions values defined right above with more readable names for the UI
-CM.Constants.overrideActions = {}
+CM.Constants.overrideActions = {
+  CLEARFOCUS = "Clear Focus",
+  CLEARTARGET = "Clear Target"
+}
 for _, bindingAction in pairs(CM.Constants.actionsToProcess) do
   local bindingUiName = _G["BINDING_NAME_" .. bindingAction]
   CM.Constants.overrideActions[bindingAction] = bindingUiName or bindingAction
@@ -230,7 +231,7 @@ function CM.Constants.loadReticleTargetCvars()
   SetCVar("SoftTargetWithLocked", 2) -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
   SetCVar("SoftTargetNameplateEnemy", 1)
   SetCVar("SoftTargetNameplateInteract", 0)
-  SetCVar("deselectOnClick", 0) -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
+  SetCVar("deselectOnClick", 1) -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
   -- interact
   SetCVar("SoftTargetInteract", 3) -- 3 = always on
   SetCVar("SoftTargetInteractArc", 0) -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).

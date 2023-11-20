@@ -3,7 +3,7 @@ local CM = _G.GetGlobalStore()
 CM.Options = {}
 
 local function GetButtonOverrideGroup(modifier, groupOrder)
-  local button1Settings, button2Settings, groupName, button1Name, button1MacroName, button2Name, button2MacroName
+  local button1Settings, button2Settings, groupName, button1Name, button2Name
   if modifier then
     button1Settings = modifier .. "button1"
     button2Settings = modifier .. "button2"
@@ -11,18 +11,14 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
     local capitalisedModifier = (modifier:gsub("^%l", string.upper))
     groupName = capitalisedModifier .. "-modified Clicks"
     button1Name = capitalisedModifier .. " + Left Click"
-    button1MacroName = capitalisedModifier .. " + Left Click Macro"
     button2Name = capitalisedModifier .. " + Right Click"
-    button2MacroName = capitalisedModifier .. " + Right Click Macro"
   else
     button1Settings = "button1"
     button2Settings = "button2"
 
     groupName = "Base Clicks"
     button1Name = "Left Click"
-    button1MacroName = "Left Click Macro"
     button2Name = "Right Click"
-    button2MacroName = "Right Click Macro"
   end
 
   return {
@@ -39,7 +35,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         set = function(_, value)
           CM.DB.profile.bindings[button1Settings].enabled = value
           if value then
-            CM.SetNewBindinds(CM.DB.profile.bindings[button1Settings])
+            CM.SetNewBinding(CM.DB.profile.bindings[button1Settings])
           else
             CM.ResetBindingOverride(CM.DB.profile.bindings[button1Settings])
           end
@@ -55,10 +51,10 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         type = "select",
         width = 1.5,
         order = 1.1,
-        values = CM.Constants.defaultButtonValues,
+        values = CM.Constants.overrideActions,
         set = function(_, value)
           CM.DB.profile.bindings[button1Settings].value = value
-          CM.SetNewBindinds(CM.DB.profile.bindings[button1Settings])
+          CM.SetNewBinding(CM.DB.profile.bindings[button1Settings])
         end,
         get = function()
           return CM.DB.profile.bindings[button1Settings].value
@@ -74,21 +70,21 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         order = 1.2
       },
       button1macro = {
-        name = button1MacroName,
+        name = button1Name .. " Macro",
         desc = CM.Constants.macroFieldDescription,
         type = "input",
         width = 1.5,
         order = 1.3,
         set = function(_, value)
           CM.DB.profile.bindings[button1Settings].macro = value
-          CM.SetNewBindinds(CM.DB.profile.bindings[button1Settings])
+          CM.SetNewBinding(CM.DB.profile.bindings[button1Settings])
         end,
         get = function()
           return CM.DB.profile.bindings[button1Settings].macro
         end,
         disabled = function()
           return not CM.DB.profile.bindings[button1Settings].enabled or CM.DB.profile.bindings[button1Settings].value ~=
-                   CM.Constants.defaultButtonValues.MACRO
+                   CM.Constants.overrideActions.MACRO
         end
       },
       overrideButton2Toggle = {
@@ -99,7 +95,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         set = function(_, value)
           CM.DB.profile.bindings[button2Settings].enabled = value
           if value then
-            CM.SetNewBindinds(CM.DB.profile.bindings[button2Settings])
+            CM.SetNewBinding(CM.DB.profile.bindings[button2Settings])
           else
             CM.ResetBindingOverride(CM.DB.profile.bindings[button2Settings])
           end
@@ -115,10 +111,10 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         type = "select",
         width = 1.5,
         order = 2.1,
-        values = CM.Constants.defaultButtonValues,
+        values = CM.Constants.overrideActions,
         set = function(_, value)
           CM.DB.profile.bindings[button2Settings].value = value
-          CM.SetNewBindinds(CM.DB.profile.bindings[button2Settings])
+          CM.SetNewBinding(CM.DB.profile.bindings[button2Settings])
         end,
         get = function()
           return CM.DB.profile.bindings[button2Settings].value
@@ -134,21 +130,21 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         order = 2.2
       },
       button2macro = {
-        name = button2MacroName,
+        name = button2Name .. " Macro",
         desc = CM.Constants.macroFieldDescription,
         type = "input",
         width = 1.5,
         order = 2.3,
         set = function(_, value)
           CM.DB.profile.bindings[button2Settings].macro = value
-          CM.SetNewBindinds(CM.DB.profile.bindings[button2Settings])
+          CM.SetNewBinding(CM.DB.profile.bindings[button2Settings])
         end,
         get = function()
           return CM.DB.profile.bindings[button2Settings].macro
         end,
         disabled = function()
           return not CM.DB.profile.bindings[button2Settings].enabled or CM.DB.profile.bindings[button2Settings].value ~=
-                   CM.Constants.defaultButtonValues.MACRO
+                   CM.Constants.overrideActions.MACRO
         end
       }
     }
