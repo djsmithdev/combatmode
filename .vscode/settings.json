@@ -5,5 +5,5 @@
   "luahelper.format.indent_width": 2,
   "luahelper.format.continuation_indent_width": 2,
   "luahelper.format.chop_down_table": true,
-  "editor.formatOnSave": false,
+  "editor.formatOnSave": true,
 }
