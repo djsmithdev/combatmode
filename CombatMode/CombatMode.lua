@@ -13,10 +13,8 @@ local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UI
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 
 -- INITIAL STATE VARIABLES
-local isCursorFreeState = false
-local isCursorLockedState = false
-local didPreviousStateChange = false
-
+local isCursorLocked = false
+local lastStateUpdateTime = 0
 local debugMode = false
 
 -- UTILITY FUNCTIONS
@@ -81,12 +79,12 @@ local function UpdateCrosshair()
   end
 end
 
-local function CrosshairReactToTarget(target, isHostile)
+local function CrosshairReactToTarget(target)
   local isTargetVisible = _G.UnitIsVisible(target)
-  local isTarget = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) <= 4
+  local isTargetHostile = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) <= 4
 
-  if isTargetVisible and isTarget == isHostile then
-    if isHostile then
+  if isTargetVisible then
+    if isTargetHostile then
       HostileCrosshairState()
     else
       FriendlyCrosshairState()
@@ -99,14 +97,12 @@ end
 -- FRAME WATCHING
 local function CursorUnlockFrameVisible(frameArr)
   local allowFrameWatching = CM.DB.global.frameWatching
-  if not allowFrameWatching then
-    return false
-  end
+  if not allowFrameWatching then return false end
 
   for _, frameName in pairs(frameArr) do
     local curFrame = _G.getglobal(frameName)
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
-      DebugPrint(frameName .. " is visible, enabling cursor")
+      -- DebugPrint(frameName .. " is visible, enabling cursor")
       return true
     end
   end
@@ -114,19 +110,15 @@ end
 
 local function CursorUnlockFrameGroupVisible(frameNameGroups)
   for _, frameNames in pairs(frameNameGroups) do
-    if CursorUnlockFrameVisible(frameNames) == true then
-      return true
-    end
+    if CursorUnlockFrameVisible(frameNames) then return true end
   end
 end
 
 local function SuspendingCursorLock()
-  return (
-		CursorUnlockFrameVisible(Addon.Constants.FramesToCheck)
-		or CursorUnlockFrameVisible(CM.DB.global.watchlist)
-		or CursorUnlockFrameGroupVisible(Addon.Constants.wildcardFramesToCheck)
-		or _G.SpellIsTargeting()
-	)
+  return CursorUnlockFrameVisible(Addon.Constants.FramesToCheck) or
+      CursorUnlockFrameVisible(CM.DB.global.watchlist) or
+      CursorUnlockFrameGroupVisible(Addon.Constants.wildcardFramesToCheck) or
+      _G.SpellIsTargeting()
 end
 
 -- FRAME WATCHING FOR SERIALIZED FRAMES (Ex: Opie rings)
@@ -150,10 +142,19 @@ local function InitializeWildcardFrameTracking(frameArr)
 end
 
 -- OVERRIDE BUTTON BUTTONS
+local function CreateTargetMacros()
+  local doesMacroExist = _G.GetMacroInfo("CM_ClearTarget")
+  if not doesMacroExist then
+    _G.CreateMacro("CM_ClearTarget", "INV_MISC_QUESTIONMARK", "/stopmacro [noexists]\n/cleartarget", false);
+  end
+end
+
 local function BindBindingOverride(buttonSettings)
   local valueToUse
   if buttonSettings.value == Addon.Constants.overrideActions.MACRO then
     valueToUse = "MACRO " .. buttonSettings.macro
+  elseif buttonSettings.value == Addon.Constants.defaultButtonValues.CLEARTARGET then
+    valueToUse = "MACRO " .. "CM_ClearTarget"
   else
     valueToUse = buttonSettings.value
   end
@@ -327,8 +328,7 @@ end
 
 -- FREE LOOK STATE HANDLING
 local function LockFreeLook()
-  if isCursorFreeState or not SuspendingCursorLock() then
-    isCursorFreeState = false
+  if not _G.IsMouselooking() or not SuspendingCursorLock() then
     _G.MouselookStart()
 
     if CM.DB.global.crosshair then
@@ -336,16 +336,11 @@ local function LockFreeLook()
     end
 
     DebugPrint("Free Look Enabled")
-  -- else
-  --   DebugPrint("Tried to lock but the state prevented it")
-  --   isCursorFreeState = true
-  --   _G.MouselookStop()
   end
 end
 
 local function UnlockFreeLook()
-  if not isCursorFreeState then
-    isCursorFreeState = true
+  if _G.IsMouselooking() then
     _G.MouselookStop()
 
     if CM.DB.global.crosshair then
@@ -359,16 +354,9 @@ end
 local function ToggleFreeLook()
   if not _G.IsMouselooking() then
     LockFreeLook()
-    isCursorLockedState = true
   elseif _G.IsMouselooking() then
     UnlockFreeLook()
-    isCursorLockedState = false
   end
-
-  DebugPrint("__________________NEW STATE___________________")
-  DebugPrint("didPreviousStateChange:" .. tostring(didPreviousStateChange))
-  DebugPrint("isCursorLockedState:" .. tostring(isCursorLockedState))
-  DebugPrint("isCursorFreeState:" .. tostring(isCursorFreeState))
 end
 
 -- Relocking Free Look & setting CVars after reload/portal
@@ -381,22 +369,27 @@ local function Rematch()
 end
 
 -- UpdateState will be fired when changes in game state happen
--- Responsible for unlocking Free Look when opening frames
-local lastStateUpdateTime = 0 -- Sets delay for when OnUpdate is allowed to update state vars
-
+-- Responsible for unlocking Free Look when opening frames & casting targeting spells
 local function UpdateState()
+  -- Calling this without the delay so we don't add latency to player actions
+  if _G.SpellIsTargeting() then
+    UnlockFreeLook()
+    isCursorLocked = false
+    return
+  end
+
   local currentTime = _G.GetTime()
-  if currentTime - lastStateUpdateTime < 0.1 then
+  if currentTime - lastStateUpdateTime < .15 then
     return
   end
   lastStateUpdateTime = currentTime
 
   if SuspendingCursorLock() then
     UnlockFreeLook()
-    didPreviousStateChange = false
-  elseif not didPreviousStateChange then
-      LockFreeLook()
-      didPreviousStateChange = true
+    isCursorLocked = false
+  elseif not isCursorLocked then
+    LockFreeLook()
+    isCursorLocked = true
   end
 end
 
@@ -526,7 +519,8 @@ function CM:OnInitialize()
       },
       featuresList = {
         type = "description",
-        name = "|cff909090• Free Look - Move your camera without having to perpetually hold right mouse button. \n• Reticle Targeting - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Ability casting w/ mouse click - When Combat Mode is enabled, frees your left and right mouse click so you can cast abilities with them. \n• Automatically toggles Free Look when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection. \n• Optional adjustable Crosshair texture to assist with Reticle Targeting.|r",
+        name =
+        "|cff909090• Free Look - Move your camera without having to perpetually hold right mouse button. \n• Reticle Targeting - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Ability casting w/ mouse click - When Combat Mode is enabled, frees your left and right mouse click so you can cast abilities with them. \n• Automatically toggles Free Look when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection. \n• Optional adjustable Crosshair texture to assist with Reticle Targeting.|r",
         order = 3,
         fontSize = "small"
       },
@@ -594,7 +588,8 @@ function CM:OnInitialize()
           },
           freelookKeybindDescription = {
             type = "description",
-            name = "Set keybinds for the Free Look camera. You can use Toggle and Press & Hold together by binding them to separate keys.",
+            name =
+            "Set keybinds for the Free Look camera. You can use Toggle and Press & Hold together by binding them to separate keys.",
             order = 2
           },
           freelookKeybindDescriptionBottomPadding = {
@@ -679,12 +674,14 @@ function CM:OnInitialize()
           },
           keybindDescription = {
             type = "description",
-            name = "Select which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.",
+            name =
+            "Select which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.",
             order = 2
           },
           keybindNote = {
             type = "description",
-            name = "\n|cff909090To use a macro when clicking, select |cff69ccf0MACRO|r as the action and then type the exact name of the macro you'd like to cast.|r",
+            name =
+            "\n|cff909090To use a macro when clicking, select |cff69ccf0MACRO|r as the action and then type the exact name of the macro you'd like to cast.|r",
             order = 3
           },
           keybindDescriptionBottomPadding = {
@@ -737,7 +734,8 @@ function CM:OnInitialize()
           },
           frameWatchingDescription = {
             type = "description",
-            name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+            name =
+            "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc).",
             order = 2
           },
           frameWatchingWarning = {
@@ -749,7 +747,8 @@ function CM:OnInitialize()
           frameWatching = {
             type = "toggle",
             name = "Enable Cursor Unlock",
-            desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+            desc =
+            "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
             order = 4,
             set = function(_, value)
               CM.DB.global.frameWatching = value
@@ -772,19 +771,21 @@ function CM:OnInitialize()
             args = {
               watchlistDescription = {
                 type = "description",
-                name = "Additional frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.",
+                name =
+                "Additional frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.",
                 order = 1
               },
               watchlist = {
                 name = "Frame Watchlist",
-                desc = "Use command |cff69ccf0/fstack|r in chat to check frame names. \n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
+                desc =
+                "Use command |cff69ccf0/fstack|r in chat to check frame names. \n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
                 type = "input",
                 width = "full",
                 order = 2,
                 set = function(_, input)
                   CM.DB.global.watchlist = {}
                   for value in string.gmatch(input, "[^,]+") do -- Split at the ", "
-                    value = value:gsub("^%s*(.-)%s*$", "%1") -- Trim spaces
+                    value = value:gsub("^%s*(.-)%s*$", "%1")    -- Trim spaces
                     table.insert(CM.DB.global.watchlist, value)
                   end
                 end,
@@ -795,7 +796,8 @@ function CM:OnInitialize()
               },
               watchlistNote = {
                 type = "description",
-                name = "\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: AddonName + Frame. Ex: WeakAurasFrame.|r",
+                name =
+                "\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: AddonName + Frame. Ex: WeakAurasFrame.|r",
                 order = 3
               }
             }
@@ -822,19 +824,22 @@ function CM:OnInitialize()
           },
           reticleTargetingDescription = {
             type = "description",
-            name = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable with predictable behavior.",
+            name =
+            "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable with predictable behavior.",
             order = 2
           },
           reticleTargetingWarning = {
             type = "description",
-            name = "\n|cffff0000This will override all Cvar values related to SoftTarget. Uncheck to reset them to the default values.|r",
+            name =
+            "\n|cffff0000This will override all Cvar values related to SoftTarget. Uncheck to reset them to the default values.|r",
             fontSize = "medium",
             order = 3
           },
           reticleTargeting = {
             type = "toggle",
             name = "Enable Reticle Targeting",
-            desc = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable w/ predictable behavior.",
+            desc =
+            "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable w/ predictable behavior.",
             order = 4,
             set = function(_, value)
               CM.DB.global.reticleTargeting = value
@@ -850,7 +855,8 @@ function CM:OnInitialize()
           },
           reticleTargetingNote = {
             type = "description",
-            name = "\n|cff909090Please note that manually changing Cvars w/ AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
+            name =
+            "\n|cff909090Please note that manually changing Cvars w/ AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
             order = 5
           },
           reticleTargetingNotePaddingBottom = {
@@ -890,7 +896,8 @@ function CM:OnInitialize()
               },
               crosshairNote = {
                 type = "description",
-                name = "\n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior.|r",
+                name =
+                "\n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior.|r",
                 order = 3
               },
               crosshairPaddingBottom = {
@@ -1004,6 +1011,7 @@ function CM:OnEnable()
   BindBindingOverrides()
   InitializeWildcardFrameTracking(Addon.Constants.wildcardFramesToMatch)
   CreateCrosshair()
+  CreateTargetMacros()
 
   -- Registering Blizzard Events from Constants.lua
   for _, event in pairs(Addon.Constants.BLIZZARD_EVENTS) do
@@ -1011,20 +1019,15 @@ function CM:OnEnable()
   end
 end
 
--- UNLOADING ADDON OUT
--- function CM:OnDisable()
--- 	DebugPrint("ADDON DISABLED")
--- end
-
 -- FIRES WHEN SPECIFIC EVENTS HAPPEN IN GAME
 function _G.CombatMode_OnEvent(event)
-  if not isCursorFreeState and not SuspendingCursorLock() then
+  if not SuspendingCursorLock() then
     if event == "PLAYER_SOFT_ENEMY_CHANGED" then
-      CrosshairReactToTarget("target", true)
+      CrosshairReactToTarget("target")
     end
 
     if event == "PLAYER_SOFT_INTERACT_CHANGED" then
-      CrosshairReactToTarget("softInteract", false)
+      CrosshairReactToTarget("softInteract")
     end
   end
 
@@ -1036,9 +1039,7 @@ end
 
 -- FIRES WHEN GAME STATE CHANGES HAPPEN
 function _G.CombatMode_OnUpdate()
-  if isCursorLockedState then
-    UpdateState()
-  end
+  UpdateState()
 end
 
 -- FIRES WHEN ADDON IS LOADED

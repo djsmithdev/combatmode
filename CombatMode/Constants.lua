@@ -4,7 +4,6 @@ local SetCVar = _G.SetCVar
 Addon.Constants = {}
 
 Addon.Constants.BLIZZARD_EVENTS = {
-  "PLAYER_LOGIN",
   "PLAYER_ENTERING_WORLD",
   "PLAYER_SOFT_ENEMY_CHANGED",
   "PLAYER_SOFT_INTERACT_CHANGED",
@@ -127,7 +126,6 @@ Addon.Constants.FramesToCheck = {
   "CommunitiesFrame",
   "DungeonReadyPopup",
   "LFGDungeonReadyDialog",
-  "BossBanner",
   "PVPMatchResults",
   "ReadyCheckListenerFrame",
   "BonusRollFrame",
@@ -177,6 +175,8 @@ Addon.Constants.actionsToProcess = {
   "ACTIONBUTTON10",
   "ACTIONBUTTON11" ,
   "ACTIONBUTTON12",
+  "CLEARTARGET",
+  "CLEARFOCUS",
   "FOCUSTARGET",
   "FOLLOWTARGET",
   "INTERACTTARGET",
@@ -229,9 +229,10 @@ function Addon.Constants.loadReticleTargetCvars()
   SetCVar("SoftTargetWithLocked", 2) -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
   SetCVar("SoftTargetNameplateEnemy", 1)
   SetCVar("SoftTargetNameplateInteract", 0)
+  SetCVar("deselectOnClick", 0) -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
   -- interact
   SetCVar("SoftTargetInteract", 3) -- 3 = always on
-  SetCVar("SoftTargetInteractArc", 0)
+  SetCVar("SoftTargetInteractArc", 0)-- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
   SetCVar("SoftTargetInteractRange", 15)
   SetCVar("SoftTargetIconInteract", 1)
   SetCVar("SoftTargetIconGameObject", 1)
@@ -242,7 +243,7 @@ function Addon.Constants.loadReticleTargetCvars()
   SetCVar("SoftTargetIconFriend", 0)
   -- enemy target
   SetCVar("SoftTargetEnemy", 3)
-  SetCVar("SoftTargetEnemyArc", 0) -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
+  SetCVar("SoftTargetEnemyArc", 0)
   SetCVar("SoftTargetEnemyRange", 60)
   SetCVar("SoftTargetIconEnemy", 0)
 
