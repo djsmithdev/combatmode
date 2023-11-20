@@ -164,7 +164,7 @@ local function InitializeWildcardFrameTracking(frameArr)
 end
 
 -- OVERRIDE BUTTONS
-function BindBindingOverride(buttonSettings)
+function CM.SetNewBindinds(buttonSettings)
   local valueToUse
   if buttonSettings.value == CM.Constants.overrideActions.MACRO then
     valueToUse = "MACRO " .. buttonSettings.macro
