@@ -4,7 +4,6 @@ local SetCVar = _G.SetCVar
 Addon.Constants = {}
 
 Addon.Constants.BLIZZARD_EVENTS = {
-  "PLAYER_LOGIN",
   "PLAYER_ENTERING_WORLD",
   "PLAYER_SOFT_ENEMY_CHANGED",
   "PLAYER_SOFT_INTERACT_CHANGED",
@@ -127,7 +126,6 @@ Addon.Constants.FramesToCheck = {
   "CommunitiesFrame",
   "DungeonReadyPopup",
   "LFGDungeonReadyDialog",
-  "BossBanner",
   "PVPMatchResults",
   "ReadyCheckListenerFrame",
   "BonusRollFrame",

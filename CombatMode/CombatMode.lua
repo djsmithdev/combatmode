@@ -13,11 +13,9 @@ local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UI
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 
 -- INITIAL STATE VARIABLES
-local isCursorFreeState = false
-local isCursorLockedState = false
-local didPreviousStateChange = false
-
-local debugMode = false
+local isCursorLocked = false
+local lastStateUpdateTime = 0
+local debugMode = true
 
 -- UTILITY FUNCTIONS
 local function DebugPrint(statement)
@@ -81,12 +79,12 @@ local function UpdateCrosshair()
   end
 end
 
-local function CrosshairReactToTarget(target, isHostile)
+local function CrosshairReactToTarget(target)
   local isTargetVisible = _G.UnitIsVisible(target)
-  local isTarget = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) <= 4
+  local isTargetHostile = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) <= 4
 
-  if isTargetVisible and isTarget == isHostile then
-    if isHostile then
+  if isTargetVisible then
+    if isTargetHostile then
       HostileCrosshairState()
     else
       FriendlyCrosshairState()
@@ -106,7 +104,7 @@ local function CursorUnlockFrameVisible(frameArr)
   for _, frameName in pairs(frameArr) do
     local curFrame = _G.getglobal(frameName)
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
-      DebugPrint(frameName .. " is visible, enabling cursor")
+      -- DebugPrint(frameName .. " is visible, enabling cursor")
       return true
     end
   end
@@ -114,19 +112,15 @@ end
 
 local function CursorUnlockFrameGroupVisible(frameNameGroups)
   for _, frameNames in pairs(frameNameGroups) do
-    if CursorUnlockFrameVisible(frameNames) == true then
+    if CursorUnlockFrameVisible(frameNames) then
       return true
     end
   end
 end
 
 local function SuspendingCursorLock()
-  return (
-		CursorUnlockFrameVisible(Addon.Constants.FramesToCheck)
-		or CursorUnlockFrameVisible(CM.DB.global.watchlist)
-		or CursorUnlockFrameGroupVisible(Addon.Constants.wildcardFramesToCheck)
-		or _G.SpellIsTargeting()
-	)
+  return CursorUnlockFrameVisible(Addon.Constants.FramesToCheck) or CursorUnlockFrameVisible(CM.DB.global.watchlist) or
+           CursorUnlockFrameGroupVisible(Addon.Constants.wildcardFramesToCheck) or _G.SpellIsTargeting()
 end
 
 -- FRAME WATCHING FOR SERIALIZED FRAMES (Ex: Opie rings)
@@ -217,7 +211,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         get = function()
           return CM.DB.profile.bindings[button1Settings].enabled
         end,
-        disabled = modifier == nil,
+        disabled = modifier == nil
       },
       button1 = {
         name = button1Name,
@@ -277,7 +271,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         get = function()
           return CM.DB.profile.bindings[button2Settings].enabled
         end,
-        disabled = modifier == nil,
+        disabled = modifier == nil
       },
       button2 = {
         name = button2Name,
@@ -327,8 +321,7 @@ end
 
 -- FREE LOOK STATE HANDLING
 local function LockFreeLook()
-  if isCursorFreeState or not SuspendingCursorLock() then
-    isCursorFreeState = false
+  if not _G.IsMouselooking() or not SuspendingCursorLock() then
     _G.MouselookStart()
 
     if CM.DB.global.crosshair then
@@ -336,16 +329,11 @@ local function LockFreeLook()
     end
 
     DebugPrint("Free Look Enabled")
-  -- else
-  --   DebugPrint("Tried to lock but the state prevented it")
-  --   isCursorFreeState = true
-  --   _G.MouselookStop()
   end
 end
 
 local function UnlockFreeLook()
-  if not isCursorFreeState then
-    isCursorFreeState = true
+  if _G.IsMouselooking() then
     _G.MouselookStop()
 
     if CM.DB.global.crosshair then
@@ -359,16 +347,9 @@ end
 local function ToggleFreeLook()
   if not _G.IsMouselooking() then
     LockFreeLook()
-    isCursorLockedState = true
   elseif _G.IsMouselooking() then
     UnlockFreeLook()
-    isCursorLockedState = false
   end
-
-  DebugPrint("__________________NEW STATE___________________")
-  DebugPrint("didPreviousStateChange:" .. tostring(didPreviousStateChange))
-  DebugPrint("isCursorLockedState:" .. tostring(isCursorLockedState))
-  DebugPrint("isCursorFreeState:" .. tostring(isCursorFreeState))
 end
 
 -- Relocking Free Look & setting CVars after reload/portal
@@ -381,22 +362,28 @@ local function Rematch()
 end
 
 -- UpdateState will be fired when changes in game state happen
--- Responsible for unlocking Free Look when opening frames
-local lastStateUpdateTime = 0 -- Sets delay for when OnUpdate is allowed to update state vars
-
+-- Responsible for unlocking Free Look when opening frames & casting targeting spells
 local function UpdateState()
+  -- Calling this without the delay so we don't add latency to player actions
+  if _G.SpellIsTargeting() then
+    UnlockFreeLook()
+    isCursorLocked = false
+    print("spellcast")
+    return
+  end
+
   local currentTime = _G.GetTime()
-  if currentTime - lastStateUpdateTime < 0.1 then
+  if currentTime - lastStateUpdateTime < .15 then
     return
   end
   lastStateUpdateTime = currentTime
 
   if SuspendingCursorLock() then
     UnlockFreeLook()
-    didPreviousStateChange = false
-  elseif not didPreviousStateChange then
-      LockFreeLook()
-      didPreviousStateChange = true
+    isCursorLocked = false
+  elseif not isCursorLocked then
+    LockFreeLook()
+    isCursorLocked = true
   end
 end
 
@@ -1011,20 +998,15 @@ function CM:OnEnable()
   end
 end
 
--- UNLOADING ADDON OUT
--- function CM:OnDisable()
--- 	DebugPrint("ADDON DISABLED")
--- end
-
 -- FIRES WHEN SPECIFIC EVENTS HAPPEN IN GAME
 function _G.CombatMode_OnEvent(event)
-  if not isCursorFreeState and not SuspendingCursorLock() then
+  if not SuspendingCursorLock() then
     if event == "PLAYER_SOFT_ENEMY_CHANGED" then
-      CrosshairReactToTarget("target", true)
+      CrosshairReactToTarget("target")
     end
 
     if event == "PLAYER_SOFT_INTERACT_CHANGED" then
-      CrosshairReactToTarget("softInteract", false)
+      CrosshairReactToTarget("softInteract")
     end
   end
 
@@ -1036,9 +1018,7 @@ end
 
 -- FIRES WHEN GAME STATE CHANGES HAPPEN
 function _G.CombatMode_OnUpdate()
-  if isCursorLockedState then
-    UpdateState()
-  end
+  UpdateState()
 end
 
 -- FIRES WHEN ADDON IS LOADED
