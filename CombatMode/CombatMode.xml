@@ -9,7 +9,7 @@
     <Include file="Libs\AceGUI-3.0\AceGUI-3.0.xml"/>
     <Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml"/>
 	<Script file="CombatMode.lua"/>
-	<Frame name="CombatModeFrame" hidden="false" parent="UIParent">
+	<Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
 		<Scripts>
 			<OnUpdate function="CombatMode_OnUpdate"/>
 			<OnLoad function="CombatMode_OnLoad"/>

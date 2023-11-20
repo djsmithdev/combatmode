@@ -1,16 +1,16 @@
-local _, Addon = ...
+local CM = _G.GetGlobalStore()
+
+CM.Constants = {}
 
 local SetCVar = _G.SetCVar
-Addon.Constants = {}
 
-Addon.Constants.BLIZZARD_EVENTS = {
+CM.Constants.BLIZZARD_EVENTS = {
   "PLAYER_ENTERING_WORLD",
   "PLAYER_SOFT_ENEMY_CHANGED",
-  "PLAYER_SOFT_INTERACT_CHANGED",
+  "PLAYER_SOFT_INTERACT_CHANGED"
 }
 
--- Default frames to check
-Addon.Constants.FramesToCheck = {
+CM.Constants.FramesToCheck = {
   "AuctionFrame",
   "BankFrame",
   "BattlefieldFrame",
@@ -153,13 +153,13 @@ Addon.Constants.FramesToCheck = {
   "ScriptErrorsFrame"
 }
 
-Addon.Constants.wildcardFramesToMatch = {
+CM.Constants.wildcardFramesToMatch = {
   "OPieRT"
 }
 
-Addon.Constants.wildcardFramesToCheck = {}
+CM.Constants.wildcardFramesToCheck = {}
 
-Addon.Constants.defaultButtonValues = {
+CM.Constants.defaultButtonValues = {
   MOVEANDSTEER = "MOVEANDSTEER",
   MOVEBACKWARD = "MOVEBACKWARD",
   MOVEFORWARD = "MOVEFORWARD",
@@ -197,10 +197,10 @@ Addon.Constants.defaultButtonValues = {
   ACTIONBUTTON11 = "ACTIONBUTTON11",
   ACTIONBUTTON12 = "ACTIONBUTTON12",
   MACRO = "MACRO",
-  CLEARTARGET = "CLEARTARGET",
+  CLEARTARGET = "CLEARTARGET"
 }
 
-Addon.Constants.buttonsToOverride = {
+CM.Constants.buttonsToOverride = {
   "button1",
   "button2",
   "shiftbutton1",
@@ -211,10 +211,10 @@ Addon.Constants.buttonsToOverride = {
   "altbutton2"
 }
 
-Addon.Constants.macroFieldDescription = "Enter the name of the macro you wish to be ran here."
+CM.Constants.macroFieldDescription = "Enter the name of the macro you wish to be ran here."
 
 -- CVARS FOR RETICLE TARGETING
-function Addon.Constants.loadReticleTargetCvars()
+function CM.Constants.loadReticleTargetCvars()
   -- general
   SetCVar("SoftTargetForce", 1) -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
   SetCVar("SoftTargetMatchLocked", 1) -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
@@ -224,7 +224,7 @@ function Addon.Constants.loadReticleTargetCvars()
   SetCVar("deselectOnClick", 0) -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
   -- interact
   SetCVar("SoftTargetInteract", 3) -- 3 = always on
-  SetCVar("SoftTargetInteractArc", 0)-- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
+  SetCVar("SoftTargetInteractArc", 0) -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
   SetCVar("SoftTargetInteractRange", 15)
   SetCVar("SoftTargetIconInteract", 1)
   SetCVar("SoftTargetIconGameObject", 1)
@@ -244,7 +244,7 @@ end
 
 -- DEFAULT BLIZZARD VALUES
 -- !! DO NOT CHANGE !!
-function Addon.Constants.loadDefaultCvars()
+function CM.Constants.loadDefaultCvars()
   -- general
   SetCVar("SoftTargetForce", 1)
   SetCVar("SoftTargetMatchLocked", 1)
