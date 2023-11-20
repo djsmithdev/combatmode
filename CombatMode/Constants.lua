@@ -1,4 +1,4 @@
-local CM = _G.GetGlobalStore()
+CM = _G.GetGlobalStore()
 
 CM.Constants = {}
 
@@ -10,6 +10,7 @@ CM.Constants.BLIZZARD_EVENTS = {
   "PLAYER_SOFT_INTERACT_CHANGED"
 }
 
+-- Default frames to check with a static name
 CM.Constants.FramesToCheck = {
   "AuctionFrame",
   "BankFrame",
@@ -153,52 +154,61 @@ CM.Constants.FramesToCheck = {
   "ScriptErrorsFrame"
 }
 
+-- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"
 CM.Constants.wildcardFramesToMatch = {
   "OPieRT"
 }
 
+-- The dynamic names of the frames defined right above, determined on loading into the game world. Do not add frame names in this table, do it above instead!
 CM.Constants.wildcardFramesToCheck = {}
 
-CM.Constants.defaultButtonValues = {
-  MOVEANDSTEER = "MOVEANDSTEER",
-  MOVEBACKWARD = "MOVEBACKWARD",
-  MOVEFORWARD = "MOVEFORWARD",
-  JUMP = "JUMP",
-  CAMERAORSELECTORMOVE = "CAMERAORSELECTORMOVE",
-  FOCUSTARGET = "FOCUSTARGET",
-  FOLLOWTARGET = "FOLLOWTARGET",
-  TARGETSCANENEMY = "TARGETSCANENEMY",
-  INTERACTTARGET = "INTERACTTARGET",
-  TARGETFOCUS = "TARGETFOCUS",
-  TARGETLASTHOSTILE = "TARGETLASTHOSTILE",
-  TARGETLASTTARGET = "TARGETLASTTARGET",
-  TARGETNEAREST = "TARGETNEAREST",
-  TARGETNEARESTENEMY = "TARGETNEARESTENEMY",
-  TARGETNEARESTENEMYPLAYER = "TARGETNEARESTENEMYPLAYER",
-  TARGETNEARESTFRIEND = "TARGETNEARESTFRIEND",
-  TARGETNEARESTFRIENDPLAYER = "TARGETNEARESTFRIENDPLAYER",
-  TARGETPET = "TARGETPET",
-  TARGETPREVIOUS = "TARGETPREVIOUS",
-  TARGETPREVIOUSENEMY = "TARGETPREVIOUSENEMY",
-  TARGETPREVIOUSENEMYPLAYER = "TARGETPREVIOUSENEMYPLAYER",
-  TARGETPREVIOUSFRIEND = "TARGETPREVIOUSFRIEND",
-  TARGETPREVIOUSFRIENDPLAYER = "TARGETPREVIOUSFRIENDPLAYER",
-  TARGETSELF = "TARGETSELF",
-  ACTIONBUTTON1 = "ACTIONBUTTON1",
-  ACTIONBUTTON2 = "ACTIONBUTTON2",
-  ACTIONBUTTON3 = "ACTIONBUTTON3",
-  ACTIONBUTTON4 = "ACTIONBUTTON4",
-  ACTIONBUTTON5 = "ACTIONBUTTON5",
-  ACTIONBUTTON6 = "ACTIONBUTTON6",
-  ACTIONBUTTON7 = "ACTIONBUTTON7",
-  ACTIONBUTTON8 = "ACTIONBUTTON8",
-  ACTIONBUTTON9 = "ACTIONBUTTON9",
-  ACTIONBUTTON10 = "ACTIONBUTTON10",
-  ACTIONBUTTON11 = "ACTIONBUTTON11",
-  ACTIONBUTTON12 = "ACTIONBUTTON12",
-  MACRO = "MACRO",
-  CLEARTARGET = "CLEARTARGET"
+-- The name of the actions a user can bind to mouse buttons
+CM.Constants.actionsToProcess = {
+  "ACTIONBUTTON1",
+  "ACTIONBUTTON2",
+  "ACTIONBUTTON3",
+  "ACTIONBUTTON4",
+  "ACTIONBUTTON5",
+  "ACTIONBUTTON6",
+  "ACTIONBUTTON7",
+  "ACTIONBUTTON8",
+  "ACTIONBUTTON9",
+  "ACTIONBUTTON10",
+  "ACTIONBUTTON11",
+  "ACTIONBUTTON12",
+  "FOCUSTARGET",
+  "FOLLOWTARGET",
+  "INTERACTTARGET",
+  "JUMP",
+  "MOVEANDSTEER",
+  "MOVEBACKWARD",
+  "MOVEFORWARD",
+  "TARGETFOCUS",
+  "TARGETLASTHOSTILE",
+  "TARGETLASTTARGET",
+  "TARGETNEARESTENEMY",
+  "TARGETNEARESTENEMYPLAYER",
+  "TARGETNEARESTFRIEND",
+  "TARGETNEARESTFRIENDPLAYER",
+  "TARGETPET",
+  "TARGETPREVIOUSENEMY",
+  "TARGETPREVIOUSENEMYPLAYER",
+  "TARGETPREVIOUSFRIEND",
+  "TARGETPREVIOUSFRIENDPLAYER",
+  "TARGETSCANENEMY",
+  "TARGETSELF"
 }
+
+-- Matches the bindable actions values defined right above with more readable names for the UI
+CM.Constants.overrideActions = {
+  CLEARFOCUS = "Clear Focus",
+  CLEARTARGET = "Clear Target",
+  CUSTOMACTION = "Custom Action"
+}
+for _, bindingAction in pairs(CM.Constants.actionsToProcess) do
+  local bindingUiName = _G["BINDING_NAME_" .. bindingAction]
+  CM.Constants.overrideActions[bindingAction] = bindingUiName or bindingAction
+end
 
 CM.Constants.buttonsToOverride = {
   "button1",
@@ -211,7 +221,7 @@ CM.Constants.buttonsToOverride = {
   "altbutton2"
 }
 
-CM.Constants.macroFieldDescription = "Enter the name of the macro you wish to be ran here."
+CM.Constants.customActionFieldDescription = "Enter the name of the action you wish to be ran here."
 
 -- CVARS FOR RETICLE TARGETING
 function CM.Constants.loadReticleTargetCvars()
@@ -221,7 +231,7 @@ function CM.Constants.loadReticleTargetCvars()
   SetCVar("SoftTargetWithLocked", 2) -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
   SetCVar("SoftTargetNameplateEnemy", 1)
   SetCVar("SoftTargetNameplateInteract", 0)
-  SetCVar("deselectOnClick", 0) -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
+  SetCVar("deselectOnClick", 1) -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
   -- interact
   SetCVar("SoftTargetInteract", 3) -- 3 = always on
   SetCVar("SoftTargetInteractArc", 0) -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).

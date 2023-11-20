@@ -12,7 +12,7 @@ local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 -- Ex: You can get info from Constants.lua by referencing CM.Constants
 
 -- INSTANTIATING ADDON & CREATING FRAME
-local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
+CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UIParent)
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 
@@ -33,9 +33,14 @@ function CM.DebugPrint(statement)
 end
 
 local function CreateTargetMacros()
-  local doesMacroExist = _G.GetMacroInfo("CM_ClearTarget")
-  if not doesMacroExist then
+  local doesClearTargetMacroExist = _G.GetMacroInfo("CM_ClearTarget")
+  if not doesClearTargetMacroExist then
     _G.CreateMacro("CM_ClearTarget", "INV_MISC_QUESTIONMARK", "/stopmacro [noexists]\n/cleartarget", false);
+  end
+
+  local doesClearFocusMacroExist = _G.GetMacroInfo("CM_ClearFocus")
+  if not doesClearFocusMacroExist then
+    _G.CreateMacro("CM_ClearFocus", "INV_MISC_QUESTIONMARK", "/clearfocus", false);
   end
 end
 
@@ -158,13 +163,19 @@ local function InitializeWildcardFrameTracking(frameArr)
   CM.DebugPrint("Wildcard frames initialized")
 end
 
--- OVERRIDE BUTTON BUTTONS
-function CM.SetNewBindinds(buttonSettings)
+-- OVERRIDE BUTTONS
+function CM.SetNewBinding(buttonSettings)
+  if not buttonSettings.enabled then
+    return
+  end
+
   local valueToUse
-  if buttonSettings.value == CM.Constants.defaultButtonValues.MACRO then
-    valueToUse = "MACRO " .. buttonSettings.macro
-  elseif buttonSettings.value == CM.Constants.defaultButtonValues.CLEARTARGET then
-    valueToUse = "MACRO " .. "CM_ClearTarget"
+  if buttonSettings.value == "CUSTOMACTION" then
+    valueToUse = buttonSettings.customAction
+  elseif buttonSettings.value == "CLEARTARGET" then
+    valueToUse = "MACRO CM_ClearTarget"
+  elseif buttonSettings.value == "CLEARFOCUS" then
+    valueToUse = "MACRO CM_ClearFocus"
   else
     valueToUse = buttonSettings.value
   end
@@ -174,7 +185,7 @@ end
 
 local function OverrideDefaultButtons()
   for _, button in pairs(CM.Constants.buttonsToOverride) do
-    CM.SetNewBindinds(CM.DB.profile.bindings[button])
+    CM.SetNewBinding(CM.DB.profile.bindings[button])
   end
 end
 

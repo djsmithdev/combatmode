@@ -1,9 +1,9 @@
-local CM = _G.GetGlobalStore()
+CM = _G.GetGlobalStore()
 
 CM.Options = {}
 
 local function GetButtonOverrideGroup(modifier, groupOrder)
-  local button1Settings, button2Settings, groupName, button1Name, button1MacroName, button2Name, button2MacroName
+  local button1Settings, button2Settings, groupName, button1Name, button2Name
   if modifier then
     button1Settings = modifier .. "button1"
     button2Settings = modifier .. "button2"
@@ -11,18 +11,14 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
     local capitalisedModifier = (modifier:gsub("^%l", string.upper))
     groupName = capitalisedModifier .. "-modified Clicks"
     button1Name = capitalisedModifier .. " + Left Click"
-    button1MacroName = capitalisedModifier .. " + Left Click Macro"
     button2Name = capitalisedModifier .. " + Right Click"
-    button2MacroName = capitalisedModifier .. " + Right Click Macro"
   else
     button1Settings = "button1"
     button2Settings = "button2"
 
     groupName = "Base Clicks"
     button1Name = "Left Click"
-    button1MacroName = "Left Click Macro"
     button2Name = "Right Click"
-    button2MacroName = "Right Click Macro"
   end
 
   return {
@@ -39,7 +35,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         set = function(_, value)
           CM.DB.profile.bindings[button1Settings].enabled = value
           if value then
-            CM.SetNewBindinds(CM.DB.profile.bindings[button1Settings])
+            CM.SetNewBinding(CM.DB.profile.bindings[button1Settings])
           else
             CM.ResetBindingOverride(CM.DB.profile.bindings[button1Settings])
           end
@@ -55,10 +51,10 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         type = "select",
         width = 1.5,
         order = 1.1,
-        values = CM.Constants.defaultButtonValues,
+        values = CM.Constants.overrideActions,
         set = function(_, value)
           CM.DB.profile.bindings[button1Settings].value = value
-          CM.SetNewBindinds(CM.DB.profile.bindings[button1Settings])
+          CM.SetNewBinding(CM.DB.profile.bindings[button1Settings])
         end,
         get = function()
           return CM.DB.profile.bindings[button1Settings].value
@@ -74,21 +70,21 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         order = 1.2
       },
       button1macro = {
-        name = button1MacroName,
-        desc = CM.Constants.macroFieldDescription,
+        name = button1Name .. " Custom Action",
+        desc = CM.Constants.customActionFieldDescription,
         type = "input",
         width = 1.5,
         order = 1.3,
         set = function(_, value)
-          CM.DB.profile.bindings[button1Settings].macro = value
-          CM.SetNewBindinds(CM.DB.profile.bindings[button1Settings])
+          CM.DB.profile.bindings[button1Settings].customAction = value
+          CM.SetNewBinding(CM.DB.profile.bindings[button1Settings])
         end,
         get = function()
-          return CM.DB.profile.bindings[button1Settings].macro
+          return CM.DB.profile.bindings[button1Settings].customAction
         end,
         disabled = function()
           return not CM.DB.profile.bindings[button1Settings].enabled or CM.DB.profile.bindings[button1Settings].value ~=
-                   CM.Constants.defaultButtonValues.MACRO
+                   "CUSTOMACTION"
         end
       },
       overrideButton2Toggle = {
@@ -99,7 +95,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         set = function(_, value)
           CM.DB.profile.bindings[button2Settings].enabled = value
           if value then
-            CM.SetNewBindinds(CM.DB.profile.bindings[button2Settings])
+            CM.SetNewBinding(CM.DB.profile.bindings[button2Settings])
           else
             CM.ResetBindingOverride(CM.DB.profile.bindings[button2Settings])
           end
@@ -115,10 +111,10 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         type = "select",
         width = 1.5,
         order = 2.1,
-        values = CM.Constants.defaultButtonValues,
+        values = CM.Constants.overrideActions,
         set = function(_, value)
           CM.DB.profile.bindings[button2Settings].value = value
-          CM.SetNewBindinds(CM.DB.profile.bindings[button2Settings])
+          CM.SetNewBinding(CM.DB.profile.bindings[button2Settings])
         end,
         get = function()
           return CM.DB.profile.bindings[button2Settings].value
@@ -134,21 +130,21 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         order = 2.2
       },
       button2macro = {
-        name = button2MacroName,
-        desc = CM.Constants.macroFieldDescription,
+        name = button2Name .. " Macro",
+        desc = CM.Constants.customActionFieldDescription,
         type = "input",
         width = 1.5,
         order = 2.3,
         set = function(_, value)
-          CM.DB.profile.bindings[button2Settings].macro = value
-          CM.SetNewBindinds(CM.DB.profile.bindings[button2Settings])
+          CM.DB.profile.bindings[button2Settings].customAction = value
+          CM.SetNewBinding(CM.DB.profile.bindings[button2Settings])
         end,
         get = function()
-          return CM.DB.profile.bindings[button2Settings].macro
+          return CM.DB.profile.bindings[button2Settings].customAction
         end,
         disabled = function()
           return not CM.DB.profile.bindings[button2Settings].enabled or CM.DB.profile.bindings[button2Settings].value ~=
-                   CM.Constants.defaultButtonValues.MACRO
+                   "CUSTOMACTION"
         end
       }
     }
@@ -175,49 +171,49 @@ CM.Options.databaseDefaults = {
         enabled = true,
         key = "BUTTON1",
         value = "ACTIONBUTTON1",
-        macro = ""
+        customAction = ""
       },
       button2 = {
         enabled = true,
         key = "BUTTON2",
         value = "ACTIONBUTTON2",
-        macro = ""
+        customAction = ""
       },
       shiftbutton1 = {
         enabled = true,
         key = "SHIFT-BUTTON1",
         value = "ACTIONBUTTON3",
-        macro = ""
+        customAction = ""
       },
       shiftbutton2 = {
         enabled = true,
         key = "SHIFT-BUTTON2",
         value = "ACTIONBUTTON4",
-        macro = ""
+        customAction = ""
       },
       ctrlbutton1 = {
         enabled = true,
         key = "CTRL-BUTTON1",
         value = "ACTIONBUTTON5",
-        macro = ""
+        customAction = ""
       },
       ctrlbutton2 = {
         enabled = true,
         key = "CTRL-BUTTON2",
         value = "ACTIONBUTTON6",
-        macro = ""
+        customAction = ""
       },
       altbutton1 = {
         enabled = true,
         key = "ALT-BUTTON1",
         value = "ACTIONBUTTON7",
-        macro = ""
+        customAction = ""
       },
       altbutton2 = {
         enabled = true,
         key = "ALT-BUTTON2",
         value = "ACTIONBUTTON8",
-        macro = ""
+        customAction = ""
       },
       toggle = {
         key = "Combat Mode Toggle",
@@ -426,7 +422,7 @@ CM.Options.configOptions = {
         },
         keybindNote = {
           type = "description",
-          name = "\n|cff909090To use a macro when clicking, select |cff69ccf0MACRO|r as the action and then type the exact name of the macro you'd like to cast.|r",
+          name = "\n|cff909090To use an action that is not specified on this list when clicking, select |cff69ccf0Custom Action|r and then type the exact name of the action you'd like to cast. If you'd like to use a macro (for example called 'My Macro'), type 'MACRO My Macro'.|r",
           order = 3
         },
         keybindDescriptionBottomPadding = {
