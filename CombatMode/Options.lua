@@ -84,7 +84,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         end,
         disabled = function()
           return not CM.DB.profile.bindings[button1Settings].enabled or CM.DB.profile.bindings[button1Settings].value ~=
-                   CM.Constants.overrideActions.CUSTOMACTION
+                   "CUSTOMACTION"
         end
       },
       overrideButton2Toggle = {
@@ -144,7 +144,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         end,
         disabled = function()
           return not CM.DB.profile.bindings[button2Settings].enabled or CM.DB.profile.bindings[button2Settings].value ~=
-                   CM.Constants.overrideActions.CUSTOMACTION
+                   "CUSTOMACTION"
         end
       }
     }
