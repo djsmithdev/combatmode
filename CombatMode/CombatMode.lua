@@ -171,7 +171,7 @@ function CM.SetNewBinding(buttonSettings)
 
   local valueToUse
   if buttonSettings.value == "CUSTOMACTION" then
-    valueToUse = buttonSettings.customACtion
+    valueToUse = buttonSettings.customAction
   elseif buttonSettings.value == "CLEARTARGET" then
     valueToUse = "MACRO CM_ClearTarget"
   elseif buttonSettings.value == "CLEARFOCUS" then
