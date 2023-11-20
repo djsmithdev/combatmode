@@ -141,11 +141,16 @@ local function InitializeWildcardFrameTracking(frameArr)
   DebugPrint("Wildcard frames initialized")
 end
 
--- OVERRIDE BUTTON BUTTONS
+-- OVERRIDE BUTTONS
 local function CreateTargetMacros()
-  local doesMacroExist = _G.GetMacroInfo("CM_ClearTarget")
-  if not doesMacroExist then
+  local doesClearTargetMacroExist = _G.GetMacroInfo("CM_ClearTarget")
+  if not doesClearTargetMacroExist then
     _G.CreateMacro("CM_ClearTarget", "INV_MISC_QUESTIONMARK", "/stopmacro [noexists]\n/cleartarget", false);
+  end
+
+  local doesClearFocusMacroExist = _G.GetMacroInfo("CM_ClearFocus")
+  if not doesClearFocusMacroExist then
+    _G.CreateMacro("CM_ClearFocus", "INV_MISC_QUESTIONMARK", "/stopmacro [noexists]\n/clearfocus", false);
   end
 end
 
@@ -153,8 +158,10 @@ local function BindBindingOverride(buttonSettings)
   local valueToUse
   if buttonSettings.value == Addon.Constants.overrideActions.MACRO then
     valueToUse = "MACRO " .. buttonSettings.macro
-  elseif buttonSettings.value == Addon.Constants.defaultButtonValues.CLEARTARGET then
-    valueToUse = "MACRO " .. "CM_ClearTarget"
+  elseif buttonSettings.value == Addon.Constants.overrideActions.CLEARTARGET then
+    valueToUse = "MACRO CM_ClearTarget"
+  elseif buttonSettings.value == Addon.Constants.overrideActions.CLEARFOCUS then
+    valueToUse = "MACRO CM_ClearFocus"
   else
     valueToUse = buttonSettings.value
   end
