@@ -196,7 +196,8 @@ Addon.Constants.defaultButtonValues = {
   ACTIONBUTTON10 = "ACTIONBUTTON10",
   ACTIONBUTTON11 = "ACTIONBUTTON11",
   ACTIONBUTTON12 = "ACTIONBUTTON12",
-  MACRO = "MACRO"
+  MACRO = "MACRO",
+  CLEARTARGET = "CLEARTARGET",
 }
 
 Addon.Constants.buttonsToOverride = {
@@ -220,9 +221,10 @@ function Addon.Constants.loadReticleTargetCvars()
   SetCVar("SoftTargetWithLocked", 2) -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
   SetCVar("SoftTargetNameplateEnemy", 1)
   SetCVar("SoftTargetNameplateInteract", 0)
+  SetCVar("deselectOnClick", 0) -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
   -- interact
   SetCVar("SoftTargetInteract", 3) -- 3 = always on
-  SetCVar("SoftTargetInteractArc", 0)
+  SetCVar("SoftTargetInteractArc", 0)-- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
   SetCVar("SoftTargetInteractRange", 15)
   SetCVar("SoftTargetIconInteract", 1)
   SetCVar("SoftTargetIconGameObject", 1)
@@ -233,7 +235,7 @@ function Addon.Constants.loadReticleTargetCvars()
   SetCVar("SoftTargetIconFriend", 0)
   -- enemy target
   SetCVar("SoftTargetEnemy", 3)
-  SetCVar("SoftTargetEnemyArc", 0) -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
+  SetCVar("SoftTargetEnemyArc", 0)
   SetCVar("SoftTargetEnemyRange", 60)
   SetCVar("SoftTargetIconEnemy", 0)
 
