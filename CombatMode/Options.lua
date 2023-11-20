@@ -1,4 +1,4 @@
-local CM = _G.GetGlobalStore()
+CM = _G.GetGlobalStore()
 
 CM.Options = {}
 

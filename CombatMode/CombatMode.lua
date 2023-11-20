@@ -12,7 +12,7 @@ local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 -- Ex: You can get info from Constants.lua by referencing CM.Constants
 
 -- INSTANTIATING ADDON & CREATING FRAME
-local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
+CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UIParent)
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 
@@ -165,6 +165,10 @@ end
 
 -- OVERRIDE BUTTONS
 function CM.SetNewBinding(buttonSettings)
+  if not buttonSettings.enabled then
+    return
+  end
+
   local valueToUse
   if buttonSettings.value == CM.Constants.overrideActions.MACRO then
     valueToUse = "MACRO " .. buttonSettings.macro
