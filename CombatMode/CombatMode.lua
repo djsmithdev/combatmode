@@ -152,7 +152,7 @@ end
 -- OVERRIDE BUTTON BUTTONS
 local function BindBindingOverride(buttonSettings)
   local valueToUse
-  if buttonSettings.value == Addon.Constants.defaultButtonValues.MACRO then
+  if buttonSettings.value == Addon.Constants.overrideActions.MACRO then
     valueToUse = "MACRO " .. buttonSettings.macro
   else
     valueToUse = buttonSettings.value
@@ -225,7 +225,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         type = "select",
         width = 1.5,
         order = 1.1,
-        values = Addon.Constants.defaultButtonValues,
+        values = Addon.Constants.overrideActions,
         set = function(_, value)
           CM.DB.profile.bindings[button1Settings].value = value
           BindBindingOverride(CM.DB.profile.bindings[button1Settings])
@@ -258,7 +258,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         end,
         disabled = function()
           return not CM.DB.profile.bindings[button1Settings].enabled or CM.DB.profile.bindings[button1Settings].value ~=
-                   Addon.Constants.defaultButtonValues.MACRO
+                   Addon.Constants.overrideActions.MACRO
         end
       },
       overrideButton2Toggle = {
@@ -285,7 +285,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         type = "select",
         width = 1.5,
         order = 2.1,
-        values = Addon.Constants.defaultButtonValues,
+        values = Addon.Constants.overrideActions,
         set = function(_, value)
           CM.DB.profile.bindings[button2Settings].value = value
           BindBindingOverride(CM.DB.profile.bindings[button2Settings])
@@ -318,7 +318,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         end,
         disabled = function()
           return not CM.DB.profile.bindings[button2Settings].enabled or CM.DB.profile.bindings[button2Settings].value ~=
-                   Addon.Constants.defaultButtonValues.MACRO
+                   Addon.Constants.overrideActions.MACRO
         end
       }
     }

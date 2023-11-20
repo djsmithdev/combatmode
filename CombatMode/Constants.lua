@@ -10,7 +10,7 @@ Addon.Constants.BLIZZARD_EVENTS = {
   "PLAYER_SOFT_INTERACT_CHANGED",
 }
 
--- Default frames to check
+-- Default frames to check with a static name
 Addon.Constants.FramesToCheck = {
   "AuctionFrame",
   "BankFrame",
@@ -155,51 +155,58 @@ Addon.Constants.FramesToCheck = {
   "ScriptErrorsFrame"
 }
 
+-- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"
 Addon.Constants.wildcardFramesToMatch = {
   "OPieRT"
 }
 
+-- The dynamic names of the frames defined right above, determined on loading into the game world. Do not hardcode frame names in this table!
 Addon.Constants.wildcardFramesToCheck = {}
 
-Addon.Constants.defaultButtonValues = {
-  MOVEANDSTEER = "MOVEANDSTEER",
-  MOVEBACKWARD = "MOVEBACKWARD",
-  MOVEFORWARD = "MOVEFORWARD",
-  JUMP = "JUMP",
-  CAMERAORSELECTORMOVE = "CAMERAORSELECTORMOVE",
-  FOCUSTARGET = "FOCUSTARGET",
-  FOLLOWTARGET = "FOLLOWTARGET",
-  TARGETSCANENEMY = "TARGETSCANENEMY",
-  INTERACTTARGET = "INTERACTTARGET",
-  TARGETFOCUS = "TARGETFOCUS",
-  TARGETLASTHOSTILE = "TARGETLASTHOSTILE",
-  TARGETLASTTARGET = "TARGETLASTTARGET",
-  TARGETNEAREST = "TARGETNEAREST",
-  TARGETNEARESTENEMY = "TARGETNEARESTENEMY",
-  TARGETNEARESTENEMYPLAYER = "TARGETNEARESTENEMYPLAYER",
-  TARGETNEARESTFRIEND = "TARGETNEARESTFRIEND",
-  TARGETNEARESTFRIENDPLAYER = "TARGETNEARESTFRIENDPLAYER",
-  TARGETPET = "TARGETPET",
-  TARGETPREVIOUS = "TARGETPREVIOUS",
-  TARGETPREVIOUSENEMY = "TARGETPREVIOUSENEMY",
-  TARGETPREVIOUSENEMYPLAYER = "TARGETPREVIOUSENEMYPLAYER",
-  TARGETPREVIOUSFRIEND = "TARGETPREVIOUSFRIEND",
-  TARGETPREVIOUSFRIENDPLAYER = "TARGETPREVIOUSFRIENDPLAYER",
-  TARGETSELF = "TARGETSELF",
-  ACTIONBUTTON1 = "ACTIONBUTTON1",
-  ACTIONBUTTON2 = "ACTIONBUTTON2",
-  ACTIONBUTTON3 = "ACTIONBUTTON3",
-  ACTIONBUTTON4 = "ACTIONBUTTON4",
-  ACTIONBUTTON5 = "ACTIONBUTTON5",
-  ACTIONBUTTON6 = "ACTIONBUTTON6",
-  ACTIONBUTTON7 = "ACTIONBUTTON7",
-  ACTIONBUTTON8 = "ACTIONBUTTON8",
-  ACTIONBUTTON9 = "ACTIONBUTTON9",
-  ACTIONBUTTON10 = "ACTIONBUTTON10",
-  ACTIONBUTTON11 = "ACTIONBUTTON11",
-  ACTIONBUTTON12 = "ACTIONBUTTON12",
-  MACRO = "MACRO"
+-- The name of the actions a user can bind to mouse buttons
+Addon.Constants.actionsToProcess = {
+  "ACTIONBUTTON1",
+  "ACTIONBUTTON2",
+  "ACTIONBUTTON3",
+  "ACTIONBUTTON4",
+  "ACTIONBUTTON5",
+  "ACTIONBUTTON6",
+  "ACTIONBUTTON7",
+  "ACTIONBUTTON8",
+  "ACTIONBUTTON9",
+  "ACTIONBUTTON10",
+  "ACTIONBUTTON11" ,
+  "ACTIONBUTTON12",
+  "FOCUSTARGET",
+  "FOLLOWTARGET",
+  "INTERACTTARGET",
+  "JUMP",
+  "MACRO",
+  "MOVEANDSTEER",
+  "MOVEBACKWARD",
+  "MOVEFORWARD",
+  "TARGETFOCUS",
+  "TARGETLASTHOSTILE",
+  "TARGETLASTTARGET",
+  "TARGETNEARESTENEMY",
+  "TARGETNEARESTENEMYPLAYER",
+  "TARGETNEARESTFRIEND",
+  "TARGETNEARESTFRIENDPLAYER",
+  "TARGETPET",
+  "TARGETPREVIOUSENEMY",
+  "TARGETPREVIOUSENEMYPLAYER",
+  "TARGETPREVIOUSFRIEND",
+  "TARGETPREVIOUSFRIENDPLAYER",
+  "TARGETSCANENEMY",
+  "TARGETSELF"
 }
+
+-- Matches the bindable actions values defined right above with more readable names for the UI
+Addon.Constants.overrideActions = {}
+for _, bindingAction in pairs(Addon.Constants.actionsToProcess) do
+  local bindingUiName = _G["BINDING_NAME_" .. bindingAction]
+  Addon.Constants.overrideActions[bindingAction] = bindingUiName or bindingAction
+end
 
 Addon.Constants.buttonsToOverride = {
   "button1",
