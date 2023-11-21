@@ -1,8 +1,9 @@
-CM = _G.GetGlobalStore()
+local CM = _G.GetGlobalStore()
 
 CM.Constants = {}
 
-local SetCVar = _G.SetCVar
+CM.Constants.CrosshairTexture = "Interface\\AddOns\\CombatMode\\assets\\crosshair.tga"
+CM.Constants.CrosshairActiveTexture = "Interface\\AddOns\\CombatMode\\assets\\crosshair-hit.tga"
 
 CM.Constants.BLIZZARD_EVENTS = {
   "PLAYER_ENTERING_WORLD",
@@ -155,15 +156,15 @@ CM.Constants.FramesToCheck = {
 }
 
 -- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"
-CM.Constants.wildcardFramesToMatch = {
+CM.Constants.WildcardFramesToMatch = {
   "OPieRT"
 }
 
 -- The dynamic names of the frames defined right above, determined on loading into the game world. Do not add frame names in this table, do it above instead!
-CM.Constants.wildcardFramesToCheck = {}
+CM.Constants.WildcardFramesToCheck = {}
 
 -- The name of the actions a user can bind to mouse buttons
-CM.Constants.actionsToProcess = {
+CM.Constants.ActionsToProcess = {
   "ACTIONBUTTON1",
   "ACTIONBUTTON2",
   "ACTIONBUTTON3",
@@ -200,17 +201,13 @@ CM.Constants.actionsToProcess = {
 }
 
 -- Matches the bindable actions values defined right above with more readable names for the UI
-CM.Constants.overrideActions = {
+CM.Constants.OverrideActions = {
   CLEARFOCUS = "Clear Focus",
   CLEARTARGET = "Clear Target",
   CUSTOMACTION = "Custom Action"
 }
-for _, bindingAction in pairs(CM.Constants.actionsToProcess) do
-  local bindingUiName = _G["BINDING_NAME_" .. bindingAction]
-  CM.Constants.overrideActions[bindingAction] = bindingUiName or bindingAction
-end
 
-CM.Constants.buttonsToOverride = {
+CM.Constants.ButtonsToOverride = {
   "button1",
   "button2",
   "shiftbutton1",
@@ -221,62 +218,52 @@ CM.Constants.buttonsToOverride = {
   "altbutton2"
 }
 
-CM.Constants.customActionFieldDescription = "Enter the name of the action you wish to be ran here."
-
 -- CVARS FOR RETICLE TARGETING
-function CM.Constants.loadReticleTargetCvars()
+CM.Constants.CustomCVarValues = {
   -- general
-  SetCVar("SoftTargetForce", 1) -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
-  SetCVar("SoftTargetMatchLocked", 1) -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
-  SetCVar("SoftTargetWithLocked", 2) -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
-  SetCVar("SoftTargetNameplateEnemy", 1)
-  SetCVar("SoftTargetNameplateInteract", 0)
-  SetCVar("deselectOnClick", 1) -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
+  ["SoftTargetForce"] = 1, -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
+  ["SoftTargetMatchLocked"] = 1, -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
+  ["SoftTargetWithLocked"] = 2, -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
+  ["SoftTargetNameplateEnemy"] = 1,
+  ["SoftTargetNameplateInteract"] = 0,
+  ["deselectOnClick"] = 1, -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
   -- interact
-  SetCVar("SoftTargetInteract", 3) -- 3 = always on
-  SetCVar("SoftTargetInteractArc", 0) -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
-  SetCVar("SoftTargetInteractRange", 15)
-  SetCVar("SoftTargetIconInteract", 1)
-  SetCVar("SoftTargetIconGameObject", 1)
+  ["SoftTargetInteract"] = 3, -- 3 = always on
+  ["SoftTargetInteractArc"] = 0, -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
+  ["SoftTargetInteractRange"] = 15,
+  ["SoftTargetIconInteract"] = 1,
+  ["SoftTargetIconGameObject"] = 1,
   -- friendly target
-  SetCVar("SoftTargetFriend", 3)
-  SetCVar("SoftTargetFriendArc", 0)
-  SetCVar("SoftTargetFriendRange", 15)
-  SetCVar("SoftTargetIconFriend", 0)
+  ["SoftTargetFriend"] = 3,
+  ["SoftTargetFriendArc"] = 0,
+  ["SoftTargetFriendRange"] = 15,
+  ["SoftTargetIconFriend"] = 0,
   -- enemy target
-  SetCVar("SoftTargetEnemy", 3)
-  SetCVar("SoftTargetEnemyArc", 0)
-  SetCVar("SoftTargetEnemyRange", 60)
-  SetCVar("SoftTargetIconEnemy", 0)
-
-  -- print("Combat Mode: Reticle Target CVars LOADED")
-end
+  ["SoftTargetEnemy"] = 3,
+  ["SoftTargetEnemyArc"] = 0,
+  ["SoftTargetEnemyRange"] = 60,
+  ["SoftTargetIconEnemy"] = 0
+}
 
 -- DEFAULT BLIZZARD VALUES
 -- !! DO NOT CHANGE !!
-function CM.Constants.loadDefaultCvars()
-  -- general
-  SetCVar("SoftTargetForce", 1)
-  SetCVar("SoftTargetMatchLocked", 1)
-  SetCVar("SoftTargetWithLocked", 1)
-  SetCVar("SoftTargetNameplateEnemy", 1)
-  SetCVar("SoftTargetNameplateInteract", 0)
-  -- interact
-  SetCVar("SoftTargetInteract", 1)
-  SetCVar("SoftTargetInteractArc", 0)
-  SetCVar("SoftTargetInteractRange", 10)
-  SetCVar("SoftTargetIconInteract", 1)
-  SetCVar("SoftTargetIconGameObject", 0)
-  -- friendly target
-  SetCVar("SoftTargetFriend", 0)
-  SetCVar("SoftTargetFriendArc", 2)
-  SetCVar("SoftTargetFriendRange", 45)
-  SetCVar("SoftTargetIconFriend", 0)
-  -- enemy target
-  SetCVar("SoftTargetEnemy", 1)
-  SetCVar("SoftTargetEnemyArc", 2)
-  SetCVar("SoftTargetEnemyRange", 45)
-  SetCVar("SoftTargetIconEnemy", 0)
-
-  -- print("Combat Mode: Reticle Target CVars RESET")
-end
+CM.Constants.BlizzardCVarValues = {
+  ["SoftTargetForce"] = 1,
+  ["SoftTargetMatchLocked"] = 1,
+  ["SoftTargetWithLocked"] = 1,
+  ["SoftTargetNameplateEnemy"] = 1,
+  ["SoftTargetNameplateInteract"] = 0,
+  ["SoftTargetInteract"] = 1,
+  ["SoftTargetInteractArc"] = 0,
+  ["SoftTargetInteractRange"] = 10,
+  ["SoftTargetIconInteract"] = 1,
+  ["SoftTargetIconGameObject"] = 0,
+  ["SoftTargetFriend"] = 0,
+  ["SoftTargetFriendArc"] = 2,
+  ["SoftTargetFriendRange"] = 45,
+  ["SoftTargetIconFriend"] = 0,
+  ["SoftTargetEnemy"] = 1,
+  ["SoftTargetEnemyArc"] = 2,
+  ["SoftTargetEnemyRange"] = 45,
+  ["SoftTargetIconEnemy"] = 0
+}

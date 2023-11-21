@@ -6,20 +6,20 @@ local AceConfigDialog = _G.LibStub("AceConfigDialog-3.0")
 local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 
 -- DEVELOPER NOTE
--- You can access the global CM store in any file by calling _G.GetGlobalStore()
--- Each file has its own separate object within the CM store. And ideally you'd follow that pattern.
+-- You can access the global CM store in any file by calling _G.GetGlobalStore() on a localized CM.
+-- Each additional file has its own object within the CM store. Follow this pattern when making changes.
 -- Properties from the main CombatMode.lua file are assigned directly to the CM obj.
--- Ex: You can get info from Constants.lua by referencing CM.Constants
+-- Ex: You can get CustomCVarValues from Constants.lua by referencing the CM.Constants.CustomCVarValues
 
 -- INSTANTIATING ADDON & CREATING FRAME
-CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
+local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UIParent)
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 
 -- INITIAL STATE VARIABLES
 local isCursorLocked = false
 local lastStateUpdateTime = 0
-local debugMode = false
+local debugMode = true
 
 -- UTILITY FUNCTIONS
 function _G.GetGlobalStore()
@@ -30,6 +30,22 @@ function CM.DebugPrint(statement)
   if debugMode then
     print("|cffff0000Combat Mode:|r " .. statement)
   end
+end
+
+function CM.LoadReticleTargetCVars()
+  for name, value in pairs(CM.Constants.CustomCVarValues) do
+    _G.SetCVar(name, value)
+  end
+
+  CM.DebugPrint("Reticle Target CVars LOADED")
+end
+
+function CM.LoadBlizzardDefaultCVars()
+  for name, value in pairs(CM.Constants.BlizzardCVarValues) do
+    _G.SetCVar(name, value)
+  end
+
+  CM.DebugPrint("Reticle Target CVars RESET")
 end
 
 local function CreateTargetMacros()
@@ -45,22 +61,19 @@ local function CreateTargetMacros()
 end
 
 -- CROSSHAIR STATE HANDLING FUNCTIONS
-local function BaseCrosshairState()
-  local crossBase = "Interface\\AddOns\\CombatMode\\assets\\crosshair.tga"
-  CrosshairTexture:SetTexture(crossBase)
-  CrosshairTexture:SetVertexColor(1, 1, 1, .5)
-end
-
-local function HostileCrosshairState()
-  local crossHit = "Interface\\AddOns\\CombatMode\\assets\\crosshair-hit.tga"
-  CrosshairTexture:SetTexture(crossHit)
-  CrosshairTexture:SetVertexColor(1, .2, 0.3, 1)
-end
-
-local function FriendlyCrosshairState()
-  local crossHit = "Interface\\AddOns\\CombatMode\\assets\\crosshair-hit.tga"
-  CrosshairTexture:SetTexture(crossHit)
-  CrosshairTexture:SetVertexColor(0, 1, 0.3, .8)
+local function HandleCrosshairAppearance(state)
+  if state == "base" then
+    CrosshairTexture:SetTexture(CM.Constants.CrosshairTexture)
+    CrosshairTexture:SetVertexColor(1, 1, 1, .5)
+  elseif state == "hostile" then
+    CrosshairTexture:SetTexture(CM.Constants.CrosshairActiveTexture)
+    CrosshairTexture:SetVertexColor(1, .2, 0.3, 1)
+  elseif state == "friendly" then
+    CrosshairTexture:SetTexture(CM.Constants.CrosshairActiveTexture)
+    CrosshairTexture:SetVertexColor(0, 1, 0.3, .8)
+  else
+    print("Invalid state")
+  end
 end
 
 function CM.ShowCrosshair()
@@ -76,7 +89,7 @@ local function CreateCrosshair()
   CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or 100)
   CrosshairFrame:SetSize(CM.DB.global.crosshairSize or 64, CM.DB.global.crosshairSize or 64)
   CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity or 1.0)
-  BaseCrosshairState()
+  HandleCrosshairAppearance("base")
 
   if CM.DB.global.crosshair then
     CM.ShowCrosshair()
@@ -99,18 +112,18 @@ function CM.UpdateCrosshair()
   end
 end
 
-local function CrosshairReactToTarget(target)
+local function HandleCrosshairReactionToTarget(target)
   local isTargetVisible = _G.UnitIsVisible(target)
   local isTargetHostile = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) <= 4
 
   if isTargetVisible then
     if isTargetHostile then
-      HostileCrosshairState()
+      HandleCrosshairAppearance("hostile")
     else
-      FriendlyCrosshairState()
+      HandleCrosshairAppearance("friendly")
     end
   else
-    BaseCrosshairState()
+    HandleCrosshairAppearance("base")
   end
 end
 
@@ -140,7 +153,7 @@ end
 
 local function SuspendingCursorLock()
   return CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or CursorUnlockFrameVisible(CM.DB.global.watchlist) or
-           CursorUnlockFrameGroupVisible(CM.Constants.wildcardFramesToCheck) or _G.SpellIsTargeting()
+           CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or _G.SpellIsTargeting()
 end
 
 -- FRAME WATCHING FOR SERIALIZED FRAMES (Ex: Opie rings)
@@ -149,12 +162,12 @@ local function InitializeWildcardFrameTracking(frameArr)
 
   -- Initialise the table by going through ALL available globals once and keeping the ones that match
   for _, frameNameToFind in pairs(frameArr) do
-    CM.Constants.wildcardFramesToCheck[frameNameToFind] = {}
+    CM.Constants.WildcardFramesToCheck[frameNameToFind] = {}
 
     for frameName in pairs(_G) do
       if string.match(frameName, frameNameToFind) then
         CM.DebugPrint("Matched " .. frameNameToFind .. " to frame " .. frameName)
-        local frameGroup = CM.Constants.wildcardFramesToCheck[frameNameToFind]
+        local frameGroup = CM.Constants.WildcardFramesToCheck[frameNameToFind]
         frameGroup[#frameGroup + 1] = frameName
       end
     end
@@ -184,7 +197,7 @@ function CM.SetNewBinding(buttonSettings)
 end
 
 local function OverrideDefaultButtons()
-  for _, button in pairs(CM.Constants.buttonsToOverride) do
+  for _, button in pairs(CM.Constants.ButtonsToOverride) do
     CM.SetNewBinding(CM.DB.profile.bindings[button])
   end
 end
@@ -192,6 +205,14 @@ end
 function CM.ResetBindingOverride(buttonSettings)
   _G.SetMouselookOverrideBinding(buttonSettings.key, nil)
   CM.DebugPrint(buttonSettings.key .. "'s override binding is now cleared")
+end
+
+-- Matches the bindable actions values defined in Constants.ActionsToProcess with more readable names for the UI
+local function RenameBindableActions()
+  for _, bindingAction in pairs(CM.Constants.ActionsToProcess) do
+    local bindingUiName = _G["BINDING_NAME_" .. bindingAction]
+    CM.Constants.OverrideActions[bindingAction] = bindingUiName or bindingAction
+  end
 end
 
 -- FREE LOOK STATE HANDLING
@@ -231,7 +252,7 @@ end
 local function Rematch()
   local isReticleTargetingActive = CM.DB.global.reticleTargeting
   if isReticleTargetingActive then
-    CM.Constants.loadReticleTargetCvars()
+    CM.LoadReticleTargetCVars()
   end
   ToggleFreeLook()
 end
@@ -274,17 +295,18 @@ end
 -- INITIALIZING DEFAULT CONFIG
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB")
-  AceConfig:RegisterOptionsTable("Combat Mode", CM.Options.configOptions)
+  AceConfig:RegisterOptionsTable("Combat Mode", CM.Options.ConfigOptions)
   self.OPTIONS = AceConfigDialog:AddToBlizOptions("Combat Mode", "Combat Mode")
   self:RegisterChatCommand("cm", "OpenConfigCMD")
   self:RegisterChatCommand("combatmode", "OpenConfigCMD")
-  self.DB = AceDB:New("CombatModeDB", CM.Options.databaseDefaults, true)
+  self.DB = AceDB:New("CombatModeDB", CM.Options.DatabaseDefaults, true)
 end
 
 -- LOADING ADDON IN
 function CM:OnEnable()
+  RenameBindableActions()
   OverrideDefaultButtons()
-  InitializeWildcardFrameTracking(CM.Constants.wildcardFramesToMatch)
+  InitializeWildcardFrameTracking(CM.Constants.WildcardFramesToMatch)
   CreateCrosshair()
   CreateTargetMacros()
 
@@ -298,11 +320,11 @@ end
 function _G.CombatMode_OnEvent(event)
   if not SuspendingCursorLock() then
     if event == "PLAYER_SOFT_ENEMY_CHANGED" then
-      CrosshairReactToTarget("target")
+      HandleCrosshairReactionToTarget("target")
     end
 
     if event == "PLAYER_SOFT_INTERACT_CHANGED" then
-      CrosshairReactToTarget("softInteract")
+      HandleCrosshairReactionToTarget("softInteract")
     end
   end
 
