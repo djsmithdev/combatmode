@@ -17,18 +17,38 @@ local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UI
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 
 -- INITIAL STATE VARIABLES
-local isCursorLocked = false -- State used to prevent the OnUpdate function from executing code needlessly
-local lastStateUpdateTime = 0 -- Used to add a stagger to the OnUpdate function to improve performance
-local debugMode = false -- If true, prints debug logs to chat
+local isCursorLockedState = false -- State used to prevent the OnUpdate function from executing code needlessly
+local updateInterval = 0.15 -- How often the code in the OnUpdate function will run (in seconds)
+local debugMode = false -- If true, CM.DebugPrint will run and print state logs to game chat
 
 -- UTILITY FUNCTIONS
 function _G.GetGlobalStore()
   return AceAddon:GetAddon("CombatMode")
 end
 
+local function FetchDataFromTOC()
+  local keysToFetch = {
+    "Version",
+    "Title",
+    "Notes",
+    "Author",
+    "X-Discord",
+    "X-Curse"
+  }
+  local dataRetuned = {}
+
+  for _, key in ipairs(keysToFetch) do
+    dataRetuned[string.upper(key)] = _G.C_AddOns.GetAddOnMetadata("CombatMode", key)
+  end
+
+  return dataRetuned
+end
+
+CM.METADATA = FetchDataFromTOC()
+
 function CM.DebugPrint(statement)
   if debugMode then
-    print("|cffff0000Combat Mode:|r " .. statement)
+    print(CM.METADATA["TITLE"] .. " |cffB47EDEv." .. CM.METADATA["VERSION"] .. "|r: " .. statement)
   end
 end
 
@@ -127,7 +147,7 @@ local function HandleCrosshairReactionToTarget(target)
   end
 end
 
--- FRAME WATCHING
+-- FRAME WATCHING / CURSOR UNLOCK
 local function CursorUnlockFrameVisible(frameArr)
   local allowFrameWatching = CM.DB.global.frameWatching
   if not allowFrameWatching then
@@ -135,7 +155,7 @@ local function CursorUnlockFrameVisible(frameArr)
   end
 
   for _, frameName in pairs(frameArr) do
-    local curFrame = _G.getglobal(frameName)
+    local curFrame = _G[frameName]
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
       -- CM.DebugPrint(frameName .. " is visible, enabling cursor")
       return true
@@ -248,38 +268,13 @@ local function ToggleFreeLook()
   end
 end
 
--- Relocking Free Look & setting CVars after reload/portal
+-- Re-locking Free Look & re-setting CVars after reload/portal
 local function Rematch()
   local isReticleTargetingActive = CM.DB.global.reticleTargeting
   if isReticleTargetingActive then
     CM.LoadReticleTargetCVars()
   end
   ToggleFreeLook()
-end
-
--- UpdateState will be fired when changes in game state happen
--- Responsible for unlocking Free Look when opening frames & casting targeting spells
-local function UpdateState()
-  -- Calling this without the delay so we don't add latency to player actions
-  if _G.SpellIsTargeting() then
-    UnlockFreeLook()
-    isCursorLocked = false
-    return
-  end
-
-  local currentTime = _G.GetTime()
-  if currentTime - lastStateUpdateTime < .15 then
-    return
-  end
-  lastStateUpdateTime = currentTime
-
-  if SuspendingCursorLock() then
-    UnlockFreeLook()
-    isCursorLocked = false
-  elseif not isCursorLocked then
-    LockFreeLook()
-    isCursorLocked = true
-  end
 end
 
 -- CREATING /CM CHAT COMMAND
@@ -292,7 +287,8 @@ function CM:OpenConfigCMD(input)
   end
 end
 
--- INITIALIZING DEFAULT CONFIG
+-- STANDARD ACE 3 METHODS
+-- Code that you want to run when the addon is first loaded goes here.
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB")
   AceConfig:RegisterOptionsTable("Combat Mode", CM.Options.ConfigOptions)
@@ -302,7 +298,7 @@ function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Options.DatabaseDefaults, true)
 end
 
--- LOADING ADDON IN
+-- Called when the addon is enabled
 function CM:OnEnable()
   RenameBindableActions()
   OverrideDefaultButtons()
@@ -314,6 +310,11 @@ function CM:OnEnable()
   for _, event in pairs(CM.Constants.BLIZZARD_EVENTS) do
     self:RegisterEvent(event, _G.CombatMode_OnEvent)
   end
+end
+
+-- Called when the addon is disabled
+function CM:OnDisable()
+  self.LoadBlizzardDefaultCVars()
 end
 
 -- FIRES WHEN SPECIFIC EVENTS HAPPEN IN GAME
@@ -330,18 +331,35 @@ function _G.CombatMode_OnEvent(event)
 
   if event == "PLAYER_ENTERING_WORLD" then
     Rematch()
-    print("|cffff0000Combat Mode:|r |cff909090 Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings |r")
+    print(CM.METADATA["TITLE"] .. " |cffB47EDEv." .. CM.METADATA["VERSION"] .. "|r" ..
+            "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
   end
 end
 
 -- FIRES WHEN GAME STATE CHANGES HAPPEN
-function _G.CombatMode_OnUpdate()
-  UpdateState()
-end
+function _G.CombatMode_OnUpdate(self, elapsed)
+  -- Making this thread-safe by keeping track of the last update cycle
+  self.TimeSinceLastUpdate = self.TimeSinceLastUpdate + elapsed;
 
--- FIRES WHEN ADDON IS LOADED
-function _G.CombatMode_OnLoad()
-  CM.DebugPrint("ADDON LOADED")
+  -- Bypassing the update cycle check when spell targeting so we can relock asap, without adding latency to player actions
+  if _G.SpellIsTargeting() then
+    UnlockFreeLook()
+    isCursorLockedState = false
+    return
+  end
+
+  -- As the frame watching doesn't need to perform a visibility check every frame, we're adding a stagger
+  if (self.TimeSinceLastUpdate > updateInterval) then
+    if SuspendingCursorLock() then
+      UnlockFreeLook()
+      isCursorLockedState = false
+    elseif not isCursorLockedState then
+      LockFreeLook()
+      isCursorLockedState = true
+    end
+
+    self.TimeSinceLastUpdate = 0;
+  end
 end
 
 -- FUNCTIONS CALLED FROM BINDINGS.XML
