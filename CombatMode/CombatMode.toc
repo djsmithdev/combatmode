@@ -1,5 +1,5 @@
 ## Interface: 100200
-## Version: 2.0.4
+## Version: 2.0.5
 
 ## Title: |cffff0000Combat Mode|r
 ## Author: justice7ca w/ contributions from DKulan, sampconrad, and ThomasDigio.

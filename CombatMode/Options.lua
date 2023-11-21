@@ -1,4 +1,4 @@
-CM = _G.GetGlobalStore()
+local CM = _G.GetGlobalStore()
 
 CM.Options = {}
 
@@ -51,7 +51,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         type = "select",
         width = 1.5,
         order = 1.1,
-        values = CM.Constants.overrideActions,
+        values = CM.Constants.OverrideActions,
         set = function(_, value)
           CM.DB.profile.bindings[button1Settings].value = value
           CM.SetNewBinding(CM.DB.profile.bindings[button1Settings])
@@ -71,7 +71,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       },
       button1macro = {
         name = button1Name .. " Custom Action",
-        desc = CM.Constants.customActionFieldDescription,
+        desc = "Enter the name of the action you wish to be ran here.",
         type = "input",
         width = 1.5,
         order = 1.3,
@@ -111,7 +111,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         type = "select",
         width = 1.5,
         order = 2.1,
-        values = CM.Constants.overrideActions,
+        values = CM.Constants.OverrideActions,
         set = function(_, value)
           CM.DB.profile.bindings[button2Settings].value = value
           CM.SetNewBinding(CM.DB.profile.bindings[button2Settings])
@@ -131,7 +131,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       },
       button2macro = {
         name = button2Name .. " Macro",
-        desc = CM.Constants.customActionFieldDescription,
+        desc = "Enter the name of the action you wish to be ran here.",
         type = "input",
         width = 1.5,
         order = 2.3,
@@ -151,7 +151,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
   }
 end
 
-CM.Options.databaseDefaults = {
+CM.Options.DatabaseDefaults = {
   global = {
     version = "1.0.0",
     frameWatching = true,
@@ -227,7 +227,7 @@ CM.Options.databaseDefaults = {
   }
 }
 
-CM.Options.configOptions = {
+CM.Options.ConfigOptions = {
   name = "|cffff0000Combat Mode|r",
   handler = CM,
   type = "group",
@@ -577,9 +577,9 @@ CM.Options.configOptions = {
           set = function(_, value)
             CM.DB.global.reticleTargeting = value
             if value then
-              CM.Constants.loadReticleTargetCvars()
+              CM.LoadReticleTargetCVars()
             else
-              CM.Constants.loadDefaultCvars()
+              CM.LoadBlizzardDefaultCVars()
             end
           end,
           get = function()
