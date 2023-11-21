@@ -91,7 +91,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         type = "description",
         name = " ",
         width = "full",
-        order = 1.4,
+        order = 1.4
       },
       overrideButton2Toggle = {
         type = "toggle",
@@ -445,12 +445,12 @@ CM.Options.ConfigOptions = {
         },
         wowwiki = {
           name = "You can find all available actions here:",
-          desc = "wowwiki-archive.fandom.com/wiki/BindingID",
+          desc = "warcraft.wiki.gg/wiki/BindingID",
           type = "input",
           width = 2,
           order = 3.1,
           get = function()
-            return "wowwiki-archive.fandom.com/wiki/BindingID"
+            return "warcraft.wiki.gg/wiki/BindingID"
           end
         },
         keybindDescriptionBottomPadding = {
