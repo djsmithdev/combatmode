@@ -17,9 +17,9 @@ local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UI
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 
 -- INITIAL STATE VARIABLES
-local isCursorLocked = false
-local lastStateUpdateTime = 0
-local debugMode = false
+local isCursorLocked = false -- State used to prevent the OnUpdate function from executing code needlessly
+local lastStateUpdateTime = 0 -- Used to add a stagger to the OnUpdate function to improve performance
+local debugMode = false -- If true, prints debug logs to chat
 
 -- UTILITY FUNCTIONS
 function _G.GetGlobalStore()
