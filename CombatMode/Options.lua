@@ -821,6 +821,5 @@ CM.Options.ConfigOptions = {
         }
       }
     }
-
   }
 }
