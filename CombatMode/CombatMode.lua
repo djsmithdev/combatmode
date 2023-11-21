@@ -1,9 +1,11 @@
 -- IMPORTS
 local AceAddon = _G.LibStub("AceAddon-3.0")
 local AceDB = _G.LibStub("AceDB-3.0")
+local AceLocale = _G.LibStub("AceLocale-3.0")
 local AceConfig = _G.LibStub("AceConfig-3.0")
 local AceConfigDialog = _G.LibStub("AceConfigDialog-3.0")
 local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
+local LibSharedMedia = _G.LibStub("LibSharedMedia-3.0")
 
 -- DEVELOPER NOTE
 -- You can access the global CM store in any file by calling _G.GetGlobalStore() on a localized CM.
@@ -26,9 +28,9 @@ function _G.GetGlobalStore()
   return AceAddon:GetAddon("CombatMode")
 end
 
-function CM.DebugPrint(statement)
+function CM.DebugPrint(statement) -- Debug with "CM.DebugPrint("Message Here!")"
   if debugMode then
-    print("|cffff0000Combat Mode:|r " .. statement)
+    print("|cffff0000[Combat Mode] |r " .. statement)
   end
 end
 
