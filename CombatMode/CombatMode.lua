@@ -19,7 +19,7 @@ local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 -- INITIAL STATE VARIABLES
 local isCursorLocked = false
 local lastStateUpdateTime = 0
-local debugMode = true
+local debugMode = false
 
 -- UTILITY FUNCTIONS
 function _G.GetGlobalStore()
