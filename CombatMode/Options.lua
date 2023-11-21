@@ -87,6 +87,12 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
                    "CUSTOMACTION"
         end
       },
+      buttonbreak = {
+        type = "description",
+        name = " ",
+        width = "full",
+        order = 1.4,
+      },
       overrideButton2Toggle = {
         type = "toggle",
         name = "",
@@ -130,7 +136,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         order = 2.2
       },
       button2macro = {
-        name = button2Name .. " Macro",
+        name = button2Name .. " Custom Action",
         desc = "Enter the name of the action you wish to be ran here.",
         type = "input",
         width = 1.5,
@@ -264,9 +270,8 @@ CM.Options.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• Free Look - Move your camera without having to perpetually hold right mouse button. \n• Reticle Targeting - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Ability casting w/ mouse click - When Combat Mode is enabled, frees your left and right mouse click so you can cast abilities with them. \n• Automatically toggles Free Look when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection. \n• Optional adjustable Crosshair texture to assist with Reticle Targeting.|r",
-      order = 3,
-      fontSize = "small"
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Optional adjustable Crosshair texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast abilities with them. \n• |cff69ccf0Frame Watchlist|r - Automatically unlocks cursor when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection.|r",
+      order = 3
     },
     featuresListPaddingBottom = {
       type = "description",
@@ -333,6 +338,7 @@ CM.Options.ConfigOptions = {
         freelookKeybindDescription = {
           type = "description",
           name = "Set keybinds for the Free Look camera. You can use Toggle and Press & Hold together by binding them to separate keys.",
+          fontSize = "medium",
           order = 2
         },
         freelookKeybindDescriptionBottomPadding = {
@@ -418,18 +424,29 @@ CM.Options.ConfigOptions = {
         keybindDescription = {
           type = "description",
           name = "Select which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.",
+          fontSize = "medium",
           order = 2
         },
         keybindNote = {
           type = "description",
-          name = "\n|cff909090To use an action that is not specified on this list when clicking, select |cff69ccf0Custom Action|r and then type the exact name of the action you'd like to cast. If you'd like to use a macro (for example called 'My Macro'), type 'MACRO My Macro'.|r",
+          name = "\n|cff909090To use an action not listed on the dropdown menu, select |cff69ccf0Custom Action|r and then type the exact name of the action you'd like to cast. \nTo use a macro as your |cff69ccf0Custom Action|r, type |cffcfcfcfMACRO My_Macro|r into the input, where |cffcfcfcfMy_Macro|r is the name of the macro you want to assign to that mouse click.|r",
           order = 3
+        },
+        wowwiki = {
+          name = "You can find all available actions here:",
+          desc = "wowwiki-archive.fandom.com/wiki/BindingID",
+          type = "input",
+          width = 2,
+          order = 3.1,
+          get = function()
+            return "wowwiki-archive.fandom.com/wiki/BindingID"
+          end
         },
         keybindDescriptionBottomPadding = {
           type = "description",
           name = " ",
           width = "full",
-          order = 3.1
+          order = 3.2
         },
         unmodifiedGroup = GetButtonOverrideGroup(nil, 4),
         unmodifiedGroupBottomPadding = {
@@ -476,12 +493,12 @@ CM.Options.ConfigOptions = {
         frameWatchingDescription = {
           type = "description",
           name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+          fontSize = "medium",
           order = 2
         },
         frameWatchingWarning = {
           type = "description",
-          name = "\n|cffff0000Disabling this will also disable the Frame Watchlist.|r",
-          fontSize = "medium",
+          name = "\n|cffFF5050Disabling this will also disable the Frame Watchlist.|r",
           order = 3
         },
         frameWatching = {
@@ -511,6 +528,7 @@ CM.Options.ConfigOptions = {
             watchlistDescription = {
               type = "description",
               name = "Additional frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.",
+              fontSize = "medium",
               order = 1
             },
             watchlist = {
@@ -533,7 +551,7 @@ CM.Options.ConfigOptions = {
             },
             watchlistNote = {
               type = "description",
-              name = "\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: AddonName + Frame. Ex: WeakAurasFrame.|r",
+              name = "\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame. Ex: WeakAurasFrame|r.|r",
               order = 3
             }
           }
@@ -561,12 +579,12 @@ CM.Options.ConfigOptions = {
         reticleTargetingDescription = {
           type = "description",
           name = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable with predictable behavior.",
+          fontSize = "medium",
           order = 2
         },
         reticleTargetingWarning = {
           type = "description",
-          name = "\n|cffff0000This will override all Cvar values related to SoftTarget. Uncheck to reset them to the default values.|r",
-          fontSize = "medium",
+          name = "\n|cffFF5050This will override all Cvar values related to SoftTarget. Uncheck to reset them to the default values.|r",
           order = 3
         },
         reticleTargeting = {
@@ -586,16 +604,37 @@ CM.Options.ConfigOptions = {
             return CM.DB.global.reticleTargeting
           end
         },
-        reticleTargetingNote = {
+        devNoteDescription1 = {
           type = "description",
-          name = "\n|cff909090Please note that manually changing Cvars w/ AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
-          order = 5
+          name = "|cffffd700Developer Note:|r \n|cff909090Please note that due to an oversight on Blizzard's part, some spells have baked in |cffFF5050hard target locking|r, and |cffcfcfcfSoftTargeting|r for some reason doesn't overrule that when enabled. This causes the ocasional need to manually clear the target by pressing esc/tab.|r",
+          order = 5.1
+        },
+        devNoteDescription2 = {
+          type = "description",
+          name = "|cff909090We can circumvent this by creating macros with |cffcfcfcf/cleartarget|r and placing them in the action bar slots that your mouse clicks are assigned to under |cffB47EDEMouse Button Keybinds|r. Below you'll find a base template you can copy to create your macros.|r",
+          order = 5.2
+        },
+        devNoteWarning = {
+          type = "description",
+          name = "\n|cffFF5050This is an optional configuration step. Only a few spells force target locks, and some classes have none of those. So if this issue doesn't affect you or you're already manually clearing targets, then you don't need to do this.|r",
+          order = 5.3
+        },
+        devNoteCodeBlock = {
+          name = "Example:",
+          desc = "/cleartarget [exists]\n/cast SPELL YOU WISH TO CAST\n/startattack [@softenemy,exists]",
+          type = "input",
+          multiline = true,
+          width = "full",
+          order = 5.4,
+          get = function()
+            return "/cleartarget [exists]\n/cast SPELL YOU WISH TO CAST\n/startattack [@softenemy,exists]"
+          end
         },
         reticleTargetingNotePaddingBottom = {
           type = "description",
           name = " ",
           width = "full",
-          order = 5.1
+          order = 5.5
         },
         -- CROSSHAIR
         crosshairGroup = {
@@ -606,6 +645,7 @@ CM.Options.ConfigOptions = {
             crosshairDescription = {
               type = "description",
               name = "Places a crosshair texture in the center of the screen to assist with Reticle Targeting.",
+              fontSize = "medium",
               order = 1
             },
             crosshair = {
@@ -628,7 +668,7 @@ CM.Options.ConfigOptions = {
             },
             crosshairNote = {
               type = "description",
-              name = "\n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior.|r",
+              name = "|cffffd700Developer Note:|r \n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior.|r",
               order = 3
             },
             crosshairPaddingBottom = {
