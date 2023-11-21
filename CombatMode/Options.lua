@@ -159,7 +159,6 @@ end
 
 CM.Options.DatabaseDefaults = {
   global = {
-    version = "1.0.0",
     frameWatching = true,
     watchlist = {
       "SortedPrimaryFrame",
