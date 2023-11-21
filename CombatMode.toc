@@ -1,0 +1,20 @@
+## Interface: 100200
+## Version: 2.0.6
+
+## Title: Combat Mode
+## Author: justice7ca w/ contributions from DKulan, sampconrad, ThomasDigio, and RyciaSoulblight.
+## Notes: Adds a more dynamic combat action combat experience with free look, reticle targeting, ability casting with clicks, and more!
+## IconTexture: Interface\AddOns\CombatMode\assets\logo-64
+
+## DefaultState: enabled
+## LoadOnDemand: 0
+## SavedVariables: CombatModeDB
+
+## X-Category: Misc
+## X-Github: https://github.com/djsmithdev/combatmode
+## X-Discord: https://discord.gg/5mwBSmz
+
+CombatMode.xml
+Constants.lua
+Options.lua
+Locales\Locales.xml
