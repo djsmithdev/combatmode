@@ -169,7 +169,8 @@ CM.Options.DatabaseDefaults = {
     crosshair = true,
     crosshairSize = 64,
     crosshairOpacity = 1.0,
-    crosshairY = 100
+    crosshairY = 100,
+    debugMode = false
   },
   profile = {
     bindings = {
@@ -270,7 +271,7 @@ CM.Options.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast abilities with them. \n• |cff00FF7FFrame Watchlist|r - Automatically unlocks cursor when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection.|r",
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast abilities with them. \n• |cff00FF7FCursor Unlock|r - Automatically unlocks cursor when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to the |cff00FF7FFrame Watchlist|r to expand on the default selection.|r",
       order = 3
     },
     featuresListPaddingBottom = {
@@ -776,6 +777,51 @@ CM.Options.ConfigOptions = {
           }
         }
       }
+    },
+    -- DEBUG MODE
+    debugModeGroup = {
+      type = "group",
+      name = " ",
+      order = 11,
+      inline = true,
+      args = {
+        debugModeHeader = {
+          type = "header",
+          name = "|cff909090Debug Mode|r",
+          order = 1
+        },
+        debugModeHeaderPaddingBottom = {
+          type = "description",
+          name = " ",
+          width = "full",
+          order = 1.1
+        },
+        debugModeDescription = {
+          type = "description",
+          name = "Enables the printing of state logs in the game chat.",
+          fontSize = "medium",
+          order = 2
+        },
+        debugModeDescriptionPaddingBottom = {
+          type = "description",
+          name = " ",
+          width = "full",
+          order = 2.1
+        },
+        debugModeToggle = {
+          type = "toggle",
+          name = "Enable Debug Mode",
+          desc = "Enables the printing of state logs in the game chat.",
+          order = 3,
+          set = function(_, value)
+            CM.DB.global.debugMode = value
+          end,
+          get = function()
+            return CM.DB.global.debugMode
+          end
+        }
+      }
     }
+
   }
 }

@@ -19,7 +19,7 @@ local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 -- INITIAL STATE VARIABLES
 local isCursorLockedState = false -- State used to prevent the OnUpdate function from executing code needlessly
 local updateInterval = 0.15 -- How often the code in the OnUpdate function will run (in seconds)
-local debugMode = false -- If true, CM.DebugPrint will run and print state logs to game chat
+local hasFreeLookOff = false -- True if the user currently has the Free Look Camera off (wether the keybind is toggled or held down)
 
 -- UTILITY FUNCTIONS
 function _G.GetGlobalStore()
@@ -47,8 +47,8 @@ end
 CM.METADATA = FetchDataFromTOC()
 
 function CM.DebugPrint(statement)
-  if debugMode then
-    print(CM.METADATA["TITLE"] .. " |cffB47EDEv." .. CM.METADATA["VERSION"] .. "|r: " .. statement)
+  if CM.DB.global.debugMode then
+    print(CM.METADATA["TITLE"] .. " |cffB47EDEv." .. CM.METADATA["VERSION"] .. "|r|cff909090: " .. statement .. "|r")
   end
 end
 
@@ -349,7 +349,7 @@ function _G.CombatMode_OnUpdate(self, elapsed)
   end
 
   -- As the frame watching doesn't need to perform a visibility check every frame, we're adding a stagger
-  if (self.TimeSinceLastUpdate > updateInterval) then
+  if (not hasFreeLookOff and self.TimeSinceLastUpdate > updateInterval) then
     if SuspendingCursorLock() then
       UnlockFreeLook()
       isCursorLockedState = false
@@ -364,13 +364,16 @@ end
 
 -- FUNCTIONS CALLED FROM BINDINGS.XML
 function _G.CombatModeToggleKey()
+  hasFreeLookOff = not hasFreeLookOff
   ToggleFreeLook()
 end
 
 function _G.CombatModeHoldKey(keystate)
   if keystate == "down" then
+    hasFreeLookOff = true
     UnlockFreeLook()
   else
+    hasFreeLookOff = false
     LockFreeLook()
   end
 end
