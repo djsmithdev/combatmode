@@ -23,7 +23,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
 
   return {
     type = "group",
-    name = "|cff97a2ff" .. groupName .. "|r",
+    name = "|cffB47EDE" .. groupName .. "|r",
     inline = true,
     order = groupOrder,
     args = {
@@ -234,7 +234,7 @@ CM.Options.DatabaseDefaults = {
 }
 
 CM.Options.ConfigOptions = {
-  name = "|cffff0000Combat Mode|r",
+  name = CM.METADATA["TITLE"],
   handler = CM,
   type = "group",
   args = {
@@ -252,7 +252,7 @@ CM.Options.ConfigOptions = {
     },
     aboutDescription = {
       type = "description",
-      name = "Combat Mode adds Action Combat to World of Warcraft for a more dynamic combat experience.",
+      name = CM.METADATA["NOTES"],
       order = 1,
       fontSize = "medium"
     },
@@ -270,7 +270,7 @@ CM.Options.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Optional adjustable Crosshair texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast abilities with them. \n• |cff69ccf0Frame Watchlist|r - Automatically unlocks cursor when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection.|r",
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast abilities with them. \n• |cff00FF7FFrame Watchlist|r - Automatically unlocks cursor when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection.|r",
       order = 3
     },
     featuresListPaddingBottom = {
@@ -279,17 +279,22 @@ CM.Options.ConfigOptions = {
       width = "full",
       order = 3.1
     },
+    -- contributorsList = {
+    --   type = "description",
+    --   name = "|cffffd700Developers working on this project:|r ".."|cff909090"..CM.METADATA["AUTHOR"].."|r",
+    --   order = 3.2
+    -- },
     curse = {
       name = "Download From:",
-      desc = "curseforge.com/wow/addons/combat-mode",
+      desc = CM.METADATA["X-CURSE"],
       type = "input",
       width = 2,
       order = 4,
       get = function()
-        return "curseforge.com/wow/addons/combat-mode"
+        return CM.METADATA["X-CURSE"]
       end
     },
-    gitDiscordSpacing = {
+    curseDiscordSpacing = {
       type = "description",
       name = " ",
       width = 0.25,
@@ -297,20 +302,26 @@ CM.Options.ConfigOptions = {
     },
     discord = {
       name = "Feedback & Support:",
-      desc = "discord.gg/5mwBSmz",
+      desc = CM.METADATA["X-DISCORD"],
       type = "input",
       width = 1.1,
       order = 5,
       get = function()
-        return "discord.gg/5mwBSmz"
+        return CM.METADATA["X-DISCORD"]
       end
+    },
+    linksPaddingBottom = {
+      type = "description",
+      name = " ",
+      width = "full",
+      order = 5.1
     },
     -- CONFIGURATION
     configurationHeaderPaddingTop = {
       type = "description",
       name = " ",
       width = "full",
-      order = 5.1
+      order = 5.2
     },
     configurationHeader = {
       type = "header",
@@ -522,7 +533,7 @@ CM.Options.ConfigOptions = {
         -- WATCHLIST INPUT
         watchlistInputGroup = {
           type = "group",
-          name = "|cff69ccf0Frame Watchlist|r",
+          name = "|cff00FF7FFrame Watchlist|r",
           order = 5,
           args = {
             watchlistDescription = {
@@ -639,7 +650,7 @@ CM.Options.ConfigOptions = {
         -- CROSSHAIR
         crosshairGroup = {
           type = "group",
-          name = "|cff69ccf0Crosshair|r",
+          name = "|cff00FFFFCrosshair|r",
           order = 6,
           args = {
             crosshairDescription = {

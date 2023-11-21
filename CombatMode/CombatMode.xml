@@ -12,7 +12,7 @@
 	<Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
 		<Scripts>
 			<OnUpdate function="CombatMode_OnUpdate"/>
-			<OnLoad function="CombatMode_OnLoad"/>
+			<OnLoad>self.TimeSinceLastUpdate = 0</OnLoad>
 			<OnEvent function="CombatMode_OnEvent"/>
 		</Scripts>
 	</Frame>
