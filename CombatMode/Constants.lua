@@ -8,7 +8,8 @@ CM.Constants.CrosshairActiveTexture = "Interface\\AddOns\\CombatMode\\assets\\cr
 CM.Constants.BLIZZARD_EVENTS = {
   "PLAYER_ENTERING_WORLD",
   "PLAYER_SOFT_ENEMY_CHANGED",
-  "PLAYER_SOFT_INTERACT_CHANGED"
+  "PLAYER_SOFT_INTERACT_CHANGED",
+  "PLAYER_SOFT_FRIEND_CHANGED",
 }
 
 -- Default frames to check with a static name
