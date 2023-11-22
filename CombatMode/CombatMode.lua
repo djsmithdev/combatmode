@@ -81,18 +81,16 @@ local function CreateTargetMacros()
 end
 
 -- CROSSHAIR STATE HANDLING FUNCTIONS
-local function HandleCrosshairAppearance(state)
-  if state == "base" then
-    CrosshairTexture:SetTexture(CM.Constants.CrosshairTexture)
-    CrosshairTexture:SetVertexColor(1, 1, 1, .5)
-  elseif state == "hostile" then
+local function SetCrosshairAppearance(state)
+  if state == "hostile" then
     CrosshairTexture:SetTexture(CM.Constants.CrosshairActiveTexture)
     CrosshairTexture:SetVertexColor(1, .2, 0.3, 1)
   elseif state == "friendly" then
     CrosshairTexture:SetTexture(CM.Constants.CrosshairActiveTexture)
     CrosshairTexture:SetVertexColor(0, 1, 0.3, .8)
-  else
-    print("Invalid state")
+  else -- "base" falls here
+    CrosshairTexture:SetTexture(CM.Constants.CrosshairTexture)
+    CrosshairTexture:SetVertexColor(1, 1, 1, .5)
   end
 end
 
@@ -109,7 +107,7 @@ local function CreateCrosshair()
   CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or 100)
   CrosshairFrame:SetSize(CM.DB.global.crosshairSize or 64, CM.DB.global.crosshairSize or 64)
   CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity or 1.0)
-  HandleCrosshairAppearance("base")
+  SetCrosshairAppearance("base")
 
   if CM.DB.global.crosshair then
     CM.ShowCrosshair()
@@ -135,16 +133,18 @@ end
 local function HandleCrosshairReactionToTarget(target)
   local isTargetVisible = _G.UnitIsVisible(target)
   local isTargetHostile = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) <= 4
+  local isTargetAPlayer = _G.UnitPlayerControlled(target)
 
-  if isTargetVisible then
-    if isTargetHostile then
-      HandleCrosshairAppearance("hostile")
-    else
-      HandleCrosshairAppearance("friendly")
-    end
-  else
-    HandleCrosshairAppearance("base")
+  if not isTargetVisible or isTargetAPlayer then
+    return SetCrosshairAppearance("base")
   end
+
+  if isTargetHostile then
+    SetCrosshairAppearance("hostile")
+  else
+    SetCrosshairAppearance("friendly")
+  end
+
 end
 
 -- FRAME WATCHING / CURSOR UNLOCK
@@ -319,14 +319,16 @@ end
 
 -- FIRES WHEN SPECIFIC EVENTS HAPPEN IN GAME
 function _G.CombatMode_OnEvent(event)
-  if not SuspendingCursorLock() then
-    if event == "PLAYER_SOFT_ENEMY_CHANGED" then
-      HandleCrosshairReactionToTarget("target")
-    end
+  if event == "PLAYER_SOFT_ENEMY_CHANGED" then
+    HandleCrosshairReactionToTarget("softenemy")
+  end
 
-    if event == "PLAYER_SOFT_INTERACT_CHANGED" then
-      HandleCrosshairReactionToTarget("softInteract")
-    end
+  if event == "PLAYER_SOFT_FRIEND_CHANGED" then
+    HandleCrosshairReactionToTarget("softfriend")
+  end
+
+  if event == "PLAYER_SOFT_INTERACT_CHANGED" then
+    HandleCrosshairReactionToTarget("softinteract")
   end
 
   if event == "PLAYER_ENTERING_WORLD" then
