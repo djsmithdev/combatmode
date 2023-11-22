@@ -238,23 +238,34 @@ CM.Options.ConfigOptions = {
   handler = CM,
   type = "group",
   args = {
-    -- ABOUT
+    -- LOGO & ABOUT
     aboutHeader = {
       type = "header",
-      name = "|cffffffffABOUT|r",
+      name = "",
       order = 0
     },
-    aboutHeaderPaddingBottom = {
+    logoPaddingTop = {
       type = "description",
       name = " ",
       width = "full",
       order = 0.1
     },
+    logoImage = {
+      type = "description",
+      name = " ",
+      width = 0.5,
+      image = CM.Constants.Logo,
+      imageWidth = 64,
+      imageHeight = 64,
+      imageCoords = {0,1,0,1},
+      order = 0.2
+    },
     aboutDescription = {
       type = "description",
       name = CM.METADATA["NOTES"],
-      order = 1,
-      fontSize = "medium"
+      fontSize = "medium",
+      width = 3.0,
+      order = 1
     },
     aboutDescriptionPaddingBottom = {
       type = "description",
@@ -262,6 +273,7 @@ CM.Options.ConfigOptions = {
       width = "full",
       order = 1.1
     },
+    -- FEATURES
     featuresHeader = {
       type = "description",
       name = "|cffffd700Features:|r",
