@@ -48,7 +48,9 @@ CM.METADATA = FetchDataFromTOC()
 
 function CM.DebugPrint(statement)
   if CM.DB.global.debugMode then
-    print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r|cff909090: " .. statement .. "|r")
+    print(
+      CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r|cff909090: " .. tostring(statement) ..
+        "|r")
   end
 end
 
