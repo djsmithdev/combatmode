@@ -133,18 +133,17 @@ end
 local function HandleCrosshairReactionToTarget(target)
   local isTargetVisible = _G.UnitIsVisible(target)
   local isTargetHostile = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) <= 4
-  local isTargetAPlayer = _G.UnitPlayerControlled(target)
+  local isTargetFriendly = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) >= 5
 
-  if not isTargetVisible or isTargetAPlayer then
-    return SetCrosshairAppearance("base")
-  end
-
-  if isTargetHostile then
-    SetCrosshairAppearance("hostile")
+  if isTargetVisible then
+    if isTargetHostile then
+      SetCrosshairAppearance("hostile")
+    elseif isTargetFriendly then
+      SetCrosshairAppearance("friendly")
+    end
   else
-    SetCrosshairAppearance("friendly")
+    SetCrosshairAppearance("base")
   end
-
 end
 
 -- FRAME WATCHING / CURSOR UNLOCK
@@ -157,7 +156,7 @@ local function CursorUnlockFrameVisible(frameArr)
   for _, frameName in pairs(frameArr) do
     local curFrame = _G[frameName]
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
-      -- CM.DebugPrint(frameName .. " is visible, enabling cursor")
+      CM.DebugPrint(frameName .. " is visible, enabling cursor")
       return true
     end
   end
@@ -171,9 +170,13 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
   end
 end
 
-local function SuspendingCursorLock()
-  return CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or CursorUnlockFrameVisible(CM.DB.global.watchlist) or
-           CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or _G.SpellIsTargeting()
+local function ShouldCursorBeFreed()
+  local shouldUnlock = CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
+                         CursorUnlockFrameVisible(CM.DB.global.watchlist) or
+                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or _G.SpellIsTargeting()
+
+  -- Return the isCursorLockedState along with the shouldUnlock result
+  return shouldUnlock, not isCursorLockedState
 end
 
 -- FRAME WATCHING FOR SERIALIZED FRAMES (Ex: Opie rings)
@@ -237,7 +240,7 @@ end
 
 -- FREE LOOK STATE HANDLING
 local function LockFreeLook()
-  if not _G.IsMouselooking() or not SuspendingCursorLock() then
+  if not _G.IsMouselooking() then
     _G.MouselookStart()
 
     if CM.DB.global.crosshair then
@@ -323,12 +326,12 @@ function _G.CombatMode_OnEvent(event)
     HandleCrosshairReactionToTarget("softenemy")
   end
 
-  if event == "PLAYER_SOFT_FRIEND_CHANGED" then
-    HandleCrosshairReactionToTarget("softfriend")
-  end
-
   if event == "PLAYER_SOFT_INTERACT_CHANGED" then
     HandleCrosshairReactionToTarget("softinteract")
+  end
+
+  if event == "PLAYER_REGEN_ENABLED" then -- when leaving combat, reset crosshair state
+    SetCrosshairAppearance("base")
   end
 
   if event == "PLAYER_ENTERING_WORLD" then
@@ -344,18 +347,19 @@ function _G.CombatMode_OnUpdate(self, elapsed)
   self.TimeSinceLastUpdate = self.TimeSinceLastUpdate + elapsed;
 
   -- Bypassing the update cycle check when spell targeting so we can relock asap, without adding latency to player actions
-  if _G.SpellIsTargeting() then
-    UnlockFreeLook()
-    isCursorLockedState = false
-    return
-  end
+  -- if _G.SpellIsTargeting() then
+  --   UnlockFreeLook()
+  --   isCursorLockedState = false
+  --   return
+  -- end
 
   -- As the frame watching doesn't need to perform a visibility check every frame, we're adding a stagger
   if (self.TimeSinceLastUpdate > updateInterval) then
-    if SuspendingCursorLock() then
+    local shouldUnlock, shouldLock = ShouldCursorBeFreed()
+    if shouldUnlock then
       UnlockFreeLook()
       isCursorLockedState = false
-    elseif not isCursorLockedState then
+    elseif shouldLock then
       LockFreeLook()
       isCursorLockedState = true
     end
