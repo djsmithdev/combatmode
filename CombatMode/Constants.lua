@@ -2,8 +2,10 @@ local CM = _G.GetGlobalStore()
 
 CM.Constants = {}
 
-CM.Constants.CrosshairTexture = "Interface\\AddOns\\CombatMode\\assets\\crosshair.tga"
-CM.Constants.CrosshairActiveTexture = "Interface\\AddOns\\CombatMode\\assets\\crosshair-hit.tga"
+CM.Constants.CrosshairTexture = "Interface\\AddOns\\CombatMode\\assets\\crosshair.blp"
+CM.Constants.CrosshairActiveTexture = "Interface\\AddOns\\CombatMode\\assets\\crosshair-hit.blp"
+CM.Constants.Logo = "Interface\\AddOns\\CombatMode\\assets\\cmlogo.blp"
+CM.Constants.Title = "Interface\\AddOns\\CombatMode\\assets\\cmtitle.blp"
 
 CM.Constants.BLIZZARD_EVENTS = {
   "PLAYER_ENTERING_WORLD",
