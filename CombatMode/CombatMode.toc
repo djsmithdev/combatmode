@@ -1,10 +1,10 @@
 ## Interface: 100200
-## Version: 2.0.7
+## Version: 2.0.6
 
-## Title: |cffaf2c40C|r|cffaa3143o|r|cffa43747m|r|cff9f3c4bb|r|cff9a424fa|r|cff944753t M|r|cff8f4d57o|r|cff89525ad|r|cff84585ee|r
-## Author: justice7ca, sampconrad, ThomasDigio, DKulan.
-## Notes: Brings a more dynamic action combat experience to WoW with free look, reticle targeting, ability casting with clicks, and more!
-## IconTexture: Interface\AddOns\CombatMode\assets\logo-64
+## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:24:96|t
+## Author: justice7ca w/ contributions from sampconrad, ThomasDigio, DKulan.
+## Notes: CombatMode aims to emulate a more dynamic action combat experience in World of Warcraft by adding Free Look (also known as mouselook), reticle targeting, ability casting with clicks, and more, without compromising your ability to play competitively.
+## IconTexture: Interface\AddOns\CombatMode\assets\cmlogo
 
 ## DefaultState: enabled
 ## LoadOnDemand: 0

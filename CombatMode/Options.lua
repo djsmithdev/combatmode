@@ -162,7 +162,8 @@ CM.Options.DatabaseDefaults = {
     frameWatching = true,
     watchlist = {
       "SortedPrimaryFrame",
-      "WeakAurasOptions"
+      "WeakAurasOptions",
+      "PawnUIFrame"
     },
     reticleTargeting = true,
     crosshair = true,
@@ -238,23 +239,39 @@ CM.Options.ConfigOptions = {
   handler = CM,
   type = "group",
   args = {
-    -- ABOUT
+    -- LOGO & ABOUT
     aboutHeader = {
       type = "header",
-      name = "|cffffffffABOUT|r",
+      name = "",
       order = 0
     },
-    aboutHeaderPaddingBottom = {
+    logoPaddingTop = {
       type = "description",
       name = " ",
       width = "full",
       order = 0.1
     },
+    logoImage = {
+      type = "description",
+      name = " ",
+      width = 0.5,
+      image = CM.Constants.Logo,
+      imageWidth = 64,
+      imageHeight = 64,
+      imageCoords = {
+        0,
+        1,
+        0,
+        1
+      },
+      order = 0.2
+    },
     aboutDescription = {
       type = "description",
       name = CM.METADATA["NOTES"],
-      order = 1,
-      fontSize = "medium"
+      fontSize = "medium",
+      width = 3.0,
+      order = 1
     },
     aboutDescriptionPaddingBottom = {
       type = "description",
@@ -262,6 +279,7 @@ CM.Options.ConfigOptions = {
       width = "full",
       order = 1.1
     },
+    -- FEATURES
     featuresHeader = {
       type = "description",
       name = "|cffffd700Features:|r",
@@ -270,7 +288,7 @@ CM.Options.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast abilities with them. \n• |cff00FF7FCursor Unlock|r - Automatically unlocks cursor when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to the |cff00FF7FFrame Watchlist|r to expand on the default selection.|r",
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget methods added with DF to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to the |cff00FF7FFrame Watchlist|r to expand on the default selection.|r",
       order = 3
     },
     featuresListPaddingBottom = {
@@ -279,11 +297,16 @@ CM.Options.ConfigOptions = {
       width = "full",
       order = 3.1
     },
-    -- contributorsList = {
-    --   type = "description",
-    --   name = "|cffffd700Developers working on this project:|r ".."|cff909090"..CM.METADATA["AUTHOR"].."|r",
-    --   order = 3.2
-    -- },
+    versionNumber = {
+      type = "description",
+      name = "|cffffffffVersion:|r " .. "|cff00ff00" .. CM.METADATA["VERSION"] .. "|r",
+      order = 3.2
+    },
+    contributorsList = {
+      type = "description",
+      name = "|cffffffffCreated by:|r " .. "|cffcfcfcf" .. CM.METADATA["AUTHOR"] .. "|r",
+      order = 3.3
+    },
     curse = {
       name = "Download From:",
       desc = CM.METADATA["X-CURSE"],
@@ -492,7 +515,7 @@ CM.Options.ConfigOptions = {
       args = {
         frameWatchingHeader = {
           type = "header",
-          name = "|cff00FF7FCursor Unlock|r",
+          name = "|cff00FF7FAutomatic Cursor Unlock|r",
           order = 1
         },
         frameWatchingHeaderPaddingBottom = {
@@ -503,7 +526,7 @@ CM.Options.ConfigOptions = {
         },
         frameWatchingDescription = {
           type = "description",
-          name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+          name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc), and re-enable upon closing them.",
           fontSize = "medium",
           order = 2
         },
@@ -514,8 +537,9 @@ CM.Options.ConfigOptions = {
         },
         frameWatching = {
           type = "toggle",
-          name = "Enable Cursor Unlock",
+          name = "Enable Automatic Cursor Unlock",
           desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+          width = "full",
           order = 4,
           set = function(_, value)
             CM.DB.global.frameWatching = value
@@ -538,7 +562,7 @@ CM.Options.ConfigOptions = {
           args = {
             watchlistDescription = {
               type = "description",
-              name = "Additional frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.",
+              name = "Additional Blizzard frames or other AddOns that you'd like Combat Mode to watch for.",
               fontSize = "medium",
               order = 1
             },
@@ -546,8 +570,12 @@ CM.Options.ConfigOptions = {
               name = "Frame Watchlist",
               desc = "Use command |cff69ccf0/fstack|r in chat to check frame names. \n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
               type = "input",
+              multiline = true,
               width = "full",
               order = 2,
+              disabled = function()
+                return CM.DB.global.frameWatching ~= true
+              end,
               set = function(_, input)
                 CM.DB.global.watchlist = {}
                 for value in string.gmatch(input, "[^,]+") do -- Split at the ", "
@@ -562,7 +590,7 @@ CM.Options.ConfigOptions = {
             },
             watchlistNote = {
               type = "description",
-              name = "\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame. Ex: WeakAurasFrame|r.|r",
+              name = "\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame. Ex: PawnUIFrame|r.|r",
               order = 3
             }
           }
@@ -602,6 +630,7 @@ CM.Options.ConfigOptions = {
           type = "toggle",
           name = "Enable Reticle Targeting",
           desc = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable w/ predictable behavior.",
+          width = "full",
           order = 4,
           set = function(_, value)
             CM.DB.global.reticleTargeting = value
@@ -617,7 +646,7 @@ CM.Options.ConfigOptions = {
         },
         devNoteDescription1 = {
           type = "description",
-          name = "|cffffd700Developer Note:|r \n|cff909090Please note that due to an oversight on Blizzard's part, some spells have baked in |cffFF5050hard target locking|r, and |cffcfcfcfSoftTargeting|r for some reason doesn't overrule that when enabled. This causes the ocasional need to manually clear the target by pressing esc/tab.|r",
+          name = "|cffffd700Developer Note:|r \n|cff909090Please note that due to an oversight on Blizzard's part, some spells have baked-in |cffFF5050hard target locking|r, and |cffcfcfcfSoftTargeting|r for some reason does not overrule that when enabled. This causes the occasional need to manually clear the target by pressing esc/tab.|r",
           order = 5.1
         },
         devNoteDescription2 = {
@@ -627,7 +656,7 @@ CM.Options.ConfigOptions = {
         },
         devNoteWarning = {
           type = "description",
-          name = "\n|cffFF5050This is an optional configuration step. Only a few spells force target locks, and some classes have none of those. So if this issue doesn't affect you or you're already manually clearing targets, then you don't need to do this.|r",
+          name = "\n|cffFF5050This is an optional configuration step. Only a few spells force target locks, and some classes have none of those. So if this issue doesn't affect you or you're already manually clearing targets, then there's no need to do this.|r",
           order = 5.3
         },
         devNoteCodeBlock = {
@@ -679,7 +708,7 @@ CM.Options.ConfigOptions = {
             },
             crosshairNote = {
               type = "description",
-              name = "|cffffd700Developer Note:|r \n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior.|r",
+              name = "|cffffd700Developer Note:|r \n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior like unpredicatable targeting.|r",
               order = 3
             },
             crosshairPaddingBottom = {
@@ -697,7 +726,7 @@ CM.Options.ConfigOptions = {
               softMin = 16,
               softMax = 128,
               step = 16,
-              width = 1.6,
+              width = "full",
               order = 4,
               disabled = function()
                 return CM.DB.global.crosshair ~= true
@@ -712,10 +741,10 @@ CM.Options.ConfigOptions = {
                 return CM.DB.global.crosshairSize
               end
             },
-            crosshairSlidersSpacing = {
+            crosshairSizePaddingBottom = {
               type = "description",
               name = " ",
-              width = 0.2,
+              width = "full",
               order = 4.1
             },
             crosshairAlpha = {
@@ -727,7 +756,7 @@ CM.Options.ConfigOptions = {
               softMin = 0.1,
               softMax = 1.0,
               step = 0.1,
-              width = 1.6,
+              width = "full",
               order = 5,
               isPercent = true,
               disabled = function()
