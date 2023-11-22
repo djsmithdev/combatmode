@@ -163,7 +163,8 @@ CM.Options.DatabaseDefaults = {
     frameWatching = true,
     watchlist = {
       "SortedPrimaryFrame",
-      "WeakAurasOptions"
+      "WeakAurasOptions",
+      "PawnUIFrame",
     },
     reticleTargeting = true,
     crosshair = true,
@@ -282,7 +283,7 @@ CM.Options.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast abilities with them. \n• |cff00FF7FFrame Watchlist|r - Automatically unlocks cursor when opening interface panels like bags, map, character panel, or custom AddOns.|r",
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget methods added with DF to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.|r",
       order = 3
     },
     featuresListPaddingBottom = {
@@ -509,7 +510,7 @@ CM.Options.ConfigOptions = {
       args = {
         frameWatchingHeader = {
           type = "header",
-          name = "|cff00FF7FCursor Unlock|r",
+          name = "|cff00FF7FAutomatic Cursor Unlock|r",
           order = 1
         },
         frameWatchingHeaderPaddingBottom = {
@@ -520,7 +521,7 @@ CM.Options.ConfigOptions = {
         },
         frameWatchingDescription = {
           type = "description",
-          name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+          name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc), and re-enable upon closing them.",
           fontSize = "medium",
           order = 2
         },
@@ -531,8 +532,9 @@ CM.Options.ConfigOptions = {
         },
         frameWatching = {
           type = "toggle",
-          name = "Enable Cursor Unlock",
+          name = "Enable Automatic Cursor Unlock",
           desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+          width = "full",
           order = 4,
           set = function(_, value)
             CM.DB.global.frameWatching = value
@@ -555,7 +557,7 @@ CM.Options.ConfigOptions = {
           args = {
             watchlistDescription = {
               type = "description",
-              name = "Additional frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.",
+              name = "Additional Blizzard frames or other AddOns that you'd like Combat Mode to watch for.",
               fontSize = "medium",
               order = 1
             },
@@ -563,8 +565,12 @@ CM.Options.ConfigOptions = {
               name = "Frame Watchlist",
               desc = "Use command |cff69ccf0/fstack|r in chat to check frame names. \n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
               type = "input",
+              multiline = true,
               width = "full",
               order = 2,
+              disabled = function()
+                return CM.DB.global.frameWatching ~= true
+              end,
               set = function(_, input)
                 CM.DB.global.watchlist = {}
                 for value in string.gmatch(input, "[^,]+") do -- Split at the ", "
@@ -579,7 +585,7 @@ CM.Options.ConfigOptions = {
             },
             watchlistNote = {
               type = "description",
-              name = "\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame. Ex: WeakAurasFrame|r.|r",
+              name = "\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame. Ex: PawnUIFrame|r.|r",
               order = 3
             }
           }
@@ -619,6 +625,7 @@ CM.Options.ConfigOptions = {
           type = "toggle",
           name = "Enable Reticle Targeting",
           desc = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable w/ predictable behavior.",
+          width = "full",
           order = 4,
           set = function(_, value)
             CM.DB.global.reticleTargeting = value
@@ -644,7 +651,7 @@ CM.Options.ConfigOptions = {
         },
         devNoteWarning = {
           type = "description",
-          name = "\n|cffFF5050This is an optional configuration step. Only a few spells force target locks, and some classes have none of those. So if this issue doesn't affect you or you're already manually clearing targets, then you don't need to do this.|r",
+          name = "\n|cffFF5050This is an optional configuration step. Only a few spells force target locks, and some classes have none of those. So if this issue doesn't affect you or you're already manually clearing targets, then there's no need to do this.|r",
           order = 5.3
         },
         devNoteCodeBlock = {
@@ -696,7 +703,7 @@ CM.Options.ConfigOptions = {
             },
             crosshairNote = {
               type = "description",
-              name = "|cffffd700Developer Note:|r \n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior.|r",
+              name = "|cffffd700Developer Note:|r \n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior like unpredicatable targeting.|r",
               order = 3
             },
             crosshairPaddingBottom = {
@@ -714,7 +721,7 @@ CM.Options.ConfigOptions = {
               softMin = 16,
               softMax = 128,
               step = 16,
-              width = 1.6,
+              width = "full",
               order = 4,
               disabled = function()
                 return CM.DB.global.crosshair ~= true
@@ -729,10 +736,10 @@ CM.Options.ConfigOptions = {
                 return CM.DB.global.crosshairSize
               end
             },
-            crosshairSlidersSpacing = {
+            crosshairSizePaddingBottom = {
               type = "description",
               name = " ",
-              width = 0.2,
+              width = "full",
               order = 4.1
             },
             crosshairAlpha = {
@@ -744,7 +751,7 @@ CM.Options.ConfigOptions = {
               softMin = 0.1,
               softMax = 1.0,
               step = 0.1,
-              width = 1.6,
+              width = "full",
               order = 5,
               isPercent = true,
               disabled = function()
