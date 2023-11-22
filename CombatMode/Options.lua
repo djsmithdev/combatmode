@@ -91,7 +91,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         type = "description",
         name = " ",
         width = "full",
-        order = 1.4,
+        order = 1.4
       },
       overrideButton2Toggle = {
         type = "toggle",
@@ -159,18 +159,18 @@ end
 
 CM.Options.DatabaseDefaults = {
   global = {
-    version = "1.0.0",
     frameWatching = true,
     watchlist = {
       "SortedPrimaryFrame",
       "WeakAurasOptions",
-      "PawnUIFrame",
+      "PawnUIFrame"
     },
     reticleTargeting = true,
     crosshair = true,
     crosshairSize = 64,
     crosshairOpacity = 1.0,
-    crosshairY = 100
+    crosshairY = 100,
+    debugMode = false
   },
   profile = {
     bindings = {
@@ -258,7 +258,12 @@ CM.Options.ConfigOptions = {
       image = CM.Constants.Logo,
       imageWidth = 64,
       imageHeight = 64,
-      imageCoords = {0,1,0,1},
+      imageCoords = {
+        0,
+        1,
+        0,
+        1
+      },
       order = 0.2
     },
     aboutDescription = {
@@ -283,7 +288,7 @@ CM.Options.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget methods added with DF to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.|r",
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget methods added with DF to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.",
       order = 3
     },
     featuresListPaddingBottom = {
@@ -294,12 +299,12 @@ CM.Options.ConfigOptions = {
     },
     versionNumber = {
       type = "description",
-      name = "|cffffffffVersion:|r ".."|cff00ff00"..CM.METADATA["VERSION"].."|r",
+      name = "|cffffffffVersion:|r " .. "|cff00ff00" .. CM.METADATA["VERSION"] .. "|r",
       order = 3.2
     },
     contributorsList = {
       type = "description",
-      name = "|cffffffffCreated by:|r ".."|cffcfcfcf"..CM.METADATA["AUTHOR"].."|r",
+      name = "|cffffffffCreated by:|r " .. "|cffcfcfcf" .. CM.METADATA["AUTHOR"] .. "|r",
       order = 3.3
     },
     curse = {
@@ -463,12 +468,12 @@ CM.Options.ConfigOptions = {
         },
         wowwiki = {
           name = "You can find all available actions here:",
-          desc = "wowwiki-archive.fandom.com/wiki/BindingID",
+          desc = "warcraft.wiki.gg/wiki/BindingID",
           type = "input",
           width = 2,
           order = 3.1,
           get = function()
-            return "wowwiki-archive.fandom.com/wiki/BindingID"
+            return "warcraft.wiki.gg/wiki/BindingID"
           end
         },
         keybindDescriptionBottomPadding = {
@@ -798,6 +803,50 @@ CM.Options.ConfigOptions = {
               end
             }
           }
+        }
+      }
+    },
+    -- DEBUG MODE
+    debugModeGroup = {
+      type = "group",
+      name = " ",
+      order = 11,
+      inline = true,
+      args = {
+        debugModeHeader = {
+          type = "header",
+          name = "|cff909090Debug Mode|r",
+          order = 1
+        },
+        debugModeHeaderPaddingBottom = {
+          type = "description",
+          name = " ",
+          width = "full",
+          order = 1.1
+        },
+        debugModeDescription = {
+          type = "description",
+          name = "Enables the printing of state logs in the game chat.",
+          fontSize = "medium",
+          order = 2
+        },
+        debugModeDescriptionPaddingBottom = {
+          type = "description",
+          name = " ",
+          width = "full",
+          order = 2.1
+        },
+        debugModeToggle = {
+          type = "toggle",
+          name = "Enable Debug Mode",
+          desc = "Enables the printing of state logs in the game chat.",
+          order = 3,
+          set = function(_, value)
+            CM.DB.global.debugMode = value
+          end,
+          get = function()
+            return CM.DB.global.debugMode
+          end
         }
       }
     }

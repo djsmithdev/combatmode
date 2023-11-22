@@ -19,7 +19,7 @@ local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 -- INITIAL STATE VARIABLES
 local isCursorLockedState = false -- State used to prevent the OnUpdate function from executing code needlessly
 local updateInterval = 0.15 -- How often the code in the OnUpdate function will run (in seconds)
-local debugMode = false -- If true, CM.DebugPrint will run and print state logs to game chat
+local isCursorManuallyUnlocked = false -- True if the user currently has Free Look disabled, whether by using the "Toggle" or "Press & Hold" keybind
 
 -- UTILITY FUNCTIONS
 function _G.GetGlobalStore()
@@ -47,8 +47,10 @@ end
 CM.METADATA = FetchDataFromTOC()
 
 function CM.DebugPrint(statement)
-  if debugMode then
-    print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r: " .. tostring(statement))
+  if CM.DB.global.debugMode then
+    print(
+      CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r|cff909090: " .. tostring(statement) ..
+        "|r")
   end
 end
 
@@ -179,9 +181,10 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
 end
 
 local function ShouldCursorBeFreed()
-  local shouldUnlock = CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
+  local shouldUnlock = isCursorManuallyUnlocked or _G.SpellIsTargeting() or
+                         CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
                          CursorUnlockFrameVisible(CM.DB.global.watchlist) or
-                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or _G.SpellIsTargeting()
+                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck)
 
   -- Return the isCursorLockedState along with the shouldUnlock result
   return shouldUnlock, not isCursorLockedState
@@ -362,7 +365,7 @@ function _G.CombatMode_OnUpdate(self, elapsed)
   -- end
 
   -- As the frame watching doesn't need to perform a visibility check every frame, we're adding a stagger
-  if (self.TimeSinceLastUpdate > updateInterval) then
+  if self.TimeSinceLastUpdate > updateInterval then
     local shouldUnlock, shouldLock = ShouldCursorBeFreed()
     if shouldUnlock then
       UnlockFreeLook()
@@ -382,7 +385,9 @@ function _G.CombatModeToggleKey()
     CM.DebugPrint("Cannot activate Free Look while using default mouse actions.")
     return
   end
+
   ToggleFreeLook()
+  isCursorManuallyUnlocked = not isCursorManuallyUnlocked
 end
 
 function _G.CombatModeHoldKey(keystate)
@@ -390,9 +395,12 @@ function _G.CombatModeHoldKey(keystate)
     CM.DebugPrint("Cannot activate Free Look while using default mouse actions.")
     return
   end
+
   if keystate == "down" then
     UnlockFreeLook()
+    isCursorManuallyUnlocked = true
   else
     LockFreeLook()
+    isCursorManuallyUnlocked = false
   end
 end
