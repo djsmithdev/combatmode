@@ -48,7 +48,7 @@ CM.METADATA = FetchDataFromTOC()
 
 function CM.DebugPrint(statement)
   if debugMode then
-    print(CM.METADATA["TITLE"] .. " |cffB47EDEv." .. CM.METADATA["VERSION"] .. "|r: " .. statement)
+    print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r: " .. tostring(statement))
   end
 end
 
@@ -331,7 +331,7 @@ function _G.CombatMode_OnEvent(event)
 
   if event == "PLAYER_ENTERING_WORLD" then
     Rematch()
-    print(CM.METADATA["TITLE"] .. " |cffB47EDEv." .. CM.METADATA["VERSION"] .. "|r" ..
+    print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
             "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
   end
 end

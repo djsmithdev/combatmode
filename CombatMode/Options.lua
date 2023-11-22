@@ -270,7 +270,7 @@ CM.Options.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast abilities with them. \n• |cff00FF7FFrame Watchlist|r - Automatically unlocks cursor when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection.|r",
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast abilities with them. \n• |cff00FF7FFrame Watchlist|r - Automatically unlocks cursor when opening interface panels like bags, map, character panel, or custom AddOns.|r",
       order = 3
     },
     featuresListPaddingBottom = {
@@ -279,11 +279,16 @@ CM.Options.ConfigOptions = {
       width = "full",
       order = 3.1
     },
-    -- contributorsList = {
-    --   type = "description",
-    --   name = "|cffffd700Developers working on this project:|r ".."|cff909090"..CM.METADATA["AUTHOR"].."|r",
-    --   order = 3.2
-    -- },
+    versionNumber = {
+      type = "description",
+      name = "|cffffffffVersion:|r ".."|cff00ff00"..CM.METADATA["VERSION"].."|r",
+      order = 3.2
+    },
+    contributorsList = {
+      type = "description",
+      name = "|cffffffffCreated by:|r ".."|cffcfcfcf"..CM.METADATA["AUTHOR"].."|r",
+      order = 3.3
+    },
     curse = {
       name = "Download From:",
       desc = CM.METADATA["X-CURSE"],
@@ -617,7 +622,7 @@ CM.Options.ConfigOptions = {
         },
         devNoteDescription1 = {
           type = "description",
-          name = "|cffffd700Developer Note:|r \n|cff909090Please note that due to an oversight on Blizzard's part, some spells have baked in |cffFF5050hard target locking|r, and |cffcfcfcfSoftTargeting|r for some reason doesn't overrule that when enabled. This causes the ocasional need to manually clear the target by pressing esc/tab.|r",
+          name = "|cffffd700Developer Note:|r \n|cff909090Please note that due to an oversight on Blizzard's part, some spells have baked-in |cffFF5050hard target locking|r, and |cffcfcfcfSoftTargeting|r for some reason does not overrule that when enabled. This causes the occasional need to manually clear the target by pressing esc/tab.|r",
           order = 5.1
         },
         devNoteDescription2 = {
