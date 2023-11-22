@@ -19,7 +19,7 @@ local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 -- INITIAL STATE VARIABLES
 local isCursorLockedState = false -- State used to prevent the OnUpdate function from executing code needlessly
 local updateInterval = 0.15 -- How often the code in the OnUpdate function will run (in seconds)
-local disabledFreeLookManually = false -- True if the user currently disabled the Free Look Camera, whether by using the Toggle or Press & Hold keybind
+local isCursorManuallyUnlocked = false -- True if the user currently has Free Look disabled, whether by using the "Toggle" or "Press & Hold" keybind
 
 -- UTILITY FUNCTIONS
 function _G.GetGlobalStore()
@@ -181,9 +181,10 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
 end
 
 local function ShouldCursorBeFreed()
-  local shouldUnlock = CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
+  local shouldUnlock = isCursorManuallyUnlocked or _G.SpellIsTargeting() or
+                         CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
                          CursorUnlockFrameVisible(CM.DB.global.watchlist) or
-                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or _G.SpellIsTargeting()
+                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck)
 
   -- Return the isCursorLockedState along with the shouldUnlock result
   return shouldUnlock, not isCursorLockedState
@@ -364,7 +365,7 @@ function _G.CombatMode_OnUpdate(self, elapsed)
   -- end
 
   -- As the frame watching doesn't need to perform a visibility check every frame, we're adding a stagger
-  if not disabledFreeLookManually and self.TimeSinceLastUpdate > updateInterval then
+  if self.TimeSinceLastUpdate > updateInterval then
     local shouldUnlock, shouldLock = ShouldCursorBeFreed()
     if shouldUnlock then
       UnlockFreeLook()
@@ -385,8 +386,8 @@ function _G.CombatModeToggleKey()
     return
   end
 
-  disabledFreeLookManually = not disabledFreeLookManually
   ToggleFreeLook()
+  isCursorManuallyUnlocked = not isCursorManuallyUnlocked
 end
 
 function _G.CombatModeHoldKey(keystate)
@@ -396,10 +397,10 @@ function _G.CombatModeHoldKey(keystate)
   end
 
   if keystate == "down" then
-    disabledFreeLookManually = true
     UnlockFreeLook()
+    isCursorManuallyUnlocked = true
   else
-    disabledFreeLookManually = false
     LockFreeLook()
+    isCursorManuallyUnlocked = false
   end
 end
