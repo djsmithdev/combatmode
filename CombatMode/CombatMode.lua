@@ -80,6 +80,14 @@ local function CreateTargetMacros()
   end
 end
 
+-- If left or right mouse buttons are being used while not free looking - meaning you're using the default mouse actions - then it won't allow yout o lock into Free Look.
+-- This prevents the auto running bug.
+local function IsDefaultMouseActionBeingUsed()
+  -- disabling this here cause linting doesn't know what it wants here
+  ---@diagnostic disable-next-line: param-type-mismatch
+  return (_G.IsMouseButtonDown("LeftButton") or _G.IsMouseButtonDown("RightButton")) and not _G.IsMouselooking()
+end
+
 -- CROSSHAIR STATE HANDLING FUNCTIONS
 local function SetCrosshairAppearance(state)
   if state == "hostile" then
@@ -370,10 +378,18 @@ end
 
 -- FUNCTIONS CALLED FROM BINDINGS.XML
 function _G.CombatModeToggleKey()
+  if IsDefaultMouseActionBeingUsed() then
+    CM.DebugPrint("Cannot activate Free Look while using default mouse actions.")
+    return
+  end
   ToggleFreeLook()
 end
 
 function _G.CombatModeHoldKey(keystate)
+  if IsDefaultMouseActionBeingUsed() then
+    CM.DebugPrint("Cannot activate Free Look while using default mouse actions.")
+    return
+  end
   if keystate == "down" then
     UnlockFreeLook()
   else
