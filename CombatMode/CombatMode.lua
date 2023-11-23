@@ -87,7 +87,7 @@ end
 local function IsDefaultMouseActionBeingUsed()
   -- disabling this here cause linting doesn't know what it wants here
   ---@diagnostic disable-next-line: param-type-mismatch
-  return (_G.IsMouseButtonDown("LeftButton") or _G.IsMouseButtonDown("RightButton")) and not _G.IsMouselooking()
+  return _G.IsMouseButtonDown("LeftButton") or _G.IsMouseButtonDown("RightButton")
 end
 
 -- CROSSHAIR STATE HANDLING FUNCTIONS
@@ -365,7 +365,7 @@ function _G.CombatMode_OnUpdate(self, elapsed)
   -- end
 
   -- As the frame watching doesn't need to perform a visibility check every frame, we're adding a stagger
-  if self.TimeSinceLastUpdate > updateInterval then
+  if (self.TimeSinceLastUpdate > updateInterval) and not IsDefaultMouseActionBeingUsed() then
     local shouldUnlock, shouldLock = ShouldCursorBeFreed()
     if shouldUnlock then
       UnlockFreeLook()
@@ -382,7 +382,7 @@ end
 -- FUNCTIONS CALLED FROM BINDINGS.XML
 function _G.CombatModeToggleKey()
   if IsDefaultMouseActionBeingUsed() then
-    CM.DebugPrint("Cannot activate Free Look while using default mouse actions.")
+    CM.DebugPrint("Cannot toggle Free Look while holding down your left or right click.")
     return
   end
 
@@ -392,7 +392,7 @@ end
 
 function _G.CombatModeHoldKey(keystate)
   if IsDefaultMouseActionBeingUsed() then
-    CM.DebugPrint("Cannot activate Free Look while using default mouse actions.")
+    CM.DebugPrint("Cannot toggle Free Look while holding down your left or right click.")
     return
   end
 
