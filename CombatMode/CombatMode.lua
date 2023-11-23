@@ -312,6 +312,12 @@ function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Options.DatabaseDefaults, true)
 end
 
+function CM:OnResetDB()
+  CM.DebugPrint("Reseting Combat Mode settings.")
+  self.DB:ResetDB("Default")
+  _G.ReloadUI();
+end
+
 -- Called when the addon is enabled
 function CM:OnEnable()
   RenameBindableActions()
