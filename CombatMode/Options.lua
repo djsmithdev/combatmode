@@ -239,17 +239,46 @@ CM.Options.ConfigOptions = {
   handler = CM,
   type = "group",
   args = {
+    resetButton = {
+      type = "execute",
+      name = "Default",
+      desc = "Resets Combat Mode settings to its default values.",
+      confirmText = "Resetting Combat Mode options will force a UI Reload. Proceed?",
+      width = 0.7,
+      func = function() CM:OnResetDB() end,
+      confirm = true,
+      order = 0
+    },
+    resetDebugSpacing = {
+      type = "description",
+      name = " ",
+      width = 2.2,
+      order = 0.1
+    },
+    debugModeToggle = {
+      type = "toggle",
+      name = "Debug Mode",
+      desc = "Enables the printing of state logs in the game chat to assist with development.",
+      width = 0.7,
+      set = function(_, value)
+        CM.DB.global.debugMode = value
+      end,
+      get = function()
+        return CM.DB.global.debugMode
+      end,
+      order = 0.2,
+    },
     -- LOGO & ABOUT
     aboutHeader = {
       type = "header",
       name = "",
-      order = 0
+      order = 1
     },
     logoPaddingTop = {
       type = "description",
       name = " ",
       width = "full",
-      order = 0.1
+      order = 1.1
     },
     logoImage = {
       type = "description",
@@ -264,20 +293,20 @@ CM.Options.ConfigOptions = {
         0,
         1
       },
-      order = 0.2
+      order = 1.2
     },
     aboutDescription = {
       type = "description",
       name = CM.METADATA["NOTES"],
       fontSize = "medium",
       width = 3.0,
-      order = 1
+      order = 1.3
     },
     aboutDescriptionPaddingBottom = {
       type = "description",
       name = " ",
       width = "full",
-      order = 1.1
+      order = 1.4
     },
     -- FEATURES
     featuresHeader = {
@@ -288,7 +317,7 @@ CM.Options.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget methods added with DF to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.",
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget methods added with DF to allow the user to target units by aiming at them. \n• Optional adjustable dynamic |cff00FFFFCrosshair|r marker to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.",
       order = 3
     },
     featuresListPaddingBottom = {
@@ -470,7 +499,7 @@ CM.Options.ConfigOptions = {
           name = "You can find all available actions here:",
           desc = "warcraft.wiki.gg/wiki/BindingID",
           type = "input",
-          width = 2,
+          width = 1.5,
           order = 3.1,
           get = function()
             return "warcraft.wiki.gg/wiki/BindingID"
@@ -537,7 +566,7 @@ CM.Options.ConfigOptions = {
         },
         frameWatching = {
           type = "toggle",
-          name = "Enable Automatic Cursor Unlock",
+          name = "Automatic Cursor Unlock",
           desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
           width = "full",
           order = 4,
@@ -628,7 +657,7 @@ CM.Options.ConfigOptions = {
         },
         reticleTargeting = {
           type = "toggle",
-          name = "Enable Reticle Targeting",
+          name = "Reticle Targeting",
           desc = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable w/ predictable behavior.",
           width = "full",
           order = 4,
@@ -684,14 +713,14 @@ CM.Options.ConfigOptions = {
           args = {
             crosshairDescription = {
               type = "description",
-              name = "Places a crosshair texture in the center of the screen to assist with Reticle Targeting.",
+              name = "Places a dynamic crosshair marker in the center of the screen to assist with Reticle Targeting.",
               fontSize = "medium",
               order = 1
             },
             crosshair = {
               type = "toggle",
-              name = "Enable Crosshair",
-              desc = "Places a crosshair texture in the center of the screen to assist with Reticle Targeting.",
+              name = "Crosshair",
+              desc = "Places a dynamic crosshair marker in the center of the screen to assist with Reticle Targeting.",
               width = "full",
               order = 2,
               set = function(_, value)
@@ -708,7 +737,7 @@ CM.Options.ConfigOptions = {
             },
             crosshairNote = {
               type = "description",
-              name = "|cffffd700Developer Note:|r \n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior like unpredicatable targeting.|r",
+              name = "|cffffd700Developer Note:|r \n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior like unpredicatable targeting and improper crosshair reactivity.|r",
               order = 3
             },
             crosshairPaddingBottom = {
@@ -803,50 +832,6 @@ CM.Options.ConfigOptions = {
               end
             }
           }
-        }
-      }
-    },
-    -- DEBUG MODE
-    debugModeGroup = {
-      type = "group",
-      name = " ",
-      order = 11,
-      inline = true,
-      args = {
-        debugModeHeader = {
-          type = "header",
-          name = "|cff909090Debug Mode|r",
-          order = 1
-        },
-        debugModeHeaderPaddingBottom = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 1.1
-        },
-        debugModeDescription = {
-          type = "description",
-          name = "Enables the printing of state logs in the game chat.",
-          fontSize = "medium",
-          order = 2
-        },
-        debugModeDescriptionPaddingBottom = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 2.1
-        },
-        debugModeToggle = {
-          type = "toggle",
-          name = "Enable Debug Mode",
-          desc = "Enables the printing of state logs in the game chat.",
-          order = 3,
-          set = function(_, value)
-            CM.DB.global.debugMode = value
-          end,
-          get = function()
-            return CM.DB.global.debugMode
-          end
         }
       }
     }
