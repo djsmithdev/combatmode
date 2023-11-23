@@ -23,7 +23,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
 
   return {
     type = "group",
-    name = "|cff97a2ff" .. groupName .. "|r",
+    name = "|cffB47EDE" .. groupName .. "|r",
     inline = true,
     order = groupOrder,
     args = {
@@ -87,6 +87,12 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
                    "CUSTOMACTION"
         end
       },
+      buttonbreak = {
+        type = "description",
+        name = " ",
+        width = "full",
+        order = 1.4
+      },
       overrideButton2Toggle = {
         type = "toggle",
         name = "",
@@ -130,7 +136,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         order = 2.2
       },
       button2macro = {
-        name = button2Name .. " Macro",
+        name = button2Name .. " Custom Action",
         desc = "Enter the name of the action you wish to be ran here.",
         type = "input",
         width = 1.5,
@@ -153,17 +159,18 @@ end
 
 CM.Options.DatabaseDefaults = {
   global = {
-    version = "1.0.0",
     frameWatching = true,
     watchlist = {
       "SortedPrimaryFrame",
-      "WeakAurasOptions"
+      "WeakAurasOptions",
+      "PawnUIFrame"
     },
     reticleTargeting = true,
     crosshair = true,
     crosshairSize = 64,
     crosshairOpacity = 1.0,
-    crosshairY = 100
+    crosshairY = 100,
+    debugMode = false
   },
   profile = {
     bindings = {
@@ -228,27 +235,43 @@ CM.Options.DatabaseDefaults = {
 }
 
 CM.Options.ConfigOptions = {
-  name = "|cffff0000Combat Mode|r",
+  name = CM.METADATA["TITLE"],
   handler = CM,
   type = "group",
   args = {
-    -- ABOUT
+    -- LOGO & ABOUT
     aboutHeader = {
       type = "header",
-      name = "|cffffffffABOUT|r",
+      name = "",
       order = 0
     },
-    aboutHeaderPaddingBottom = {
+    logoPaddingTop = {
       type = "description",
       name = " ",
       width = "full",
       order = 0.1
     },
+    logoImage = {
+      type = "description",
+      name = " ",
+      width = 0.5,
+      image = CM.Constants.Logo,
+      imageWidth = 64,
+      imageHeight = 64,
+      imageCoords = {
+        0,
+        1,
+        0,
+        1
+      },
+      order = 0.2
+    },
     aboutDescription = {
       type = "description",
-      name = "Combat Mode adds Action Combat to World of Warcraft for a more dynamic combat experience.",
-      order = 1,
-      fontSize = "medium"
+      name = CM.METADATA["NOTES"],
+      fontSize = "medium",
+      width = 3.0,
+      order = 1
     },
     aboutDescriptionPaddingBottom = {
       type = "description",
@@ -256,6 +279,7 @@ CM.Options.ConfigOptions = {
       width = "full",
       order = 1.1
     },
+    -- FEATURES
     featuresHeader = {
       type = "description",
       name = "|cffffd700Features:|r",
@@ -264,9 +288,8 @@ CM.Options.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• Free Look - Move your camera without having to perpetually hold right mouse button. \n• Reticle Targeting - Makes use of the SoftTarget Cvars added with Dragonflight to allow the user to target units by aiming at them. \n• Ability casting w/ mouse click - When Combat Mode is enabled, frees your left and right mouse click so you can cast abilities with them. \n• Automatically toggles Free Look when opening interface panels like bags, map, character panel, etc. \n• Ability to add any custom frame - 3rd party AddOns or otherwise - to a watchlist to expand on the default selection. \n• Optional adjustable Crosshair texture to assist with Reticle Targeting.|r",
-      order = 3,
-      fontSize = "small"
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget methods added with DF to allow the user to target units by aiming at them. \n• Optional adjustable |cff00FFFFCrosshair|r texture to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.",
+      order = 3
     },
     featuresListPaddingBottom = {
       type = "description",
@@ -274,17 +297,27 @@ CM.Options.ConfigOptions = {
       width = "full",
       order = 3.1
     },
+    versionNumber = {
+      type = "description",
+      name = "|cffffffffVersion:|r " .. "|cff00ff00" .. CM.METADATA["VERSION"] .. "|r",
+      order = 3.2
+    },
+    contributorsList = {
+      type = "description",
+      name = "|cffffffffCreated by:|r " .. "|cffcfcfcf" .. CM.METADATA["AUTHOR"] .. "|r",
+      order = 3.3
+    },
     curse = {
       name = "Download From:",
-      desc = "curseforge.com/wow/addons/combat-mode",
+      desc = CM.METADATA["X-CURSE"],
       type = "input",
       width = 2,
       order = 4,
       get = function()
-        return "curseforge.com/wow/addons/combat-mode"
+        return CM.METADATA["X-CURSE"]
       end
     },
-    gitDiscordSpacing = {
+    curseDiscordSpacing = {
       type = "description",
       name = " ",
       width = 0.25,
@@ -292,20 +325,26 @@ CM.Options.ConfigOptions = {
     },
     discord = {
       name = "Feedback & Support:",
-      desc = "discord.gg/5mwBSmz",
+      desc = CM.METADATA["X-DISCORD"],
       type = "input",
       width = 1.1,
       order = 5,
       get = function()
-        return "discord.gg/5mwBSmz"
+        return CM.METADATA["X-DISCORD"]
       end
+    },
+    linksPaddingBottom = {
+      type = "description",
+      name = " ",
+      width = "full",
+      order = 5.1
     },
     -- CONFIGURATION
     configurationHeaderPaddingTop = {
       type = "description",
       name = " ",
       width = "full",
-      order = 5.1
+      order = 5.2
     },
     configurationHeader = {
       type = "header",
@@ -333,6 +372,7 @@ CM.Options.ConfigOptions = {
         freelookKeybindDescription = {
           type = "description",
           name = "Set keybinds for the Free Look camera. You can use Toggle and Press & Hold together by binding them to separate keys.",
+          fontSize = "medium",
           order = 2
         },
         freelookKeybindDescriptionBottomPadding = {
@@ -418,18 +458,29 @@ CM.Options.ConfigOptions = {
         keybindDescription = {
           type = "description",
           name = "Select which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.",
+          fontSize = "medium",
           order = 2
         },
         keybindNote = {
           type = "description",
-          name = "\n|cff909090To use an action that is not specified on this list when clicking, select |cff69ccf0Custom Action|r and then type the exact name of the action you'd like to cast. If you'd like to use a macro (for example called 'My Macro'), type 'MACRO My Macro'.|r",
+          name = "\n|cff909090To use an action not listed on the dropdown menu, select |cff69ccf0Custom Action|r and then type the exact name of the action you'd like to cast. \nTo use a macro as your |cff69ccf0Custom Action|r, type |cffcfcfcfMACRO My_Macro|r into the input, where |cffcfcfcfMy_Macro|r is the name of the macro you want to assign to that mouse click.|r",
           order = 3
+        },
+        wowwiki = {
+          name = "You can find all available actions here:",
+          desc = "warcraft.wiki.gg/wiki/BindingID",
+          type = "input",
+          width = 2,
+          order = 3.1,
+          get = function()
+            return "warcraft.wiki.gg/wiki/BindingID"
+          end
         },
         keybindDescriptionBottomPadding = {
           type = "description",
           name = " ",
           width = "full",
-          order = 3.1
+          order = 3.2
         },
         unmodifiedGroup = GetButtonOverrideGroup(nil, 4),
         unmodifiedGroupBottomPadding = {
@@ -464,7 +515,7 @@ CM.Options.ConfigOptions = {
       args = {
         frameWatchingHeader = {
           type = "header",
-          name = "|cff00FF7FCursor Unlock|r",
+          name = "|cff00FF7FAutomatic Cursor Unlock|r",
           order = 1
         },
         frameWatchingHeaderPaddingBottom = {
@@ -475,19 +526,20 @@ CM.Options.ConfigOptions = {
         },
         frameWatchingDescription = {
           type = "description",
-          name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+          name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc), and re-enable upon closing them.",
+          fontSize = "medium",
           order = 2
         },
         frameWatchingWarning = {
           type = "description",
-          name = "\n|cffff0000Disabling this will also disable the Frame Watchlist.|r",
-          fontSize = "medium",
+          name = "\n|cffFF5050Disabling this will also disable the Frame Watchlist.|r",
           order = 3
         },
         frameWatching = {
           type = "toggle",
-          name = "Enable Cursor Unlock",
+          name = "Enable Automatic Cursor Unlock",
           desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+          width = "full",
           order = 4,
           set = function(_, value)
             CM.DB.global.frameWatching = value
@@ -505,20 +557,25 @@ CM.Options.ConfigOptions = {
         -- WATCHLIST INPUT
         watchlistInputGroup = {
           type = "group",
-          name = "|cff69ccf0Frame Watchlist|r",
+          name = "|cff00FF7FFrame Watchlist|r",
           order = 5,
           args = {
             watchlistDescription = {
               type = "description",
-              name = "Additional frames - 3rd party AddOns or otherwise - that you'd like Combat Mode to watch for, freeing the cursor automatically when they become visible.",
+              name = "Additional Blizzard frames or other AddOns that you'd like Combat Mode to watch for.",
+              fontSize = "medium",
               order = 1
             },
             watchlist = {
               name = "Frame Watchlist",
               desc = "Use command |cff69ccf0/fstack|r in chat to check frame names. \n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
               type = "input",
+              multiline = true,
               width = "full",
               order = 2,
+              disabled = function()
+                return CM.DB.global.frameWatching ~= true
+              end,
               set = function(_, input)
                 CM.DB.global.watchlist = {}
                 for value in string.gmatch(input, "[^,]+") do -- Split at the ", "
@@ -533,7 +590,7 @@ CM.Options.ConfigOptions = {
             },
             watchlistNote = {
               type = "description",
-              name = "\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: AddonName + Frame. Ex: WeakAurasFrame.|r",
+              name = "\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame. Ex: PawnUIFrame|r.|r",
               order = 3
             }
           }
@@ -561,18 +618,19 @@ CM.Options.ConfigOptions = {
         reticleTargetingDescription = {
           type = "description",
           name = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable with predictable behavior.",
+          fontSize = "medium",
           order = 2
         },
         reticleTargetingWarning = {
           type = "description",
-          name = "\n|cffff0000This will override all Cvar values related to SoftTarget. Uncheck to reset them to the default values.|r",
-          fontSize = "medium",
+          name = "\n|cffFF5050This will override all Cvar values related to SoftTarget. Uncheck to reset them to the default values.|r",
           order = 3
         },
         reticleTargeting = {
           type = "toggle",
           name = "Enable Reticle Targeting",
           desc = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable w/ predictable behavior.",
+          width = "full",
           order = 4,
           set = function(_, value)
             CM.DB.global.reticleTargeting = value
@@ -586,26 +644,48 @@ CM.Options.ConfigOptions = {
             return CM.DB.global.reticleTargeting
           end
         },
-        reticleTargetingNote = {
+        devNoteDescription1 = {
           type = "description",
-          name = "\n|cff909090Please note that manually changing Cvars w/ AddOns like Advanced Interface Options will override Combat Mode values. This is intended so you can tweak things if you want. Although it's highly advised that you don't as the values set by Combat Mode were meticuously tested to provide the most accurate representation of Reticle Targeting possible with the available Cvars.|r",
-          order = 5
+          name = "|cffffd700Developer Note:|r \n|cff909090Please note that due to an oversight on Blizzard's part, some spells have baked-in |cffFF5050hard target locking|r, and |cffcfcfcfSoftTargeting|r for some reason does not overrule that when enabled. This causes the occasional need to manually clear the target by pressing esc/tab.|r",
+          order = 5.1
+        },
+        devNoteDescription2 = {
+          type = "description",
+          name = "|cff909090We can circumvent this by creating macros with |cffcfcfcf/cleartarget|r and placing them in the action bar slots that your mouse clicks are assigned to under |cffB47EDEMouse Button Keybinds|r. Below you'll find a base template you can copy to create your macros.|r",
+          order = 5.2
+        },
+        devNoteWarning = {
+          type = "description",
+          name = "\n|cffFF5050This is an optional configuration step. Only a few spells force target locks, and some classes have none of those. So if this issue doesn't affect you or you're already manually clearing targets, then there's no need to do this.|r",
+          order = 5.3
+        },
+        devNoteCodeBlock = {
+          name = "Example:",
+          desc = "/cleartarget [exists]\n/cast SPELL YOU WISH TO CAST\n/startattack [@softenemy,exists]",
+          type = "input",
+          multiline = true,
+          width = "full",
+          order = 5.4,
+          get = function()
+            return "/cleartarget [exists]\n/cast SPELL YOU WISH TO CAST\n/startattack [@softenemy,exists]"
+          end
         },
         reticleTargetingNotePaddingBottom = {
           type = "description",
           name = " ",
           width = "full",
-          order = 5.1
+          order = 5.5
         },
         -- CROSSHAIR
         crosshairGroup = {
           type = "group",
-          name = "|cff69ccf0Crosshair|r",
+          name = "|cff00FFFFCrosshair|r",
           order = 6,
           args = {
             crosshairDescription = {
               type = "description",
               name = "Places a crosshair texture in the center of the screen to assist with Reticle Targeting.",
+              fontSize = "medium",
               order = 1
             },
             crosshair = {
@@ -628,7 +708,7 @@ CM.Options.ConfigOptions = {
             },
             crosshairNote = {
               type = "description",
-              name = "\n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior.|r",
+              name = "|cffffd700Developer Note:|r \n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior like unpredicatable targeting.|r",
               order = 3
             },
             crosshairPaddingBottom = {
@@ -646,7 +726,7 @@ CM.Options.ConfigOptions = {
               softMin = 16,
               softMax = 128,
               step = 16,
-              width = 1.6,
+              width = "full",
               order = 4,
               disabled = function()
                 return CM.DB.global.crosshair ~= true
@@ -661,10 +741,10 @@ CM.Options.ConfigOptions = {
                 return CM.DB.global.crosshairSize
               end
             },
-            crosshairSlidersSpacing = {
+            crosshairSizePaddingBottom = {
               type = "description",
               name = " ",
-              width = 0.2,
+              width = "full",
               order = 4.1
             },
             crosshairAlpha = {
@@ -676,7 +756,7 @@ CM.Options.ConfigOptions = {
               softMin = 0.1,
               softMax = 1.0,
               step = 0.1,
-              width = 1.6,
+              width = "full",
               order = 5,
               isPercent = true,
               disabled = function()
@@ -723,6 +803,50 @@ CM.Options.ConfigOptions = {
               end
             }
           }
+        }
+      }
+    },
+    -- DEBUG MODE
+    debugModeGroup = {
+      type = "group",
+      name = " ",
+      order = 11,
+      inline = true,
+      args = {
+        debugModeHeader = {
+          type = "header",
+          name = "|cff909090Debug Mode|r",
+          order = 1
+        },
+        debugModeHeaderPaddingBottom = {
+          type = "description",
+          name = " ",
+          width = "full",
+          order = 1.1
+        },
+        debugModeDescription = {
+          type = "description",
+          name = "Enables the printing of state logs in the game chat.",
+          fontSize = "medium",
+          order = 2
+        },
+        debugModeDescriptionPaddingBottom = {
+          type = "description",
+          name = " ",
+          width = "full",
+          order = 2.1
+        },
+        debugModeToggle = {
+          type = "toggle",
+          name = "Enable Debug Mode",
+          desc = "Enables the printing of state logs in the game chat.",
+          order = 3,
+          set = function(_, value)
+            CM.DB.global.debugMode = value
+          end,
+          get = function()
+            return CM.DB.global.debugMode
+          end
         }
       }
     }

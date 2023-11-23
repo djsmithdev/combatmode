@@ -17,18 +17,40 @@ local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UI
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 
 -- INITIAL STATE VARIABLES
-local isCursorLocked = false
-local lastStateUpdateTime = 0
-local debugMode = false
+local isCursorLockedState = false -- State used to prevent the OnUpdate function from executing code needlessly
+local updateInterval = 0.15 -- How often the code in the OnUpdate function will run (in seconds)
+local isCursorManuallyUnlocked = false -- True if the user currently has Free Look disabled, whether by using the "Toggle" or "Press & Hold" keybind
 
 -- UTILITY FUNCTIONS
 function _G.GetGlobalStore()
   return AceAddon:GetAddon("CombatMode")
 end
 
+local function FetchDataFromTOC()
+  local keysToFetch = {
+    "Version",
+    "Title",
+    "Notes",
+    "Author",
+    "X-Discord",
+    "X-Curse"
+  }
+  local dataRetuned = {}
+
+  for _, key in ipairs(keysToFetch) do
+    dataRetuned[string.upper(key)] = _G.C_AddOns.GetAddOnMetadata("CombatMode", key)
+  end
+
+  return dataRetuned
+end
+
+CM.METADATA = FetchDataFromTOC()
+
 function CM.DebugPrint(statement)
-  if debugMode then
-    print("|cffff0000Combat Mode:|r " .. statement)
+  if CM.DB.global.debugMode then
+    print(
+      CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r|cff909090: " .. tostring(statement) ..
+        "|r")
   end
 end
 
@@ -60,19 +82,25 @@ local function CreateTargetMacros()
   end
 end
 
+-- If left or right mouse buttons are being used while not free looking - meaning you're using the default mouse actions - then it won't allow yout o lock into Free Look.
+-- This prevents the auto running bug.
+local function IsDefaultMouseActionBeingUsed()
+  -- disabling this here cause linting doesn't know what it wants here
+  ---@diagnostic disable-next-line: param-type-mismatch
+  return _G.IsMouseButtonDown("LeftButton") or _G.IsMouseButtonDown("RightButton")
+end
+
 -- CROSSHAIR STATE HANDLING FUNCTIONS
-local function HandleCrosshairAppearance(state)
-  if state == "base" then
-    CrosshairTexture:SetTexture(CM.Constants.CrosshairTexture)
-    CrosshairTexture:SetVertexColor(1, 1, 1, .5)
-  elseif state == "hostile" then
+local function SetCrosshairAppearance(state)
+  if state == "hostile" then
     CrosshairTexture:SetTexture(CM.Constants.CrosshairActiveTexture)
     CrosshairTexture:SetVertexColor(1, .2, 0.3, 1)
   elseif state == "friendly" then
     CrosshairTexture:SetTexture(CM.Constants.CrosshairActiveTexture)
     CrosshairTexture:SetVertexColor(0, 1, 0.3, .8)
-  else
-    print("Invalid state")
+  else -- "base" falls here
+    CrosshairTexture:SetTexture(CM.Constants.CrosshairTexture)
+    CrosshairTexture:SetVertexColor(1, 1, 1, .5)
   end
 end
 
@@ -89,7 +117,7 @@ local function CreateCrosshair()
   CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or 100)
   CrosshairFrame:SetSize(CM.DB.global.crosshairSize or 64, CM.DB.global.crosshairSize or 64)
   CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity or 1.0)
-  HandleCrosshairAppearance("base")
+  SetCrosshairAppearance("base")
 
   if CM.DB.global.crosshair then
     CM.ShowCrosshair()
@@ -115,19 +143,20 @@ end
 local function HandleCrosshairReactionToTarget(target)
   local isTargetVisible = _G.UnitIsVisible(target)
   local isTargetHostile = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) <= 4
+  local isTargetFriendly = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) >= 5
 
   if isTargetVisible then
     if isTargetHostile then
-      HandleCrosshairAppearance("hostile")
-    else
-      HandleCrosshairAppearance("friendly")
+      SetCrosshairAppearance("hostile")
+    elseif isTargetFriendly then
+      SetCrosshairAppearance("friendly")
     end
   else
-    HandleCrosshairAppearance("base")
+    SetCrosshairAppearance("base")
   end
 end
 
--- FRAME WATCHING
+-- FRAME WATCHING / CURSOR UNLOCK
 local function CursorUnlockFrameVisible(frameArr)
   local allowFrameWatching = CM.DB.global.frameWatching
   if not allowFrameWatching then
@@ -135,9 +164,9 @@ local function CursorUnlockFrameVisible(frameArr)
   end
 
   for _, frameName in pairs(frameArr) do
-    local curFrame = _G.getglobal(frameName)
+    local curFrame = _G[frameName]
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
-      -- CM.DebugPrint(frameName .. " is visible, enabling cursor")
+      CM.DebugPrint(frameName .. " is visible, enabling cursor")
       return true
     end
   end
@@ -151,9 +180,14 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
   end
 end
 
-local function SuspendingCursorLock()
-  return CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or CursorUnlockFrameVisible(CM.DB.global.watchlist) or
-           CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or _G.SpellIsTargeting()
+local function ShouldCursorBeFreed()
+  local shouldUnlock = isCursorManuallyUnlocked or _G.SpellIsTargeting() or
+                         CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
+                         CursorUnlockFrameVisible(CM.DB.global.watchlist) or
+                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck)
+
+  -- Return the isCursorLockedState along with the shouldUnlock result
+  return shouldUnlock, not isCursorLockedState
 end
 
 -- FRAME WATCHING FOR SERIALIZED FRAMES (Ex: Opie rings)
@@ -217,7 +251,7 @@ end
 
 -- FREE LOOK STATE HANDLING
 local function LockFreeLook()
-  if not _G.IsMouselooking() or not SuspendingCursorLock() then
+  if not _G.IsMouselooking() then
     _G.MouselookStart()
 
     if CM.DB.global.crosshair then
@@ -248,38 +282,13 @@ local function ToggleFreeLook()
   end
 end
 
--- Relocking Free Look & setting CVars after reload/portal
+-- Re-locking Free Look & re-setting CVars after reload/portal
 local function Rematch()
   local isReticleTargetingActive = CM.DB.global.reticleTargeting
   if isReticleTargetingActive then
     CM.LoadReticleTargetCVars()
   end
   ToggleFreeLook()
-end
-
--- UpdateState will be fired when changes in game state happen
--- Responsible for unlocking Free Look when opening frames & casting targeting spells
-local function UpdateState()
-  -- Calling this without the delay so we don't add latency to player actions
-  if _G.SpellIsTargeting() then
-    UnlockFreeLook()
-    isCursorLocked = false
-    return
-  end
-
-  local currentTime = _G.GetTime()
-  if currentTime - lastStateUpdateTime < .15 then
-    return
-  end
-  lastStateUpdateTime = currentTime
-
-  if SuspendingCursorLock() then
-    UnlockFreeLook()
-    isCursorLocked = false
-  elseif not isCursorLocked then
-    LockFreeLook()
-    isCursorLocked = true
-  end
 end
 
 -- CREATING /CM CHAT COMMAND
@@ -292,7 +301,8 @@ function CM:OpenConfigCMD(input)
   end
 end
 
--- INITIALIZING DEFAULT CONFIG
+-- STANDARD ACE 3 METHODS
+-- Code that you want to run when the addon is first loaded goes here.
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB")
   AceConfig:RegisterOptionsTable("Combat Mode", CM.Options.ConfigOptions)
@@ -302,7 +312,7 @@ function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Options.DatabaseDefaults, true)
 end
 
--- LOADING ADDON IN
+-- Called when the addon is enabled
 function CM:OnEnable()
   RenameBindableActions()
   OverrideDefaultButtons()
@@ -316,43 +326,81 @@ function CM:OnEnable()
   end
 end
 
+-- Called when the addon is disabled
+function CM:OnDisable()
+  self.LoadBlizzardDefaultCVars()
+end
+
 -- FIRES WHEN SPECIFIC EVENTS HAPPEN IN GAME
 function _G.CombatMode_OnEvent(event)
-  if not SuspendingCursorLock() then
-    if event == "PLAYER_SOFT_ENEMY_CHANGED" then
-      HandleCrosshairReactionToTarget("target")
-    end
+  if event == "PLAYER_SOFT_ENEMY_CHANGED" then
+    HandleCrosshairReactionToTarget("softenemy")
+  end
 
-    if event == "PLAYER_SOFT_INTERACT_CHANGED" then
-      HandleCrosshairReactionToTarget("softInteract")
-    end
+  if event == "PLAYER_SOFT_INTERACT_CHANGED" then
+    HandleCrosshairReactionToTarget("softinteract")
+  end
+
+  if event == "PLAYER_REGEN_ENABLED" then -- when leaving combat, reset crosshair state
+    SetCrosshairAppearance("base")
   end
 
   if event == "PLAYER_ENTERING_WORLD" then
     Rematch()
-    print("|cffff0000Combat Mode:|r |cff909090 Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings |r")
+    print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
+            "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
   end
 end
 
 -- FIRES WHEN GAME STATE CHANGES HAPPEN
-function _G.CombatMode_OnUpdate()
-  UpdateState()
-end
+function _G.CombatMode_OnUpdate(self, elapsed)
+  -- Making this thread-safe by keeping track of the last update cycle
+  self.TimeSinceLastUpdate = self.TimeSinceLastUpdate + elapsed;
 
--- FIRES WHEN ADDON IS LOADED
-function _G.CombatMode_OnLoad()
-  CM.DebugPrint("ADDON LOADED")
+  -- Bypassing the update cycle check when spell targeting so we can relock asap, without adding latency to player actions
+  -- if _G.SpellIsTargeting() then
+  --   UnlockFreeLook()
+  --   isCursorLockedState = false
+  --   return
+  -- end
+
+  -- As the frame watching doesn't need to perform a visibility check every frame, we're adding a stagger
+  if (self.TimeSinceLastUpdate > updateInterval) and not IsDefaultMouseActionBeingUsed() then
+    local shouldUnlock, shouldLock = ShouldCursorBeFreed()
+    if shouldUnlock then
+      UnlockFreeLook()
+      isCursorLockedState = false
+    elseif shouldLock then
+      LockFreeLook()
+      isCursorLockedState = true
+    end
+
+    self.TimeSinceLastUpdate = 0;
+  end
 end
 
 -- FUNCTIONS CALLED FROM BINDINGS.XML
 function _G.CombatModeToggleKey()
+  if IsDefaultMouseActionBeingUsed() then
+    CM.DebugPrint("Cannot toggle Free Look while holding down your left or right click.")
+    return
+  end
+
   ToggleFreeLook()
+  isCursorManuallyUnlocked = not isCursorManuallyUnlocked
 end
 
 function _G.CombatModeHoldKey(keystate)
+  if IsDefaultMouseActionBeingUsed() then
+    CM.DebugPrint("Cannot toggle Free Look while holding down your left or right click.")
+    return
+  end
+
   if keystate == "down" then
     UnlockFreeLook()
+    isCursorManuallyUnlocked = true
   else
     LockFreeLook()
+    isCursorManuallyUnlocked = false
   end
 end
