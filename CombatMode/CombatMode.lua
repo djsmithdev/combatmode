@@ -335,17 +335,15 @@ end
 function _G.CombatMode_OnEvent(event)
   if event == "PLAYER_SOFT_ENEMY_CHANGED" then
     HandleCrosshairReactionToTarget("softenemy")
-  end
-
-  if event == "PLAYER_SOFT_INTERACT_CHANGED" then
+  elseif event == "PLAYER_SOFT_INTERACT_CHANGED" then
     HandleCrosshairReactionToTarget("softinteract")
-  end
-
-  if event == "PLAYER_REGEN_ENABLED" then -- when leaving combat, reset crosshair state
+  elseif event == "PLAYER_REGEN_ENABLED" then -- when leaving combat, reset crosshair state
     SetCrosshairAppearance("base")
-  end
-
-  if event == "PLAYER_ENTERING_WORLD" then
+  elseif event == "BARBER_SHOP_OPEN" then
+    UnlockFreeLook()
+  elseif event == "BARBER_SHOP_CLOSE" then
+    LockFreeLook()
+  elseif event == "PLAYER_ENTERING_WORLD" then
     Rematch()
     print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
             "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")

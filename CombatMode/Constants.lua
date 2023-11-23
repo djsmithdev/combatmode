@@ -12,6 +12,8 @@ CM.Constants.BLIZZARD_EVENTS = {
   "PLAYER_SOFT_ENEMY_CHANGED",
   "PLAYER_SOFT_INTERACT_CHANGED",
   "PLAYER_REGEN_ENABLED",
+  "BARBER_SHOP_OPEN",
+  "BARBER_SHOP_CLOSE"
 }
 
 -- Default frames to check with a static name
