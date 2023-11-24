@@ -3,7 +3,7 @@
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:24:96|t
 ## Author: justice7ca w/ contributions from sampconrad, ThomasDigio, DKulan.
-## Notes: CombatMode aims to emulate a more dynamic action combat experience in World of Warcraft by implementing Free Look (also known as mouselook), reticle targeting, skill casting with left/right click, and more, without compromising your ability to play competitively.
+## Notes: CombatMode aims to emulate a more dynamic action combat experience in World of Warcraft by implementing Free Look, reticle targeting, skill casting with left/right click, and more, without compromising your ability to play competitively.
 ## IconTexture: Interface\AddOns\CombatMode\assets\cmlogo
 
 ## DefaultState: enabled
