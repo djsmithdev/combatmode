@@ -3,7 +3,7 @@
   <img width="512" height="128" src="./cmtitle.svg">
 </p>
 
-CombatMode aims to emulate a more dynamic action combat experience in World of Warcraft by implementing Free Look [Free Look (also known as mouselook)](https://en.wikipedia.org/wiki/Free_look), reticle targeting, skill casting with left/right click, and more, without compromising your ability to play competitively.
+CombatMode aims to emulate a more dynamic action combat experience in World of Warcraft by implementing [Free Look](https://en.wikipedia.org/wiki/Free_look), reticle targeting, skill casting with left/right click, and more, without compromising your ability to play competitively.
 
 <br />
 
