@@ -302,7 +302,7 @@ CM.Options.ConfigOptions = {
       type = "description",
       name = CM.METADATA["NOTES"],
       fontSize = "medium",
-      width = 3.0,
+      width = 3.1,
       order = 1.3
     },
     aboutDescriptionPaddingBottom = {
@@ -320,7 +320,7 @@ CM.Options.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Free Look Camera|r - Move your camera without having to perpetually hold right mouse button. \n• |cff00FFFFReticle Targeting|r - Makes use of the SoftTarget methods added with DF to allow the user to target units by aiming at them. \n• Optional adjustable dynamic |cff00FFFFCrosshair|r marker to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.",
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Utilizes SoftTarget methods from DF enabling users to target units by simply aiming at them. \n• Optional adjustable dynamic |cff00FFFFCrosshair|r marker to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.",
       order = 3
     },
     featuresListPaddingBottom = {
