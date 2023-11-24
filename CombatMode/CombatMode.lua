@@ -353,7 +353,7 @@ function _G.CombatMode_OnEvent(event)
     UnlockFreeLook()
   elseif event == "BARBER_SHOP_CLOSE" then
     LockFreeLook()
-  elseif event == "PLAYER_ENTERING_WORLD" then
+  elseif event == "PLAYER_ENTERING_WORLD" or "CINEMATIC_STOP" then
     Rematch()
     print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
             "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
