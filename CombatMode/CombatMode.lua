@@ -93,13 +93,13 @@ end
 -- CROSSHAIR STATE HANDLING FUNCTIONS
 local function SetCrosshairAppearance(state)
   if state == "hostile" then
-    CrosshairTexture:SetTexture(CM.Constants.CrosshairActiveTexture)
+    CrosshairTexture:SetTexture(CM.DB.global.crosshairAppearance.Active)
     CrosshairTexture:SetVertexColor(1, .2, 0.3, 1)
   elseif state == "friendly" then
-    CrosshairTexture:SetTexture(CM.Constants.CrosshairActiveTexture)
+    CrosshairTexture:SetTexture(CM.DB.global.crosshairAppearance.Active)
     CrosshairTexture:SetVertexColor(0, 1, 0.3, .8)
   else -- "base" falls here
-    CrosshairTexture:SetTexture(CM.Constants.CrosshairTexture)
+    CrosshairTexture:SetTexture(CM.DB.global.crosshairAppearance.Base)
     CrosshairTexture:SetVertexColor(1, 1, 1, .5)
   end
 end
@@ -137,6 +137,10 @@ function CM.UpdateCrosshair()
 
   if CM.DB.global.crosshairOpacity then
     CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity)
+  end
+
+  if CM.DB.global.crosshairAppearance then
+    CrosshairTexture:SetTexture(CM.DB.global.crosshairAppearance.Base)
   end
 end
 
@@ -349,7 +353,7 @@ function _G.CombatMode_OnEvent(event)
     UnlockFreeLook()
   elseif event == "BARBER_SHOP_CLOSE" then
     LockFreeLook()
-  elseif event == "PLAYER_ENTERING_WORLD" then
+  elseif event == "PLAYER_ENTERING_WORLD" or "CINEMATIC_STOP" then
     Rematch()
     print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
             "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
