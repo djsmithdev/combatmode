@@ -167,6 +167,7 @@ CM.Options.DatabaseDefaults = {
     },
     reticleTargeting = true,
     crosshair = true,
+    crosshairAppearance = CM.Constants.CrosshairTextureObj.Triangle,
     crosshairSize = 64,
     crosshairOpacity = 1.0,
     crosshairY = 100,
@@ -245,7 +246,9 @@ CM.Options.ConfigOptions = {
       desc = "Resets Combat Mode settings to its default values.",
       confirmText = "Resetting Combat Mode options will force a UI Reload. Proceed?",
       width = 0.7,
-      func = function() CM:OnResetDB() end,
+      func = function()
+        CM:OnResetDB()
+      end,
       confirm = true,
       order = 0
     },
@@ -266,7 +269,7 @@ CM.Options.ConfigOptions = {
       get = function()
         return CM.DB.global.debugMode
       end,
-      order = 0.2,
+      order = 0.2
     },
     -- LOGO & ABOUT
     aboutHeader = {
@@ -717,11 +720,22 @@ CM.Options.ConfigOptions = {
               fontSize = "medium",
               order = 1
             },
+            crosshairDescriptionPaddingBottom = {
+              type = "description",
+              name = " ",
+              width = "full",
+              order = 1.1
+            },
+            crosshairNote = {
+              type = "description",
+              name = "|cffffd700Developer Note:|r \n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior like unpredicatable targeting and improper crosshair reactivity.|r",
+              order = 1.2
+            },
             crosshair = {
               type = "toggle",
               name = "Crosshair",
               desc = "Places a dynamic crosshair marker in the center of the screen to assist with Reticle Targeting.",
-              width = "full",
+              width = 1.0,
               order = 2,
               set = function(_, value)
                 CM.DB.global.crosshair = value
@@ -735,16 +749,37 @@ CM.Options.ConfigOptions = {
                 return CM.DB.global.crosshair
               end
             },
-            crosshairNote = {
+            crosshairSpacing = {
               type = "description",
-              name = "|cffffd700Developer Note:|r \n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior like unpredicatable targeting and improper crosshair reactivity.|r",
-              order = 3
+              name = " ",
+              width = 1.4,
+              order = 2.1
             },
-            crosshairPaddingBottom = {
+            crosshairAppearance = {
+              name = "Crosshair Appearance",
+              desc = "Select the appearance of the crosshair texture.",
+              type = "select",
+              width = 1.0,
+              order = 2.2,
+              values = CM.Constants.CrosshairAppearanceSelectValues,
+              set = function(_, value)
+                CM.DB.global.crosshairAppearance = CM.Constants.CrosshairTextureObj[value]
+                if value then
+                  CM.UpdateCrosshair()
+                end
+              end,
+              get = function()
+                return CM.DB.global.crosshairAppearance.Name
+              end,
+              disabled = function()
+                return CM.DB.global.crosshair ~= true
+              end
+            },
+            crosshairAppearancePaddingBottom = {
               type = "description",
               name = " ",
               width = "full",
-              order = 3.1
+              order = 2.3
             },
             crosshairSize = {
               type = "range",
