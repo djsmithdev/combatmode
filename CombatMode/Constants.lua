@@ -2,11 +2,6 @@ local CM = _G.GetGlobalStore()
 
 CM.Constants = {}
 
-CM.Constants.CrosshairTexture = "Interface\\AddOns\\CombatMode\\assets\\crosshair.blp"
-CM.Constants.CrosshairActiveTexture = "Interface\\AddOns\\CombatMode\\assets\\crosshair-hit.blp"
-CM.Constants.Logo = "Interface\\AddOns\\CombatMode\\assets\\cmlogo.blp"
-CM.Constants.Title = "Interface\\AddOns\\CombatMode\\assets\\cmtitle.blp"
-
 CM.Constants.BLIZZARD_EVENTS = {
   "PLAYER_ENTERING_WORLD",
   "PLAYER_SOFT_ENEMY_CHANGED",
@@ -15,6 +10,44 @@ CM.Constants.BLIZZARD_EVENTS = {
   "BARBER_SHOP_OPEN",
   "BARBER_SHOP_CLOSE"
 }
+
+local assetsFolderPath = "Interface\\AddOns\\CombatMode\\assets\\"
+
+CM.Constants.Logo = assetsFolderPath .. "cmlogo.blp"
+
+CM.Constants.Title = assetsFolderPath .. "cmtitle.blp"
+
+-- CROSSHAIR TEXTURES
+-- To add custom textures, you'll need two .BLP textures: one for the active and one for the inactive states.
+-- Place them in the the CombatMode/assets folder and rename them as follows:
+-- Base texture = "crosshairASSETNAME.blp"
+-- Hit texture = "crosshairASSETNAME-hit.blp"
+-- Where "ASSETNAME" is the name you want to be displayed on the dropdown.
+-- Then just add that same "ASSETNAME" to the CrosshairAssets obj below:
+-- This is case sensitive!
+CM.Constants.CrosshairTextureObj = {}
+
+CM.Constants.CrosshairAppearanceSelectValues = {}
+
+local crosshairAssetNames = {
+  "Bracket",
+  "Circle",
+  "CircleDot",
+  "Cross",
+  "Dot",
+  "Split",
+  "Square",
+  "Triangle"
+}
+
+for _, assetName in ipairs(crosshairAssetNames) do
+  CM.Constants.CrosshairTextureObj[assetName] = {
+    Name = assetName,
+    Base = assetsFolderPath .. "crosshair" .. assetName .. ".blp",
+    Active = assetsFolderPath .. "crosshair" .. assetName .. "-hit.blp"
+  }
+  CM.Constants.CrosshairAppearanceSelectValues[assetName] = assetName
+end
 
 -- Default frames to check with a static name
 CM.Constants.FramesToCheck = {
