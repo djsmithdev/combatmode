@@ -8,7 +8,8 @@ CM.Constants.BLIZZARD_EVENTS = {
   "PLAYER_SOFT_INTERACT_CHANGED",
   "PLAYER_REGEN_ENABLED",
   "BARBER_SHOP_OPEN",
-  "BARBER_SHOP_CLOSE"
+  "BARBER_SHOP_CLOSE",
+  "CINEMATIC_STOP"
 }
 
 local assetsFolderPath = "Interface\\AddOns\\CombatMode\\assets\\"
