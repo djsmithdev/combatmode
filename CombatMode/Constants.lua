@@ -191,7 +191,8 @@ CM.Constants.FramesToCheck = {
   "GenericTraitFrame",
   "PlayerChoiceFrame",
   "ItemInteractionFrame",
-  "ScriptErrorsFrame"
+  "ScriptErrorsFrame",
+  "MajorFactionRenownFrame"
 }
 
 -- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"
