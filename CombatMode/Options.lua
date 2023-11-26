@@ -766,6 +766,7 @@ CM.Options.ConfigOptions = {
                 CM.DB.global.crosshairAppearance = CM.Constants.CrosshairTextureObj[value]
                 if value then
                   CM.UpdateCrosshair()
+                  CM.ShowCrosshair()
                 end
               end,
               get = function()
