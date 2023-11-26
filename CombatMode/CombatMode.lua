@@ -28,7 +28,6 @@ ScaleAnimation:SetScaleTo(endingScale, endingScale)
 ScaleAnimation:SetSmoothProgress(scaleDuration)
 ScaleAnimation:SetSmoothing("IN_OUT")
 
-
 -- INITIAL STATE VARIABLES
 local isCursorLockedState = false -- State used to prevent the OnUpdate function from executing code needlessly
 local updateInterval = 0.15 -- How often the code in the OnUpdate function will run (in seconds)
@@ -196,11 +195,6 @@ local function CursorUnlockFrameVisible(frameArr)
   for _, frameName in pairs(frameArr) do
     local curFrame = _G[frameName]
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
-      -- Hiding crosshair because OPie runs _G.MouselookStop() itself,
-      -- which skips UnlockCursor()'s checks to hide crosshair
-      if string.find(frameName, "OPieRT") then
-        CM.HideCrosshair()
-      end
       CM.DebugPrint(frameName .. " is visible, enabling cursor")
       return true
     end
@@ -208,8 +202,13 @@ local function CursorUnlockFrameVisible(frameArr)
 end
 
 local function CursorUnlockFrameGroupVisible(frameNameGroups)
-  for _, frameNames in pairs(frameNameGroups) do
+  for wildcardFrameName, frameNames in pairs(frameNameGroups) do
     if CursorUnlockFrameVisible(frameNames) then
+      if wildcardFrameName == "OPieRT" then
+        -- Hiding crosshair because OPie runs _G.MouselookStop() itself,
+        -- which skips UnlockCursor()'s checks to hide crosshair
+        CM.HideCrosshair()
+      end
       return true
     end
   end
