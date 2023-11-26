@@ -177,12 +177,8 @@ local function CursorUnlockFrameVisible(frameArr)
 end
 
 local function CursorUnlockFrameGroupVisible(frameNameGroups)
-  for wildcardFrameName, frameNames in pairs(frameNameGroups) do
+  for _, frameNames in pairs(frameNameGroups) do
     if CursorUnlockFrameVisible(frameNames) then
-      if wildcardFrameName == "OPieRT" then
-        -- Hiding the crosshair because OPie runs _G.MouselookStop() themselves, skipping UnlockCursor()'s checks
-        CM.HideCrosshair()
-      end
       return true
     end
   end
