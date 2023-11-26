@@ -16,6 +16,19 @@ local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UIParent)
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 
+-- SETTING UP CROSSHAIR ANIMATION
+local CrosshairAnimation = CrosshairFrame:CreateAnimationGroup()
+local ScaleAnimation = CrosshairAnimation:CreateAnimation("Scale")
+local startingScale = 1
+local endingScale = 0.8
+local scaleDuration = 0.15
+ScaleAnimation:SetDuration(scaleDuration)
+ScaleAnimation:SetScaleFrom(startingScale, startingScale)
+ScaleAnimation:SetScaleTo(endingScale, endingScale)
+ScaleAnimation:SetSmoothProgress(scaleDuration)
+ScaleAnimation:SetSmoothing("IN_OUT")
+
+
 -- INITIAL STATE VARIABLES
 local isCursorLockedState = false -- State used to prevent the OnUpdate function from executing code needlessly
 local updateInterval = 0.15 -- How often the code in the OnUpdate function will run (in seconds)
@@ -92,15 +105,28 @@ end
 
 -- CROSSHAIR STATE HANDLING FUNCTIONS
 local function SetCrosshairAppearance(state)
+  local CrosshairAppearance = CM.DB.global.crosshairAppearance
+
+  -- Sets new scale at the end of animation
+  CrosshairAnimation:SetScript("OnFinished", function()
+    if state == "hostile" or state == "friendly" then
+      CrosshairFrame:SetScale(endingScale)
+    end
+  end)
+
   if state == "hostile" then
-    CrosshairTexture:SetTexture(CM.DB.global.crosshairAppearance.Active)
+    CrosshairTexture:SetTexture(CrosshairAppearance.Active)
     CrosshairTexture:SetVertexColor(1, .2, 0.3, 1)
+    CrosshairAnimation:Play()
   elseif state == "friendly" then
-    CrosshairTexture:SetTexture(CM.DB.global.crosshairAppearance.Active)
+    CrosshairTexture:SetTexture(CrosshairAppearance.Active)
     CrosshairTexture:SetVertexColor(0, 1, 0.3, .8)
+    CrosshairAnimation:Play()
   else -- "base" falls here
-    CrosshairTexture:SetTexture(CM.DB.global.crosshairAppearance.Base)
+    CrosshairTexture:SetTexture(CrosshairAppearance.Base)
     CrosshairTexture:SetVertexColor(1, 1, 1, .5)
+    CrosshairAnimation:Play(true) -- reverse
+    CrosshairFrame:SetScale(startingScale)
   end
 end
 
@@ -170,6 +196,11 @@ local function CursorUnlockFrameVisible(frameArr)
   for _, frameName in pairs(frameArr) do
     local curFrame = _G[frameName]
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
+      -- Hiding crosshair because OPie runs _G.MouselookStop() itself,
+      -- which skips UnlockCursor()'s checks to hide crosshair
+      if string.find(frameName, "OPieRT") then
+        CM.HideCrosshair()
+      end
       CM.DebugPrint(frameName .. " is visible, enabling cursor")
       return true
     end

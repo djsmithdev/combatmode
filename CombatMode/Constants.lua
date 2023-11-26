@@ -33,12 +33,16 @@ CM.Constants.CrosshairAppearanceSelectValues = {}
 local crosshairAssetNames = {
   "Bracket",
   "Circle",
-  "CircleDot",
   "Cross",
+  "Default",
+  "Diamond",
   "Dot",
+  "Line",
   "Split",
   "Square",
-  "Triangle"
+  "Triangle",
+  "X",
+  "Y"
 }
 
 for _, assetName in ipairs(crosshairAssetNames) do
@@ -192,6 +196,7 @@ CM.Constants.FramesToCheck = {
   "PlayerChoiceFrame",
   "ItemInteractionFrame",
   "ScriptErrorsFrame",
+  "ProfessionsCustomerOrdersFrame",
   "MajorFactionRenownFrame"
 }
 
