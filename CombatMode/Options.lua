@@ -165,6 +165,7 @@ CM.Options.DatabaseDefaults = {
       "WeakAurasOptions",
       "PawnUIFrame"
     },
+    customCondition = "",
     reticleTargeting = true,
     crosshair = true,
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Triangle,
@@ -538,36 +539,36 @@ CM.Options.ConfigOptions = {
         altGroup = GetButtonOverrideGroup("alt", 7)
       }
     },
-    -- WATCHLIST
-    watchlistGroup = {
+    -- CURSOR UNLOCK
+    cursorUnlockGroup = {
       type = "group",
       name = " ",
       order = 9,
       inline = true,
       args = {
-        frameWatchingHeader = {
+        cursorUnlockHeader = {
           type = "header",
           name = "|cff00FF7FAutomatic Cursor Unlock|r",
           order = 1
         },
-        frameWatchingHeaderPaddingBottom = {
+        cursorUnlockHeaderPaddingBottom = {
           type = "description",
           name = " ",
           width = "full",
           order = 1.1
         },
-        frameWatchingDescription = {
+        cursorUnlockDescription = {
           type = "description",
           name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc), and re-enable upon closing them.",
           fontSize = "medium",
           order = 2
         },
-        frameWatchingWarning = {
+        cursorUnlockWarning = {
           type = "description",
           name = "\n|cffFF5050Disabling this will also disable the Frame Watchlist.|r",
           order = 3
         },
-        frameWatching = {
+        cursorUnlock = {
           type = "toggle",
           name = "Automatic Cursor Unlock",
           desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
@@ -586,7 +587,7 @@ CM.Options.ConfigOptions = {
           width = "full",
           order = 4.1
         },
-        -- WATCHLIST INPUT
+        -- FRAME WATCHLIST
         watchlistInputGroup = {
           type = "group",
           name = "|cff00FF7FFrame Watchlist|r",
@@ -867,6 +868,86 @@ CM.Options.ConfigOptions = {
               end
             }
           }
+        }
+      }
+    }
+  }
+}
+
+CM.Options.AdvancedConfigOptions = {
+  name = CM.METADATA["TITLE"],
+  handler = CM,
+  type = "group",
+  args = {
+    resetButton = {
+      type = "execute",
+      name = "Default",
+      desc = "Resets Combat Mode settings to its default values.",
+      confirmText = "Resetting Combat Mode options will force a UI Reload. Proceed?",
+      width = 0.7,
+      func = function()
+        CM:OnResetDB()
+      end,
+      confirm = true,
+      order = 0
+    },
+    resetDebugSpacing = {
+      type = "description",
+      name = " ",
+      width = 2.2,
+      order = 0.1
+    },
+    debugModeToggle = {
+      type = "toggle",
+      name = "Debug Mode",
+      desc = "Enables the printing of state logs in the game chat to assist with development.",
+      width = 0.7,
+      set = function(_, value)
+        CM.DB.global.debugMode = value
+      end,
+      get = function()
+        return CM.DB.global.debugMode
+      end,
+      order = 0.2
+    },
+    header = {
+      type = "header",
+      name = "Custom Condition",
+      order = 0.9
+    },
+    customCondition = {
+      type = "group",
+      name = "",
+      order = 1,
+      inline = true,
+      args = {
+        customConditionDescription = {
+          type = "description",
+          name = "Create your own conditions for the |cff00FF7FAutomatic Cursor Unlock|r here by entering a chunk of Lua code that returns true if the cursor should be unlocked, false otherwise. If your condition isn't working, toggle on Debug Mode to get error messages printed in the chat for easier troubleshooting.",
+          order = 1
+        },
+        customConditionExample = {
+          type = "description",
+          name = "For example if you wish to unlock the cursor when the player is standing still, enter:\n|cffcfcfcfreturn GetUnitSpeed(\"player\") == 0|r",
+          order = 2
+        },
+        customConditionWarning = {
+          type = "description",
+          name = "\n|cffFF5050Knowing the basics of Lua and the WoW API is essential for using custom conditions. Combat Mode's authors are not responsible for custom code issues and are not obligated to provide users any support for it.|r",
+          order = 3
+        },
+        customConditionCode = {
+          type = "input",
+          name = "Enter your Lua code here:",
+          order = 4,
+          multiline = 10,
+          width = "full",
+          set = function(_, input)
+            CM.DB.global.customCondition = input
+          end,
+          get = function()
+            return CM.DB.global.customCondition
+          end
         }
       }
     }
