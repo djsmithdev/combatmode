@@ -35,14 +35,14 @@ local crosshairAssetNames = {
   "Circle",
   "Cross",
   "Default",
+  "DefaultSimple",
   "Diamond",
   "Dot",
+  "InvertedY",
   "Line",
   "Split",
   "Square",
   "Triangle",
-  "X",
-  "Y"
 }
 
 for _, assetName in ipairs(crosshairAssetNames) do
