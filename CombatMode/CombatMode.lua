@@ -219,7 +219,7 @@ local function IsCustomConditionTrue()
     return false
   end
 
-  local customConditionFunction, error = loadstring(CM.DB.global.customCondition)
+  local customConditionFunction, error = _G.loadstring(CM.DB.global.customCondition)
   if not customConditionFunction then
     CM.DebugPrint(error)
     return false
