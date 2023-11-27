@@ -42,7 +42,7 @@ local crosshairAssetNames = {
   "Square",
   "Triangle",
   "X",
-  "Y",
+  "Y"
 }
 
 for _, assetName in ipairs(crosshairAssetNames) do
@@ -196,7 +196,8 @@ CM.Constants.FramesToCheck = {
   "PlayerChoiceFrame",
   "ItemInteractionFrame",
   "ScriptErrorsFrame",
-  "ProfessionsCustomerOrdersFrame"
+  "ProfessionsCustomerOrdersFrame",
+  "MajorFactionRenownFrame"
 }
 
 -- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"
