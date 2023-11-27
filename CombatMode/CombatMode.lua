@@ -228,11 +228,16 @@ local function IsCustomConditionTrue()
   end
 end
 
+local function HasNarcissusOpen()
+  return _G.Narci and _G.Narci.isActive
+end
+
 local function ShouldCursorBeFreed()
   local shouldUnlock = isCursorManuallyUnlocked or _G.SpellIsTargeting() or
                          CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
                          CursorUnlockFrameVisible(CM.DB.global.watchlist) or
-                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or IsCustomConditionTrue()
+                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or IsCustomConditionTrue() or
+                         HasNarcissusOpen()
 
   -- Return the isCursorLockedState along with the shouldUnlock result
   return shouldUnlock, not isCursorLockedState
