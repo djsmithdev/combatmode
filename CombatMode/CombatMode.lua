@@ -28,7 +28,6 @@ ScaleAnimation:SetScaleTo(endingScale, endingScale)
 ScaleAnimation:SetSmoothProgress(scaleDuration)
 ScaleAnimation:SetSmoothing("IN_OUT")
 
-
 -- INITIAL STATE VARIABLES
 local isCursorLockedState = false -- State used to prevent the OnUpdate function from executing code needlessly
 local updateInterval = 0.15 -- How often the code in the OnUpdate function will run (in seconds)
@@ -208,10 +207,29 @@ local function CursorUnlockFrameVisible(frameArr)
 end
 
 local function CursorUnlockFrameGroupVisible(frameNameGroups)
-  for _, frameNames in pairs(frameNameGroups) do
+  for wildcardFrameName, frameNames in pairs(frameNameGroups) do
     if CursorUnlockFrameVisible(frameNames) then
+      if wildcardFrameName == "OPieRT" then
+        -- Hiding crosshair because OPie runs _G.MouselookStop() itself,
+        -- which skips UnlockCursor()'s checks to hide crosshair
+        CM.HideCrosshair()
+      end
       return true
     end
+  end
+end
+
+local function IsCustomConditionTrue()
+  if not CM.DB.global.customCondition then
+    return false
+  end
+
+  local customConditionFunction, error = loadstring(CM.DB.global.customCondition)
+  if not customConditionFunction then
+    CM.DebugPrint(error)
+    return false
+  else
+    return customConditionFunction()
   end
 end
 
@@ -219,7 +237,7 @@ local function ShouldCursorBeFreed()
   local shouldUnlock = isCursorManuallyUnlocked or _G.SpellIsTargeting() or
                          CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
                          CursorUnlockFrameVisible(CM.DB.global.watchlist) or
-                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck)
+                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or IsCustomConditionTrue()
 
   -- Return the isCursorLockedState along with the shouldUnlock result
   return shouldUnlock, not isCursorLockedState
@@ -339,12 +357,15 @@ end
 -- STANDARD ACE 3 METHODS
 -- Code that you want to run when the addon is first loaded goes here.
 function CM:OnInitialize()
-  self.DB = AceDB:New("CombatModeDB")
+  self.DB = AceDB:New("CombatModeDB", CM.Options.DatabaseDefaults, true)
+
   AceConfig:RegisterOptionsTable("Combat Mode", CM.Options.ConfigOptions)
-  self.OPTIONS = AceConfigDialog:AddToBlizOptions("Combat Mode", "Combat Mode")
+  AceConfigDialog:AddToBlizOptions("Combat Mode")
+  AceConfig:RegisterOptionsTable("Combat Mode: Advanced", CM.Options.AdvancedConfigOptions)
+  AceConfigDialog:AddToBlizOptions("Combat Mode: Advanced", "Advanced", "Combat Mode")
+
   self:RegisterChatCommand("cm", "OpenConfigCMD")
   self:RegisterChatCommand("combatmode", "OpenConfigCMD")
-  self.DB = AceDB:New("CombatModeDB", CM.Options.DatabaseDefaults, true)
 end
 
 function CM:OnResetDB()
