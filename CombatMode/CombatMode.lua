@@ -195,11 +195,6 @@ local function CursorUnlockFrameVisible(frameArr)
   for _, frameName in pairs(frameArr) do
     local curFrame = _G[frameName]
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
-      -- Hiding crosshair because OPie runs _G.MouselookStop() itself,
-      -- which skips UnlockCursor()'s checks to hide crosshair
-      if string.find(frameName, "OPieRT") then
-        CM.HideCrosshair()
-      end
       CM.DebugPrint(frameName .. " is visible, enabling cursor")
       return true
     end
