@@ -4,12 +4,11 @@ CM.Constants = {}
 
 CM.Constants.BLIZZARD_EVENTS = {
   "PLAYER_ENTERING_WORLD",
+  "LOADING_SCREEN_ENABLED",
+  "BARBER_SHOP_OPEN",
   "PLAYER_SOFT_ENEMY_CHANGED",
   "PLAYER_SOFT_INTERACT_CHANGED",
-  "PLAYER_REGEN_ENABLED",
-  "BARBER_SHOP_OPEN",
-  "BARBER_SHOP_CLOSE",
-  "CINEMATIC_STOP"
+  "PLAYER_REGEN_ENABLED"
 }
 
 local assetsFolderPath = "Interface\\AddOns\\CombatMode\\assets\\"
@@ -42,7 +41,7 @@ local crosshairAssetNames = {
   "Line",
   "Split",
   "Square",
-  "Triangle",
+  "Triangle"
 }
 
 for _, assetName in ipairs(crosshairAssetNames) do
