@@ -6,6 +6,7 @@
   "luahelper.format.indent_width": 2,
   "luahelper.format.continuation_indent_width": 2,
   "luahelper.format.chop_down_table": true,
+  "Lua.runtime.version": "Lua 5.1",
   "Lua.diagnostics.globals": [
     "ReloadUI",
     "DEFAULT_CHAT_FRAME",

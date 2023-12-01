@@ -16,6 +16,18 @@ local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UIParent)
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 
+-- SETTING UP CROSSHAIR ANIMATION
+local CrosshairAnimation = CrosshairFrame:CreateAnimationGroup()
+local ScaleAnimation = CrosshairAnimation:CreateAnimation("Scale")
+local startingScale = 1
+local endingScale = 0.8
+local scaleDuration = 0.15
+ScaleAnimation:SetDuration(scaleDuration)
+ScaleAnimation:SetScaleFrom(startingScale, startingScale)
+ScaleAnimation:SetScaleTo(endingScale, endingScale)
+ScaleAnimation:SetSmoothProgress(scaleDuration)
+ScaleAnimation:SetSmoothing("IN_OUT")
+
 -- INITIAL STATE VARIABLES
 local isCursorLockedState = false -- State used to prevent the OnUpdate function from executing code needlessly
 local updateInterval = 0.15 -- How often the code in the OnUpdate function will run (in seconds)
@@ -92,15 +104,28 @@ end
 
 -- CROSSHAIR STATE HANDLING FUNCTIONS
 local function SetCrosshairAppearance(state)
+  local CrosshairAppearance = CM.DB.global.crosshairAppearance
+
+  -- Sets new scale at the end of animation
+  CrosshairAnimation:SetScript("OnFinished", function()
+    if state == "hostile" or state == "friendly" then
+      CrosshairFrame:SetScale(endingScale)
+    end
+  end)
+
   if state == "hostile" then
-    CrosshairTexture:SetTexture(CM.DB.global.crosshairAppearance.Active)
+    CrosshairTexture:SetTexture(CrosshairAppearance.Active)
     CrosshairTexture:SetVertexColor(1, .2, 0.3, 1)
+    CrosshairAnimation:Play()
   elseif state == "friendly" then
-    CrosshairTexture:SetTexture(CM.DB.global.crosshairAppearance.Active)
+    CrosshairTexture:SetTexture(CrosshairAppearance.Active)
     CrosshairTexture:SetVertexColor(0, 1, 0.3, .8)
+    CrosshairAnimation:Play()
   else -- "base" falls here
-    CrosshairTexture:SetTexture(CM.DB.global.crosshairAppearance.Base)
+    CrosshairTexture:SetTexture(CrosshairAppearance.Base)
     CrosshairTexture:SetVertexColor(1, 1, 1, .5)
+    CrosshairAnimation:Play(true) -- reverse
+    CrosshairFrame:SetScale(startingScale)
   end
 end
 
@@ -177,18 +202,42 @@ local function CursorUnlockFrameVisible(frameArr)
 end
 
 local function CursorUnlockFrameGroupVisible(frameNameGroups)
-  for _, frameNames in pairs(frameNameGroups) do
+  for wildcardFrameName, frameNames in pairs(frameNameGroups) do
     if CursorUnlockFrameVisible(frameNames) then
+      if wildcardFrameName == "OPieRT" then
+        -- Hiding crosshair because OPie runs _G.MouselookStop() itself,
+        -- which skips UnlockCursor()'s checks to hide crosshair
+        CM.HideCrosshair()
+      end
       return true
     end
   end
+end
+
+local function IsCustomConditionTrue()
+  if not CM.DB.global.customCondition then
+    return false
+  end
+
+  local customConditionFunction, error = _G.loadstring(CM.DB.global.customCondition)
+  if not customConditionFunction then
+    CM.DebugPrint(error)
+    return false
+  else
+    return customConditionFunction()
+  end
+end
+
+local function HasNarcissusOpen()
+  return _G.Narci and _G.Narci.isActive
 end
 
 local function ShouldCursorBeFreed()
   local shouldUnlock = isCursorManuallyUnlocked or _G.SpellIsTargeting() or
                          CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
                          CursorUnlockFrameVisible(CM.DB.global.watchlist) or
-                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck)
+                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or IsCustomConditionTrue() or
+                         HasNarcissusOpen()
 
   -- Return the isCursorLockedState along with the shouldUnlock result
   return shouldUnlock, not isCursorLockedState
@@ -308,12 +357,15 @@ end
 -- STANDARD ACE 3 METHODS
 -- Code that you want to run when the addon is first loaded goes here.
 function CM:OnInitialize()
-  self.DB = AceDB:New("CombatModeDB")
+  self.DB = AceDB:New("CombatModeDB", CM.Options.DatabaseDefaults, true)
+
   AceConfig:RegisterOptionsTable("Combat Mode", CM.Options.ConfigOptions)
-  self.OPTIONS = AceConfigDialog:AddToBlizOptions("Combat Mode", "Combat Mode")
+  AceConfigDialog:AddToBlizOptions("Combat Mode")
+  AceConfig:RegisterOptionsTable("Combat Mode: Advanced", CM.Options.AdvancedConfigOptions)
+  AceConfigDialog:AddToBlizOptions("Combat Mode: Advanced", "Advanced", "Combat Mode")
+
   self:RegisterChatCommand("cm", "OpenConfigCMD")
   self:RegisterChatCommand("combatmode", "OpenConfigCMD")
-  self.DB = AceDB:New("CombatModeDB", CM.Options.DatabaseDefaults, true)
 end
 
 function CM:OnResetDB()
