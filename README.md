@@ -62,10 +62,10 @@ You can submit a PR with your contributions to [**Combat Mode's repository on Gi
 
 ## <img width="32" height="32" src="./cmlogo.svg">Preview Images
 
-![preview1](./preview1.png)
+![preview1](./preview1.jpg)
 
-![preview2](./preview2.png)
+![preview2](./preview2.jpg)
 
-![preview3](./previewConfig.png)
+![preview3](./previewConfig.jpg)
 
 <br />
