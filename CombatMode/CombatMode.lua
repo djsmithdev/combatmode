@@ -349,7 +349,8 @@ function CM:OpenConfigCMD(input)
 end
 
 -- STANDARD ACE 3 METHODS
--- Code you want to run when the addon is first loaded goes here.
+-- do init tasks here, like loading the Saved Variables,
+-- or setting up slash commands.
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Options.DatabaseDefaults, true)
 
@@ -368,7 +369,9 @@ function CM:OnResetDB()
   _G.ReloadUI();
 end
 
--- Called when the addon is enabled
+-- Do more initialization here, that really enables the use of your addon.
+-- Register Events, Hook functions, Create Frames, Get information from
+-- the game that wasn't available in OnInitialize
 function CM:OnEnable()
   RenameBindableActions()
   OverrideDefaultButtons()
@@ -380,9 +383,15 @@ function CM:OnEnable()
   for _, event in pairs(CM.Constants.BLIZZARD_EVENTS) do
     self:RegisterEvent(event, _G.CombatMode_OnEvent)
   end
+
+  -- Greeting message that is printed to chat on initial load
+  print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
+    "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
 end
 
--- Called when the addon is disabled
+-- Unhook, Unregister Events, Hide frames that you created.
+-- You would probably only use an OnDisable if you want to
+-- build a "standby" mode, or be able to toggle modules on/off.
 function CM:OnDisable()
   self.LoadBlizzardDefaultCVars()
 end
@@ -394,19 +403,16 @@ local function Rematch()
     CM.LoadReticleTargetCVars()
   end
   LockFreeLook()
-
-  print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
-          "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
 end
 
 -- FIRES WHEN SPECIFIC EVENTS HAPPEN IN GAME
 function _G.CombatMode_OnEvent(event)
-  -- Loading Cvars and greeting text on initial load
+  -- Loading Cvars on every reload
   if event == "PLAYER_ENTERING_WORLD" then
     Rematch()
   end
 
-  -- This forces a relock when quick-loading (e.g: loading after starting m+ run)
+  -- This forces a relock when quick-loading (e.g: loading after starting m+ run) thanks to the OnUpdate fn
   if event == "LOADING_SCREEN_ENABLED" then
     UnlockFreeLook()
   end
@@ -423,7 +429,7 @@ function _G.CombatMode_OnEvent(event)
     HandleCrosshairReactionToTarget("softinteract")
   end
 
-  -- Resetting crosshair when leaving combat
+  -- Reseting crosshair when leaving combat
   if event == "PLAYER_REGEN_ENABLED" then
     SetCrosshairAppearance("base")
   end
