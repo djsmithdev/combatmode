@@ -22,9 +22,35 @@ Grab it on [**CurseForge**](https://www.curseforge.com/wow/addons/combat-mode).
 
 <br />
 
+## <img width="32" height="32" src="./cmlogo.svg">Instructions
+
+After installing the AddOn, you'll be greeted by this message upon login:
+
+![previewMsg](./previewMsg.png)
+
+1. You can use these commands or go to Game Menu (ESC) > Options > AddOns > Combat Mode.
+2. In the options panel, you'll be able to set up a key to enable Combat Mode, through either a toggle (on/off) style or press & hold.
+3. When toggled off, your mouse buttons are remapped to what they were originally.
+
+#### Combat Mode has built-in compatibility with popular addons like:
+- [**Opie**](https://www.curseforge.com/wow/addons/opie).
+- [**Narcissus**](https://www.curseforge.com/wow/addons/narcissus).
+- [**Immersion**](https://legacy.curseforge.com/wow/addons/immersion).
+- [**BagNon**](https://www.curseforge.com/wow/addons/bagnon).
+- [**GW2-ui**](https://www.curseforge.com/wow/addons/gw2-ui).
+- [**WeakAuras**](https://www.curseforge.com/wow/addons/weakauras-2).
+
+<br />
+
 ## <img width="32" height="32" src="./cmlogo.svg">Feedback & Support
 
 Talk to us on [**Discord**](https://www.discord.gg/5mwBSmz).
+
+<br />
+
+## <img width="32" height="32" src="./cmlogo.svg">Source Code & Contributing
+
+You can submit a PR with your contributions to [**Combat Mode's repository on GitHub**](https://github.com/djsmithdev/combatmode).
 
 <br />
 
@@ -34,8 +60,12 @@ Talk to us on [**Discord**](https://www.discord.gg/5mwBSmz).
 
 <br />
 
-## <img width="32" height="32" src="./cmlogo.svg">In-game Configuration
+## <img width="32" height="32" src="./cmlogo.svg">Preview Images
 
-![preview](./previewAddon.png)
+![preview1](./preview1.png)
+
+![preview2](./preview2.png)
+
+![preview3](./previewConfig.png)
 
 <br />
