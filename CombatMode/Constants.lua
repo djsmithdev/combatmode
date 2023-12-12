@@ -41,7 +41,7 @@ local crosshairAssetNames = {
   "Line",
   "Split",
   "Square",
-  "Triangle",
+  "Triangle"
 }
 
 for _, assetName in ipairs(crosshairAssetNames) do
@@ -127,6 +127,7 @@ CM.Constants.FramesToCheck = {
   "MerchantFrame",
   "OptionsFrame",
   "OrderHallMissionFrame",
+  "OrderHallTalentFrame",
   "PaperDollFrame",
   "PetitionFrame",
   "PetPaperDollFrame",
