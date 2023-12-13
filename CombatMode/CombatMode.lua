@@ -283,9 +283,9 @@ function CM.SetNewBinding(buttonSettings)
   CM.DebugPrint(buttonSettings.key .. "'s override binding is now " .. valueToUse)
 end
 
-local function OverrideDefaultButtons()
+function CM.OverrideDefaultButtons()
   for _, button in pairs(CM.Constants.ButtonsToOverride) do
-    CM.SetNewBinding(CM.DB[_G.GetBindingsLocation()].bindings[button])
+    CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button])
   end
 end
 
@@ -374,7 +374,7 @@ end
 -- the game that wasn't available in OnInitialize
 function CM:OnEnable()
   RenameBindableActions()
-  OverrideDefaultButtons()
+  CM.OverrideDefaultButtons()
   InitializeWildcardFrameTracking(CM.Constants.WildcardFramesToMatch)
   CreateCrosshair()
   CreateTargetMacros()

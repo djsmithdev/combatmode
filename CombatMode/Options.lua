@@ -2,7 +2,7 @@ local CM = _G.GetGlobalStore()
 
 CM.Options = {}
 
-function GetBindingsLocation()
+function CM.GetBindingsLocation()
   if CM.DB.profile.useGlobalBindings then
     return "global"
   else
@@ -126,15 +126,15 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         width = 0.2,
         order = 1,
         set = function(_, value)
-          CM.DB[GetBindingsLocation()].bindings[button1Settings].enabled = value
+          CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled = value
           if value then
-            CM.SetNewBinding(CM.DB[GetBindingsLocation()].bindings[button1Settings])
+            CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button1Settings])
           else
-            CM.ResetBindingOverride(CM.DB[GetBindingsLocation()].bindings[button1Settings])
+            CM.ResetBindingOverride(CM.DB[CM.GetBindingsLocation()].bindings[button1Settings])
           end
         end,
         get = function()
-          return CM.DB[GetBindingsLocation()].bindings[button1Settings].enabled
+          return CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled
         end,
         disabled = modifier == nil
       },
@@ -146,14 +146,14 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         order = 1.1,
         values = CM.Constants.OverrideActions,
         set = function(_, value)
-          CM.DB[GetBindingsLocation()].bindings[button1Settings].value = value
-          CM.SetNewBinding(CM.DB[GetBindingsLocation()].bindings[button1Settings])
+          CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].value = value
+          CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button1Settings])
         end,
         get = function()
-          return CM.DB[GetBindingsLocation()].bindings[button1Settings].value
+          return CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].value
         end,
         disabled = function()
-          return not CM.DB[GetBindingsLocation()].bindings[button1Settings].enabled
+          return not CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled
         end
       },
       button1SidePadding = {
@@ -169,15 +169,15 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         width = 1.5,
         order = 1.3,
         set = function(_, value)
-          CM.DB[GetBindingsLocation()].bindings[button1Settings].customAction = value
-          CM.SetNewBinding(CM.DB[GetBindingsLocation()].bindings[button1Settings])
+          CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].customAction = value
+          CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button1Settings])
         end,
         get = function()
-          return CM.DB[GetBindingsLocation()].bindings[button1Settings].customAction
+          return CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].customAction
         end,
         disabled = function()
-          return not CM.DB[GetBindingsLocation()].bindings[button1Settings].enabled or
-                   CM.DB[GetBindingsLocation()].bindings[button1Settings].value ~= "CUSTOMACTION"
+          return not CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled or
+                   CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].value ~= "CUSTOMACTION"
         end
       },
       buttonbreak = {
@@ -192,15 +192,15 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         width = 0.2,
         order = 2,
         set = function(_, value)
-          CM.DB[GetBindingsLocation()].bindings[button2Settings].enabled = value
+          CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled = value
           if value then
-            CM.SetNewBinding(CM.DB[GetBindingsLocation()].bindings[button2Settings])
+            CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button2Settings])
           else
-            CM.ResetBindingOverride(CM.DB[GetBindingsLocation()].bindings[button2Settings])
+            CM.ResetBindingOverride(CM.DB[CM.GetBindingsLocation()].bindings[button2Settings])
           end
         end,
         get = function()
-          return CM.DB[GetBindingsLocation()].bindings[button2Settings].enabled
+          return CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled
         end,
         disabled = modifier == nil
       },
@@ -212,14 +212,14 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         order = 2.1,
         values = CM.Constants.OverrideActions,
         set = function(_, value)
-          CM.DB[GetBindingsLocation()].bindings[button2Settings].value = value
-          CM.SetNewBinding(CM.DB[GetBindingsLocation()].bindings[button2Settings])
+          CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].value = value
+          CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button2Settings])
         end,
         get = function()
-          return CM.DB[GetBindingsLocation()].bindings[button2Settings].value
+          return CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].value
         end,
         disabled = function()
-          return not CM.DB[GetBindingsLocation()].bindings[button2Settings].enabled
+          return not CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled
         end
       },
       button2SidePadding = {
@@ -235,15 +235,15 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         width = 1.5,
         order = 2.3,
         set = function(_, value)
-          CM.DB[GetBindingsLocation()].bindings[button2Settings].customAction = value
-          CM.SetNewBinding(CM.DB[GetBindingsLocation()].bindings[button2Settings])
+          CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].customAction = value
+          CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button2Settings])
         end,
         get = function()
-          return CM.DB[GetBindingsLocation()].bindings[button2Settings].customAction
+          return CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].customAction
         end,
         disabled = function()
-          return not CM.DB[GetBindingsLocation()].bindings[button2Settings].enabled or
-                   CM.DB[GetBindingsLocation()].bindings[button2Settings].value ~= "CUSTOMACTION"
+          return not CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled or
+                   CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].value ~= "CUSTOMACTION"
         end
       }
     }
@@ -510,6 +510,7 @@ CM.Options.ConfigOptions = {
           order = 1.5,
           set = function(_, value)
             CM.DB.profile.useGlobalBindings = value
+            CM.OverrideDefaultButtons()
           end,
           get = function()
             return CM.DB.profile.useGlobalBindings
