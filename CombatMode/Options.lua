@@ -2,7 +2,7 @@ local CM = _G.GetGlobalStore()
 
 CM.Options = {}
 
-local function GetBindingsLocation()
+function GetBindingsLocation()
   if CM.DB.profile.useGlobalBindings then
     return "global"
   else

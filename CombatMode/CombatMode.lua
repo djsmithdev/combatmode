@@ -285,7 +285,7 @@ end
 
 local function OverrideDefaultButtons()
   for _, button in pairs(CM.Constants.ButtonsToOverride) do
-    CM.SetNewBinding(CM.DB.profile.bindings[button])
+    CM.SetNewBinding(CM.DB[_G.GetBindingsLocation()].bindings[button])
   end
 end
 
@@ -386,7 +386,7 @@ function CM:OnEnable()
 
   -- Greeting message that is printed to chat on initial load
   print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
-    "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
+          "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
 end
 
 -- Unhook, Unregister Events, Hide frames that you created.
