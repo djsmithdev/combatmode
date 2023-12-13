@@ -684,7 +684,7 @@ CM.Options.ConfigOptions = {
         },
         devNoteDescription2 = {
           type = "description",
-          name = "|cff909090We can circumvent this by creating macros with |cffcfcfcf/cleartarget|r and placing them in the action bar slots that your mouse clicks are assigned to under |cffB47EDEMouse Button Keybinds|r. Below you'll find a base template you can copy to create your macros.|r",
+          name = "|cff909090We can circumvent this by creating macros with |cffcfcfcf/cleartarget|r and placing them in the action bar slots that your mouse clicks are assigned to under |cffB47EDEMouse Button Keybinds|r. Below you'll find a base template you can use when creating your macros. Replace |cffcfcfcfSPELL_NAME|r with the spell you're macroing.|r",
           order = 5.2
         },
         devNoteWarning = {
@@ -694,13 +694,13 @@ CM.Options.ConfigOptions = {
         },
         devNoteCodeBlock = {
           name = "Example:",
-          desc = "/cleartarget [exists]\n/cast SPELL YOU WISH TO CAST\n/startattack [@softenemy,exists]",
+          desc = "#showtooltip SPELL_NAME\n/cast [@anyenemy,harm,nodead] SPELL_NAME\n/cleartarget [exists]",
           type = "input",
           multiline = true,
           width = "full",
           order = 5.4,
           get = function()
-            return "/cleartarget [exists]\n/cast SPELL YOU WISH TO CAST\n/startattack [@softenemy,exists]"
+            return "#showtooltip SPELL_NAME\n/cast [@anyenemy,harm,nodead] SPELL_NAME\n/cleartarget [exists]"
           end
         },
         reticleTargetingNotePaddingBottom = {
