@@ -41,7 +41,7 @@ local crosshairAssetNames = {
   "Line",
   "Split",
   "Square",
-  "Triangle",
+  "Triangle"
 }
 
 for _, assetName in ipairs(crosshairAssetNames) do
@@ -68,6 +68,7 @@ CM.Constants.FramesToCheck = {
   "ChooseItemsFrame",
   "ClassTalentFrame",
   "ClassTrainerFrame",
+  "ClickBindingFrame",
   "CoinPickupFrame",
   "CollectionsJournal",
   "CommunitiesFrame",
@@ -102,6 +103,7 @@ CM.Constants.FramesToCheck = {
   "FlightMapFrame",
   "FriendsFrame",
   "GameMenuFrame",
+  "GarrisonCapacitiveDisplayFrame",
   "GenericTraitFrame",
   "GossipFrame",
   "GuildFrame",
@@ -116,6 +118,7 @@ CM.Constants.FramesToCheck = {
   "KeyBindingFrame",
   "LanguageMenu",
   "LFGDungeonReadyDialog",
+  "LFGListInviteDialog",
   "LookingForGuildFrame",
   "LootFrame",
   "MacroFrame",
@@ -123,6 +126,8 @@ CM.Constants.FramesToCheck = {
   "MajorFactionRenownFrame",
   "MerchantFrame",
   "OptionsFrame",
+  "OrderHallMissionFrame",
+  "OrderHallTalentFrame",
   "PaperDollFrame",
   "PetitionFrame",
   "PetPaperDollFrame",
