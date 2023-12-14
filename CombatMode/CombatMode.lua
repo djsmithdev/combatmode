@@ -283,9 +283,9 @@ function CM.SetNewBinding(buttonSettings)
   CM.DebugPrint(buttonSettings.key .. "'s override binding is now " .. valueToUse)
 end
 
-local function OverrideDefaultButtons()
+function CM.OverrideDefaultButtons()
   for _, button in pairs(CM.Constants.ButtonsToOverride) do
-    CM.SetNewBinding(CM.DB.profile.bindings[button])
+    CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button])
   end
 end
 
@@ -374,7 +374,7 @@ end
 -- the game that wasn't available in OnInitialize
 function CM:OnEnable()
   RenameBindableActions()
-  OverrideDefaultButtons()
+  CM.OverrideDefaultButtons()
   InitializeWildcardFrameTracking(CM.Constants.WildcardFramesToMatch)
   CreateCrosshair()
   CreateTargetMacros()
@@ -386,7 +386,7 @@ function CM:OnEnable()
 
   -- Greeting message that is printed to chat on initial load
   print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
-    "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
+          "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
 end
 
 -- Unhook, Unregister Events, Hide frames that you created.
