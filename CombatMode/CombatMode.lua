@@ -195,7 +195,7 @@ local function CursorUnlockFrameVisible(frameArr)
   for _, frameName in pairs(frameArr) do
     local curFrame = _G[frameName]
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
-      CM.DebugPrint(frameName .. " is visible, enabling cursor")
+      CM.DebugPrint(frameName .. " is visible, preventing re-locking.")
       return true
     end
   end
@@ -233,14 +233,14 @@ local function HasNarcissusOpen()
 end
 
 local function ShouldCursorBeFreed()
+  local shouldLock = not isCursorLockedState
   local shouldUnlock = isCursorManuallyUnlocked or _G.SpellIsTargeting() or
                          CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
                          CursorUnlockFrameVisible(CM.DB.global.watchlist) or
                          CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or IsCustomConditionTrue() or
                          HasNarcissusOpen()
 
-  -- Return the isCursorLockedState along with the shouldUnlock result
-  return shouldUnlock, not isCursorLockedState
+  return shouldUnlock, shouldLock
 end
 
 -- FRAME WATCHING FOR SERIALIZED FRAMES (Ex: Opie rings)
@@ -283,9 +283,9 @@ function CM.SetNewBinding(buttonSettings)
   CM.DebugPrint(buttonSettings.key .. "'s override binding is now " .. valueToUse)
 end
 
-local function OverrideDefaultButtons()
+function CM.OverrideDefaultButtons()
   for _, button in pairs(CM.Constants.ButtonsToOverride) do
-    CM.SetNewBinding(CM.DB.profile.bindings[button])
+    CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button])
   end
 end
 
@@ -311,6 +311,7 @@ local function LockFreeLook()
       CM.ShowCrosshair()
     end
 
+    isCursorLockedState = true
     CM.DebugPrint("Free Look Enabled")
   end
 end
@@ -323,6 +324,7 @@ local function UnlockFreeLook()
       CM.HideCrosshair()
     end
 
+    isCursorLockedState = false
     CM.DebugPrint("Free Look Disabled")
   end
 end
@@ -335,19 +337,11 @@ local function ToggleFreeLook()
   end
 end
 
--- Re-locking Free Look & re-setting CVars after reload/portal
-local function Rematch()
-  local isReticleTargetingActive = CM.DB.global.reticleTargeting
-  if isReticleTargetingActive then
-    CM.LoadReticleTargetCVars()
-  end
-  ToggleFreeLook()
-end
-
 -- CREATING /CM CHAT COMMAND
 function CM:OpenConfigCMD(input)
-  ToggleFreeLook()
-  if not input or input:trim() == "" then
+  if not _G.InCombatLockdown() and not input or input:trim() == "" then
+    UnlockFreeLook()
+    isCursorManuallyUnlocked = true
     AceConfigDialog:Open("Combat Mode")
   else
     AceConfigCmd.HandleCommand(self, "mychat", "Combat Mode", input)
@@ -355,7 +349,8 @@ function CM:OpenConfigCMD(input)
 end
 
 -- STANDARD ACE 3 METHODS
--- Code that you want to run when the addon is first loaded goes here.
+-- do init tasks here, like loading the Saved Variables,
+-- or setting up slash commands.
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Options.DatabaseDefaults, true)
 
@@ -374,10 +369,12 @@ function CM:OnResetDB()
   _G.ReloadUI();
 end
 
--- Called when the addon is enabled
+-- Do more initialization here, that really enables the use of your addon.
+-- Register Events, Hook functions, Create Frames, Get information from
+-- the game that wasn't available in OnInitialize
 function CM:OnEnable()
   RenameBindableActions()
-  OverrideDefaultButtons()
+  CM.OverrideDefaultButtons()
   InitializeWildcardFrameTracking(CM.Constants.WildcardFramesToMatch)
   CreateCrosshair()
   CreateTargetMacros()
@@ -386,29 +383,55 @@ function CM:OnEnable()
   for _, event in pairs(CM.Constants.BLIZZARD_EVENTS) do
     self:RegisterEvent(event, _G.CombatMode_OnEvent)
   end
+
+  -- Greeting message that is printed to chat on initial load
+  print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
+          "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
 end
 
--- Called when the addon is disabled
+-- Unhook, Unregister Events, Hide frames that you created.
+-- You would probably only use an OnDisable if you want to
+-- build a "standby" mode, or be able to toggle modules on/off.
 function CM:OnDisable()
   self.LoadBlizzardDefaultCVars()
 end
 
+-- Re-locking Free Look & re-setting CVars after reload/portal
+local function Rematch()
+  local isReticleTargetingActive = CM.DB.global.reticleTargeting
+  if isReticleTargetingActive then
+    CM.LoadReticleTargetCVars()
+  end
+  LockFreeLook()
+end
+
 -- FIRES WHEN SPECIFIC EVENTS HAPPEN IN GAME
 function _G.CombatMode_OnEvent(event)
+  -- Loading Cvars on every reload
+  if event == "PLAYER_ENTERING_WORLD" then
+    Rematch()
+  end
+
+  -- This forces a relock when quick-loading (e.g: loading after starting m+ run) thanks to the OnUpdate fn
+  if event == "LOADING_SCREEN_ENABLED" then
+    UnlockFreeLook()
+  end
+
+  -- Unlocking cursor when using the barbershop
+  if event == "BARBER_SHOP_OPEN" then
+    UnlockFreeLook()
+  end
+
+  -- Events responsible for crosshair reaction
   if event == "PLAYER_SOFT_ENEMY_CHANGED" then
     HandleCrosshairReactionToTarget("softenemy")
   elseif event == "PLAYER_SOFT_INTERACT_CHANGED" then
     HandleCrosshairReactionToTarget("softinteract")
-  elseif event == "PLAYER_REGEN_ENABLED" then -- when leaving combat, reset crosshair state
+  end
+
+  -- Reseting crosshair when leaving combat
+  if event == "PLAYER_REGEN_ENABLED" then
     SetCrosshairAppearance("base")
-  elseif event == "BARBER_SHOP_OPEN" then
-    UnlockFreeLook()
-  elseif event == "BARBER_SHOP_CLOSE" then
-    LockFreeLook()
-  elseif event == "PLAYER_ENTERING_WORLD" or "CINEMATIC_STOP" then
-    Rematch()
-    print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
-            "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
   end
 end
 
@@ -417,22 +440,13 @@ function _G.CombatMode_OnUpdate(self, elapsed)
   -- Making this thread-safe by keeping track of the last update cycle
   self.TimeSinceLastUpdate = self.TimeSinceLastUpdate + elapsed;
 
-  -- Bypassing the update cycle check when spell targeting so we can relock asap, without adding latency to player actions
-  -- if _G.SpellIsTargeting() then
-  --   UnlockFreeLook()
-  --   isCursorLockedState = false
-  --   return
-  -- end
-
   -- As the frame watching doesn't need to perform a visibility check every frame, we're adding a stagger
   if (self.TimeSinceLastUpdate > updateInterval) and not IsDefaultMouseActionBeingUsed() then
     local shouldUnlock, shouldLock = ShouldCursorBeFreed()
     if shouldUnlock then
       UnlockFreeLook()
-      isCursorLockedState = false
     elseif shouldLock then
       LockFreeLook()
-      isCursorLockedState = true
     end
 
     self.TimeSinceLastUpdate = 0;

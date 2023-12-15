@@ -2,6 +2,99 @@ local CM = _G.GetGlobalStore()
 
 CM.Options = {}
 
+function CM.GetBindingsLocation()
+  if CM.DB.profile.useGlobalBindings then
+    return "global"
+  else
+    return "profile"
+  end
+end
+
+local function GetDefaultBindings()
+  return {
+    button1 = {
+      enabled = true,
+      key = "BUTTON1",
+      value = "ACTIONBUTTON1",
+      customAction = ""
+    },
+    button2 = {
+      enabled = true,
+      key = "BUTTON2",
+      value = "ACTIONBUTTON2",
+      customAction = ""
+    },
+    shiftbutton1 = {
+      enabled = true,
+      key = "SHIFT-BUTTON1",
+      value = "ACTIONBUTTON3",
+      customAction = ""
+    },
+    shiftbutton2 = {
+      enabled = true,
+      key = "SHIFT-BUTTON2",
+      value = "ACTIONBUTTON4",
+      customAction = ""
+    },
+    ctrlbutton1 = {
+      enabled = true,
+      key = "CTRL-BUTTON1",
+      value = "ACTIONBUTTON5",
+      customAction = ""
+    },
+    ctrlbutton2 = {
+      enabled = true,
+      key = "CTRL-BUTTON2",
+      value = "ACTIONBUTTON6",
+      customAction = ""
+    },
+    altbutton1 = {
+      enabled = true,
+      key = "ALT-BUTTON1",
+      value = "ACTIONBUTTON7",
+      customAction = ""
+    },
+    altbutton2 = {
+      enabled = true,
+      key = "ALT-BUTTON2",
+      value = "ACTIONBUTTON8",
+      customAction = ""
+    },
+    toggle = {
+      key = "Combat Mode Toggle",
+      value = "BUTTON3"
+    },
+    hold = {
+      key = "(Hold) Switch Mode",
+      value = "BUTTON4"
+    }
+  }
+end
+
+CM.Options.DatabaseDefaults = {
+  global = {
+    frameWatching = true,
+    watchlist = {
+      "PawnUIFrame",
+      "SortedPrimaryFrame",
+      "WeakAurasOptions"
+    },
+    customCondition = "",
+    reticleTargeting = true,
+    crosshair = true,
+    crosshairAppearance = CM.Constants.CrosshairTextureObj.Triangle,
+    crosshairSize = 64,
+    crosshairOpacity = 1.0,
+    crosshairY = 100,
+    debugMode = false,
+    bindings = GetDefaultBindings()
+  },
+  profile = {
+    useGlobalBindings = false,
+    bindings = GetDefaultBindings()
+  }
+}
+
 local function GetButtonOverrideGroup(modifier, groupOrder)
   local button1Settings, button2Settings, groupName, button1Name, button2Name
   if modifier then
@@ -33,15 +126,15 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         width = 0.2,
         order = 1,
         set = function(_, value)
-          CM.DB.profile.bindings[button1Settings].enabled = value
+          CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled = value
           if value then
-            CM.SetNewBinding(CM.DB.profile.bindings[button1Settings])
+            CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button1Settings])
           else
-            CM.ResetBindingOverride(CM.DB.profile.bindings[button1Settings])
+            CM.ResetBindingOverride(CM.DB[CM.GetBindingsLocation()].bindings[button1Settings])
           end
         end,
         get = function()
-          return CM.DB.profile.bindings[button1Settings].enabled
+          return CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled
         end,
         disabled = modifier == nil
       },
@@ -53,14 +146,14 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         order = 1.1,
         values = CM.Constants.OverrideActions,
         set = function(_, value)
-          CM.DB.profile.bindings[button1Settings].value = value
-          CM.SetNewBinding(CM.DB.profile.bindings[button1Settings])
+          CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].value = value
+          CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button1Settings])
         end,
         get = function()
-          return CM.DB.profile.bindings[button1Settings].value
+          return CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].value
         end,
         disabled = function()
-          return not CM.DB.profile.bindings[button1Settings].enabled
+          return not CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled
         end
       },
       button1SidePadding = {
@@ -76,15 +169,15 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         width = 1.5,
         order = 1.3,
         set = function(_, value)
-          CM.DB.profile.bindings[button1Settings].customAction = value
-          CM.SetNewBinding(CM.DB.profile.bindings[button1Settings])
+          CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].customAction = value
+          CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button1Settings])
         end,
         get = function()
-          return CM.DB.profile.bindings[button1Settings].customAction
+          return CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].customAction
         end,
         disabled = function()
-          return not CM.DB.profile.bindings[button1Settings].enabled or CM.DB.profile.bindings[button1Settings].value ~=
-                   "CUSTOMACTION"
+          return not CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled or
+                   CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].value ~= "CUSTOMACTION"
         end
       },
       buttonbreak = {
@@ -99,15 +192,15 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         width = 0.2,
         order = 2,
         set = function(_, value)
-          CM.DB.profile.bindings[button2Settings].enabled = value
+          CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled = value
           if value then
-            CM.SetNewBinding(CM.DB.profile.bindings[button2Settings])
+            CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button2Settings])
           else
-            CM.ResetBindingOverride(CM.DB.profile.bindings[button2Settings])
+            CM.ResetBindingOverride(CM.DB[CM.GetBindingsLocation()].bindings[button2Settings])
           end
         end,
         get = function()
-          return CM.DB.profile.bindings[button2Settings].enabled
+          return CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled
         end,
         disabled = modifier == nil
       },
@@ -119,14 +212,14 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         order = 2.1,
         values = CM.Constants.OverrideActions,
         set = function(_, value)
-          CM.DB.profile.bindings[button2Settings].value = value
-          CM.SetNewBinding(CM.DB.profile.bindings[button2Settings])
+          CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].value = value
+          CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button2Settings])
         end,
         get = function()
-          return CM.DB.profile.bindings[button2Settings].value
+          return CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].value
         end,
         disabled = function()
-          return not CM.DB.profile.bindings[button2Settings].enabled
+          return not CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled
         end
       },
       button2SidePadding = {
@@ -142,99 +235,20 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         width = 1.5,
         order = 2.3,
         set = function(_, value)
-          CM.DB.profile.bindings[button2Settings].customAction = value
-          CM.SetNewBinding(CM.DB.profile.bindings[button2Settings])
+          CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].customAction = value
+          CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button2Settings])
         end,
         get = function()
-          return CM.DB.profile.bindings[button2Settings].customAction
+          return CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].customAction
         end,
         disabled = function()
-          return not CM.DB.profile.bindings[button2Settings].enabled or CM.DB.profile.bindings[button2Settings].value ~=
-                   "CUSTOMACTION"
+          return not CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled or
+                   CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].value ~= "CUSTOMACTION"
         end
       }
     }
   }
 end
-
-CM.Options.DatabaseDefaults = {
-  global = {
-    frameWatching = true,
-    watchlist = {
-      "SortedPrimaryFrame",
-      "WeakAurasOptions",
-      "PawnUIFrame"
-    },
-    customCondition = "",
-    reticleTargeting = true,
-    crosshair = true,
-    crosshairAppearance = CM.Constants.CrosshairTextureObj.Triangle,
-    crosshairSize = 64,
-    crosshairOpacity = 1.0,
-    crosshairY = 100,
-    debugMode = false
-  },
-  profile = {
-    bindings = {
-      button1 = {
-        enabled = true,
-        key = "BUTTON1",
-        value = "ACTIONBUTTON1",
-        customAction = ""
-      },
-      button2 = {
-        enabled = true,
-        key = "BUTTON2",
-        value = "ACTIONBUTTON2",
-        customAction = ""
-      },
-      shiftbutton1 = {
-        enabled = true,
-        key = "SHIFT-BUTTON1",
-        value = "ACTIONBUTTON3",
-        customAction = ""
-      },
-      shiftbutton2 = {
-        enabled = true,
-        key = "SHIFT-BUTTON2",
-        value = "ACTIONBUTTON4",
-        customAction = ""
-      },
-      ctrlbutton1 = {
-        enabled = true,
-        key = "CTRL-BUTTON1",
-        value = "ACTIONBUTTON5",
-        customAction = ""
-      },
-      ctrlbutton2 = {
-        enabled = true,
-        key = "CTRL-BUTTON2",
-        value = "ACTIONBUTTON6",
-        customAction = ""
-      },
-      altbutton1 = {
-        enabled = true,
-        key = "ALT-BUTTON1",
-        value = "ACTIONBUTTON7",
-        customAction = ""
-      },
-      altbutton2 = {
-        enabled = true,
-        key = "ALT-BUTTON2",
-        value = "ACTIONBUTTON8",
-        customAction = ""
-      },
-      toggle = {
-        key = "Combat Mode Toggle",
-        value = "BUTTON3"
-      },
-      hold = {
-        key = "(Hold) Switch Mode",
-        value = "BUTTON4"
-      }
-    }
-  }
-}
 
 CM.Options.ConfigOptions = {
   name = CM.METADATA["TITLE"],
@@ -488,6 +502,26 @@ CM.Options.ConfigOptions = {
           width = "full",
           order = 1.1
         },
+        keybindGlobalOption = {
+          type = "toggle",
+          name = "Use Global Keybinds",
+          desc = "Use your account-wide shared keybinds on this character.",
+          width = "full",
+          order = 1.5,
+          set = function(_, value)
+            CM.DB.profile.useGlobalBindings = value
+            CM.OverrideDefaultButtons()
+          end,
+          get = function()
+            return CM.DB.profile.useGlobalBindings
+          end
+        },
+        keybindGlobalOptionPaddingBottom = {
+          type = "description",
+          name = " ",
+          width = "full",
+          order = 1.6
+        },
         keybindDescription = {
           type = "description",
           name = "Select which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.",
@@ -684,7 +718,7 @@ CM.Options.ConfigOptions = {
         },
         devNoteDescription2 = {
           type = "description",
-          name = "|cff909090We can circumvent this by creating macros with |cffcfcfcf/cleartarget|r and placing them in the action bar slots that your mouse clicks are assigned to under |cffB47EDEMouse Button Keybinds|r. Below you'll find a base template you can copy to create your macros.|r",
+          name = "|cff909090We can circumvent this by creating macros with |cffcfcfcf/cleartarget|r and placing them in the action bar slots that your mouse clicks are assigned to under |cffB47EDEMouse Button Keybinds|r. Below you'll find a base template you can use when creating your macros. Replace |cffcfcfcfSPELL_NAME|r with the spell you're macroing.|r",
           order = 5.2
         },
         devNoteWarning = {
@@ -694,13 +728,13 @@ CM.Options.ConfigOptions = {
         },
         devNoteCodeBlock = {
           name = "Example:",
-          desc = "/cleartarget [exists]\n/cast SPELL YOU WISH TO CAST\n/startattack [@softenemy,exists]",
+          desc = "#showtooltip SPELL_NAME\n/cast [@anyenemy,harm,nodead] SPELL_NAME\n/cleartarget [exists]",
           type = "input",
           multiline = true,
           width = "full",
           order = 5.4,
           get = function()
-            return "/cleartarget [exists]\n/cast SPELL YOU WISH TO CAST\n/startattack [@softenemy,exists]"
+            return "#showtooltip SPELL_NAME\n/cast [@anyenemy,harm,nodead] SPELL_NAME\n/cleartarget [exists]"
           end
         },
         reticleTargetingNotePaddingBottom = {
