@@ -207,7 +207,10 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
       if wildcardFrameName == "OPieRT" then
         -- Hiding crosshair because OPie runs _G.MouselookStop() itself,
         -- which skips UnlockCursor()'s checks to hide crosshair
-        CM.HideCrosshair()
+        if CM.DB.global.crosshair then
+          CM.HideCrosshair()
+        end
+        isCursorLockedState = false
       end
       return true
     end

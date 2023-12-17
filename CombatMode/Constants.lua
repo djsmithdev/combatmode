@@ -115,6 +115,7 @@ CM.Constants.FramesToCheck = {
   "InventoryManagerFrame",
   "ItemInteractionFrame",
   "ItemUpgradeFrame",
+  "ItemTextFrame",
   "KeyBindingFrame",
   "LanguageMenu",
   "LFGDungeonReadyDialog",
