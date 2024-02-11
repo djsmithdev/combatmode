@@ -110,6 +110,7 @@ local function SetCrosshairAppearance(state)
   CrosshairAnimation:SetScript("OnFinished", function()
     if state == "hostile" or state == "friendly" then
       CrosshairFrame:SetScale(endingScale)
+      CrosshairFrame:SetPoint("CENTER", 0, (CM.DB.global.crosshairY or 100) / endingScale)
     end
   end)
 
@@ -126,6 +127,7 @@ local function SetCrosshairAppearance(state)
     CrosshairTexture:SetVertexColor(1, 1, 1, .5)
     CrosshairAnimation:Play(true) -- reverse
     CrosshairFrame:SetScale(startingScale)
+    CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or 100)
   end
 end
 
