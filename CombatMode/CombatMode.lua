@@ -110,6 +110,7 @@ local function SetCrosshairAppearance(state)
   CrosshairAnimation:SetScript("OnFinished", function()
     if state == "hostile" or state == "friendly" then
       CrosshairFrame:SetScale(endingScale)
+      CrosshairFrame:SetPoint("CENTER", 0, (CM.DB.global.crosshairY or 100) / endingScale)
     end
   end)
 
@@ -126,6 +127,7 @@ local function SetCrosshairAppearance(state)
     CrosshairTexture:SetVertexColor(1, 1, 1, .5)
     CrosshairAnimation:Play(true) -- reverse
     CrosshairFrame:SetScale(startingScale)
+    CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or 100)
   end
 end
 
@@ -207,7 +209,10 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
       if wildcardFrameName == "OPieRT" then
         -- Hiding crosshair because OPie runs _G.MouselookStop() itself,
         -- which skips UnlockCursor()'s checks to hide crosshair
-        CM.HideCrosshair()
+        if CM.DB.global.crosshair then
+          CM.HideCrosshair()
+        end
+        isCursorLockedState = false
       end
       return true
     end
