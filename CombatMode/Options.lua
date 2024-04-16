@@ -82,6 +82,7 @@ CM.Options.DatabaseDefaults = {
     customCondition = "",
     reticleTargeting = true,
     crosshair = true,
+    crosshairMounted = true,
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Triangle,
     crosshairSize = 64,
     crosshairOpacity = 1.0,
@@ -784,11 +785,18 @@ CM.Options.ConfigOptions = {
                 return CM.DB.global.crosshair
               end
             },
-            crosshairSpacing = {
-              type = "description",
-              name = " ",
+            crosshairMounted = {
+              type = "toggle",
+              name = "Hide While Mounted",
+              desc = "Hides the crosshair while mounted.",
               width = 1.4,
-              order = 2.1
+              order = 2.1,
+              set = function(_, value)
+                CM.DB.global.crosshairMounted = value
+              end,
+              get = function()
+                return CM.DB.global.crosshairMounted
+              end
             },
             crosshairAppearance = {
               name = "Crosshair Appearance",
