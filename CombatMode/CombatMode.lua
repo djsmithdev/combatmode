@@ -103,14 +103,19 @@ local function IsDefaultMouseActionBeingUsed()
 end
 
 -- CROSSHAIR STATE HANDLING FUNCTIONS
+local function HideWhileMounted()
+  return CM.DB.global.crosshairMounted and _G.IsMounted()
+end
+
 local function SetCrosshairAppearance(state)
   local CrosshairAppearance = CM.DB.global.crosshairAppearance
+  local yOffset = CM.DB.global.crosshairY or 100
 
   -- Sets new scale at the end of animation
   CrosshairAnimation:SetScript("OnFinished", function()
     if state == "hostile" or state == "friendly" then
       CrosshairFrame:SetScale(endingScale)
-      CrosshairFrame:SetPoint("CENTER", 0, (CM.DB.global.crosshairY or 100) / endingScale)
+      CrosshairFrame:SetPoint("CENTER", 0, yOffset / endingScale)
     end
   end)
 
@@ -122,12 +127,15 @@ local function SetCrosshairAppearance(state)
     CrosshairTexture:SetTexture(CrosshairAppearance.Active)
     CrosshairTexture:SetVertexColor(0, 1, 0.3, .8)
     CrosshairAnimation:Play()
+  elseif state == "mounted" then
+    CrosshairTexture:SetVertexColor(1, 1, 1, 0)
+    CrosshairAnimation:Play()
   else -- "base" falls here
     CrosshairTexture:SetTexture(CrosshairAppearance.Base)
     CrosshairTexture:SetVertexColor(1, 1, 1, .5)
     CrosshairAnimation:Play(true) -- reverse
     CrosshairFrame:SetScale(startingScale)
-    CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or 100)
+    CrosshairFrame:SetPoint("CENTER", 0, yOffset)
   end
 end
 
@@ -173,15 +181,12 @@ end
 
 local function HandleCrosshairReactionToTarget(target)
   local isTargetVisible = _G.UnitIsVisible(target)
-  local isTargetHostile = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) <= 4
-  local isTargetFriendly = _G.UnitReaction("player", target) and _G.UnitReaction("player", target) >= 5
+  local reaction = _G.UnitReaction("player", target)
+  local isTargetHostile = reaction and reaction <= 4
+  local isTargetFriendly = reaction and reaction >= 5
 
   if isTargetVisible then
-    if isTargetHostile then
-      SetCrosshairAppearance("hostile")
-    elseif isTargetFriendly then
-      SetCrosshairAppearance("friendly")
-    end
+    SetCrosshairAppearance(isTargetHostile and "hostile" or isTargetFriendly and "friendly" or "base")
   else
     SetCrosshairAppearance("base")
   end
@@ -428,15 +433,20 @@ function _G.CombatMode_OnEvent(event)
   end
 
   -- Events responsible for crosshair reaction
-  if event == "PLAYER_SOFT_ENEMY_CHANGED" then
-    HandleCrosshairReactionToTarget("softenemy")
-  elseif event == "PLAYER_SOFT_INTERACT_CHANGED" then
-    HandleCrosshairReactionToTarget("softinteract")
-  end
+  if event == "PLAYER_SOFT_ENEMY_CHANGED" or event == "PLAYER_SOFT_INTERACT_CHANGED" then
+    if not HideWhileMounted() then
+      HandleCrosshairReactionToTarget(event == "PLAYER_SOFT_ENEMY_CHANGED" and "softenemy" or "softinteract")
+    end
 
-  -- Reseting crosshair when leaving combat
-  if event == "PLAYER_REGEN_ENABLED" then
-    SetCrosshairAppearance("base")
+    -- Hiding crosshair while mounted
+  elseif event == "PLAYER_MOUNT_DISPLAY_CHANGED" then
+    SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
+
+    -- Reseting crosshair when leaving combat
+  elseif event == "PLAYER_REGEN_ENABLED" then
+    if not HideWhileMounted() then
+      SetCrosshairAppearance("base")
+    end
   end
 end
 

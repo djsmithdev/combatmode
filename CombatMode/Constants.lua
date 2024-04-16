@@ -8,7 +8,8 @@ CM.Constants.BLIZZARD_EVENTS = {
   "BARBER_SHOP_OPEN",
   "PLAYER_SOFT_ENEMY_CHANGED",
   "PLAYER_SOFT_INTERACT_CHANGED",
-  "PLAYER_REGEN_ENABLED"
+  "PLAYER_REGEN_ENABLED",
+  "PLAYER_MOUNT_DISPLAY_CHANGED"
 }
 
 local assetsFolderPath = "Interface\\AddOns\\CombatMode\\assets\\"
@@ -284,7 +285,7 @@ CM.Constants.CustomCVarValues = {
   ["SoftTargetIconInteract"] = 1,
   ["SoftTargetIconGameObject"] = 1,
   -- friendly target
-  ["SoftTargetFriend"] = 3,
+  ["SoftTargetFriend"] = 0,
   ["SoftTargetFriendArc"] = 0,
   ["SoftTargetFriendRange"] = 15,
   ["SoftTargetIconFriend"] = 0,
