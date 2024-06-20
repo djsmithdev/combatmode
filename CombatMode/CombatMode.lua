@@ -7,7 +7,7 @@ local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 
 -- DEVELOPER NOTE
 -- You can access the global CM store in any file by calling _G.GetGlobalStore() on a localized CM.
--- Each additional file has its own object within the CM store. Follow this pattern when making changes.
+-- Each additional file has its own table within the CM store. Follow this pattern when making changes.
 -- Properties from the main CombatMode.lua file are assigned directly to the CM obj.
 -- Ex: You can get CustomCVarValues from Constants.lua by referencing the CM.Constants.CustomCVarValues
 
@@ -94,12 +94,22 @@ local function CreateTargetMacros()
   end
 end
 
--- If left or right mouse buttons are being used while not free looking - meaning you're using the default mouse actions - then it won't allow yout o lock into Free Look.
+-- If left or right mouse buttons are being used while not free looking - meaning you're using the default mouse actions - then it won't allow you to lock into Free Look.
 -- This prevents the auto running bug.
 local function IsDefaultMouseActionBeingUsed()
   -- disabling this here cause linting doesn't know what it wants here
   ---@diagnostic disable-next-line: param-type-mismatch
   return _G.IsMouseButtonDown("LeftButton") or _G.IsMouseButtonDown("RightButton")
+end
+
+local function CenterCursor(shouldCenter)
+  if shouldCenter then
+    _G.SetCVar("CursorFreelookCentering", 1)
+    CM.DebugPrint("Locking cursor to crosshair position.")
+  else
+    _G.SetCVar("CursorFreelookCentering", 0)
+    CM.DebugPrint("Freeing cursor from crosshair position.")
+  end
 end
 
 -- CROSSHAIR STATE HANDLING FUNCTIONS
@@ -110,6 +120,9 @@ end
 local function SetCrosshairAppearance(state)
   local CrosshairAppearance = CM.DB.global.crosshairAppearance
   local yOffset = CM.DB.global.crosshairY or 100
+  -- Adjusts centered cursor vertical positioning
+  local cursorCenteredYpos = (yOffset / 1000) + 0.5 - 0.015
+  _G.SetCVar("CursorCenteredYPos", cursorCenteredYpos)
 
   -- Sets new scale at the end of animation
   CrosshairAnimation:SetScript("OnFinished", function()
@@ -218,6 +231,7 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
           CM.HideCrosshair()
         end
         isCursorLockedState = false
+        CenterCursor(false)
       end
       return true
     end
@@ -316,6 +330,7 @@ end
 local function LockFreeLook()
   if not _G.IsMouselooking() then
     _G.MouselookStart()
+    CenterCursor(true)
 
     if CM.DB.global.crosshair then
       CM.ShowCrosshair()
@@ -328,6 +343,7 @@ end
 
 local function UnlockFreeLook()
   if _G.IsMouselooking() then
+    CenterCursor(false)
     _G.MouselookStop()
 
     if CM.DB.global.crosshair then
@@ -409,9 +425,16 @@ end
 -- Re-locking Free Look & re-setting CVars after reload/portal
 local function Rematch()
   local isReticleTargetingActive = CM.DB.global.reticleTargeting
+  local isCrosshairPriorityActive = CM.DB.global.crosshairPriority
+
   if isReticleTargetingActive then
     CM.LoadReticleTargetCVars()
   end
+
+  if isCrosshairPriorityActive then
+    _G.SetCVar("enableMouseoverCast", 1)
+  end
+
   LockFreeLook()
 end
 

@@ -24,7 +24,7 @@ CM.Constants.Title = assetsFolderPath .. "cmtitle.blp"
 -- Base texture = "crosshairASSETNAME.blp"
 -- Hit texture = "crosshairASSETNAME-hit.blp"
 -- Where "ASSETNAME" is the name you want to be displayed on the dropdown.
--- Then just add that same "ASSETNAME" to the CrosshairAssets obj below:
+-- Then just add that same "ASSETNAME" to the CrosshairTextureObj table below:
 -- This is case sensitive!
 CM.Constants.CrosshairTextureObj = {}
 
@@ -208,7 +208,7 @@ CM.Constants.FramesToCheck = {
 
 -- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"
 CM.Constants.WildcardFramesToMatch = {
-  "OPieRT"
+  "OPieRT",
 }
 
 -- The dynamic names of the frames defined right above, determined on loading into the game world. Do not add frame names in this table, do it above instead!
@@ -248,7 +248,8 @@ CM.Constants.ActionsToProcess = {
   "TARGETPREVIOUSFRIEND",
   "TARGETPREVIOUSFRIENDPLAYER",
   "TARGETSCANENEMY",
-  "TARGETSELF"
+  "TARGETSELF",
+  "TARGETMOUSEOVER"
 }
 
 -- Matches the bindable actions values defined right above with more readable names for the UI
@@ -293,7 +294,10 @@ CM.Constants.CustomCVarValues = {
   ["SoftTargetEnemy"] = 3,
   ["SoftTargetEnemyArc"] = 0,
   ["SoftTargetEnemyRange"] = 60,
-  ["SoftTargetIconEnemy"] = 0
+  ["SoftTargetIconEnemy"] = 0,
+  -- cursor centering
+  ["CursorFreelookCentering"] = 0, -- needs to be set to 0 initially because Blizzard changed this cvar to be called BEFORE _G.MouselookStart() method, which means if we set to 1 by default, it will cause the camera to snap to cursor position as you enable free look.
+  ["CursorStickyCentering"] = 1, -- does not work in its current implementation. Most likely related to the recent CursorFreelookCentering change.
 }
 
 -- DEFAULT BLIZZARD VALUES
@@ -316,5 +320,7 @@ CM.Constants.BlizzardCVarValues = {
   ["SoftTargetEnemy"] = 1,
   ["SoftTargetEnemyArc"] = 2,
   ["SoftTargetEnemyRange"] = 45,
-  ["SoftTargetIconEnemy"] = 0
+  ["SoftTargetIconEnemy"] = 0,
+  ["CursorFreelookCentering"] = 0,
+  ["CursorStickyCentering"] = 0,
 }
