@@ -81,6 +81,7 @@ CM.Options.DatabaseDefaults = {
     },
     customCondition = "",
     reticleTargeting = true,
+    crosshairPriority = true,
     crosshair = true,
     crosshairMounted = true,
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Triangle,
@@ -506,7 +507,7 @@ CM.Options.ConfigOptions = {
         keybindGlobalOption = {
           type = "toggle",
           name = "Use Global Keybinds",
-          desc = "Use your account-wide shared keybinds on this character.",
+          desc = "Use your account-wide shared keybinds on this character.\n|cffffd700Default:|r |cffE52B50Off|r",
           width = "full",
           order = 1.5,
           set = function(_, value)
@@ -606,7 +607,7 @@ CM.Options.ConfigOptions = {
         cursorUnlock = {
           type = "toggle",
           name = "Automatic Cursor Unlock",
-          desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+          desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).\n|cffffd700Default:|r |cff00FF7FOn|r",
           width = "full",
           order = 4,
           set = function(_, value)
@@ -685,21 +686,22 @@ CM.Options.ConfigOptions = {
         },
         reticleTargetingDescription = {
           type = "description",
-          name = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable with predictable behavior.",
+          name = "Configures Blizzard's Action Targeting feature from the default dynamic & tab targeting hybrid to something truly action-oriented, where the crosshair is responsible for target selection and requires you to aim at units.",
           fontSize = "medium",
           order = 2
         },
-        reticleTargetingWarning = {
+        reticleTargetingDescriptionPaddingBottom = {
           type = "description",
-          name = "\n|cffFF5050This will override all Cvar values related to SoftTarget. Uncheck to reset them to the default values.|r",
-          order = 3
+          name = " ",
+          width = "full",
+          order = 2.1
         },
         reticleTargeting = {
           type = "toggle",
           name = "Reticle Targeting",
-          desc = "Configures Blizzard's Action Targeting feature from the frustrating default settings to something actually usable w/ predictable behavior.",
-          width = "full",
-          order = 4,
+          desc = "Configures Blizzard's Action Targeting feature to something action-oriented and responsive. \n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n|cff909090Uncheck to reset them to their default values.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+          width = 1.0,
+          order = 3,
           set = function(_, value)
             CM.DB.global.reticleTargeting = value
             if value then
@@ -712,43 +714,45 @@ CM.Options.ConfigOptions = {
             return CM.DB.global.reticleTargeting
           end
         },
-        devNoteDescription1 = {
-          type = "description",
-          name = "|cffffd700Developer Note:|r \n|cff909090Please note that due to an oversight on Blizzard's part, some spells have baked-in |cffFF5050hard target locking|r, and |cffcfcfcfSoftTargeting|r for some reason does not overrule that when enabled. This causes the occasional need to manually clear the target by pressing esc/tab.|r",
-          order = 5.1
+        crosshairPriority = {
+          type = "toggle",
+          name = "Prioritize Crosshair Target",
+          desc = "Gives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on.\n|cff909090This is the intended behavior for the |cff00FFFFCrosshair|r, where it can override even hard locked targets, but you can disable it and the addon will work just fine albeit with less responsive targeting.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+          width = 1.4,
+          order = 4,
+          set = function(_, value)
+            CM.DB.global.crosshairPriority = value
+            if value then
+              _G.SetCVar("enableMouseoverCast", 1)
+            else
+              _G.SetCVar("enableMouseoverCast", 0)
+            end
+          end,
+          get = function()
+            return CM.DB.global.crosshairPriority
+          end
         },
-        devNoteDescription2 = {
+        devNoteDescription = {
           type = "description",
-          name = "|cff909090We can circumvent this by creating macros with |cffcfcfcf/cleartarget|r and placing them in the action bar slots that your mouse clicks are assigned to under |cffB47EDEMouse Button Keybinds|r. Below you'll find a base template you can use when creating your macros. Replace |cffcfcfcfSPELL_NAME|r with the spell you're macroing.|r",
-          order = 5.2
+          name = "|cffffd700Developer Note:|r \n|cff909090When |cffcfcfcfPrioritize Crosshair Target|r is enabled, Combat Mode will activate the |cffffd700Mouseover Cast|r option found in the interface menu, making the |cff00FFFFCrosshair|r act as a cursor, thus eliminating the need to create macros with |cffB47EDE@mouseover|r or |cffB47EDE@cursor|r decorators for all of your spells.|r",
+          order = 4.1
         },
         devNoteWarning = {
           type = "description",
-          name = "\n|cffFF5050This is an optional configuration step. Only a few spells force target locks, and some classes have none of those. So if this issue doesn't affect you or you're already manually clearing targets, then there's no need to do this.|r",
-          order = 5.3
-        },
-        devNoteCodeBlock = {
-          name = "Example:",
-          desc = "#showtooltip SPELL_NAME\n/cast [@anyenemy,harm,nodead] SPELL_NAME\n/cleartarget [exists]",
-          type = "input",
-          multiline = true,
-          width = "full",
-          order = 5.4,
-          get = function()
-            return "#showtooltip SPELL_NAME\n/cast [@anyenemy,harm,nodead] SPELL_NAME\n/cleartarget [exists]"
-          end
+          name = "\n|cffFF5050Make sure your |cffffd700Mouseover Cast|r hotkey modifier is set to |cffffd700None|r in the interface menu |cffcfcfcf(Options > Gameplay > Combat)|r otherwise |cffcfcfcfPrioritize Crosshair Target|r will only work while the selected key is being pressed.|r",
+          order = 4.2
         },
         reticleTargetingNotePaddingBottom = {
           type = "description",
           name = " ",
           width = "full",
-          order = 5.5
+          order = 4.3
         },
         -- CROSSHAIR
         crosshairGroup = {
           type = "group",
           name = "|cff00FFFFCrosshair|r",
-          order = 6,
+          order = 5,
           args = {
             crosshairDescription = {
               type = "description",
@@ -769,8 +773,8 @@ CM.Options.ConfigOptions = {
             },
             crosshair = {
               type = "toggle",
-              name = "Crosshair",
-              desc = "Places a dynamic crosshair marker in the center of the screen to assist with Reticle Targeting.",
+              name = "Show Crosshair",
+              desc = "Places a dynamic crosshair marker in the center of the screen to assist with Reticle Targeting.\n|cffffd700Default:|r |cff00FF7FOn|r",
               width = 1.0,
               order = 2,
               set = function(_, value)
@@ -788,7 +792,7 @@ CM.Options.ConfigOptions = {
             crosshairMounted = {
               type = "toggle",
               name = "Hide While Mounted",
-              desc = "Hides the crosshair while mounted.",
+              desc = "Hides the crosshair while mounted.\n|cffffd700Default:|r |cff00FF7FOn|r",
               width = 1.4,
               order = 2.1,
               set = function(_, value)
