@@ -120,6 +120,7 @@ end
 local function SetCrosshairAppearance(state)
   local CrosshairAppearance = CM.DB.global.crosshairAppearance
   local yOffset = CM.DB.global.crosshairY or 100
+  
   -- Adjusts centered cursor vertical positioning
   local cursorCenteredYpos = (yOffset / 1000) + 0.5 - 0.015
   _G.SetCVar("CursorCenteredYPos", cursorCenteredYpos)
