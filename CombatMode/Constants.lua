@@ -9,7 +9,11 @@ CM.Constants.BLIZZARD_EVENTS = {
   "PLAYER_SOFT_ENEMY_CHANGED",
   "PLAYER_SOFT_INTERACT_CHANGED",
   "PLAYER_REGEN_ENABLED",
-  "PLAYER_MOUNT_DISPLAY_CHANGED"
+  "PLAYER_MOUNT_DISPLAY_CHANGED",
+  "CINEMATIC_START",
+  "CINEMATIC_STOP",
+  "PLAY_MOVIE",
+  "STOP_MOVIE"
 }
 
 local assetsFolderPath = "Interface\\AddOns\\CombatMode\\assets\\"
@@ -203,7 +207,8 @@ CM.Constants.FramesToCheck = {
   "TotemStomperFrame",
   "UIOptionsFrame",
   "VideoOptionsFrame",
-  "WantAds"
+  "WantAds",
+  "SubscriptionInterstitialFrame",
 }
 
 -- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"

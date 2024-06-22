@@ -120,7 +120,6 @@ end
 local function SetCrosshairAppearance(state)
   local CrosshairAppearance = CM.DB.global.crosshairAppearance
   local yOffset = CM.DB.global.crosshairY or 100
-  
   -- Adjusts centered cursor vertical positioning
   local cursorCenteredYpos = (yOffset / 1000) + 0.5 - 0.015
   _G.SetCVar("CursorCenteredYPos", cursorCenteredYpos)
@@ -259,7 +258,7 @@ end
 
 local function ShouldCursorBeFreed()
   local shouldLock = not isCursorLockedState
-  local shouldUnlock = isCursorManuallyUnlocked or _G.SpellIsTargeting() or
+  local shouldUnlock = isCursorManuallyUnlocked or _G.SpellIsTargeting() or _G.InCinematic() or
                          CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
                          CursorUnlockFrameVisible(CM.DB.global.watchlist) or
                          CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or IsCustomConditionTrue() or
@@ -440,20 +439,37 @@ local function Rematch()
 end
 
 -- FIRES WHEN SPECIFIC EVENTS HAPPEN IN GAME
+-- You need to first register the event in the CM.Constants.BLIZZARD_EVENTS table before using it here
 function _G.CombatMode_OnEvent(event)
+  local UNLOCK_EVENTS = {
+    "LOADING_SCREEN_ENABLED", -- This forces a relock when quick-loading (e.g: loading after starting m+ run) thanks to the OnUpdate fn
+    "BARBER_SHOP_OPEN",
+    "CINEMATIC_START",
+    "PLAY_MOVIE"
+  }
+
+  for _, unlockEvent in ipairs(UNLOCK_EVENTS) do
+    if event == unlockEvent then
+      UnlockFreeLook()
+      break
+    end
+  end
+
+  local LOCK_EVENTS = {
+    "CINEMATIC_STOP",
+    "STOP_MOVIE"
+  }
+
+  for _, lockEvent in ipairs(LOCK_EVENTS) do
+    if event == lockEvent then
+      LockFreeLook()
+      break
+    end
+  end
+
   -- Loading Cvars on every reload
   if event == "PLAYER_ENTERING_WORLD" then
     Rematch()
-  end
-
-  -- This forces a relock when quick-loading (e.g: loading after starting m+ run) thanks to the OnUpdate fn
-  if event == "LOADING_SCREEN_ENABLED" then
-    UnlockFreeLook()
-  end
-
-  -- Unlocking cursor when using the barbershop
-  if event == "BARBER_SHOP_OPEN" then
-    UnlockFreeLook()
   end
 
   -- Events responsible for crosshair reaction
