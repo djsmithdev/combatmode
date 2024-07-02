@@ -92,6 +92,11 @@ local function CreateTargetMacros()
   if not doesClearFocusMacroExist then
     _G.CreateMacro("CM_ClearFocus", "INV_MISC_QUESTIONMARK", "/clearfocus", false);
   end
+
+  local doesTargetCrosshairMacroExist = _G.GetMacroInfo("CM_TargetCrosshair")
+  if not doesTargetCrosshairMacroExist then
+    _G.CreateMacro("CM_TargetCrosshair", "INV_MISC_QUESTIONMARK", "/target [@mouseover,harm,nodead]\n/startattack", false);
+  end
 end
 
 -- If left or right mouse buttons are being used while not free looking - meaning you're using the default mouse actions - then it won't allow you to lock into Free Look.
@@ -103,7 +108,8 @@ local function IsDefaultMouseActionBeingUsed()
 end
 
 local function CenterCursor(shouldCenter)
-  if shouldCenter then
+  local isReticleTargetingActive = CM.DB.global.reticleTargeting
+  if shouldCenter and isReticleTargetingActive then
     _G.SetCVar("CursorFreelookCentering", 1)
     CM.DebugPrint("Locking cursor to crosshair position.")
   else
@@ -475,7 +481,7 @@ function _G.CombatMode_OnEvent(event)
   -- Events responsible for crosshair reaction
   if event == "PLAYER_SOFT_ENEMY_CHANGED" or event == "PLAYER_SOFT_INTERACT_CHANGED" then
     if not HideWhileMounted() then
-      HandleCrosshairReactionToTarget(event == "PLAYER_SOFT_ENEMY_CHANGED" and "softenemy" or "softinteract")
+      HandleCrosshairReactionToTarget(event == "PLAYER_SOFT_ENEMY_CHANGED" and "softenemy" or "softinteract") -- if we use "mouseover" the corsshair will jitter like crazy because of blizzard's weird and inconsistent hitboxes
     end
 
     -- Hiding crosshair while mounted
