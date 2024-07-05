@@ -1,4 +1,4 @@
-local CM = _G.GetGlobalStore()
+local CM = _G.GetCombatMode()
 
 CM.Options = {}
 
@@ -10,66 +10,64 @@ function CM.GetBindingsLocation()
   end
 end
 
-local function GetDefaultBindings()
-  return {
-    button1 = {
-      enabled = true,
-      key = "BUTTON1",
-      value = "ACTIONBUTTON1",
-      customAction = ""
-    },
-    button2 = {
-      enabled = true,
-      key = "BUTTON2",
-      value = "ACTIONBUTTON2",
-      customAction = ""
-    },
-    shiftbutton1 = {
-      enabled = true,
-      key = "SHIFT-BUTTON1",
-      value = "ACTIONBUTTON3",
-      customAction = ""
-    },
-    shiftbutton2 = {
-      enabled = true,
-      key = "SHIFT-BUTTON2",
-      value = "ACTIONBUTTON4",
-      customAction = ""
-    },
-    ctrlbutton1 = {
-      enabled = true,
-      key = "CTRL-BUTTON1",
-      value = "ACTIONBUTTON5",
-      customAction = ""
-    },
-    ctrlbutton2 = {
-      enabled = true,
-      key = "CTRL-BUTTON2",
-      value = "ACTIONBUTTON6",
-      customAction = ""
-    },
-    altbutton1 = {
-      enabled = true,
-      key = "ALT-BUTTON1",
-      value = "ACTIONBUTTON7",
-      customAction = ""
-    },
-    altbutton2 = {
-      enabled = true,
-      key = "ALT-BUTTON2",
-      value = "ACTIONBUTTON8",
-      customAction = ""
-    },
-    toggle = {
-      key = "Combat Mode Toggle",
-      value = "BUTTON3"
-    },
-    hold = {
-      key = "(Hold) Switch Mode",
-      value = "BUTTON4"
-    }
+local DefaultBindings = {
+  button1 = {
+    enabled = true,
+    key = "BUTTON1",
+    value = "ACTIONBUTTON1",
+    customAction = ""
+  },
+  button2 = {
+    enabled = true,
+    key = "BUTTON2",
+    value = "ACTIONBUTTON2",
+    customAction = ""
+  },
+  shiftbutton1 = {
+    enabled = true,
+    key = "SHIFT-BUTTON1",
+    value = "ACTIONBUTTON3",
+    customAction = ""
+  },
+  shiftbutton2 = {
+    enabled = true,
+    key = "SHIFT-BUTTON2",
+    value = "ACTIONBUTTON4",
+    customAction = ""
+  },
+  ctrlbutton1 = {
+    enabled = true,
+    key = "CTRL-BUTTON1",
+    value = "ACTIONBUTTON5",
+    customAction = ""
+  },
+  ctrlbutton2 = {
+    enabled = true,
+    key = "CTRL-BUTTON2",
+    value = "ACTIONBUTTON6",
+    customAction = ""
+  },
+  altbutton1 = {
+    enabled = true,
+    key = "ALT-BUTTON1",
+    value = "ACTIONBUTTON7",
+    customAction = ""
+  },
+  altbutton2 = {
+    enabled = true,
+    key = "ALT-BUTTON2",
+    value = "ACTIONBUTTON8",
+    customAction = ""
+  },
+  toggle = {
+    key = "Combat Mode Toggle",
+    value = "BUTTON3"
+  },
+  hold = {
+    key = "(Hold) Switch Mode",
+    value = "BUTTON4"
   }
-end
+}
 
 CM.Options.DatabaseDefaults = {
   global = {
@@ -89,11 +87,11 @@ CM.Options.DatabaseDefaults = {
     crosshairOpacity = 1.0,
     crosshairY = 100,
     debugMode = false,
-    bindings = GetDefaultBindings()
+    bindings = DefaultBindings
   },
   profile = {
     useGlobalBindings = false,
-    bindings = GetDefaultBindings()
+    bindings = DefaultBindings
   }
 }
 

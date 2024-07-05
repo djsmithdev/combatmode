@@ -5,12 +5,6 @@ local AceConfig = _G.LibStub("AceConfig-3.0")
 local AceConfigDialog = _G.LibStub("AceConfigDialog-3.0")
 local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 
--- DEVELOPER NOTE
--- You can access the global CM store in any file by calling _G.GetGlobalStore() on a localized CM.
--- Each additional file has its own table within the CM store. Follow this pattern when making changes.
--- Properties from the main CombatMode.lua file are assigned directly to the CM obj.
--- Ex: You can get CustomCVarValues from Constants.lua by referencing the CM.Constants.CustomCVarValues
-
 -- INSTANTIATING ADDON & CREATING FRAME
 local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UIParent)
@@ -34,7 +28,7 @@ local updateInterval = 0.15 -- How often the code in the OnUpdate function will 
 local isCursorManuallyUnlocked = false -- True if the user currently has Free Look disabled, whether by using the "Toggle" or "Press & Hold" keybind
 
 -- UTILITY FUNCTIONS
-function _G.GetGlobalStore()
+function _G.GetCombatMode()
   return AceAddon:GetAddon("CombatMode")
 end
 
@@ -83,19 +77,20 @@ function CM.LoadBlizzardDefaultCVars()
 end
 
 local function CreateTargetMacros()
-  local doesClearTargetMacroExist = _G.GetMacroInfo("CM_ClearTarget")
-  if not doesClearTargetMacroExist then
-    _G.CreateMacro("CM_ClearTarget", "INV_MISC_QUESTIONMARK", "/stopmacro [noexists]\n/cleartarget", false);
+  local macroExists = function(name)
+    return _G.GetMacroInfo(name) ~= nil
   end
 
-  local doesClearFocusMacroExist = _G.GetMacroInfo("CM_ClearFocus")
-  if not doesClearFocusMacroExist then
-    _G.CreateMacro("CM_ClearFocus", "INV_MISC_QUESTIONMARK", "/clearfocus", false);
+  local function createMacroIfNotExists(macroName, icon, macroText)
+    if not macroExists(macroName) then
+      _G.CreateMacro(macroName, icon, macroText, false)
+    end
   end
 
-  local doesTargetCrosshairMacroExist = _G.GetMacroInfo("CM_TargetCrosshair")
-  if not doesTargetCrosshairMacroExist then
-    _G.CreateMacro("CM_TargetCrosshair", "INV_MISC_QUESTIONMARK", "/target [@mouseover,harm,nodead]\n/startattack", false);
+  local macroIcon = "INV_MISC_QUESTIONMARK"
+
+  for macroName, macroText in pairs(CM.Constants.Macros) do
+    createMacroIfNotExists(macroName, macroIcon, macroText)
   end
 end
 
@@ -108,8 +103,10 @@ local function IsDefaultMouseActionBeingUsed()
 end
 
 local function CenterCursor(shouldCenter)
-  local isReticleTargetingActive = CM.DB.global.reticleTargeting
-  if shouldCenter and isReticleTargetingActive then
+  if not CM.DB.global.reticleTargeting then
+    return
+  end
+  if shouldCenter then
     _G.SetCVar("CursorFreelookCentering", 1)
     CM.DebugPrint("Locking cursor to crosshair position.")
   else

@@ -1,4 +1,4 @@
-local CM = _G.GetGlobalStore()
+local CM = _G.GetCombatMode()
 
 CM.Constants = {}
 
@@ -262,6 +262,12 @@ CM.Constants.OverrideActions = {
   CLEARFOCUS = "Clear Focus",
   CLEARTARGET = "Clear Target",
   CUSTOMACTION = "Custom Action"
+}
+
+CM.Constants.Macros = {
+  CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",
+  CM_ClearFocus = "/clearfocus",
+  CM_TargetCrosshair = "/cleartarget [help][noharm,exists][dead]\n/target [@mouseover,harm,nodead]\n/startattack"
 }
 
 CM.Constants.ButtonsToOverride = {
