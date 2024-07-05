@@ -6,6 +6,7 @@ local AceConfigDialog = _G.LibStub("AceConfigDialog-3.0")
 local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 
 -- INSTANTIATING ADDON & CREATING FRAME
+---@class CM : AceAddon
 local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UIParent)
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
@@ -60,20 +61,22 @@ function CM.DebugPrint(statement)
   end
 end
 
-function CM.LoadReticleTargetCVars()
-  for name, value in pairs(CM.Constants.CustomCVarValues) do
-    _G.SetCVar(name, value)
+function CM.LoadCVars(CVarType)
+  local CVarsToLoad = {}
+  -- Determine which set of CVar values to use based on the input parameter
+  if CVarType == "combatmode" then
+    CVarsToLoad = CM.Constants.CustomCVarValues
+    CM.DebugPrint("Reticle Target CVars LOADED")
+  elseif CVarType == "blizzard" then
+    CVarsToLoad = CM.Constants.BlizzardCVarValues
+    CM.DebugPrint("Reticle Target CVars RESET")
+  else
+    error("Invalid CVarType specified in fn CM.LoadCVars(): " .. tostring(CVarType))
   end
 
-  CM.DebugPrint("Reticle Target CVars LOADED")
-end
-
-function CM.LoadBlizzardDefaultCVars()
-  for name, value in pairs(CM.Constants.BlizzardCVarValues) do
+  for name, value in pairs(CVarsToLoad) do
     _G.SetCVar(name, value)
   end
-
-  CM.DebugPrint("Reticle Target CVars RESET")
 end
 
 local function CreateTargetMacros()
@@ -97,8 +100,6 @@ end
 -- If left or right mouse buttons are being used while not free looking - meaning you're using the default mouse actions - then it won't allow you to lock into Free Look.
 -- This prevents the auto running bug.
 local function IsDefaultMouseActionBeingUsed()
-  -- disabling this here cause linting doesn't know what it wants here
-  ---@diagnostic disable-next-line: param-type-mismatch
   return _G.IsMouseButtonDown("LeftButton") or _G.IsMouseButtonDown("RightButton")
 end
 
@@ -122,9 +123,11 @@ end
 
 local function SetCrosshairAppearance(state)
   local CrosshairAppearance = CM.DB.global.crosshairAppearance
-  local yOffset = CM.DB.global.crosshairY or 100
+  local yOffset = CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY
+  local crosshairPositionVariance = 1000 -- from -500 min to 500 max
+
   -- Adjusts centered cursor vertical positioning
-  local cursorCenteredYpos = (yOffset / 1000) + 0.5 - 0.015
+  local cursorCenteredYpos = (yOffset / crosshairPositionVariance) + 0.5 - 0.015
   _G.SetCVar("CursorCenteredYPos", cursorCenteredYpos)
 
   -- Sets new scale at the end of animation
@@ -164,10 +167,12 @@ function CM.HideCrosshair()
 end
 
 local function CreateCrosshair()
+  local DefaultConfig = CM.Constants.DatabaseDefaults.global
   CrosshairTexture:SetAllPoints(CrosshairFrame)
-  CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or 100)
-  CrosshairFrame:SetSize(CM.DB.global.crosshairSize or 64, CM.DB.global.crosshairSize or 64)
-  CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity or 1.0)
+  CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or DefaultConfig.crosshairY)
+  CrosshairFrame:SetSize(CM.DB.global.crosshairSize or DefaultConfig.crosshairSize,
+    CM.DB.global.crosshairSize or DefaultConfig.crosshairSize)
+  CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity or DefaultConfig.crosshairOpacity)
   SetCrosshairAppearance("base")
 
   if CM.DB.global.crosshair then
@@ -291,6 +296,10 @@ local function InitializeWildcardFrameTracking(frameArr)
 end
 
 -- OVERRIDE BUTTONS
+function CM.GetBindingsLocation()
+  return CM.DB.profile.useGlobalBindings and "global" or "profile"
+end
+
 function CM.SetNewBinding(buttonSettings)
   if not buttonSettings.enabled then
     return
@@ -381,7 +390,7 @@ end
 -- do init tasks here, like loading the Saved Variables,
 -- or setting up slash commands.
 function CM:OnInitialize()
-  self.DB = AceDB:New("CombatModeDB", CM.Options.DatabaseDefaults, true)
+  self.DB = AceDB:New("CombatModeDB", CM.Constants.DatabaseDefaults, true)
 
   AceConfig:RegisterOptionsTable("Combat Mode", CM.Options.ConfigOptions)
   AceConfigDialog:AddToBlizOptions("Combat Mode")
@@ -422,19 +431,16 @@ end
 -- You would probably only use an OnDisable if you want to
 -- build a "standby" mode, or be able to toggle modules on/off.
 function CM:OnDisable()
-  self.LoadBlizzardDefaultCVars()
+  CM.LoadCVars("blizzard")
 end
 
 -- Re-locking Free Look & re-setting CVars after reload/portal
 local function Rematch()
-  local isReticleTargetingActive = CM.DB.global.reticleTargeting
-  local isCrosshairPriorityActive = CM.DB.global.crosshairPriority
-
-  if isReticleTargetingActive then
-    CM.LoadReticleTargetCVars()
+  if CM.DB.global.reticleTargeting then
+    CM.LoadCVars("combatmode")
   end
 
-  if isCrosshairPriorityActive then
+  if CM.DB.global.crosshairPriority then
     _G.SetCVar("enableMouseoverCast", 1)
   end
 

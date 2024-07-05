@@ -1,99 +1,7 @@
+-- CONFIGURATION/OPTIONS PANEL
 local CM = _G.GetCombatMode()
 
 CM.Options = {}
-
-function CM.GetBindingsLocation()
-  if CM.DB.profile.useGlobalBindings then
-    return "global"
-  else
-    return "profile"
-  end
-end
-
-local DefaultBindings = {
-  button1 = {
-    enabled = true,
-    key = "BUTTON1",
-    value = "ACTIONBUTTON1",
-    customAction = ""
-  },
-  button2 = {
-    enabled = true,
-    key = "BUTTON2",
-    value = "ACTIONBUTTON2",
-    customAction = ""
-  },
-  shiftbutton1 = {
-    enabled = true,
-    key = "SHIFT-BUTTON1",
-    value = "ACTIONBUTTON3",
-    customAction = ""
-  },
-  shiftbutton2 = {
-    enabled = true,
-    key = "SHIFT-BUTTON2",
-    value = "ACTIONBUTTON4",
-    customAction = ""
-  },
-  ctrlbutton1 = {
-    enabled = true,
-    key = "CTRL-BUTTON1",
-    value = "ACTIONBUTTON5",
-    customAction = ""
-  },
-  ctrlbutton2 = {
-    enabled = true,
-    key = "CTRL-BUTTON2",
-    value = "ACTIONBUTTON6",
-    customAction = ""
-  },
-  altbutton1 = {
-    enabled = true,
-    key = "ALT-BUTTON1",
-    value = "ACTIONBUTTON7",
-    customAction = ""
-  },
-  altbutton2 = {
-    enabled = true,
-    key = "ALT-BUTTON2",
-    value = "ACTIONBUTTON8",
-    customAction = ""
-  },
-  toggle = {
-    key = "Combat Mode Toggle",
-    value = "BUTTON3"
-  },
-  hold = {
-    key = "(Hold) Switch Mode",
-    value = "BUTTON4"
-  }
-}
-
-CM.Options.DatabaseDefaults = {
-  global = {
-    frameWatching = true,
-    watchlist = {
-      "PawnUIFrame",
-      "SortedPrimaryFrame",
-      "WeakAurasOptions"
-    },
-    customCondition = "",
-    reticleTargeting = true,
-    crosshairPriority = true,
-    crosshair = true,
-    crosshairMounted = true,
-    crosshairAppearance = CM.Constants.CrosshairTextureObj.Triangle,
-    crosshairSize = 64,
-    crosshairOpacity = 1.0,
-    crosshairY = 100,
-    debugMode = false,
-    bindings = DefaultBindings
-  },
-  profile = {
-    useGlobalBindings = false,
-    bindings = DefaultBindings
-  }
-}
 
 local function GetButtonOverrideGroup(modifier, groupOrder)
   local button1Settings, button2Settings, groupName, button1Name, button2Name
@@ -250,6 +158,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
   }
 end
 
+-- BASE CONFIG PANEL
 CM.Options.ConfigOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
@@ -703,9 +612,9 @@ CM.Options.ConfigOptions = {
           set = function(_, value)
             CM.DB.global.reticleTargeting = value
             if value then
-              CM.LoadReticleTargetCVars()
+              CM.LoadCVars("combatmode")
             else
-              CM.LoadBlizzardDefaultCVars()
+              CM.LoadCVars("blizzard")
             end
           end,
           get = function()
@@ -919,6 +828,7 @@ CM.Options.ConfigOptions = {
   }
 }
 
+-- ADVANCED CONFIG TAB
 CM.Options.AdvancedConfigOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,

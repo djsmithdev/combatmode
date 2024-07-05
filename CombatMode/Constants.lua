@@ -1,3 +1,4 @@
+-- CONSTANT DATA & ASSETS
 local CM = _G.GetCombatMode()
 
 CM.Constants = {}
@@ -208,12 +209,12 @@ CM.Constants.FramesToCheck = {
   "UIOptionsFrame",
   "VideoOptionsFrame",
   "WantAds",
-  "SubscriptionInterstitialFrame",
+  "SubscriptionInterstitialFrame"
 }
 
 -- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"
 CM.Constants.WildcardFramesToMatch = {
-  "OPieRT",
+  "OPieRT"
 }
 
 -- The dynamic names of the frames defined right above, determined on loading into the game world. Do not add frame names in this table, do it above instead!
@@ -308,7 +309,7 @@ CM.Constants.CustomCVarValues = {
   ["SoftTargetIconEnemy"] = 0,
   -- cursor centering
   ["CursorFreelookCentering"] = 0, -- needs to be set to 0 initially because Blizzard changed this cvar to be called BEFORE _G.MouselookStart() method, which means if we set to 1 by default, it will cause the camera to snap to cursor position as you enable free look.
-  ["CursorStickyCentering"] = 1, -- does not work in its current implementation. Most likely related to the recent CursorFreelookCentering change.
+  ["CursorStickyCentering"] = 1 -- does not work in its current implementation. Most likely related to the recent CursorFreelookCentering change.
 }
 
 -- DEFAULT BLIZZARD VALUES
@@ -333,5 +334,90 @@ CM.Constants.BlizzardCVarValues = {
   ["SoftTargetEnemyRange"] = 45,
   ["SoftTargetIconEnemy"] = 0,
   ["CursorFreelookCentering"] = 0,
-  ["CursorStickyCentering"] = 0,
+  ["CursorStickyCentering"] = 0
+}
+
+local DefaultBindings = {
+  button1 = {
+    enabled = true,
+    key = "BUTTON1",
+    value = "ACTIONBUTTON1",
+    customAction = ""
+  },
+  button2 = {
+    enabled = true,
+    key = "BUTTON2",
+    value = "ACTIONBUTTON2",
+    customAction = ""
+  },
+  shiftbutton1 = {
+    enabled = true,
+    key = "SHIFT-BUTTON1",
+    value = "ACTIONBUTTON3",
+    customAction = ""
+  },
+  shiftbutton2 = {
+    enabled = true,
+    key = "SHIFT-BUTTON2",
+    value = "ACTIONBUTTON4",
+    customAction = ""
+  },
+  ctrlbutton1 = {
+    enabled = true,
+    key = "CTRL-BUTTON1",
+    value = "ACTIONBUTTON5",
+    customAction = ""
+  },
+  ctrlbutton2 = {
+    enabled = true,
+    key = "CTRL-BUTTON2",
+    value = "ACTIONBUTTON6",
+    customAction = ""
+  },
+  altbutton1 = {
+    enabled = true,
+    key = "ALT-BUTTON1",
+    value = "ACTIONBUTTON7",
+    customAction = ""
+  },
+  altbutton2 = {
+    enabled = true,
+    key = "ALT-BUTTON2",
+    value = "ACTIONBUTTON8",
+    customAction = ""
+  },
+  toggle = {
+    key = "Combat Mode Toggle",
+    value = "BUTTON3"
+  },
+  hold = {
+    key = "(Hold) Switch Mode",
+    value = "BUTTON4"
+  }
+}
+
+CM.Constants.DatabaseDefaults = {
+  global = {
+    frameWatching = true,
+    watchlist = {
+      "PawnUIFrame",
+      "SortedPrimaryFrame",
+      "WeakAurasOptions"
+    },
+    customCondition = "",
+    reticleTargeting = true,
+    crosshairPriority = true,
+    crosshair = true,
+    crosshairMounted = true,
+    crosshairAppearance = CM.Constants.CrosshairTextureObj.Triangle,
+    crosshairSize = 64,
+    crosshairOpacity = 1.0,
+    crosshairY = 100,
+    debugMode = false,
+    bindings = DefaultBindings
+  },
+  profile = {
+    useGlobalBindings = false,
+    bindings = DefaultBindings
+  }
 }
