@@ -1,5 +1,7 @@
 -- CONSTANT DATA & ASSETS
-local CM = _G.GetCombatMode()
+-- IMPORTS
+local AceAddon = _G.LibStub("AceAddon-3.0")
+local CM = AceAddon:GetAddon("CombatMode")
 
 CM.Constants = {}
 
