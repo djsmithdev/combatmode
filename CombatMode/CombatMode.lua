@@ -60,6 +60,27 @@ function CM.DebugPrint(statement)
   end
 end
 
+local function DisplayPopup()
+  if CM.DB.char.seenWarning then
+    return
+  end
+
+  local function OnClosePopup()
+    CM.DB.char.seenWarning = true
+  end
+
+  _G.StaticPopupDialogs["CombatMode Warning"] = {
+    text = CM.Constants.PopupMsg,
+    button1 = "Ok",
+    OnButton1 = OnClosePopup(),
+    OnHide = OnClosePopup(),
+    timeout = 0,
+    whileDead = true
+  }
+
+  _G.StaticPopup_Show("CombatMode Warning")
+end
+
 function CM.LoadCVars(CVarType)
   local CVarsToLoad = {}
   -- Determine which set of CVar values to use based on the input parameter
@@ -533,11 +554,15 @@ function CM:OnEnable()
   -- Greeting message that is printed to chat on initial load
   print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
           "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
+
+  DisplayPopup()
 end
 
 -- Unhook, Unregister Events, Hide frames that you created.
 -- You would probably only use an OnDisable if you want to
 -- build a "standby" mode, or be able to toggle modules on/off.
 function CM:OnDisable()
+  CrosshairFrame:Hide()
   self.LoadCVars("blizzard")
+  self:UnregisterAllEvents()
 end

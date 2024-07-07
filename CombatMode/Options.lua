@@ -343,7 +343,7 @@ CM.Options.ConfigOptions = {
         toggleLeftPadding = {
           type = "description",
           name = " ",
-          width = 0.5,
+          width = 0.2,
           order = 2.2
         },
         toggle = {
@@ -367,7 +367,7 @@ CM.Options.ConfigOptions = {
         holdLeftPadding = {
           type = "description",
           name = " ",
-          width = 0.5,
+          width = 0.1,
           order = 3.1
         },
         hold = {
@@ -388,11 +388,35 @@ CM.Options.ConfigOptions = {
             return (_G.GetBindingKey("(Hold) Switch Mode"))
           end
         },
-        holdBottomPadding = {
+        interactLeftPadding = {
           type = "description",
           name = " ",
-          width = "full",
+          width = 0.1,
           order = 4.1
+        },
+        interact = {
+          type = "keybinding",
+          name = "|cffffd700Interact Key|r",
+          desc = "Press to interact with crosshair target.",
+          width = 1,
+          order = 5,
+          set = function(_, key)
+            local oldKey = (_G.GetBindingKey("INTERACTTARGET"))
+            if oldKey then
+              _G.SetBinding(oldKey)
+            end
+            _G.SetBinding(key, "INTERACTTARGET")
+            _G.SaveBindings(_G.GetCurrentBindingSet())
+          end,
+          get = function()
+            return (_G.GetBindingKey("INTERACTTARGET"))
+          end
+        },
+        interactRightPadding = {
+          type = "description",
+          name = " ",
+          width = 0.2,
+          order = 5.1
         }
       }
     },
@@ -626,8 +650,8 @@ CM.Options.ConfigOptions = {
         },
         crosshairPriority = {
           type = "toggle",
-          name = "Prioritize Crosshair Target",
-          desc = "Gives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on.\n|cff909090This is the intended behavior for the |cff00FFFFCrosshair|r, where it can override even hard locked targets, but you can disable it and the addon will work just fine albeit with less responsive targeting.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+          name = "Always Prioritize Crosshair Target",
+          desc = "Gives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even hard locked targets|r in favor of the unit at your crosshair. \n|cff909090This is the intended behavior for the |cff00FFFFCrosshair|r, where it can override everything, but you can disable it and the addon will work just fine albeit with less responsive targeting.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
           width = 1.4,
           order = 4,
           set = function(_, value)

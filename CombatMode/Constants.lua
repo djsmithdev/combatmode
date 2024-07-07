@@ -239,6 +239,7 @@ CM.Constants.ActionsToProcess = {
   "FOCUSTARGET",
   "FOLLOWTARGET",
   "INTERACTTARGET",
+  "INTERACTMOUSEOVER",
   "JUMP",
   "MOVEANDSTEER",
   "MOVEBACKWARD",
@@ -423,3 +424,6 @@ CM.Constants.DatabaseDefaults = {
     bindings = DefaultBindings
   }
 }
+
+CM.Constants.PopupMsg = CM.METADATA["TITLE"] ..
+                          "\n|cffffd700Planning on uninstalling?|r \nBefore doing so, make sure to uncheck the |cff00FFFFReticle Targeting|r option under settings to reset the CVars to their default values.|r \n|cff909090Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r"
