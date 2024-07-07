@@ -1,3 +1,4 @@
+-- CORE LOGIC
 -- IMPORTS
 local AceAddon = _G.LibStub("AceAddon-3.0")
 local AceDB = _G.LibStub("AceDB-3.0")
@@ -5,18 +6,15 @@ local AceConfig = _G.LibStub("AceConfig-3.0")
 local AceConfigDialog = _G.LibStub("AceConfigDialog-3.0")
 local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 
--- DEVELOPER NOTE
--- You can access the global CM store in any file by calling _G.GetGlobalStore() on a localized CM.
--- Each additional file has its own table within the CM store. Follow this pattern when making changes.
--- Properties from the main CombatMode.lua file are assigned directly to the CM obj.
--- Ex: You can get CustomCVarValues from Constants.lua by referencing the CM.Constants.CustomCVarValues
-
--- INSTANTIATING ADDON & CREATING FRAME
+-- INSTANTIATING ADDON & ENCAPSULATING NAMESPACE
+---@class CM : AceAddon
 local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
-local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UIParent)
-local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
+local _G = _G
+_G["CM"] = CM
 
 -- SETTING UP CROSSHAIR ANIMATION
+local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UIParent)
+local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 local CrosshairAnimation = CrosshairFrame:CreateAnimationGroup()
 local ScaleAnimation = CrosshairAnimation:CreateAnimation("Scale")
 local startingScale = 1
@@ -34,10 +32,6 @@ local updateInterval = 0.15 -- How often the code in the OnUpdate function will 
 local isCursorManuallyUnlocked = false -- True if the user currently has Free Look disabled, whether by using the "Toggle" or "Press & Hold" keybind
 
 -- UTILITY FUNCTIONS
-function _G.GetGlobalStore()
-  return AceAddon:GetAddon("CombatMode")
-end
-
 local function FetchDataFromTOC()
   local keysToFetch = {
     "Version",
@@ -66,50 +60,74 @@ function CM.DebugPrint(statement)
   end
 end
 
-function CM.LoadReticleTargetCVars()
-  for name, value in pairs(CM.Constants.CustomCVarValues) do
-    _G.SetCVar(name, value)
+local function DisplayPopup()
+  if CM.DB.char.seenWarning then
+    return
   end
 
-  CM.DebugPrint("Reticle Target CVars LOADED")
+  local function OnClosePopup()
+    CM.DB.char.seenWarning = true
+  end
+
+  _G.StaticPopupDialogs["CombatMode Warning"] = {
+    text = CM.Constants.PopupMsg,
+    button1 = "Ok",
+    OnButton1 = OnClosePopup(),
+    OnHide = OnClosePopup(),
+    timeout = 0,
+    whileDead = true
+  }
+
+  _G.StaticPopup_Show("CombatMode Warning")
 end
 
-function CM.LoadBlizzardDefaultCVars()
-  for name, value in pairs(CM.Constants.BlizzardCVarValues) do
-    _G.SetCVar(name, value)
+function CM.LoadCVars(CVarType)
+  local CVarsToLoad = {}
+  -- Determine which set of CVar values to use based on the input parameter
+  if CVarType == "combatmode" then
+    CVarsToLoad = CM.Constants.CustomCVarValues
+    CM.DebugPrint("Reticle Target CVars LOADED")
+  elseif CVarType == "blizzard" then
+    CVarsToLoad = CM.Constants.BlizzardCVarValues
+    CM.DebugPrint("Reticle Target CVars RESET")
+  else
+    error("Invalid CVarType specified in fn CM.LoadCVars(): " .. tostring(CVarType))
   end
 
-  CM.DebugPrint("Reticle Target CVars RESET")
+  for name, value in pairs(CVarsToLoad) do
+    _G.SetCVar(name, value)
+  end
 end
 
 local function CreateTargetMacros()
-  local doesClearTargetMacroExist = _G.GetMacroInfo("CM_ClearTarget")
-  if not doesClearTargetMacroExist then
-    _G.CreateMacro("CM_ClearTarget", "INV_MISC_QUESTIONMARK", "/stopmacro [noexists]\n/cleartarget", false);
+  local macroExists = function(name)
+    return _G.GetMacroInfo(name) ~= nil
   end
 
-  local doesClearFocusMacroExist = _G.GetMacroInfo("CM_ClearFocus")
-  if not doesClearFocusMacroExist then
-    _G.CreateMacro("CM_ClearFocus", "INV_MISC_QUESTIONMARK", "/clearfocus", false);
+  local function createMacroIfNotExists(macroName, icon, macroText)
+    if not macroExists(macroName) then
+      _G.CreateMacro(macroName, icon, macroText, false)
+    end
   end
 
-  local doesTargetCrosshairMacroExist = _G.GetMacroInfo("CM_TargetCrosshair")
-  if not doesTargetCrosshairMacroExist then
-    _G.CreateMacro("CM_TargetCrosshair", "INV_MISC_QUESTIONMARK", "/target [@mouseover,harm,nodead]\n/startattack", false);
+  local macroIcon = "INV_MISC_QUESTIONMARK"
+
+  for macroName, macroText in pairs(CM.Constants.Macros) do
+    createMacroIfNotExists(macroName, macroIcon, macroText)
   end
 end
 
 -- If left or right mouse buttons are being used while not free looking - meaning you're using the default mouse actions - then it won't allow you to lock into Free Look.
 -- This prevents the auto running bug.
 local function IsDefaultMouseActionBeingUsed()
-  -- disabling this here cause linting doesn't know what it wants here
-  ---@diagnostic disable-next-line: param-type-mismatch
   return _G.IsMouseButtonDown("LeftButton") or _G.IsMouseButtonDown("RightButton")
 end
 
 local function CenterCursor(shouldCenter)
-  local isReticleTargetingActive = CM.DB.global.reticleTargeting
-  if shouldCenter and isReticleTargetingActive then
+  if not CM.DB.global.reticleTargeting then
+    return
+  end
+  if shouldCenter then
     _G.SetCVar("CursorFreelookCentering", 1)
     CM.DebugPrint("Locking cursor to crosshair position.")
   else
@@ -125,9 +143,11 @@ end
 
 local function SetCrosshairAppearance(state)
   local CrosshairAppearance = CM.DB.global.crosshairAppearance
-  local yOffset = CM.DB.global.crosshairY or 100
+  local yOffset = CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY
+  local crosshairPositionVariance = 1000 -- from -500 min to 500 max
+
   -- Adjusts centered cursor vertical positioning
-  local cursorCenteredYpos = (yOffset / 1000) + 0.5 - 0.015
+  local cursorCenteredYpos = (yOffset / crosshairPositionVariance) + 0.5 - 0.015
   _G.SetCVar("CursorCenteredYPos", cursorCenteredYpos)
 
   -- Sets new scale at the end of animation
@@ -167,10 +187,12 @@ function CM.HideCrosshair()
 end
 
 local function CreateCrosshair()
+  local DefaultConfig = CM.Constants.DatabaseDefaults.global
   CrosshairTexture:SetAllPoints(CrosshairFrame)
-  CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or 100)
-  CrosshairFrame:SetSize(CM.DB.global.crosshairSize or 64, CM.DB.global.crosshairSize or 64)
-  CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity or 1.0)
+  CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or DefaultConfig.crosshairY)
+  CrosshairFrame:SetSize(CM.DB.global.crosshairSize or DefaultConfig.crosshairSize,
+    CM.DB.global.crosshairSize or DefaultConfig.crosshairSize)
+  CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity or DefaultConfig.crosshairOpacity)
   SetCrosshairAppearance("base")
 
   if CM.DB.global.crosshair then
@@ -294,6 +316,10 @@ local function InitializeWildcardFrameTracking(frameArr)
 end
 
 -- OVERRIDE BUTTONS
+function CM.GetBindingsLocation()
+  return CM.DB.profile.useGlobalBindings and "global" or "profile"
+end
+
 function CM.SetNewBinding(buttonSettings)
   if not buttonSettings.enabled then
     return
@@ -380,64 +406,13 @@ function CM:OpenConfigCMD(input)
   end
 end
 
--- STANDARD ACE 3 METHODS
--- do init tasks here, like loading the Saved Variables,
--- or setting up slash commands.
-function CM:OnInitialize()
-  self.DB = AceDB:New("CombatModeDB", CM.Options.DatabaseDefaults, true)
-
-  AceConfig:RegisterOptionsTable("Combat Mode", CM.Options.ConfigOptions)
-  AceConfigDialog:AddToBlizOptions("Combat Mode")
-  AceConfig:RegisterOptionsTable("Combat Mode: Advanced", CM.Options.AdvancedConfigOptions)
-  AceConfigDialog:AddToBlizOptions("Combat Mode: Advanced", "Advanced", "Combat Mode")
-
-  self:RegisterChatCommand("cm", "OpenConfigCMD")
-  self:RegisterChatCommand("combatmode", "OpenConfigCMD")
-end
-
-function CM:OnResetDB()
-  CM.DebugPrint("Reseting Combat Mode settings.")
-  self.DB:ResetDB("Default")
-  _G.ReloadUI();
-end
-
--- Do more initialization here, that really enables the use of your addon.
--- Register Events, Hook functions, Create Frames, Get information from
--- the game that wasn't available in OnInitialize
-function CM:OnEnable()
-  RenameBindableActions()
-  CM.OverrideDefaultButtons()
-  InitializeWildcardFrameTracking(CM.Constants.WildcardFramesToMatch)
-  CreateCrosshair()
-  CreateTargetMacros()
-
-  -- Registering Blizzard Events from Constants.lua
-  for _, event in pairs(CM.Constants.BLIZZARD_EVENTS) do
-    self:RegisterEvent(event, _G.CombatMode_OnEvent)
-  end
-
-  -- Greeting message that is printed to chat on initial load
-  print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
-          "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
-end
-
--- Unhook, Unregister Events, Hide frames that you created.
--- You would probably only use an OnDisable if you want to
--- build a "standby" mode, or be able to toggle modules on/off.
-function CM:OnDisable()
-  self.LoadBlizzardDefaultCVars()
-end
-
 -- Re-locking Free Look & re-setting CVars after reload/portal
 local function Rematch()
-  local isReticleTargetingActive = CM.DB.global.reticleTargeting
-  local isCrosshairPriorityActive = CM.DB.global.crosshairPriority
-
-  if isReticleTargetingActive then
-    CM.LoadReticleTargetCVars()
+  if CM.DB.global.reticleTargeting then
+    CM.LoadCVars("combatmode")
   end
 
-  if isCrosshairPriorityActive then
+  if CM.DB.global.crosshairPriority then
     _G.SetCVar("enableMouseoverCast", 1)
   end
 
@@ -538,4 +513,56 @@ function _G.CombatModeHoldKey(keystate)
     LockFreeLook()
     isCursorManuallyUnlocked = false
   end
+end
+
+-- STANDARD ACE 3 METHODS
+-- do init tasks here, like loading the Saved Variables,
+-- or setting up slash commands.
+function CM:OnInitialize()
+  self.DB = AceDB:New("CombatModeDB", CM.Constants.DatabaseDefaults, true)
+
+  AceConfig:RegisterOptionsTable("Combat Mode", CM.Options.ConfigOptions)
+  AceConfigDialog:AddToBlizOptions("Combat Mode")
+  AceConfig:RegisterOptionsTable("Combat Mode: Advanced", CM.Options.AdvancedConfigOptions)
+  AceConfigDialog:AddToBlizOptions("Combat Mode: Advanced", "Advanced", "Combat Mode")
+
+  self:RegisterChatCommand("cm", "OpenConfigCMD")
+  self:RegisterChatCommand("combatmode", "OpenConfigCMD")
+end
+
+function CM:OnResetDB()
+  CM.DebugPrint("Reseting Combat Mode settings.")
+  self.DB:ResetDB("Default")
+  _G.ReloadUI();
+end
+
+-- Do more initialization here, that really enables the use of your addon.
+-- Register Events, Hook functions, Create Frames, Get information from
+-- the game that wasn't available in OnInitialize
+function CM:OnEnable()
+  RenameBindableActions()
+  CM.OverrideDefaultButtons()
+  InitializeWildcardFrameTracking(CM.Constants.WildcardFramesToMatch)
+  CreateCrosshair()
+  CreateTargetMacros()
+
+  -- Registering Blizzard Events from Constants.lua
+  for _, event in pairs(CM.Constants.BLIZZARD_EVENTS) do
+    self:RegisterEvent(event, _G.CombatMode_OnEvent)
+  end
+
+  -- Greeting message that is printed to chat on initial load
+  print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
+          "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
+
+  DisplayPopup()
+end
+
+-- Unhook, Unregister Events, Hide frames that you created.
+-- You would probably only use an OnDisable if you want to
+-- build a "standby" mode, or be able to toggle modules on/off.
+function CM:OnDisable()
+  CrosshairFrame:Hide()
+  self.LoadCVars("blizzard")
+  self:UnregisterAllEvents()
 end

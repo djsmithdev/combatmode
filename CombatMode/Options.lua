@@ -1,101 +1,10 @@
-local CM = _G.GetGlobalStore()
+-- CONFIGURATION/OPTIONS PANEL
+-- IMPORTS
+local AceAddon = _G.LibStub("AceAddon-3.0")
+local CM = AceAddon:GetAddon("CombatMode")
+local _G = _G
 
 CM.Options = {}
-
-function CM.GetBindingsLocation()
-  if CM.DB.profile.useGlobalBindings then
-    return "global"
-  else
-    return "profile"
-  end
-end
-
-local function GetDefaultBindings()
-  return {
-    button1 = {
-      enabled = true,
-      key = "BUTTON1",
-      value = "ACTIONBUTTON1",
-      customAction = ""
-    },
-    button2 = {
-      enabled = true,
-      key = "BUTTON2",
-      value = "ACTIONBUTTON2",
-      customAction = ""
-    },
-    shiftbutton1 = {
-      enabled = true,
-      key = "SHIFT-BUTTON1",
-      value = "ACTIONBUTTON3",
-      customAction = ""
-    },
-    shiftbutton2 = {
-      enabled = true,
-      key = "SHIFT-BUTTON2",
-      value = "ACTIONBUTTON4",
-      customAction = ""
-    },
-    ctrlbutton1 = {
-      enabled = true,
-      key = "CTRL-BUTTON1",
-      value = "ACTIONBUTTON5",
-      customAction = ""
-    },
-    ctrlbutton2 = {
-      enabled = true,
-      key = "CTRL-BUTTON2",
-      value = "ACTIONBUTTON6",
-      customAction = ""
-    },
-    altbutton1 = {
-      enabled = true,
-      key = "ALT-BUTTON1",
-      value = "ACTIONBUTTON7",
-      customAction = ""
-    },
-    altbutton2 = {
-      enabled = true,
-      key = "ALT-BUTTON2",
-      value = "ACTIONBUTTON8",
-      customAction = ""
-    },
-    toggle = {
-      key = "Combat Mode Toggle",
-      value = "BUTTON3"
-    },
-    hold = {
-      key = "(Hold) Switch Mode",
-      value = "BUTTON4"
-    }
-  }
-end
-
-CM.Options.DatabaseDefaults = {
-  global = {
-    frameWatching = true,
-    watchlist = {
-      "PawnUIFrame",
-      "SortedPrimaryFrame",
-      "WeakAurasOptions"
-    },
-    customCondition = "",
-    reticleTargeting = true,
-    crosshairPriority = true,
-    crosshair = true,
-    crosshairMounted = true,
-    crosshairAppearance = CM.Constants.CrosshairTextureObj.Triangle,
-    crosshairSize = 64,
-    crosshairOpacity = 1.0,
-    crosshairY = 100,
-    debugMode = false,
-    bindings = GetDefaultBindings()
-  },
-  profile = {
-    useGlobalBindings = false,
-    bindings = GetDefaultBindings()
-  }
-}
 
 local function GetButtonOverrideGroup(modifier, groupOrder)
   local button1Settings, button2Settings, groupName, button1Name, button2Name
@@ -252,6 +161,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
   }
 end
 
+-- BASE CONFIG PANEL
 CM.Options.ConfigOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
@@ -433,7 +343,7 @@ CM.Options.ConfigOptions = {
         toggleLeftPadding = {
           type = "description",
           name = " ",
-          width = 0.5,
+          width = 0.2,
           order = 2.2
         },
         toggle = {
@@ -457,7 +367,7 @@ CM.Options.ConfigOptions = {
         holdLeftPadding = {
           type = "description",
           name = " ",
-          width = 0.5,
+          width = 0.1,
           order = 3.1
         },
         hold = {
@@ -478,11 +388,35 @@ CM.Options.ConfigOptions = {
             return (_G.GetBindingKey("(Hold) Switch Mode"))
           end
         },
-        holdBottomPadding = {
+        interactLeftPadding = {
           type = "description",
           name = " ",
-          width = "full",
+          width = 0.1,
           order = 4.1
+        },
+        interact = {
+          type = "keybinding",
+          name = "|cffffd700Interact Key|r",
+          desc = "Press to interact with crosshair target.",
+          width = 1,
+          order = 5,
+          set = function(_, key)
+            local oldKey = (_G.GetBindingKey("INTERACTTARGET"))
+            if oldKey then
+              _G.SetBinding(oldKey)
+            end
+            _G.SetBinding(key, "INTERACTTARGET")
+            _G.SaveBindings(_G.GetCurrentBindingSet())
+          end,
+          get = function()
+            return (_G.GetBindingKey("INTERACTTARGET"))
+          end
+        },
+        interactRightPadding = {
+          type = "description",
+          name = " ",
+          width = 0.2,
+          order = 5.1
         }
       }
     },
@@ -705,9 +639,9 @@ CM.Options.ConfigOptions = {
           set = function(_, value)
             CM.DB.global.reticleTargeting = value
             if value then
-              CM.LoadReticleTargetCVars()
+              CM.LoadCVars("combatmode")
             else
-              CM.LoadBlizzardDefaultCVars()
+              CM.LoadCVars("blizzard")
             end
           end,
           get = function()
@@ -716,8 +650,8 @@ CM.Options.ConfigOptions = {
         },
         crosshairPriority = {
           type = "toggle",
-          name = "Prioritize Crosshair Target",
-          desc = "Gives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on.\n|cff909090This is the intended behavior for the |cff00FFFFCrosshair|r, where it can override even hard locked targets, but you can disable it and the addon will work just fine albeit with less responsive targeting.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+          name = "Always Prioritize Crosshair Target",
+          desc = "Gives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even hard locked targets|r in favor of the unit at your crosshair. \n|cff909090This is the intended behavior for the |cff00FFFFCrosshair|r, where it can override everything, but you can disable it and the addon will work just fine albeit with less responsive targeting.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
           width = 1.4,
           order = 4,
           set = function(_, value)
@@ -921,6 +855,7 @@ CM.Options.ConfigOptions = {
   }
 }
 
+-- ADVANCED CONFIG TAB
 CM.Options.AdvancedConfigOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
