@@ -1,5 +1,6 @@
 -- CONSTANT DATA & ASSETS
 -- IMPORTS
+local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
 local CM = AceAddon:GetAddon("CombatMode")
 
@@ -18,6 +19,11 @@ CM.Constants.BLIZZARD_EVENTS = {
   "PLAY_MOVIE",
   "STOP_MOVIE"
 }
+
+CM.Constants.PopupMsg = CM.METADATA["TITLE"] ..
+                          "\n|cffffd700Planning on uninstalling?|r \nBefore doing so, make sure to uncheck the |cff00FFFFReticle Targeting|r option under settings to reset the CVars to their default values.|r \n|cff909090Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r"
+
+CM.Constants.BasePrintMsg = CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r"
 
 local assetsFolderPath = "Interface\\AddOns\\CombatMode\\assets\\"
 
@@ -38,18 +44,19 @@ CM.Constants.CrosshairTextureObj = {}
 CM.Constants.CrosshairAppearanceSelectValues = {}
 
 local crosshairAssetNames = {
+  "Arrows",
   "Bracket",
-  "Circle",
   "Cross",
   "Default",
-  "DefaultSimple",
   "Diamond",
   "Dot",
   "InvertedY",
   "Line",
+  "Ornated",
   "Split",
   "Square",
-  "Triangle"
+  "Triangle",
+  "X",
 }
 
 for _, assetName in ipairs(crosshairAssetNames) do
@@ -179,8 +186,7 @@ CM.Constants.FramesToCheck = {
   "UnitPopup",
   "VoiceMacroMenu",
   "WardrobeFrame",
-  "WorldMapFrame",
-  -- Addon Frames(?)
+  "WorldMapFrame", -- Addon Frames(?)
   "AccountantFrame",
   "ACP_AddonList",
   "ARKINV_Frame1",
@@ -412,7 +418,7 @@ CM.Constants.DatabaseDefaults = {
     crosshairPriority = true,
     crosshair = true,
     crosshairMounted = true,
-    crosshairAppearance = CM.Constants.CrosshairTextureObj.Triangle,
+    crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
     crosshairSize = 64,
     crosshairOpacity = 1.0,
     crosshairY = 100,
@@ -424,6 +430,3 @@ CM.Constants.DatabaseDefaults = {
     bindings = DefaultBindings
   }
 }
-
-CM.Constants.PopupMsg = CM.METADATA["TITLE"] ..
-                          "\n|cffffd700Planning on uninstalling?|r \nBefore doing so, make sure to uncheck the |cff00FFFFReticle Targeting|r option under settings to reset the CVars to their default values.|r \n|cff909090Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r"
