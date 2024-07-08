@@ -1,5 +1,6 @@
 -- CORE LOGIC
 -- IMPORTS
+local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
 local AceDB = _G.LibStub("AceDB-3.0")
 local AceConfig = _G.LibStub("AceConfig-3.0")
@@ -9,7 +10,6 @@ local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 -- INSTANTIATING ADDON & ENCAPSULATING NAMESPACE
 ---@class CM : AceAddon
 local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
-local _G = _G
 _G["CM"] = CM
 
 -- SETTING UP CROSSHAIR ANIMATION
@@ -33,6 +33,7 @@ local isCursorManuallyUnlocked = false -- True if the user currently has Free Lo
 
 -- UTILITY FUNCTIONS
 local function FetchDataFromTOC()
+  local dataRetuned = {}
   local keysToFetch = {
     "Version",
     "Title",
@@ -41,7 +42,6 @@ local function FetchDataFromTOC()
     "X-Discord",
     "X-Curse"
   }
-  local dataRetuned = {}
 
   for _, key in ipairs(keysToFetch) do
     dataRetuned[string.upper(key)] = _G.C_AddOns.GetAddOnMetadata("CombatMode", key)
@@ -54,9 +54,7 @@ CM.METADATA = FetchDataFromTOC()
 
 function CM.DebugPrint(statement)
   if CM.DB.global.debugMode then
-    print(
-      CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r|cff909090: " .. tostring(statement) ..
-        "|r")
+    print(CM.Constants.BasePrintMsg .. "|cff909090: " .. tostring(statement) .. "|r")
   end
 end
 
@@ -189,6 +187,7 @@ end
 local function CreateCrosshair()
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
   CrosshairTexture:SetAllPoints(CrosshairFrame)
+  CrosshairTexture:SetBlendMode("BLEND")
   CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or DefaultConfig.crosshairY)
   CrosshairFrame:SetSize(CM.DB.global.crosshairSize or DefaultConfig.crosshairSize,
     CM.DB.global.crosshairSize or DefaultConfig.crosshairSize)
@@ -552,8 +551,7 @@ function CM:OnEnable()
   end
 
   -- Greeting message that is printed to chat on initial load
-  print(CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r" ..
-          "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
+  print(CM.Constants.BasePrintMsg .. "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
 
   DisplayPopup()
 end
