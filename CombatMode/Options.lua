@@ -396,8 +396,8 @@ CM.Options.ConfigOptions = {
         },
         interact = {
           type = "keybinding",
-          name = "|cffffd700Interact Key|r",
-          desc = "Press to interact with crosshair target.",
+          name = "|cffffd700Interact With Target|r",
+          desc = "Press to interact with crosshair target when in range.",
           width = 1,
           order = 5,
           set = function(_, key)
@@ -620,7 +620,7 @@ CM.Options.ConfigOptions = {
         },
         reticleTargetingDescription = {
           type = "description",
-          name = "Configures Blizzard's Action Targeting feature from the default dynamic & tab targeting hybrid to something truly action-oriented, where the crosshair is responsible for target selection and requires you to aim at units.",
+          name = "Configures Blizzard's Action Targeting feature from the default dynamic & tab targeting hybrid to something truly action-oriented, where the crosshair dictates target selection.",
           fontSize = "medium",
           order = 2
         },
@@ -633,7 +633,7 @@ CM.Options.ConfigOptions = {
         reticleTargeting = {
           type = "toggle",
           name = "Reticle Targeting",
-          desc = "Configures Blizzard's Action Targeting feature to something action-oriented and responsive. \n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n|cff909090Uncheck to reset them to their default values.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+          desc = "Configures Blizzard's Action Targeting feature to something action-oriented and responsive. \n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n|cffcfcfcfUncheck to reset them to their default values.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
           width = 1.0,
           order = 3,
           set = function(_, value)
@@ -651,7 +651,7 @@ CM.Options.ConfigOptions = {
         crosshairPriority = {
           type = "toggle",
           name = "Always Prioritize Crosshair Target",
-          desc = "Gives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even hard locked targets|r in favor of the unit at your crosshair. \n|cff909090This is the intended behavior for the |cff00FFFFCrosshair|r, where it can override everything, but you can disable it and the addon will work just fine albeit with less responsive targeting.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+          desc = "Gives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected targets in favor of the unit at your crosshair.|r \n|cffcfcfcfDisabling this will prevent the crosshair from swapping off hard-locked targets.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
           width = 1.4,
           order = 4,
           set = function(_, value)
@@ -668,7 +668,7 @@ CM.Options.ConfigOptions = {
         },
         devNoteDescription = {
           type = "description",
-          name = "|cffffd700Developer Note:|r \n|cff909090When |cffcfcfcfPrioritize Crosshair Target|r is enabled, Combat Mode will activate the |cffffd700Mouseover Cast|r option found in the interface menu, making the |cff00FFFFCrosshair|r act as a cursor, thus eliminating the need to create macros with |cffB47EDE@mouseover|r or |cffB47EDE@cursor|r decorators for all of your spells.|r",
+          name = "|cffffd700Developer Note:|r \n|cff909090When |cffcfcfcfPrioritize Crosshair Target|r is enabled, Combat Mode will activate the |cffffd700Mouseover Cast|r option found in the interface menu, allowing spells to be cast directly on the unit under the |cff00FFFFCrosshair|r without needing to target it first.|r",
           order = 4.1
         },
         devNoteWarning = {
@@ -702,7 +702,7 @@ CM.Options.ConfigOptions = {
             },
             crosshairNote = {
               type = "description",
-              name = "|cffffd700Developer Note:|r \n|cff909090The crosshair has been programed with CombatMode's |cff00FFFFReticle Targeting|r in mind. Utilizing the Crosshair without it could lead to unintended behavior like unpredicatable targeting and improper crosshair reactivity.|r",
+              name = "|cffffd700Developer Note:|r \n|cff909090When |cffcfcfcfReticle Targeting|r is enabled, the |cff00FFFFCrosshair|r acts as a cursor, thus allowing it to be reliably used in combination with |cffB47EDE@mouseover|r and |cffB47EDE@cursor|r macros if you'd like a more fine-grained target selection for each spell.|r \n \n|cffcfcfcfExemple macros have been added to your account-wide macros list (Esc > Macros) for users who prefer either Soft-Locking or Hard-Locking Targeting.|r \n \n|cffFF5050This feature has been programed with CombatMode's |cffcfcfcfReticle Targeting|r configuration in mind. Utilizing the |cff00FFFFCrosshair|r without it could lead to unintended behavior like unpredicatable targeting and improper crosshair reactivity.|r",
               order = 1.2
             },
             crosshair = {
