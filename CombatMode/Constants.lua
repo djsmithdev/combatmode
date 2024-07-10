@@ -277,7 +277,9 @@ CM.Constants.OverrideActions = {
 CM.Constants.Macros = {
   CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",
   CM_ClearFocus = "/clearfocus",
-  CM_TargetCrosshair = "/cleartarget [help][noharm,exists][dead]\n/target [@mouseover,harm,nodead]\n/startattack"
+  CM_AtMouseoverSoft = "#showtooltip\n/cleartarget [help][noharm,exists][dead]\n/target [@mouseover,harm,nodead]\n/startattack\n/cast PLACEHOLDER_SPELL",
+  CM_AtMouseoverHard = "#showtooltip\n/cleartarget\n/cast [@mouseover,harm,nodead][] PLACEHOLDER_SPELL\n/startattack",
+  CM_AtCursorEx = "#showtooltip\n/cast [mod:shift] PLACEHOLDER_SPELL; [nomod, @cursor] PLACEHOLDER_SPELL"
 }
 
 CM.Constants.ButtonsToOverride = {
