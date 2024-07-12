@@ -186,7 +186,7 @@ CM.Constants.FramesToCheck = {
   "UnitPopup",
   "VoiceMacroMenu",
   "WardrobeFrame",
-  "WorldMapFrame", -- Addon Frames(?)
+  "WorldMapFrame",
   "AccountantFrame",
   "ACP_AddonList",
   "ARKINV_Frame1",
@@ -224,7 +224,7 @@ CM.Constants.FramesToCheck = {
 
 -- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"
 CM.Constants.WildcardFramesToMatch = {
-  "OPieRT"
+  "OPieRT",
 }
 
 -- The dynamic names of the frames defined right above, determined on loading into the game world. Do not add frame names in this table, do it above instead!
@@ -429,7 +429,7 @@ CM.Constants.DatabaseDefaults = {
     debugMode = false,
     bindings = DefaultBindings
   },
-  profile = {
+  char = {
     useGlobalBindings = false,
     bindings = DefaultBindings
   }
