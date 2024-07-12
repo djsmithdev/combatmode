@@ -288,9 +288,10 @@ local function HasNarcissusOpen()
 end
 
 local function IsUnlockFrameVisible()
-  local genericPanelIsOpen = _G.GetUIPanel("left") or _G.GetUIPanel("right") or _G.GetUIPanel("center")
+  local isGenericPanelOpen = (_G.GetUIPanel("left") or _G.GetUIPanel("right") or _G.GetUIPanel("center")) and true or
+                               false
   return CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or CursorUnlockFrameVisible(CM.DB.global.watchlist) or
-           CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or genericPanelIsOpen
+           CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or isGenericPanelOpen
 end
 
 local function ShouldFreeLookBeOff()

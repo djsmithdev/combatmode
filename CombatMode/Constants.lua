@@ -74,6 +74,7 @@ CM.Constants.FramesToCheck = {
   "AchievementFrame",
   "AddonList",
   "AuctionFrame",
+  "AuctionHouseFrame",
   "BankFrame",
   "BattlefieldFrame",
   "BonusRollFrame",
