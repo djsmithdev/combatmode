@@ -27,9 +27,8 @@ ScaleAnimation:SetSmoothProgress(scaleDuration)
 ScaleAnimation:SetSmoothing("IN_OUT")
 
 -- INITIAL STATE VARIABLES
-local isCursorLockedState = false -- State used to prevent the OnUpdate function from executing code needlessly
-local updateInterval = 0.15 -- How often the code in the OnUpdate function will run (in seconds)
-local isCursorManuallyUnlocked = false -- True if the user currently has Free Look disabled, whether by using the "Toggle" or "Press & Hold" keybind
+local FreeLookState = false -- Changes when Free Look is automatically deactivated through the conditions set up in the code
+local ManualOverride = false -- Changes when user manually activates Free Look through "Toggle" or "Press & Hold" keybind
 
 -- UTILITY FUNCTIONS
 local function FetchDataFromTOC()
@@ -220,7 +219,7 @@ function CM.UpdateCrosshair()
 end
 
 local function HandleCrosshairReactionToTarget(target)
-  local isTargetVisible = _G.UnitIsVisible(target)
+  local isTargetVisible = (_G.UnitExists(target) and _G.UnitGUID(target)) and true or false
   local reaction = _G.UnitReaction("player", target)
   local isTargetHostile = reaction and reaction <= 4
   local isTargetFriendly = reaction and reaction >= 5
@@ -257,7 +256,7 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
         if CM.DB.global.crosshair then
           CM.HideCrosshair()
         end
-        isCursorLockedState = false
+        FreeLookState = false
         CenterCursor(false)
       end
       return true
@@ -283,13 +282,15 @@ local function HasNarcissusOpen()
   return _G.Narci and _G.Narci.isActive
 end
 
+local function IsUnlockFrameVisible()
+  return CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or CursorUnlockFrameVisible(CM.DB.global.watchlist) or
+           CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck)
+end
+
 local function ShouldCursorBeFreed()
-  local shouldLock = not isCursorLockedState
-  local shouldUnlock = isCursorManuallyUnlocked or _G.SpellIsTargeting() or _G.InCinematic() or
-                         CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
-                         CursorUnlockFrameVisible(CM.DB.global.watchlist) or
-                         CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or IsCustomConditionTrue() or
-                         HasNarcissusOpen()
+  local shouldLock = not FreeLookState
+  local shouldUnlock = ManualOverride or _G.SpellIsTargeting() or _G.InCinematic() or IsUnlockFrameVisible() or
+                         IsCustomConditionTrue() or HasNarcissusOpen()
 
   return shouldUnlock, shouldLock
 end
@@ -367,7 +368,7 @@ local function LockFreeLook()
       CM.ShowCrosshair()
     end
 
-    isCursorLockedState = true
+    FreeLookState = true
     CM.DebugPrint("Free Look Enabled")
   end
 end
@@ -381,7 +382,7 @@ local function UnlockFreeLook()
       CM.HideCrosshair()
     end
 
-    isCursorLockedState = false
+    FreeLookState = false
     CM.DebugPrint("Free Look Disabled")
   end
 end
@@ -389,8 +390,10 @@ end
 local function ToggleFreeLook()
   if not _G.IsMouselooking() then
     LockFreeLook()
+    ManualOverride = false
   elseif _G.IsMouselooking() then
     UnlockFreeLook()
+    ManualOverride = true
   end
 end
 
@@ -398,7 +401,7 @@ end
 function CM:OpenConfigCMD(input)
   if not _G.InCombatLockdown() and not input or input:trim() == "" then
     UnlockFreeLook()
-    isCursorManuallyUnlocked = true
+    ManualOverride = true
     AceConfigDialog:Open("Combat Mode")
   else
     AceConfigCmd.HandleCommand(self, "mychat", "Combat Mode", input)
@@ -471,20 +474,22 @@ function _G.CombatMode_OnEvent(event)
 end
 
 -- FIRES WHEN GAME STATE CHANGES HAPPEN
-function _G.CombatMode_OnUpdate(self, elapsed)
+
+local ONUPDATE_INTERVAL = 0.15
+local TimeSinceLastUpdate = 0
+function _G.CombatMode_OnUpdate(_, elapsed)
   -- Making this thread-safe by keeping track of the last update cycle
-  self.TimeSinceLastUpdate = self.TimeSinceLastUpdate + elapsed;
+  TimeSinceLastUpdate = TimeSinceLastUpdate + elapsed
 
   -- As the frame watching doesn't need to perform a visibility check every frame, we're adding a stagger
-  if (self.TimeSinceLastUpdate > updateInterval) and not IsDefaultMouseActionBeingUsed() then
+  if (TimeSinceLastUpdate >= ONUPDATE_INTERVAL) and not IsDefaultMouseActionBeingUsed() then
+    TimeSinceLastUpdate = 0
     local shouldUnlock, shouldLock = ShouldCursorBeFreed()
     if shouldUnlock then
       UnlockFreeLook()
     elseif shouldLock then
       LockFreeLook()
     end
-
-    self.TimeSinceLastUpdate = 0;
   end
 end
 
@@ -496,7 +501,6 @@ function _G.CombatModeToggleKey()
   end
 
   ToggleFreeLook()
-  isCursorManuallyUnlocked = not isCursorManuallyUnlocked
 end
 
 function _G.CombatModeHoldKey(keystate)
@@ -507,10 +511,10 @@ function _G.CombatModeHoldKey(keystate)
 
   if keystate == "down" then
     UnlockFreeLook()
-    isCursorManuallyUnlocked = true
+    ManualOverride = true
   else
     LockFreeLook()
-    isCursorManuallyUnlocked = false
+    ManualOverride = false
   end
 end
 
