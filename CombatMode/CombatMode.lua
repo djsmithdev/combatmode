@@ -148,7 +148,7 @@ local function SetCrosshairAppearance(state)
 
   -- Sets new scale at the end of animation
   CrosshairAnimation:SetScript("OnFinished", function()
-    if state == "hostile" or state == "friendly" then
+    if state == "hostile" or state == "friendly" or state == "object" then
       CrosshairFrame:SetScale(endingScale)
       CrosshairFrame:SetPoint("CENTER", 0, yOffset / endingScale)
     end
@@ -161,6 +161,10 @@ local function SetCrosshairAppearance(state)
   elseif state == "friendly" then
     CrosshairTexture:SetTexture(CrosshairAppearance.Active)
     CrosshairTexture:SetVertexColor(0, 1, 0.3, .8)
+    CrosshairAnimation:Play()
+  elseif state == "object" then
+    CrosshairTexture:SetTexture(CrosshairAppearance.Active)
+    CrosshairTexture:SetVertexColor(1, 0.8, 0.2, .8)
     CrosshairAnimation:Play()
   elseif state == "mounted" then
     CrosshairTexture:SetVertexColor(1, 1, 1, 0)
@@ -222,9 +226,12 @@ local function HandleCrosshairReactionToTarget(target)
   local reaction = _G.UnitReaction("player", target)
   local isTargetHostile = reaction and reaction <= 4
   local isTargetFriendly = reaction and reaction >= 5
+  local isTargetObject = _G.UnitIsGameObject(target)
 
   if isTargetVisible then
     SetCrosshairAppearance(isTargetHostile and "hostile" or isTargetFriendly and "friendly" or "base")
+  elseif isTargetObject then
+    SetCrosshairAppearance("object")
   else
     SetCrosshairAppearance("base")
   end
@@ -281,9 +288,10 @@ local function HasNarcissusOpen()
 end
 
 local function IsUnlockFrameVisible()
-  local genericPanelIsOpen = _G.GetUIPanel("left") or _G.GetUIPanel("right") or _G.GetUIPanel("center")
+  local isGenericPanelOpen = (_G.GetUIPanel("left") or _G.GetUIPanel("right") or _G.GetUIPanel("center")) and true or
+                               false
   return CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or CursorUnlockFrameVisible(CM.DB.global.watchlist) or
-           CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or genericPanelIsOpen
+           CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or isGenericPanelOpen
 end
 
 local function ShouldFreeLookBeOff()
@@ -315,7 +323,7 @@ end
 
 -- OVERRIDE BUTTONS
 function CM.GetBindingsLocation()
-  return CM.DB.profile.useGlobalBindings and "global" or "profile"
+  return CM.DB.char.useGlobalBindings and "global" or "char"
 end
 
 function CM.SetNewBinding(buttonSettings)

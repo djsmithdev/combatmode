@@ -445,11 +445,11 @@ CM.Options.ConfigOptions = {
           width = "full",
           order = 1.5,
           set = function(_, value)
-            CM.DB.profile.useGlobalBindings = value
+            CM.DB.char.useGlobalBindings = value
             CM.OverrideDefaultButtons()
           end,
           get = function()
-            return CM.DB.profile.useGlobalBindings
+            return CM.DB.char.useGlobalBindings
           end
         },
         keybindGlobalOptionPaddingBottom = {
