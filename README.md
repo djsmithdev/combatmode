@@ -3,13 +3,22 @@
   <img width="512" height="128" src="./cmtitle.svg">
 </p>
 
+<p align="center">
 Introducing Combat Mode – an AddOn designed to bring a more dynamic action combat experience to World of Warcraft by implementing Free Look, Reticle Targeting, casting with mouse clicks, and more!
+</center>
 
+![previewGif](./previewGif.gif)
+
+
+<p align="center">
 With a full suite of carefully programmed changes aimed at breathing some much-needed life into WoW's tab-targeting combat, Combat Mode introduces features like Free Look, allowing you to change your character’s facing direction by moving the mouse without needing to perpetually hold right-click. When enabled - either through a toggle or press & hold key bind - the cursor is locked to the center of the screen and transformed into a reticle capable of target selection, even supporting the use of @cursor or @mouseover macros.
-
+</center>
+<p align="center">
 Combat Mode takes it further by allowing you to cast spells with mouse clicks, a mechanic inspired by third-person action games. For convenience, the AddOn will automatically deactivate Free Look while interacting with a range of interface panels, reactivating it once closed. Additionally, you can expand this list of panels.
-
+</center>
+<p align="center">
 Experience World of Warcraft like never before with Combat Mode!
+</center>
 
 
 <br />
@@ -46,12 +55,6 @@ After installing the AddOn, you'll be greeted by this message upon login:
 - [**BagNon**](https://www.curseforge.com/wow/addons/bagnon).
 - [**GW2-ui**](https://www.curseforge.com/wow/addons/gw2-ui).
 - [**WeakAuras**](https://www.curseforge.com/wow/addons/weakauras-2).
-
-<br />
-
-## <img width="32" height="32" src="./cmlogo.svg">Showcase Video
-
-[![Watch the video](./previewGif.gif)]
 
 <br />
 
