@@ -106,7 +106,7 @@ local function CreateTargetMacros()
     end
   end
 
-  local macroIcon = "INV_MISC_QUESTIONMARK"
+  local macroIcon = "ability_hisek_aim"
 
   for macroName, macroText in pairs(CM.Constants.Macros) do
     createMacroIfNotExists(macroName, macroIcon, macroText)
