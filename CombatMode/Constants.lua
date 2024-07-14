@@ -6,18 +6,28 @@ local CM = AceAddon:GetAddon("CombatMode")
 
 CM.Constants = {}
 
+-- EVENTS TO BE TRACKED
+-- Checks each category in the table for the fired event and call the associated function if a match is found
 CM.Constants.BLIZZARD_EVENTS = {
-  "PLAYER_ENTERING_WORLD",
-  "LOADING_SCREEN_ENABLED",
-  "BARBER_SHOP_OPEN",
-  "PLAYER_SOFT_ENEMY_CHANGED",
-  "PLAYER_SOFT_INTERACT_CHANGED",
-  "PLAYER_REGEN_ENABLED",
-  "PLAYER_MOUNT_DISPLAY_CHANGED",
-  "CINEMATIC_START",
-  "CINEMATIC_STOP",
-  "PLAY_MOVIE",
-  "STOP_MOVIE"
+  UNLOCK_EVENTS = {
+    "LOADING_SCREEN_ENABLED", -- This forces a relock when quick-loading (e.g: loading after starting m+ run) thanks to the OnUpdate fn
+    "BARBER_SHOP_OPEN",
+    "CINEMATIC_START",
+    "PLAY_MOVIE"
+  },
+  LOCK_EVENTS = {
+    "CINEMATIC_STOP",
+    "STOP_MOVIE"
+  },
+  REMATCH_EVENTS = {
+    "PLAYER_ENTERING_WORLD" -- Loading Cvars on every reload
+  },
+  GENERAL_EVENTS = {
+    "PLAYER_SOFT_ENEMY_CHANGED",
+    "PLAYER_SOFT_INTERACT_CHANGED",
+    "PLAYER_MOUNT_DISPLAY_CHANGED",
+    "PLAYER_REGEN_ENABLED"
+  },
 }
 
 CM.Constants.PopupMsg = CM.METADATA["TITLE"] ..
@@ -67,6 +77,15 @@ for _, assetName in ipairs(crosshairAssetNames) do
   }
   CM.Constants.CrosshairAppearanceSelectValues[assetName] = assetName
 end
+
+-- CROSSHAIR REACTION COLORSELECT
+CM.Constants.CrosshairReactionColors = {
+  hostile = {1, .2, 0.3, 1}, -- red
+  friendly = {0, 1, 0.3, .8}, -- green
+  object = {1, 0.8, 0.2, .8}, -- yellow
+  base = {1, 1, 1, .5}, -- white
+  mounted = {1, 1, 1, 0} -- transparent
+}
 
 -- Default frames to check with a static name
 CM.Constants.FramesToCheck = {

@@ -139,6 +139,9 @@ end
 
 local function SetCrosshairAppearance(state)
   local CrosshairAppearance = CM.DB.global.crosshairAppearance
+  local r, g, b, a = _G.unpack(CM.Constants.CrosshairReactionColors[state])
+  local textureToUse = state == "base" and CrosshairAppearance.Base or CrosshairAppearance.Active
+  local reverseAnimation = state == "base" and true or false
   local yOffset = CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY
   local crosshairPositionVariance = 1000 -- from -500 min to 500 max
 
@@ -148,31 +151,16 @@ local function SetCrosshairAppearance(state)
 
   -- Sets new scale at the end of animation
   CrosshairAnimation:SetScript("OnFinished", function()
-    if state == "hostile" or state == "friendly" or state == "object" then
+    if state ~= "base" then
       CrosshairFrame:SetScale(endingScale)
       CrosshairFrame:SetPoint("CENTER", 0, yOffset / endingScale)
     end
   end)
 
-  if state == "hostile" then
-    CrosshairTexture:SetTexture(CrosshairAppearance.Active)
-    CrosshairTexture:SetVertexColor(1, .2, 0.3, 1)
-    CrosshairAnimation:Play()
-  elseif state == "friendly" then
-    CrosshairTexture:SetTexture(CrosshairAppearance.Active)
-    CrosshairTexture:SetVertexColor(0, 1, 0.3, .8)
-    CrosshairAnimation:Play()
-  elseif state == "object" then
-    CrosshairTexture:SetTexture(CrosshairAppearance.Active)
-    CrosshairTexture:SetVertexColor(1, 0.8, 0.2, .8)
-    CrosshairAnimation:Play()
-  elseif state == "mounted" then
-    CrosshairTexture:SetVertexColor(1, 1, 1, 0)
-    CrosshairAnimation:Play()
-  else -- "base" falls here
-    CrosshairTexture:SetTexture(CrosshairAppearance.Base)
-    CrosshairTexture:SetVertexColor(1, 1, 1, .5)
-    CrosshairAnimation:Play(true) -- reverse
+  CrosshairTexture:SetTexture(textureToUse)
+  CrosshairTexture:SetVertexColor(r, g, b, a)
+  CrosshairAnimation:Play(reverseAnimation)
+  if state == "base" then
     CrosshairFrame:SetScale(startingScale)
     CrosshairFrame:SetPoint("CENTER", 0, yOffset)
   end
@@ -283,8 +271,10 @@ local function IsCustomConditionTrue()
   end
 end
 
-local function HasNarcissusOpen()
-  return _G.Narci and _G.Narci.isActive
+local function isThirdPartyAddonOpen()
+  -- Narci = Narcissus
+  local addons = (_G.Narci and _G.Narci.isActive)
+  return addons
 end
 
 local function IsUnlockFrameVisible()
@@ -296,7 +286,7 @@ end
 
 local function ShouldFreeLookBeOff()
   local shouldUnlock = FreeLookOverride or _G.SpellIsTargeting() or _G.InCinematic() or IsUnlockFrameVisible() or
-                         IsCustomConditionTrue() or HasNarcissusOpen()
+                         IsCustomConditionTrue() or isThirdPartyAddonOpen()
 
   return shouldUnlock
 end
@@ -407,16 +397,6 @@ local function ToggleFreeLook(state)
   end
 end
 
--- CREATING /CM CHAT COMMAND
-function CM:OpenConfigCMD(input)
-  if not _G.InCombatLockdown() and not input or input:trim() == "" then
-    FreeLookOverride = true
-    AceConfigDialog:Open("Combat Mode")
-  else
-    AceConfigCmd.HandleCommand(self, "mychat", "Combat Mode", input)
-  end
-end
-
 -- Re-locking Free Look & re-setting CVars after reload/portal
 local function Rematch()
   if CM.DB.global.reticleTargeting then
@@ -430,54 +410,52 @@ local function Rematch()
   LockFreeLook()
 end
 
--- FIRES WHEN SPECIFIC EVENTS HAPPEN IN GAME
+-- Handle events based on their category
 -- You need to first register the event in the CM.Constants.BLIZZARD_EVENTS table before using it here
-function _G.CombatMode_OnEvent(event)
-  local UNLOCK_EVENTS = {
-    "LOADING_SCREEN_ENABLED", -- This forces a relock when quick-loading (e.g: loading after starting m+ run) thanks to the OnUpdate fn
-    "BARBER_SHOP_OPEN",
-    "CINEMATIC_START",
-    "PLAY_MOVIE"
-  }
-
-  for _, unlockEvent in ipairs(UNLOCK_EVENTS) do
-    if event == unlockEvent then
+-- Checks each category in the table for the fired event and call the associated function if a match is found
+local function handleEventByCategory(category, event)
+  local eventHandlers = {
+    UNLOCK_EVENTS = function()
       UnlockFreeLook()
-      break
+    end,
+    LOCK_EVENTS = function()
+      LockFreeLook()
+    end,
+    REMATCH_EVENTS = function()
+      Rematch()
+      SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
+    end,
+    GENERAL_EVENTS = function()
+      -- Events responsible for crosshair reaction
+      if event == "PLAYER_SOFT_ENEMY_CHANGED" or event == "PLAYER_SOFT_INTERACT_CHANGED" then
+        if not HideWhileMounted() then
+          HandleCrosshairReactionToTarget(event == "PLAYER_SOFT_ENEMY_CHANGED" and "softenemy" or "softinteract")
+        end
+        -- Hiding crosshair while mounted
+      elseif event == "PLAYER_MOUNT_DISPLAY_CHANGED" then
+        SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
+        -- Reseting crosshair when leaving combat
+      elseif event == "PLAYER_REGEN_ENABLED" then
+        if not HideWhileMounted() then
+          SetCrosshairAppearance("base")
+        end
+      end
     end
-  end
-
-  local LOCK_EVENTS = {
-    "CINEMATIC_STOP",
-    "STOP_MOVIE"
   }
 
-  for _, lockEvent in ipairs(LOCK_EVENTS) do
-    if event == lockEvent then
-      LockFreeLook()
-      break
-    end
+  if eventHandlers[category] then
+    eventHandlers[category]()
   end
+end
 
-  -- Loading Cvars on every reload
-  if event == "PLAYER_ENTERING_WORLD" then
-    Rematch()
-  end
-
-  -- Events responsible for crosshair reaction
-  if event == "PLAYER_SOFT_ENEMY_CHANGED" or event == "PLAYER_SOFT_INTERACT_CHANGED" then
-    if not HideWhileMounted() then
-      HandleCrosshairReactionToTarget(event == "PLAYER_SOFT_ENEMY_CHANGED" and "softenemy" or "softinteract")
-    end
-
-    -- Hiding crosshair while mounted
-  elseif event == "PLAYER_MOUNT_DISPLAY_CHANGED" then
-    SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
-
-    -- Reseting crosshair when leaving combat
-  elseif event == "PLAYER_REGEN_ENABLED" then
-    if not HideWhileMounted() then
-      SetCrosshairAppearance("base")
+-- FIRES WHEN ONE OF OUR REGISTERED EVENTS HAPPEN IN GAME
+function _G.CombatMode_OnEvent(event)
+  for category, registered_events in pairs(CM.Constants.BLIZZARD_EVENTS) do
+    for _, registered_event in ipairs(registered_events) do
+      if event == registered_event then
+        handleEventByCategory(category, event)
+        return
+      end
     end
   end
 end
@@ -519,6 +497,16 @@ function _G.CombatModeHoldKey(keystate)
   ToggleFreeLook(state)
 end
 
+-- CREATING /CM CHAT COMMAND
+function CM:OpenConfigCMD(input)
+  if not _G.InCombatLockdown() and not input or input:trim() == "" then
+    FreeLookOverride = true
+    AceConfigDialog:Open("Combat Mode")
+  else
+    AceConfigCmd.HandleCommand(self, "mychat", "Combat Mode", input)
+  end
+end
+
 -- STANDARD ACE 3 METHODS
 -- do init tasks here, like loading the Saved Variables,
 -- or setting up slash commands.
@@ -551,8 +539,10 @@ function CM:OnEnable()
   CreateTargetMacros()
 
   -- Registering Blizzard Events from Constants.lua
-  for _, event in pairs(CM.Constants.BLIZZARD_EVENTS) do
-    self:RegisterEvent(event, _G.CombatMode_OnEvent)
+  for _, events_to_register in pairs(CM.Constants.BLIZZARD_EVENTS) do
+    for _, event in ipairs(events_to_register) do
+      self:RegisterEvent(event, _G.CombatMode_OnEvent)
+    end
   end
 
   -- Greeting message that is printed to chat on initial load
