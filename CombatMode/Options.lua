@@ -702,7 +702,7 @@ CM.Options.ConfigOptions = {
             },
             crosshairNote = {
               type = "description",
-              name = "|cffffd700Developer Note:|r \n|cff909090When |cffcfcfcfReticle Targeting|r is enabled, the |cff00FFFFCrosshair|r acts as a cursor, thus allowing it to be reliably used in combination with |cffB47EDE@mouseover|r and |cffB47EDE@cursor|r macros if you'd like a more fine-grained target selection for each spell.|r \n \n|cffcfcfcfExemple macros have been added to your account-wide macros list (Esc > Macros) for users who prefer either Soft-Locking or Hard-Locking Targeting.|r \n \n|cffFF5050This feature has been programed with CombatMode's |cffcfcfcfReticle Targeting|r configuration in mind. Utilizing the |cff00FFFFCrosshair|r without it could lead to unintended behavior like unpredicatable targeting and improper crosshair reactivity.|r",
+              name = "|cffffd700Developer Note:|r \n|cff909090When |cffcfcfcfReticle Targeting|r is enabled, the |cff00FFFFCrosshair|r acts as a cursor, thus allowing it to be reliably used in combination with |cffB47EDE@mouseover|r and |cffB47EDE@cursor|r macros if you'd like a more fine-grained target selection.|r \n \n|cffcfcfcfExample macros have been added to your account-wide macros list (Esc > Macros) for users who prefer either Soft-Locking or Hard-Locking Targeting.|r \n \n|cffFF5050This feature has been programed with CombatMode's |cffcfcfcfReticle Targeting|r configuration in mind. Utilizing the |cff00FFFFCrosshair|r without it could lead to unintended behavior like unpredicatable targeting and improper crosshair reactivity.|r",
               order = 1.2
             },
             crosshair = {
