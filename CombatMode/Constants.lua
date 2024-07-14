@@ -9,22 +9,29 @@ CM.Constants = {}
 -- EVENTS TO BE TRACKED
 -- Checks each category in the table for the fired event and call the associated function if a match is found
 CM.Constants.BLIZZARD_EVENTS = {
+  -- Events that fire UnlockFreeLook()
   UNLOCK_EVENTS = {
     "LOADING_SCREEN_ENABLED", -- This forces a relock when quick-loading (e.g: loading after starting m+ run) thanks to the OnUpdate fn
     "BARBER_SHOP_OPEN",
     "CINEMATIC_START",
     "PLAY_MOVIE"
   },
+  -- Events that fire LockFreeLook()
   LOCK_EVENTS = {
     "CINEMATIC_STOP",
     "STOP_MOVIE"
   },
+  -- Events that fire Rematch()
   REMATCH_EVENTS = {
     "PLAYER_ENTERING_WORLD" -- Loading Cvars on every reload
   },
-  GENERAL_EVENTS = {
+  -- Events responsible for crosshair reaction
+  TARGETING_EVENTS = {
     "PLAYER_SOFT_ENEMY_CHANGED",
-    "PLAYER_SOFT_INTERACT_CHANGED",
+    "PLAYER_SOFT_INTERACT_CHANGED"
+  },
+  -- Events that don't fall within the previous categories
+  UNCATEGORIZED_EVENTS = {
     "PLAYER_MOUNT_DISPLAY_CHANGED",
     "PLAYER_REGEN_ENABLED"
   },
@@ -78,7 +85,7 @@ for _, assetName in ipairs(crosshairAssetNames) do
   CM.Constants.CrosshairAppearanceSelectValues[assetName] = assetName
 end
 
--- CROSSHAIR REACTION COLORSELECT
+-- CROSSHAIR REACTION COLORS
 CM.Constants.CrosshairReactionColors = {
   hostile = {1, .2, 0.3, 1}, -- red
   friendly = {0, 1, 0.3, .8}, -- green

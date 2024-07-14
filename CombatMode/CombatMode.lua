@@ -403,6 +403,10 @@ local function Rematch()
     CM.LoadCVars("combatmode")
   end
 
+  if CM.DB.global.crosshair then
+    SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
+  end
+
   if CM.DB.global.crosshairPriority then
     _G.SetCVar("enableMouseoverCast", 1)
   end
@@ -423,22 +427,17 @@ local function handleEventByCategory(category, event)
     end,
     REMATCH_EVENTS = function()
       Rematch()
-      SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
     end,
-    GENERAL_EVENTS = function()
-      -- Events responsible for crosshair reaction
-      if event == "PLAYER_SOFT_ENEMY_CHANGED" or event == "PLAYER_SOFT_INTERACT_CHANGED" then
-        if not HideWhileMounted() then
-          HandleCrosshairReactionToTarget(event == "PLAYER_SOFT_ENEMY_CHANGED" and "softenemy" or "softinteract")
-        end
-        -- Hiding crosshair while mounted
-      elseif event == "PLAYER_MOUNT_DISPLAY_CHANGED" then
-        SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
-        -- Reseting crosshair when leaving combat
-      elseif event == "PLAYER_REGEN_ENABLED" then
-        if not HideWhileMounted() then
-          SetCrosshairAppearance("base")
-        end
+    TARGETING_EVENTS = function()
+      if not HideWhileMounted() then
+        HandleCrosshairReactionToTarget(event == "PLAYER_SOFT_ENEMY_CHANGED" and "softenemy" or "softinteract")
+      end
+    end,
+    UNCATEGORIZED_EVENTS = function()
+      if event == "PLAYER_MOUNT_DISPLAY_CHANGED" then
+        SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base") -- Toggling crosshair when mounting/dismounting
+      elseif event == "PLAYER_REGEN_ENABLED" and not HideWhileMounted() then
+        SetCrosshairAppearance("base") -- Reseting crosshair when leaving combat
       end
     end
   }
