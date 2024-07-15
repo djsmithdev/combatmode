@@ -358,6 +358,7 @@ CM.Options.ConfigOptions = {
               _G.SetBinding(oldKey)
             end
             _G.SetBinding(key, "Combat Mode Toggle")
+            _G.SetBinding("MOVEANDSTEER")
             _G.SaveBindings(_G.GetCurrentBindingSet())
           end,
           get = function()
@@ -382,6 +383,7 @@ CM.Options.ConfigOptions = {
               _G.SetBinding(oldKey)
             end
             _G.SetBinding(key, "(Hold) Switch Mode")
+            _G.SetBinding("MOVEANDSTEER")
             _G.SaveBindings(_G.GetCurrentBindingSet())
           end,
           get = function()
