@@ -416,7 +416,7 @@ end
 
 -- Handle events based on their category
 -- You need to first register the event in the CM.Constants.BLIZZARD_EVENTS table before using it here
--- Checks each category in the table for the fired event and call the associated function if a match is found
+-- Checks which category in the table the event that's been fired belongs to, and then calls the appropriate function
 local function handleEventByCategory(category, event)
   local eventHandlers = {
     UNLOCK_EVENTS = function()
@@ -434,11 +434,7 @@ local function handleEventByCategory(category, event)
       end
     end,
     UNCATEGORIZED_EVENTS = function()
-      if event == "PLAYER_MOUNT_DISPLAY_CHANGED" then
-        SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base") -- Toggling crosshair when mounting/dismounting
-      elseif event == "PLAYER_REGEN_ENABLED" and not HideWhileMounted() then
-        SetCrosshairAppearance("base") -- Reseting crosshair when leaving combat
-      end
+      SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
     end
   }
 

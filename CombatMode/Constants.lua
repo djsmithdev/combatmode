@@ -7,7 +7,6 @@ local CM = AceAddon:GetAddon("CombatMode")
 CM.Constants = {}
 
 -- EVENTS TO BE TRACKED
--- Checks each category in the table for the fired event and call the associated function if a match is found
 CM.Constants.BLIZZARD_EVENTS = {
   -- Events that fire UnlockFreeLook()
   UNLOCK_EVENTS = {
@@ -32,8 +31,8 @@ CM.Constants.BLIZZARD_EVENTS = {
   },
   -- Events that don't fall within the previous categories
   UNCATEGORIZED_EVENTS = {
-    "PLAYER_MOUNT_DISPLAY_CHANGED",
-    "PLAYER_REGEN_ENABLED"
+    "PLAYER_MOUNT_DISPLAY_CHANGED", -- Toggling crosshair when mounting/dismounting
+    "PLAYER_REGEN_ENABLED" -- Reseting crosshair when leaving combat
   },
 }
 
