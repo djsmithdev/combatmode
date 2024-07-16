@@ -7,13 +7,45 @@ local AceConfig = _G.LibStub("AceConfig-3.0")
 local AceConfigDialog = _G.LibStub("AceConfigDialog-3.0")
 local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 
+-- CACHING GLOBAL VARIABLES
+-- Slightly better performance than doing a global lookup every time
+local C_AddOns = _G.C_AddOns
+local CreateFrame = _G.CreateFrame
+local CreateMacro = _G.CreateMacro
+local GetMacroInfo = _G.GetMacroInfo
+local GetUIPanel = _G.GetUIPanel
+local InCinematic = _G.InCinematic
+local InCombatLockdown = _G.InCombatLockdown
+local IsMounted = _G.IsMounted
+local IsMouseButtonDown = _G.IsMouseButtonDown
+local IsMouselooking = _G.IsMouselooking
+local loadstring = _G.loadstring
+local MouselookStart = _G.MouselookStart
+local MouselookStop = _G.MouselookStop
+local Narci = _G.Narci
+local ReloadUI = _G.ReloadUI
+local SetCVar = _G.SetCVar
+local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
+local SpellIsTargeting = _G.SpellIsTargeting
+local StaticPopupDialogs = _G.StaticPopupDialogs
+local StaticPopup_Show = _G.StaticPopup_Show
+local UIParent = _G.UIParent
+local UnitExists = _G.UnitExists
+local UnitGUID = _G.UnitGUID
+local UnitIsGameObject = _G.UnitIsGameObject
+local UnitReaction = _G.UnitReaction
+local unpack = _G.unpack
+
 -- INSTANTIATING ADDON & ENCAPSULATING NAMESPACE
 ---@class CM : AceAddon
 local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 _G["CM"] = CM
 
--- SETTING UP CROSSHAIR ANIMATION
-local CrosshairFrame = _G.CreateFrame("Frame", "CombatModeCrosshairFrame", _G.UIParent)
+-- INITIAL STATE VARIABLES
+local FreeLookOverride = false -- Changes when Free Look state is modified through user input ("Toggle" or "Press & Hold" keybinds and "/cm" cmd)
+
+-- SETTING UP CROSSHAIR FRAME & ANIMATION
+local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 local CrosshairAnimation = CrosshairFrame:CreateAnimationGroup()
 local ScaleAnimation = CrosshairAnimation:CreateAnimation("Scale")
@@ -25,9 +57,6 @@ ScaleAnimation:SetScaleFrom(startingScale, startingScale)
 ScaleAnimation:SetScaleTo(endingScale, endingScale)
 ScaleAnimation:SetSmoothProgress(scaleDuration)
 ScaleAnimation:SetSmoothing("IN_OUT")
-
--- INITIAL STATE VARIABLES
-local FreeLookOverride = false -- Changes when Free Look state is modified through user input ("Toggle" or "Press & Hold" keybinds and "/cm" cmd)
 
 -- UTILITY FUNCTIONS
 local function FetchDataFromTOC()
@@ -42,7 +71,7 @@ local function FetchDataFromTOC()
   }
 
   for _, key in ipairs(keysToFetch) do
-    dataRetuned[string.upper(key)] = _G.C_AddOns.GetAddOnMetadata("CombatMode", key)
+    dataRetuned[string.upper(key)] = C_AddOns.GetAddOnMetadata("CombatMode", key)
   end
 
   return dataRetuned
@@ -65,7 +94,7 @@ local function DisplayPopup()
     CM.DB.char.seenWarning = true
   end
 
-  _G.StaticPopupDialogs["CombatMode Warning"] = {
+  StaticPopupDialogs["CombatMode Warning"] = {
     text = CM.Constants.PopupMsg,
     button1 = "Ok",
     OnButton1 = OnClosePopup(),
@@ -74,7 +103,7 @@ local function DisplayPopup()
     whileDead = true
   }
 
-  _G.StaticPopup_Show("CombatMode Warning")
+  StaticPopup_Show("CombatMode Warning")
 end
 
 function CM.LoadCVars(CVarType)
@@ -91,18 +120,18 @@ function CM.LoadCVars(CVarType)
   end
 
   for name, value in pairs(CVarsToLoad) do
-    _G.SetCVar(name, value)
+    SetCVar(name, value)
   end
 end
 
 local function CreateTargetMacros()
   local macroExists = function(name)
-    return _G.GetMacroInfo(name) ~= nil
+    return GetMacroInfo(name) ~= nil
   end
 
   local function createMacroIfNotExists(macroName, icon, macroText)
     if not macroExists(macroName) then
-      _G.CreateMacro(macroName, icon, macroText, false)
+      CreateMacro(macroName, icon, macroText, false)
     end
   end
 
@@ -116,7 +145,7 @@ end
 -- If left or right mouse buttons are being used while not free looking - meaning you're using the default mouse actions - then it won't allow you to lock into Free Look.
 -- This prevents the auto running bug.
 local function IsDefaultMouseActionBeingUsed()
-  return _G.IsMouseButtonDown("LeftButton") or _G.IsMouseButtonDown("RightButton")
+  return IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
 end
 
 local function CenterCursor(shouldCenter)
@@ -124,22 +153,22 @@ local function CenterCursor(shouldCenter)
     return
   end
   if shouldCenter then
-    _G.SetCVar("CursorFreelookCentering", 1)
+    SetCVar("CursorFreelookCentering", 1)
     CM.DebugPrint("Locking cursor to crosshair position.")
   else
-    _G.SetCVar("CursorFreelookCentering", 0)
+    SetCVar("CursorFreelookCentering", 0)
     CM.DebugPrint("Freeing cursor from crosshair position.")
   end
 end
 
 -- CROSSHAIR STATE HANDLING FUNCTIONS
 local function HideWhileMounted()
-  return CM.DB.global.crosshairMounted and _G.IsMounted()
+  return CM.DB.global.crosshairMounted and IsMounted()
 end
 
 local function SetCrosshairAppearance(state)
   local CrosshairAppearance = CM.DB.global.crosshairAppearance
-  local r, g, b, a = _G.unpack(CM.Constants.CrosshairReactionColors[state])
+  local r, g, b, a = unpack(CM.Constants.CrosshairReactionColors[state])
   local textureToUse = state == "base" and CrosshairAppearance.Base or CrosshairAppearance.Active
   local reverseAnimation = state == "base" and true or false
   local yOffset = CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY
@@ -147,7 +176,7 @@ local function SetCrosshairAppearance(state)
 
   -- Adjusts centered cursor vertical positioning
   local cursorCenteredYpos = (yOffset / crosshairPositionVariance) + 0.5 - 0.015
-  _G.SetCVar("CursorCenteredYPos", cursorCenteredYpos)
+  SetCVar("CursorCenteredYPos", cursorCenteredYpos)
 
   -- Sets new scale at the end of animation
   CrosshairAnimation:SetScript("OnFinished", function()
@@ -210,11 +239,11 @@ function CM.UpdateCrosshair()
 end
 
 local function HandleCrosshairReactionToTarget(target)
-  local isTargetVisible = (_G.UnitExists(target) and _G.UnitGUID(target)) and true or false
-  local reaction = _G.UnitReaction("player", target)
+  local isTargetVisible = (UnitExists(target) and UnitGUID(target)) and true or false
+  local reaction = UnitReaction("player", target)
   local isTargetHostile = reaction and reaction <= 4
   local isTargetFriendly = reaction and reaction >= 5
-  local isTargetObject = _G.UnitIsGameObject(target)
+  local isTargetObject = UnitIsGameObject(target)
 
   if isTargetVisible then
     SetCrosshairAppearance(isTargetHostile and "hostile" or isTargetFriendly and "friendly" or "base")
@@ -245,7 +274,7 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
   for wildcardFrameName, frameNames in pairs(frameNameGroups) do
     if CursorUnlockFrameVisible(frameNames) then
       if wildcardFrameName == "OPieRT" then
-        -- Hiding crosshair because OPie runs _G.MouselookStop() itself,
+        -- Hiding crosshair because OPie runs MouselookStop() itself,
         -- which skips UnlockCursor()'s checks to hide crosshair
         if CM.DB.global.crosshair then
           CM.HideCrosshair()
@@ -262,7 +291,7 @@ local function IsCustomConditionTrue()
     return false
   end
 
-  local customConditionFunction, error = _G.loadstring(CM.DB.global.customCondition)
+  local customConditionFunction, error = loadstring(CM.DB.global.customCondition)
   if not customConditionFunction then
     CM.DebugPrint(error)
     return false
@@ -273,22 +302,21 @@ end
 
 local function isThirdPartyAddonOpen()
   -- Narci = Narcissus
-  local addons = (_G.Narci and _G.Narci.isActive)
+  local addons = (Narci and Narci.isActive)
   return addons
 end
 
 local function IsUnlockFrameVisible()
-  local isGenericPanelOpen = (_G.GetUIPanel("left") or _G.GetUIPanel("right") or _G.GetUIPanel("center")) and true or
-                               false
+  local isGenericPanelOpen = (GetUIPanel("left") or GetUIPanel("right") or GetUIPanel("center")) and true or false
   return CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or CursorUnlockFrameVisible(CM.DB.global.watchlist) or
            CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or isGenericPanelOpen
 end
 
 local function ShouldFreeLookBeOff()
-  local shouldUnlock = FreeLookOverride or _G.SpellIsTargeting() or _G.InCinematic() or IsUnlockFrameVisible() or
-                         IsCustomConditionTrue() or isThirdPartyAddonOpen()
+  local evaluate = FreeLookOverride or SpellIsTargeting() or InCinematic() or IsUnlockFrameVisible() or
+                     IsCustomConditionTrue() or isThirdPartyAddonOpen()
 
-  return shouldUnlock
+  return evaluate
 end
 
 -- FRAME WATCHING FOR SERIALIZED FRAMES (Ex: Opie rings)
@@ -331,7 +359,7 @@ function CM.SetNewBinding(buttonSettings)
   else
     valueToUse = buttonSettings.value
   end
-  _G.SetMouselookOverrideBinding(buttonSettings.key, valueToUse)
+  SetMouselookOverrideBinding(buttonSettings.key, valueToUse)
   CM.DebugPrint(buttonSettings.key .. "'s override binding is now " .. valueToUse)
 end
 
@@ -342,7 +370,7 @@ function CM.OverrideDefaultButtons()
 end
 
 function CM.ResetBindingOverride(buttonSettings)
-  _G.SetMouselookOverrideBinding(buttonSettings.key, nil)
+  SetMouselookOverrideBinding(buttonSettings.key, nil)
   CM.DebugPrint(buttonSettings.key .. "'s override binding is now cleared")
 end
 
@@ -356,8 +384,8 @@ end
 
 -- FREE LOOK STATE HANDLING
 local function LockFreeLook()
-  if not _G.IsMouselooking() then
-    _G.MouselookStart()
+  if not IsMouselooking() then
+    MouselookStart()
     CenterCursor(true)
 
     if CM.DB.global.crosshair then
@@ -369,9 +397,9 @@ local function LockFreeLook()
 end
 
 local function UnlockFreeLook()
-  if _G.IsMouselooking() then
+  if IsMouselooking() then
     CenterCursor(false)
-    _G.MouselookStop()
+    MouselookStop()
 
     if CM.DB.global.crosshair then
       CM.HideCrosshair()
@@ -408,7 +436,7 @@ local function Rematch()
   end
 
   if CM.DB.global.crosshairPriority then
-    _G.SetCVar("enableMouseoverCast", 1)
+    SetCVar("enableMouseoverCast", 1)
   end
 
   LockFreeLook()
@@ -444,7 +472,7 @@ local function handleEventByCategory(category, event)
 end
 
 -- FIRES WHEN ONE OF OUR REGISTERED EVENTS HAPPEN IN GAME
-function _G.CombatMode_OnEvent(event)
+function CombatMode_OnEvent(event)
   for category, registered_events in pairs(CM.Constants.BLIZZARD_EVENTS) do
     for _, registered_event in ipairs(registered_events) do
       if event == registered_event then
@@ -458,7 +486,7 @@ end
 -- FIRES WHEN GAME STATE CHANGES HAPPEN
 local ONUPDATE_INTERVAL = 0.15
 local TimeSinceLastUpdate = 0
-function _G.CombatMode_OnUpdate(_, elapsed)
+function CombatMode_OnUpdate(_, elapsed)
   -- Making this thread-safe by keeping track of the last update cycle
   TimeSinceLastUpdate = TimeSinceLastUpdate + elapsed
 
@@ -475,26 +503,26 @@ function _G.CombatMode_OnUpdate(_, elapsed)
       return
     end
 
-    if not _G.IsMouselooking() then
+    if not IsMouselooking() then
       LockFreeLook()
     end
   end
 end
 
 -- FUNCTIONS CALLED FROM BINDINGS.XML
-function _G.CombatModeToggleKey()
-  local state = _G.IsMouselooking()
+function CombatModeToggleKey()
+  local state = IsMouselooking()
   ToggleFreeLook(state)
 end
 
-function _G.CombatModeHoldKey(keystate)
+function CombatModeHoldKey(keystate)
   local state = keystate == "down"
   ToggleFreeLook(state)
 end
 
 -- CREATING /CM CHAT COMMAND
 function CM:OpenConfigCMD(input)
-  if not _G.InCombatLockdown() and not input or input:trim() == "" then
+  if not InCombatLockdown() and not input or input:trim() == "" then
     FreeLookOverride = true
     AceConfigDialog:Open("Combat Mode")
   else
@@ -520,7 +548,7 @@ end
 function CM:OnResetDB()
   CM.DebugPrint("Reseting Combat Mode settings.")
   self.DB:ResetDB("Default")
-  _G.ReloadUI();
+  ReloadUI();
 end
 
 -- Do more initialization here, that really enables the use of your addon.
@@ -536,7 +564,7 @@ function CM:OnEnable()
   -- Registering Blizzard Events from Constants.lua
   for _, events_to_register in pairs(CM.Constants.BLIZZARD_EVENTS) do
     for _, event in ipairs(events_to_register) do
-      self:RegisterEvent(event, _G.CombatMode_OnEvent)
+      self:RegisterEvent(event, CombatMode_OnEvent)
     end
   end
 

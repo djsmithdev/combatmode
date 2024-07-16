@@ -2,6 +2,8 @@
 -- IMPORTS
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
+
+-- RETRIEVING ADDON TABLE
 local CM = AceAddon:GetAddon("CombatMode")
 
 CM.Constants = {}
@@ -347,7 +349,7 @@ CM.Constants.CustomCVarValues = {
   ["SoftTargetEnemyRange"] = 60,
   ["SoftTargetIconEnemy"] = 0,
   -- cursor centering
-  ["CursorFreelookCentering"] = 0, -- needs to be set to 0 initially because Blizzard changed this cvar to be called BEFORE _G.MouselookStart() method, which means if we set to 1 by default, it will cause the camera to snap to cursor position as you enable free look.
+  ["CursorFreelookCentering"] = 0, -- needs to be set to 0 initially because Blizzard changed this cvar to be called BEFORE MouselookStart() method, which means if we set to 1 by default, it will cause the camera to snap to cursor position as you enable free look.
   ["CursorStickyCentering"] = 1 -- does not work in its current implementation. Most likely related to the recent CursorFreelookCentering change.
 }
 

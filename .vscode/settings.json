@@ -38,7 +38,10 @@
     "ChatEdit_GetActiveWindow",
     "enabled",
     "Add",
-    "NOTE"
+    "NOTE",
+    "StaticPopupDialogs",
+    "StaticPopup_Show",
+    "GetUIPanel"
   ],
   "Lua.diagnostics.disable": [
     "undefined-field",

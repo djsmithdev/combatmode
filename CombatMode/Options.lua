@@ -2,6 +2,15 @@
 -- IMPORTS
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
+
+-- CACHING GLOBAL VARIABLES
+local GetCurrentBindingSet = _G.GetCurrentBindingSet
+local GetBindingKey = _G.GetBindingKey
+local SaveBindings = _G.SaveBindings
+local SetBinding = _G.SetBinding
+local SetCVar = _G.SetCVar
+
+-- RETRIEVING ADDON TABLE
 local CM = AceAddon:GetAddon("CombatMode")
 
 CM.Options = {}
@@ -353,16 +362,16 @@ CM.Options.ConfigOptions = {
           width = 1,
           order = 3,
           set = function(_, key)
-            local oldKey = (_G.GetBindingKey("Combat Mode Toggle"))
+            local oldKey = (GetBindingKey("Combat Mode Toggle"))
             if oldKey then
-              _G.SetBinding(oldKey)
+              SetBinding(oldKey)
             end
-            _G.SetBinding(key, "Combat Mode Toggle")
-            _G.SetBinding("MOVEANDSTEER")
-            _G.SaveBindings(_G.GetCurrentBindingSet())
+            SetBinding(key, "Combat Mode Toggle")
+            SetBinding("MOVEANDSTEER")
+            SaveBindings(GetCurrentBindingSet())
           end,
           get = function()
-            return (_G.GetBindingKey("Combat Mode Toggle"))
+            return (GetBindingKey("Combat Mode Toggle"))
           end
         },
         holdLeftPadding = {
@@ -378,16 +387,16 @@ CM.Options.ConfigOptions = {
           width = 1,
           order = 4,
           set = function(_, key)
-            local oldKey = (_G.GetBindingKey("(Hold) Switch Mode"))
+            local oldKey = (GetBindingKey("(Hold) Switch Mode"))
             if oldKey then
-              _G.SetBinding(oldKey)
+              SetBinding(oldKey)
             end
-            _G.SetBinding(key, "(Hold) Switch Mode")
-            _G.SetBinding("MOVEANDSTEER")
-            _G.SaveBindings(_G.GetCurrentBindingSet())
+            SetBinding(key, "(Hold) Switch Mode")
+            SetBinding("MOVEANDSTEER")
+            SaveBindings(GetCurrentBindingSet())
           end,
           get = function()
-            return (_G.GetBindingKey("(Hold) Switch Mode"))
+            return (GetBindingKey("(Hold) Switch Mode"))
           end
         },
         interactLeftPadding = {
@@ -403,15 +412,15 @@ CM.Options.ConfigOptions = {
           width = 1,
           order = 5,
           set = function(_, key)
-            local oldKey = (_G.GetBindingKey("INTERACTTARGET"))
+            local oldKey = (GetBindingKey("INTERACTTARGET"))
             if oldKey then
-              _G.SetBinding(oldKey)
+              SetBinding(oldKey)
             end
-            _G.SetBinding(key, "INTERACTTARGET")
-            _G.SaveBindings(_G.GetCurrentBindingSet())
+            SetBinding(key, "INTERACTTARGET")
+            SaveBindings(GetCurrentBindingSet())
           end,
           get = function()
-            return (_G.GetBindingKey("INTERACTTARGET"))
+            return (GetBindingKey("INTERACTTARGET"))
           end
         },
         interactRightPadding = {
@@ -659,9 +668,9 @@ CM.Options.ConfigOptions = {
           set = function(_, value)
             CM.DB.global.crosshairPriority = value
             if value then
-              _G.SetCVar("enableMouseoverCast", 1)
+              SetCVar("enableMouseoverCast", 1)
             else
-              _G.SetCVar("enableMouseoverCast", 0)
+              SetCVar("enableMouseoverCast", 0)
             end
           end,
           get = function()
