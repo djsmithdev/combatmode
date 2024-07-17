@@ -15,6 +15,9 @@
 ## X-Github: github.com/djsmithdev/combatmode
 ## X-Discord: discord.gg/5mwBSmz
 
-CombatMode.xml
+# Libraries
+Embeds.xml
+
+# Modules
 Constants.lua
 Options.lua
