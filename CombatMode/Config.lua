@@ -13,7 +13,7 @@ local SetCVar = _G.SetCVar
 -- RETRIEVING ADDON TABLE
 local CM = AceAddon:GetAddon("CombatMode")
 
-CM.Options = {}
+CM.Config = {}
 
 local function GetButtonOverrideGroup(modifier, groupOrder)
   local button1Settings, button2Settings, groupName, button1Name, button2Name
@@ -171,7 +171,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
 end
 
 -- BASE CONFIG PANEL
-CM.Options.ConfigOptions = {
+CM.Config.ConfigOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
   type = "group",
@@ -867,7 +867,7 @@ CM.Options.ConfigOptions = {
 }
 
 -- ADVANCED CONFIG TAB
-CM.Options.AdvancedConfigOptions = {
+CM.Config.AdvancedConfigOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
   type = "group",

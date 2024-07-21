@@ -472,7 +472,7 @@ local function handleEventByCategory(category, event)
 end
 
 -- FIRES WHEN ONE OF OUR REGISTERED EVENTS HAPPEN IN GAME
-function CombatMode_OnEvent(event)
+function _G.CombatMode_OnEvent(event)
   for category, registered_events in pairs(CM.Constants.BLIZZARD_EVENTS) do
     for _, registered_event in ipairs(registered_events) do
       if event == registered_event then
@@ -486,7 +486,7 @@ end
 -- FIRES WHEN GAME STATE CHANGES HAPPEN
 local ONUPDATE_INTERVAL = 0.15
 local TimeSinceLastUpdate = 0
-function CombatMode_OnUpdate(_, elapsed)
+function _G.CombatMode_OnUpdate(_, elapsed)
   -- Making this thread-safe by keeping track of the last update cycle
   TimeSinceLastUpdate = TimeSinceLastUpdate + elapsed
 
@@ -510,12 +510,12 @@ function CombatMode_OnUpdate(_, elapsed)
 end
 
 -- FUNCTIONS CALLED FROM BINDINGS.XML
-function CombatModeToggleKey()
+function _G.CombatMode_ToggleKey()
   local state = IsMouselooking()
   ToggleFreeLook(state)
 end
 
-function CombatModeHoldKey(keystate)
+function _G.CombatMode_HoldKey(keystate)
   local state = keystate == "down"
   ToggleFreeLook(state)
 end
@@ -536,9 +536,9 @@ end
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Constants.DatabaseDefaults, true)
 
-  AceConfig:RegisterOptionsTable("Combat Mode", CM.Options.ConfigOptions)
+  AceConfig:RegisterOptionsTable("Combat Mode", CM.Config.ConfigOptions)
   AceConfigDialog:AddToBlizOptions("Combat Mode")
-  AceConfig:RegisterOptionsTable("Combat Mode: Advanced", CM.Options.AdvancedConfigOptions)
+  AceConfig:RegisterOptionsTable("Combat Mode: Advanced", CM.Config.AdvancedConfigOptions)
   AceConfigDialog:AddToBlizOptions("Combat Mode: Advanced", "Advanced", "Combat Mode")
 
   self:RegisterChatCommand("cm", "OpenConfigCMD")
@@ -564,7 +564,7 @@ function CM:OnEnable()
   -- Registering Blizzard Events from Constants.lua
   for _, events_to_register in pairs(CM.Constants.BLIZZARD_EVENTS) do
     for _, event in ipairs(events_to_register) do
-      self:RegisterEvent(event, CombatMode_OnEvent)
+      self:RegisterEvent(event, _G.CombatMode_OnEvent)
     end
   end
 

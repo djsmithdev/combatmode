@@ -17,7 +17,3 @@
 
 # Libraries
 Embeds.xml
-
-# Modules
-Constants.lua
-Options.lua
