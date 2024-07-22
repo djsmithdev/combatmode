@@ -2,22 +2,40 @@
 -- IMPORTS
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
+
+-- RETRIEVING ADDON TABLE
 local CM = AceAddon:GetAddon("CombatMode")
 
 CM.Constants = {}
 
+-- EVENTS TO BE TRACKED
 CM.Constants.BLIZZARD_EVENTS = {
-  "PLAYER_ENTERING_WORLD",
-  "LOADING_SCREEN_ENABLED",
-  "BARBER_SHOP_OPEN",
-  "PLAYER_SOFT_ENEMY_CHANGED",
-  "PLAYER_SOFT_INTERACT_CHANGED",
-  "PLAYER_REGEN_ENABLED",
-  "PLAYER_MOUNT_DISPLAY_CHANGED",
-  "CINEMATIC_START",
-  "CINEMATIC_STOP",
-  "PLAY_MOVIE",
-  "STOP_MOVIE"
+  -- Events that fire UnlockFreeLook()
+  UNLOCK_EVENTS = {
+    "LOADING_SCREEN_ENABLED", -- This forces a relock when quick-loading (e.g: loading after starting m+ run) thanks to the OnUpdate fn
+    "BARBER_SHOP_OPEN",
+    "CINEMATIC_START",
+    "PLAY_MOVIE"
+  },
+  -- Events that fire LockFreeLook()
+  LOCK_EVENTS = {
+    "CINEMATIC_STOP",
+    "STOP_MOVIE"
+  },
+  -- Events that fire Rematch()
+  REMATCH_EVENTS = {
+    "PLAYER_ENTERING_WORLD" -- Loading Cvars on every reload
+  },
+  -- Events responsible for crosshair reaction
+  TARGETING_EVENTS = {
+    "PLAYER_SOFT_ENEMY_CHANGED",
+    "PLAYER_SOFT_INTERACT_CHANGED"
+  },
+  -- Events that don't fall within the previous categories
+  UNCATEGORIZED_EVENTS = {
+    "PLAYER_MOUNT_DISPLAY_CHANGED", -- Toggling crosshair when mounting/dismounting
+    "PLAYER_REGEN_ENABLED" -- Reseting crosshair when leaving combat
+  },
 }
 
 CM.Constants.PopupMsg = CM.METADATA["TITLE"] ..
@@ -67,6 +85,15 @@ for _, assetName in ipairs(crosshairAssetNames) do
   }
   CM.Constants.CrosshairAppearanceSelectValues[assetName] = assetName
 end
+
+-- CROSSHAIR REACTION COLORS
+CM.Constants.CrosshairReactionColors = {
+  hostile = {1, .2, 0.3, 1}, -- red
+  friendly = {0, 1, 0.3, .8}, -- green
+  object = {1, 0.8, 0.2, .8}, -- yellow
+  base = {1, 1, 1, .5}, -- white
+  mounted = {1, 1, 1, 0} -- transparent
+}
 
 -- Default frames to check with a static name
 CM.Constants.FramesToCheck = {
@@ -322,7 +349,7 @@ CM.Constants.CustomCVarValues = {
   ["SoftTargetEnemyRange"] = 60,
   ["SoftTargetIconEnemy"] = 0,
   -- cursor centering
-  ["CursorFreelookCentering"] = 0, -- needs to be set to 0 initially because Blizzard changed this cvar to be called BEFORE _G.MouselookStart() method, which means if we set to 1 by default, it will cause the camera to snap to cursor position as you enable free look.
+  ["CursorFreelookCentering"] = 0, -- needs to be set to 0 initially because Blizzard changed this cvar to be called BEFORE MouselookStart() method, which means if we set to 1 by default, it will cause the camera to snap to cursor position as you enable free look.
   ["CursorStickyCentering"] = 1 -- does not work in its current implementation. Most likely related to the recent CursorFreelookCentering change.
 }
 

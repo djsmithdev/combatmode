@@ -1,5 +1,5 @@
-## Interface: 100207
-## Version: 2.2.4
+## Interface: 110000
+## Version: 2.2.5
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
 ## Author: justice7ca w/ contributions from sampconrad, ThomasDigio, DKulan.
@@ -15,6 +15,5 @@
 ## X-Github: github.com/djsmithdev/combatmode
 ## X-Discord: discord.gg/5mwBSmz
 
-CombatMode.xml
-Constants.lua
-Options.lua
+# Libraries
+Embeds.xml

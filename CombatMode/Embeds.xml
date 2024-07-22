@@ -1,5 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
+    <!-- LIBS -->
     <Script file="Libs\LibStub\LibStub.lua"/>
     <Include file="Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml"/>
     <Include file="Libs\AceAddon-3.0\AceAddon-3.0.xml"/>
@@ -8,11 +9,14 @@
     <Include file="Libs\AceConsole-3.0\AceConsole-3.0.xml"/>
     <Include file="Libs\AceGUI-3.0\AceGUI-3.0.xml"/>
     <Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml"/>
-	<Script file="CombatMode.lua"/>
+    <!-- MODULES -->
+	<Script file="Core.lua"/>
+	<Script file="Constants.lua"/>
+	<Script file="Config.lua"/>
+    <!-- FRAME -->
 	<Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
 		<Scripts>
 			<OnUpdate function="CombatMode_OnUpdate"/>
-			<OnLoad>self.TimeSinceLastUpdate = 0</OnLoad>
 			<OnEvent function="CombatMode_OnEvent"/>
 		</Scripts>
 	</Frame>
