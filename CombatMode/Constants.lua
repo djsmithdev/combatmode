@@ -325,29 +325,27 @@ CM.Constants.ButtonsToOverride = {
 
 -- CVARS FOR RETICLE TARGETING
 CM.Constants.CustomCVarValues = {
-  -- general
+  -- SoftTarget General
+  ["deselectOnClick"] = 1, -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
   ["SoftTargetForce"] = 1, -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
   ["SoftTargetMatchLocked"] = 1, -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
   ["SoftTargetWithLocked"] = 2, -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
-  ["SoftTargetNameplateEnemy"] = 1,
-  ["SoftTargetNameplateInteract"] = 0,
-  ["deselectOnClick"] = 1, -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
-  -- interact
-  ["SoftTargetInteract"] = 3, -- 3 = always on
-  ["SoftTargetInteractArc"] = 0, -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
+  -- SoftTarget Enemy
+  ["SoftTargetEnemy"] = 3, -- Sets when enemy soft targeting should be enabled. 0=off, 1=gamepad, 2=KBM, 3=always
+  ["SoftTargetEnemyArc"] = 0, -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
+  ["SoftTargetEnemyRange"] = 60,
+  -- SoftTarget Interact
+  ["SoftTargetInteract"] = 3,
+  ["SoftTargetInteractArc"] = 1, -- Setting it to 1 since we don't need too much precision when interacting with NPCs and having to aim precisely at them when this is set to 0 gets annoying.
   ["SoftTargetInteractRange"] = 15,
+  -- SoftTarget Friend
+  ["SoftTargetFriend"] = 0, -- Disabled for friendlies to avoid situations like the Fiery Brand bug.
+  -- SoftTarget Nameplate
+  ["SoftTargetNameplateEnemy"] = 1, -- Always show nameplates  for soft target enemy.
+  -- SoftTarget Icon
+  ["SoftTargetIconEnemy"] = 0,
   ["SoftTargetIconInteract"] = 1,
   ["SoftTargetIconGameObject"] = 1,
-  -- friendly target
-  ["SoftTargetFriend"] = 0,
-  ["SoftTargetFriendArc"] = 0,
-  ["SoftTargetFriendRange"] = 15,
-  ["SoftTargetIconFriend"] = 0,
-  -- enemy target
-  ["SoftTargetEnemy"] = 3,
-  ["SoftTargetEnemyArc"] = 0,
-  ["SoftTargetEnemyRange"] = 60,
-  ["SoftTargetIconEnemy"] = 0,
   -- cursor centering
   ["CursorFreelookCentering"] = 0, -- needs to be set to 0 initially because Blizzard changed this cvar to be called BEFORE MouselookStart() method, which means if we set to 1 by default, it will cause the camera to snap to cursor position as you enable free look.
   ["CursorStickyCentering"] = 1 -- does not work in its current implementation. Most likely related to the recent CursorFreelookCentering change.
@@ -359,21 +357,17 @@ CM.Constants.BlizzardCVarValues = {
   ["SoftTargetForce"] = 1,
   ["SoftTargetMatchLocked"] = 1,
   ["SoftTargetWithLocked"] = 1,
-  ["SoftTargetNameplateEnemy"] = 1,
-  ["SoftTargetNameplateInteract"] = 0,
-  ["SoftTargetInteract"] = 1,
-  ["SoftTargetInteractArc"] = 0,
-  ["SoftTargetInteractRange"] = 10,
-  ["SoftTargetIconInteract"] = 1,
-  ["SoftTargetIconGameObject"] = 0,
-  ["SoftTargetFriend"] = 0,
-  ["SoftTargetFriendArc"] = 2,
-  ["SoftTargetFriendRange"] = 45,
-  ["SoftTargetIconFriend"] = 0,
   ["SoftTargetEnemy"] = 1,
   ["SoftTargetEnemyArc"] = 2,
   ["SoftTargetEnemyRange"] = 45,
+  ["SoftTargetInteract"] = 1,
+  ["SoftTargetInteractArc"] = 0,
+  ["SoftTargetInteractRange"] = 10,
+  ["SoftTargetFriend"] = 0,
+  ["SoftTargetNameplateEnemy"] = 1,
   ["SoftTargetIconEnemy"] = 0,
+  ["SoftTargetIconInteract"] = 1,
+  ["SoftTargetIconGameObject"] = 0,
   ["CursorFreelookCentering"] = 0,
   ["CursorStickyCentering"] = 0
 }
