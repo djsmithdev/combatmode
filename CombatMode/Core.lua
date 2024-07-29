@@ -85,6 +85,16 @@ function CM.DebugPrint(statement)
   end
 end
 
+local function openConfigPanel()
+  if InCombatLockdown() then
+    print(CM.Constants.BasePrintMsg .. "Cannot open settings while in combat.")
+    return
+  end
+
+  FreeLookOverride = true
+  AceConfigDialog:Open("Combat Mode")
+end
+
 local function DisplayPopup()
   if CM.DB.char.seenWarning then
     return
@@ -92,13 +102,14 @@ local function DisplayPopup()
 
   local function OnClosePopup()
     CM.DB.char.seenWarning = true
+    openConfigPanel()
   end
 
   StaticPopupDialogs["CombatMode Warning"] = {
     text = CM.Constants.PopupMsg,
     button1 = "Ok",
-    OnButton1 = OnClosePopup(),
-    OnHide = OnClosePopup(),
+    OnButton1 = OnClosePopup,
+    OnHide = OnClosePopup,
     timeout = 0,
     whileDead = true
   }
@@ -522,9 +533,8 @@ end
 
 -- CREATING /CM CHAT COMMAND
 function CM:OpenConfigCMD(input)
-  if not InCombatLockdown() and not input or input:trim() == "" then
-    FreeLookOverride = true
-    AceConfigDialog:Open("Combat Mode")
+  if not input or input:trim() == "" then
+    openConfigPanel()
   else
     AceConfigCmd.HandleCommand(self, "mychat", "Combat Mode", input)
   end

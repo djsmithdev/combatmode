@@ -35,11 +35,11 @@ CM.Constants.BLIZZARD_EVENTS = {
   UNCATEGORIZED_EVENTS = {
     "PLAYER_MOUNT_DISPLAY_CHANGED", -- Toggling crosshair when mounting/dismounting
     "PLAYER_REGEN_ENABLED" -- Reseting crosshair when leaving combat
-  },
+  }
 }
 
 CM.Constants.PopupMsg = CM.METADATA["TITLE"] ..
-                          "\n|cffffd700Planning on uninstalling?|r \nBefore doing so, make sure to uncheck the |cff00FFFFReticle Targeting|r option under settings to reset the CVars to their default values.|r \n|cff909090Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r"
+                          "\n|cffffd700Thank you for trying out Combat Mode!|r \n\nUpon closing this, a config panel will open where you can set a |cffB47EDEkeybind|r to activate the addon.\n\n|cff909090If planning on |cffFF5050uninstalling|r, make sure to uncheck the |cff00FFFFReticle Targeting|r option to reset the CVars to their default.|r"
 
 CM.Constants.BasePrintMsg = CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r"
 
@@ -74,7 +74,7 @@ local crosshairAssetNames = {
   "Split",
   "Square",
   "Triangle",
-  "X",
+  "X"
 }
 
 for _, assetName in ipairs(crosshairAssetNames) do
@@ -252,7 +252,7 @@ CM.Constants.FramesToCheck = {
 
 -- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"
 CM.Constants.WildcardFramesToMatch = {
-  "OPieRT",
+  "OPieRT"
 }
 
 -- The dynamic names of the frames defined right above, determined on loading into the game world. Do not add frame names in this table, do it above instead!
