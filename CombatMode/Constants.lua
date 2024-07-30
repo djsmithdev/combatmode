@@ -326,6 +326,7 @@ CM.Constants.ButtonsToOverride = {
 -- CVARS FOR RETICLE TARGETING
 CM.Constants.CustomCVarValues = {
   -- SoftTarget General
+  ["interactKeyWarningTutorial"] = 1, -- Hides the interact key tutorial since we're the INTERACTMOUSEOVER binding instead
   ["deselectOnClick"] = 1, -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
   ["SoftTargetForce"] = 1, -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
   ["SoftTargetMatchLocked"] = 1, -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack

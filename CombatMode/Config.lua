@@ -412,15 +412,15 @@ CM.Config.ConfigOptions = {
           width = 1,
           order = 5,
           set = function(_, key)
-            local oldKey = (GetBindingKey("INTERACTTARGET"))
+            local oldKey = (GetBindingKey("INTERACTMOUSEOVER"))
             if oldKey then
               SetBinding(oldKey)
             end
-            SetBinding(key, "INTERACTTARGET")
+            SetBinding(key, "INTERACTMOUSEOVER")
             SaveBindings(GetCurrentBindingSet())
           end,
           get = function()
-            return (GetBindingKey("INTERACTTARGET"))
+            return (GetBindingKey("INTERACTMOUSEOVER"))
           end
         },
         interactRightPadding = {
