@@ -23,7 +23,7 @@ Experience <em>World of Warcraft</em> like never before with <strong>Combat Mode
 
 <br />
 
-## <img width="32" height="32" src="./cmlogo.svg">Features
+## <img width="20" height="20" src="./cmlogo.svg"> FEATURES
 - [Free Look](https://en.wikipedia.org/wiki/Free_look) - Rotate the player character's view with the camera without having to perpetually hold right click.
 - Reticle Targeting - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of @mouseover and @cursor macro decorators in combination with the crosshairs.
 - Optional adjustable dynamic Crosshair marker to assist with Reticle Targeting.
@@ -32,13 +32,13 @@ Experience <em>World of Warcraft</em> like never before with <strong>Combat Mode
 
 <br />
 
-## <img width="32" height="32" src="./cmlogo.svg">Download
+## <img width="20" height="20" src="./cmlogo.svg"> DOWNLOAD
 
 Grab it on [**CurseForge**](https://www.curseforge.com/wow/addons/combat-mode).
 
 <br />
 
-## <img width="32" height="32" src="./cmlogo.svg">Instructions
+## <img width="20" height="20" src="./cmlogo.svg"> INSTRUCTIONS
 
 After installing the AddOn, you'll be greeted by this message upon login:
 
@@ -50,7 +50,7 @@ After installing the AddOn, you'll be greeted by this message upon login:
 
 <br />
 
-## <img width="32" height="32" src="./cmlogo.svg">Preview Images
+## <img width="20" height="20" src="./cmlogo.svg"> PREVIEW
 
 ![preview1](./preview1.jpg)
 
@@ -64,13 +64,13 @@ After installing the AddOn, you'll be greeted by this message upon login:
 
 <br />
 
-## <img width="32" height="32" src="./cmlogo.svg">Feedback & Support
+## <img width="20" height="20" src="./cmlogo.svg"> SUPPORT
 
 Talk to us on [**Discord**](https://www.discord.gg/5mwBSmz).
 
 <br />
 
-## <img width="32" height="32" src="./cmlogo.svg">Source Code & Contributing
+## <img width="20" height="20" src="./cmlogo.svg"> CONTRIBUTING
 
 You can submit a PR with your contributions to [**Combat Mode's repository on GitHub**](https://github.com/djsmithdev/combatmode).
 
