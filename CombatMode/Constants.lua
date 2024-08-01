@@ -441,8 +441,6 @@ CM.Constants.DatabaseDefaults = {
       "WeakAurasOptions"
     },
     customCondition = "",
-    reticleTargeting = true,
-    crosshairPriority = true,
     crosshair = true,
     crosshairMounted = true,
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
@@ -454,6 +452,8 @@ CM.Constants.DatabaseDefaults = {
   },
   char = {
     useGlobalBindings = false,
+    reticleTargeting = true,
+    crosshairPriority = true,
     bindings = DefaultBindings
   }
 }

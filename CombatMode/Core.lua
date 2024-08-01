@@ -127,7 +127,7 @@ function CM.LoadCVars(CVarType)
     CVarsToLoad = CM.Constants.BlizzardCVarValues
     CM.DebugPrint("Reticle Target CVars RESET")
   else
-    error("Invalid CVarType specified in fn CM.LoadCVars(): " .. tostring(CVarType))
+    CM.DebugPrint("Invalid CVarType specified in fn CM.LoadCVars(): " .. tostring(CVarType))
   end
 
   for name, value in pairs(CVarsToLoad) do
@@ -160,7 +160,7 @@ local function IsDefaultMouseActionBeingUsed()
 end
 
 local function CenterCursor(shouldCenter)
-  if not CM.DB.global.reticleTargeting then
+  if not CM.DB.char.reticleTargeting then
     return
   end
   if shouldCenter then
@@ -438,7 +438,7 @@ end
 
 -- Re-locking Free Look & re-setting CVars after reload/portal
 local function Rematch()
-  if CM.DB.global.reticleTargeting then
+  if CM.DB.char.reticleTargeting then
     CM.LoadCVars("combatmode")
   end
 
@@ -446,7 +446,7 @@ local function Rematch()
     SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
   end
 
-  if CM.DB.global.crosshairPriority then
+  if CM.DB.char.crosshairPriority then
     SetCVar("enableMouseoverCast", 1)
   end
 
