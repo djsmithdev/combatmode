@@ -412,15 +412,15 @@ CM.Config.ConfigOptions = {
           width = 1,
           order = 5,
           set = function(_, key)
-            local oldKey = (GetBindingKey("INTERACTTARGET"))
+            local oldKey = (GetBindingKey("INTERACTMOUSEOVER"))
             if oldKey then
               SetBinding(oldKey)
             end
-            SetBinding(key, "INTERACTTARGET")
+            SetBinding(key, "INTERACTMOUSEOVER")
             SaveBindings(GetCurrentBindingSet())
           end,
           get = function()
-            return (GetBindingKey("INTERACTTARGET"))
+            return (GetBindingKey("INTERACTMOUSEOVER"))
           end
         },
         interactRightPadding = {
@@ -648,7 +648,7 @@ CM.Config.ConfigOptions = {
           width = 1.0,
           order = 3,
           set = function(_, value)
-            CM.DB.global.reticleTargeting = value
+            CM.DB.char.reticleTargeting = value
             if value then
               CM.LoadCVars("combatmode")
             else
@@ -656,7 +656,7 @@ CM.Config.ConfigOptions = {
             end
           end,
           get = function()
-            return CM.DB.global.reticleTargeting
+            return CM.DB.char.reticleTargeting
           end
         },
         crosshairPriority = {
@@ -666,7 +666,7 @@ CM.Config.ConfigOptions = {
           width = 1.4,
           order = 4,
           set = function(_, value)
-            CM.DB.global.crosshairPriority = value
+            CM.DB.char.crosshairPriority = value
             if value then
               SetCVar("enableMouseoverCast", 1)
             else
@@ -674,7 +674,7 @@ CM.Config.ConfigOptions = {
             end
           end,
           get = function()
-            return CM.DB.global.crosshairPriority
+            return CM.DB.char.crosshairPriority
           end
         },
         devNoteDescription = {

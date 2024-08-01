@@ -1,9 +1,9 @@
 ## Interface: 110000, 110002
-## Version: 2.2.7
+## Version: 2.2.8
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
 ## Author: justice7ca w/ contributions from sampconrad, ThomasDigio, DKulan.
-## Notes: Combat Mode brings a more dynamic action combat experience to World of Warcraft by implementing Free Look, Reticle Targeting, casting with mouse clicks, and more!
+## Notes: Combat Mode transforms the standard tab-targeting combat into a more engaging and dynamic action-oriented gameplay experience!
 ## IconTexture: Interface\AddOns\CombatMode\assets\cmlogo
 
 ## DefaultState: enabled
