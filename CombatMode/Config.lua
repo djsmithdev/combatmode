@@ -9,6 +9,7 @@ local GetBindingKey = _G.GetBindingKey
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
 local SetCVar = _G.SetCVar
+local SetModifiedClick = _G.SetModifiedClick
 
 -- RETRIEVING ADDON TABLE
 local CM = AceAddon:GetAddon("CombatMode")
@@ -256,7 +257,7 @@ CM.Config.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Free Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of |cffcfcfcf@mouseover|r and |cffcfcfcf@cursor|r macro decorators in combination with the crosshairs. \n• Optional adjustable dynamic |cff00FFFFCrosshair|r marker to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.",
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of |cffcfcfcf@mouseover|r and |cffcfcfcf@cursor|r macro decorators in combination with the |cff00FFFFCrosshair|r. \n• |cffB47EDEMouse Click Casting|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.",
       order = 3
     },
     featuresListPaddingBottom = {
@@ -440,7 +441,7 @@ CM.Config.ConfigOptions = {
       args = {
         keybindHeader = {
           type = "header",
-          name = "|cffB47EDEMouse Button Keybinds|r",
+          name = "|cffB47EDEMouse Click Casting|r",
           order = 1
         },
         keybindHeaderPaddingBottom = {
@@ -669,6 +670,8 @@ CM.Config.ConfigOptions = {
             CM.DB.char.crosshairPriority = value
             if value then
               SetCVar("enableMouseoverCast", 1)
+              SetModifiedClick("MOUSEOVERCAST", "NONE")
+              SaveBindings(GetCurrentBindingSet())
             else
               SetCVar("enableMouseoverCast", 0)
             end
@@ -684,7 +687,7 @@ CM.Config.ConfigOptions = {
         },
         devNoteWarning = {
           type = "description",
-          name = "\n|cffFF5050Make sure your |cffffd700Mouseover Cast|r hotkey modifier is set to |cffffd700None|r in the interface menu |cffcfcfcf(Options > Gameplay > Combat)|r otherwise |cffcfcfcfPrioritize Crosshair Target|r will only work while the selected key is being pressed.|r",
+          name = "\n|cffFF5050Make sure your |cffffd700Mouseover Cast|r hotkey is set to |cffffd700None|r in the interface menu |cffcfcfcf(Options > Gameplay > Combat)|r and any Action Bar addons with that option, otherwise |cffcfcfcfPrioritize Crosshair Target|r will only work while the selected key is being pressed.|r",
           order = 4.2
         },
         reticleTargetingNotePaddingBottom = {

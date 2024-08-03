@@ -12,6 +12,7 @@ local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 local C_AddOns = _G.C_AddOns
 local CreateFrame = _G.CreateFrame
 local CreateMacro = _G.CreateMacro
+local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local GetMacroInfo = _G.GetMacroInfo
 local GetUIPanel = _G.GetUIPanel
 local InCinematic = _G.InCinematic
@@ -24,6 +25,9 @@ local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
 local Narci = _G.Narci
 local ReloadUI = _G.ReloadUI
+local SaveBindings = _G.SaveBindings
+local SetBinding = _G.SetBinding
+local SetModifiedClick = _G.SetModifiedClick
 local SetCVar = _G.SetCVar
 local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 local SpellIsTargeting = _G.SpellIsTargeting
@@ -92,7 +96,7 @@ local function openConfigPanel()
   end
 
   FreeLookOverride = true
-  AceConfigDialog:Open("Combat Mode")
+  AceConfigDialog:Open(CM.METADATA["TITLE"])
 end
 
 local function DisplayPopup()
@@ -442,12 +446,14 @@ local function Rematch()
     CM.LoadCVars("combatmode")
   end
 
-  if CM.DB.global.crosshair then
-    SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
-  end
-
   if CM.DB.char.crosshairPriority then
     SetCVar("enableMouseoverCast", 1)
+    SetModifiedClick("MOUSEOVERCAST", "NONE")
+    SaveBindings(GetCurrentBindingSet())
+  end
+
+  if CM.DB.global.crosshair then
+    SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
   end
 
   LockFreeLook()
@@ -536,7 +542,7 @@ function CM:OpenConfigCMD(input)
   if not input or input:trim() == "" then
     openConfigPanel()
   else
-    AceConfigCmd.HandleCommand(self, "mychat", "Combat Mode", input)
+    AceConfigCmd.HandleCommand(self, "mychat", CM.METADATA["TITLE"], input)
   end
 end
 
@@ -546,10 +552,10 @@ end
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Constants.DatabaseDefaults, true)
 
-  AceConfig:RegisterOptionsTable("Combat Mode", CM.Config.ConfigOptions)
-  AceConfigDialog:AddToBlizOptions("Combat Mode")
+  AceConfig:RegisterOptionsTable(CM.METADATA["TITLE"], CM.Config.ConfigOptions)
+  AceConfigDialog:AddToBlizOptions(CM.METADATA["TITLE"])
   AceConfig:RegisterOptionsTable("Combat Mode: Advanced", CM.Config.AdvancedConfigOptions)
-  AceConfigDialog:AddToBlizOptions("Combat Mode: Advanced", "Advanced", "Combat Mode")
+  AceConfigDialog:AddToBlizOptions("Combat Mode: Advanced", "Advanced", CM.METADATA["TITLE"])
 
   self:RegisterChatCommand("cm", "OpenConfigCMD")
   self:RegisterChatCommand("combatmode", "OpenConfigCMD")
