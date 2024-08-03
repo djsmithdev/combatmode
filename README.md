@@ -24,9 +24,8 @@ Experience <em>World of Warcraft</em> like never before with <strong>Combat Mode
 <br />
 
 ## <img width="20" height="20" src="./cmlogo.svg"> FEATURES
-- [Free Look](https://en.wikipedia.org/wiki/Free_look) - Rotate the player character's view with the camera without having to perpetually hold right click.
+- [Free Look Camera](https://en.wikipedia.org/wiki/Free_look) - Rotate the player character's view with the camera without having to perpetually hold right click.
 - Reticle Targeting - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of @mouseover and @cursor macro decorators in combination with the crosshairs.
-- Optional adjustable dynamic Crosshair marker to assist with Reticle Targeting.
 - Mouse Click Casting - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them.
 - Cursor Unlock - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.
 
@@ -40,13 +39,13 @@ Grab it on [**CurseForge**](https://www.curseforge.com/wow/addons/combat-mode).
 
 ## <img width="20" height="20" src="./cmlogo.svg"> INSTRUCTIONS
 
-After installing the AddOn, you'll be greeted by this message upon login:
+After installing the AddOn, you'll be greeted by this message upon your first login on each character:
 
 ![previewMsg](./previewMsg.png)
 
-1. You can use these commands or go to Game Menu (ESC) > Options > AddOns > Combat Mode.
-2. In the options panel, you'll be able to set up a key to enable Combat Mode, through either a toggle (on/off) style or press & hold.
-3. When toggled off, your mouse buttons are remapped to what they were originally.
+1. Click OK to proceed or go to Game Menu (ESC) > Options > AddOns > Combat Mode.
+2. In the options panel, you'll be able to configure the addon to your liking.
+3. Please, take your time reading what each option does, their tooltips and dev notes. They answer the majority of the most commonly asked questions.
 
 <br />
 
