@@ -146,7 +146,6 @@ local function CreateTargetMacros()
   end
 end
 
-
 -- This prevents the auto running bug.
 local function IsDefaultMouseActionBeingUsed()
   return IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
@@ -477,7 +476,7 @@ end
 Handle events based on their category.
 You need to first register the event in the CM.Constants.BLIZZARD_EVENTS table before using it here.
 Checks which category in the table the event that's been fired belongs to, and then calls the appropriate function.
-]]--
+]] --
 local function HandleEventByCategory(category, event)
   local eventHandlers = {
     UNLOCK_EVENTS = function()
@@ -522,7 +521,7 @@ end
 --[[
 The game engine will call the OnUpdate function once each frame.
 This is (in most cases) extremely excessive, hence why we're adding a throttle.
-]]--
+]] --
 local ONUPDATE_INTERVAL = 0.15
 local TimeSinceLastUpdate = 0
 function _G.CombatMode_OnUpdate(_, elapsed)
@@ -577,7 +576,7 @@ end
 --[[
 Do init tasks here, like loading the Saved Variables,
 or setting up slash commands.
-]]--
+]] --
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Constants.DatabaseDefaults, true)
 
@@ -600,7 +599,7 @@ end
 Do more initialization here, that really enables the use of your addon.
 Register Events, Hook functions, Create Frames, Get information from
 the game that wasn't available in OnInitialize
-]]--
+]] --
 function CM:OnEnable()
   RenameBindableActions()
   CM.OverrideDefaultButtons()
@@ -625,7 +624,7 @@ end
 Unhook, Unregister Events, Hide frames that you created.
 You would probably only use an OnDisable if you want to
 build a "standby" mode, or be able to toggle modules on/off.
-]]--
+]] --
 function CM:OnDisable()
   CrosshairFrame:Hide()
   self.LoadCVars("blizzard")
