@@ -1,4 +1,6 @@
--- CONSTANT DATA & ASSETS
+---------------------------------------------------------------------------------------
+--                               CONSTANT DATA & ASSETS                              --
+---------------------------------------------------------------------------------------
 -- IMPORTS
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
@@ -8,6 +10,9 @@ local CM = AceAddon:GetAddon("CombatMode")
 
 CM.Constants = {}
 
+---------------------------------------------------------------------------------------
+--                                  REGISTERED EVENTS                                --
+---------------------------------------------------------------------------------------
 -- EVENTS TO BE TRACKED
 CM.Constants.BLIZZARD_EVENTS = {
   -- Events that fire UnlockFreeLook()
@@ -38,6 +43,9 @@ CM.Constants.BLIZZARD_EVENTS = {
   }
 }
 
+---------------------------------------------------------------------------------------
+--                                        ASSETS                                     --
+---------------------------------------------------------------------------------------
 CM.Constants.PopupMsg = CM.METADATA["TITLE"] ..
                           "\n|cffffd700Thank you for trying out Combat Mode!|r \n\nUpon closing this, a config panel will open where you can set a |cffB47EDEkeybind|r to activate the addon.\n\n|cff909090If planning on |cffFF5050uninstalling|r, make sure to uncheck the |cff00FFFFReticle Targeting|r option to reset the CVars to their default.|r"
 
@@ -49,14 +57,16 @@ CM.Constants.Logo = assetsFolderPath .. "cmlogo.blp"
 
 CM.Constants.Title = assetsFolderPath .. "cmtitle.blp"
 
--- CROSSHAIR TEXTURES
--- To add custom textures, you'll need two .BLP textures: one for the active and one for the inactive states.
--- Place them in the the CombatMode/assets folder and rename them as follows:
--- Base texture = "crosshairASSETNAME.blp"
--- Hit texture = "crosshairASSETNAME-hit.blp"
--- Where "ASSETNAME" is the name you want to be displayed on the dropdown.
--- Then just add that same "ASSETNAME" to the CrosshairTextureObj table below:
--- This is case sensitive!
+--[[
+  CROSSHAIR TEXTURES
+  To add custom textures, you'll need two .BLP textures: one for the active and one for the inactive states.
+  Place them in the the CombatMode/assets folder and rename them as follows:
+  Base texture = "crosshairASSETNAME.blp"
+  Hit texture = "crosshairASSETNAME-hit.blp"
+  Where "ASSETNAME" is the name you want to be displayed on the dropdown.
+  Then just add that same "ASSETNAME" to the CrosshairTextureObj table below:
+  This is case sensitive!
+]]--
 CM.Constants.CrosshairTextureObj = {}
 
 CM.Constants.CrosshairAppearanceSelectValues = {}
@@ -94,6 +104,10 @@ CM.Constants.CrosshairReactionColors = {
   base = {1, 1, 1, .5}, -- white
   mounted = {1, 1, 1, 0} -- transparent
 }
+
+---------------------------------------------------------------------------------------
+--                                   FRAME WATCHING                                  --
+---------------------------------------------------------------------------------------
 
 -- Default frames to check with a static name
 CM.Constants.FramesToCheck = {
@@ -258,6 +272,10 @@ CM.Constants.WildcardFramesToMatch = {
 -- The dynamic names of the frames defined right above, determined on loading into the game world. Do not add frame names in this table, do it above instead!
 CM.Constants.WildcardFramesToCheck = {}
 
+---------------------------------------------------------------------------------------
+--                                   BUTTON OVERRIDE                                 --
+---------------------------------------------------------------------------------------
+
 -- The name of the actions a user can bind to mouse buttons
 CM.Constants.ActionsToProcess = {
   "ACTIONBUTTON1",
@@ -304,14 +322,6 @@ CM.Constants.OverrideActions = {
   CUSTOMACTION = "Custom Action"
 }
 
-CM.Constants.Macros = {
-  CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",
-  CM_ClearFocus = "/clearfocus",
-  CM_HardTarget = "#showtooltip\n/cleartarget [help][noharm,exists][dead]\n/target [@mouseover,harm,nodead]\n/startattack\n/cast PLACEHOLDER_SPELL",
-  CM_SoftTarget = "#showtooltip\n/cleartarget\n/cast [@mouseover,harm,nodead][] PLACEHOLDER_SPELL\n/startattack",
-  CM_CastCursor = "#showtooltip\n/cast [mod:shift] PLACEHOLDER_SPELL; [nomod, @cursor] PLACEHOLDER_SPELL"
-}
-
 CM.Constants.ButtonsToOverride = {
   "button1",
   "button2",
@@ -322,6 +332,22 @@ CM.Constants.ButtonsToOverride = {
   "altbutton1",
   "altbutton2"
 }
+
+---------------------------------------------------------------------------------------
+--                                       MACROS                                      --
+---------------------------------------------------------------------------------------
+
+CM.Constants.Macros = {
+  CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",
+  CM_ClearFocus = "/clearfocus",
+  CM_HardTarget = "#showtooltip\n/cleartarget [help][noharm,exists][dead]\n/target [@mouseover,harm,nodead]\n/startattack\n/cast PLACEHOLDER_SPELL",
+  CM_SoftTarget = "#showtooltip\n/cleartarget\n/cast [@mouseover,harm,nodead][] PLACEHOLDER_SPELL\n/startattack",
+  CM_CastCursor = "#showtooltip\n/cast [mod:shift] PLACEHOLDER_SPELL; [nomod, @cursor] PLACEHOLDER_SPELL"
+}
+
+---------------------------------------------------------------------------------------
+--                                        CVARS                                      --
+---------------------------------------------------------------------------------------
 
 -- CVARS FOR RETICLE TARGETING
 CM.Constants.CustomCVarValues = {
@@ -372,6 +398,10 @@ CM.Constants.BlizzardCVarValues = {
   ["CursorFreelookCentering"] = 0,
   ["CursorStickyCentering"] = 0
 }
+
+---------------------------------------------------------------------------------------
+--                                DB & BINDING DEFAULTS                              --
+---------------------------------------------------------------------------------------
 
 local DefaultBindings = {
   button1 = {

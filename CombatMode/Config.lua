@@ -1,4 +1,6 @@
--- CONFIGURATION/OPTIONS PANEL
+---------------------------------------------------------------------------------------
+--                                CONFIG/OPTIONS PANEL                               --
+---------------------------------------------------------------------------------------
 -- IMPORTS
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
@@ -16,6 +18,9 @@ local CM = AceAddon:GetAddon("CombatMode")
 
 CM.Config = {}
 
+---------------------------------------------------------------------------------------
+--                           BUTTON OVERRIDE GROUP ASSEMBLER                         --
+---------------------------------------------------------------------------------------
 local function GetButtonOverrideGroup(modifier, groupOrder)
   local button1Settings, button2Settings, groupName, button1Name, button2Name
   if modifier then
@@ -171,12 +176,18 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
   }
 end
 
--- BASE CONFIG PANEL
+
+---------------------------------------------------------------------------------------
+--                                 BASE CONFIG PANEL                                 --
+---------------------------------------------------------------------------------------
 CM.Config.ConfigOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
   type = "group",
   args = {
+---------------------------------------------------------------------------------------
+--                                   DEBUG & RESET                                   --
+---------------------------------------------------------------------------------------
     resetButton = {
       type = "execute",
       name = "Default",
@@ -208,7 +219,9 @@ CM.Config.ConfigOptions = {
       end,
       order = 0.2
     },
-    -- LOGO & ABOUT
+---------------------------------------------------------------------------------------
+--                                   LOGO & ABOUT                                    --
+---------------------------------------------------------------------------------------
     aboutHeader = {
       type = "header",
       name = "",
@@ -248,7 +261,9 @@ CM.Config.ConfigOptions = {
       width = "full",
       order = 1.4
     },
-    -- FEATURES
+---------------------------------------------------------------------------------------
+--                                     FEATURES                                      --
+---------------------------------------------------------------------------------------
     featuresHeader = {
       type = "description",
       name = "|cffffd700Features:|r",
@@ -308,7 +323,9 @@ CM.Config.ConfigOptions = {
       width = "full",
       order = 5.1
     },
-    -- CONFIGURATION
+---------------------------------------------------------------------------------------
+--                                   CONFIGURATION                                   --
+---------------------------------------------------------------------------------------
     configurationHeaderPaddingTop = {
       type = "description",
       name = " ",
@@ -320,7 +337,9 @@ CM.Config.ConfigOptions = {
       name = "|cffffffffCONFIGURATION|r",
       order = 6
     },
-    -- FREELOOK CAMERA
+---------------------------------------------------------------------------------------
+--                                     FREE LOOK                                     --
+---------------------------------------------------------------------------------------
     freeLookCameraGroup = {
       type = "group",
       name = " ",
@@ -432,8 +451,10 @@ CM.Config.ConfigOptions = {
         }
       }
     },
-    -- MOUSE BUTTON
-    mouseButtonGroup = {
+---------------------------------------------------------------------------------------
+--                                MOUSE CLICK CASTING                                --
+---------------------------------------------------------------------------------------
+    mouseClickCastingGroup = {
       type = "group",
       name = " ",
       inline = true,
@@ -521,7 +542,9 @@ CM.Config.ConfigOptions = {
         altGroup = GetButtonOverrideGroup("alt", 7)
       }
     },
-    -- CURSOR UNLOCK
+---------------------------------------------------------------------------------------
+--                                   CURSOR UNLOCK                                   --
+---------------------------------------------------------------------------------------
     cursorUnlockGroup = {
       type = "group",
       name = " ",
@@ -569,7 +592,9 @@ CM.Config.ConfigOptions = {
           width = "full",
           order = 4.1
         },
-        -- FRAME WATCHLIST
+---------------------------------------------------------------------------------------
+--                                  FRAME WATCHLIST                                  --
+---------------------------------------------------------------------------------------
         watchlistInputGroup = {
           type = "group",
           name = "|cff00FF7FFrame Watchlist|r",
@@ -612,7 +637,9 @@ CM.Config.ConfigOptions = {
         }
       }
     },
-    -- RETICLE TARGETING
+---------------------------------------------------------------------------------------
+--                                 RETICLE TARGETING                                 --
+---------------------------------------------------------------------------------------
     reticleTargetingGroup = {
       type = "group",
       name = " ",
@@ -696,7 +723,9 @@ CM.Config.ConfigOptions = {
           width = "full",
           order = 4.3
         },
-        -- CROSSHAIR
+---------------------------------------------------------------------------------------
+--                                     CROSSHAIR                                     --
+---------------------------------------------------------------------------------------
         crosshairGroup = {
           type = "group",
           name = "|cff00FFFFCrosshair|r",
@@ -869,12 +898,17 @@ CM.Config.ConfigOptions = {
   }
 }
 
--- ADVANCED CONFIG TAB
+---------------------------------------------------------------------------------------
+--                               ADVANCED CONFIG PANEL                               --
+---------------------------------------------------------------------------------------
 CM.Config.AdvancedConfigOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
   type = "group",
   args = {
+---------------------------------------------------------------------------------------
+--                                   DEBUG & RESET                                   --
+---------------------------------------------------------------------------------------
     resetButton = {
       type = "execute",
       name = "Default",
@@ -911,6 +945,9 @@ CM.Config.AdvancedConfigOptions = {
       name = "Custom Condition",
       order = 0.9
     },
+---------------------------------------------------------------------------------------
+--                                  CUSTOM CONDITION                                 --
+---------------------------------------------------------------------------------------
     customCondition = {
       type = "group",
       name = "",
