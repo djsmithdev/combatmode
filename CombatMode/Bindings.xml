@@ -1,8 +1,8 @@
 <Bindings>
-	<Binding name="Combat Mode Toggle" description="Toggle Combat Mode" header="Combat Mode Toggle" category="Combat Mode">
+	<Binding name="Combat Mode Toggle" description="Toggle Combat Mode" header="Combat Mode Toggle" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
 		CombatMode_ToggleKey()
 	</Binding>
-	<Binding name="(Hold) Switch Mode" description="Hold to Switch Modes" header="Combat Mode Switch" category="Combat Mode" runOnUp="true">
+	<Binding name="(Hold) Switch Mode" description="Hold to Switch Modes" header="Combat Mode Switch" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t" runOnUp="true">
 		if keystate == "down" or keystate == "up" then
   			 CombatMode_HoldKey(keystate)
 		end

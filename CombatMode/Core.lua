@@ -1,4 +1,6 @@
--- CORE LOGIC
+---------------------------------------------------------------------------------------
+--                                     CORE LOGIC                                    --
+---------------------------------------------------------------------------------------
 -- IMPORTS
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
@@ -12,6 +14,7 @@ local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 local C_AddOns = _G.C_AddOns
 local CreateFrame = _G.CreateFrame
 local CreateMacro = _G.CreateMacro
+local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local GetMacroInfo = _G.GetMacroInfo
 local GetUIPanel = _G.GetUIPanel
 local InCinematic = _G.InCinematic
@@ -24,6 +27,8 @@ local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
 local Narci = _G.Narci
 local ReloadUI = _G.ReloadUI
+local SaveBindings = _G.SaveBindings
+local SetModifiedClick = _G.SetModifiedClick
 local SetCVar = _G.SetCVar
 local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 local SpellIsTargeting = _G.SpellIsTargeting
@@ -44,21 +49,9 @@ _G["CM"] = CM
 -- INITIAL STATE VARIABLES
 local FreeLookOverride = false -- Changes when Free Look state is modified through user input ("Toggle" or "Press & Hold" keybinds and "/cm" cmd)
 
--- SETTING UP CROSSHAIR FRAME & ANIMATION
-local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
-local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
-local CrosshairAnimation = CrosshairFrame:CreateAnimationGroup()
-local ScaleAnimation = CrosshairAnimation:CreateAnimation("Scale")
-local startingScale = 1
-local endingScale = 0.8
-local scaleDuration = 0.15
-ScaleAnimation:SetDuration(scaleDuration)
-ScaleAnimation:SetScaleFrom(startingScale, startingScale)
-ScaleAnimation:SetScaleTo(endingScale, endingScale)
-ScaleAnimation:SetSmoothProgress(scaleDuration)
-ScaleAnimation:SetSmoothing("IN_OUT")
-
--- UTILITY FUNCTIONS
+---------------------------------------------------------------------------------------
+--                                 UTILITY FUNCTIONS                                 --
+---------------------------------------------------------------------------------------
 local function FetchDataFromTOC()
   local dataRetuned = {}
   local keysToFetch = {
@@ -85,14 +78,14 @@ function CM.DebugPrint(statement)
   end
 end
 
-local function openConfigPanel()
+local function OpenConfigPanel()
   if InCombatLockdown() then
     print(CM.Constants.BasePrintMsg .. "Cannot open settings while in combat.")
     return
   end
 
   FreeLookOverride = true
-  AceConfigDialog:Open("Combat Mode")
+  AceConfigDialog:Open(CM.METADATA["TITLE"])
 end
 
 local function DisplayPopup()
@@ -102,7 +95,7 @@ local function DisplayPopup()
 
   local function OnClosePopup()
     CM.DB.char.seenWarning = true
-    openConfigPanel()
+    OpenConfigPanel()
   end
 
   StaticPopupDialogs["CombatMode Warning"] = {
@@ -153,7 +146,6 @@ local function CreateTargetMacros()
   end
 end
 
--- If left or right mouse buttons are being used while not free looking - meaning you're using the default mouse actions - then it won't allow you to lock into Free Look.
 -- This prevents the auto running bug.
 local function IsDefaultMouseActionBeingUsed()
   return IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
@@ -172,8 +164,24 @@ local function CenterCursor(shouldCenter)
   end
 end
 
--- CROSSHAIR STATE HANDLING FUNCTIONS
-local function HideWhileMounted()
+---------------------------------------------------------------------------------------
+--                           CROSSHAIR HANDLING FUNCTIONS                            --
+---------------------------------------------------------------------------------------
+-- SETTING UP CROSSHAIR FRAME & ANIMATION
+local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
+local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
+local CrosshairAnimation = CrosshairFrame:CreateAnimationGroup()
+local ScaleAnimation = CrosshairAnimation:CreateAnimation("Scale")
+local startingScale = 1
+local endingScale = 0.8
+local scaleDuration = 0.15
+ScaleAnimation:SetDuration(scaleDuration)
+ScaleAnimation:SetScaleFrom(startingScale, startingScale)
+ScaleAnimation:SetScaleTo(endingScale, endingScale)
+ScaleAnimation:SetSmoothProgress(scaleDuration)
+ScaleAnimation:SetSmoothing("IN_OUT")
+
+local function HideCrosshairWhileMounted()
   return CM.DB.global.crosshairMounted and IsMounted()
 end
 
@@ -265,7 +273,9 @@ local function HandleCrosshairReactionToTarget(target)
   end
 end
 
--- FRAME WATCHING / CURSOR UNLOCK
+---------------------------------------------------------------------------------------
+--                      FRAME WATCHING / CURSOR UNLOCK FUNCTIONS                     --
+---------------------------------------------------------------------------------------
 local function CursorUnlockFrameVisible(frameArr)
   local allowFrameWatching = CM.DB.global.frameWatching
   if not allowFrameWatching then
@@ -311,7 +321,7 @@ local function IsCustomConditionTrue()
   end
 end
 
-local function isThirdPartyAddonOpen()
+local function IsThirdPartyAddonOpen()
   -- Narci = Narcissus
   local addons = (Narci and Narci.isActive)
   return addons
@@ -325,7 +335,7 @@ end
 
 local function ShouldFreeLookBeOff()
   local evaluate = FreeLookOverride or SpellIsTargeting() or InCinematic() or IsUnlockFrameVisible() or
-                     IsCustomConditionTrue() or isThirdPartyAddonOpen()
+                     IsCustomConditionTrue() or IsThirdPartyAddonOpen()
 
   return evaluate
 end
@@ -350,7 +360,9 @@ local function InitializeWildcardFrameTracking(frameArr)
   CM.DebugPrint("Wildcard frames initialized")
 end
 
--- OVERRIDE BUTTONS
+---------------------------------------------------------------------------------------
+--                             BUTTON OVERRIDE FUNCTIONS                             --
+---------------------------------------------------------------------------------------
 function CM.GetBindingsLocation()
   return CM.DB.char.useGlobalBindings and "global" or "char"
 end
@@ -393,7 +405,9 @@ local function RenameBindableActions()
   end
 end
 
--- FREE LOOK STATE HANDLING
+---------------------------------------------------------------------------------------
+--                             FREE LOOK STATE FUNCTIONS                             --
+---------------------------------------------------------------------------------------
 local function LockFreeLook()
   if not IsMouselooking() then
     MouselookStart()
@@ -436,27 +450,34 @@ local function ToggleFreeLook(state)
   end
 end
 
+---------------------------------------------------------------------------------------
+--                                   EVENT HANDLING                                  --
+---------------------------------------------------------------------------------------
 -- Re-locking Free Look & re-setting CVars after reload/portal
 local function Rematch()
   if CM.DB.char.reticleTargeting then
     CM.LoadCVars("combatmode")
   end
 
-  if CM.DB.global.crosshair then
-    SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
-  end
-
   if CM.DB.char.crosshairPriority then
     SetCVar("enableMouseoverCast", 1)
+    SetModifiedClick("MOUSEOVERCAST", "NONE")
+    SaveBindings(GetCurrentBindingSet())
+  end
+
+  if CM.DB.global.crosshair then
+    SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
   end
 
   LockFreeLook()
 end
 
--- Handle events based on their category
--- You need to first register the event in the CM.Constants.BLIZZARD_EVENTS table before using it here
--- Checks which category in the table the event that's been fired belongs to, and then calls the appropriate function
-local function handleEventByCategory(category, event)
+--[[
+Handle events based on their category.
+You need to first register the event in the CM.Constants.BLIZZARD_EVENTS table before using it here.
+Checks which category in the table the event that's been fired belongs to, and then calls the appropriate function.
+]] --
+local function HandleEventByCategory(category, event)
   local eventHandlers = {
     UNLOCK_EVENTS = function()
       UnlockFreeLook()
@@ -468,12 +489,12 @@ local function handleEventByCategory(category, event)
       Rematch()
     end,
     TARGETING_EVENTS = function()
-      if not HideWhileMounted() then
+      if not HideCrosshairWhileMounted() then
         HandleCrosshairReactionToTarget(event == "PLAYER_SOFT_ENEMY_CHANGED" and "softenemy" or "softinteract")
       end
     end,
     UNCATEGORIZED_EVENTS = function()
-      SetCrosshairAppearance(HideWhileMounted() and "mounted" or "base")
+      SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
     end
   }
 
@@ -487,14 +508,20 @@ function _G.CombatMode_OnEvent(event)
   for category, registered_events in pairs(CM.Constants.BLIZZARD_EVENTS) do
     for _, registered_event in ipairs(registered_events) do
       if event == registered_event then
-        handleEventByCategory(category, event)
+        HandleEventByCategory(category, event)
         return
       end
     end
   end
 end
 
--- FIRES WHEN GAME STATE CHANGES HAPPEN
+---------------------------------------------------------------------------------------
+--                                   GAME STATE LOOP                                 --
+---------------------------------------------------------------------------------------
+--[[
+The game engine will call the OnUpdate function once each frame.
+This is (in most cases) extremely excessive, hence why we're adding a throttle.
+]] --
 local ONUPDATE_INTERVAL = 0.15
 local TimeSinceLastUpdate = 0
 function _G.CombatMode_OnUpdate(_, elapsed)
@@ -520,6 +547,9 @@ function _G.CombatMode_OnUpdate(_, elapsed)
   end
 end
 
+---------------------------------------------------------------------------------------
+--                            KEYBIND FUNCTIONS & COMMANDS                           --
+---------------------------------------------------------------------------------------
 -- FUNCTIONS CALLED FROM BINDINGS.XML
 function _G.CombatMode_ToggleKey()
   local state = IsMouselooking()
@@ -534,22 +564,26 @@ end
 -- CREATING /CM CHAT COMMAND
 function CM:OpenConfigCMD(input)
   if not input or input:trim() == "" then
-    openConfigPanel()
+    OpenConfigPanel()
   else
-    AceConfigCmd.HandleCommand(self, "mychat", "Combat Mode", input)
+    AceConfigCmd.HandleCommand(self, "mychat", CM.METADATA["TITLE"], input)
   end
 end
 
--- STANDARD ACE 3 METHODS
--- do init tasks here, like loading the Saved Variables,
--- or setting up slash commands.
+---------------------------------------------------------------------------------------
+--                                STANDARD ACE3 METHODS                              --
+---------------------------------------------------------------------------------------
+--[[
+Do init tasks here, like loading the Saved Variables,
+or setting up slash commands.
+]] --
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Constants.DatabaseDefaults, true)
 
-  AceConfig:RegisterOptionsTable("Combat Mode", CM.Config.ConfigOptions)
-  AceConfigDialog:AddToBlizOptions("Combat Mode")
+  AceConfig:RegisterOptionsTable(CM.METADATA["TITLE"], CM.Config.ConfigOptions)
+  AceConfigDialog:AddToBlizOptions(CM.METADATA["TITLE"])
   AceConfig:RegisterOptionsTable("Combat Mode: Advanced", CM.Config.AdvancedConfigOptions)
-  AceConfigDialog:AddToBlizOptions("Combat Mode: Advanced", "Advanced", "Combat Mode")
+  AceConfigDialog:AddToBlizOptions("Combat Mode: Advanced", "Advanced", CM.METADATA["TITLE"])
 
   self:RegisterChatCommand("cm", "OpenConfigCMD")
   self:RegisterChatCommand("combatmode", "OpenConfigCMD")
@@ -561,9 +595,11 @@ function CM:OnResetDB()
   ReloadUI();
 end
 
--- Do more initialization here, that really enables the use of your addon.
--- Register Events, Hook functions, Create Frames, Get information from
--- the game that wasn't available in OnInitialize
+--[[
+Do more initialization here, that really enables the use of your addon.
+Register Events, Hook functions, Create Frames, Get information from
+the game that wasn't available in OnInitialize
+]] --
 function CM:OnEnable()
   RenameBindableActions()
   CM.OverrideDefaultButtons()
@@ -584,9 +620,11 @@ function CM:OnEnable()
   DisplayPopup()
 end
 
--- Unhook, Unregister Events, Hide frames that you created.
--- You would probably only use an OnDisable if you want to
--- build a "standby" mode, or be able to toggle modules on/off.
+--[[
+Unhook, Unregister Events, Hide frames that you created.
+You would probably only use an OnDisable if you want to
+build a "standby" mode, or be able to toggle modules on/off.
+]] --
 function CM:OnDisable()
   CrosshairFrame:Hide()
   self.LoadCVars("blizzard")

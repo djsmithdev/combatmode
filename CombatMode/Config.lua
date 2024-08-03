@@ -1,4 +1,6 @@
--- CONFIGURATION/OPTIONS PANEL
+---------------------------------------------------------------------------------------
+--                                CONFIG/OPTIONS PANEL                               --
+---------------------------------------------------------------------------------------
 -- IMPORTS
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
@@ -9,12 +11,16 @@ local GetBindingKey = _G.GetBindingKey
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
 local SetCVar = _G.SetCVar
+local SetModifiedClick = _G.SetModifiedClick
 
 -- RETRIEVING ADDON TABLE
 local CM = AceAddon:GetAddon("CombatMode")
 
 CM.Config = {}
 
+---------------------------------------------------------------------------------------
+--                           BUTTON OVERRIDE GROUP ASSEMBLER                         --
+---------------------------------------------------------------------------------------
 local function GetButtonOverrideGroup(modifier, groupOrder)
   local button1Settings, button2Settings, groupName, button1Name, button2Name
   if modifier then
@@ -170,12 +176,17 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
   }
 end
 
--- BASE CONFIG PANEL
+---------------------------------------------------------------------------------------
+--                                 BASE CONFIG PANEL                                 --
+---------------------------------------------------------------------------------------
 CM.Config.ConfigOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
   type = "group",
   args = {
+    ---------------------------------------------------------------------------------------
+    --                                   DEBUG & RESET                                   --
+    ---------------------------------------------------------------------------------------
     resetButton = {
       type = "execute",
       name = "Default",
@@ -207,7 +218,9 @@ CM.Config.ConfigOptions = {
       end,
       order = 0.2
     },
-    -- LOGO & ABOUT
+    ---------------------------------------------------------------------------------------
+    --                                   LOGO & ABOUT                                    --
+    ---------------------------------------------------------------------------------------
     aboutHeader = {
       type = "header",
       name = "",
@@ -247,7 +260,9 @@ CM.Config.ConfigOptions = {
       width = "full",
       order = 1.4
     },
-    -- FEATURES
+    ---------------------------------------------------------------------------------------
+    --                                     FEATURES                                      --
+    ---------------------------------------------------------------------------------------
     featuresHeader = {
       type = "description",
       name = "|cffffd700Features:|r",
@@ -256,7 +271,7 @@ CM.Config.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Free Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of |cffcfcfcf@mouseover|r and |cffcfcfcf@cursor|r macro decorators in combination with the crosshairs. \n• Optional adjustable dynamic |cff00FFFFCrosshair|r marker to assist with Reticle Targeting. \n• |cffB47EDEMouse Button Keybinds|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.",
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of |cffcfcfcf@mouseover|r and |cffcfcfcf@cursor|r macro decorators in combination with the |cff00FFFFCrosshair|r. \n• |cffB47EDEMouse Click Casting|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.",
       order = 3
     },
     featuresListPaddingBottom = {
@@ -307,7 +322,9 @@ CM.Config.ConfigOptions = {
       width = "full",
       order = 5.1
     },
-    -- CONFIGURATION
+    ---------------------------------------------------------------------------------------
+    --                                   CONFIGURATION                                   --
+    ---------------------------------------------------------------------------------------
     configurationHeaderPaddingTop = {
       type = "description",
       name = " ",
@@ -319,7 +336,9 @@ CM.Config.ConfigOptions = {
       name = "|cffffffffCONFIGURATION|r",
       order = 6
     },
-    -- FREELOOK CAMERA
+    ---------------------------------------------------------------------------------------
+    --                                     FREE LOOK                                     --
+    ---------------------------------------------------------------------------------------
     freeLookCameraGroup = {
       type = "group",
       name = " ",
@@ -431,8 +450,10 @@ CM.Config.ConfigOptions = {
         }
       }
     },
-    -- MOUSE BUTTON
-    mouseButtonGroup = {
+    ---------------------------------------------------------------------------------------
+    --                                MOUSE CLICK CASTING                                --
+    ---------------------------------------------------------------------------------------
+    mouseClickCastingGroup = {
       type = "group",
       name = " ",
       inline = true,
@@ -440,7 +461,7 @@ CM.Config.ConfigOptions = {
       args = {
         keybindHeader = {
           type = "header",
-          name = "|cffB47EDEMouse Button Keybinds|r",
+          name = "|cffB47EDEMouse Click Casting|r",
           order = 1
         },
         keybindHeaderPaddingBottom = {
@@ -452,7 +473,7 @@ CM.Config.ConfigOptions = {
         keybindGlobalOption = {
           type = "toggle",
           name = "Use Global Keybinds",
-          desc = "Use your account-wide shared keybinds on this character.\n|cffffd700Default:|r |cffE52B50Off|r",
+          desc = "|cff3B73FFCharacter-based option|r\nUse your account-wide shared keybinds on this character.\n|cffffd700Default:|r |cffE52B50Off|r",
           width = "full",
           order = 1.5,
           set = function(_, value)
@@ -520,7 +541,9 @@ CM.Config.ConfigOptions = {
         altGroup = GetButtonOverrideGroup("alt", 7)
       }
     },
-    -- CURSOR UNLOCK
+    ---------------------------------------------------------------------------------------
+    --                                   CURSOR UNLOCK                                   --
+    ---------------------------------------------------------------------------------------
     cursorUnlockGroup = {
       type = "group",
       name = " ",
@@ -568,7 +591,9 @@ CM.Config.ConfigOptions = {
           width = "full",
           order = 4.1
         },
-        -- FRAME WATCHLIST
+        ---------------------------------------------------------------------------------------
+        --                                  FRAME WATCHLIST                                  --
+        ---------------------------------------------------------------------------------------
         watchlistInputGroup = {
           type = "group",
           name = "|cff00FF7FFrame Watchlist|r",
@@ -611,7 +636,9 @@ CM.Config.ConfigOptions = {
         }
       }
     },
-    -- RETICLE TARGETING
+    ---------------------------------------------------------------------------------------
+    --                                 RETICLE TARGETING                                 --
+    ---------------------------------------------------------------------------------------
     reticleTargetingGroup = {
       type = "group",
       name = " ",
@@ -644,7 +671,7 @@ CM.Config.ConfigOptions = {
         reticleTargeting = {
           type = "toggle",
           name = "Reticle Targeting",
-          desc = "Configures Blizzard's Action Targeting feature to something action-oriented and responsive. \n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n|cffcfcfcfUncheck to reset them to their default values.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+          desc = "|cff3B73FFCharacter-based option|r\nConfigures Blizzard's Action Targeting feature to something action-oriented and responsive. \n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n|cffcfcfcfUncheck to reset them to their default values.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
           width = 1.0,
           order = 3,
           set = function(_, value)
@@ -662,13 +689,15 @@ CM.Config.ConfigOptions = {
         crosshairPriority = {
           type = "toggle",
           name = "Always Prioritize Crosshair Target",
-          desc = "Gives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected targets in favor of the unit at your crosshair.|r \n|cffcfcfcfDisabling this will prevent the crosshair from swapping off hard-locked targets.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+          desc = "|cff3B73FFCharacter-based option|r\nGives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected targets in favor of the unit at your crosshair.|r \n|cffcfcfcfDisabling this will prevent the crosshair from swapping off hard-locked targets.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
           width = 1.4,
           order = 4,
           set = function(_, value)
             CM.DB.char.crosshairPriority = value
             if value then
               SetCVar("enableMouseoverCast", 1)
+              SetModifiedClick("MOUSEOVERCAST", "NONE")
+              SaveBindings(GetCurrentBindingSet())
             else
               SetCVar("enableMouseoverCast", 0)
             end
@@ -684,7 +713,7 @@ CM.Config.ConfigOptions = {
         },
         devNoteWarning = {
           type = "description",
-          name = "\n|cffFF5050Make sure your |cffffd700Mouseover Cast|r hotkey modifier is set to |cffffd700None|r in the interface menu |cffcfcfcf(Options > Gameplay > Combat)|r otherwise |cffcfcfcfPrioritize Crosshair Target|r will only work while the selected key is being pressed.|r",
+          name = "\n|cffFF5050Make sure your |cffffd700Mouseover Cast|r hotkey is set to |cffffd700None|r in the interface menu |cffcfcfcf(Options > Gameplay > Combat)|r and any Action Bar addons with that option, otherwise |cffcfcfcfPrioritize Crosshair Target|r will only work while the selected key is being pressed.|r",
           order = 4.2
         },
         reticleTargetingNotePaddingBottom = {
@@ -693,7 +722,9 @@ CM.Config.ConfigOptions = {
           width = "full",
           order = 4.3
         },
-        -- CROSSHAIR
+        ---------------------------------------------------------------------------------------
+        --                                     CROSSHAIR                                     --
+        ---------------------------------------------------------------------------------------
         crosshairGroup = {
           type = "group",
           name = "|cff00FFFFCrosshair|r",
@@ -866,12 +897,17 @@ CM.Config.ConfigOptions = {
   }
 }
 
--- ADVANCED CONFIG TAB
+---------------------------------------------------------------------------------------
+--                               ADVANCED CONFIG PANEL                               --
+---------------------------------------------------------------------------------------
 CM.Config.AdvancedConfigOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
   type = "group",
   args = {
+    ---------------------------------------------------------------------------------------
+    --                                   DEBUG & RESET                                   --
+    ---------------------------------------------------------------------------------------
     resetButton = {
       type = "execute",
       name = "Default",
@@ -908,6 +944,9 @@ CM.Config.AdvancedConfigOptions = {
       name = "Custom Condition",
       order = 0.9
     },
+    ---------------------------------------------------------------------------------------
+    --                                  CUSTOM CONDITION                                 --
+    ---------------------------------------------------------------------------------------
     customCondition = {
       type = "group",
       name = "",
