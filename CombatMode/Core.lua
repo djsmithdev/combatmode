@@ -26,7 +26,6 @@ local MouselookStop = _G.MouselookStop
 local Narci = _G.Narci
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
-local SetBinding = _G.SetBinding
 local SetModifiedClick = _G.SetModifiedClick
 local SetCVar = _G.SetCVar
 local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
