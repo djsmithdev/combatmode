@@ -11,6 +11,70 @@ local CM = AceAddon:GetAddon("CombatMode")
 CM.Constants = {}
 
 ---------------------------------------------------------------------------------------
+--                                        CVARS                                      --
+---------------------------------------------------------------------------------------
+-- CVARS FOR RETICLE TARGETING
+CM.Constants.CustomCVarValues = {
+  -- SoftTarget General
+  ["interactKeyWarningTutorial"] = 1, -- Hides the interact key tutorial since we're the INTERACTMOUSEOVER binding instead
+  ["deselectOnClick"] = 1, -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
+  ["SoftTargetForce"] = 1, -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
+  ["SoftTargetMatchLocked"] = 1, -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
+  ["SoftTargetWithLocked"] = 2, -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
+  -- SoftTarget Enemy
+  ["SoftTargetEnemy"] = 3, -- Sets when enemy soft targeting should be enabled. 0=off, 1=gamepad, 2=KBM, 3=always
+  ["SoftTargetEnemyArc"] = 0, -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
+  ["SoftTargetEnemyRange"] = 60,
+  -- SoftTarget Interact
+  ["SoftTargetInteract"] = 3,
+  ["SoftTargetInteractArc"] = 1, -- Setting it to 1 since we don't need too much precision when interacting with NPCs and having to aim precisely at them when this is set to 0 gets annoying.
+  ["SoftTargetInteractRange"] = 15,
+  -- SoftTarget Friend
+  ["SoftTargetFriend"] = 0, -- Disabled for friendlies to avoid situations like the Fiery Brand bug.
+  -- SoftTarget Nameplate
+  ["SoftTargetNameplateEnemy"] = 1, -- Always show nameplates  for soft target enemy.
+  -- SoftTarget Icon
+  ["SoftTargetIconEnemy"] = 0,
+  ["SoftTargetIconInteract"] = 1,
+  ["SoftTargetIconGameObject"] = 1,
+  -- cursor centering
+  ["CursorFreelookCentering"] = 0, -- needs to be set to 0 initially because Blizzard changed this cvar to be called BEFORE MouselookStart() method, which means if we set to 1 by default, it will cause the camera to snap to cursor position as you enable free look.
+  ["CursorStickyCentering"] = 1 -- does not work in its current implementation. Most likely related to the recent CursorFreelookCentering change.
+}
+
+-- DEFAULT BLIZZARD VALUES
+-- !! DO NOT CHANGE !!
+CM.Constants.BlizzardCVarValues = {
+  ["SoftTargetForce"] = 1,
+  ["SoftTargetMatchLocked"] = 1,
+  ["SoftTargetWithLocked"] = 1,
+  ["SoftTargetEnemy"] = 1,
+  ["SoftTargetEnemyArc"] = 2,
+  ["SoftTargetEnemyRange"] = 45,
+  ["SoftTargetInteract"] = 1,
+  ["SoftTargetInteractArc"] = 0,
+  ["SoftTargetInteractRange"] = 10,
+  ["SoftTargetFriend"] = 0,
+  ["SoftTargetNameplateEnemy"] = 1,
+  ["SoftTargetIconEnemy"] = 0,
+  ["SoftTargetIconInteract"] = 1,
+  ["SoftTargetIconGameObject"] = 0,
+  ["CursorFreelookCentering"] = 0,
+  ["CursorStickyCentering"] = 0
+}
+
+---------------------------------------------------------------------------------------
+--                                       MACROS                                      --
+---------------------------------------------------------------------------------------
+CM.Constants.Macros = {
+  CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",
+  CM_ClearFocus = "/clearfocus",
+  CM_HardTarget = "#showtooltip\n/cleartarget [help][noharm,exists][dead]\n/target [@mouseover,harm,nodead]\n/startattack\n/cast PLACEHOLDER_SPELL",
+  CM_SoftTarget = "#showtooltip\n/cleartarget\n/cast [@mouseover,harm,nodead][] PLACEHOLDER_SPELL\n/startattack",
+  CM_CastCursor = "#showtooltip\n/cast [mod:shift] PLACEHOLDER_SPELL; [nomod, @cursor] PLACEHOLDER_SPELL"
+}
+
+---------------------------------------------------------------------------------------
 --                                  REGISTERED EVENTS                                --
 ---------------------------------------------------------------------------------------
 -- EVENTS TO BE TRACKED
@@ -108,7 +172,6 @@ CM.Constants.CrosshairReactionColors = {
 ---------------------------------------------------------------------------------------
 --                                   FRAME WATCHING                                  --
 ---------------------------------------------------------------------------------------
-
 -- Default frames to check with a static name
 CM.Constants.FramesToCheck = {
   -- Blizzard frames
@@ -275,7 +338,6 @@ CM.Constants.WildcardFramesToCheck = {}
 ---------------------------------------------------------------------------------------
 --                                   BUTTON OVERRIDE                                 --
 ---------------------------------------------------------------------------------------
-
 -- The name of the actions a user can bind to mouse buttons
 CM.Constants.ActionsToProcess = {
   "ACTIONBUTTON1",
@@ -334,75 +396,8 @@ CM.Constants.ButtonsToOverride = {
 }
 
 ---------------------------------------------------------------------------------------
---                                       MACROS                                      --
----------------------------------------------------------------------------------------
-
-CM.Constants.Macros = {
-  CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",
-  CM_ClearFocus = "/clearfocus",
-  CM_HardTarget = "#showtooltip\n/cleartarget [help][noharm,exists][dead]\n/target [@mouseover,harm,nodead]\n/startattack\n/cast PLACEHOLDER_SPELL",
-  CM_SoftTarget = "#showtooltip\n/cleartarget\n/cast [@mouseover,harm,nodead][] PLACEHOLDER_SPELL\n/startattack",
-  CM_CastCursor = "#showtooltip\n/cast [mod:shift] PLACEHOLDER_SPELL; [nomod, @cursor] PLACEHOLDER_SPELL"
-}
-
----------------------------------------------------------------------------------------
---                                        CVARS                                      --
----------------------------------------------------------------------------------------
-
--- CVARS FOR RETICLE TARGETING
-CM.Constants.CustomCVarValues = {
-  -- SoftTarget General
-  ["interactKeyWarningTutorial"] = 1, -- Hides the interact key tutorial since we're the INTERACTMOUSEOVER binding instead
-  ["deselectOnClick"] = 1, -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
-  ["SoftTargetForce"] = 1, -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
-  ["SoftTargetMatchLocked"] = 1, -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
-  ["SoftTargetWithLocked"] = 2, -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
-  -- SoftTarget Enemy
-  ["SoftTargetEnemy"] = 3, -- Sets when enemy soft targeting should be enabled. 0=off, 1=gamepad, 2=KBM, 3=always
-  ["SoftTargetEnemyArc"] = 0, -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
-  ["SoftTargetEnemyRange"] = 60,
-  -- SoftTarget Interact
-  ["SoftTargetInteract"] = 3,
-  ["SoftTargetInteractArc"] = 1, -- Setting it to 1 since we don't need too much precision when interacting with NPCs and having to aim precisely at them when this is set to 0 gets annoying.
-  ["SoftTargetInteractRange"] = 15,
-  -- SoftTarget Friend
-  ["SoftTargetFriend"] = 0, -- Disabled for friendlies to avoid situations like the Fiery Brand bug.
-  -- SoftTarget Nameplate
-  ["SoftTargetNameplateEnemy"] = 1, -- Always show nameplates  for soft target enemy.
-  -- SoftTarget Icon
-  ["SoftTargetIconEnemy"] = 0,
-  ["SoftTargetIconInteract"] = 1,
-  ["SoftTargetIconGameObject"] = 1,
-  -- cursor centering
-  ["CursorFreelookCentering"] = 0, -- needs to be set to 0 initially because Blizzard changed this cvar to be called BEFORE MouselookStart() method, which means if we set to 1 by default, it will cause the camera to snap to cursor position as you enable free look.
-  ["CursorStickyCentering"] = 1 -- does not work in its current implementation. Most likely related to the recent CursorFreelookCentering change.
-}
-
--- DEFAULT BLIZZARD VALUES
--- !! DO NOT CHANGE !!
-CM.Constants.BlizzardCVarValues = {
-  ["SoftTargetForce"] = 1,
-  ["SoftTargetMatchLocked"] = 1,
-  ["SoftTargetWithLocked"] = 1,
-  ["SoftTargetEnemy"] = 1,
-  ["SoftTargetEnemyArc"] = 2,
-  ["SoftTargetEnemyRange"] = 45,
-  ["SoftTargetInteract"] = 1,
-  ["SoftTargetInteractArc"] = 0,
-  ["SoftTargetInteractRange"] = 10,
-  ["SoftTargetFriend"] = 0,
-  ["SoftTargetNameplateEnemy"] = 1,
-  ["SoftTargetIconEnemy"] = 0,
-  ["SoftTargetIconInteract"] = 1,
-  ["SoftTargetIconGameObject"] = 0,
-  ["CursorFreelookCentering"] = 0,
-  ["CursorStickyCentering"] = 0
-}
-
----------------------------------------------------------------------------------------
 --                                DB & BINDING DEFAULTS                              --
 ---------------------------------------------------------------------------------------
-
 local DefaultBindings = {
   button1 = {
     enabled = true,
