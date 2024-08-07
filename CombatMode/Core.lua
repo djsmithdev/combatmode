@@ -40,6 +40,8 @@ local UnitGUID = _G.UnitGUID
 local UnitIsGameObject = _G.UnitIsGameObject
 local UnitReaction = _G.UnitReaction
 local unpack = _G.unpack
+local GetAuraDataBySpellName = _G.C_UnitAuras.GetAuraDataBySpellName
+local OpenToCategory = _G.Settings.OpenToCategory
 
 -- INSTANTIATING ADDON & ENCAPSULATING NAMESPACE
 ---@class CM : AceAddon
@@ -80,12 +82,10 @@ end
 
 local function OpenConfigPanel()
   if InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg .. "Cannot open settings while in combat.")
+    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open settings while in combat.|r")
     return
   end
-
-  FreeLookOverride = true
-  AceConfigDialog:Open(CM.METADATA["TITLE"])
+  OpenToCategory(CM.METADATA["TITLE"])
 end
 
 local function DisplayPopup()
@@ -327,6 +327,24 @@ local function IsThirdPartyAddonOpen()
   return addons
 end
 
+local function IsVendorMountOut()
+  if not CM.DB.global.mountCheck then
+    return false
+  end
+
+  local function checkMount(mount)
+    return GetAuraDataBySpellName("player", mount, "HELPFUL") ~= nil
+  end
+
+  for _, mount in ipairs(CM.Constants.MountsToCheck) do
+    if checkMount(mount) then
+      return true
+    end
+  end
+
+  return false
+end
+
 local function IsUnlockFrameVisible()
   local isGenericPanelOpen = (GetUIPanel("left") or GetUIPanel("right") or GetUIPanel("center")) and true or false
   return CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or CursorUnlockFrameVisible(CM.DB.global.watchlist) or
@@ -335,7 +353,7 @@ end
 
 local function ShouldFreeLookBeOff()
   local evaluate = FreeLookOverride or SpellIsTargeting() or InCinematic() or IsUnlockFrameVisible() or
-                     IsCustomConditionTrue() or IsThirdPartyAddonOpen()
+                     IsCustomConditionTrue() or IsThirdPartyAddonOpen() or IsVendorMountOut()
 
   return evaluate
 end
@@ -476,7 +494,7 @@ end
 Handle events based on their category.
 You need to first register the event in the CM.Constants.BLIZZARD_EVENTS table before using it here.
 Checks which category in the table the event that's been fired belongs to, and then calls the appropriate function.
-]] --
+]]--
 local function HandleEventByCategory(category, event)
   local eventHandlers = {
     UNLOCK_EVENTS = function()
@@ -521,7 +539,7 @@ end
 --[[
 The game engine will call the OnUpdate function once each frame.
 This is (in most cases) extremely excessive, hence why we're adding a throttle.
-]] --
+]]--
 local ONUPDATE_INTERVAL = 0.15
 local TimeSinceLastUpdate = 0
 function _G.CombatMode_OnUpdate(_, elapsed)
@@ -576,14 +594,21 @@ end
 --[[
 Do init tasks here, like loading the Saved Variables,
 or setting up slash commands.
-]] --
+]]--
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Constants.DatabaseDefaults, true)
 
-  AceConfig:RegisterOptionsTable(CM.METADATA["TITLE"], CM.Config.ConfigOptions)
-  AceConfigDialog:AddToBlizOptions(CM.METADATA["TITLE"])
-  AceConfig:RegisterOptionsTable("Combat Mode: Advanced", CM.Config.AdvancedConfigOptions)
-  AceConfigDialog:AddToBlizOptions("Combat Mode: Advanced", "Advanced", CM.METADATA["TITLE"])
+  local parentTable = CM.METADATA["TITLE"]
+
+  -- REGISTERING SETTINGS TREE
+  -- main category
+  AceConfig:RegisterOptionsTable(parentTable, CM.Config.AboutOptions)
+  AceConfigDialog:AddToBlizOptions(parentTable)
+  -- subcategories
+  for _, option in ipairs(CM.Config.OptionCategories) do
+    AceConfig:RegisterOptionsTable(option.id, option.table)
+    AceConfigDialog:AddToBlizOptions(option.id, option.name, parentTable)
+  end
 
   self:RegisterChatCommand("cm", "OpenConfigCMD")
   self:RegisterChatCommand("combatmode", "OpenConfigCMD")
@@ -599,7 +624,7 @@ end
 Do more initialization here, that really enables the use of your addon.
 Register Events, Hook functions, Create Frames, Get information from
 the game that wasn't available in OnInitialize
-]] --
+]]--
 function CM:OnEnable()
   RenameBindableActions()
   CM.OverrideDefaultButtons()
@@ -624,7 +649,7 @@ end
 Unhook, Unregister Events, Hide frames that you created.
 You would probably only use an OnDisable if you want to
 build a "standby" mode, or be able to toggle modules on/off.
-]] --
+]]--
 function CM:OnDisable()
   CrosshairFrame:Hide()
   self.LoadCVars("blizzard")

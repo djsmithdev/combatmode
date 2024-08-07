@@ -27,8 +27,8 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
     button1Settings = modifier .. "button1"
     button2Settings = modifier .. "button2"
 
-    local capitalisedModifier = (modifier:gsub("^%l", string.upper))
-    groupName = capitalisedModifier .. "-modified Clicks"
+    local capitalisedModifier = (string.upper(modifier))
+    groupName = capitalisedModifier .. " + Clicks"
     button1Name = capitalisedModifier .. " + Left Click"
     button2Name = capitalisedModifier .. " + Right Click"
   else
@@ -42,8 +42,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
 
   return {
     type = "group",
-    name = "|cffB47EDE" .. groupName .. "|r",
-    inline = true,
+    name = groupName,
     order = groupOrder,
     args = {
       overrideButton1Toggle = {
@@ -66,7 +65,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       },
       button1 = {
         name = button1Name,
-        desc = button1Name,
+        desc = "",
         type = "select",
         width = 1.5,
         order = 1.1,
@@ -89,7 +88,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         order = 1.2
       },
       button1macro = {
-        name = button1Name .. " Custom Action",
+        name = "Custom Action",
         desc = "Enter the name of the action you wish to be ran here.",
         type = "input",
         width = 1.5,
@@ -132,7 +131,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       },
       button2 = {
         name = button2Name,
-        desc = button2Name,
+        desc = "",
         type = "select",
         width = 1.5,
         order = 2.1,
@@ -155,7 +154,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         order = 2.2
       },
       button2macro = {
-        name = button2Name .. " Custom Action",
+        name = "Custom Action",
         desc = "Enter the name of the action you wish to be ran here.",
         type = "input",
         width = 1.5,
@@ -171,15 +170,44 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
           return not CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled or
                    CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].value ~= "CUSTOMACTION"
         end
+      },
+      spacing = {
+        type = "description",
+        name = " ",
+        width = "full",
+        order = 3
+      },
+      devnote = {
+        type = "group",
+        name = "|cffffd700Developer Note|r",
+        order = 4,
+        inline = true,
+        args = {
+          note = {
+            type = "description",
+            name = "|cff909090To use an action not listed on the dropdown menu, select |cff69ccf0Custom Action|r and then type the exact name of the action you'd like to cast. \nTo use a |cffcfcfcfMACRO|r as your |cff69ccf0Custom Action|r, type |cffcfcfcfMACRO MacroName|r into the input.|r\n",
+            order = 4
+          },
+          wowwiki = {
+            name = "You can find all available actions here:",
+            desc = "warcraft.wiki.gg/wiki/BindingID",
+            type = "input",
+            width = 1.5,
+            order = 5,
+            get = function()
+              return "warcraft.wiki.gg/wiki/BindingID"
+            end
+          }
+        }
       }
     }
   }
 end
 
 ---------------------------------------------------------------------------------------
---                                 BASE CONFIG PANEL                                 --
+--                                     ABOUT                                     --
 ---------------------------------------------------------------------------------------
-CM.Config.ConfigOptions = {
+local AboutOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
   type = "group",
@@ -190,7 +218,7 @@ CM.Config.ConfigOptions = {
     resetButton = {
       type = "execute",
       name = "Default",
-      desc = "Resets Combat Mode settings to its default values.",
+      desc = "Resets Combat Mode's settings to their default values.",
       confirmText = "Resetting Combat Mode options will force a UI Reload. Proceed?",
       width = 0.7,
       func = function()
@@ -221,12 +249,12 @@ CM.Config.ConfigOptions = {
     ---------------------------------------------------------------------------------------
     --                                   LOGO & ABOUT                                    --
     ---------------------------------------------------------------------------------------
-    aboutHeader = {
+    header = {
       type = "header",
-      name = "",
+      name = "|cffffffffABOUT|r",
       order = 1
     },
-    logoPaddingTop = {
+    aboutPaddingTop = {
       type = "description",
       name = " ",
       width = "full",
@@ -254,7 +282,7 @@ CM.Config.ConfigOptions = {
       width = 3.1,
       order = 1.3
     },
-    aboutDescriptionPaddingBottom = {
+    aboutPaddingBottom = {
       type = "description",
       name = " ",
       width = "full",
@@ -271,23 +299,17 @@ CM.Config.ConfigOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Free Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of |cffcfcfcf@mouseover|r and |cffcfcfcf@cursor|r macro decorators in combination with the |cff00FFFFCrosshair|r. \n• |cffB47EDEMouse Click Casting|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.",
+      name = "|cff909090• |cffE52B50Free Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of |cffcfcfcf@mouseover|r and |cffcfcfcf@cursor|r macro decorators in combination with the |cff00FFFFCrosshair|r. \n• |cffB47EDEMouse Click Casting|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.\n\n",
       order = 3
-    },
-    featuresListPaddingBottom = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 3.1
     },
     versionNumber = {
       type = "description",
-      name = "|cffffffffVersion:|r " .. "|cff00ff00" .. CM.METADATA["VERSION"] .. "|r",
+      name = "|cffffffffVersion:|r " .. "|cff00ff00" .. CM.METADATA["VERSION"] .. "|r\n\n",
       order = 3.2
     },
     contributorsList = {
       type = "description",
-      name = "|cffffffffCreated by:|r " .. "|cffcfcfcf" .. CM.METADATA["AUTHOR"] .. "|r",
+      name = "|cffffffffCreated by:|r " .. "|cffcfcfcf" .. CM.METADATA["AUTHOR"] .. "|r\n\n",
       order = 3.3
     },
     curse = {
@@ -303,7 +325,7 @@ CM.Config.ConfigOptions = {
     curseDiscordSpacing = {
       type = "description",
       name = " ",
-      width = 0.25,
+      width = 0.4,
       order = 4.1
     },
     discord = {
@@ -321,576 +343,390 @@ CM.Config.ConfigOptions = {
       name = " ",
       width = "full",
       order = 5.1
+    }
+  }
+}
+
+---------------------------------------------------------------------------------------
+--                                     FREE LOOK                                     --
+---------------------------------------------------------------------------------------
+local FreeLookOptions = {
+  name = CM.METADATA["TITLE"],
+  handler = CM,
+  type = "group",
+  args = {
+    header = {
+      type = "header",
+      name = "|cffE52B50FREE LOOK|r",
+      order = 1
     },
-    ---------------------------------------------------------------------------------------
-    --                                   CONFIGURATION                                   --
-    ---------------------------------------------------------------------------------------
-    configurationHeaderPaddingTop = {
+    description = {
+      type = "description",
+      name = "\nSet keybinds for the Free Look camera. You can use Toggle and Press & Hold together by binding them to separate keys.\n\n",
+      fontSize = "medium",
+      order = 2
+    },
+    toggle = {
+      type = "keybinding",
+      name = "|cffffd700Toggle|r",
+      desc = "Toggles the Free Look camera ON or OFF.",
+      width = 1.25,
+      order = 3,
+      set = function(_, key)
+        local oldKey = (GetBindingKey("Combat Mode Toggle"))
+        if oldKey then
+          SetBinding(oldKey)
+        end
+        SetBinding(key, "Combat Mode Toggle")
+        SetBinding("MOVEANDSTEER")
+        SaveBindings(GetCurrentBindingSet())
+      end,
+      get = function()
+        return (GetBindingKey("Combat Mode Toggle"))
+      end
+    },
+    hold = {
+      type = "keybinding",
+      name = "|cffffd700Press & Hold|r",
+      desc = "Hold to temporarily deactivate the Free Look camera.",
+      width = 1.25,
+      order = 4,
+      set = function(_, key)
+        local oldKey = (GetBindingKey("(Hold) Switch Mode"))
+        if oldKey then
+          SetBinding(oldKey)
+        end
+        SetBinding(key, "(Hold) Switch Mode")
+        SetBinding("MOVEANDSTEER")
+        SaveBindings(GetCurrentBindingSet())
+      end,
+      get = function()
+        return (GetBindingKey("(Hold) Switch Mode"))
+      end
+    },
+    interact = {
+      type = "keybinding",
+      name = "|cffffd700Interact With Target|r",
+      desc = "Press to interact with crosshair target when in range.",
+      width = 1.25,
+      order = 5,
+      set = function(_, key)
+        local oldKey = (GetBindingKey("INTERACTMOUSEOVER"))
+        if oldKey then
+          SetBinding(oldKey)
+        end
+        SetBinding(key, "INTERACTMOUSEOVER")
+        SaveBindings(GetCurrentBindingSet())
+      end,
+      get = function()
+        return (GetBindingKey("INTERACTMOUSEOVER"))
+      end
+    },
+    spacing = {
+      type = "description",
+      name = " ",
+      width = "full",
+      order = 5.1
+    },
+    spacing2 = {
       type = "description",
       name = " ",
       width = "full",
       order = 5.2
     },
-    configurationHeader = {
-      type = "header",
-      name = "|cffffffffCONFIGURATION|r",
-      order = 6
-    },
-    ---------------------------------------------------------------------------------------
-    --                                     FREE LOOK                                     --
-    ---------------------------------------------------------------------------------------
-    freeLookCameraGroup = {
-      type = "group",
-      name = " ",
-      inline = true,
-      order = 7,
-      args = {
-        freelookKeybindHeader = {
-          type = "header",
-          name = "|cffE52B50Free Look Camera|r",
-          order = 1
-        },
-        freelookKeybindHeaderPaddingBottom = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 1.1
-        },
-        freelookKeybindDescription = {
-          type = "description",
-          name = "Set keybinds for the Free Look camera. You can use Toggle and Press & Hold together by binding them to separate keys.",
-          fontSize = "medium",
-          order = 2
-        },
-        freelookKeybindDescriptionBottomPadding = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 2.1
-        },
-        toggleLeftPadding = {
-          type = "description",
-          name = " ",
-          width = 0.2,
-          order = 2.2
-        },
-        toggle = {
-          type = "keybinding",
-          name = "|cffffd700Toggle|r",
-          desc = "Toggles the Free Look camera ON or OFF.",
-          width = 1,
-          order = 3,
-          set = function(_, key)
-            local oldKey = (GetBindingKey("Combat Mode Toggle"))
-            if oldKey then
-              SetBinding(oldKey)
-            end
-            SetBinding(key, "Combat Mode Toggle")
-            SetBinding("MOVEANDSTEER")
-            SaveBindings(GetCurrentBindingSet())
-          end,
-          get = function()
-            return (GetBindingKey("Combat Mode Toggle"))
-          end
-        },
-        holdLeftPadding = {
-          type = "description",
-          name = " ",
-          width = 0.1,
-          order = 3.1
-        },
-        hold = {
-          type = "keybinding",
-          name = "|cffffd700Press & Hold|r",
-          desc = "Hold to temporarily deactivate the Free Look camera.",
-          width = 1,
-          order = 4,
-          set = function(_, key)
-            local oldKey = (GetBindingKey("(Hold) Switch Mode"))
-            if oldKey then
-              SetBinding(oldKey)
-            end
-            SetBinding(key, "(Hold) Switch Mode")
-            SetBinding("MOVEANDSTEER")
-            SaveBindings(GetCurrentBindingSet())
-          end,
-          get = function()
-            return (GetBindingKey("(Hold) Switch Mode"))
-          end
-        },
-        interactLeftPadding = {
-          type = "description",
-          name = " ",
-          width = 0.1,
-          order = 4.1
-        },
-        interact = {
-          type = "keybinding",
-          name = "|cffffd700Interact With Target|r",
-          desc = "Press to interact with crosshair target when in range.",
-          width = 1,
-          order = 5,
-          set = function(_, key)
-            local oldKey = (GetBindingKey("INTERACTMOUSEOVER"))
-            if oldKey then
-              SetBinding(oldKey)
-            end
-            SetBinding(key, "INTERACTMOUSEOVER")
-            SaveBindings(GetCurrentBindingSet())
-          end,
-          get = function()
-            return (GetBindingKey("INTERACTMOUSEOVER"))
-          end
-        },
-        interactRightPadding = {
-          type = "description",
-          name = " ",
-          width = 0.2,
-          order = 5.1
-        }
-      }
-    },
-    ---------------------------------------------------------------------------------------
-    --                                MOUSE CLICK CASTING                                --
-    ---------------------------------------------------------------------------------------
-    mouseClickCastingGroup = {
-      type = "group",
-      name = " ",
-      inline = true,
-      order = 8,
-      args = {
-        keybindHeader = {
-          type = "header",
-          name = "|cffB47EDEMouse Click Casting|r",
-          order = 1
-        },
-        keybindHeaderPaddingBottom = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 1.1
-        },
-        keybindGlobalOption = {
-          type = "toggle",
-          name = "Use Global Keybinds",
-          desc = "|cff3B73FFCharacter-based option|r\nUse your account-wide shared keybinds on this character.\n|cffffd700Default:|r |cffE52B50Off|r",
-          width = "full",
-          order = 1.5,
-          set = function(_, value)
-            CM.DB.char.useGlobalBindings = value
-            CM.OverrideDefaultButtons()
-          end,
-          get = function()
-            return CM.DB.char.useGlobalBindings
-          end
-        },
-        keybindGlobalOptionPaddingBottom = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 1.6
-        },
-        keybindDescription = {
-          type = "description",
-          name = "Select which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.",
-          fontSize = "medium",
-          order = 2
-        },
-        keybindNote = {
-          type = "description",
-          name = "\n|cff909090To use an action not listed on the dropdown menu, select |cff69ccf0Custom Action|r and then type the exact name of the action you'd like to cast. \nTo use a macro as your |cff69ccf0Custom Action|r, type |cffcfcfcfMACRO My_Macro|r into the input, where |cffcfcfcfMy_Macro|r is the name of the macro you want to assign to that mouse click.|r",
-          order = 3
-        },
-        wowwiki = {
-          name = "You can find all available actions here:",
-          desc = "warcraft.wiki.gg/wiki/BindingID",
-          type = "input",
-          width = 1.5,
-          order = 3.1,
-          get = function()
-            return "warcraft.wiki.gg/wiki/BindingID"
-          end
-        },
-        keybindDescriptionBottomPadding = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 3.2
-        },
-        unmodifiedGroup = GetButtonOverrideGroup(nil, 4),
-        unmodifiedGroupBottomPadding = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 4.1
-        },
-        shiftGroup = GetButtonOverrideGroup("shift", 5),
-        shiftGroupBottomPadding = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 5.1
-        },
-        ctrlGroup = GetButtonOverrideGroup("ctrl", 6),
-        ctrlGroupBottomPadding = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 6.1
-        },
-        altGroup = GetButtonOverrideGroup("alt", 7)
-      }
-    },
     ---------------------------------------------------------------------------------------
     --                                   CURSOR UNLOCK                                   --
     ---------------------------------------------------------------------------------------
-    cursorUnlockGroup = {
-      type = "group",
-      name = " ",
-      order = 9,
-      inline = true,
-      args = {
-        cursorUnlockHeader = {
-          type = "header",
-          name = "|cff00FF7FAutomatic Cursor Unlock|r",
-          order = 1
-        },
-        cursorUnlockHeaderPaddingBottom = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 1.1
-        },
-        cursorUnlockDescription = {
-          type = "description",
-          name = "Select whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc), and re-enable upon closing them.",
-          fontSize = "medium",
-          order = 2
-        },
-        cursorUnlockWarning = {
-          type = "description",
-          name = "\n|cffFF5050Disabling this will also disable the Frame Watchlist.|r",
-          order = 3
-        },
-        cursorUnlock = {
-          type = "toggle",
-          name = "Automatic Cursor Unlock",
-          desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).\n|cffffd700Default:|r |cff00FF7FOn|r",
-          width = "full",
-          order = 4,
-          set = function(_, value)
-            CM.DB.global.frameWatching = value
-          end,
-          get = function()
-            return CM.DB.global.frameWatching
-          end
-        },
-        frameWatchingHeaderPaddingTop = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 4.1
-        },
-        ---------------------------------------------------------------------------------------
-        --                                  FRAME WATCHLIST                                  --
-        ---------------------------------------------------------------------------------------
-        watchlistInputGroup = {
-          type = "group",
-          name = "|cff00FF7FFrame Watchlist|r",
-          order = 5,
-          args = {
-            watchlistDescription = {
-              type = "description",
-              name = "Additional Blizzard frames or other AddOns that you'd like Combat Mode to watch for.",
-              fontSize = "medium",
-              order = 1
-            },
-            watchlist = {
-              name = "Frame Watchlist",
-              desc = "Use command |cff69ccf0/fstack|r in chat to check frame names. \n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
-              type = "input",
-              multiline = true,
-              width = "full",
-              order = 2,
-              disabled = function()
-                return CM.DB.global.frameWatching ~= true
-              end,
-              set = function(_, input)
-                CM.DB.global.watchlist = {}
-                for value in string.gmatch(input, "[^,]+") do -- Split at the ", "
-                  value = value:gsub("^%s*(.-)%s*$", "%1") -- Trim spaces
-                  table.insert(CM.DB.global.watchlist, value)
-                end
-              end,
-              get = function()
-                local watchlist = CM.DB.global.watchlist or {}
-                return table.concat(watchlist, ", ")
-              end
-            },
-            watchlistNote = {
-              type = "description",
-              name = "\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame. Ex: PawnUIFrame|r.|r",
-              order = 3
-            }
-          }
-        }
-      }
+    header2 = {
+      type = "header",
+      name = "|cff00FF7FCURSOR UNLOCK|r",
+      order = 6
     },
-    ---------------------------------------------------------------------------------------
-    --                                 RETICLE TARGETING                                 --
-    ---------------------------------------------------------------------------------------
-    reticleTargetingGroup = {
-      type = "group",
+    description2 = {
+      type = "description",
+      name = "\nSelect whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc), and re-enable upon closing them.\n\n",
+      fontSize = "medium",
+      order = 7
+    },
+    cursorUnlock = {
+      type = "toggle",
+      name = "Automatic Cursor Unlock",
+      desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).\n|cffffd700Default:|r |cff00FF7FOn|r",
+      width = "full",
+      order = 8,
+      set = function(_, value)
+        CM.DB.global.frameWatching = value
+      end,
+      get = function()
+        return CM.DB.global.frameWatching
+      end
+    },
+    mountCheck = {
+      type = "toggle",
+      name = "Unlock While On Vendor Mount",
+      desc = "Keeps the cursor unlocked while a vendor mounts is being used.\n|cffffd700Mounts:|r \n|cffcfcfcfGrand Expedition Yak\nTraveler's Tundra Mammoth\nMighty Caravan Brutosaur|r \n|cffffd700Default:|r |cffE52B50Off|r",
+      width = "full",
+      order = 9,
+      set = function(_, value)
+        CM.DB.global.mountCheck = value
+      end,
+      get = function()
+        return CM.DB.global.mountCheck
+      end
+    },
+    spacing3 = {
+      type = "description",
       name = " ",
+      width = "full",
+      order = 9.1
+    },
+    watchlist = {
+      name = "Frame Watchlist",
+      desc = "Additional Blizzard frames or other AddOns that you'd like Combat Mode to watch for.\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame|r.|r \n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
+      type = "input",
+      multiline = true,
+      width = "full",
       order = 10,
+      disabled = function()
+        return CM.DB.global.frameWatching ~= true
+      end,
+      set = function(_, input)
+        CM.DB.global.watchlist = {}
+        for value in string.gmatch(input, "[^,]+") do -- Split at the ", "
+          value = value:gsub("^%s*(.-)%s*$", "%1") -- Trim spaces
+          table.insert(CM.DB.global.watchlist, value)
+        end
+      end,
+      get = function()
+        local watchlist = CM.DB.global.watchlist or {}
+        return table.concat(watchlist, ", ")
+      end
+    }
+  }
+}
+
+---------------------------------------------------------------------------------------
+--                                 RETICLE TARGETING                                 --
+---------------------------------------------------------------------------------------
+local ReticleTargetingOptions = {
+  name = CM.METADATA["TITLE"],
+  handler = CM,
+  type = "group",
+  args = {
+    header = {
+      type = "header",
+      name = "|cff00FFFFRETICLE TARGETING|r",
+      order = 1
+    },
+    description = {
+      type = "description",
+      name = "\nConfigures Blizzard's Action Targeting feature from the default dynamic & tab targeting hybrid to something truly action-oriented, where the crosshair dictates target selection.\n\n",
+      fontSize = "medium",
+      order = 2
+    },
+    reticleTargeting = {
+      type = "toggle",
+      name = "Configure Reticle Targeting |cff3B73FF(c)|r",
+      desc = "|cff3B73FFCharacter-based option|r\nConfigures Blizzard's Action Targeting feature to be more action-oriented and responsive. \n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n|cffcfcfcfUncheck to reset them to their default values.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+      width = "full",
+      order = 3,
+      set = function(_, value)
+        CM.DB.char.reticleTargeting = value
+        if value then
+          CM.LoadCVars("combatmode")
+        else
+          CM.LoadCVars("blizzard")
+        end
+      end,
+      get = function()
+        return CM.DB.char.reticleTargeting
+      end
+    },
+    crosshairPriority = {
+      type = "toggle",
+      name = "Always Prioritize Crosshair Target |cff3B73FF(c)|r",
+      desc = "|cff3B73FFCharacter-based option|r\nGives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected targets in favor of the unit at your crosshair.|r \n|cffcfcfcfDisabling this will prevent the crosshair from swapping off hard-locked targets.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+      width = "full",
+      order = 4,
+      set = function(_, value)
+        CM.DB.char.crosshairPriority = value
+        if value then
+          SetCVar("enableMouseoverCast", 1)
+          SetModifiedClick("MOUSEOVERCAST", "NONE")
+          SaveBindings(GetCurrentBindingSet())
+        else
+          SetCVar("enableMouseoverCast", 0)
+        end
+      end,
+      get = function()
+        return CM.DB.char.crosshairPriority
+      end
+    },
+    crosshair = {
+      type = "toggle",
+      name = "Show Crosshair",
+      desc = "Places a dynamic crosshair marker in the center of the screen to assist with Reticle Targeting.\n|cffffd700Default:|r |cff00FF7FOn|r",
+      width = "full",
+      order = 5,
+      set = function(_, value)
+        CM.DB.global.crosshair = value
+        if value then
+          CM.ShowCrosshair()
+        else
+          CM.HideCrosshair()
+        end
+      end,
+      get = function()
+        return CM.DB.global.crosshair
+      end
+    },
+    crosshairMounted = {
+      type = "toggle",
+      name = "Hide Crosshair While Mounted",
+      desc = "Hides the crosshair while mounted.\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = "full",
+      order = 6,
+      set = function(_, value)
+        CM.DB.global.crosshairMounted = value
+      end,
+      get = function()
+        return CM.DB.global.crosshairMounted
+      end
+    },
+    spacing = {
+      type = "description",
+      name = " ",
+      width = "full",
+      order = 6.1
+    },
+    crosshairAppearance = {
+      name = "Crosshair Appearance",
+      desc = "Select the appearance of the crosshair texture.",
+      type = "select",
+      width = "full",
+      order = 7,
+      values = CM.Constants.CrosshairAppearanceSelectValues,
+      set = function(_, value)
+        CM.DB.global.crosshairAppearance = CM.Constants.CrosshairTextureObj[value]
+        if value then
+          CM.UpdateCrosshair()
+          CM.ShowCrosshair()
+        end
+      end,
+      get = function()
+        return CM.DB.global.crosshairAppearance.Name
+      end,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end
+    },
+    spacing2 = {
+      type = "description",
+      name = " ",
+      width = "full",
+      order = 8
+    },
+    crosshairSize = {
+      type = "range",
+      name = "Crosshair Size",
+      desc = "Adjusts the size of the crosshair in 16-pixel increments.",
+      min = 16,
+      max = 128,
+      softMin = 16,
+      softMax = 128,
+      step = 16,
+      width = "full",
+      order = 9,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end,
+      set = function(_, value)
+        CM.DB.global.crosshairSize = value
+        if value then
+          CM.UpdateCrosshair()
+        end
+      end,
+      get = function()
+        return CM.DB.global.crosshairSize
+      end
+    },
+    spacing3 = {
+      type = "description",
+      name = " ",
+      width = "full",
+      order = 10
+    },
+    crosshairAlpha = {
+      type = "range",
+      name = "Crosshair Opacity",
+      desc = "Adjusts the opacity of the crosshair.",
+      min = 0.1,
+      max = 1.0,
+      softMin = 0.1,
+      softMax = 1.0,
+      step = 0.1,
+      width = "full",
+      order = 11,
+      isPercent = true,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end,
+      set = function(_, value)
+        CM.DB.global.crosshairOpacity = value
+        if value then
+          CM.UpdateCrosshair()
+        end
+      end,
+      get = function()
+        return CM.DB.global.crosshairOpacity
+      end
+    },
+    spacing4 = {
+      type = "description",
+      name = " ",
+      width = "full",
+      order = 12
+    },
+    crosshairY = {
+      type = "range",
+      name = "Crosshair Vertical Position",
+      desc = "Adjusts the vertical position of the crosshair.",
+      min = -500,
+      max = 500,
+      softMin = -500,
+      softMax = 500,
+      step = 10,
+      width = "full",
+      order = 13,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end,
+      set = function(_, value)
+        CM.DB.global.crosshairY = value
+        if value then
+          CM.UpdateCrosshair()
+        end
+      end,
+      get = function()
+        return CM.DB.global.crosshairY
+      end
+    },
+    spacing5 = {
+      type = "description",
+      name = " ",
+      width = "full",
+      order = 14
+    },
+    devnote = {
+      type = "group",
+      name = "|cffffd700Developer Note|r",
+      order = 15,
       inline = true,
       args = {
-        reticleTargetingHeader = {
-          type = "header",
-          name = "|cff00FFFFReticle Targeting|r",
-          order = 1
-        },
-        reticleTargetingHeaderPaddingBottom = {
+        crosshairNote = {
           type = "description",
-          name = " ",
-          width = "full",
-          order = 1.1
-        },
-        reticleTargetingDescription = {
-          type = "description",
-          name = "Configures Blizzard's Action Targeting feature from the default dynamic & tab targeting hybrid to something truly action-oriented, where the crosshair dictates target selection.",
-          fontSize = "medium",
-          order = 2
-        },
-        reticleTargetingDescriptionPaddingBottom = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 2.1
-        },
-        reticleTargeting = {
-          type = "toggle",
-          name = "Reticle Targeting",
-          desc = "|cff3B73FFCharacter-based option|r\nConfigures Blizzard's Action Targeting feature to something action-oriented and responsive. \n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n|cffcfcfcfUncheck to reset them to their default values.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
-          width = 1.0,
-          order = 3,
-          set = function(_, value)
-            CM.DB.char.reticleTargeting = value
-            if value then
-              CM.LoadCVars("combatmode")
-            else
-              CM.LoadCVars("blizzard")
-            end
-          end,
-          get = function()
-            return CM.DB.char.reticleTargeting
-          end
-        },
-        crosshairPriority = {
-          type = "toggle",
-          name = "Always Prioritize Crosshair Target",
-          desc = "|cff3B73FFCharacter-based option|r\nGives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected targets in favor of the unit at your crosshair.|r \n|cffcfcfcfDisabling this will prevent the crosshair from swapping off hard-locked targets.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
-          width = 1.4,
-          order = 4,
-          set = function(_, value)
-            CM.DB.char.crosshairPriority = value
-            if value then
-              SetCVar("enableMouseoverCast", 1)
-              SetModifiedClick("MOUSEOVERCAST", "NONE")
-              SaveBindings(GetCurrentBindingSet())
-            else
-              SetCVar("enableMouseoverCast", 0)
-            end
-          end,
-          get = function()
-            return CM.DB.char.crosshairPriority
-          end
-        },
-        devNoteDescription = {
-          type = "description",
-          name = "|cffffd700Developer Note:|r \n|cff909090When |cffcfcfcfPrioritize Crosshair Target|r is enabled, Combat Mode will activate the |cffffd700Mouseover Cast|r option found in the interface menu, allowing spells to be cast directly on the unit under the |cff00FFFFCrosshair|r without needing to target it first.|r",
-          order = 4.1
-        },
-        devNoteWarning = {
-          type = "description",
-          name = "\n|cffFF5050Make sure your |cffffd700Mouseover Cast|r hotkey is set to |cffffd700None|r in the interface menu |cffcfcfcf(Options > Gameplay > Combat)|r and any Action Bar addons with that option, otherwise |cffcfcfcfPrioritize Crosshair Target|r will only work while the selected key is being pressed.|r",
-          order = 4.2
-        },
-        reticleTargetingNotePaddingBottom = {
-          type = "description",
-          name = " ",
-          width = "full",
-          order = 4.3
-        },
-        ---------------------------------------------------------------------------------------
-        --                                     CROSSHAIR                                     --
-        ---------------------------------------------------------------------------------------
-        crosshairGroup = {
-          type = "group",
-          name = "|cff00FFFFCrosshair|r",
-          order = 5,
-          args = {
-            crosshairDescription = {
-              type = "description",
-              name = "Places a dynamic crosshair marker in the center of the screen to assist with Reticle Targeting.",
-              fontSize = "medium",
-              order = 1
-            },
-            crosshairDescriptionPaddingBottom = {
-              type = "description",
-              name = " ",
-              width = "full",
-              order = 1.1
-            },
-            crosshairNote = {
-              type = "description",
-              name = "|cffffd700Developer Note:|r \n|cff909090When |cffcfcfcfReticle Targeting|r is enabled, the |cff00FFFFCrosshair|r acts as a cursor, thus allowing it to be reliably used in combination with |cffB47EDE@mouseover|r and |cffB47EDE@cursor|r macros if you'd like a more fine-grained target selection.|r \n \n|cffcfcfcfExample macros have been added to your account-wide macros list (Esc > Macros) for users who prefer either Soft-Locking or Hard-Locking Targeting.|r \n \n|cffFF5050This feature has been programed with CombatMode's |cffcfcfcfReticle Targeting|r configuration in mind. Utilizing the |cff00FFFFCrosshair|r without it could lead to unintended behavior like unpredicatable targeting and improper crosshair reactivity.|r",
-              order = 1.2
-            },
-            crosshair = {
-              type = "toggle",
-              name = "Show Crosshair",
-              desc = "Places a dynamic crosshair marker in the center of the screen to assist with Reticle Targeting.\n|cffffd700Default:|r |cff00FF7FOn|r",
-              width = 1.0,
-              order = 2,
-              set = function(_, value)
-                CM.DB.global.crosshair = value
-                if value then
-                  CM.ShowCrosshair()
-                else
-                  CM.HideCrosshair()
-                end
-              end,
-              get = function()
-                return CM.DB.global.crosshair
-              end
-            },
-            crosshairMounted = {
-              type = "toggle",
-              name = "Hide While Mounted",
-              desc = "Hides the crosshair while mounted.\n|cffffd700Default:|r |cff00FF7FOn|r",
-              width = 1.4,
-              order = 2.1,
-              set = function(_, value)
-                CM.DB.global.crosshairMounted = value
-              end,
-              get = function()
-                return CM.DB.global.crosshairMounted
-              end
-            },
-            crosshairAppearance = {
-              name = "Crosshair Appearance",
-              desc = "Select the appearance of the crosshair texture.",
-              type = "select",
-              width = 1.0,
-              order = 2.2,
-              values = CM.Constants.CrosshairAppearanceSelectValues,
-              set = function(_, value)
-                CM.DB.global.crosshairAppearance = CM.Constants.CrosshairTextureObj[value]
-                if value then
-                  CM.UpdateCrosshair()
-                  CM.ShowCrosshair()
-                end
-              end,
-              get = function()
-                return CM.DB.global.crosshairAppearance.Name
-              end,
-              disabled = function()
-                return CM.DB.global.crosshair ~= true
-              end
-            },
-            crosshairAppearancePaddingBottom = {
-              type = "description",
-              name = " ",
-              width = "full",
-              order = 2.3
-            },
-            crosshairSize = {
-              type = "range",
-              name = "Crosshair Size",
-              desc = "Adjusts the size of the crosshair in 16-pixel increments.",
-              min = 16,
-              max = 128,
-              softMin = 16,
-              softMax = 128,
-              step = 16,
-              width = "full",
-              order = 4,
-              disabled = function()
-                return CM.DB.global.crosshair ~= true
-              end,
-              set = function(_, value)
-                CM.DB.global.crosshairSize = value
-                if value then
-                  CM.UpdateCrosshair()
-                end
-              end,
-              get = function()
-                return CM.DB.global.crosshairSize
-              end
-            },
-            crosshairSizePaddingBottom = {
-              type = "description",
-              name = " ",
-              width = "full",
-              order = 4.1
-            },
-            crosshairAlpha = {
-              type = "range",
-              name = "Crosshair Opacity",
-              desc = "Adjusts the opacity of the crosshair.",
-              min = 0.1,
-              max = 1.0,
-              softMin = 0.1,
-              softMax = 1.0,
-              step = 0.1,
-              width = "full",
-              order = 5,
-              isPercent = true,
-              disabled = function()
-                return CM.DB.global.crosshair ~= true
-              end,
-              set = function(_, value)
-                CM.DB.global.crosshairOpacity = value
-                if value then
-                  CM.UpdateCrosshair()
-                end
-              end,
-              get = function()
-                return CM.DB.global.crosshairOpacity
-              end
-            },
-            crosshairAlphaPaddingBottom = {
-              type = "description",
-              name = " ",
-              width = "full",
-              order = 5.1
-            },
-            crosshairY = {
-              type = "range",
-              name = "Crosshair Vertical Position",
-              desc = "Adjusts the vertical position of the crosshair.",
-              min = -500,
-              max = 500,
-              softMin = -500,
-              softMax = 500,
-              step = 10,
-              width = "full",
-              order = 6,
-              disabled = function()
-                return CM.DB.global.crosshair ~= true
-              end,
-              set = function(_, value)
-                CM.DB.global.crosshairY = value
-                if value then
-                  CM.UpdateCrosshair()
-                end
-              end,
-              get = function()
-                return CM.DB.global.crosshairY
-              end
-            }
-          }
+          name = "|cff909090When |cffcfcfcfReticle Targeting|r is enabled, your cursor will be moved to the position of the |cff00FFFFCrosshair|r and hidden, thus allowing it to be used in combination with |cffB47EDE@mouseover|r and |cffB47EDE@cursor|r macros.|r \n|cffcfcfcfExample macros have been added to your account-wide macros list (Esc > Macros) for users who'd like more control over target acquisition through either Soft-Locking or Hard-Locking Targeting.|r",
+          order = 15
         }
       }
     }
@@ -898,55 +734,65 @@ CM.Config.ConfigOptions = {
 }
 
 ---------------------------------------------------------------------------------------
+--                                MOUSE CLICK CASTING                                --
+---------------------------------------------------------------------------------------
+local ClickCastingOptions = {
+  name = CM.METADATA["TITLE"],
+  handler = CM,
+  type = "group",
+  childGroups = "tab",
+  args = {
+    header = {
+      type = "header",
+      name = "|cffB47EDCCLICK CASTING|r",
+      order = 1
+    },
+    description = {
+      type = "description",
+      name = "\nSelect which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.\n\n",
+      fontSize = "medium",
+      order = 2
+    },
+    globalKeybind = {
+      type = "toggle",
+      name = "Use Account-Wide Click Bindings |cff3B73FF(c)|r",
+      desc = "|cff3B73FFCharacter-based option|r\nUse your account-wide shared keybinds on this character.\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = "full",
+      order = 6,
+      set = function(_, value)
+        CM.DB.char.useGlobalBindings = value
+        CM.OverrideDefaultButtons()
+      end,
+      get = function()
+        return CM.DB.char.useGlobalBindings
+      end
+    },
+    spacing = {
+      type = "description",
+      name = " ",
+      width = "full",
+      order = 6.1
+    },
+    unmodifiedGroup = GetButtonOverrideGroup(nil, 7),
+    shiftGroup = GetButtonOverrideGroup("shift", 8),
+    ctrlGroup = GetButtonOverrideGroup("ctrl", 9),
+    altGroup = GetButtonOverrideGroup("alt", 10)
+  }
+}
+
+---------------------------------------------------------------------------------------
 --                               ADVANCED CONFIG PANEL                               --
 ---------------------------------------------------------------------------------------
-CM.Config.AdvancedConfigOptions = {
+local AdvancedConfigOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
   type = "group",
   args = {
-    ---------------------------------------------------------------------------------------
-    --                                   DEBUG & RESET                                   --
-    ---------------------------------------------------------------------------------------
-    resetButton = {
-      type = "execute",
-      name = "Default",
-      desc = "Resets Combat Mode settings to its default values.",
-      confirmText = "Resetting Combat Mode options will force a UI Reload. Proceed?",
-      width = 0.7,
-      func = function()
-        CM:OnResetDB()
-      end,
-      confirm = true,
-      order = 0
-    },
-    resetDebugSpacing = {
-      type = "description",
-      name = " ",
-      width = 2.2,
-      order = 0.1
-    },
-    debugModeToggle = {
-      type = "toggle",
-      name = "Debug Mode",
-      desc = "Enables the printing of state logs in the game chat to assist with development.",
-      width = 0.7,
-      set = function(_, value)
-        CM.DB.global.debugMode = value
-      end,
-      get = function()
-        return CM.DB.global.debugMode
-      end,
-      order = 0.2
-    },
     header = {
       type = "header",
-      name = "Custom Condition",
+      name = "|cffffffffADVANCED|r",
       order = 0.9
     },
-    ---------------------------------------------------------------------------------------
-    --                                  CUSTOM CONDITION                                 --
-    ---------------------------------------------------------------------------------------
     customCondition = {
       type = "group",
       name = "",
@@ -955,7 +801,7 @@ CM.Config.AdvancedConfigOptions = {
       args = {
         customConditionDescription = {
           type = "description",
-          name = "Create your own conditions for the |cff00FF7FAutomatic Cursor Unlock|r here by entering a chunk of Lua code that returns true if the cursor should be unlocked, false otherwise. If your condition isn't working, toggle on Debug Mode to get error messages printed in the chat for easier troubleshooting.",
+          name = "\nCreate your own conditions for the |cff00FF7FAutomatic Cursor Unlock|r here by entering a chunk of Lua code that returns true if the cursor should be unlocked, false otherwise. If your condition isn't working, toggle on Debug Mode to get error messages printed in the chat for easier troubleshooting.\n\n",
           order = 1
         },
         customConditionExample = {
@@ -983,5 +829,35 @@ CM.Config.AdvancedConfigOptions = {
         }
       }
     }
+  }
+}
+
+---------------------------------------------------------------------------------------
+--                              SETTINGS CATEGORY TREE                               --
+---------------------------------------------------------------------------------------
+-- Header
+CM.Config.AboutOptions = AboutOptions
+
+-- Options
+CM.Config.OptionCategories = {
+  {
+    id = "CombatMode_FreeLook",
+    name = "|cffE52B50Free Look|r",
+    table = FreeLookOptions
+  },
+  {
+    id = "CombatMode_ReticleTargeting",
+    name = "|cff00FFFFReticle Targeting|r",
+    table = ReticleTargetingOptions
+  },
+  {
+    id = "CombatMode_ClickCasting",
+    name = "|cffB47EDCClick Casting|r",
+    table = ClickCastingOptions
+  },
+  {
+    id = "CombatMode_Advanced",
+    name = "|cffffffffAdvanced|r",
+    table = AdvancedConfigOptions
   }
 }
