@@ -19,8 +19,89 @@ local CM = AceAddon:GetAddon("CombatMode")
 CM.Config = {}
 
 ---------------------------------------------------------------------------------------
---                           BUTTON OVERRIDE GROUP ASSEMBLER                         --
+--                                 COMPONENT ASSEMBLER                               --
 ---------------------------------------------------------------------------------------
+local function Spacing(width, order)
+  return {
+    type = "description",
+    name = " ",
+    width = width,
+    order = order
+  }
+end
+
+local function Header(option, order)
+  local headers = {
+    about = {
+        type = "header",
+        name = "|cffffffffABOUT|r",
+        order = order
+    },
+    freelook = {
+        type = "header",
+        name = "|cffE52B50FREE LOOK|r",
+        order = order
+    },
+    unlock = {
+        type = "header",
+        name = "|cff00FF7FCURSOR UNLOCK|r",
+        order = order
+    },
+    reticle = {
+        type = "header",
+        name = "|cff00FFFFRETICLE TARGETING|r",
+        order = order
+    },
+    clicks = {
+        type = "header",
+        name = "|cffB47EDCCLICK CASTING|r",
+        order = order
+    },
+    advanced = {
+        type = "header",
+        name = "|cffffffffADVANCED|r",
+        order = order
+    }
+}
+  return headers[option]
+end
+
+local function Description(option, order)
+  local descriptions = {
+    freelook = {
+        type = "description",
+        name = "\nSet keybinds to activate |cffE52B50Free Look|r and interact with |cff00FFFFCrosshair|r target. You can use Toggle and Press & Hold together by binding them to separate keys.\n\n",
+        fontSize = "medium",
+        order = order
+    },
+    unlock = {
+        type = "description",
+        name = "\nSelect whether Combat Mode should automatically disable |cffE52B50Free Look|r and release the cursor when specific frames are visible (Bag, Map, Quest, etc), and re-enable upon closing them.\n\n",
+        fontSize = "medium",
+        order = order
+    },
+    reticle = {
+        type = "description",
+        name = "\nEnable Combat Mode to transform the default tab-targeting combat into an action-oriented experience, where the |cff00FFFFCrosshair|r dictates target acquisition.\n\n",
+        fontSize = "medium",
+        order = order
+    },
+    clicks = {
+        type = "description",
+        name = "\nSelect which actions are fired when Left and Right clicking as well as their modified presses while in |cffE52B50Free Look|r mode.\n\n",
+        fontSize = "medium",
+        order = order
+    },
+    advanced = {
+        type = "description",
+        name = "\nCreate your own conditions that force a |cff00FF7FCursor Unlock|r by entering a chunk of Lua code that returns |cff00FF7FTrue|r if the cursor should be freed, |cffE52B50False|r otherwise.\n|cff909090E.g.: to unlock the cursor while standing still, enter: |cff69ccf0return GetUnitSpeed(\"player\") == 0|r\n\n",
+        fontSize = "medium",
+        order = order
+    },
+}
+  return descriptions[option]
+end
+
 local function GetButtonOverrideGroup(modifier, groupOrder)
   local button1Settings, button2Settings, groupName, button1Name, button2Name
   if modifier then
@@ -81,12 +162,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
           return not CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled
         end
       },
-      button1SidePadding = {
-        type = "description",
-        name = " ",
-        width = 0.2,
-        order = 1.2
-      },
+      spacing = Spacing(0.2, 1.2),
       button1macro = {
         name = "Custom Action",
         desc = "Enter the name of the action you wish to be ran here.",
@@ -147,12 +223,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
           return not CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled
         end
       },
-      button2SidePadding = {
-        type = "description",
-        name = " ",
-        width = 0.2,
-        order = 2.2
-      },
+      spacing2 = Spacing(0.2, 2.2),
       button2macro = {
         name = "Custom Action",
         desc = "Enter the name of the action you wish to be ran here.",
@@ -171,12 +242,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
                    CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].value ~= "CUSTOMACTION"
         end
       },
-      spacing = {
-        type = "description",
-        name = " ",
-        width = "full",
-        order = 3
-      },
+      spacing3 = Spacing("full", 3),
       devnote = {
         type = "group",
         name = "|cffffd700Developer Note|r",
@@ -227,12 +293,7 @@ local AboutOptions = {
       confirm = true,
       order = 0
     },
-    resetDebugSpacing = {
-      type = "description",
-      name = " ",
-      width = 2.2,
-      order = 0.1
-    },
+    spacing = Spacing(2.2, 0.1),
     debugModeToggle = {
       type = "toggle",
       name = "Debug Mode",
@@ -249,17 +310,8 @@ local AboutOptions = {
     ---------------------------------------------------------------------------------------
     --                                   LOGO & ABOUT                                    --
     ---------------------------------------------------------------------------------------
-    header = {
-      type = "header",
-      name = "|cffffffffABOUT|r",
-      order = 1
-    },
-    aboutPaddingTop = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 1.1
-    },
+    header = Header("about", 1),
+    spacing2 = Spacing("full", 1.1),
     logoImage = {
       type = "description",
       name = " ",
@@ -282,12 +334,7 @@ local AboutOptions = {
       width = 3.1,
       order = 1.3
     },
-    aboutPaddingBottom = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 1.4
-    },
+    spacing3 = Spacing("full", 1.4),
     ---------------------------------------------------------------------------------------
     --                                     FEATURES                                      --
     ---------------------------------------------------------------------------------------
@@ -322,12 +369,7 @@ local AboutOptions = {
         return CM.METADATA["X-CURSE"]
       end
     },
-    curseDiscordSpacing = {
-      type = "description",
-      name = " ",
-      width = 0.4,
-      order = 4.1
-    },
+    spacing4 = Spacing(0.4, 4.1),
     discord = {
       name = "Feedback & Support:",
       desc = CM.METADATA["X-DISCORD"],
@@ -338,12 +380,7 @@ local AboutOptions = {
         return CM.METADATA["X-DISCORD"]
       end
     },
-    linksPaddingBottom = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 5.1
-    }
+    spacing5 = Spacing("full", 5.1),
   }
 }
 
@@ -355,17 +392,8 @@ local FreeLookOptions = {
   handler = CM,
   type = "group",
   args = {
-    header = {
-      type = "header",
-      name = "|cffE52B50FREE LOOK|r",
-      order = 1
-    },
-    description = {
-      type = "description",
-      name = "\nSet keybinds for the Free Look camera. You can use Toggle and Press & Hold together by binding them to separate keys.\n\n",
-      fontSize = "medium",
-      order = 2
-    },
+    header = Header("freelook", 1),
+    description = Description("freelook", 2),
     toggle = {
       type = "keybinding",
       name = "|cffffd700Toggle|r",
@@ -422,32 +450,13 @@ local FreeLookOptions = {
         return (GetBindingKey("INTERACTMOUSEOVER"))
       end
     },
-    spacing = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 5.1
-    },
-    spacing2 = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 5.2
-    },
+    spacing = Spacing("full", 5.1),
+    spacing2 = Spacing("full", 5.2),
     ---------------------------------------------------------------------------------------
     --                                   CURSOR UNLOCK                                   --
     ---------------------------------------------------------------------------------------
-    header2 = {
-      type = "header",
-      name = "|cff00FF7FCURSOR UNLOCK|r",
-      order = 6
-    },
-    description2 = {
-      type = "description",
-      name = "\nSelect whether Combat Mode should automatically disable Free Look and release the cursor when specific frames are visible (Bag, Map, Quest, etc), and re-enable upon closing them.\n\n",
-      fontSize = "medium",
-      order = 7
-    },
+    header2 = Header("unlock", 6),
+    description2 = Description("unlock", 7),
     cursorUnlock = {
       type = "toggle",
       name = "Automatic Cursor Unlock",
@@ -474,12 +483,7 @@ local FreeLookOptions = {
         return CM.DB.global.mountCheck
       end
     },
-    spacing3 = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 9.1
-    },
+    spacing3 = Spacing("full", 9.1),
     watchlist = {
       name = "Frame Watchlist",
       desc = "Additional Blizzard frames or other AddOns that you'd like Combat Mode to watch for.\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame|r.|r \n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
@@ -513,17 +517,8 @@ local ReticleTargetingOptions = {
   handler = CM,
   type = "group",
   args = {
-    header = {
-      type = "header",
-      name = "|cff00FFFFRETICLE TARGETING|r",
-      order = 1
-    },
-    description = {
-      type = "description",
-      name = "\nConfigures Blizzard's Action Targeting feature from the default dynamic & tab targeting hybrid to something truly action-oriented, where the crosshair dictates target selection.\n\n",
-      fontSize = "medium",
-      order = 2
-    },
+    header = Header("reticle", 1),
+    description = Description("reticle", 2),
     reticleTargeting = {
       type = "toggle",
       name = "Configure Reticle Targeting |cff3B73FF(c)|r",
@@ -593,12 +588,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairMounted
       end
     },
-    spacing = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 6.1
-    },
+    spacing = Spacing("full", 6.1),
     crosshairAppearance = {
       name = "Crosshair Appearance",
       desc = "Select the appearance of the crosshair texture.",
@@ -620,12 +610,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshair ~= true
       end
     },
-    spacing2 = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 8
-    },
+    spacing2 = Spacing("full", 8),
     crosshairSize = {
       type = "range",
       name = "Crosshair Size",
@@ -650,12 +635,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairSize
       end
     },
-    spacing3 = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 10
-    },
+    spacing3 = Spacing("full", 10),
     crosshairAlpha = {
       type = "range",
       name = "Crosshair Opacity",
@@ -681,12 +661,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairOpacity
       end
     },
-    spacing4 = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 12
-    },
+    spacing4 = Spacing("full", 12),
     crosshairY = {
       type = "range",
       name = "Crosshair Vertical Position",
@@ -711,12 +686,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairY
       end
     },
-    spacing5 = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 14
-    },
+    spacing5 = Spacing("full", 14),
     devnote = {
       type = "group",
       name = "|cffffd700Developer Note|r",
@@ -742,23 +712,14 @@ local ClickCastingOptions = {
   type = "group",
   childGroups = "tab",
   args = {
-    header = {
-      type = "header",
-      name = "|cffB47EDCCLICK CASTING|r",
-      order = 1
-    },
-    description = {
-      type = "description",
-      name = "\nSelect which actions are fired when Left and Right clicking as well as their respective Shift, CTRL and ALT modified presses.\n\n",
-      fontSize = "medium",
-      order = 2
-    },
+    header = Header("clicks", 1),
+    description = Description("clicks", 2),
     globalKeybind = {
       type = "toggle",
       name = "Use Account-Wide Click Bindings |cff3B73FF(c)|r",
       desc = "|cff3B73FFCharacter-based option|r\nUse your account-wide shared keybinds on this character.\n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
-      order = 6,
+      order = 3,
       set = function(_, value)
         CM.DB.char.useGlobalBindings = value
         CM.OverrideDefaultButtons()
@@ -767,16 +728,11 @@ local ClickCastingOptions = {
         return CM.DB.char.useGlobalBindings
       end
     },
-    spacing = {
-      type = "description",
-      name = " ",
-      width = "full",
-      order = 6.1
-    },
-    unmodifiedGroup = GetButtonOverrideGroup(nil, 7),
-    shiftGroup = GetButtonOverrideGroup("shift", 8),
-    ctrlGroup = GetButtonOverrideGroup("ctrl", 9),
-    altGroup = GetButtonOverrideGroup("alt", 10)
+    spacing = Spacing("full", 4),
+    unmodifiedGroup = GetButtonOverrideGroup(nil, 5),
+    shiftGroup = GetButtonOverrideGroup("shift", 6),
+    ctrlGroup = GetButtonOverrideGroup("ctrl", 7),
+    altGroup = GetButtonOverrideGroup("alt", 8)
   }
 }
 
@@ -788,36 +744,18 @@ local AdvancedConfigOptions = {
   handler = CM,
   type = "group",
   args = {
-    header = {
-      type = "header",
-      name = "|cffffffffADVANCED|r",
-      order = 0.9
-    },
+    header = Header("advanced", 1),
+    description = Description("advanced", 2),
     customCondition = {
       type = "group",
       name = "",
-      order = 1,
+      order = 3,
       inline = true,
       args = {
-        customConditionDescription = {
-          type = "description",
-          name = "\nCreate your own conditions for the |cff00FF7FAutomatic Cursor Unlock|r here by entering a chunk of Lua code that returns true if the cursor should be unlocked, false otherwise. If your condition isn't working, toggle on Debug Mode to get error messages printed in the chat for easier troubleshooting.\n\n",
-          order = 1
-        },
-        customConditionExample = {
-          type = "description",
-          name = "For example if you wish to unlock the cursor when the player is standing still, enter:\n|cffcfcfcfreturn GetUnitSpeed(\"player\") == 0|r",
-          order = 2
-        },
-        customConditionWarning = {
-          type = "description",
-          name = "\n|cffFF5050Knowing the basics of Lua and the WoW API is essential for using custom conditions. Combat Mode's authors are not responsible for custom code issues and are not obligated to provide users any support for it.|r",
-          order = 3
-        },
         customConditionCode = {
           type = "input",
-          name = "Enter your Lua code here:",
-          order = 4,
+          name = "Custom Condition:",
+          order = 1,
           multiline = 10,
           width = "full",
           set = function(_, input)
@@ -826,6 +764,20 @@ local AdvancedConfigOptions = {
           get = function()
             return CM.DB.global.customCondition
           end
+        },
+        spacing5 = Spacing("full", 2),
+        devnote = {
+          type = "group",
+          name = "|cffffd700Developer Note|r",
+          order = 3,
+          inline = true,
+          args = {
+            crosshairNote = {
+              type = "description",
+              name = "|cff909090Knowing the basics of |cff69ccf0Lua|r and the |cffffd700WoW API|r is essential for using custom conditions.|r \n\n|cffFF5050Combat Mode's authors are not responsible for custom code issues and are not obligated to provide users any support for it.|r",
+              order = 15
+            }
+          }
         }
       }
     }
