@@ -130,7 +130,7 @@ CM.Constants.Title = assetsFolderPath .. "cmtitle.blp"
   Where "ASSETNAME" is the name you want to be displayed on the dropdown.
   Then just add that same "ASSETNAME" to the CrosshairTextureObj table below:
   This is case sensitive!
-]]--
+]] --
 CM.Constants.CrosshairTextureObj = {}
 
 CM.Constants.CrosshairAppearanceSelectValues = {}
