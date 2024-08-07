@@ -130,7 +130,7 @@ CM.Constants.Title = assetsFolderPath .. "cmtitle.blp"
   Where "ASSETNAME" is the name you want to be displayed on the dropdown.
   Then just add that same "ASSETNAME" to the CrosshairTextureObj table below:
   This is case sensitive!
-]]--
+]] --
 CM.Constants.CrosshairTextureObj = {}
 
 CM.Constants.CrosshairAppearanceSelectValues = {}
@@ -335,6 +335,13 @@ CM.Constants.WildcardFramesToMatch = {
 -- The dynamic names of the frames defined right above, determined on loading into the game world. Do not add frame names in this table, do it above instead!
 CM.Constants.WildcardFramesToCheck = {}
 
+-- Vendor mounts to force UnlockFreeLook
+CM.Constants.MountsToCheck = {
+  "Grand Expedition Yak",
+  "Traveler's Tundra Mammoth",
+  "Mighty Caravan Brutosaur"
+}
+
 ---------------------------------------------------------------------------------------
 --                                   BUTTON OVERRIDE                                 --
 ---------------------------------------------------------------------------------------
@@ -352,6 +359,54 @@ CM.Constants.ActionsToProcess = {
   "ACTIONBUTTON10",
   "ACTIONBUTTON11",
   "ACTIONBUTTON12",
+  "MULTIACTIONBAR1BUTTON2",
+  "MULTIACTIONBAR1BUTTON1",
+  "MULTIACTIONBAR1BUTTON3",
+  "MULTIACTIONBAR1BUTTON4",
+  "MULTIACTIONBAR1BUTTON5",
+  "MULTIACTIONBAR1BUTTON6",
+  "MULTIACTIONBAR1BUTTON7",
+  "MULTIACTIONBAR1BUTTON8",
+  "MULTIACTIONBAR1BUTTON9",
+  "MULTIACTIONBAR1BUTTON10",
+  "MULTIACTIONBAR1BUTTON11",
+  "MULTIACTIONBAR1BUTTON12",
+  "MULTIACTIONBAR2BUTTON1",
+  "MULTIACTIONBAR2BUTTON2",
+  "MULTIACTIONBAR2BUTTON3",
+  "MULTIACTIONBAR2BUTTON4",
+  "MULTIACTIONBAR2BUTTON5",
+  "MULTIACTIONBAR2BUTTON6",
+  "MULTIACTIONBAR2BUTTON7",
+  "MULTIACTIONBAR2BUTTON8",
+  "MULTIACTIONBAR2BUTTON9",
+  "MULTIACTIONBAR2BUTTON10",
+  "MULTIACTIONBAR2BUTTON11",
+  "MULTIACTIONBAR2BUTTON12",
+  "MULTIACTIONBAR3BUTTON1",
+  "MULTIACTIONBAR3BUTTON2",
+  "MULTIACTIONBAR3BUTTON3",
+  "MULTIACTIONBAR3BUTTON4",
+  "MULTIACTIONBAR3BUTTON5",
+  "MULTIACTIONBAR3BUTTON6",
+  "MULTIACTIONBAR3BUTTON7",
+  "MULTIACTIONBAR3BUTTON8",
+  "MULTIACTIONBAR3BUTTON9",
+  "MULTIACTIONBAR3BUTTON10",
+  "MULTIACTIONBAR3BUTTON11",
+  "MULTIACTIONBAR3BUTTON12",
+  "MULTIACTIONBAR4BUTTON1",
+  "MULTIACTIONBAR4BUTTON2",
+  "MULTIACTIONBAR4BUTTON3",
+  "MULTIACTIONBAR4BUTTON4",
+  "MULTIACTIONBAR4BUTTON5",
+  "MULTIACTIONBAR4BUTTON6",
+  "MULTIACTIONBAR4BUTTON7",
+  "MULTIACTIONBAR4BUTTON8",
+  "MULTIACTIONBAR4BUTTON9",
+  "MULTIACTIONBAR4BUTTON10",
+  "MULTIACTIONBAR4BUTTON11",
+  "MULTIACTIONBAR4BUTTON12",
   "FOCUSTARGET",
   "FOLLOWTARGET",
   "INTERACTTARGET",
@@ -374,7 +429,12 @@ CM.Constants.ActionsToProcess = {
   "TARGETPREVIOUSFRIENDPLAYER",
   "TARGETSCANENEMY",
   "TARGETSELF",
-  "TARGETMOUSEOVER"
+  "TARGETMOUSEOVER",
+  "ATTACKTARGET",
+  "PETATTACK",
+  "STARTATTACK",
+  "STOPATTACK",
+  "STOPCASTING"
 }
 
 -- Matches the bindable actions values defined right above with more readable names for the UI
@@ -465,9 +525,10 @@ CM.Constants.DatabaseDefaults = {
       "SortedPrimaryFrame",
       "WeakAurasOptions"
     },
+    mountCheck = false,
     customCondition = "",
     crosshair = true,
-    crosshairMounted = true,
+    crosshairMounted = false,
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
     crosshairSize = 64,
     crosshairOpacity = 1.0,

@@ -40,6 +40,8 @@ local UnitGUID = _G.UnitGUID
 local UnitIsGameObject = _G.UnitIsGameObject
 local UnitReaction = _G.UnitReaction
 local unpack = _G.unpack
+local GetAuraDataBySpellName = _G.C_UnitAuras.GetAuraDataBySpellName
+local OpenToCategory = _G.Settings.OpenToCategory
 
 -- INSTANTIATING ADDON & ENCAPSULATING NAMESPACE
 ---@class CM : AceAddon
@@ -80,12 +82,10 @@ end
 
 local function OpenConfigPanel()
   if InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg .. "Cannot open settings while in combat.")
+    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open settings while in combat.|r")
     return
   end
-
-  FreeLookOverride = true
-  AceConfigDialog:Open(CM.METADATA["TITLE"])
+  OpenToCategory(CM.METADATA["TITLE"])
 end
 
 local function DisplayPopup()
@@ -327,6 +327,24 @@ local function IsThirdPartyAddonOpen()
   return addons
 end
 
+local function IsVendorMountOut()
+  if not CM.DB.global.mountCheck then
+    return false
+  end
+
+  local function checkMount(mount)
+    return GetAuraDataBySpellName("player", mount, "HELPFUL") ~= nil
+  end
+
+  for _, mount in ipairs(CM.Constants.MountsToCheck) do
+    if checkMount(mount) then
+      return true
+    end
+  end
+
+  return false
+end
+
 local function IsUnlockFrameVisible()
   local isGenericPanelOpen = (GetUIPanel("left") or GetUIPanel("right") or GetUIPanel("center")) and true or false
   return CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or CursorUnlockFrameVisible(CM.DB.global.watchlist) or
@@ -335,7 +353,7 @@ end
 
 local function ShouldFreeLookBeOff()
   local evaluate = FreeLookOverride or SpellIsTargeting() or InCinematic() or IsUnlockFrameVisible() or
-                     IsCustomConditionTrue() or IsThirdPartyAddonOpen()
+                     IsCustomConditionTrue() or IsThirdPartyAddonOpen() or IsVendorMountOut()
 
   return evaluate
 end
@@ -580,10 +598,17 @@ or setting up slash commands.
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Constants.DatabaseDefaults, true)
 
-  AceConfig:RegisterOptionsTable(CM.METADATA["TITLE"], CM.Config.ConfigOptions)
-  AceConfigDialog:AddToBlizOptions(CM.METADATA["TITLE"])
-  AceConfig:RegisterOptionsTable("Combat Mode: Advanced", CM.Config.AdvancedConfigOptions)
-  AceConfigDialog:AddToBlizOptions("Combat Mode: Advanced", "Advanced", CM.METADATA["TITLE"])
+  local parentTable = CM.METADATA["TITLE"]
+
+  -- REGISTERING SETTINGS TREE
+  -- main category
+  AceConfig:RegisterOptionsTable(parentTable, CM.Config.AboutOptions)
+  AceConfigDialog:AddToBlizOptions(parentTable)
+  -- subcategories
+  for _, option in ipairs(CM.Config.OptionCategories) do
+    AceConfig:RegisterOptionsTable(option.id, option.table)
+    AceConfigDialog:AddToBlizOptions(option.id, option.name, parentTable)
+  end
 
   self:RegisterChatCommand("cm", "OpenConfigCMD")
   self:RegisterChatCommand("combatmode", "OpenConfigCMD")
