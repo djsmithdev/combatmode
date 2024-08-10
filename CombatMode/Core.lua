@@ -321,12 +321,6 @@ local function IsCustomConditionTrue()
   end
 end
 
-local function IsThirdPartyAddonOpen()
-  -- Narci = Narcissus
-  local addons = (Narci and Narci.isActive)
-  return addons
-end
-
 local function IsVendorMountOut()
   if not CM.DB.global.mountCheck then
     return false
@@ -353,7 +347,7 @@ end
 
 local function ShouldFreeLookBeOff()
   local evaluate = FreeLookOverride or SpellIsTargeting() or InCinematic() or IsUnlockFrameVisible() or
-                     IsCustomConditionTrue() or IsThirdPartyAddonOpen() or IsVendorMountOut()
+                     IsCustomConditionTrue() or IsVendorMountOut()
 
   return evaluate
 end

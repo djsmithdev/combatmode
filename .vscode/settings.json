@@ -109,6 +109,6 @@
     "utf8": "disable"
   },
   "Lua.workspace.library": [
-    "c:\\Users\\sampc\\.vscode\\extensions\\ketho.wow-api-0.15.5\\Annotations"
+    "$USERPROFILE\\.vscode\\extensions\\ketho.wow-api-0.16.1\\Annotations"
   ]
 }

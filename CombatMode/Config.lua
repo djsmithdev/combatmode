@@ -44,7 +44,7 @@ local function Header(option, order)
     },
     unlock = {
         type = "header",
-        name = "|cff00FF7FCURSOR UNLOCK|r",
+        name = "|cff00FF7FAUTO CURSOR UNLOCK|r",
         order = order
     },
     reticle = {
@@ -76,7 +76,7 @@ local function Description(option, order)
     },
     unlock = {
         type = "description",
-        name = "\nSelect whether Combat Mode should automatically disable |cffE52B50Free Look|r and release the cursor when specific frames are visible (Bag, Map, Quest, etc), and re-enable upon closing them.\n\n",
+        name = "\nSelect whether Combat Mode should automatically disable |cffE52B50Free Look|r and release the cursor when specific frames are visible, and re-enable upon closing them. \n|cffcfcfcfYou can add additional AddOn frames to the |cffffd700Watchlist|r to trigger this effect.|r\n\n",
         fontSize = "medium",
         order = order
     },
@@ -94,7 +94,7 @@ local function Description(option, order)
     },
     advanced = {
         type = "description",
-        name = "\nCreate your own conditions that force a |cff00FF7FCursor Unlock|r by entering a chunk of Lua code that returns |cff00FF7FTrue|r if the cursor should be freed, |cffE52B50False|r otherwise.\n|cff909090E.g.: to unlock the cursor while standing still, enter: |cff69ccf0return GetUnitSpeed(\"player\") == 0|r\n\n",
+        name = "\nCreate your own conditions that force a |cff00FF7FCursor Unlock|r by entering a chunk of Lua code that returns |cff00FF7FTrue|r if the cursor should be freed, |cffE52B50False|r otherwise.\n|cffcfcfcfE.g.: to unlock the cursor while standing still, enter: |cff69ccf0return GetUnitSpeed(\"player\") == 0|r\n\n",
         fontSize = "medium",
         order = order
     },
@@ -486,7 +486,7 @@ local FreeLookOptions = {
     spacing3 = Spacing("full", 9.1),
     watchlist = {
       name = "Frame Watchlist",
-      desc = "Additional Blizzard frames or other AddOns that you'd like Combat Mode to watch for.\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame|r.|r \n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
+      desc = "Expand the list of Blizzard panels or AddOn frames that trigger a |cff00FF7FCursor Unlock.|r \n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame|r.|r \n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
       type = "input",
       multiline = true,
       width = "full",
