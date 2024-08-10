@@ -523,7 +523,9 @@ CM.Constants.DatabaseDefaults = {
     watchlist = {
       "PawnUIFrame",
       "SortedPrimaryFrame",
-      "WeakAurasOptions"
+      "WeakAurasOptions",
+      "DUIQuestFrame",
+      "Narci_Vignette"
     },
     mountCheck = false,
     customCondition = "",

@@ -59,15 +59,11 @@ After installing the AddOn, you'll be greeted by this message upon your first lo
 
 ![preview3](./preview3.jpg)
 
-![previewConfig1](./previewConfig1.jpg)
-
-![previewConfig2](./previewConfig2.jpg)
-
 <br />
 
 ## <img width="20" height="20" src="./cmlogo.svg"> SUPPORT
 
-Talk to us on [**Discord**](https://www.discord.gg/5mwBSmz).
+You can report bugs, request features and provide feedback over on our [**Discord**](https://www.discord.gg/5mwBSmz).
 
 <br />
 
