@@ -42,24 +42,31 @@ CM.Constants.CustomCVarValues = {
   ["CursorStickyCentering"] = 1 -- does not work in its current implementation. Most likely related to the recent CursorFreelookCentering change.
 }
 
+-- CVARS FOR STICKY CROSSHAIR / TARGET FOCUS
+CM.Constants.TagetFocusCVarValues = {
+  -- Enemy
+  ["test_cameraTargetFocusEnemyEnable"] = "overwrite",
+  ["test_cameraTargetFocusEnemyStrengthYaw"] = 0.7, -- horizontal strength
+  ["test_cameraTargetFocusEnemyStrengthPitch"] = 0.2, -- vertical strength
+  -- Interact
+  ["test_cameraTargetFocusInteractEnable"] = "overwrite",
+  ["test_cameraTargetFocusInteractStrengthYaw"] = 0.7,
+  ["test_cameraTargetFocusInteractStrengthPitch"] = 0.2
+}
+
+-- CVARS FOR FREE LOOK CAMERA SPEED
+CM.Constants.CameraSpeedCVarValues = {
+  ["cameraYawMoveSpeed"] = 120, -- horizontal speed
+  ["cameraPitchMoveSpeed"] = 60 -- vertical speed
+}
+
 -- DEFAULT BLIZZARD VALUES
 -- !! DO NOT CHANGE !!
 CM.Constants.BlizzardCVarValues = {
-  ["SoftTargetForce"] = 1,
-  ["SoftTargetMatchLocked"] = 1,
-  ["SoftTargetWithLocked"] = 1,
   ["SoftTargetEnemy"] = 1,
   ["SoftTargetEnemyArc"] = 2,
   ["SoftTargetEnemyRange"] = 45,
-  ["SoftTargetInteract"] = 1,
-  ["SoftTargetInteractArc"] = 0,
-  ["SoftTargetInteractRange"] = 10,
-  ["SoftTargetFriend"] = 0,
-  ["SoftTargetNameplateEnemy"] = 1,
-  ["SoftTargetIconEnemy"] = 0,
-  ["SoftTargetIconInteract"] = 1,
   ["SoftTargetIconGameObject"] = 0,
-  ["CursorFreelookCentering"] = 0,
   ["CursorStickyCentering"] = 0
 }
 
@@ -527,6 +534,7 @@ CM.Constants.DatabaseDefaults = {
       "DUIQuestFrame",
       "Narci_Vignette"
     },
+    mouseLookSpeed = 120,
     mountCheck = false,
     customCondition = "",
     crosshair = true,
@@ -542,6 +550,7 @@ CM.Constants.DatabaseDefaults = {
     useGlobalBindings = false,
     reticleTargeting = true,
     crosshairPriority = true,
+    stickyCrosshair = false,
     bindings = DefaultBindings
   }
 }

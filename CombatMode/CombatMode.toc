@@ -1,5 +1,5 @@
 ## Interface: 110000, 110002
-## Version: 2.3.1
+## Version: 2.3.2
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
 ## Author: justice7ca w/ contributions from sampconrad, ThomasDigio, DKulan.
