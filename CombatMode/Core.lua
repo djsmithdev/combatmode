@@ -25,7 +25,6 @@ local IsMouselooking = _G.IsMouselooking
 local loadstring = _G.loadstring
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
-local Narci = _G.Narci
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetModifiedClick = _G.SetModifiedClick
@@ -110,24 +109,6 @@ local function DisplayPopup()
   StaticPopup_Show("CombatMode Warning")
 end
 
-function CM.LoadCVars(CVarType)
-  local CVarsToLoad = {}
-  -- Determine which set of CVar values to use based on the input parameter
-  if CVarType == "combatmode" then
-    CVarsToLoad = CM.Constants.CustomCVarValues
-    CM.DebugPrint("Reticle Target CVars LOADED")
-  elseif CVarType == "blizzard" then
-    CVarsToLoad = CM.Constants.BlizzardCVarValues
-    CM.DebugPrint("Reticle Target CVars RESET")
-  else
-    CM.DebugPrint("Invalid CVarType specified in fn CM.LoadCVars(): " .. tostring(CVarType))
-  end
-
-  for name, value in pairs(CVarsToLoad) do
-    SetCVar(name, value)
-  end
-end
-
 local function CreateTargetMacros()
   local macroExists = function(name)
     return GetMacroInfo(name) ~= nil
@@ -151,10 +132,66 @@ local function IsDefaultMouseActionBeingUsed()
   return IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
 end
 
-local function CenterCursor(shouldCenter)
-  if not CM.DB.char.reticleTargeting then
-    return
+--[[
+  Checking if DynamicCam is loaded so we can relinquish control of a few camera features
+  as DynamicCam allows fine-grained control of Mouselook Speed & Target Focus
+]] --
+local function IsDCLoaded()
+  local DC = AceAddon:GetAddon("DynamicCam", true)
+  CM.DynamicCam = DC ~= nil and true or false
+  if CM.DynamicCam then
+    print(CM.Constants.BasePrintMsg .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over control of |cff69ccf0Camera Speed|r and |cff69ccf0Sticky Crosshair|r.|r")
   end
+end
+
+---------------------------------------------------------------------------------------
+--                              CVAR HANDLING FUNCTIONS                              --
+---------------------------------------------------------------------------------------
+function CM.LoadCVars(CVarType)
+  local CVarsToLoad = {}
+  -- Determine which set of CVar values to use based on the input parameter
+  if CVarType == "combatmode" then
+    CVarsToLoad = CM.Constants.CustomCVarValues
+    CM.DebugPrint("Reticle Target CVars LOADED")
+  elseif CVarType == "blizzard" then
+    CVarsToLoad = CM.Constants.BlizzardCVarValues
+    CM.DebugPrint("Reticle Target CVars RESET")
+  else
+    CM.DebugPrint("Invalid CVarType specified in fn CM.LoadCVars(): " .. tostring(CVarType))
+  end
+
+  for name, value in pairs(CVarsToLoad) do
+    SetCVar(name, value)
+  end
+end
+
+function CM.SetMouseLookSpeed()
+  local CVarsToLoad = CM.Constants.CameraSpeedCVarValues
+  local speed = CM.DB.global.mouseLookSpeed
+
+  for name, value in pairs(CVarsToLoad) do
+    if name == "cameraPitchMoveSpeed" then
+      value = speed / 2 -- Blizz wants pitch speed as 1/2 of yaw speed
+    end
+    SetCVar(name, value)
+  end
+end
+
+function CM.SetStickyCrosshair()
+  local CVarsToLoad = CM.Constants.TagetFocusCVarValues
+  local targetFocusValue = CM.DB.char.stickyCrosshair and 1 or 0
+
+  CM.DebugPrint("Sticky Crosshair CVars LOADED")
+
+  for name, value in pairs(CVarsToLoad) do
+    if value == "overwrite" then
+      value = targetFocusValue
+    end
+    SetCVar(name, value)
+  end
+end
+
+local function CenterCursor(shouldCenter)
   if shouldCenter then
     SetCVar("CursorFreelookCentering", 1)
     CM.DebugPrint("Locking cursor to crosshair position.")
@@ -467,6 +504,8 @@ end
 ---------------------------------------------------------------------------------------
 -- Re-locking Free Look & re-setting CVars after reload/portal
 local function Rematch()
+  CM.SetMouseLookSpeed()
+
   if CM.DB.char.reticleTargeting then
     CM.LoadCVars("combatmode")
   end
@@ -479,6 +518,7 @@ local function Rematch()
 
   if CM.DB.global.crosshair then
     SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
+    CM.SetStickyCrosshair()
   end
 
   LockFreeLook()
@@ -499,6 +539,7 @@ local function HandleEventByCategory(category, event)
     end,
     REMATCH_EVENTS = function()
       Rematch()
+      IsDCLoaded()
     end,
     TARGETING_EVENTS = function()
       if not HideCrosshairWhileMounted() then

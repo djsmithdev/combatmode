@@ -8,6 +8,7 @@ local AceAddon = _G.LibStub("AceAddon-3.0")
 -- CACHING GLOBAL VARIABLES
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local GetBindingKey = _G.GetBindingKey
+local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
 local SetCVar = _G.SetCVar
@@ -285,7 +286,7 @@ local AboutOptions = {
       type = "execute",
       name = "Default",
       desc = "Resets Combat Mode's settings to their default values.",
-      confirmText = "Resetting Combat Mode options will force a UI Reload. Proceed?",
+      confirmText = CM.METADATA["TITLE"] .. "\nResetting Combat Mode's options to their default will force a |cffE52B50UI Reload|r. \nProceed?",
       width = 0.7,
       func = function()
         CM:OnResetDB()
@@ -451,7 +452,30 @@ local FreeLookOptions = {
       end
     },
     spacing = Spacing("full", 5.1),
-    spacing2 = Spacing("full", 5.2),
+    mouseLookSpeed = {
+      type = "range",
+      name = "Free Look Camera Speed",
+      desc = "Adjusts the speed at which you turn the camera while |cffE52B50Free Look|r mode is active. \n|cffcfcfcfControl of this feature will be passed over to |cffffd700DynamicCam's Mouse Look Speed|r if that addon is detected.|r \n|cffffd700Default:|r |cff00FF7F120|r",
+      min = 10,
+      max = 180,
+      softMin = 10,
+      softMax = 180,
+      step = 10,
+      width = "full",
+      order = 5.2,
+      set = function(_, value)
+        CM.DB.global.mouseLookSpeed = value
+        CM.SetMouseLookSpeed()
+      end,
+      get = function()
+        return CM.DB.global.mouseLookSpeed
+      end,
+      disabled = function()
+        return CM.DynamicCam
+      end
+    },
+    spacing2 = Spacing("full", 5.3),
+    spacing4 = Spacing("full", 5.4),
     ---------------------------------------------------------------------------------------
     --                                   CURSOR UNLOCK                                   --
     ---------------------------------------------------------------------------------------
@@ -522,9 +546,11 @@ local ReticleTargetingOptions = {
     reticleTargeting = {
       type = "toggle",
       name = "Configure Reticle Targeting |cff3B73FF(c)|r",
-      desc = "|cff3B73FFCharacter-based option|r\nConfigures Blizzard's Action Targeting feature to be more action-oriented and responsive. \n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n|cffcfcfcfUncheck to reset them to their default values.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+      desc = "|cff3B73FFCharacter-based option|r\nConfigures Blizzard's Action Targeting feature to be more precise and responsive. \n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n|cffcfcfcfUncheck to reset them to their default values.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
       order = 3,
+      confirmText = CM.METADATA["TITLE"] .. "\nA |cffE52B50UI Reload|r is required when making changes to |cff00FFFFReticle Targeting|r. \nProceed?",
+      confirm = true,
       set = function(_, value)
         CM.DB.char.reticleTargeting = value
         if value then
@@ -532,6 +558,7 @@ local ReticleTargetingOptions = {
         else
           CM.LoadCVars("blizzard")
         end
+        ReloadUI()
       end,
       get = function()
         return CM.DB.char.reticleTargeting
@@ -555,6 +582,9 @@ local ReticleTargetingOptions = {
       end,
       get = function()
         return CM.DB.char.crosshairPriority
+      end,
+      disabled = function()
+        return CM.DB.char.reticleTargeting ~= true
       end
     },
     crosshair = {
@@ -575,26 +605,46 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshair
       end
     },
+    stickyCrosshair = {
+      type = "toggle",
+      name = "Sticky Crosshair |cff3B73FF(c)|r",
+      desc = "|cff3B73FFCharacter-based option|r\nMakes the crosshair stick to enemies slightly, making it harder to untarget them by accident.\n|cffcfcfcfControl of this feature will be passed over to |cffffd700DynamicCam's Focus Target|r if that addon is detected.|r \n|cffffd700Default:|r |cffE52B50Off|r",
+      width = "full",
+      order = 6,
+      set = function(_, value)
+        CM.DB.char.stickyCrosshair = value
+        CM.SetStickyCrosshair()
+      end,
+      get = function()
+        return CM.DB.char.stickyCrosshair
+      end,
+      disabled = function()
+        return CM.DynamicCam or CM.DB.global.crosshair ~= true
+      end
+    },
     crosshairMounted = {
       type = "toggle",
       name = "Hide Crosshair While Mounted",
       desc = "Hides the crosshair while mounted.\n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
-      order = 6,
+      order = 7,
       set = function(_, value)
         CM.DB.global.crosshairMounted = value
       end,
       get = function()
         return CM.DB.global.crosshairMounted
+      end,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
       end
     },
-    spacing = Spacing("full", 6.1),
+    spacing = Spacing("full", 7.1),
     crosshairAppearance = {
       name = "Crosshair Appearance",
       desc = "Select the appearance of the crosshair texture.",
       type = "select",
       width = "full",
-      order = 7,
+      order = 8,
       values = CM.Constants.CrosshairAppearanceSelectValues,
       set = function(_, value)
         CM.DB.global.crosshairAppearance = CM.Constants.CrosshairTextureObj[value]
@@ -610,7 +660,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshair ~= true
       end
     },
-    spacing2 = Spacing("full", 8),
+    spacing2 = Spacing("full", 9),
     crosshairSize = {
       type = "range",
       name = "Crosshair Size",
@@ -621,7 +671,7 @@ local ReticleTargetingOptions = {
       softMax = 128,
       step = 16,
       width = "full",
-      order = 9,
+      order = 10,
       disabled = function()
         return CM.DB.global.crosshair ~= true
       end,
@@ -635,7 +685,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairSize
       end
     },
-    spacing3 = Spacing("full", 10),
+    spacing3 = Spacing("full", 11),
     crosshairAlpha = {
       type = "range",
       name = "Crosshair Opacity",
@@ -646,7 +696,7 @@ local ReticleTargetingOptions = {
       softMax = 1.0,
       step = 0.1,
       width = "full",
-      order = 11,
+      order = 12,
       isPercent = true,
       disabled = function()
         return CM.DB.global.crosshair ~= true
@@ -661,7 +711,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairOpacity
       end
     },
-    spacing4 = Spacing("full", 12),
+    spacing4 = Spacing("full", 13),
     crosshairY = {
       type = "range",
       name = "Crosshair Vertical Position",
@@ -672,7 +722,7 @@ local ReticleTargetingOptions = {
       softMax = 500,
       step = 10,
       width = "full",
-      order = 13,
+      order = 14,
       disabled = function()
         return CM.DB.global.crosshair ~= true
       end,
@@ -686,17 +736,17 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairY
       end
     },
-    spacing5 = Spacing("full", 14),
+    spacing5 = Spacing("full", 15),
     devnote = {
       type = "group",
       name = "|cffffd700Developer Note|r",
-      order = 15,
+      order = 16,
       inline = true,
       args = {
         crosshairNote = {
           type = "description",
-          name = "|cff909090When |cffcfcfcfReticle Targeting|r is enabled, your cursor will be moved to the position of the |cff00FFFFCrosshair|r and hidden, thus allowing it to be used in combination with |cffB47EDE@mouseover|r and |cffB47EDE@cursor|r macros.|r \n|cffcfcfcfExample macros have been added to your account-wide macros list (Esc > Macros) for users who'd like more control over target acquisition through either Soft-Locking or Hard-Locking Targeting.|r",
-          order = 15
+          name = "|cff909090While |cffE52B50Free Look|r is active, the |cffcfcfcfCursor|r will be moved to the position of the |cff00FFFFCrosshair|r and hidden, allowing it to reliably respond to |cffB47EDE@mouseover|r and |cffB47EDE@cursor|r macros.|r \n|cffcfcfcfExample macros have been added to your account-wide macros list (Esc > Macros) for users who'd like more control over target acquisition through either Soft-Locking or Hard-Locking Targeting.|r",
+          order = 1
         }
       }
     }
