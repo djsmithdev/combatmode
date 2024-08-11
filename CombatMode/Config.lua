@@ -286,7 +286,7 @@ local AboutOptions = {
       type = "execute",
       name = "Default",
       desc = "Resets Combat Mode's settings to their default values.",
-      confirmText = CM.METADATA["TITLE"] .. "\nResetting Combat Mode's options to their default will force a |cffE52B50UI Reload|r. \nProceed?",
+      confirmText = CM.METADATA["TITLE"] .. "\n\n|cffcfcfcfResetting Combat Mode's options to their default will force a |cffE52B50UI Reload|r.|r \n\n|cffffd700Proceed?|r",
       width = 0.7,
       func = function()
         CM:OnResetDB()
@@ -549,7 +549,7 @@ local ReticleTargetingOptions = {
       desc = "|cff3B73FFCharacter-based option|r\nConfigures Blizzard's Action Targeting feature to be more precise and responsive. \n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n|cffcfcfcfUncheck to reset them to their default values.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
       order = 3,
-      confirmText = CM.METADATA["TITLE"] .. "\nA |cffE52B50UI Reload|r is required when making changes to |cff00FFFFReticle Targeting|r. \nProceed?",
+      confirmText = CM.METADATA["TITLE"] .. "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to |cff00FFFFReticle Targeting|r.|r \n\n|cffffd700Proceed?|r",
       confirm = true,
       set = function(_, value)
         CM.DB.char.reticleTargeting = value

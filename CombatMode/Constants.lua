@@ -39,19 +39,14 @@ CM.Constants.CustomCVarValues = {
   ["SoftTargetIconGameObject"] = 1,
   -- cursor centering
   ["CursorFreelookCentering"] = 0, -- needs to be set to 0 initially because Blizzard changed this cvar to be called BEFORE MouselookStart() method, which means if we set to 1 by default, it will cause the camera to snap to cursor position as you enable free look.
-  ["CursorStickyCentering"] = 1 -- does not work in its current implementation. Most likely related to the recent CursorFreelookCentering change.
+  ["CursorStickyCentering"] = 1 -- !BUG: does not work in its current implementation. See: https://github.com/Stanzilla/WoWUIBugs/issues/504
 }
 
 -- CVARS FOR STICKY CROSSHAIR / TARGET FOCUS
 CM.Constants.TagetFocusCVarValues = {
-  -- Enemy
   ["test_cameraTargetFocusEnemyEnable"] = "overwrite",
   ["test_cameraTargetFocusEnemyStrengthYaw"] = 0.7, -- horizontal strength
   ["test_cameraTargetFocusEnemyStrengthPitch"] = 0.2, -- vertical strength
-  -- Interact
-  ["test_cameraTargetFocusInteractEnable"] = "overwrite",
-  ["test_cameraTargetFocusInteractStrengthYaw"] = 0.7,
-  ["test_cameraTargetFocusInteractStrengthPitch"] = 0.2
 }
 
 -- CVARS FOR FREE LOOK CAMERA SPEED
@@ -118,7 +113,7 @@ CM.Constants.BLIZZARD_EVENTS = {
 --                                        ASSETS                                     --
 ---------------------------------------------------------------------------------------
 CM.Constants.PopupMsg = CM.METADATA["TITLE"] ..
-                          "\n|cffffd700Thank you for trying out Combat Mode!|r \n\nUpon closing this, a config panel will open where you can set a |cffB47EDEkeybind|r to activate the addon.\n\n|cff909090If planning on |cffFF5050uninstalling|r, make sure to uncheck the |cff00FFFFReticle Targeting|r option to reset the CVars to their default.|r"
+                          "\n\n|cffffd700Thank you for trying out Combat Mode!|r \n\n|cffcfcfcfUpon closing this, an |cffB47EDEoptions panel|r will open where you'll be able to configure the addon to your liking.|r\n\n|cff909090If planning on |cffFF5050uninstalling|r, make sure to uncheck the |cff00FFFFReticle Targeting|r option to reset the CVars to their default.|r"
 
 CM.Constants.BasePrintMsg = CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r"
 
