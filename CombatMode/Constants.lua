@@ -14,7 +14,7 @@ CM.Constants = {}
 --                                        CVARS                                      --
 ---------------------------------------------------------------------------------------
 -- CVARS FOR RETICLE TARGETING
-CM.Constants.CustomCVarValues = {
+CM.Constants.ReticleTargetingCVarValues = {
   -- SoftTarget General
   ["interactKeyWarningTutorial"] = 1, -- Hides the interact key tutorial since we're the INTERACTMOUSEOVER binding instead
   ["deselectOnClick"] = 1, -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
@@ -39,35 +39,65 @@ CM.Constants.CustomCVarValues = {
   ["SoftTargetIconGameObject"] = 1,
   -- cursor centering
   ["CursorFreelookCentering"] = 0, -- needs to be set to 0 initially because Blizzard changed this cvar to be called BEFORE MouselookStart() method, which means if we set to 1 by default, it will cause the camera to snap to cursor position as you enable free look.
-  ["CursorStickyCentering"] = 1 -- does not work in its current implementation. Most likely related to the recent CursorFreelookCentering change.
+  ["CursorStickyCentering"] = 1 -- !BUG: does not work in its current implementation. See: https://github.com/Stanzilla/WoWUIBugs/issues/504
+}
+
+-- CVARS FOR ACTION CAMERA
+CM.Constants.ActionCameraCVarValues = {
+  ["test_cameraDynamicPitch"] = 1,
+  ["test_cameraDynamicPitchBaseFovPad"] = 0,
+  ["test_cameraDynamicPitchBaseFovPadDownScale"] = 0.25,
+  ["test_cameraDynamicPitchBaseFovPadFlying"] = 0.5,
+  ["test_cameraDynamicPitchSmartPivotCutoffDist"] = 10,
+  ["test_cameraHeadMovementDeadZone"] = 0.01,
+  ["test_cameraHeadMovementFirstPersonDampRate"] = 20,
+  ["test_cameraHeadMovementMovingDampRate"] = 10,
+  ["test_cameraHeadMovementMovingStrength"] = 0.5,
+  ["test_cameraHeadMovementRangeScale"] = 5,
+  ["test_cameraHeadMovementStandingDampRate"] = 10,
+  ["test_cameraHeadMovementStandingStrength"] = 0.3,
+  ["test_cameraHeadMovementStrength"	] = 1,
+  ["test_cameraOverShoulder"] = 1.2,
 }
 
 -- CVARS FOR STICKY CROSSHAIR / TARGET FOCUS
 CM.Constants.TagetFocusCVarValues = {
-  -- Enemy
-  ["test_cameraTargetFocusEnemyEnable"] = "overwrite",
+  ["test_cameraTargetFocusEnemyEnable"] = 1,
   ["test_cameraTargetFocusEnemyStrengthYaw"] = 0.7, -- horizontal strength
-  ["test_cameraTargetFocusEnemyStrengthPitch"] = 0.2, -- vertical strength
-  -- Interact
-  ["test_cameraTargetFocusInteractEnable"] = "overwrite",
-  ["test_cameraTargetFocusInteractStrengthYaw"] = 0.7,
-  ["test_cameraTargetFocusInteractStrengthPitch"] = 0.2
-}
-
--- CVARS FOR FREE LOOK CAMERA SPEED
-CM.Constants.CameraSpeedCVarValues = {
-  ["cameraYawMoveSpeed"] = 120, -- horizontal speed
-  ["cameraPitchMoveSpeed"] = 60 -- vertical speed
+  ["test_cameraTargetFocusEnemyStrengthPitch"] = 0.2 -- vertical strength
 }
 
 -- DEFAULT BLIZZARD VALUES
 -- !! DO NOT CHANGE !!
-CM.Constants.BlizzardCVarValues = {
+CM.Constants.BlizzardReticleTargetingCVarValues = {
   ["SoftTargetEnemy"] = 1,
   ["SoftTargetEnemyArc"] = 2,
   ["SoftTargetEnemyRange"] = 45,
   ["SoftTargetIconGameObject"] = 0,
   ["CursorStickyCentering"] = 0
+}
+
+CM.Constants.BlizzardActionCameraCVarValues = {
+  ["test_cameraDynamicPitch"] = 0,
+  ["test_cameraDynamicPitchBaseFovPad"] = 0.4,
+  ["test_cameraDynamicPitchBaseFovPadDownScale"] = 0.25,
+  ["test_cameraDynamicPitchBaseFovPadFlying"] = 0.75,
+  ["test_cameraDynamicPitchSmartPivotCutoffDist"] = 10,
+  ["test_cameraHeadMovementDeadZone"] = 0.015,
+  ["test_cameraHeadMovementFirstPersonDampRate"] = 20,
+  ["test_cameraHeadMovementMovingDampRate"] = 10,
+  ["test_cameraHeadMovementMovingStrength"] = 0.5,
+  ["test_cameraHeadMovementRangeScale"] = 5,
+  ["test_cameraHeadMovementStandingDampRate"] = 10,
+  ["test_cameraHeadMovementStandingStrength"] = 0.3,
+  ["test_cameraHeadMovementStrength"	] = 0,
+  ["test_cameraOverShoulder"] = 0,
+}
+
+CM.Constants.BlizzardTagetFocusCVarValues = {
+  ["test_cameraTargetFocusEnemyEnable"] = 0,
+  ["test_cameraTargetFocusEnemyStrengthYaw"] = 0.4,
+  ["test_cameraTargetFocusEnemyStrengthPitch"] = 0.5,
 }
 
 ---------------------------------------------------------------------------------------
@@ -118,7 +148,7 @@ CM.Constants.BLIZZARD_EVENTS = {
 --                                        ASSETS                                     --
 ---------------------------------------------------------------------------------------
 CM.Constants.PopupMsg = CM.METADATA["TITLE"] ..
-                          "\n|cffffd700Thank you for trying out Combat Mode!|r \n\nUpon closing this, a config panel will open where you can set a |cffB47EDEkeybind|r to activate the addon.\n\n|cff909090If planning on |cffFF5050uninstalling|r, make sure to uncheck the |cff00FFFFReticle Targeting|r option to reset the CVars to their default.|r"
+                          "\n\n|cffffd700Thank you for trying out Combat Mode!|r \n\n|cffcfcfcfUpon closing this, an |cffB47EDEoptions panel|r will open where you'll be able to configure the addon to your liking.|r\n\n|cff909090If planning on |cffFF5050uninstalling|r, make sure to uncheck the |cff00FFFFReticle Targeting|r option to reset the CVars to their default.|r"
 
 CM.Constants.BasePrintMsg = CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r"
 
@@ -534,6 +564,7 @@ CM.Constants.DatabaseDefaults = {
       "DUIQuestFrame",
       "Narci_Vignette"
     },
+    actionCamera = false,
     mouseLookSpeed = 120,
     mountCheck = false,
     customCondition = "",
@@ -542,12 +573,12 @@ CM.Constants.DatabaseDefaults = {
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
     crosshairSize = 64,
     crosshairOpacity = 1.0,
-    crosshairY = 100,
     debugMode = false,
     bindings = DefaultBindings
   },
   char = {
     useGlobalBindings = false,
+    shoulderOffset = 1.2,
     reticleTargeting = true,
     crosshairPriority = true,
     stickyCrosshair = false,
