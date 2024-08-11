@@ -140,55 +140,87 @@ local function IsDCLoaded()
   local DC = AceAddon:GetAddon("DynamicCam", true)
   CM.DynamicCam = DC ~= nil and true or false
   if CM.DynamicCam then
-    print(CM.Constants.BasePrintMsg .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over control of |cff69ccf0Camera Speed|r and |cff69ccf0Sticky Crosshair|r.|r")
+    print(CM.Constants.BasePrintMsg .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over control of |cffE37527Camera Features|r.|r")
   end
 end
 
 ---------------------------------------------------------------------------------------
 --                              CVAR HANDLING FUNCTIONS                              --
 ---------------------------------------------------------------------------------------
-function CM.LoadCVars(CVarType)
-  local CVarsToLoad = {}
-  -- Determine which set of CVar values to use based on the input parameter
+local function LoadCVars(info)
+  local CVarType, CMValues, BlizzValues, FeatureName = info.CVarType, info.CMValues, info.BlizzValues, info.FeatureName
+  local CVarsToLoad
+
   if CVarType == "combatmode" then
-    CVarsToLoad = CM.Constants.CustomCVarValues
-    CM.DebugPrint("Reticle Target CVars LOADED")
+    CVarsToLoad = CMValues
+    CM.DebugPrint(FeatureName .. " CVars LOADED")
   elseif CVarType == "blizzard" then
-    CVarsToLoad = CM.Constants.BlizzardCVarValues
-    CM.DebugPrint("Reticle Target CVars RESET")
+    CVarsToLoad = BlizzValues
+    CM.DebugPrint(FeatureName .. " CVars RESET")
   else
-    CM.DebugPrint("Invalid CVarType specified in fn CM.LoadCVars(): " .. tostring(CVarType))
+    CM.DebugPrint("Invalid CVarType specified in fn CM.ConfigCVars() for " .. FeatureName .. ": " .. tostring(CVarType))
+    return
   end
 
   for name, value in pairs(CVarsToLoad) do
     SetCVar(name, value)
   end
+end
+
+
+function CM.ConfigReticleTargeting(CVarType)
+  local info = {
+    CVarType = CVarType,
+    CMValues = CM.Constants.ReticleTargetingCVarValues,
+    BlizzValues = CM.Constants.BlizzardReticleTargetingCVarValues,
+    FeatureName = "Reticle Targeting"
+  }
+
+  LoadCVars(info)
+end
+
+function CM.ConfigActionCamera(CVarType)
+  local info = {
+    CVarType = CVarType,
+    CMValues = CM.Constants.ActionCameraCVarValues,
+    BlizzValues = CM.Constants.BlizzardActionCameraCVarValues,
+    FeatureName = "Action Camera"
+  }
+
+  LoadCVars(info)
+  if CVarType == "combatmode" then
+    CM.SetShoulderOffset()
+  end
+end
+
+function CM.ConfigStickyCrosshair(CVarType)
+  local info = {
+    CVarType = CVarType,
+    CMValues = CM.Constants.TagetFocusCVarValues,
+    BlizzValues = CM.Constants.BlizzardTagetFocusCVarValues,
+    FeatureName = "Sticky Crosshair"
+  }
+
+  LoadCVars(info)
 end
 
 function CM.SetMouseLookSpeed()
-  local CVarsToLoad = CM.Constants.CameraSpeedCVarValues
-  local speed = CM.DB.global.mouseLookSpeed
-
-  for name, value in pairs(CVarsToLoad) do
-    if name == "cameraPitchMoveSpeed" then
-      value = speed / 2 -- Blizz wants pitch speed as 1/2 of yaw speed
-    end
-    SetCVar(name, value)
-  end
+  local XSpeed = CM.DB.global.mouseLookSpeed
+  local YSpeed = CM.DB.global.mouseLookSpeed / 2 -- Blizz wants pitch speed as 1/2 of yaw speed
+  SetCVar("cameraYawMoveSpeed", XSpeed)
+  SetCVar("cameraPitchMoveSpeed", YSpeed)
 end
 
-function CM.SetStickyCrosshair()
-  local CVarsToLoad = CM.Constants.TagetFocusCVarValues
-  local targetFocusValue = CM.DB.char.stickyCrosshair and 1 or 0
+function CM.SetShoulderOffset()
+  local offset = CM.DB.char.shoulderOffset
+  SetCVar("test_cameraOverShoulder", offset)
+end
 
-  CM.DebugPrint("Sticky Crosshair CVars LOADED")
-
-  for name, value in pairs(CVarsToLoad) do
-    if value == "overwrite" then
-      value = targetFocusValue
-    end
-    SetCVar(name, value)
-  end
+function CM.SetCrosshairPriority()
+  local value = CM.DB.char.crosshairPriority
+  SetCVar("enableMouseoverCast", value)
+  SetModifiedClick("MOUSEOVERCAST", "NONE")
+  SaveBindings(GetCurrentBindingSet())
 end
 
 local function CenterCursor(shouldCenter)
@@ -212,6 +244,8 @@ local ScaleAnimation = CrosshairAnimation:CreateAnimation("Scale")
 local startingScale = 1
 local endingScale = 0.8
 local scaleDuration = 0.15
+local yOffset = 100
+local cursorCenteredYpos = (yOffset / 1000) + 0.5 - 0.018
 ScaleAnimation:SetDuration(scaleDuration)
 ScaleAnimation:SetScaleFrom(startingScale, startingScale)
 ScaleAnimation:SetScaleTo(endingScale, endingScale)
@@ -227,12 +261,6 @@ local function SetCrosshairAppearance(state)
   local r, g, b, a = unpack(CM.Constants.CrosshairReactionColors[state])
   local textureToUse = state == "base" and CrosshairAppearance.Base or CrosshairAppearance.Active
   local reverseAnimation = state == "base" and true or false
-  local yOffset = CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY
-  local crosshairPositionVariance = 1000 -- from -500 min to 500 max
-
-  -- Adjusts centered cursor vertical positioning
-  local cursorCenteredYpos = (yOffset / crosshairPositionVariance) + 0.5 - 0.015
-  SetCVar("CursorCenteredYPos", cursorCenteredYpos)
 
   -- Sets new scale at the end of animation
   CrosshairAnimation:SetScript("OnFinished", function()
@@ -263,11 +291,14 @@ local function CreateCrosshair()
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
   CrosshairTexture:SetAllPoints(CrosshairFrame)
   CrosshairTexture:SetBlendMode("BLEND")
-  CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY or DefaultConfig.crosshairY)
+  CrosshairFrame:SetPoint("CENTER", 0, yOffset)
   CrosshairFrame:SetSize(CM.DB.global.crosshairSize or DefaultConfig.crosshairSize,
     CM.DB.global.crosshairSize or DefaultConfig.crosshairSize)
   CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity or DefaultConfig.crosshairOpacity)
   SetCrosshairAppearance("base")
+
+  -- Adjusts centered cursor vertical positioning
+  SetCVar("CursorCenteredYPos", cursorCenteredYpos)
 
   if CM.DB.global.crosshair then
     CM.ShowCrosshair()
@@ -277,10 +308,6 @@ local function CreateCrosshair()
 end
 
 function CM.UpdateCrosshair()
-  if CM.DB.global.crosshairY then
-    CrosshairFrame:SetPoint("CENTER", 0, CM.DB.global.crosshairY)
-  end
-
   if CM.DB.global.crosshairSize then
     CrosshairFrame:SetSize(CM.DB.global.crosshairSize, CM.DB.global.crosshairSize)
   end
@@ -506,19 +533,25 @@ end
 local function Rematch()
   CM.SetMouseLookSpeed()
 
-  if CM.DB.char.reticleTargeting then
-    CM.LoadCVars("combatmode")
+  if CM.DB.global.actionCamera then
+    CM.ConfigActionCamera("combatmode")
+    CM.SetShoulderOffset()
   end
 
-  if CM.DB.char.crosshairPriority then
-    SetCVar("enableMouseoverCast", 1)
-    SetModifiedClick("MOUSEOVERCAST", "NONE")
-    SaveBindings(GetCurrentBindingSet())
+  if CM.DB.char.reticleTargeting then
+    CM.ConfigReticleTargeting("combatmode")
+
+    if CM.DB.char.crosshairPriority then
+      CM.SetCrosshairPriority()
+    end
   end
 
   if CM.DB.global.crosshair then
     SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
-    CM.SetStickyCrosshair()
+
+    if CM.DB.char.stickyCrosshair then
+      CM.ConfigStickyCrosshair("combatmode")
+    end
   end
 
   LockFreeLook()
@@ -687,6 +720,8 @@ build a "standby" mode, or be able to toggle modules on/off.
 ]] --
 function CM:OnDisable()
   CrosshairFrame:Hide()
-  self.LoadCVars("blizzard")
+  self.ConfigReticleTargeting("blizzard")
+  self.ConfigStickyCrosshair("blizzard")
+  self.ConfigActionCamera("blizzard")
   self:UnregisterAllEvents()
 end
