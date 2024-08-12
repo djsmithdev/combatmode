@@ -148,7 +148,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         name = button1Name,
         desc = "",
         type = "select",
-        width = 1.5,
+        width = 1.6,
         order = 1.1,
         values = CM.Constants.OverrideActions,
         set = function(_, value)
@@ -162,12 +162,12 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
           return not CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled
         end
       },
-      spacing = Spacing(0.2, 1.2),
+      spacing = Spacing(0.25, 1.2),
       button1macro = {
         name = "Custom Action",
         desc = "Enter the name of the action you wish to be ran here.",
         type = "input",
-        width = 1.5,
+        width = 1.6,
         order = 1.3,
         set = function(_, value)
           CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].customAction = value
@@ -209,7 +209,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         name = button2Name,
         desc = "",
         type = "select",
-        width = 1.5,
+        width = 1.6,
         order = 2.1,
         values = CM.Constants.OverrideActions,
         set = function(_, value)
@@ -223,12 +223,12 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
           return not CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled
         end
       },
-      spacing2 = Spacing(0.2, 2.2),
+      spacing2 = Spacing(0.25, 2.2),
       button2macro = {
         name = "Custom Action",
         desc = "Enter the name of the action you wish to be ran here.",
         type = "input",
-        width = 1.5,
+        width = 1.6,
         order = 2.3,
         set = function(_, value)
           CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].customAction = value
@@ -398,7 +398,7 @@ local FreeLookOptions = {
     toggle = {
       type = "keybinding",
       name = "|cffffd700Toggle|r",
-      desc = "Toggles the Free Look camera ON or OFF.",
+      desc = "Toggles the |cffE52B50Free Look|r camera ON or OFF.",
       width = 1.25,
       order = 3,
       set = function(_, key)
@@ -407,7 +407,6 @@ local FreeLookOptions = {
           SetBinding(oldKey)
         end
         SetBinding(key, "Combat Mode Toggle")
-        CM.UnbindMoveAndSteer()
       end,
       get = function()
         return (GetBindingKey("Combat Mode Toggle"))
@@ -416,7 +415,7 @@ local FreeLookOptions = {
     hold = {
       type = "keybinding",
       name = "|cffffd700Press & Hold|r",
-      desc = "Hold to temporarily deactivate the Free Look camera.",
+      desc = "Hold to temporarily deactivate the |cffE52B50Free Look|r camera.",
       width = 1.25,
       order = 4,
       set = function(_, key)
@@ -425,7 +424,6 @@ local FreeLookOptions = {
           SetBinding(oldKey)
         end
         SetBinding(key, "(Hold) Switch Mode")
-        CM.UnbindMoveAndSteer()
       end,
       get = function()
         return (GetBindingKey("(Hold) Switch Mode"))
@@ -450,37 +448,14 @@ local FreeLookOptions = {
       end
     },
     spacing = Spacing("full", 5.1),
-    mouseLookSpeed = {
-      type = "range",
-      name = "Free Look Camera Turn Speed |cffE37527•|r",
-      desc = "Adjusts the speed at which you turn the camera while |cffE52B50Free Look|r mode is active. \n|cff909090If detected, control of this feature will be relinquished to |cffE37527• DynamicCam|r. \n|cffffd700Default:|r |cff00FF7F120|r",
-      min = 10,
-      max = 180,
-      softMin = 10,
-      softMax = 180,
-      step = 10,
-      width = "full",
-      order = 6,
-      set = function(_, value)
-        CM.DB.global.mouseLookSpeed = value
-        CM.SetMouseLookSpeed()
-      end,
-      get = function()
-        return CM.DB.global.mouseLookSpeed
-      end,
-      disabled = function()
-        return CM.DynamicCam
-      end
-    },
-    spacing2 = Spacing("full", 6.1),
     actionCamera = {
       type = "toggle",
-      name = "Load Curated Action Camera Preset |cffE37527•|r",
-      desc = "Configures Blizzard's |cffffd700Action Camera|r feature to a curated preset that better matches Combat Mode's development environment. \n|cff909090If detected, control of this feature will be relinquished to |cffE37527• DynamicCam|r.|r \n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = "full",
-      order = 7,
+      name = "Load Combat Mode's |cffffd700Action Camera|r Preset |cffE37527•|r",
+      desc = "Configures Blizzard's |cffffd700Action Camera|r feature to a curated preset that better matches Combat Mode's development environment. \n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r.|r \n|cffffd700Default:|r |cff00FF7FOn|r",
+      width = 2.25,
+      order = 6,
       confirmText = CM.METADATA["TITLE"] ..
-        "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to the Curated |cffffd700Action Camera|r Preset.|r \n\n|cffffd700Proceed?|r",
+        "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to Combat Mode's |cffffd700Action Camera|r Preset.|r \n\n|cffffd700Proceed?|r",
       confirm = true,
       set = function(_, value)
         CM.DB.global.actionCamera = value
@@ -498,11 +473,24 @@ local FreeLookOptions = {
         return CM.DynamicCam
       end
     },
-    spacing3 = Spacing("full", 7.1),
+    pulseCursor = {
+      type = "toggle",
+      name = "Pulse Cursor When Disabling |cffE52B50Free Look|r",
+      desc = "Quickly pulses the location of the cursor when exiting |cffE52B50Free Look|r mode.\n|cffffd700Default:|r |cff00FF7FOn|r",
+      width = 1.5,
+      order = 7,
+      set = function(_, value)
+        CM.DB.global.pulseCursor = value
+      end,
+      get = function()
+        return CM.DB.global.pulseCursor
+      end
+    },
+    spacing2 = Spacing("full", 7.1),
     shoulderOffset = {
       type = "range",
       name = "Camera Over Shoulder Offset |cff3B73FF©|r |cffE37527•|r",
-      desc = "|cff3B73FF© Character-based option|r\nHorizontally offsets the camera to the left or right of your character while the |cffffd700Action Camera Preset|r is enabled. \n|cff909090If detected, control of this feature will be relinquished to |cffE37527• DynamicCam|r. \n|cffffd700Default:|r |cff00FF7F1.2|r",
+      desc = "|cff3B73FF© Character-based option|r\nHorizontally offsets the camera to the left or right of your character while the |cffffd700Action Camera Preset|r is enabled. \n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n|cffffd700Default:|r |cff00FF7F1.2|r",
       min = -2,
       max = 2,
       softMin = -2,
@@ -521,19 +509,42 @@ local FreeLookOptions = {
         return CM.DynamicCam or CM.DB.global.actionCamera ~= true
       end
     },
-    spacing4 = Spacing("full", 8.1),
-    spacing5 = Spacing("full", 8.2),
+    spacing3 = Spacing("full", 8.1),
+    mouseLookSpeed = {
+      type = "range",
+      name = "Free Look Camera Turn Speed |cffE37527•|r",
+      desc = "Adjusts the speed at which you turn the camera while |cffE52B50Free Look|r mode is active. \n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n|cffffd700Default:|r |cff00FF7F120|r",
+      min = 10,
+      max = 180,
+      softMin = 10,
+      softMax = 180,
+      step = 10,
+      width = "full",
+      order = 9,
+      set = function(_, value)
+        CM.DB.global.mouseLookSpeed = value
+        CM.SetMouseLookSpeed()
+      end,
+      get = function()
+        return CM.DB.global.mouseLookSpeed
+      end,
+      disabled = function()
+        return CM.DynamicCam
+      end
+    },
+    spacing4 = Spacing("full", 9.1),
+    spacing5 = Spacing("full", 9.2),
     ---------------------------------------------------------------------------------------
     --                                   CURSOR UNLOCK                                   --
     ---------------------------------------------------------------------------------------
-    header2 = Header("unlock", 9),
-    description2 = Description("unlock", 10),
+    header2 = Header("unlock", 10),
+    description2 = Description("unlock", 11),
     cursorUnlock = {
       type = "toggle",
-      name = "Automatic Cursor Unlock",
-      desc = "Automatically disables Free Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).\n|cffffd700Default:|r |cff00FF7FOn|r",
+      name = "Enable Auto Cursor Unlock",
+      desc = "Automatically disables |cffE52B50Free Look|r and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
-      order = 11,
+      order = 12,
       set = function(_, value)
         CM.DB.global.frameWatching = value
       end,
@@ -546,7 +557,7 @@ local FreeLookOptions = {
       name = "Unlock While On Vendor Mount",
       desc = "Keeps the cursor unlocked while a vendor mounts is being used.\n|cffffd700Vendor Mounts:|r \n|cff909090Grand Expedition Yak\nTraveler's Tundra Mammoth\nMighty Caravan Brutosaur|r \n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
-      order = 12,
+      order = 13,
       set = function(_, value)
         CM.DB.global.mountCheck = value
       end,
@@ -554,14 +565,14 @@ local FreeLookOptions = {
         return CM.DB.global.mountCheck
       end
     },
-    spacing6 = Spacing("full", 12.1),
+    spacing6 = Spacing("full", 13.1),
     watchlist = {
       name = "Frame Watchlist",
       desc = "Expand the list of Blizzard panels or |cffE37527AddOn|r frames that trigger a |cff00FF7FCursor Unlock.|r \n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame|r.|r \n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
       type = "input",
       multiline = true,
       width = "full",
-      order = 13,
+      order = 14,
       disabled = function()
         return CM.DB.global.frameWatching ~= true
       end,
@@ -654,7 +665,7 @@ local ReticleTargetingOptions = {
     stickyCrosshair = {
       type = "toggle",
       name = "Sticky Crosshair |cff3B73FF©|r |cffE37527•|r",
-      desc = "|cff3B73FF© Character-based option|r\nMakes the crosshair stick to enemies slightly, making it harder to untarget them by accident.\n|cff909090If detected, control of this feature will be relinquished to |cffE37527• DynamicCam|r. \n|cffffd700Default:|r |cffE52B50Off|r",
+      desc = "|cff3B73FF© Character-based option|r\nMakes the crosshair stick to enemies slightly, making it harder to untarget them by accident.\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
       order = 6,
       set = function(_, value)

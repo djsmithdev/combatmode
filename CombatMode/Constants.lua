@@ -158,6 +158,8 @@ CM.Constants.Logo = assetsFolderPath .. "cmlogo.blp"
 
 CM.Constants.Title = assetsFolderPath .. "cmtitle.blp"
 
+CM.Constants.PulseAtlas = "dragonflight-landingbutton-circleglow"
+
 --[[
   CROSSHAIR TEXTURES
   To add custom textures, you'll need two .BLP textures: one for the active and one for the inactive states.
@@ -567,6 +569,7 @@ CM.Constants.DatabaseDefaults = {
     },
     actionCamera = true,
     mouseLookSpeed = 120,
+    pulseCursor = true,
     mountCheck = false,
     customCondition = "",
     crosshair = true,
