@@ -56,8 +56,8 @@ CM.Constants.ActionCameraCVarValues = {
   ["test_cameraHeadMovementRangeScale"] = 5,
   ["test_cameraHeadMovementStandingDampRate"] = 10,
   ["test_cameraHeadMovementStandingStrength"] = 0.3,
-  ["test_cameraHeadMovementStrength"	] = 1,
-  ["test_cameraOverShoulder"] = 1.2,
+  ["test_cameraHeadMovementStrength"] = 1,
+  ["test_cameraOverShoulder"] = 1.2
 }
 
 -- CVARS FOR STICKY CROSSHAIR / TARGET FOCUS
@@ -90,14 +90,14 @@ CM.Constants.BlizzardActionCameraCVarValues = {
   ["test_cameraHeadMovementRangeScale"] = 5,
   ["test_cameraHeadMovementStandingDampRate"] = 10,
   ["test_cameraHeadMovementStandingStrength"] = 0.3,
-  ["test_cameraHeadMovementStrength"	] = 0,
-  ["test_cameraOverShoulder"] = 0,
+  ["test_cameraHeadMovementStrength"] = 0,
+  ["test_cameraOverShoulder"] = 0
 }
 
 CM.Constants.BlizzardTagetFocusCVarValues = {
   ["test_cameraTargetFocusEnemyEnable"] = 0,
   ["test_cameraTargetFocusEnemyStrengthYaw"] = 0.4,
-  ["test_cameraTargetFocusEnemyStrengthPitch"] = 0.5,
+  ["test_cameraTargetFocusEnemyStrengthPitch"] = 0.5
 }
 
 ---------------------------------------------------------------------------------------
@@ -396,8 +396,8 @@ CM.Constants.ActionsToProcess = {
   "ACTIONBUTTON10",
   "ACTIONBUTTON11",
   "ACTIONBUTTON12",
-  "MULTIACTIONBAR1BUTTON2",
   "MULTIACTIONBAR1BUTTON1",
+  "MULTIACTIONBAR1BUTTON2",
   "MULTIACTIONBAR1BUTTON3",
   "MULTIACTIONBAR1BUTTON4",
   "MULTIACTIONBAR1BUTTON5",
@@ -471,7 +471,8 @@ CM.Constants.ActionsToProcess = {
   "PETATTACK",
   "STARTATTACK",
   "STOPATTACK",
-  "STOPCASTING"
+  "STOPCASTING",
+  "EXTRAACTIONBUTTON1"
 }
 
 -- Matches the bindable actions values defined right above with more readable names for the UI
@@ -564,7 +565,7 @@ CM.Constants.DatabaseDefaults = {
       "DUIQuestFrame",
       "Narci_Vignette"
     },
-    actionCamera = false,
+    actionCamera = true,
     mouseLookSpeed = 120,
     mountCheck = false,
     customCondition = "",

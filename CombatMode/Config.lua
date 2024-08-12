@@ -12,7 +12,6 @@ local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
 local SetCVar = _G.SetCVar
-local SetModifiedClick = _G.SetModifiedClick
 
 -- RETRIEVING ADDON TABLE
 local CM = AceAddon:GetAddon("CombatMode")
@@ -34,72 +33,72 @@ end
 local function Header(option, order)
   local headers = {
     about = {
-        type = "header",
-        name = "|cffffffffABOUT|r",
-        order = order
+      type = "header",
+      name = "|cffffffffABOUT|r",
+      order = order
     },
     freelook = {
-        type = "header",
-        name = "|cffE52B50FREE LOOK|r",
-        order = order
+      type = "header",
+      name = "|cffE52B50FREE LOOK|r",
+      order = order
     },
     unlock = {
-        type = "header",
-        name = "|cff00FF7FAUTO CURSOR UNLOCK|r",
-        order = order
+      type = "header",
+      name = "|cff00FF7FAUTO CURSOR UNLOCK|r",
+      order = order
     },
     reticle = {
-        type = "header",
-        name = "|cff00FFFFRETICLE TARGETING|r",
-        order = order
+      type = "header",
+      name = "|cff00FFFFRETICLE TARGETING|r",
+      order = order
     },
     clicks = {
-        type = "header",
-        name = "|cffB47EDCCLICK CASTING|r",
-        order = order
+      type = "header",
+      name = "|cffB47EDCCLICK CASTING|r",
+      order = order
     },
     advanced = {
-        type = "header",
-        name = "|cffffffffADVANCED|r",
-        order = order
+      type = "header",
+      name = "|cffffffffADVANCED|r",
+      order = order
     }
-}
+  }
   return headers[option]
 end
 
 local function Description(option, order)
   local descriptions = {
     freelook = {
-        type = "description",
-        name = "\nSet keybinds to activate |cffE52B50Free Look|r, interact with |cff00FFFFCrosshair|r target, and configure the behavior of the camera.\n\n",
-        fontSize = "medium",
-        order = order
+      type = "description",
+      name = "\nSet keybinds to activate |cffE52B50Free Look|r, interact with |cff00FFFFCrosshair|r target, and configure the behavior of the camera.\n\n",
+      fontSize = "medium",
+      order = order
     },
     unlock = {
-        type = "description",
-        name = "\nSelect whether |cffE52B50Free Look|r should be automatically disabled when specific frames are visible, re-enabling once they're closed. |cffcfcfcfYou can add additional |cffE37527AddOn|r frames to the |cffffd700Watchlist|r to trigger this effect.|r\n\n",
-        fontSize = "medium",
-        order = order
+      type = "description",
+      name = "\nSelect whether |cffE52B50Free Look|r should be automatically disabled when specific frames are visible, re-enabling once they're closed. |cff909090You can add additional |cffE37527AddOn|r frames to the |cffffd700Watchlist|r to trigger this effect.|r\n\n",
+      fontSize = "medium",
+      order = order
     },
     reticle = {
-        type = "description",
-        name = "\nEnable Combat Mode to transform the default tab-targeting combat into an action-oriented experience, where the |cff00FFFFCrosshair|r dictates target acquisition.\n\n",
-        fontSize = "medium",
-        order = order
+      type = "description",
+      name = "\nEnable Combat Mode to transform the default tab-targeting combat into an action-oriented experience, where the |cff00FFFFCrosshair|r dictates target acquisition.\n\n",
+      fontSize = "medium",
+      order = order
     },
     clicks = {
-        type = "description",
-        name = "\nSelect which actions are fired when Left and Right clicking as well as their modified presses while in |cffE52B50Free Look|r mode.\n\n",
-        fontSize = "medium",
-        order = order
+      type = "description",
+      name = "\nSelect which actions are fired when Left and Right clicking as well as their modified presses while in |cffE52B50Free Look|r mode.\n\n",
+      fontSize = "medium",
+      order = order
     },
     advanced = {
-        type = "description",
-        name = "\nCreate your own conditions that force a |cff00FF7FCursor Unlock|r by entering a chunk of Lua code that returns |cff00FF7FTrue|r if the cursor should be freed, |cffE52B50False|r otherwise.\n|cffcfcfcfE.g.: to unlock the cursor while standing still, enter: |cff69ccf0return GetUnitSpeed(\"player\") == 0|r\n\n",
-        fontSize = "medium",
-        order = order
-    },
-}
+      type = "description",
+      name = "\nCreate your own conditions that force a |cff00FF7FCursor Unlock|r by entering a chunk of Lua code that returns |cff00FF7FTrue|r if the cursor should be freed, |cffE52B50False|r otherwise.\n|cff909090E.g.: to unlock the cursor while standing still or riding a mount, enter: |cff69ccf0GetUnitSpeed(\"player\") == 0 or IsMounted()|r\n\n",
+      fontSize = "medium",
+      order = order
+    }
+  }
   return descriptions[option]
 end
 
@@ -257,12 +256,12 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
           },
           wowwiki = {
             name = "You can find all available actions here:",
-            desc = "warcraft.wiki.gg/wiki/BindingID",
+            desc = "wowpedia.fandom.com/wiki/BindingID",
             type = "input",
-            width = 1.5,
+            width = 1.7,
             order = 5,
             get = function()
-              return "warcraft.wiki.gg/wiki/BindingID"
+              return "wowpedia.fandom.com/wiki/BindingID"
             end
           }
         }
@@ -286,7 +285,8 @@ local AboutOptions = {
       type = "execute",
       name = "Default",
       desc = "Resets Combat Mode's settings to their default values.",
-      confirmText = CM.METADATA["TITLE"] .. "\n\n|cffcfcfcfResetting Combat Mode's options to their default will force a |cffE52B50UI Reload|r.|r \n\n|cffffd700Proceed?|r",
+      confirmText = CM.METADATA["TITLE"] ..
+        "\n\n|cffcfcfcfResetting Combat Mode's options to their default will force a |cffE52B50UI Reload|r.|r \n\n|cffffd700Proceed?|r",
       confirm = true,
       width = 0.7,
       func = function()
@@ -381,7 +381,7 @@ local AboutOptions = {
         return CM.METADATA["X-DISCORD"]
       end
     },
-    spacing5 = Spacing("full", 5.1),
+    spacing5 = Spacing("full", 5.1)
   }
 }
 
@@ -407,8 +407,7 @@ local FreeLookOptions = {
           SetBinding(oldKey)
         end
         SetBinding(key, "Combat Mode Toggle")
-        SetBinding("MOVEANDSTEER")
-        SaveBindings(GetCurrentBindingSet())
+        CM.UnbindMoveAndSteer()
       end,
       get = function()
         return (GetBindingKey("Combat Mode Toggle"))
@@ -426,8 +425,7 @@ local FreeLookOptions = {
           SetBinding(oldKey)
         end
         SetBinding(key, "(Hold) Switch Mode")
-        SetBinding("MOVEANDSTEER")
-        SaveBindings(GetCurrentBindingSet())
+        CM.UnbindMoveAndSteer()
       end,
       get = function()
         return (GetBindingKey("(Hold) Switch Mode"))
@@ -454,8 +452,8 @@ local FreeLookOptions = {
     spacing = Spacing("full", 5.1),
     mouseLookSpeed = {
       type = "range",
-      name = "Free Look Camera Turn Speed |cffE37527(*)|r",
-      desc = "Adjusts the speed at which you turn the camera while |cffE52B50Free Look|r mode is active. \n|cffcfcfcfIf detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n|cffffd700Default:|r |cff00FF7F120|r",
+      name = "Free Look Camera Turn Speed |cffE37527•|r",
+      desc = "Adjusts the speed at which you turn the camera while |cffE52B50Free Look|r mode is active. \n|cff909090If detected, control of this feature will be relinquished to |cffE37527• DynamicCam|r. \n|cffffd700Default:|r |cff00FF7F120|r",
       min = 10,
       max = 180,
       softMin = 10,
@@ -477,11 +475,12 @@ local FreeLookOptions = {
     spacing2 = Spacing("full", 6.1),
     actionCamera = {
       type = "toggle",
-      name = "Load Curated Action Camera Preset |cffE37527(*)|r",
-      desc = "Configures Blizzard's |cffffd700Action Camera|r feature to a curated preset that better matches Combat Mode's development environment. \n|cffcfcfcfIf detected, control of this feature will be relinquished to |cffE37527DynamicCam|r.|r \n|cffffd700Default:|r |cffE52B50Off|r",
+      name = "Load Curated Action Camera Preset |cffE37527•|r",
+      desc = "Configures Blizzard's |cffffd700Action Camera|r feature to a curated preset that better matches Combat Mode's development environment. \n|cff909090If detected, control of this feature will be relinquished to |cffE37527• DynamicCam|r.|r \n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
       order = 7,
-      confirmText = CM.METADATA["TITLE"] .. "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to the Curated |cffffd700Action Camera|r Preset.|r \n\n|cffffd700Proceed?|r",
+      confirmText = CM.METADATA["TITLE"] ..
+        "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to the Curated |cffffd700Action Camera|r Preset.|r \n\n|cffffd700Proceed?|r",
       confirm = true,
       set = function(_, value)
         CM.DB.global.actionCamera = value
@@ -502,8 +501,8 @@ local FreeLookOptions = {
     spacing3 = Spacing("full", 7.1),
     shoulderOffset = {
       type = "range",
-      name = "Camera Over Shoulder Offset |cff3B73FF(c)|r |cffE37527(*)|r",
-      desc = "|cff3B73FFCharacter-based option|r\nHorizontally offsets the camera to the left or right from your character while the |cffffd700Action Camera Preset|r is enabled. \n|cffcfcfcfIf detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n|cffffd700Default:|r |cff00FF7F1.2|r",
+      name = "Camera Over Shoulder Offset |cff3B73FF©|r |cffE37527•|r",
+      desc = "|cff3B73FF© Character-based option|r\nHorizontally offsets the camera to the left or right of your character while the |cffffd700Action Camera Preset|r is enabled. \n|cff909090If detected, control of this feature will be relinquished to |cffE37527• DynamicCam|r. \n|cffffd700Default:|r |cff00FF7F1.2|r",
       min = -2,
       max = 2,
       softMin = -2,
@@ -545,7 +544,7 @@ local FreeLookOptions = {
     mountCheck = {
       type = "toggle",
       name = "Unlock While On Vendor Mount",
-      desc = "Keeps the cursor unlocked while a vendor mounts is being used.\n|cffffd700Mounts:|r \n|cffcfcfcfGrand Expedition Yak\nTraveler's Tundra Mammoth\nMighty Caravan Brutosaur|r \n|cffffd700Default:|r |cffE52B50Off|r",
+      desc = "Keeps the cursor unlocked while a vendor mounts is being used.\n|cffffd700Vendor Mounts:|r \n|cff909090Grand Expedition Yak\nTraveler's Tundra Mammoth\nMighty Caravan Brutosaur|r \n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
       order = 12,
       set = function(_, value)
@@ -593,11 +592,12 @@ local ReticleTargetingOptions = {
     description = Description("reticle", 2),
     reticleTargeting = {
       type = "toggle",
-      name = "Configure Reticle Targeting |cff3B73FF(c)|r",
-      desc = "|cff3B73FFCharacter-based option|r\nConfigures Blizzard's |cffffd700Action Targeting|r feature to be more precise and responsive. \n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n|cffcfcfcfUncheck to reset them to their default values.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+      name = "Configure Reticle Targeting |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\nConfigures Blizzard's |cffffd700Action Targeting|r feature to be more precise and responsive. \n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n|cff909090Uncheck to reset them to their default values.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
       order = 3,
-      confirmText = CM.METADATA["TITLE"] .. "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to |cff00FFFFReticle Targeting|r.|r \n\n|cffffd700Proceed?|r",
+      confirmText = CM.METADATA["TITLE"] ..
+        "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to |cff00FFFFReticle Targeting|r.|r \n\n|cffffd700Proceed?|r",
       confirm = true,
       set = function(_, value)
         CM.DB.char.reticleTargeting = value
@@ -614,8 +614,8 @@ local ReticleTargetingOptions = {
     },
     crosshairPriority = {
       type = "toggle",
-      name = "Always Prioritize Crosshair Target |cff3B73FF(c)|r",
-      desc = "|cff3B73FFCharacter-based option|r\nGives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected targets in favor of the unit at your crosshair.|r \n|cffcfcfcfDisabling this will prevent the crosshair from swapping off hard-locked targets.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
+      name = "Always Prioritize Crosshair Target |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\nGives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected targets in favor of the unit at your crosshair.|r \n|cff909090Disabling this will prevent the crosshair from swapping off hard-locked targets.|r\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
       order = 4,
       set = function(_, value)
@@ -653,8 +653,8 @@ local ReticleTargetingOptions = {
     },
     stickyCrosshair = {
       type = "toggle",
-      name = "Sticky Crosshair |cff3B73FF(c)|r |cffE37527(*)|r",
-      desc = "|cff3B73FFCharacter-based option|r\nMakes the crosshair stick to enemies slightly, making it harder to untarget them by accident.\n|cffcfcfcfIf detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n|cffffd700Default:|r |cffE52B50Off|r",
+      name = "Sticky Crosshair |cff3B73FF©|r |cffE37527•|r",
+      desc = "|cff3B73FF© Character-based option|r\nMakes the crosshair stick to enemies slightly, making it harder to untarget them by accident.\n|cff909090If detected, control of this feature will be relinquished to |cffE37527• DynamicCam|r. \n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
       order = 6,
       set = function(_, value)
@@ -791,8 +791,8 @@ local ClickCastingOptions = {
     description = Description("clicks", 2),
     globalKeybind = {
       type = "toggle",
-      name = "Use Account-Wide Click Bindings |cff3B73FF(c)|r",
-      desc = "|cff3B73FFCharacter-based option|r\nUse your account-wide shared keybinds on this character.\n|cffffd700Default:|r |cffE52B50Off|r",
+      name = "Use Account-Wide Click Bindings |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\nUse your account-wide shared keybinds on this character.\n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
       order = 3,
       set = function(_, value)
@@ -831,7 +831,7 @@ local AdvancedConfigOptions = {
           type = "input",
           name = "Custom Condition:",
           order = 1,
-          multiline = 10,
+          multiline = 6,
           width = "full",
           set = function(_, input)
             CM.DB.global.customCondition = input
@@ -850,7 +850,17 @@ local AdvancedConfigOptions = {
             crosshairNote = {
               type = "description",
               name = "|cff909090Knowing the basics of |cff69ccf0Lua|r and the |cffffd700WoW API|r is essential for using custom conditions.|r \n\n|cffFF5050Combat Mode's authors are not responsible for custom code issues and are not obligated to provide users any support for it.|r",
-              order = 15
+              order = 1
+            },
+            wowpediaApi = {
+              name = "You can find all available functions and how to use them here:",
+              desc = "wowpedia.fandom.com/wiki/World_of_Warcraft_API",
+              type = "input",
+              width = 2.2,
+              order = 3,
+              get = function()
+                return "wowpedia.fandom.com/wiki/World_of_Warcraft_API"
+              end
             }
           }
         }
@@ -869,22 +879,22 @@ CM.Config.AboutOptions = AboutOptions
 CM.Config.OptionCategories = {
   {
     id = "CombatMode_FreeLook",
-    name = "|cffE52B50Free Look|r",
+    name = "|cffE52B50 • Free Look|r",
     table = FreeLookOptions
   },
   {
     id = "CombatMode_ReticleTargeting",
-    name = "|cff00FFFFReticle Targeting|r",
+    name = "|cff00FFFF • Reticle Targeting|r",
     table = ReticleTargetingOptions
   },
   {
     id = "CombatMode_ClickCasting",
-    name = "|cffB47EDCClick Casting|r",
+    name = "|cffB47EDC • Click Casting|r",
     table = ClickCastingOptions
   },
   {
     id = "CombatMode_Advanced",
-    name = "|cffffffffAdvanced|r",
+    name = "|cffffffff • Advanced|r",
     table = AdvancedConfigOptions
   }
 }
