@@ -27,6 +27,7 @@ local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
+local SetBinding = _G.SetBinding
 local SetModifiedClick = _G.SetModifiedClick
 local SetCVar = _G.SetCVar
 local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
@@ -140,7 +141,8 @@ local function IsDCLoaded()
   local DC = AceAddon:GetAddon("DynamicCam", true)
   CM.DynamicCam = DC ~= nil and true or false
   if CM.DynamicCam then
-    print(CM.Constants.BasePrintMsg .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over control of |cffE37527Camera Features|r.|r")
+    print(CM.Constants.BasePrintMsg ..
+            "|cff909090: |cffE52B50DynamicCam detected!|r Handing over control of |cffE37527• Camera Features|r.|r")
   end
 end
 
@@ -166,7 +168,6 @@ local function LoadCVars(info)
     SetCVar(name, value)
   end
 end
-
 
 function CM.ConfigReticleTargeting(CVarType)
   local info = {
@@ -217,8 +218,7 @@ function CM.SetShoulderOffset()
 end
 
 function CM.SetCrosshairPriority()
-  local value = CM.DB.char.crosshairPriority
-  SetCVar("enableMouseoverCast", value)
+  SetCVar("enableMouseoverCast", 1)
   SetModifiedClick("MOUSEOVERCAST", "NONE")
   SaveBindings(GetCurrentBindingSet())
 end
@@ -233,6 +233,13 @@ local function CenterCursor(shouldCenter)
   end
 end
 
+-- Adjusts centered cursor vertical positioning to match crosshair's
+local crosshairYPos = 100
+local function SetCenteredCursorYPos()
+  local cursorCenteredYpos = (crosshairYPos / 1000) + 0.5 - 0.018
+  SetCVar("CursorCenteredYPos", cursorCenteredYpos)
+end
+
 ---------------------------------------------------------------------------------------
 --                           CROSSHAIR HANDLING FUNCTIONS                            --
 ---------------------------------------------------------------------------------------
@@ -244,8 +251,6 @@ local ScaleAnimation = CrosshairAnimation:CreateAnimation("Scale")
 local startingScale = 1
 local endingScale = 0.8
 local scaleDuration = 0.15
-local yOffset = 100
-local cursorCenteredYpos = (yOffset / 1000) + 0.5 - 0.018
 ScaleAnimation:SetDuration(scaleDuration)
 ScaleAnimation:SetScaleFrom(startingScale, startingScale)
 ScaleAnimation:SetScaleTo(endingScale, endingScale)
@@ -266,7 +271,7 @@ local function SetCrosshairAppearance(state)
   CrosshairAnimation:SetScript("OnFinished", function()
     if state ~= "base" then
       CrosshairFrame:SetScale(endingScale)
-      CrosshairFrame:SetPoint("CENTER", 0, yOffset / endingScale)
+      CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / endingScale)
     end
   end)
 
@@ -275,7 +280,7 @@ local function SetCrosshairAppearance(state)
   CrosshairAnimation:Play(reverseAnimation)
   if state == "base" then
     CrosshairFrame:SetScale(startingScale)
-    CrosshairFrame:SetPoint("CENTER", 0, yOffset)
+    CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos)
   end
 end
 
@@ -291,14 +296,12 @@ local function CreateCrosshair()
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
   CrosshairTexture:SetAllPoints(CrosshairFrame)
   CrosshairTexture:SetBlendMode("BLEND")
-  CrosshairFrame:SetPoint("CENTER", 0, yOffset)
+  CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos)
   CrosshairFrame:SetSize(CM.DB.global.crosshairSize or DefaultConfig.crosshairSize,
     CM.DB.global.crosshairSize or DefaultConfig.crosshairSize)
   CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity or DefaultConfig.crosshairOpacity)
   SetCrosshairAppearance("base")
-
-  -- Adjusts centered cursor vertical positioning
-  SetCVar("CursorCenteredYPos", cursorCenteredYpos)
+  SetCenteredCursorYPos()
 
   if CM.DB.global.crosshair then
     CM.ShowCrosshair()
@@ -376,7 +379,7 @@ local function IsCustomConditionTrue()
     return false
   end
 
-  local customConditionFunction, error = loadstring(CM.DB.global.customCondition)
+  local customConditionFunction, error = loadstring("return " .. CM.DB.global.customCondition)
   if not customConditionFunction then
     CM.DebugPrint(error)
     return false
@@ -466,6 +469,11 @@ function CM.OverrideDefaultButtons()
   for _, button in pairs(CM.Constants.ButtonsToOverride) do
     CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button])
   end
+end
+
+function CM.UnbindMoveAndSteer()
+  SetBinding("MOVEANDSTEER", nil)
+  SaveBindings(GetCurrentBindingSet())
 end
 
 function CM.ResetBindingOverride(buttonSettings)
@@ -696,6 +704,7 @@ the game that wasn't available in OnInitialize
 function CM:OnEnable()
   RenameBindableActions()
   CM.OverrideDefaultButtons()
+  CM.UnbindMoveAndSteer()
   InitializeWildcardFrameTracking(CM.Constants.WildcardFramesToMatch)
   CreateCrosshair()
   CreateTargetMacros()
