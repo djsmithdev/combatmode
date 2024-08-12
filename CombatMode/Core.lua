@@ -16,6 +16,7 @@ local CreateFrame = _G.CreateFrame
 local CreateMacro = _G.CreateMacro
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
+local GetCursorPosition = _G.GetCursorPosition
 local GetMacroInfo = _G.GetMacroInfo
 local GetUIPanel = _G.GetUIPanel
 local InCinematic = _G.InCinematic
@@ -342,6 +343,57 @@ local function HandleCrosshairReactionToTarget(target)
 end
 
 ---------------------------------------------------------------------------------------
+--                                CURSOR PULSE EFFECT                                --
+---------------------------------------------------------------------------------------
+local PULSE_DURATION = 0.4; -- total duration of the effect
+local PULSE_STARTING_ALPHA = 0.5; -- initial transparency
+local PULSE_STARTING_SIZE = 160 -- initial size of texture
+local PULSE_TOTAL_ELAPSED = -1;
+
+local PulseFrame = CreateFrame("Frame", nil, UIParent)
+local PulseTexture = PulseFrame:CreateTexture(nil, "BACKGROUND")
+
+local function CreatePulse()
+  PulseFrame:SetSize(0, 0)
+  PulseFrame:Hide()
+  PulseTexture:SetAtlas(CM.Constants.PulseAtlas, true)
+  PulseTexture:SetVertexColor(1, 1, 1, 1)
+  PulseTexture:SetAllPoints()
+end
+
+local function UpdatePulse(_, elapsed)
+  if PULSE_TOTAL_ELAPSED == -1 then
+    return
+  end
+
+  PULSE_TOTAL_ELAPSED = PULSE_TOTAL_ELAPSED + elapsed
+  if PULSE_TOTAL_ELAPSED > PULSE_DURATION then
+    PULSE_TOTAL_ELAPSED = -1
+    PulseFrame:Hide()
+    return
+  end
+
+  local progress = PULSE_TOTAL_ELAPSED / PULSE_DURATION
+  local invertedProgress = 1 - progress * progress
+
+  local alpha = invertedProgress * PULSE_STARTING_ALPHA
+  PulseTexture:SetAlpha(alpha)
+
+  local size = invertedProgress * PULSE_STARTING_SIZE
+  PulseFrame:SetSize(size, size)
+
+  local cursorX, cursorY = GetCursorPosition()
+  local scale = UIParent:GetEffectiveScale()
+  PulseFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", (cursorX / scale) - size / 2, (cursorY / scale) - size / 2)
+end
+
+local function ShowCursorPulse()
+  PULSE_TOTAL_ELAPSED = 0
+  PulseFrame:Show()
+end
+
+PulseFrame:SetScript("OnUpdate", UpdatePulse)
+---------------------------------------------------------------------------------------
 --                      FRAME WATCHING / CURSOR UNLOCK FUNCTIONS                     --
 ---------------------------------------------------------------------------------------
 local function CursorUnlockFrameVisible(frameArr)
@@ -514,6 +566,10 @@ local function UnlockFreeLook()
   if IsMouselooking() then
     CenterCursor(false)
     MouselookStop()
+
+    if CM.DB.global.pulseCursor then
+      ShowCursorPulse()
+    end
 
     if CM.DB.global.crosshair then
       CM.HideCrosshair()
@@ -712,6 +768,7 @@ function CM:OnEnable()
   UnbindMoveAndSteer()
   InitializeWildcardFrameTracking(CM.Constants.WildcardFramesToMatch)
   CreateCrosshair()
+  CreatePulse()
   CreateTargetMacros()
 
   -- Registering Blizzard Events from Constants.lua
