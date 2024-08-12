@@ -14,6 +14,7 @@ local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 local C_AddOns = _G.C_AddOns
 local CreateFrame = _G.CreateFrame
 local CreateMacro = _G.CreateMacro
+local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local GetMacroInfo = _G.GetMacroInfo
 local GetUIPanel = _G.GetUIPanel
@@ -471,14 +472,18 @@ function CM.OverrideDefaultButtons()
   end
 end
 
-function CM.UnbindMoveAndSteer()
-  SetBinding("MOVEANDSTEER", nil)
-  SaveBindings(GetCurrentBindingSet())
-end
-
 function CM.ResetBindingOverride(buttonSettings)
   SetMouselookOverrideBinding(buttonSettings.key, nil)
   CM.DebugPrint(buttonSettings.key .. "'s override binding is now cleared")
+end
+
+-- Unbinding MOVEANDSTEER to avoid potential bug when toggling free look with the same key
+local function UnbindMoveAndSteer()
+  local key = GetBindingKey("MOVEANDSTEER")
+  if key then
+    SetBinding(key, "Combat Mode Toggle")
+  end
+  SaveBindings(GetCurrentBindingSet())
 end
 
 -- Matches the bindable actions values defined in Constants.ActionsToProcess with more readable names for the UI
@@ -704,7 +709,7 @@ the game that wasn't available in OnInitialize
 function CM:OnEnable()
   RenameBindableActions()
   CM.OverrideDefaultButtons()
-  CM.UnbindMoveAndSteer()
+  UnbindMoveAndSteer()
   InitializeWildcardFrameTracking(CM.Constants.WildcardFramesToMatch)
   CreateCrosshair()
   CreateTargetMacros()

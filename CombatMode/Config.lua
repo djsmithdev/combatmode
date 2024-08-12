@@ -407,7 +407,6 @@ local FreeLookOptions = {
           SetBinding(oldKey)
         end
         SetBinding(key, "Combat Mode Toggle")
-        CM.UnbindMoveAndSteer()
       end,
       get = function()
         return (GetBindingKey("Combat Mode Toggle"))
@@ -425,7 +424,6 @@ local FreeLookOptions = {
           SetBinding(oldKey)
         end
         SetBinding(key, "(Hold) Switch Mode")
-        CM.UnbindMoveAndSteer()
       end,
       get = function()
         return (GetBindingKey("(Hold) Switch Mode"))
@@ -475,7 +473,7 @@ local FreeLookOptions = {
     spacing2 = Spacing("full", 6.1),
     actionCamera = {
       type = "toggle",
-      name = "Load Curated Action Camera Preset |cffE37527•|r",
+      name = "Load Combat Mode's |cffffd700Action Camera|r Preset |cffE37527•|r",
       desc = "Configures Blizzard's |cffffd700Action Camera|r feature to a curated preset that better matches Combat Mode's development environment. \n|cff909090If detected, control of this feature will be relinquished to |cffE37527• DynamicCam|r.|r \n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
       order = 7,
