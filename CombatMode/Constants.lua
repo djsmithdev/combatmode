@@ -567,7 +567,7 @@ CM.Constants.DatabaseDefaults = {
       "DUIQuestFrame",
       "Narci_Vignette"
     },
-    actionCamera = true,
+    actionCamera = false,
     mouseLookSpeed = 120,
     pulseCursor = true,
     mountCheck = false,
