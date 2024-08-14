@@ -43,21 +43,23 @@ CM.Constants.ReticleTargetingCVarValues = {
 }
 
 -- CVARS FOR ACTION CAMERA
+-- https://wowpedia.fandom.com/wiki/CVar_ActionCam
 CM.Constants.ActionCameraCVarValues = {
-  ["test_cameraDynamicPitch"] = 1,
-  ["test_cameraDynamicPitchBaseFovPad"] = 0,
-  ["test_cameraDynamicPitchBaseFovPadDownScale"] = 0.25,
-  ["test_cameraDynamicPitchBaseFovPadFlying"] = 0.5,
-  ["test_cameraDynamicPitchSmartPivotCutoffDist"] = 10,
-  ["test_cameraHeadMovementDeadZone"] = 0.01,
-  ["test_cameraHeadMovementFirstPersonDampRate"] = 20,
-  ["test_cameraHeadMovementMovingDampRate"] = 10,
-  ["test_cameraHeadMovementMovingStrength"] = 0.5,
-  ["test_cameraHeadMovementRangeScale"] = 5,
-  ["test_cameraHeadMovementStandingDampRate"] = 10,
-  ["test_cameraHeadMovementStandingStrength"] = 0.3,
-  ["test_cameraHeadMovementStrength"] = 1,
-  ["test_cameraOverShoulder"] = 1.2
+  ["test_cameraDynamicPitch"] = 1, -- Vertical Pitch
+  ["test_cameraDynamicPitchBaseFovPad"] = 0, -- Pitch (ground)
+  ["test_cameraDynamicPitchBaseFovPadFlying"] = 0.5, -- Pitch (flying)
+  ["test_cameraDynamicPitchBaseFovPadDownScale"] = 0.25, -- Down Scale
+  ["test_cameraDynamicPitchSmartPivotCutoffDist"] = 10, -- Smart Pivot Cutoff Distance
+  ["test_cameraHeadMovementStrength"] = 1, -- Head Tracking
+  ["test_cameraHeadMovementStandingStrength"] = 0.3, -- Strength (standing)
+  ["test_cameraHeadMovementStandingDampRate"] = 10, -- Inertia (standing)
+  ["test_cameraHeadMovementMovingStrength"] = 0.5, -- Strength (moving)
+  ["test_cameraHeadMovementMovingDampRate"] = 10, -- Inertia (moving)
+  ["test_cameraHeadMovementFirstPersonDampRate"] = 20, -- Inertia (first person)
+  ["test_cameraHeadMovementRangeScale"] = 5, -- Range Scale
+  ["test_cameraHeadMovementDeadZone"] = 0.015, -- Dead Zone
+  ["test_cameraOverShoulder"] = 1.2, -- Shoulder horizontal offset
+  ["CameraKeepCharacterCentered"] = 0 -- Disable Motion Sickness
 }
 
 -- CVARS FOR STICKY CROSSHAIR / TARGET FOCUS
@@ -80,18 +82,19 @@ CM.Constants.BlizzardReticleTargetingCVarValues = {
 CM.Constants.BlizzardActionCameraCVarValues = {
   ["test_cameraDynamicPitch"] = 0,
   ["test_cameraDynamicPitchBaseFovPad"] = 0.4,
-  ["test_cameraDynamicPitchBaseFovPadDownScale"] = 0.25,
   ["test_cameraDynamicPitchBaseFovPadFlying"] = 0.75,
+  ["test_cameraDynamicPitchBaseFovPadDownScale"] = 0.25,
   ["test_cameraDynamicPitchSmartPivotCutoffDist"] = 10,
-  ["test_cameraHeadMovementDeadZone"] = 0.015,
-  ["test_cameraHeadMovementFirstPersonDampRate"] = 20,
-  ["test_cameraHeadMovementMovingDampRate"] = 10,
-  ["test_cameraHeadMovementMovingStrength"] = 0.5,
-  ["test_cameraHeadMovementRangeScale"] = 5,
-  ["test_cameraHeadMovementStandingDampRate"] = 10,
-  ["test_cameraHeadMovementStandingStrength"] = 0.3,
   ["test_cameraHeadMovementStrength"] = 0,
-  ["test_cameraOverShoulder"] = 0
+  ["test_cameraHeadMovementStandingStrength"] = 0.3,
+  ["test_cameraHeadMovementStandingDampRate"] = 10,
+  ["test_cameraHeadMovementMovingStrength"] = 0.5,
+  ["test_cameraHeadMovementMovingDampRate"] = 10,
+  ["test_cameraHeadMovementFirstPersonDampRate"] = 20,
+  ["test_cameraHeadMovementRangeScale"] = 5,
+  ["test_cameraHeadMovementDeadZone"] = 0.015,
+  ["test_cameraOverShoulder"] = 0,
+  ["CameraKeepCharacterCentered"] = 1
 }
 
 CM.Constants.BlizzardTagetFocusCVarValues = {
