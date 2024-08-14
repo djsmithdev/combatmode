@@ -43,6 +43,7 @@ CM.Constants.ReticleTargetingCVarValues = {
 }
 
 -- CVARS FOR ACTION CAMERA
+-- https://wowpedia.fandom.com/wiki/CVar_ActionCam
 CM.Constants.ActionCameraCVarValues = {
   ["test_cameraDynamicPitch"] = 1, -- Vertical Pitch
   ["test_cameraDynamicPitchBaseFovPad"] = 0, -- Pitch (ground)
@@ -57,7 +58,8 @@ CM.Constants.ActionCameraCVarValues = {
   ["test_cameraHeadMovementFirstPersonDampRate"] = 20, -- Inertia (first person)
   ["test_cameraHeadMovementRangeScale"] = 5, -- Range Scale
   ["test_cameraHeadMovementDeadZone"] = 0.015, -- Dead Zone
-  ["test_cameraOverShoulder"] = 1.2 -- !BUG: stopped having any effect w/ 11.0.2. See: https://github.com/Stanzilla/WoWUIBugs/issues/628
+  ["test_cameraOverShoulder"] = 1.2, -- Shoulder horizontal offset
+  ["CameraKeepCharacterCentered"] = 0 -- Disable Motion Sickness
 }
 
 -- CVARS FOR STICKY CROSSHAIR / TARGET FOCUS
@@ -92,6 +94,7 @@ CM.Constants.BlizzardActionCameraCVarValues = {
   ["test_cameraHeadMovementRangeScale"] = 5,
   ["test_cameraHeadMovementDeadZone"] = 0.015,
   ["test_cameraOverShoulder"] = 0,
+  ["CameraKeepCharacterCentered"] = 1
 }
 
 CM.Constants.BlizzardTagetFocusCVarValues = {
