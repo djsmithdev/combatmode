@@ -11,15 +11,17 @@ local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 
 -- CACHING GLOBAL VARIABLES
 -- Slightly better performance than doing a global lookup every time
-local C_AddOns = _G.C_AddOns
 local CreateFrame = _G.CreateFrame
 local CreateMacro = _G.CreateMacro
+local GetAddOnMetadata = _G.C_AddOns.GetAddOnMetadata
+local GetAuraDataBySpellName = _G.C_UnitAuras.GetAuraDataBySpellName
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local GetCursorPosition = _G.GetCursorPosition
 local GetMacroInfo = _G.GetMacroInfo
 local GetUIPanel = _G.GetUIPanel
 local InCinematic = _G.InCinematic
+local IsInCinematicScene = _G.IsInCinematicScene
 local InCombatLockdown = _G.InCombatLockdown
 local IsMounted = _G.IsMounted
 local IsMouseButtonDown = _G.IsMouseButtonDown
@@ -27,11 +29,12 @@ local IsMouselooking = _G.IsMouselooking
 local loadstring = _G.loadstring
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
+local OpenToCategory = _G.Settings.OpenToCategory
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
+local SetCVar = _G.C_CVar.SetCVar
 local SetModifiedClick = _G.SetModifiedClick
-local SetCVar = _G.SetCVar
 local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 local SpellIsTargeting = _G.SpellIsTargeting
 local StaticPopupDialogs = _G.StaticPopupDialogs
@@ -42,8 +45,6 @@ local UnitGUID = _G.UnitGUID
 local UnitIsGameObject = _G.UnitIsGameObject
 local UnitReaction = _G.UnitReaction
 local unpack = _G.unpack
-local GetAuraDataBySpellName = _G.C_UnitAuras.GetAuraDataBySpellName
-local OpenToCategory = _G.Settings.OpenToCategory
 
 -- INSTANTIATING ADDON & ENCAPSULATING NAMESPACE
 ---@class CM : AceAddon
@@ -68,7 +69,7 @@ local function FetchDataFromTOC()
   }
 
   for _, key in ipairs(keysToFetch) do
-    dataRetuned[string.upper(key)] = C_AddOns.GetAddOnMetadata("CombatMode", key)
+    dataRetuned[string.upper(key)] = GetAddOnMetadata("CombatMode", key)
   end
 
   return dataRetuned
@@ -347,7 +348,7 @@ end
 ---------------------------------------------------------------------------------------
 local PULSE_DURATION = 0.4; -- total duration of the effect
 local PULSE_STARTING_ALPHA = 0.5; -- initial transparency
-local PULSE_STARTING_SIZE = 160 -- initial size of texture
+local PULSE_STARTING_SIZE = 256 -- initial size of texture
 local PULSE_TOTAL_ELAPSED = -1;
 
 local PulseFrame = CreateFrame("Frame", nil, UIParent)
@@ -466,8 +467,8 @@ local function IsUnlockFrameVisible()
 end
 
 local function ShouldFreeLookBeOff()
-  local evaluate = FreeLookOverride or SpellIsTargeting() or InCinematic() or IsUnlockFrameVisible() or
-                     IsCustomConditionTrue() or IsVendorMountOut()
+  local evaluate = FreeLookOverride or SpellIsTargeting() or InCinematic() or IsInCinematicScene() or
+                     IsUnlockFrameVisible() or IsCustomConditionTrue() or IsVendorMountOut()
 
   return evaluate
 end

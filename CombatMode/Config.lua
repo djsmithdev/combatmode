@@ -6,12 +6,12 @@ local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
 
 -- CACHING GLOBAL VARIABLES
-local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local GetBindingKey = _G.GetBindingKey
+local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
-local SetCVar = _G.SetCVar
+local SetCVar = _G.C_CVar.SetCVar
 
 -- RETRIEVING ADDON TABLE
 local CM = AceAddon:GetAddon("CombatMode")
@@ -489,7 +489,7 @@ local FreeLookOptions = {
     spacing2 = Spacing("full", 7.1),
     shoulderOffset = {
       type = "range",
-      name = "Camera Over Shoulder Offset |cff3B73FF©|r |cffE37527•|r",
+      name = "Camera Over Shoulder Offset |cff3B73FF©|r |cffE37527•|r |cffE52B50[Disabled while Blizzard fixes their API]|r",
       desc = "|cff3B73FF© Character-based option|r\nHorizontally offsets the camera to the left or right of your character while the |cffffd700Action Camera Preset|r is enabled. \n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n|cffffd700Default:|r |cff00FF7F1.2|r",
       min = -2,
       max = 2,
@@ -506,7 +506,8 @@ local FreeLookOptions = {
         return CM.DB.char.shoulderOffset
       end,
       disabled = function()
-        return CM.DynamicCam or CM.DB.global.actionCamera ~= true
+        return true
+        -- return CM.DynamicCam or CM.DB.global.actionCamera ~= true
       end
     },
     spacing3 = Spacing("full", 8.1),
