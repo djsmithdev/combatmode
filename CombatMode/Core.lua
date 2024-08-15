@@ -3,10 +3,16 @@
 ---------------------------------------------------------------------------------------
 -- IMPORTS
 local _G = _G
+
+---@class AceAddon
 local AceAddon = _G.LibStub("AceAddon-3.0")
+---@class AceDB
 local AceDB = _G.LibStub("AceDB-3.0")
+---@class AceConfig
 local AceConfig = _G.LibStub("AceConfig-3.0")
+---@class AceConfigDialog
 local AceConfigDialog = _G.LibStub("AceConfigDialog-3.0")
+---@class AceConfigCmd
 local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 
 -- CACHING GLOBAL VARIABLES
@@ -236,13 +242,6 @@ local function CenterCursor(shouldCenter)
   end
 end
 
--- Adjusts centered cursor vertical positioning to match crosshair's
-local crosshairYPos = 100
-local function SetCenteredCursorYPos()
-  local cursorCenteredYpos = (crosshairYPos / 1000) + 0.5 - 0.018
-  SetCVar("CursorCenteredYPos", cursorCenteredYpos)
-end
-
 ---------------------------------------------------------------------------------------
 --                           CROSSHAIR HANDLING FUNCTIONS                            --
 ---------------------------------------------------------------------------------------
@@ -266,6 +265,7 @@ end
 
 local function SetCrosshairAppearance(state)
   local CrosshairAppearance = CM.DB.global.crosshairAppearance
+  local crosshairYPos = CM.DB.global.crosshairY
   local r, g, b, a = unpack(CM.Constants.CrosshairReactionColors[state])
   local textureToUse = state == "base" and CrosshairAppearance.Base or CrosshairAppearance.Active
   local reverseAnimation = state == "base" and true or false
@@ -295,36 +295,28 @@ function CM.HideCrosshair()
   CrosshairTexture:Hide()
 end
 
-local function CreateCrosshair()
+-- Adjusts centered cursor vertical positioning to match crosshair's
+local function AdjustCenteredCursorYPos(crosshairYPos)
+  local cursorCenteredYpos = (crosshairYPos / 1000) + 0.5 -- adding 0.5 so we can never go below screen center
+  local adjustment = (crosshairYPos * 0.15) / 1000 -- lowering the cursor by 20% of Y Pos
+  cursorCenteredYpos = cursorCenteredYpos - adjustment
+  SetCVar("CursorCenteredYPos", cursorCenteredYpos)
+end
+
+function CM.CreateCrosshair()
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
+  local UserConfig = CM.DB.global
+  local crosshairYPos = UserConfig.crosshairY or DefaultConfig.crosshairY
+
   CrosshairTexture:SetAllPoints(CrosshairFrame)
   CrosshairTexture:SetBlendMode("BLEND")
   CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos)
-  CrosshairFrame:SetSize(CM.DB.global.crosshairSize or DefaultConfig.crosshairSize,
-    CM.DB.global.crosshairSize or DefaultConfig.crosshairSize)
-  CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity or DefaultConfig.crosshairOpacity)
+  CrosshairFrame:SetSize(UserConfig.crosshairSize or DefaultConfig.crosshairSize,
+    UserConfig.crosshairSize or DefaultConfig.crosshairSize)
+  CrosshairFrame:SetAlpha(UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity)
+
   SetCrosshairAppearance("base")
-  SetCenteredCursorYPos()
-
-  if CM.DB.global.crosshair then
-    CM.ShowCrosshair()
-  else
-    CM.HideCrosshair()
-  end
-end
-
-function CM.UpdateCrosshair()
-  if CM.DB.global.crosshairSize then
-    CrosshairFrame:SetSize(CM.DB.global.crosshairSize, CM.DB.global.crosshairSize)
-  end
-
-  if CM.DB.global.crosshairOpacity then
-    CrosshairFrame:SetAlpha(CM.DB.global.crosshairOpacity)
-  end
-
-  if CM.DB.global.crosshairAppearance then
-    CrosshairTexture:SetTexture(CM.DB.global.crosshairAppearance.Base)
-  end
+  AdjustCenteredCursorYPos(crosshairYPos)
 end
 
 local function HandleCrosshairReactionToTarget(target)
@@ -768,7 +760,7 @@ function CM:OnEnable()
   CM.OverrideDefaultButtons()
   UnbindMoveAndSteer()
   InitializeWildcardFrameTracking(CM.Constants.WildcardFramesToMatch)
-  CreateCrosshair()
+  CM.CreateCrosshair()
   CreatePulse()
   CreateTargetMacros()
 

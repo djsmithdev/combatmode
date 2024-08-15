@@ -704,14 +704,13 @@ local ReticleTargetingOptions = {
       name = "Crosshair Appearance",
       desc = "Select the appearance of the crosshair texture.",
       type = "select",
-      width = "full",
+      width = 3.4,
       order = 8,
       values = CM.Constants.CrosshairAppearanceSelectValues,
       set = function(_, value)
         CM.DB.global.crosshairAppearance = CM.Constants.CrosshairTextureObj[value]
         if value then
-          CM.UpdateCrosshair()
-          CM.ShowCrosshair()
+          CM.CreateCrosshair()
         end
       end,
       get = function()
@@ -721,7 +720,19 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshair ~= true
       end
     },
-    spacing2 = Spacing("full", 9),
+    spacing1 = Spacing(0.1, 8.1),
+    crosshairPreview = {
+      type = "description",
+      order = 9,
+      name = "",
+      width = 0.25,
+      image = function()
+          return CM.DB.global.crosshairAppearance.Base
+      end,
+      imageWidth = 42,
+      imageHeight = 42,
+    },
+    spacing2 = Spacing("full", 9.1),
     crosshairSize = {
       type = "range",
       name = "Crosshair Size",
@@ -739,7 +750,7 @@ local ReticleTargetingOptions = {
       set = function(_, value)
         CM.DB.global.crosshairSize = value
         if value then
-          CM.UpdateCrosshair()
+          CM.CreateCrosshair()
         end
       end,
       get = function()
@@ -765,7 +776,7 @@ local ReticleTargetingOptions = {
       set = function(_, value)
         CM.DB.global.crosshairOpacity = value
         if value then
-          CM.UpdateCrosshair()
+          CM.CreateCrosshair()
         end
       end,
       get = function()
@@ -773,10 +784,35 @@ local ReticleTargetingOptions = {
       end
     },
     spacing4 = Spacing("full", 13),
+    crosshairY = {
+      type = "range",
+      name = "Crosshair Vertical Position",
+      desc = "Adjusts the vertical position of the crosshair.",
+      min = 0,
+      max = 100,
+      softMin = 0,
+      softMax = 100,
+      step = 10,
+      width = "full",
+      order = 14,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end,
+      set = function(_, value)
+        CM.DB.global.crosshairY = value
+        if value then
+          CM.CreateCrosshair()
+        end
+      end,
+      get = function()
+        return CM.DB.global.crosshairY
+      end
+    },
+    spacing5 = Spacing("full", 15),
     devnote = {
       type = "group",
       name = "|cffffd700Developer Note|r",
-      order = 14,
+      order = 16,
       inline = true,
       args = {
         crosshairNote = {
