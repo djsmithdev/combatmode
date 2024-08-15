@@ -475,7 +475,7 @@ local FreeLookOptions = {
     },
     pulseCursor = {
       type = "toggle",
-      name = "Pulse Cursor When Disabling |cffE52B50Free Look|r",
+      name = "Pulse Cursor When Exiting |cffE52B50Free Look|r",
       desc = "Quickly pulses the location of the cursor when exiting |cffE52B50Free Look|r mode.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = 1.5,
       order = 7,
@@ -603,7 +603,7 @@ local ReticleTargetingOptions = {
     description = Description("reticle", 2),
     reticleTargeting = {
       type = "toggle",
-      name = "Configure Reticle Targeting |cff3B73FF©|r",
+      name = "Enable Reticle Targeting |cff3B73FF©|r",
       desc = "|cff3B73FF© Character-based option|r\n\nConfigures Blizzard's |cffffd700Action Targeting|r feature to be more precise and responsive. \n\n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n\n|cff909090Uncheck to reset them to their default values.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
       order = 3,
