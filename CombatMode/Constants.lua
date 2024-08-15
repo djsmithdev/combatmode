@@ -38,8 +38,8 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["SoftTargetIconInteract"] = 1,
   ["SoftTargetIconGameObject"] = 1,
   -- cursor centering
-  ["CursorFreelookCentering"] = 0, -- needs to be set to 0 initially because Blizzard changed this cvar to be called BEFORE MouselookStart() method, which means if we set to 1 by default, it will cause the camera to snap to cursor position as you enable free look.
-  ["CursorStickyCentering"] = 1 -- !BUG: does not work in its current implementation. See: https://github.com/Stanzilla/WoWUIBugs/issues/504
+  ["CursorFreelookCentering"] = 0, -- !BUG: needs to be set to 0 initially because Blizzard broke something in 10.2, otherwise it wll cause the camera to jolt the equivalent vector to the centered cursor position from where your cursor was before locking.
+  ["CursorStickyCentering"] = 1 -- !BUG: we can't use it due to the issue described above. Fore more info, see: https://github.com/Stanzilla/WoWUIBugs/issues/504
 }
 
 -- CVARS FOR ACTION CAMERA
@@ -582,6 +582,7 @@ CM.Constants.DatabaseDefaults = {
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
     crosshairSize = 64,
     crosshairOpacity = 1.0,
+    crosshairY = 50,
     debugMode = false,
     bindings = DefaultBindings
   },
