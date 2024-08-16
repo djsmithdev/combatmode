@@ -199,6 +199,8 @@ function CM.ConfigActionCamera(CVarType)
   if CVarType == "combatmode" then
     CM.SetShoulderOffset()
   end
+  -- Disable the Action Cam warning message.
+  UIParent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
 end
 
 function CM.ConfigStickyCrosshair(CVarType)
