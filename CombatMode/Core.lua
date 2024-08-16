@@ -589,7 +589,7 @@ end
 ---------------------------------------------------------------------------------------
 --                                   EVENT HANDLING                                  --
 ---------------------------------------------------------------------------------------
--- Re-locking Free Look & re-setting CVars after reload/portal
+-- Rematch is called after every reload and this is where we make sure our config persists
 local function Rematch()
   CM.SetMouseLookSpeed()
 
@@ -612,6 +612,8 @@ local function Rematch()
     if CM.DB.char.stickyCrosshair then
       CM.ConfigStickyCrosshair("combatmode")
     end
+  elseif CM.DB.global.crosshair == false then
+    CM.HideCrosshair()
   end
 
   LockFreeLook()
