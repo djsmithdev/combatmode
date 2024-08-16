@@ -68,7 +68,8 @@ local function FetchDataFromTOC()
     "Notes",
     "Author",
     "X-Discord",
-    "X-Curse"
+    "X-Curse",
+    "X-Contributors"
   }
 
   for _, key in ipairs(keysToFetch) do
