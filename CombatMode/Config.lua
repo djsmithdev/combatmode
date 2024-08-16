@@ -128,8 +128,9 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
     args = {
       overrideButton1Toggle = {
         type = "toggle",
-        name = "",
-        width = 0.2,
+        name = "|A:NPE_LeftClick:38:38|a",
+        desc = "Enable the use of the |cffB47EDE" .. button1Name .. "|r casting override while in |cffE52B50Mouse Look|r mode.",
+        width = 0.4,
         order = 1,
         set = function(_, value)
           CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled = value
@@ -148,7 +149,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         name = button1Name,
         desc = "",
         type = "select",
-        width = 1.6,
+        width = 1.5,
         order = 1.1,
         values = CM.Constants.OverrideActions,
         set = function(_, value)
@@ -162,12 +163,12 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
           return not CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled
         end
       },
-      spacing = Spacing(0.25, 1.2),
+      spacing = Spacing(0.1, 1.2),
       button1macro = {
         name = "Custom Action",
         desc = "Enter the name of the action you wish to be ran here.",
         type = "input",
-        width = 1.6,
+        width = 1.65,
         order = 1.3,
         set = function(_, value)
           CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].customAction = value
@@ -189,8 +190,9 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       },
       overrideButton2Toggle = {
         type = "toggle",
-        name = "",
-        width = 0.2,
+        name = "|A:NPE_RightClick:38:38|a",
+        desc = "Enable the use of the |cffB47EDE" .. button2Name .. "|r casting override while in |cffE52B50Mouse Look|r mode.",
+        width = 0.4,
         order = 2,
         set = function(_, value)
           CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled = value
@@ -209,7 +211,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         name = button2Name,
         desc = "",
         type = "select",
-        width = 1.6,
+        width = 1.5,
         order = 2.1,
         values = CM.Constants.OverrideActions,
         set = function(_, value)
@@ -223,12 +225,12 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
           return not CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled
         end
       },
-      spacing2 = Spacing(0.25, 2.2),
+      spacing2 = Spacing(0.1, 2.2),
       button2macro = {
         name = "Custom Action",
         desc = "Enter the name of the action you wish to be ran here.",
         type = "input",
-        width = 1.6,
+        width = 1.65,
         order = 2.3,
         set = function(_, value)
           CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].customAction = value
@@ -391,7 +393,7 @@ local AboutOptions = {
 }
 
 ---------------------------------------------------------------------------------------
---                                     FREE LOOK                                     --
+--                                    MOUSE LOOK                                     --
 ---------------------------------------------------------------------------------------
 local FreeLookOptions = {
   name = CM.METADATA["TITLE"],
@@ -546,7 +548,7 @@ local FreeLookOptions = {
     description2 = Description("unlock", 11),
     cursorUnlock = {
       type = "toggle",
-      name = "Enable Auto Cursor Unlock",
+      name = "Enable |cff00FF7FAuto Cursor Unlock|r",
       desc = "Automatically disables |cffE52B50Mouse Look|r and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
       order = 12,
@@ -559,7 +561,7 @@ local FreeLookOptions = {
     },
     mountCheck = {
       type = "toggle",
-      name = "Unlock While On Vendor Mount",
+      name = "Unlock While On |cffffd700Vendor Mount|r",
       desc = "Keeps the cursor unlocked while a vendor mounts is being used.\n\n|cffffd700Vendor Mounts:|r \n|cff909090Grand Expedition Yak\nTraveler's Tundra Mammoth\nMighty Caravan Brutosaur|r \n\n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
       order = 13,
@@ -608,7 +610,7 @@ local ReticleTargetingOptions = {
     description = Description("reticle", 2),
     reticleTargeting = {
       type = "toggle",
-      name = "Enable Reticle Targeting |cff3B73FF©|r",
+      name = "Enable |cff00FFFFReticle Targeting|r |cff3B73FF©|r",
       desc = "|cff3B73FF© Character-based option|r\n\nConfigures Blizzard's |cffffd700Action Targeting|r feature to be more precise and responsive. \n\n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n\n|cff909090Uncheck to reset them to their default values.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
       order = 3,
@@ -631,7 +633,7 @@ local ReticleTargetingOptions = {
     crosshairPriority = {
       type = "toggle",
       name = "Always Prioritize Crosshair Target |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nGives the |cff00FFFFCrosshair|r the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected targets in favor of the unit at your crosshair.|r \n\n|cff909090Disabling this will prevent the crosshair from swapping off hard-locked targets.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nGives the crosshair the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected (hard-locked) targets in favor of the unit at your crosshair.|r \n\n|cff909090Disabling this will prevent the crosshair from swapping off hard-locked targets.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
       order = 4,
       set = function(_, value)
@@ -652,7 +654,7 @@ local ReticleTargetingOptions = {
     crosshair = {
       type = "toggle",
       name = "Show Crosshair",
-      desc = "Places a dynamic crosshair marker in the center of the screen to assist with Reticle Targeting.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
+      desc = "Places a dynamic crosshair marker in the center of the screen to assist with |cff00FFFFReticle Targeting|r.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
       order = 5,
       set = function(_, value)
@@ -844,7 +846,7 @@ local ClickCastingOptions = {
     globalKeybind = {
       type = "toggle",
       name = "Use Account-Wide Click Bindings |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nUse your account-wide shared keybinds on this character.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nUse your account-wide shared Combat Mode keybinds on this character.\n\n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
       order = 3,
       set = function(_, value)
