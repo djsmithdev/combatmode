@@ -39,7 +39,7 @@ local function Header(option, order)
     },
     freelook = {
       type = "header",
-      name = "|cffE52B50FREE LOOK|r",
+      name = "|cffE52B50MOUSE LOOK|r",
       order = order
     },
     unlock = {
@@ -70,13 +70,13 @@ local function Description(option, order)
   local descriptions = {
     freelook = {
       type = "description",
-      name = "\nSet keybinds to activate |cffE52B50Free Look|r, interact with |cff00FFFFCrosshair|r target, and configure the behavior of the camera.\n\n",
+      name = "\nSet keybinds to activate |cffE52B50Mouse Look|r, interact with |cff00FFFFCrosshair|r target, and configure the behavior of the camera.\n\n",
       fontSize = "medium",
       order = order
     },
     unlock = {
       type = "description",
-      name = "\nSelect whether |cffE52B50Free Look|r should be automatically disabled when specific frames are visible, re-enabling once they're closed. |cff909090You can add additional |cffE37527AddOn|r frames to the |cffffd700Watchlist|r to trigger this effect.|r\n\n",
+      name = "\nSelect whether |cffE52B50Mouse Look|r should be automatically disabled when specific frames are visible, re-enabling once they're closed. |cff909090You can add additional |cffE37527AddOn|r frames to the |cffffd700Watchlist|r to trigger this effect.|r\n\n",
       fontSize = "medium",
       order = order
     },
@@ -88,7 +88,7 @@ local function Description(option, order)
     },
     clicks = {
       type = "description",
-      name = "\nSelect which actions are fired when Left and Right clicking as well as their modified presses while in |cffE52B50Free Look|r mode.\n\n",
+      name = "\nSelect which actions are fired when Left and Right clicking as well as their modified presses while in |cffE52B50Mouse Look|r mode.\n\n",
       fontSize = "medium",
       order = order
     },
@@ -347,7 +347,7 @@ local AboutOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Free Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of |cffcfcfcf@mouseover|r and |cffcfcfcf@cursor|r macro decorators in combination with the |cff00FFFFCrosshair|r. \n• |cffB47EDEMouse Click Casting|r - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.\n\n",
+      name = "|cff909090• |cffE52B50Mouse Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of |cffcfcfcf@mouseover|r and |cffcfcfcf@cursor|r macro decorators in combination with the |cff00FFFFCrosshair|r. \n• |cffB47EDEMouse Click Casting|r - When Mouse Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.\n\n",
       order = 3
     },
     versionNumber = {
@@ -403,7 +403,7 @@ local FreeLookOptions = {
     toggle = {
       type = "keybinding",
       name = "|cffffd700Toggle|r",
-      desc = "Toggles the |cffE52B50Free Look|r camera ON or OFF.",
+      desc = "Toggles the |cffE52B50Mouse Look|r camera ON or OFF.",
       width = 1.25,
       order = 3,
       set = function(_, key)
@@ -420,7 +420,7 @@ local FreeLookOptions = {
     hold = {
       type = "keybinding",
       name = "|cffffd700Press & Hold|r",
-      desc = "Hold to temporarily deactivate the |cffE52B50Free Look|r camera.",
+      desc = "Hold to temporarily deactivate the |cffE52B50Mouse Look|r camera.",
       width = 1.25,
       order = 4,
       set = function(_, key)
@@ -480,8 +480,8 @@ local FreeLookOptions = {
     },
     pulseCursor = {
       type = "toggle",
-      name = "Pulse Cursor When Exiting |cffE52B50Free Look|r",
-      desc = "Quickly pulses the location of the cursor when exiting |cffE52B50Free Look|r mode.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
+      name = "Pulse Cursor When Exiting |cffE52B50Mouse Look|r",
+      desc = "Quickly pulses the location of the cursor when exiting |cffE52B50Mouse Look|r mode.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = 1.5,
       order = 7,
       set = function(_, value)
@@ -517,8 +517,8 @@ local FreeLookOptions = {
     spacing3 = Spacing("full", 8.1),
     mouseLookSpeed = {
       type = "range",
-      name = "Free Look Camera Turn Speed |cffE37527•|r",
-      desc = "Adjusts the speed at which you turn the camera while |cffE52B50Free Look|r mode is active. \n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cff00FF7F120|r",
+      name = "Mouse Look Camera Turn Speed |cffE37527•|r",
+      desc = "Adjusts the speed at which you turn the camera while |cffE52B50Mouse Look|r mode is active. \n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cff00FF7F120|r",
       min = 10,
       max = 180,
       softMin = 10,
@@ -547,7 +547,7 @@ local FreeLookOptions = {
     cursorUnlock = {
       type = "toggle",
       name = "Enable Auto Cursor Unlock",
-      desc = "Automatically disables |cffE52B50Free Look|r and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).\n\n|cffffd700Default:|r |cff00FF7FOn|r",
+      desc = "Automatically disables |cffE52B50Mouse Look|r and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
       order = 12,
       set = function(_, value)
@@ -741,7 +741,7 @@ local ReticleTargetingOptions = {
     crosshairSize = {
       type = "range",
       name = "Crosshair Size",
-      desc = "Adjusts the size of the crosshair in 16-pixel increments.",
+      desc = "Adjusts the size of the crosshair in 16-pixel increments. \n\n|cffffd700Default:|r |cff00FF7F64|r",
       min = 16,
       max = 128,
       softMin = 16,
@@ -766,7 +766,7 @@ local ReticleTargetingOptions = {
     crosshairAlpha = {
       type = "range",
       name = "Crosshair Opacity",
-      desc = "Adjusts the opacity of the crosshair.",
+      desc = "Adjusts the opacity of the crosshair. \n\n|cffffd700Default:|r |cff00FF7F100|r",
       min = 0.1,
       max = 1.0,
       softMin = 0.1,
@@ -792,7 +792,7 @@ local ReticleTargetingOptions = {
     crosshairY = {
       type = "range",
       name = "Crosshair Vertical Position",
-      desc = "Adjusts the vertical position of the crosshair.",
+      desc = "Adjusts the vertical position of the crosshair. \n\n|cffffd700Default:|r |cff00FF7F50|r",
       min = 0,
       max = 100,
       softMin = 0,
@@ -822,7 +822,7 @@ local ReticleTargetingOptions = {
       args = {
         crosshairNote = {
           type = "description",
-          name = "|cff909090While |cffE52B50Free Look|r is active, the |cffcfcfcfCursor|r will be moved to the position of the |cff00FFFFCrosshair|r and hidden, allowing it to reliably respond to |cffB47EDE@mouseover|r and |cffB47EDE@cursor|r macros.|r \n|cffcfcfcfExample macros have been added to your account-wide macros list (Esc > Macros) for users who'd like more control over target acquisition through either Soft-Locking or Hard-Locking Targeting.|r",
+          name = "|cff909090While |cffE52B50Mouse Look|r is active, the |cffcfcfcfCursor|r will be moved to the position of the |cff00FFFFCrosshair|r and hidden, allowing it to reliably respond to |cffB47EDE@mouseover|r and |cffB47EDE@cursor|r macros.|r \n|cffcfcfcfExample macros have been added to your account-wide macros list (Esc > Macros) for users who'd like more control over target acquisition through either Soft-Locking or Hard-Locking Targeting.|r",
           order = 1
         }
       }
@@ -931,7 +931,7 @@ CM.Config.AboutOptions = AboutOptions
 CM.Config.OptionCategories = {
   {
     id = "CombatMode_FreeLook",
-    name = "|cffE52B50 • Free Look|r",
+    name = "|cffE52B50 • Mouse Look|r",
     table = FreeLookOptions
   },
   {
