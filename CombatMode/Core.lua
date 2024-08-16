@@ -3,16 +3,10 @@
 ---------------------------------------------------------------------------------------
 -- IMPORTS
 local _G = _G
-
----@class AceAddon
 local AceAddon = _G.LibStub("AceAddon-3.0")
----@class AceDB
 local AceDB = _G.LibStub("AceDB-3.0")
----@class AceConfig
 local AceConfig = _G.LibStub("AceConfig-3.0")
----@class AceConfigDialog
 local AceConfigDialog = _G.LibStub("AceConfigDialog-3.0")
----@class AceConfigCmd
 local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 
 -- CACHING GLOBAL VARIABLES
@@ -53,12 +47,15 @@ local UnitReaction = _G.UnitReaction
 local unpack = _G.unpack
 
 -- INSTANTIATING ADDON & ENCAPSULATING NAMESPACE
----@class CM : AceAddon
 local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 _G["CM"] = CM
 
 -- INITIAL STATE VARIABLES
-local FreeLookOverride = false -- Changes when Free Look state is modified through user input ("Toggle" or "Press & Hold" keybinds and "/cm" cmd)
+--[[
+Changes when Free Look state is modified through user input
+("Toggle" or "Press & Hold" keybinds and "/cm" cmd)
+]] --
+local FreeLookOverride = false
 
 ---------------------------------------------------------------------------------------
 --                                 UTILITY FUNCTIONS                                 --
@@ -71,7 +68,8 @@ local function FetchDataFromTOC()
     "Notes",
     "Author",
     "X-Discord",
-    "X-Curse"
+    "X-Curse",
+    "X-Contributors"
   }
 
   for _, key in ipairs(keysToFetch) do
@@ -297,15 +295,15 @@ end
 
 -- Adjusts centered cursor vertical positioning to match crosshair's
 local function AdjustCenteredCursorYPos(crosshairYPos)
-  local cursorCenteredYpos = (crosshairYPos / 1000) + 0.5 -- adding 0.5 so we can never go below screen center
-  local adjustment = (crosshairYPos * 0.15) / 1000 -- lowering the cursor by 20% of Y Pos
+  local cursorCenteredYpos = (crosshairYPos / 1000) + 0.5 -- adding 0.5 to prevent going below screen center
+  local adjustment = (crosshairYPos * 0.15) / 1000 -- lowering the cursor by 15% of YPos to keep it within xhair
   cursorCenteredYpos = cursorCenteredYpos - adjustment
   SetCVar("CursorCenteredYPos", cursorCenteredYpos)
 end
 
 function CM.CreateCrosshair()
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
-  local UserConfig = CM.DB.global
+  local UserConfig = CM.DB.global or {}
   local crosshairYPos = UserConfig.crosshairY or DefaultConfig.crosshairY
 
   CrosshairTexture:SetAllPoints(CrosshairFrame)

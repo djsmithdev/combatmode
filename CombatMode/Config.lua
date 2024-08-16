@@ -355,10 +355,15 @@ local AboutOptions = {
       name = "|cffffffffVersion:|r " .. "|cff00ff00" .. CM.METADATA["VERSION"] .. "|r\n\n",
       order = 3.2
     },
+    authorsList = {
+      type = "description",
+      name = "|cffffffffAuthors:|r " .. "|cffcfcfcf" .. CM.METADATA["AUTHOR"] .. "|r\n",
+      order = 3.3
+    },
     contributorsList = {
       type = "description",
-      name = "|cffffffffCreated by:|r " .. "|cffcfcfcf" .. CM.METADATA["AUTHOR"] .. "|r\n\n",
-      order = 3.3
+      name = "|cffffffffContributors:|r " .. "|cffcfcfcf" .. CM.METADATA["X-CONTRIBUTORS"] .. "|r\n\n",
+      order = 3.4
     },
     curse = {
       name = "Download From:",
