@@ -129,8 +129,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       overrideButton1Toggle = {
         type = "toggle",
         name = "|A:NPE_LeftClick:38:38|a",
-        desc = "Enable the use of the |cffB47EDE" .. button1Name ..
-          "|r casting override while in |cffE52B50Mouse Look|r mode.",
+        desc = "Enable the use of the |cffB47EDE" .. button1Name .. "|r casting override while in |cffE52B50Mouse Look|r mode.",
         width = 0.4,
         order = 1,
         set = function(_, value)
@@ -192,8 +191,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       overrideButton2Toggle = {
         type = "toggle",
         name = "|A:NPE_RightClick:38:38|a",
-        desc = "Enable the use of the |cffB47EDE" .. button2Name ..
-          "|r casting override while in |cffE52B50Mouse Look|r mode.",
+        desc = "Enable the use of the |cffB47EDE" .. button2Name .. "|r casting override while in |cffE52B50Mouse Look|r mode.",
         width = 0.4,
         order = 2,
         set = function(_, value)

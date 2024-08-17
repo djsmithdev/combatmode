@@ -212,36 +212,11 @@ end
 
 -- CROSSHAIR REACTION COLORS
 CM.Constants.CrosshairReactionColors = {
-  hostile = {
-    1,
-    .2,
-    0.3,
-    1
-  }, -- red
-  friendly = {
-    0,
-    1,
-    0.3,
-    .8
-  }, -- green
-  object = {
-    1,
-    0.8,
-    0.2,
-    .8
-  }, -- yellow
-  base = {
-    1,
-    1,
-    1,
-    .5
-  }, -- white
-  mounted = {
-    1,
-    1,
-    1,
-    0
-  } -- transparent
+  hostile = {1, .2, 0.3, 1}, -- red
+  friendly = {0, 1, 0.3, .8}, -- green
+  object = {1, 0.8, 0.2, .8}, -- yellow
+  base = {1, 1, 1, .5}, -- white
+  mounted = {1, 1, 1, 0} -- transparent
 }
 
 ---------------------------------------------------------------------------------------
