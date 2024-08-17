@@ -560,7 +560,6 @@ local function LockFreeLook()
   if not IsMouselooking() then
     MouselookStart()
     CenterCursor(true)
-    GameTooltip:SetScript("OnShow", GameTooltip.Hide)
 
     if CM.DB.global.crosshair then
       CM.ShowCrosshair()
@@ -572,7 +571,6 @@ end
 
 local function UnlockFreeLook()
   if IsMouselooking() then
-    GameTooltip:SetScript("OnShow", GameTooltip.Show)
     CenterCursor(false)
     MouselookStop()
 
