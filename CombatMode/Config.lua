@@ -643,7 +643,7 @@ local ReticleTargetingOptions = {
       type = "toggle",
       name = "Enable |cff00FFFFReticle Targeting|r |cff3B73FF©|r",
       desc = "|cff3B73FF© Character-based option|r\n\nConfigures Blizzard's |cffffd700Action Targeting|r feature to be more precise and responsive. \n\n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n\n|cff909090Uncheck to reset them to their default values.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = "full",
+      width = 1,
       order = 3,
       confirmText = CM.METADATA["TITLE"] ..
         "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to |cff00FFFFReticle Targeting|r.|r \n\n|cffffd700Proceed?|r",
@@ -661,32 +661,13 @@ local ReticleTargetingOptions = {
         return CM.DB.char.reticleTargeting
       end
     },
-    crosshairPriority = {
-      type = "toggle",
-      name = "Always Prioritize Crosshair Target |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nGives the crosshair the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected (hard-locked) targets in favor of the unit at your crosshair.|r \n\n|cff909090Disabling this will prevent the crosshair from swapping off hard-locked targets.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = "full",
-      order = 4,
-      set = function(_, value)
-        CM.DB.char.crosshairPriority = value
-        if value then
-          CM.SetCrosshairPriority()
-        else
-          SetCVar("enableMouseoverCast", 0)
-        end
-      end,
-      get = function()
-        return CM.DB.char.crosshairPriority
-      end,
-      disabled = function()
-        return CM.DB.char.reticleTargeting ~= true
-      end
-    },
+    spacing1 = Spacing(0.2, 3.1),
     friendlyTargeting = {
       type = "toggle",
       name = "Allow Friendly Targeting |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nAllows friendlies to be targeted while the |cffE52B50Mouse Look|r camera is on.\n\n|cff909090Disabled by default to avoid situations like the Fiery Brand bug.|r\n\n|cffffd700Default:|r |cff00FF7FOff|r",
-      order = 5,
+      desc = "|cff3B73FF© Character-based option|r\n\nAllows friendlies to be targeted while the |cffE52B50Mouse Look|r camera is on.\n\n|cff909090Disabled by default to avoid situations like the Fiery Brand bug.|r\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = 1,
+      order = 4,
       set = function(_, value)
         CM.DB.char.friendlyTargeting = value
         CM.HandleFriendlyTargeting()
@@ -701,8 +682,9 @@ local ReticleTargetingOptions = {
     friendlyTargetingInCombat = {
       type = "toggle",
       name = "While in Combat |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nLeave Friendly Targeting on while in combat.\n\n|cffffd700Default:|r |cff00FF7FOff|r",
-      order = 6,
+      desc = "|cff3B73FF© Character-based option|r\n\nLeave Friendly Targeting on while in combat.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = 1,
+      order = 5,
       set = function(_, value)
         CM.DB.char.friendlyTargetingInCombat = value
         CM.HandleFriendlyTargeting()
@@ -712,6 +694,27 @@ local ReticleTargetingOptions = {
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting or not CM.DB.char.friendlyTargeting
+      end
+    },
+    crosshairPriority = {
+      type = "toggle",
+      name = "Always Prioritize Crosshair Target |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nGives the crosshair the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected (hard-locked) targets in favor of the unit at your crosshair.|r \n\n|cff909090Disabling this will prevent the crosshair from swapping off hard-locked targets.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
+      width = "full",
+      order = 6,
+      set = function(_, value)
+        CM.DB.char.crosshairPriority = value
+        if value then
+          CM.SetCrosshairPriority()
+        else
+          SetCVar("enableMouseoverCast", 0)
+        end
+      end,
+      get = function()
+        return CM.DB.char.crosshairPriority
+      end,
+      disabled = function()
+        return CM.DB.char.reticleTargeting ~= true
       end
     },
     crosshair = {
@@ -769,7 +772,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshair ~= true
       end
     },
-    spacing = Spacing("full", 7.1),
+    spacing2 = Spacing("full", 9.1),
     crosshairAppearance = {
       name = "Crosshair Appearance",
       desc = "Select the appearance of the crosshair texture.",
@@ -790,7 +793,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshair ~= true
       end
     },
-    spacing1 = Spacing(0.1, 8.1),
+    spacing3 = Spacing(0.1, 10.1),
     crosshairPreview = {
       type = "description",
       order = 11,
@@ -802,7 +805,7 @@ local ReticleTargetingOptions = {
       imageWidth = 42,
       imageHeight = 42
     },
-    spacing2 = Spacing("full", 9.1),
+    spacing4 = Spacing("full", 11.1),
     crosshairSize = {
       type = "range",
       name = "Crosshair Size",
@@ -827,7 +830,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairSize
       end
     },
-    spacing3 = Spacing("full", 13),
+    spacing5 = Spacing("full", 12.1),
     crosshairAlpha = {
       type = "range",
       name = "Crosshair Opacity",
@@ -838,7 +841,7 @@ local ReticleTargetingOptions = {
       softMax = 1.0,
       step = 0.1,
       width = "full",
-      order = 14,
+      order = 13,
       isPercent = true,
       disabled = function()
         return CM.DB.global.crosshair ~= true
@@ -853,7 +856,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairOpacity
       end
     },
-    spacing4 = Spacing("full", 15),
+    spacing6 = Spacing("full", 13.1),
     crosshairY = {
       type = "range",
       name = "Crosshair Vertical Position",
@@ -864,7 +867,7 @@ local ReticleTargetingOptions = {
       softMax = 100,
       step = 10,
       width = "full",
-      order = 16,
+      order = 14,
       disabled = function()
         return CM.DB.global.crosshair ~= true
       end,
@@ -878,11 +881,11 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairY
       end
     },
-    spacing5 = Spacing("full", 17),
+    spacing7 = Spacing("full", 14.1),
     devnote = {
       type = "group",
       name = "|cffffd700Developer Note|r",
-      order = 18,
+      order = 15,
       inline = true,
       args = {
         crosshairNote = {
