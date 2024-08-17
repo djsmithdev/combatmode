@@ -129,7 +129,8 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       overrideButton1Toggle = {
         type = "toggle",
         name = "|A:NPE_LeftClick:38:38|a",
-        desc = "Enable the use of the |cffB47EDE" .. button1Name .. "|r casting override while in |cffE52B50Mouse Look|r mode.",
+        desc = "Enable the use of the |cffB47EDE" .. button1Name ..
+          "|r casting override while in |cffE52B50Mouse Look|r mode.",
         width = 0.4,
         order = 1,
         set = function(_, value)
@@ -191,7 +192,8 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       overrideButton2Toggle = {
         type = "toggle",
         name = "|A:NPE_RightClick:38:38|a",
-        desc = "Enable the use of the |cffB47EDE" .. button2Name .. "|r casting override while in |cffE52B50Mouse Look|r mode.",
+        desc = "Enable the use of the |cffB47EDE" .. button2Name ..
+          "|r casting override while in |cffE52B50Mouse Look|r mode.",
         width = 0.4,
         order = 2,
         set = function(_, value)
@@ -395,6 +397,88 @@ local AboutOptions = {
 ---------------------------------------------------------------------------------------
 --                                    MOUSE LOOK                                     --
 ---------------------------------------------------------------------------------------
+
+-- CAMERA FEATURES
+local CameraFeatures = {
+  type = "group",
+  name = "Camera Features |cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r.|r",
+  order = 8,
+  inline = true,
+  args = {
+    actionCamera = {
+      type = "toggle",
+      name = "Load Combat Mode's |cffffd700Action Camera|r Preset |cffE37527•|r",
+      desc = "Configures Blizzard's |cffffd700Action Camera|r feature to a curated preset that better matches Combat Mode's development environment. \n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r.|r \n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = "full",
+      order = 1,
+      confirmText = CM.METADATA["TITLE"] ..
+        "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to Combat Mode's |cffffd700Action Camera|r Preset.|r \n\n|cffffd700Proceed?|r",
+      confirm = true,
+      set = function(_, value)
+        CM.DB.global.actionCamera = value
+        if value then
+          CM.ConfigActionCamera("combatmode")
+        else
+          CM.ConfigActionCamera("blizzard")
+        end
+        ReloadUI()
+      end,
+      get = function()
+        return CM.DB.global.actionCamera
+      end,
+      disabled = function()
+        return CM.DynamicCam
+      end
+    },
+    spacing = Spacing("full", 1.1),
+    shoulderOffset = {
+      type = "range",
+      name = "Camera Over Shoulder Offset |cff3B73FF©|r |cffE37527•|r",
+      desc = "|cff3B73FF© Character-based option|r \n\nHorizontally offsets the camera to the left or right of your character while the |cffffd700Action Camera Preset|r is enabled. \n\n|cffE52B50Requires |cffffd700Motion Sickness|r under Acessibility options to be turned off.|r \n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cff00FF7F1.2|r",
+      min = -2,
+      max = 2,
+      softMin = -2,
+      softMax = 2,
+      step = 0.1,
+      width = 1.75,
+      order = 2,
+      set = function(_, value)
+        CM.DB.char.shoulderOffset = value
+        CM.SetShoulderOffset()
+      end,
+      get = function()
+        return CM.DB.char.shoulderOffset
+      end,
+      disabled = function()
+        return CM.DynamicCam or CM.DB.global.actionCamera ~= true
+      end
+    },
+    spacing3 = Spacing(0.15, 2.1),
+    mouseLookSpeed = {
+      type = "range",
+      name = "|cffE52B50Mouse Look|r Camera Turn Speed |cffE37527•|r",
+      desc = "Adjusts the speed at which you turn the camera while |cffE52B50Mouse Look|r mode is active. \n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cff00FF7F120|r",
+      min = 10,
+      max = 180,
+      softMin = 10,
+      softMax = 180,
+      step = 10,
+      width = 1.75,
+      order = 3,
+      set = function(_, value)
+        CM.DB.global.mouseLookSpeed = value
+        CM.SetMouseLookSpeed()
+      end,
+      get = function()
+        return CM.DB.global.mouseLookSpeed
+      end,
+      disabled = function()
+        return CM.DynamicCam
+      end
+    }
+  }
+}
+
 local FreeLookOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
@@ -455,37 +539,12 @@ local FreeLookOptions = {
       end
     },
     spacing = Spacing("full", 5.1),
-    actionCamera = {
-      type = "toggle",
-      name = "Load Combat Mode's |cffffd700Action Camera|r Preset |cffE37527•|r",
-      desc = "Configures Blizzard's |cffffd700Action Camera|r feature to a curated preset that better matches Combat Mode's development environment. \n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r.|r \n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = 2.25,
-      order = 6,
-      confirmText = CM.METADATA["TITLE"] ..
-        "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to Combat Mode's |cffffd700Action Camera|r Preset.|r \n\n|cffffd700Proceed?|r",
-      confirm = true,
-      set = function(_, value)
-        CM.DB.global.actionCamera = value
-        if value then
-          CM.ConfigActionCamera("combatmode")
-        else
-          CM.ConfigActionCamera("blizzard")
-        end
-        ReloadUI()
-      end,
-      get = function()
-        return CM.DB.global.actionCamera
-      end,
-      disabled = function()
-        return CM.DynamicCam
-      end
-    },
     pulseCursor = {
       type = "toggle",
       name = "Pulse Cursor When Exiting |cffE52B50Mouse Look|r",
       desc = "Quickly pulses the location of the cursor when exiting |cffE52B50Mouse Look|r mode.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = 1.5,
-      order = 7,
+      width = 2.25,
+      order = 6,
       set = function(_, value)
         CM.DB.global.pulseCursor = value
       end,
@@ -493,54 +552,26 @@ local FreeLookOptions = {
         return CM.DB.global.pulseCursor
       end
     },
+    hideTooltip = {
+      type = "toggle",
+      name = "Hide Tooltip During |cffE52B50Mouse Look|r",
+      desc = "Hides the tooltip generated by the |cff00FFFFCrosshair|r while |cffE52B50Mouse Look|r is active.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
+      width = 1.5,
+      order = 6.1,
+      set = function(_, value)
+        CM.DB.global.hideTooltip = value
+      end,
+      get = function()
+        return CM.DB.global.hideTooltip
+      end,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end
+    },
     spacing2 = Spacing("full", 7.1),
-    shoulderOffset = {
-      type = "range",
-      name = "Camera Over Shoulder Offset |cff3B73FF©|r |cffE37527•|r",
-      desc = "|cff3B73FF© Character-based option|r \n\nHorizontally offsets the camera to the left or right of your character while the |cffffd700Action Camera Preset|r is enabled. \n\n|cffE52B50Requires |cffffd700Motion Sickness|r under Acessibility options to be turned off.|r \n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cff00FF7F1.2|r",
-      min = -2,
-      max = 2,
-      softMin = -2,
-      softMax = 2,
-      step = 0.1,
-      width = "full",
-      order = 8,
-      set = function(_, value)
-        CM.DB.char.shoulderOffset = value
-        CM.SetShoulderOffset()
-      end,
-      get = function()
-        return CM.DB.char.shoulderOffset
-      end,
-      disabled = function()
-        return CM.DynamicCam or CM.DB.global.actionCamera ~= true
-      end
-    },
-    spacing3 = Spacing("full", 8.1),
-    mouseLookSpeed = {
-      type = "range",
-      name = "Mouse Look Camera Turn Speed |cffE37527•|r",
-      desc = "Adjusts the speed at which you turn the camera while |cffE52B50Mouse Look|r mode is active. \n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cff00FF7F120|r",
-      min = 10,
-      max = 180,
-      softMin = 10,
-      softMax = 180,
-      step = 10,
-      width = "full",
-      order = 9,
-      set = function(_, value)
-        CM.DB.global.mouseLookSpeed = value
-        CM.SetMouseLookSpeed()
-      end,
-      get = function()
-        return CM.DB.global.mouseLookSpeed
-      end,
-      disabled = function()
-        return CM.DynamicCam
-      end
-    },
-    spacing4 = Spacing("full", 9.1),
-    spacing5 = Spacing("full", 9.2),
+    cameraFeatures = CameraFeatures,
+    spacing4 = Spacing("full", 8.1),
+    spacing5 = Spacing("full", 8.2),
     ---------------------------------------------------------------------------------------
     --                                   CURSOR UNLOCK                                   --
     ---------------------------------------------------------------------------------------
@@ -550,7 +581,7 @@ local FreeLookOptions = {
       type = "toggle",
       name = "Enable |cff00FF7FAuto Cursor Unlock|r",
       desc = "Automatically disables |cffE52B50Mouse Look|r and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = "full",
+      width = 2.25,
       order = 12,
       set = function(_, value)
         CM.DB.global.frameWatching = value
@@ -563,7 +594,7 @@ local FreeLookOptions = {
       type = "toggle",
       name = "Unlock While On |cffffd700Vendor Mount|r",
       desc = "Keeps the cursor unlocked while a vendor mounts is being used.\n\n|cffffd700Vendor Mounts:|r \n|cff909090Grand Expedition Yak\nTraveler's Tundra Mammoth\nMighty Caravan Brutosaur|r \n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = "full",
+      width = 1.5,
       order = 13,
       set = function(_, value)
         CM.DB.global.mountCheck = value
@@ -660,9 +691,9 @@ local ReticleTargetingOptions = {
       set = function(_, value)
         CM.DB.global.crosshair = value
         if value then
-          CM.ShowCrosshair()
+          CM.DisplayCrosshair(true)
         else
-          CM.HideCrosshair()
+          CM.DisplayCrosshair(false)
         end
       end,
       get = function()
@@ -734,10 +765,10 @@ local ReticleTargetingOptions = {
       name = "",
       width = 0.25,
       image = function()
-          return CM.DB.global.crosshairAppearance.Base
+        return CM.DB.global.crosshairAppearance.Base
       end,
       imageWidth = 42,
-      imageHeight = 42,
+      imageHeight = 42
     },
     spacing2 = Spacing("full", 9.1),
     crosshairSize = {
