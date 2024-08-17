@@ -140,6 +140,22 @@ local function IsDefaultMouseActionBeingUsed()
   return IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
 end
 
+local function HideTooltip(shouldHide)
+  local hookFunction = function()
+    if shouldHide then
+      _G.GameTooltip:Hide()
+    else
+      _G.GameTooltip:Show()
+    end
+  end
+
+  -- Need to call it immediately in case there's a tooltip still fading
+  hookFunction()
+
+  _G.GameTooltip:SetScript("OnShow", nil) -- unhook previous script
+  _G.GameTooltip:HookScript("OnShow", hookFunction)
+end
+
 --[[
   Checking if DynamicCam is loaded so we can relinquish control of a few camera features
   as DynamicCam allows fine-grained control of Mouselook Speed & Target Focus
@@ -301,12 +317,12 @@ local function SetCrosshairAppearance(state)
   end
 end
 
-function CM.ShowCrosshair()
-  CrosshairTexture:Show()
-end
-
-function CM.HideCrosshair()
-  CrosshairTexture:Hide()
+function CM.DisplayCrosshair(shouldShow)
+  if shouldShow then
+    CrosshairTexture:Show()
+  else
+    CrosshairTexture:Hide()
+  end
 end
 
 -- Adjusts centered cursor vertical positioning to match crosshair's
@@ -425,7 +441,7 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
         -- Hiding crosshair because OPie runs MouselookStop() itself,
         -- which skips UnlockCursor()'s checks to hide crosshair
         if CM.DB.global.crosshair then
-          CM.HideCrosshair()
+          CM.DisplayCrosshair(false)
         end
         CenterCursor(false)
       end
@@ -562,7 +578,11 @@ local function LockFreeLook()
     CenterCursor(true)
 
     if CM.DB.global.crosshair then
-      CM.ShowCrosshair()
+      CM.DisplayCrosshair(true)
+    end
+
+    if CM.DB.global.hideTooltip then
+      HideTooltip(true)
     end
 
     CM.DebugPrint("Free Look Enabled")
@@ -579,7 +599,11 @@ local function UnlockFreeLook()
     end
 
     if CM.DB.global.crosshair then
-      CM.HideCrosshair()
+      CM.DisplayCrosshair(false)
+    end
+
+    if CM.DB.global.hideTooltip then
+      HideTooltip(false)
     end
 
     CM.DebugPrint("Free Look Disabled")
@@ -629,7 +653,7 @@ local function Rematch()
       CM.ConfigStickyCrosshair("combatmode")
     end
   elseif CM.DB.global.crosshair == false then
-    CM.HideCrosshair()
+    CM.DisplayCrosshair(false)
   end
 
   LockFreeLook()

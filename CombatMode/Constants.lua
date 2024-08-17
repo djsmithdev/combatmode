@@ -591,6 +591,7 @@ CM.Constants.DatabaseDefaults = {
     customCondition = "",
     crosshair = true,
     crosshairMounted = false,
+    hideTooltip = true,
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
     crosshairSize = 64,
     crosshairOpacity = 1.0,
