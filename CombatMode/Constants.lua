@@ -31,8 +31,6 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["SoftTargetInteractRange"] = 15,
   -- SoftTarget Friend
   ["SoftTargetFriend"] = 0,
-  ["SoftTargetFriendArc"] = 0,
-  ["SoftTargetFriendRange"] = 15,
   -- SoftTarget Nameplate
   ["SoftTargetNameplateEnemy"] = 1, -- Always show nameplates  for soft target enemy.
   -- SoftTarget Icon
