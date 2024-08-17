@@ -3,7 +3,7 @@
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
 ## Author: justice7ca, sampconrad.
-## X-Contributors: ThomasDigio, DKulan, BennyFits.
+## X-Contributors: Orazur, DKulan, BennyFits.
 ## Notes: Combat Mode transforms the standard tab-targeting combat into a more engaging and dynamic action-oriented experience.
 ## IconTexture: Interface\AddOns\CombatMode\assets\cmlogo
 

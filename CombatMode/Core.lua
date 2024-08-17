@@ -190,6 +190,20 @@ local function LoadCVars(info)
   for name, value in pairs(CVarsToLoad) do
     SetCVar(name, value)
   end
+
+  CM.HandleFriendlyTargeting()
+end
+
+function CM.HandleFriendlyTargeting()
+  if CM.DB.char.reticleTargeting and CM.DB.char.friendlyTargeting then
+    if not UnitAffectingCombat("player") or CM.DB.char.friendlyTargetingInCombat then
+      CM.DebugPrint("Enabling Friendly Targeting")
+      SetCVar("SoftTargetFriend", 3)
+    else
+      CM.DebugPrint("Disabling Friendly Targeting")
+      SetCVar("SoftTargetFriend", 0)
+    end
+  end
 end
 
 function CM.ConfigReticleTargeting(CVarType)
@@ -667,6 +681,9 @@ local function HandleEventByCategory(category, event)
         HandleCrosshairReactionToTarget(event == "PLAYER_SOFT_ENEMY_CHANGED" and "softenemy" or "softinteract")
       end
     end,
+    FRIENDLY_TARGETING_EVENTS = function()
+      CM.HandleFriendlyTargeting()
+    end,
     UNCATEGORIZED_EVENTS = function()
       SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
     end
@@ -683,7 +700,6 @@ function _G.CombatMode_OnEvent(event)
     for _, registered_event in ipairs(registered_events) do
       if event == registered_event then
         HandleEventByCategory(category, event)
-        return
       end
     end
   end
