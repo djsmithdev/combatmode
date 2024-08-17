@@ -30,7 +30,9 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["SoftTargetInteractArc"] = 1, -- Setting it to 1 since we don't need too much precision when interacting with NPCs and having to aim precisely at them when this is set to 0 gets annoying.
   ["SoftTargetInteractRange"] = 15,
   -- SoftTarget Friend
-  ["SoftTargetFriend"] = 0, -- Disabled for friendlies to avoid situations like the Fiery Brand bug.
+  ["SoftTargetFriend"] = 0,
+  ["SoftTargetFriendArc"] = 0,
+  ["SoftTargetFriendRange"] = 15,
   -- SoftTarget Nameplate
   ["SoftTargetNameplateEnemy"] = 1, -- Always show nameplates  for soft target enemy.
   -- SoftTarget Icon
@@ -43,7 +45,7 @@ CM.Constants.ReticleTargetingCVarValues = {
 }
 
 -- CVARS FOR ACTION CAMERA
--- https://wowpedia.fandom.com/wiki/CVar_ActionCam
+-- https://warcraft.wiki.gg/wiki/CVar_ActionCam
 CM.Constants.ActionCameraCVarValues = {
   ["test_cameraDynamicPitch"] = 1, -- Vertical Pitch
   ["test_cameraDynamicPitchBaseFovPad"] = 0, -- Pitch (ground)
@@ -142,10 +144,14 @@ CM.Constants.BLIZZARD_EVENTS = {
     "PLAYER_SOFT_ENEMY_CHANGED",
     "PLAYER_SOFT_INTERACT_CHANGED"
   },
+  FRIENDLY_TARGETING_EVENTS = {
+    "PLAYER_REGEN_ENABLED", -- Disabling friendly targeting when leaving combat
+    "PLAYER_REGEN_DISABLED" -- Enabling friendly targeting when entering combat
+  },
   -- Events that don't fall within the previous categories
   UNCATEGORIZED_EVENTS = {
     "PLAYER_MOUNT_DISPLAY_CHANGED", -- Toggling crosshair when mounting/dismounting
-    "PLAYER_REGEN_ENABLED" -- Reseting crosshair when leaving combat
+    "PLAYER_REGEN_ENABLED" -- Resetting crosshair when leaving combat
   }
 }
 
@@ -206,11 +212,36 @@ end
 
 -- CROSSHAIR REACTION COLORS
 CM.Constants.CrosshairReactionColors = {
-  hostile = {1, .2, 0.3, 1}, -- red
-  friendly = {0, 1, 0.3, .8}, -- green
-  object = {1, 0.8, 0.2, .8}, -- yellow
-  base = {1, 1, 1, .5}, -- white
-  mounted = {1, 1, 1, 0} -- transparent
+  hostile = {
+    1,
+    .2,
+    0.3,
+    1
+  }, -- red
+  friendly = {
+    0,
+    1,
+    0.3,
+    .8
+  }, -- green
+  object = {
+    1,
+    0.8,
+    0.2,
+    .8
+  }, -- yellow
+  base = {
+    1,
+    1,
+    1,
+    .5
+  }, -- white
+  mounted = {
+    1,
+    1,
+    1,
+    0
+  } -- transparent
 }
 
 ---------------------------------------------------------------------------------------
@@ -225,6 +256,7 @@ CM.Constants.FramesToCheck = {
   "AuctionHouseFrame",
   "BankFrame",
   "BattlefieldFrame",
+  "BFAMissionFrame",
   "BonusRollFrame",
   "CalendarFrame",
   "CharacterFrame",
@@ -254,6 +286,8 @@ CM.Constants.FramesToCheck = {
   "ContainerFrame16",
   "ContainerFrame17",
   "ContainerFrameCombinedBags",
+  "CovenantMissionFrame",
+  "CovenantSanctumFrame",
   "DeathRecapFrame",
   "DressUpFrame",
   "DropDownList1",
@@ -283,6 +317,7 @@ CM.Constants.FramesToCheck = {
   "KeyBindingFrame",
   "LanguageMenu",
   "LFGDungeonReadyDialog",
+  "LFDRoleCheckPopup",
   "LFGListInviteDialog",
   "LookingForGuildFrame",
   "LootFrame",
@@ -304,6 +339,7 @@ CM.Constants.FramesToCheck = {
   "ProfessionsFrame",
   "PVEFrame",
   "PVPMatchResults",
+  "PVPMatchScoreboard",
   "PVPUIFrame",
   "QuestFrame",
   "QuestLogFrame",
@@ -329,6 +365,7 @@ CM.Constants.FramesToCheck = {
   "TalentFrame",
   "TalentTrainerFrame",
   "TaxiFrame",
+  "TorghastLevelPickerFrame",
   "TradeFrame",
   "TradeSkillFrame",
   "TutorialFrame",
@@ -591,6 +628,8 @@ CM.Constants.DatabaseDefaults = {
     shoulderOffset = 1.2,
     reticleTargeting = true,
     crosshairPriority = true,
+    friendlyTargeting = false,
+    friendlyTargetingInCombat = false,
     stickyCrosshair = false,
     bindings = DefaultBindings
   }

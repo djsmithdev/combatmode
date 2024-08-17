@@ -129,7 +129,8 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       overrideButton1Toggle = {
         type = "toggle",
         name = "|A:NPE_LeftClick:38:38|a",
-        desc = "Enable the use of the |cffB47EDE" .. button1Name .. "|r casting override while in |cffE52B50Mouse Look|r mode.",
+        desc = "Enable the use of the |cffB47EDE" .. button1Name ..
+          "|r casting override while in |cffE52B50Mouse Look|r mode.",
         width = 0.4,
         order = 1,
         set = function(_, value)
@@ -191,7 +192,8 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       overrideButton2Toggle = {
         type = "toggle",
         name = "|A:NPE_RightClick:38:38|a",
-        desc = "Enable the use of the |cffB47EDE" .. button2Name .. "|r casting override while in |cffE52B50Mouse Look|r mode.",
+        desc = "Enable the use of the |cffB47EDE" .. button2Name ..
+          "|r casting override while in |cffE52B50Mouse Look|r mode.",
         width = 0.4,
         order = 2,
         set = function(_, value)
@@ -258,12 +260,12 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
           },
           wowwiki = {
             name = "You can find all available actions here:",
-            desc = "wowpedia.fandom.com/wiki/BindingID",
+            desc = "warcraft.wiki.gg/wiki/BindingID",
             type = "input",
             width = 1.7,
             order = 5,
             get = function()
-              return "wowpedia.fandom.com/wiki/BindingID"
+              return "warcraft.wiki.gg/wiki/BindingID"
             end
           }
         }
@@ -651,12 +653,44 @@ local ReticleTargetingOptions = {
         return CM.DB.char.reticleTargeting ~= true
       end
     },
+    friendlyTargeting = {
+      type = "toggle",
+      name = "Allow Friendly Targeting |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nAllows friendlies to be targeted while the |cffE52B50Mouse Look|r camera is on.\n\n|cff909090Disabled by default to avoid situations like the Fiery Brand bug.|r\n\n|cffffd700Default:|r |cff00FF7FOff|r",
+      order = 5,
+      set = function(_, value)
+        CM.DB.char.friendlyTargeting = value
+        CM.HandleFriendlyTargeting()
+      end,
+      get = function()
+        return CM.DB.char.friendlyTargeting
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end
+    },
+    friendlyTargetingInCombat = {
+      type = "toggle",
+      name = "While in Combat |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nLeave Friendly Targeting on while in combat.\n\n|cffffd700Default:|r |cff00FF7FOff|r",
+      order = 6,
+      set = function(_, value)
+        CM.DB.char.friendlyTargetingInCombat = value
+        CM.HandleFriendlyTargeting()
+      end,
+      get = function()
+        return CM.DB.char.friendlyTargetingInCombat
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting or not CM.DB.char.friendlyTargeting
+      end
+    },
     crosshair = {
       type = "toggle",
       name = "Show Crosshair",
       desc = "Places a dynamic crosshair marker in the center of the screen to assist with |cff00FFFFReticle Targeting|r.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = "full",
-      order = 5,
+      order = 7,
       set = function(_, value)
         CM.DB.global.crosshair = value
         if value then
@@ -674,7 +708,7 @@ local ReticleTargetingOptions = {
       name = "Sticky Crosshair |cff3B73FF©|r |cffE37527•|r",
       desc = "|cff3B73FF© Character-based option|r\n\nMakes the crosshair stick to enemies slightly, making it harder to untarget them by accident.\n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
-      order = 6,
+      order = 8,
       set = function(_, value)
         CM.DB.char.stickyCrosshair = value
         if value then
@@ -695,7 +729,7 @@ local ReticleTargetingOptions = {
       name = "Hide Crosshair While Mounted",
       desc = "Hides the crosshair while mounted.\n\n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
-      order = 7,
+      order = 9,
       set = function(_, value)
         CM.DB.global.crosshairMounted = value
       end,
@@ -712,7 +746,7 @@ local ReticleTargetingOptions = {
       desc = "Select the appearance of the crosshair texture.",
       type = "select",
       width = 3.4,
-      order = 8,
+      order = 10,
       values = CM.Constants.CrosshairAppearanceSelectValues,
       set = function(_, value)
         CM.DB.global.crosshairAppearance = CM.Constants.CrosshairTextureObj[value]
@@ -730,14 +764,14 @@ local ReticleTargetingOptions = {
     spacing1 = Spacing(0.1, 8.1),
     crosshairPreview = {
       type = "description",
-      order = 9,
+      order = 11,
       name = "",
       width = 0.25,
       image = function()
-          return CM.DB.global.crosshairAppearance.Base
+        return CM.DB.global.crosshairAppearance.Base
       end,
       imageWidth = 42,
-      imageHeight = 42,
+      imageHeight = 42
     },
     spacing2 = Spacing("full", 9.1),
     crosshairSize = {
@@ -750,7 +784,7 @@ local ReticleTargetingOptions = {
       softMax = 128,
       step = 16,
       width = "full",
-      order = 10,
+      order = 12,
       disabled = function()
         return CM.DB.global.crosshair ~= true
       end,
@@ -764,7 +798,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairSize
       end
     },
-    spacing3 = Spacing("full", 11),
+    spacing3 = Spacing("full", 13),
     crosshairAlpha = {
       type = "range",
       name = "Crosshair Opacity",
@@ -775,7 +809,7 @@ local ReticleTargetingOptions = {
       softMax = 1.0,
       step = 0.1,
       width = "full",
-      order = 12,
+      order = 14,
       isPercent = true,
       disabled = function()
         return CM.DB.global.crosshair ~= true
@@ -790,7 +824,7 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairOpacity
       end
     },
-    spacing4 = Spacing("full", 13),
+    spacing4 = Spacing("full", 15),
     crosshairY = {
       type = "range",
       name = "Crosshair Vertical Position",
@@ -801,7 +835,7 @@ local ReticleTargetingOptions = {
       softMax = 100,
       step = 10,
       width = "full",
-      order = 14,
+      order = 16,
       disabled = function()
         return CM.DB.global.crosshair ~= true
       end,
@@ -815,11 +849,11 @@ local ReticleTargetingOptions = {
         return CM.DB.global.crosshairY
       end
     },
-    spacing5 = Spacing("full", 15),
+    spacing5 = Spacing("full", 17),
     devnote = {
       type = "group",
       name = "|cffffd700Developer Note|r",
-      order = 16,
+      order = 18,
       inline = true,
       args = {
         crosshairNote = {
@@ -908,12 +942,12 @@ local AdvancedConfigOptions = {
             },
             wowpediaApi = {
               name = "You can find all available functions and how to use them here:",
-              desc = "wowpedia.fandom.com/wiki/World_of_Warcraft_API",
+              desc = "warcraft.wiki.gg/wiki/World_of_Warcraft_API",
               type = "input",
               width = 2.2,
               order = 3,
               get = function()
-                return "wowpedia.fandom.com/wiki/World_of_Warcraft_API"
+                return "warcraft.wiki.gg/wiki/World_of_Warcraft_API"
               end
             }
           }
