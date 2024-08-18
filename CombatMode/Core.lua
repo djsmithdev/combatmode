@@ -40,6 +40,7 @@ local SpellIsTargeting = _G.SpellIsTargeting
 local StaticPopupDialogs = _G.StaticPopupDialogs
 local StaticPopup_Show = _G.StaticPopup_Show
 local UIParent = _G.UIParent
+local UnitAffectingCombat = _G.UnitAffectingCombat
 local UnitExists = _G.UnitExists
 local UnitGUID = _G.UnitGUID
 local UnitIsGameObject = _G.UnitIsGameObject
@@ -192,6 +193,26 @@ local function LoadCVars(info)
   end
 end
 
+function CM.HandleFriendlyTargeting()
+  local CharConfig = CM.DB.char or {}
+  local isTargetFriendOn = CharConfig.reticleTargeting and CharConfig.friendlyTargeting
+
+  if not isTargetFriendOn then
+    return
+  end
+
+  local InCombat = UnitAffectingCombat("player")
+  local targetFriendInCombat = CharConfig.friendlyTargetingInCombat
+
+  if not InCombat or targetFriendInCombat then
+    CM.DebugPrint("Enabling Friendly Targeting")
+    SetCVar("SoftTargetFriend", 3)
+  else
+    CM.DebugPrint("Disabling Friendly Targeting")
+    SetCVar("SoftTargetFriend", 0)
+  end
+end
+
 function CM.ConfigReticleTargeting(CVarType)
   local info = {
     CVarType = CVarType,
@@ -201,6 +222,7 @@ function CM.ConfigReticleTargeting(CVarType)
   }
 
   LoadCVars(info)
+  CM.HandleFriendlyTargeting()
 end
 
 function CM.ConfigActionCamera(CVarType)
@@ -617,6 +639,7 @@ end
 ---------------------------------------------------------------------------------------
 -- Rematch is called after every reload and this is where we make sure our config persists
 local function Rematch()
+  IsDCLoaded()
   CM.SetMouseLookSpeed()
 
   if CM.DB.global.actionCamera then
@@ -660,12 +683,14 @@ local function HandleEventByCategory(category, event)
     end,
     REMATCH_EVENTS = function()
       Rematch()
-      IsDCLoaded()
     end,
     TARGETING_EVENTS = function()
       if not HideCrosshairWhileMounted() then
         HandleCrosshairReactionToTarget(event == "PLAYER_SOFT_ENEMY_CHANGED" and "softenemy" or "softinteract")
       end
+    end,
+    FRIENDLY_TARGETING_EVENTS = function()
+      CM.HandleFriendlyTargeting()
     end,
     UNCATEGORIZED_EVENTS = function()
       SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
@@ -683,7 +708,6 @@ function _G.CombatMode_OnEvent(event)
     for _, registered_event in ipairs(registered_events) do
       if event == registered_event then
         HandleEventByCategory(category, event)
-        return
       end
     end
   end
