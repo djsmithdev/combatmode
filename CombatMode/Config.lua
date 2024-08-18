@@ -397,7 +397,6 @@ local AboutOptions = {
 ---------------------------------------------------------------------------------------
 --                                    MOUSE LOOK                                     --
 ---------------------------------------------------------------------------------------
-
 -- CAMERA FEATURES
 local CameraFeatures = {
   type = "group",
@@ -632,6 +631,180 @@ local FreeLookOptions = {
 ---------------------------------------------------------------------------------------
 --                                 RETICLE TARGETING                                 --
 ---------------------------------------------------------------------------------------
+-- CROSSHAIR
+local CrosshairGroup = {
+  type = "group",
+  name = "Crosshair",
+  order = 7,
+  inline = true,
+  args = {
+    crosshair = {
+      type = "toggle",
+      name = "Show Crosshair",
+      desc = "Places a dynamic crosshair marker in the center of the screen to assist with |cff00FFFFReticle Targeting|r.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
+      width = 2.04,
+      order = 1,
+      set = function(_, value)
+        CM.DB.global.crosshair = value
+        if value then
+          CM.DisplayCrosshair(true)
+        else
+          CM.DisplayCrosshair(false)
+        end
+      end,
+      get = function()
+        return CM.DB.global.crosshair
+      end
+    },
+    crosshairMounted = {
+      type = "toggle",
+      name = "Hide Crosshair While Mounted",
+      desc = "Hides the crosshair while mounted.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = 1.4,
+      order = 2,
+      set = function(_, value)
+        CM.DB.global.crosshairMounted = value
+      end,
+      get = function()
+        return CM.DB.global.crosshairMounted
+      end,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end
+    },
+    stickyCrosshair = {
+      type = "toggle",
+      name = "Sticky Crosshair |cff3B73FF©|r |cffE37527•|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nMakes the crosshair stick to enemies slightly, making it harder to untarget them by accident.\n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = 2.1,
+      order = 3,
+      set = function(_, value)
+        CM.DB.char.stickyCrosshair = value
+        if value then
+          CM.ConfigStickyCrosshair("combatmode")
+        else
+          CM.ConfigStickyCrosshair("blizzard")
+        end
+      end,
+      get = function()
+        return CM.DB.char.stickyCrosshair
+      end,
+      disabled = function()
+        return CM.DynamicCam or CM.DB.global.crosshair ~= true
+      end
+    },
+    spacing2 = Spacing("full", 3.1),
+    crosshairAppearance = {
+      name = "Crosshair Appearance",
+      desc = "Select the appearance of the crosshair texture.",
+      type = "select",
+      width = 1.4,
+      order = 4,
+      values = CM.Constants.CrosshairAppearanceSelectValues,
+      set = function(_, value)
+        CM.DB.global.crosshairAppearance = CM.Constants.CrosshairTextureObj[value]
+        if value then
+          CM.CreateCrosshair()
+        end
+      end,
+      get = function()
+        return CM.DB.global.crosshairAppearance.Name
+      end,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end
+    },
+    spacing3 = Spacing(0.1, 4.1),
+    crosshairPreview = {
+      type = "description",
+      order = 5,
+      name = "",
+      width = 0.25,
+      image = function()
+        return CM.DB.global.crosshairAppearance.Base
+      end,
+      imageWidth = 42,
+      imageHeight = 42
+    },
+    spacing4 = Spacing(0.15, 5.1),
+    crosshairSize = {
+      type = "range",
+      name = "Crosshair Size",
+      desc = "Adjusts the size of the crosshair in 16-pixel increments. \n\n|cffffd700Default:|r |cff00FF7F64|r",
+      min = 16,
+      max = 128,
+      softMin = 16,
+      softMax = 128,
+      step = 16,
+      width = 1.75,
+      order = 7,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end,
+      set = function(_, value)
+        CM.DB.global.crosshairSize = value
+        if value then
+          CM.CreateCrosshair()
+        end
+      end,
+      get = function()
+        return CM.DB.global.crosshairSize
+      end
+    },
+    spacing5 = Spacing("full", 6.1),
+    crosshairAlpha = {
+      type = "range",
+      name = "Crosshair Opacity",
+      desc = "Adjusts the opacity of the crosshair. \n\n|cffffd700Default:|r |cff00FF7F100|r",
+      min = 0.1,
+      max = 1.0,
+      softMin = 0.1,
+      softMax = 1.0,
+      step = 0.1,
+      width = 1.75,
+      order = 8,
+      isPercent = true,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end,
+      set = function(_, value)
+        CM.DB.global.crosshairOpacity = value
+        if value then
+          CM.CreateCrosshair()
+        end
+      end,
+      get = function()
+        return CM.DB.global.crosshairOpacity
+      end
+    },
+    spacing6 = Spacing(0.15, 7.1),
+    crosshairY = {
+      type = "range",
+      name = "Crosshair Vertical Position",
+      desc = "Adjusts the vertical position of the crosshair. \n\n|cffffd700Default:|r |cff00FF7F50|r",
+      min = 0,
+      max = 100,
+      softMin = 0,
+      softMax = 100,
+      step = 10,
+      width = 1.75,
+      order = 6,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end,
+      set = function(_, value)
+        CM.DB.global.crosshairY = value
+        if value then
+          CM.CreateCrosshair()
+        end
+      end,
+      get = function()
+        return CM.DB.global.crosshairY
+      end
+    }
+  }
+}
+
 local ReticleTargetingOptions = {
   name = CM.METADATA["TITLE"],
   handler = CM,
@@ -643,7 +816,7 @@ local ReticleTargetingOptions = {
       type = "toggle",
       name = "Enable |cff00FFFFReticle Targeting|r |cff3B73FF©|r",
       desc = "|cff3B73FF© Character-based option|r\n\nConfigures Blizzard's |cffffd700Action Targeting|r feature to be more precise and responsive. \n\n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n\n|cff909090Uncheck to reset them to their default values.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = 1,
+      width = 2.1,
       order = 3,
       confirmText = CM.METADATA["TITLE"] ..
         "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to |cff00FFFFReticle Targeting|r.|r \n\n|cffffd700Proceed?|r",
@@ -661,16 +834,22 @@ local ReticleTargetingOptions = {
         return CM.DB.char.reticleTargeting
       end
     },
-    spacing1 = Spacing(0.2, 3.1),
     friendlyTargeting = {
       type = "toggle",
-      name = "Allow Friendly Targeting |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nAllows friendlies to be targeted while the |cffE52B50Mouse Look|r camera is on.\n\n|cff909090Disabled by default to avoid situations like the Fiery Brand bug.|r\n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = 1,
+      name = "Allow Reticle To Target Friendlies |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nAllows friendlies to be targeted |cffffd700outside of combat|r while the |cffE52B50Mouse Look|r camera is on.\n\n|cff909090Disabled by default to avoid situations like the Fiery Brand bug.|r\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = 1.4,
       order = 4,
+      confirm = true,
+      confirmText = CM.METADATA["TITLE"] ..
+        "\n\n|cffcfcfcfAllowing the reticle to target friendlies can, under certain conditions, cause a |cffE52B50Invalid Target|r bug. \n\n|cffffd700Proceed anyway?|r|r",
       set = function(_, value)
         CM.DB.char.friendlyTargeting = value
-        CM.HandleFriendlyTargeting()
+        if value then
+          CM.HandleFriendlyTargeting()
+        else
+          SetCVar("SoftTargetFriend", 0)
+        end
       end,
       get = function()
         return CM.DB.char.friendlyTargeting
@@ -679,29 +858,12 @@ local ReticleTargetingOptions = {
         return not CM.DB.char.reticleTargeting
       end
     },
-    friendlyTargetingInCombat = {
-      type = "toggle",
-      name = "While in Combat |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nLeave Friendly Targeting on while in combat.\n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = 1,
-      order = 5,
-      set = function(_, value)
-        CM.DB.char.friendlyTargetingInCombat = value
-        CM.HandleFriendlyTargeting()
-      end,
-      get = function()
-        return CM.DB.char.friendlyTargetingInCombat
-      end,
-      disabled = function()
-        return not CM.DB.char.reticleTargeting or not CM.DB.char.friendlyTargeting
-      end
-    },
     crosshairPriority = {
       type = "toggle",
-      name = "Always Prioritize Crosshair Target |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nGives the crosshair the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected (hard-locked) targets in favor of the unit at your crosshair.|r \n\n|cff909090Disabling this will prevent the crosshair from swapping off hard-locked targets.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = "full",
-      order = 6,
+      name = "Always Prioritize Target Under Reticle |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nGives the reticle the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected (hard-locked) targets in favor of the unit you're aiming at.|r \n\n|cff909090Disabling this will prevent the crosshair from swapping off hard-locked targets.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
+      width = 2.1,
+      order = 5,
       set = function(_, value)
         CM.DB.char.crosshairPriority = value
         if value then
@@ -717,175 +879,30 @@ local ReticleTargetingOptions = {
         return CM.DB.char.reticleTargeting ~= true
       end
     },
-    crosshair = {
+
+    friendlyTargetingInCombat = {
       type = "toggle",
-      name = "Show Crosshair",
-      desc = "Places a dynamic crosshair marker in the center of the screen to assist with |cff00FFFFReticle Targeting|r.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = "full",
-      order = 7,
+      name = "Friendly Targeting During Combat |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nAllow the reticle to target friendlies even |cffffd700during combat|r.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = 1.4,
+      order = 6,
       set = function(_, value)
-        CM.DB.global.crosshair = value
-        if value then
-          CM.DisplayCrosshair(true)
-        else
-          CM.DisplayCrosshair(false)
-        end
+        CM.DB.char.friendlyTargetingInCombat = value
       end,
       get = function()
-        return CM.DB.global.crosshair
-      end
-    },
-    stickyCrosshair = {
-      type = "toggle",
-      name = "Sticky Crosshair |cff3B73FF©|r |cffE37527•|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nMakes the crosshair stick to enemies slightly, making it harder to untarget them by accident.\n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = "full",
-      order = 8,
-      set = function(_, value)
-        CM.DB.char.stickyCrosshair = value
-        if value then
-          CM.ConfigStickyCrosshair("combatmode")
-        else
-          CM.ConfigStickyCrosshair("blizzard")
-        end
-      end,
-      get = function()
-        return CM.DB.char.stickyCrosshair
+        return CM.DB.char.friendlyTargetingInCombat
       end,
       disabled = function()
-        return CM.DynamicCam or CM.DB.global.crosshair ~= true
+        return not CM.DB.char.reticleTargeting or not CM.DB.char.friendlyTargeting
       end
     },
-    crosshairMounted = {
-      type = "toggle",
-      name = "Hide Crosshair While Mounted",
-      desc = "Hides the crosshair while mounted.\n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = "full",
-      order = 9,
-      set = function(_, value)
-        CM.DB.global.crosshairMounted = value
-      end,
-      get = function()
-        return CM.DB.global.crosshairMounted
-      end,
-      disabled = function()
-        return CM.DB.global.crosshair ~= true
-      end
-    },
-    spacing2 = Spacing("full", 9.1),
-    crosshairAppearance = {
-      name = "Crosshair Appearance",
-      desc = "Select the appearance of the crosshair texture.",
-      type = "select",
-      width = 3.4,
-      order = 10,
-      values = CM.Constants.CrosshairAppearanceSelectValues,
-      set = function(_, value)
-        CM.DB.global.crosshairAppearance = CM.Constants.CrosshairTextureObj[value]
-        if value then
-          CM.CreateCrosshair()
-        end
-      end,
-      get = function()
-        return CM.DB.global.crosshairAppearance.Name
-      end,
-      disabled = function()
-        return CM.DB.global.crosshair ~= true
-      end
-    },
-    spacing3 = Spacing(0.1, 10.1),
-    crosshairPreview = {
-      type = "description",
-      order = 11,
-      name = "",
-      width = 0.25,
-      image = function()
-        return CM.DB.global.crosshairAppearance.Base
-      end,
-      imageWidth = 42,
-      imageHeight = 42
-    },
-    spacing4 = Spacing("full", 11.1),
-    crosshairSize = {
-      type = "range",
-      name = "Crosshair Size",
-      desc = "Adjusts the size of the crosshair in 16-pixel increments. \n\n|cffffd700Default:|r |cff00FF7F64|r",
-      min = 16,
-      max = 128,
-      softMin = 16,
-      softMax = 128,
-      step = 16,
-      width = "full",
-      order = 12,
-      disabled = function()
-        return CM.DB.global.crosshair ~= true
-      end,
-      set = function(_, value)
-        CM.DB.global.crosshairSize = value
-        if value then
-          CM.CreateCrosshair()
-        end
-      end,
-      get = function()
-        return CM.DB.global.crosshairSize
-      end
-    },
-    spacing5 = Spacing("full", 12.1),
-    crosshairAlpha = {
-      type = "range",
-      name = "Crosshair Opacity",
-      desc = "Adjusts the opacity of the crosshair. \n\n|cffffd700Default:|r |cff00FF7F100|r",
-      min = 0.1,
-      max = 1.0,
-      softMin = 0.1,
-      softMax = 1.0,
-      step = 0.1,
-      width = "full",
-      order = 13,
-      isPercent = true,
-      disabled = function()
-        return CM.DB.global.crosshair ~= true
-      end,
-      set = function(_, value)
-        CM.DB.global.crosshairOpacity = value
-        if value then
-          CM.CreateCrosshair()
-        end
-      end,
-      get = function()
-        return CM.DB.global.crosshairOpacity
-      end
-    },
-    spacing6 = Spacing("full", 13.1),
-    crosshairY = {
-      type = "range",
-      name = "Crosshair Vertical Position",
-      desc = "Adjusts the vertical position of the crosshair. \n\n|cffffd700Default:|r |cff00FF7F50|r",
-      min = 0,
-      max = 100,
-      softMin = 0,
-      softMax = 100,
-      step = 10,
-      width = "full",
-      order = 14,
-      disabled = function()
-        return CM.DB.global.crosshair ~= true
-      end,
-      set = function(_, value)
-        CM.DB.global.crosshairY = value
-        if value then
-          CM.CreateCrosshair()
-        end
-      end,
-      get = function()
-        return CM.DB.global.crosshairY
-      end
-    },
-    spacing7 = Spacing("full", 14.1),
+    spacing = Spacing("full", 6.1),
+    CrosshairGroup = CrosshairGroup,
+    spacing3 = Spacing("full", 7.1),
     devnote = {
       type = "group",
       name = "|cffffd700Developer Note|r",
-      order = 15,
+      order = 8,
       inline = true,
       args = {
         crosshairNote = {

@@ -293,7 +293,6 @@ CM.Constants.FramesToCheck = {
   "LFDRoleCheckPopup",
   "LFGListInviteDialog",
   "LookingForGuildFrame",
-  "LootFrame",
   "MacroFrame",
   "MailFrame",
   "MajorFactionRenownFrame",
