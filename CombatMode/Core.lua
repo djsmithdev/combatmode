@@ -267,7 +267,7 @@ function CM.SetFriendlyTargeting(enabled)
   end
 end
 
--- Temporarily disable friendlt targeting during combat
+-- Temporarily disable friendly targeting during combat
 local function HandleFriendlyTargetingInCombat()
   local CharConfig = CM.DB.char or {}
   local isFriendlyTargetingInCombatOn = CharConfig.reticleTargeting and CharConfig.friendlyTargeting and CharConfig.friendlyTargetingInCombat
