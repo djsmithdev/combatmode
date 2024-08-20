@@ -16,7 +16,7 @@ CM.Constants = {}
 -- CVARS FOR RETICLE TARGETING
 CM.Constants.ReticleTargetingCVarValues = {
   -- SoftTarget General
-  ["interactKeyWarningTutorial"] = 1, -- Hides the interact key tutorial since we're the INTERACTMOUSEOVER binding instead
+  ["interactKeyWarningTutorial"] = 1, -- Hides the interact key tutorial if using the INTERACTMOUSEOVER binding
   ["deselectOnClick"] = 1, -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
   ["SoftTargetForce"] = 1, -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
   ["SoftTargetMatchLocked"] = 1, -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
@@ -31,6 +31,8 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["SoftTargetInteractRange"] = 15,
   -- SoftTarget Friend
   ["SoftTargetFriend"] = 0,
+  ["SoftTargetFriendArc"] = 0,
+  ["SoftTargetFriendRange"] = 60,
   -- SoftTarget Nameplate
   ["SoftTargetNameplateEnemy"] = 1, -- Always show nameplates  for soft target enemy.
   -- SoftTarget Icon

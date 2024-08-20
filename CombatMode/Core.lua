@@ -193,26 +193,6 @@ local function LoadCVars(info)
   end
 end
 
-function CM.HandleFriendlyTargeting()
-  local CharConfig = CM.DB.char or {}
-  local isTargetFriendOn = CharConfig.reticleTargeting and CharConfig.friendlyTargeting
-
-  if not isTargetFriendOn then
-    return
-  end
-
-  local InCombat = UnitAffectingCombat("player")
-  local targetFriendInCombat = CharConfig.friendlyTargetingInCombat
-
-  if not InCombat or targetFriendInCombat then
-    CM.DebugPrint("Enabling Friendly Targeting")
-    SetCVar("SoftTargetFriend", 3)
-  else
-    CM.DebugPrint("Disabling Friendly Targeting")
-    SetCVar("SoftTargetFriend", 0)
-  end
-end
-
 function CM.ConfigReticleTargeting(CVarType)
   local info = {
     CVarType = CVarType,
@@ -222,7 +202,6 @@ function CM.ConfigReticleTargeting(CVarType)
   }
 
   LoadCVars(info)
-  CM.HandleFriendlyTargeting()
 end
 
 function CM.ConfigActionCamera(CVarType)
@@ -257,17 +236,53 @@ function CM.SetMouseLookSpeed()
   local YSpeed = CM.DB.global.mouseLookSpeed / 2 -- Blizz wants pitch speed as 1/2 of yaw speed
   SetCVar("cameraYawMoveSpeed", XSpeed)
   SetCVar("cameraPitchMoveSpeed", YSpeed)
+  CM.DebugPrint("Setting Camera Turn Speed X to " .. XSpeed .. " and Y to " .. YSpeed)
 end
 
 function CM.SetShoulderOffset()
   local offset = CM.DB.char.shoulderOffset
   SetCVar("test_cameraOverShoulder", offset)
+  CM.DebugPrint("Setting Shoulder Offset to " .. offset)
 end
 
-function CM.SetCrosshairPriority()
-  SetCVar("enableMouseoverCast", 1)
-  SetModifiedClick("MOUSEOVERCAST", "NONE")
-  SaveBindings(GetCurrentBindingSet())
+function CM.SetCrosshairPriority(enabled)
+  if enabled then
+    SetCVar("enableMouseoverCast", 1)
+    SetModifiedClick("MOUSEOVERCAST", "NONE")
+    SaveBindings(GetCurrentBindingSet())
+    CM.DebugPrint("Enabling Crosshair Priority")
+  else
+    SetCVar("enableMouseoverCast", 0)
+    CM.DebugPrint("Disabling Crosshair Priority")
+  end
+end
+
+function CM.SetFriendlyTargeting(enabled)
+  if enabled then
+    SetCVar("SoftTargetFriend", 3)
+    CM.DebugPrint("Enabling Friendly Targeting out of combat")
+  else
+    SetCVar("SoftTargetFriend", 0)
+    CM.DebugPrint("Disabling Friendly Targeting in combat")
+  end
+end
+
+-- Temporarily disable friendly targeting during combat
+local function HandleFriendlyTargetingInCombat()
+  local CharConfig = CM.DB.char or {}
+  local isFriendlyTargetingInCombatOn = CharConfig.reticleTargeting and CharConfig.friendlyTargeting and CharConfig.friendlyTargetingInCombat
+
+  if not isFriendlyTargetingInCombatOn then
+    return
+  end
+
+  local InCombat = UnitAffectingCombat("player")
+
+  if InCombat then
+    CM.SetFriendlyTargeting(false)
+  else
+    CM.SetFriendlyTargeting(true)
+  end
 end
 
 local function CenterCursor(shouldCenter)
@@ -644,14 +659,17 @@ local function Rematch()
 
   if CM.DB.global.actionCamera then
     CM.ConfigActionCamera("combatmode")
-    CM.SetShoulderOffset()
   end
 
   if CM.DB.char.reticleTargeting then
     CM.ConfigReticleTargeting("combatmode")
 
     if CM.DB.char.crosshairPriority then
-      CM.SetCrosshairPriority()
+      CM.SetCrosshairPriority(true)
+    end
+
+    if CM.DB.char.friendlyTargeting then
+      CM.SetFriendlyTargeting(true)
     end
   end
 
@@ -690,7 +708,7 @@ local function HandleEventByCategory(category, event)
       end
     end,
     FRIENDLY_TARGETING_EVENTS = function()
-      CM.HandleFriendlyTargeting()
+      HandleFriendlyTargetingInCombat()
     end,
     UNCATEGORIZED_EVENTS = function()
       SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")

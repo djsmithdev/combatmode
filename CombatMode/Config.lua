@@ -11,7 +11,6 @@ local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
-local SetCVar = _G.C_CVar.SetCVar
 
 -- RETRIEVING ADDON TABLE
 local CM = AceAddon:GetAddon("CombatMode")
@@ -129,7 +128,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       overrideButton1Toggle = {
         type = "toggle",
         name = "|A:NPE_LeftClick:38:38|a",
-        desc = "Enable the use of the |cffB47EDE" .. button1Name ..
+        desc = "Enables the use of the |cffB47EDE" .. button1Name ..
           "|r casting override while in |cffE52B50Mouse Look|r mode.",
         width = 0.4,
         order = 1,
@@ -456,7 +455,7 @@ local CameraFeatures = {
     mouseLookSpeed = {
       type = "range",
       name = "|cffE52B50Mouse Look|r Camera Turn Speed |cffE37527•|r",
-      desc = "Adjusts the speed at which you turn the camera while |cffE52B50Mouse Look|r mode is active. \n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cff00FF7F120|r",
+      desc = "Adjusts the speed at which you turn the camera while |cffE52B50Mouse Look|r mode is active.\n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cff00FF7F120|r",
       min = 10,
       max = 180,
       softMin = 10,
@@ -497,6 +496,7 @@ local FreeLookOptions = {
           SetBinding(oldKey)
         end
         SetBinding(key, "Combat Mode Toggle")
+        SaveBindings(GetCurrentBindingSet())
       end,
       get = function()
         return (GetBindingKey("Combat Mode Toggle"))
@@ -514,6 +514,7 @@ local FreeLookOptions = {
           SetBinding(oldKey)
         end
         SetBinding(key, "(Hold) Switch Mode")
+        SaveBindings(GetCurrentBindingSet())
       end,
       get = function()
         return (GetBindingKey("(Hold) Switch Mode"))
@@ -522,19 +523,19 @@ local FreeLookOptions = {
     interact = {
       type = "keybinding",
       name = "|cffffd700Interact With Target|r",
-      desc = "Press to interact with crosshair target when in range.",
+      desc = "Press to interact with crosshair target when in range. \n\n|cff909090This particular targeting arc is intentionally wider to facilitate interaction with NPCs surrounded by players.|r",
       width = 1.25,
       order = 5,
       set = function(_, key)
-        local oldKey = (GetBindingKey("INTERACTMOUSEOVER"))
+        local oldKey = (GetBindingKey("INTERACTTARGET"))
         if oldKey then
           SetBinding(oldKey)
         end
-        SetBinding(key, "INTERACTMOUSEOVER")
+        SetBinding(key, "INTERACTTARGET")
         SaveBindings(GetCurrentBindingSet())
       end,
       get = function()
-        return (GetBindingKey("INTERACTMOUSEOVER"))
+        return (GetBindingKey("INTERACTTARGET"))
       end
     },
     spacing = Spacing("full", 5.1),
@@ -542,7 +543,7 @@ local FreeLookOptions = {
       type = "toggle",
       name = "Pulse Cursor When Exiting |cffE52B50Mouse Look|r",
       desc = "Quickly pulses the location of the cursor when exiting |cffE52B50Mouse Look|r mode.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = 2.25,
+      width = 2.1,
       order = 6,
       set = function(_, value)
         CM.DB.global.pulseCursor = value
@@ -580,7 +581,7 @@ local FreeLookOptions = {
       type = "toggle",
       name = "Enable |cff00FF7FAuto Cursor Unlock|r",
       desc = "Automatically disables |cffE52B50Mouse Look|r and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = 2.25,
+      width = 2.1,
       order = 12,
       set = function(_, value)
         CM.DB.global.frameWatching = value
@@ -837,8 +838,8 @@ local ReticleTargetingOptions = {
     friendlyTargeting = {
       type = "toggle",
       name = "Allow Reticle To Target Friendlies |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nAllows friendlies to be targeted |cffffd700outside of combat|r while the |cffE52B50Mouse Look|r camera is on.\n\n|cff909090Disabled by default to avoid situations like the Fiery Brand bug.|r\n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = 1.4,
+      desc = "|cff3B73FF© Character-based option|r\n\nAllows the reticle to target friendly NPCs or Players while |cffE52B50Mouse Look|r is active.\n\n|cff909090Disabled by default to avoid situations like the Fiery Brand bug.|r\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = 1.5,
       order = 4,
       confirm = true,
       confirmText = CM.METADATA["TITLE"] ..
@@ -846,9 +847,9 @@ local ReticleTargetingOptions = {
       set = function(_, value)
         CM.DB.char.friendlyTargeting = value
         if value then
-          CM.HandleFriendlyTargeting()
+          CM.SetFriendlyTargeting(true)
         else
-          SetCVar("SoftTargetFriend", 0)
+          CM.SetFriendlyTargeting(false)
         end
       end,
       get = function()
@@ -867,9 +868,9 @@ local ReticleTargetingOptions = {
       set = function(_, value)
         CM.DB.char.crosshairPriority = value
         if value then
-          CM.SetCrosshairPriority()
+          CM.SetCrosshairPriority(true)
         else
-          SetCVar("enableMouseoverCast", 0)
+          CM.SetCrosshairPriority(false)
         end
       end,
       get = function()
@@ -879,12 +880,11 @@ local ReticleTargetingOptions = {
         return CM.DB.char.reticleTargeting ~= true
       end
     },
-
     friendlyTargetingInCombat = {
       type = "toggle",
-      name = "Friendly Targeting During Combat |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nAllow the reticle to target friendlies even |cffffd700during combat|r.\n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = 1.4,
+      name = "Disable Friendly Targeting In Combat |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nTemporaroly disables friendly targeting while |cffffd700in combat|r.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = 1.5,
       order = 6,
       set = function(_, value)
         CM.DB.char.friendlyTargetingInCombat = value

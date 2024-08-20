@@ -1,5 +1,5 @@
 ## Interface: 110002
-## Version: 2.4.0
+## Version: 2.4.1
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
 ## Author: justice7ca, sampconrad.
@@ -16,5 +16,5 @@
 ## X-Github: github.com/djsmithdev/combatmode
 ## X-Discord: discord.gg/5mwBSmz
 
-# Libraries
+# Imports
 Embeds.xml
