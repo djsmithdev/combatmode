@@ -205,6 +205,10 @@ function CM.ConfigReticleTargeting(CVarType)
 end
 
 function CM.ConfigActionCamera(CVarType)
+  if CM.DynamicCam then
+    return
+  end
+
   local info = {
     CVarType = CVarType,
     CMValues = CM.Constants.ActionCameraCVarValues,
@@ -221,6 +225,10 @@ function CM.ConfigActionCamera(CVarType)
 end
 
 function CM.ConfigStickyCrosshair(CVarType)
+  if CM.DynamicCam then
+    return
+  end
+
   local info = {
     CVarType = CVarType,
     CMValues = CM.Constants.TagetFocusCVarValues,
@@ -270,7 +278,8 @@ end
 -- Temporarily disable friendly targeting during combat
 local function HandleFriendlyTargetingInCombat()
   local CharConfig = CM.DB.char or {}
-  local isFriendlyTargetingInCombatOn = CharConfig.reticleTargeting and CharConfig.friendlyTargeting and CharConfig.friendlyTargetingInCombat
+  local isFriendlyTargetingInCombatOn = CharConfig.reticleTargeting and CharConfig.friendlyTargeting and
+                                          CharConfig.friendlyTargetingInCombat
 
   if not isFriendlyTargetingInCombatOn then
     return
