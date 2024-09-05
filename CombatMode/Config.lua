@@ -5,6 +5,9 @@
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
 
+-- Check if running on Retail or Classic
+local ON_RETAIL_CLIENT = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
+
 -- CACHING GLOBAL VARIABLES
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
@@ -877,7 +880,7 @@ local ReticleTargetingOptions = {
         return CM.DB.char.crosshairPriority
       end,
       disabled = function()
-        return CM.DB.char.reticleTargeting ~= true
+        return CM.DB.char.reticleTargeting ~= true or ON_RETAIL_CLIENT == false
       end
     },
     friendlyTargetingInCombat = {

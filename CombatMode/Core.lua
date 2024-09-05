@@ -9,6 +9,9 @@ local AceConfig = _G.LibStub("AceConfig-3.0")
 local AceConfigDialog = _G.LibStub("AceConfigDialog-3.0")
 local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 
+-- Check if running on Retail or Classic
+local ON_RETAIL_CLIENT = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
+
 -- CACHING GLOBAL VARIABLES
 -- Slightly better performance than doing a global lookup every time
 local CreateFrame = _G.CreateFrame
@@ -31,7 +34,6 @@ local loadstring = _G.loadstring
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
 local OpenToCategory = _G.Settings.OpenToCategory
-local IsInBattle = _G.C_PetBattles.IsInBattle
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
@@ -266,6 +268,7 @@ function CM.SetShoulderOffset()
 end
 
 function CM.SetCrosshairPriority(enabled)
+  if ON_RETAIL_CLIENT == false then return end
   if enabled then
     SetCVar("enableMouseoverCast", 1)
     SetModifiedClick("MOUSEOVERCAST", "NONE")
@@ -536,6 +539,14 @@ local function IsVendorMountOut()
   return false
 end
 
+local function IsInPetBattle()
+  if ON_RETAIL_CLIENT then
+    return _G.C_PetBattles.IsInBattle()
+  else
+    return false
+  end
+end
+
 local function IsUnlockFrameVisible()
   local isGenericPanelOpen = (GetUIPanel("left") or GetUIPanel("right") or GetUIPanel("center")) and true or false
   return CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or CursorUnlockFrameVisible(CM.DB.global.watchlist) or
@@ -544,7 +555,7 @@ end
 
 local function ShouldFreeLookBeOff()
   local evaluate = FreeLookOverride or SpellIsTargeting() or InCinematic() or IsInCinematicScene() or
-                     IsUnlockFrameVisible() or IsCustomConditionTrue() or IsVendorMountOut() or IsInBattle()
+                     IsUnlockFrameVisible() or IsCustomConditionTrue() or IsVendorMountOut() or IsInPetBattle()
 
   return evaluate
 end
