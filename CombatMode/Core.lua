@@ -13,6 +13,7 @@ local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
 -- Slightly better performance than doing a global lookup every time
 local CreateFrame = _G.CreateFrame
 local CreateMacro = _G.CreateMacro
+local DisableAddOn = _G.C_AddOns.DisableAddOn
 local GetAddOnMetadata = _G.C_AddOns.GetAddOnMetadata
 local GetAuraDataBySpellName = _G.C_UnitAuras.GetAuraDataBySpellName
 local GetBindingKey = _G.GetBindingKey
@@ -30,6 +31,7 @@ local loadstring = _G.loadstring
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
 local OpenToCategory = _G.Settings.OpenToCategory
+local IsInBattle = _G.C_PetBattles.IsInBattle
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
@@ -94,6 +96,16 @@ local function OpenConfigPanel()
     return
   end
   OpenToCategory(CM.METADATA["TITLE"])
+end
+
+local function UndoCMChanges()
+  if InCombatLockdown() then
+    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot run this cmd while in combat.|r")
+    return
+  end
+  CM:ResetCVarsToDefault()
+  DisableAddOn("CombatMode")
+  ReloadUI()
 end
 
 local function DisplayPopup()
@@ -304,6 +316,15 @@ local function CenterCursor(shouldCenter)
   end
 end
 
+function CM:ResetCVarsToDefault()
+  self.ConfigReticleTargeting("blizzard")
+  self.ConfigActionCamera("blizzard")
+  self.ConfigStickyCrosshair("blizzard")
+  self.SetCrosshairPriority(false)
+  self.SetFriendlyTargeting(false)
+
+  print(CM.Constants.BasePrintMsg .. "|cff909090: all changes have been revert.|r")
+end
 ---------------------------------------------------------------------------------------
 --                           CROSSHAIR HANDLING FUNCTIONS                            --
 ---------------------------------------------------------------------------------------
@@ -448,6 +469,7 @@ local function ShowCursorPulse()
 end
 
 PulseFrame:SetScript("OnUpdate", UpdatePulse)
+
 ---------------------------------------------------------------------------------------
 --                      FRAME WATCHING / CURSOR UNLOCK FUNCTIONS                     --
 ---------------------------------------------------------------------------------------
@@ -522,7 +544,7 @@ end
 
 local function ShouldFreeLookBeOff()
   local evaluate = FreeLookOverride or SpellIsTargeting() or InCinematic() or IsInCinematicScene() or
-                     IsUnlockFrameVisible() or IsCustomConditionTrue() or IsVendorMountOut()
+                     IsUnlockFrameVisible() or IsCustomConditionTrue() or IsVendorMountOut() or IsInBattle()
 
   return evaluate
 end
@@ -795,6 +817,15 @@ function CM:OpenConfigCMD(input)
   end
 end
 
+-- /CMRESET CHAT COMMAND
+function CM:RunUndoCMD(input)
+  if not input or input:trim() == "" then
+    UndoCMChanges()
+  else
+    AceConfigCmd.HandleCommand(self, "mychat", CM.METADATA["TITLE"], input)
+  end
+end
+
 ---------------------------------------------------------------------------------------
 --                                STANDARD ACE3 METHODS                              --
 ---------------------------------------------------------------------------------------
@@ -819,6 +850,7 @@ function CM:OnInitialize()
 
   self:RegisterChatCommand("cm", "OpenConfigCMD")
   self:RegisterChatCommand("combatmode", "OpenConfigCMD")
+  self:RegisterChatCommand("undocm", "RunUndoCMD")
 end
 
 function CM:OnResetDB()
@@ -861,8 +893,6 @@ build a "standby" mode, or be able to toggle modules on/off.
 ]] --
 function CM:OnDisable()
   CrosshairFrame:Hide()
-  self.ConfigReticleTargeting("blizzard")
-  self.ConfigStickyCrosshair("blizzard")
-  self.ConfigActionCamera("blizzard")
+  self:ResetCVarsToDefault()
   self:UnregisterAllEvents()
 end

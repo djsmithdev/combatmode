@@ -159,7 +159,7 @@ CM.Constants.BLIZZARD_EVENTS = {
 --                                        ASSETS                                     --
 ---------------------------------------------------------------------------------------
 CM.Constants.PopupMsg = CM.METADATA["TITLE"] ..
-                          "\n\n|cffffd700Thank you for trying out Combat Mode!|r \n\n|cffcfcfcfUpon closing this, an |cffB47EDEoptions panel|r will open where you'll be able to configure the addon to your liking.|r\n\n|cff909090If planning on |cffFF5050uninstalling|r, make sure to uncheck the |cff00FFFFReticle Targeting|r option to reset the CVars to their default.|r"
+                          "\n\n|cffffd700Thank you for trying out Combat Mode!|r \n\n|cffcfcfcfUpon closing this, an |cffB47EDEoptions panel|r will open where you'll be able to configure the addon to your liking.|r\n\n|cff909090To |cffFF5050undo all changes|r made by Combat Mode, type the following command in chat:|r\n|cff00FFFF/undocm|r"
 
 CM.Constants.BasePrintMsg = CM.METADATA["TITLE"] .. " |cff00ff00v." .. CM.METADATA["VERSION"] .. "|r"
 
