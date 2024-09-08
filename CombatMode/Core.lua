@@ -23,6 +23,7 @@ local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local GetCursorPosition = _G.GetCursorPosition
 local GetMacroInfo = _G.GetMacroInfo
+local GetTime = _G.GetTime
 local GetUIPanel = _G.GetUIPanel
 local InCinematic = _G.InCinematic
 local IsInCinematicScene = _G.IsInCinematicScene
@@ -92,6 +93,16 @@ function CM.DebugPrint(statement)
   end
 end
 
+local lastPrintTime = 0
+local function PreventDebugSpam(msg)
+  local currentTime = GetTime()
+
+  if currentTime - lastPrintTime > 3 then
+    CM.DebugPrint(msg)
+    lastPrintTime = currentTime
+  end
+end
+
 local function OpenConfigPanel()
   if InCombatLockdown() then
     print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open settings while in combat.|r")
@@ -132,13 +143,13 @@ local function DisplayPopup()
   StaticPopup_Show("CombatMode Warning")
 end
 
-local function CreateTargetMacros()
-  local macroExists = function(name)
-    return GetMacroInfo(name) ~= nil
-  end
+function CM.MacroExists(name)
+  return GetMacroInfo(name) ~= nil
+end
 
+local function CreateTargetMacros()
   local function createMacroIfNotExists(macroName, icon, macroText)
-    if not macroExists(macroName) then
+    if not CM.MacroExists(macroName) then
       CreateMacro(macroName, icon, macroText, false)
     end
   end
@@ -485,7 +496,7 @@ local function CursorUnlockFrameVisible(frameArr)
   for _, frameName in pairs(frameArr) do
     local curFrame = _G[frameName]
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
-      CM.DebugPrint(frameName .. " is visible, preventing re-locking.")
+      PreventDebugSpam(frameName .. " is visible, preventing re-locking.")
       return true
     end
   end
@@ -593,8 +604,8 @@ function CM.SetNewBinding(buttonSettings)
   end
 
   local valueToUse
-  if buttonSettings.value == "CUSTOMACTION" then
-    valueToUse = buttonSettings.customAction
+  if buttonSettings.value == "MACRO" then
+    valueToUse = "MACRO " .. buttonSettings.macroName
   elseif buttonSettings.value == "CLEARTARGET" then
     valueToUse = "MACRO CM_ClearTarget"
   elseif buttonSettings.value == "CLEARFOCUS" then
@@ -602,8 +613,12 @@ function CM.SetNewBinding(buttonSettings)
   else
     valueToUse = buttonSettings.value
   end
-  SetMouselookOverrideBinding(buttonSettings.key, valueToUse)
-  CM.DebugPrint(buttonSettings.key .. "'s override binding is now " .. valueToUse)
+  if not CM.MacroExists(buttonSettings.macroName) then
+    CM.DebugPrint("No macro found with that name.")
+  else
+    SetMouselookOverrideBinding(buttonSettings.key, valueToUse)
+    CM.DebugPrint(buttonSettings.key .. "'s override binding is now " .. valueToUse)
+  end
 end
 
 function CM.OverrideDefaultButtons()

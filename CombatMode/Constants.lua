@@ -489,19 +489,70 @@ CM.Constants.ActionsToProcess = {
   "TARGETSCANENEMY",
   "TARGETSELF",
   "TARGETMOUSEOVER",
+  "ASSISTTARGET",
   "ATTACKTARGET",
   "PETATTACK",
   "STARTATTACK",
   "STOPATTACK",
   "STOPCASTING",
-  "EXTRAACTIONBUTTON1"
+  "EXTRAACTIONBUTTON1",
+  "ACTIONPAGE1",
+  "ACTIONPAGE2",
+  "ACTIONPAGE3",
+  "ACTIONPAGE4",
+  "ACTIONPAGE5",
+  "ACTIONPAGE6",
+  "BONUSACTIONBUTTON1",
+  "BONUSACTIONBUTTON10",
+  "BONUSACTIONBUTTON2",
+  "BONUSACTIONBUTTON3",
+  "BONUSACTIONBUTTON4",
+  "BONUSACTIONBUTTON5",
+  "BONUSACTIONBUTTON6",
+  "BONUSACTIONBUTTON7",
+  "BONUSACTIONBUTTON8",
+  "BONUSACTIONBUTTON9",
+  "CAMERAZOOMIN",
+  "CAMERAZOOMOUT",
+  "DISMOUNT",
+  "NEXTACTIONPAGE",
+  "PREVIOUSACTIONPAGE",
+  "RAIDTARGET1",
+  "RAIDTARGET2",
+  "RAIDTARGET3",
+  "RAIDTARGET4",
+  "RAIDTARGET5",
+  "RAIDTARGET6",
+  "RAIDTARGET7",
+  "RAIDTARGET8",
+  "RAIDTARGETNONE",
+  "SCREENSHOT",
+  "SHAPESHIFTBUTTON1",
+  "SHAPESHIFTBUTTON10",
+  "SHAPESHIFTBUTTON2",
+  "SHAPESHIFTBUTTON3",
+  "SHAPESHIFTBUTTON4",
+  "SHAPESHIFTBUTTON5",
+  "SHAPESHIFTBUTTON6",
+  "SHAPESHIFTBUTTON7",
+  "SHAPESHIFTBUTTON8",
+  "SHAPESHIFTBUTTON9",
+  "STRAFELEFT",
+  "STRAFERIGHT",
+  "TARGETPARTYMEMBER1",
+  "TARGETPARTYMEMBER2",
+  "TARGETPARTYMEMBER3",
+  "TARGETPARTYMEMBER4",
+  "TOGGLEAUTORUN",
+  "TURNLEFT",
+  "TURNRIGHT"
 }
 
 -- Matches the bindable actions values defined right above with more readable names for the UI
 CM.Constants.OverrideActions = {
   CLEARFOCUS = "Clear Focus",
   CLEARTARGET = "Clear Target",
-  CUSTOMACTION = "Custom Action"
+  MACRO = "|cff69ccf0Run MACRO|r"
 }
 
 CM.Constants.ButtonsToOverride = {
@@ -523,49 +574,49 @@ local DefaultBindings = {
     enabled = true,
     key = "BUTTON1",
     value = "ACTIONBUTTON1",
-    customAction = ""
+    macroName = ""
   },
   button2 = {
     enabled = true,
     key = "BUTTON2",
     value = "ACTIONBUTTON2",
-    customAction = ""
+    macroName = ""
   },
   shiftbutton1 = {
     enabled = true,
     key = "SHIFT-BUTTON1",
     value = "ACTIONBUTTON3",
-    customAction = ""
+    macroName = ""
   },
   shiftbutton2 = {
     enabled = true,
     key = "SHIFT-BUTTON2",
     value = "ACTIONBUTTON4",
-    customAction = ""
+    macroName = ""
   },
   ctrlbutton1 = {
     enabled = true,
     key = "CTRL-BUTTON1",
     value = "ACTIONBUTTON5",
-    customAction = ""
+    macroName = ""
   },
   ctrlbutton2 = {
     enabled = true,
     key = "CTRL-BUTTON2",
     value = "ACTIONBUTTON6",
-    customAction = ""
+    macroName = ""
   },
   altbutton1 = {
     enabled = true,
     key = "ALT-BUTTON1",
     value = "ACTIONBUTTON7",
-    customAction = ""
+    macroName = ""
   },
   altbutton2 = {
     enabled = true,
     key = "ALT-BUTTON2",
     value = "ACTIONBUTTON8",
-    customAction = ""
+    macroName = ""
   },
   toggle = {
     key = "Combat Mode Toggle",

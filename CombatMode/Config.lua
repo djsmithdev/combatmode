@@ -112,15 +112,15 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
 
     local capitalisedModifier = (string.upper(modifier))
     groupName = capitalisedModifier .. " + Clicks"
-    button1Name = capitalisedModifier .. " + Left Click"
-    button2Name = capitalisedModifier .. " + Right Click"
+    button1Name = capitalisedModifier .. " + Left Click Action"
+    button2Name = capitalisedModifier .. " + Right Click Action"
   else
     button1Settings = "button1"
     button2Settings = "button2"
 
     groupName = "Base Clicks"
-    button1Name = "Left Click"
-    button2Name = "Right Click"
+    button1Name = "Left Click Action"
+    button2Name = "Right Click Action"
   end
 
   return {
@@ -168,21 +168,29 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       },
       spacing = Spacing(0.1, 1.2),
       button1macro = {
-        name = "Custom Action",
-        desc = "Enter the name of the action you wish to be ran here.",
+        name = "Macro Name",
+        desc = "Enter the name of the |cff69ccf0Macro|r you'd like to bind to this |cffB47EDEClick Casting action|r.",
         type = "input",
         width = 1.65,
         order = 1.3,
         set = function(_, value)
-          CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].customAction = value
+          CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].macroName = value
           CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button1Settings])
         end,
         get = function()
-          return CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].customAction
+          return CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].macroName
         end,
         disabled = function()
           return not CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled or
-                   CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].value ~= "CUSTOMACTION"
+                   CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].value ~= "MACRO"
+        end,
+        validate = function(_, value)
+          if not CM.MacroExists(value) then
+            CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].macroName = ""
+            return CM.METADATA["TITLE"] .. "\n\n|cffcfcfcfNo macro found with that name.|r"
+          else
+            return true
+          end
         end
       },
       buttonbreak = {
@@ -231,21 +239,29 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       },
       spacing2 = Spacing(0.1, 2.2),
       button2macro = {
-        name = "Custom Action",
-        desc = "Enter the name of the action you wish to be ran here.",
+        name = "Macro Name",
+        desc = "Enter the name of the |cff69ccf0Macro|r you'd like to bind to this |cffB47EDEClick Casting action|r.",
         type = "input",
         width = 1.65,
         order = 2.3,
         set = function(_, value)
-          CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].customAction = value
+          CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].macroName = value
           CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button2Settings])
         end,
         get = function()
-          return CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].customAction
+          return CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].macroName
         end,
         disabled = function()
           return not CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled or
-                   CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].value ~= "CUSTOMACTION"
+                   CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].value ~= "MACRO"
+        end,
+        validate = function(_, value)
+          if not CM.MacroExists(value) then
+            CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].macroName = ""
+            return CM.METADATA["TITLE"] .. "\n\n|cffcfcfcfNo macro found with that name.|r"
+          else
+            return true
+          end
         end
       },
       spacing3 = Spacing("full", 3),
@@ -257,18 +273,8 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         args = {
           note = {
             type = "description",
-            name = "|cff909090To use an action not listed on the dropdown menu, select |cff69ccf0Custom Action|r and then type the exact name of the action you'd like to cast. \nTo use a |cffcfcfcfMACRO|r as your |cff69ccf0Custom Action|r, type |cffcfcfcfMACRO MacroName|r into the input.|r\n",
+            name = "|cff909090To use a |cffcfcfcfMacro|r as a |cffB47EDEClick Casting action|r, select |cff69ccf0Run MACRO|r from the dropwon and type the name of the macro into the input.|r\n",
             order = 4
-          },
-          wowwiki = {
-            name = "You can find all available actions here:",
-            desc = "warcraft.wiki.gg/wiki/BindingID",
-            type = "input",
-            width = 1.7,
-            order = 5,
-            get = function()
-              return "warcraft.wiki.gg/wiki/BindingID"
-            end
           }
         }
       }
