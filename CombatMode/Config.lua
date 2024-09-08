@@ -273,7 +273,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         args = {
           note = {
             type = "description",
-            name = "|cff909090To use a |cffcfcfcfMacro|r as a |cffB47EDEClick Casting action|r, select |cff69ccf0Run MACRO|r from the dropwon and type the name of the macro into the input.|r\n",
+            name = "|cff909090To directly assign a |cffcfcfcfMacro|r as a |cffB47EDEClick Casting Action|r, select |cff69ccf0Run MACRO|r from the drop-down list and type its name in the input.|r",
             order = 4
           }
         }

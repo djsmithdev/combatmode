@@ -613,12 +613,8 @@ function CM.SetNewBinding(buttonSettings)
   else
     valueToUse = buttonSettings.value
   end
-  if not CM.MacroExists(buttonSettings.macroName) then
-    CM.DebugPrint("No macro found with that name.")
-  else
-    SetMouselookOverrideBinding(buttonSettings.key, valueToUse)
-    CM.DebugPrint(buttonSettings.key .. "'s override binding is now " .. valueToUse)
-  end
+  SetMouselookOverrideBinding(buttonSettings.key, valueToUse)
+  CM.DebugPrint(buttonSettings.key .. "'s override binding is now " .. valueToUse)
 end
 
 function CM.OverrideDefaultButtons()
