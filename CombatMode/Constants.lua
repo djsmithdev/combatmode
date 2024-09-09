@@ -550,8 +550,8 @@ CM.Constants.ActionsToProcess = {
 
 -- Matches the bindable actions values defined right above with more readable names for the UI
 CM.Constants.OverrideActions = {
-  CLEARFOCUS = "Clear Focus",
-  CLEARTARGET = "Clear Target",
+  CLEARFOCUS = "|cff69ccf0Clear Focus|r",
+  CLEARTARGET = "|cff69ccf0Clear Target|r",
   MACRO = "|cff69ccf0Run MACRO|r"
 }
 

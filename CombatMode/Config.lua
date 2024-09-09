@@ -96,7 +96,7 @@ local function Description(option, order)
     },
     advanced = {
       type = "description",
-      name = "\nCreate your own conditions that force a |cff00FF7FCursor Unlock|r by entering a chunk of Lua code that returns |cff00FF7FTrue|r if the cursor should be freed, |cffE52B50False|r otherwise.\n|cff909090E.g.: to unlock the cursor while standing still or riding a mount, enter: |cff69ccf0GetUnitSpeed(\"player\") == 0 or IsMounted()|r\n\n",
+      name = "\nCreate your own conditions that force a |cff00FF7FCursor Unlock|r by writing a function that returns |cff00FF7FTrue|r if the cursor should be unlocked, |cffE52B50False|r otherwise.\n\n",
       fontSize = "medium",
       order = order
     }
@@ -112,15 +112,15 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
 
     local capitalisedModifier = (string.upper(modifier))
     groupName = capitalisedModifier .. " + Clicks"
-    button1Name = capitalisedModifier .. " + Left Click Action"
-    button2Name = capitalisedModifier .. " + Right Click Action"
+    button1Name = "|cffB47EDE" .. capitalisedModifier .. " + Left Click Action" .. "|r"
+    button2Name = "|cffB47EDE" .. capitalisedModifier .. " + Right Click Action" .. "|r"
   else
     button1Settings = "button1"
     button2Settings = "button2"
 
     groupName = "Base Clicks"
-    button1Name = "Left Click Action"
-    button2Name = "Right Click Action"
+    button1Name = "|cffB47EDE" .. "Left Click Action" .. "|r"
+    button2Name = "|cffB47EDE" .. "Right Click Action" .. "|r"
   end
 
   return {
@@ -131,8 +131,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       overrideButton1Toggle = {
         type = "toggle",
         name = "|A:NPE_LeftClick:38:38|a",
-        desc = "Enables the use of the |cffB47EDE" .. button1Name ..
-          "|r casting override while in |cffE52B50Mouse Look|r mode.",
+        desc = "Enables the use of the " .. button1Name .. " casting override while in |cffE52B50Mouse Look|r mode.",
         width = 0.4,
         order = 1,
         set = function(_, value)
@@ -202,8 +201,7 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
       overrideButton2Toggle = {
         type = "toggle",
         name = "|A:NPE_RightClick:38:38|a",
-        desc = "Enable the use of the |cffB47EDE" .. button2Name ..
-          "|r casting override while in |cffE52B50Mouse Look|r mode.",
+        desc = "Enable the use of the " .. button2Name .. " casting override while in |cffE52B50Mouse Look|r mode.",
         width = 0.4,
         order = 2,
         set = function(_, value)
@@ -977,7 +975,7 @@ local AdvancedConfigOptions = {
           type = "input",
           name = "Custom Condition:",
           order = 1,
-          multiline = 6,
+          multiline = 16,
           width = "full",
           set = function(_, input)
             CM.DB.global.customCondition = input
@@ -999,7 +997,7 @@ local AdvancedConfigOptions = {
               order = 1
             },
             wowpediaApi = {
-              name = "You can find all available functions and how to use them here:",
+              name = "You can find the documentation for the WoW API here:",
               desc = "warcraft.wiki.gg/wiki/World_of_Warcraft_API",
               type = "input",
               width = 2.2,

@@ -523,13 +523,13 @@ local function IsCustomConditionTrue()
     return false
   end
 
-  local customConditionFunction, error = loadstring("return " .. CM.DB.global.customCondition)
-  if not customConditionFunction then
-    CM.DebugPrint(error)
+  local func, err = loadstring(CM.DB.global.customCondition)
+  if not func then
+    CM.DebugPrint(err)
     return false
-  else
-    return customConditionFunction()
   end
+
+  return func
 end
 
 local function IsVendorMountOut()
