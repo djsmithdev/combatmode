@@ -35,6 +35,7 @@ local loadstring = _G.loadstring
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
 local OpenToCategory = _G.Settings.OpenToCategory
+local pcall = _G.pcall
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
@@ -279,7 +280,9 @@ function CM.SetShoulderOffset()
 end
 
 function CM.SetCrosshairPriority(enabled)
-  if ON_RETAIL_CLIENT == false then return end
+  if ON_RETAIL_CLIENT == false then
+    return
+  end
   if enabled then
     SetCVar("enableMouseoverCast", 1)
     SetModifiedClick("MOUSEOVERCAST", "NONE")
@@ -524,12 +527,21 @@ local function IsCustomConditionTrue()
   end
 
   local func, err = loadstring(CM.DB.global.customCondition)
-  if not func then
-    CM.DebugPrint(err)
-    return false
-  end
 
-  return func
+  if not func then
+    CM.DebugPrint("Invalid custom condition " .. err)
+    return false
+  else
+    -- Calling the fn() protected to check evaluation
+    local success, result = pcall(func)
+
+    if not success then
+      CM.DebugPrint("Error executing custom condition: " .. result)
+      return false
+    end
+
+    return result
+  end
 end
 
 local function IsVendorMountOut()
@@ -565,9 +577,9 @@ local function IsUnlockFrameVisible()
 end
 
 local function ShouldFreeLookBeOff()
-  local evaluate = FreeLookOverride or SpellIsTargeting() or InCinematic() or IsInCinematicScene() or
-                     IsUnlockFrameVisible() or IsCustomConditionTrue() or IsVendorMountOut() or IsInPetBattle()
-
+  local evaluate = IsCustomConditionTrue() or
+                     (FreeLookOverride or SpellIsTargeting() or InCinematic() or IsInCinematicScene() or
+                       IsUnlockFrameVisible() or IsVendorMountOut() or IsInPetBattle())
   return evaluate
 end
 
