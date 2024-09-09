@@ -96,7 +96,7 @@ local function Description(option, order)
     },
     advanced = {
       type = "description",
-      name = "\nCreate your own conditions that force a |cff00FF7FCursor Unlock|r by writing a function that returns |cff00FF7FTrue|r if the cursor should be unlocked, |cffE52B50False|r otherwise.\n\n",
+      name = "\nCreate your own custom condition that forces a |cff00FF7FCursor Unlock|r by entering a chunk of Lua code that at the end evaluates to |cff00FF7FTrue|r if the cursor should be freed, |cffE52B50False|r otherwise.\n\n|cff909090For example, this would unlock the cursor while standing still but not while mounted: \n\n|cff69ccf0local isStill = GetUnitSpeed('player') == 0 \nlocal onMount = IsMounted()\nreturn not onMount and isStill|r\n\n",
       fontSize = "medium",
       order = order
     }
@@ -975,7 +975,7 @@ local AdvancedConfigOptions = {
           type = "input",
           name = "Custom Condition:",
           order = 1,
-          multiline = 16,
+          multiline = 14,
           width = "full",
           set = function(_, input)
             CM.DB.global.customCondition = input
