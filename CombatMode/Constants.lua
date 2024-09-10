@@ -114,12 +114,15 @@ CM.Constants.BlizzardTagetFocusCVarValues = {
 ---------------------------------------------------------------------------------------
 --                                       MACROS                                      --
 ---------------------------------------------------------------------------------------
+-- For interrupts/taunts we use CM_PrioritizeTarge
+-- For everything else we wannna macro, we use CM_PrioritizeCursor
 CM.Constants.Macros = {
   CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",
-  CM_ClearFocus = "/clearfocus",
-  CM_HardTarget = "#showtooltip\n/cleartarget [help][noharm,exists][dead]\n/target [@mouseover,harm,nodead]\n/startattack\n/cast PLACEHOLDER_SPELL",
-  CM_SoftTarget = "#showtooltip\n/cleartarget\n/cast [@mouseover,harm,nodead][] PLACEHOLDER_SPELL\n/startattack",
-  CM_CastCursor = "#showtooltip\n/cast [mod:shift] PLACEHOLDER_SPELL; [nomod, @cursor] PLACEHOLDER_SPELL"
+  CM_ClearFocus = "/stopmacro [noexists]\n/clearfocus",
+  CM_CastCursor = "#showtooltip\n/cast [mod:shift] SPELL; [@cursor] SPELL",
+  CM_PrioritizeTarget = "#showtooltip\n/cleartarget [help][noharm][dead]\n/cast [@target,harm,nodead][@mouseover,harm,nodead] SPELL\n/startattack",
+  CM_PrioritizeCursor = "#showtooltip\n/cleartarget [help][noharm][dead]\n/cast [@mouseover,harm,nodead][@target,harm,nodead] SPELL\n/startattack",
+  CM_PrioritizeCursorShift = "#showtooltip [mod:shift] SPELL_1; SPELL_2\n/cleartarget [help][noharm][dead]\n/cast [mod:shift,@mouseover,harm,nodead][mod:shift,@target,harm,nodead] SPELL_1; [@mouseover,harm,nodead][@target,harm,nodead] SPELL_2\n/startattack",
 }
 
 ---------------------------------------------------------------------------------------
