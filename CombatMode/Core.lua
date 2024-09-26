@@ -266,6 +266,10 @@ function CM.ConfigStickyCrosshair(CVarType)
 end
 
 function CM.SetMouseLookSpeed()
+  if CM.DynamicCam then
+    return
+  end
+
   local XSpeed = CM.DB.global.mouseLookSpeed
   local YSpeed = CM.DB.global.mouseLookSpeed / 2 -- Blizz wants pitch speed as 1/2 of yaw speed
   SetCVar("cameraYawMoveSpeed", XSpeed)
@@ -274,6 +278,10 @@ function CM.SetMouseLookSpeed()
 end
 
 function CM.SetShoulderOffset()
+  if CM.DynamicCam then
+    return
+  end
+
   local offset = CM.DB.char.shoulderOffset
   SetCVar("test_cameraOverShoulder", offset)
   CM.DebugPrint("Setting Shoulder Offset to " .. offset)
