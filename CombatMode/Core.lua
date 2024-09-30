@@ -18,7 +18,6 @@ local CreateFrame = _G.CreateFrame
 local CreateMacro = _G.CreateMacro
 local DisableAddOn = _G.C_AddOns.DisableAddOn
 local GetAddOnMetadata = _G.C_AddOns.GetAddOnMetadata
-local GetAuraDataBySpellName = _G.C_UnitAuras.GetAuraDataBySpellName
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local GetCursorPosition = _G.GetCursorPosition
@@ -558,7 +557,18 @@ local function IsVendorMountOut()
   end
 
   local function checkMount(mount)
-    return GetAuraDataBySpellName("player", mount, "HELPFUL") ~= nil
+    if ON_RETAIL_CLIENT then
+      -- On retail client
+      return _G.C_UnitAuras.GetAuraDataBySpellName("player", mount, "HELPFUL") ~= nil
+    else
+      -- On classic client.
+      for i = 1, 40 do
+        local name = UnitAura("player", i, "HELPFUL")
+        if name == mount then
+          return true
+        end
+      end
+    end
   end
 
   for _, mount in ipairs(CM.Constants.MountsToCheck) do
