@@ -1,5 +1,5 @@
-## Interface: 110002
-## Version: 2.4.10
+## Interface: 110002, 110005
+## Version: 2.4.11
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
 ## Author: justice7ca, sampconrad.
