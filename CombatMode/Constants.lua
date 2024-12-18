@@ -387,7 +387,9 @@ CM.Constants.WildcardFramesToCheck = {}
 CM.Constants.MountsToCheck = {
   "Grand Expedition Yak",
   "Traveler's Tundra Mammoth",
-  "Mighty Caravan Brutosaur"
+  "Mighty Caravan Brutosaur",
+  "Trader's Gilded Brutosaur",
+  "Grizzly Hills Packmaster"
 }
 
 ---------------------------------------------------------------------------------------
