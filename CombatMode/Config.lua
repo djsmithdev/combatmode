@@ -304,11 +304,24 @@ local AboutOptions = {
       end,
       order = 0
     },
-    spacing = Spacing(2.2, 0.1),
+    spacing = Spacing(1.6, 0.1),
+    silenceAlertsToggle = {
+      type = "toggle",
+      name = "Silence Alerts",
+      desc = "Stops Combat Mode from printing alert messages in the chat window after loading screens.",
+      width = 0.7,
+      set = function(_, value)
+        CM.DB.global.silenceAlerts = value
+      end,
+      get = function()
+        return CM.DB.global.silenceAlerts
+      end,
+      order = 0.2
+    },
     debugModeToggle = {
       type = "toggle",
       name = "Debug Mode",
-      desc = "Enables the printing of state logs in the game chat to assist with development.",
+      desc = "Enables the printing of state logs in the chat window to assist with development.",
       width = 0.7,
       set = function(_, value)
         CM.DB.global.debugMode = value
@@ -316,7 +329,7 @@ local AboutOptions = {
       get = function()
         return CM.DB.global.debugMode
       end,
-      order = 0.2
+      order = 0.3
     },
     ---------------------------------------------------------------------------------------
     --                                   LOGO & ABOUT                                    --
@@ -600,7 +613,7 @@ local FreeLookOptions = {
     mountCheck = {
       type = "toggle",
       name = "Unlock While On |cffffd700Vendor Mount|r",
-      desc = "Keeps the cursor unlocked while a vendor mounts is being used.\n\n|cffffd700Vendor Mounts:|r \n|cff909090Grand Expedition Yak\nTraveler's Tundra Mammoth\nMighty Caravan Brutosaur|r \n\n|cffffd700Default:|r |cffE52B50Off|r",
+      desc = "Keeps the cursor unlocked while a vendor mounts is being used.\n\n|cffffd700Vendor Mounts:|r \n|cff909090Grand Expedition Yak\nTraveler's Tundra Mammoth\nMighty Caravan Brutosaur\nTrader's Gilded Brutosaur\nGrizzly Hills Packmaster|r \n\n|cffffd700Default:|r |cffE52B50Off|r",
       width = 1.5,
       order = 13,
       set = function(_, value)
@@ -613,7 +626,7 @@ local FreeLookOptions = {
     spacing6 = Spacing("full", 13.1),
     watchlist = {
       name = "Frame Watchlist",
-      desc = "Expand the list of Blizzard panels or |cffE37527AddOn|r frames that trigger a |cff00FF7FCursor Unlock.|r \n\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame|r.|r \n\n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
+      desc = "Expand the list of Blizzard panels or |cffE37527AddOn|r frames that trigger a |cff00FF7FCursor Unlock.|r \n\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame|r.\nEx: LootFrame|r\n\n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
       type = "input",
       multiline = true,
       width = "full",

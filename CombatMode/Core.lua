@@ -19,6 +19,7 @@ local CreateMacro = _G.CreateMacro
 local DisableAddOn = _G.C_AddOns.DisableAddOn
 local GetAddOnMetadata = _G.C_AddOns.GetAddOnMetadata
 local GetAuraDataBySpellName = _G.C_UnitAuras.GetAuraDataBySpellName
+local GameTooltip = _G.GameTooltip
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local GetCursorPosition = _G.GetCursorPosition
@@ -167,20 +168,24 @@ local function IsDefaultMouseActionBeingUsed()
   return IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
 end
 
+local tooltipHidden = false
+
 local function HideTooltip(shouldHide)
+  tooltipHidden = shouldHide
+
   local hookFunction = function()
-    if shouldHide then
-      _G.GameTooltip:Hide()
-    else
-      _G.GameTooltip:Show()
+    if tooltipHidden then
+      GameTooltip:Hide()
     end
   end
 
-  -- Need to call it immediately in case there's a tooltip still fading
-  hookFunction()
+  hookFunction() -- Need to call it immediately in case there's a tooltip still fading
 
-  _G.GameTooltip:SetScript("OnShow", nil) -- unhook previous script
-  _G.GameTooltip:HookScript("OnShow", hookFunction)
+  GameTooltip:HookScript("OnShow", function(self)
+    if tooltipHidden then
+      self:Hide()
+    end
+  end)
 end
 
 --[[
@@ -190,7 +195,7 @@ end
 local function IsDCLoaded()
   local DC = AceAddon:GetAddon("DynamicCam", true)
   CM.DynamicCam = DC ~= nil and true or false
-  if CM.DynamicCam then
+  if CM.DynamicCam and not CM.DB.global.silenceAlerts then
     print(CM.Constants.BasePrintMsg ..
             "|cff909090: |cffE52B50DynamicCam detected!|r Handing over control of |cffE37527• Camera Features|r.|r")
   end
@@ -348,8 +353,9 @@ function CM:ResetCVarsToDefault()
   self.SetCrosshairPriority(false)
   self.SetFriendlyTargeting(false)
 
-  print(CM.Constants.BasePrintMsg .. "|cff909090: all changes have been revert.|r")
+  print(CM.Constants.BasePrintMsg .. "|cff909090: all changes have been reverted.|r")
 end
+
 ---------------------------------------------------------------------------------------
 --                           CROSSHAIR HANDLING FUNCTIONS                            --
 ---------------------------------------------------------------------------------------
@@ -923,7 +929,9 @@ function CM:OnEnable()
   end
 
   -- Greeting message that is printed to chat on initial load
-  print(CM.Constants.BasePrintMsg .. "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
+  if not CM.DB.global.silenceAlerts then
+    print(CM.Constants.BasePrintMsg .. "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
+  end
 
   DisplayPopup()
 end

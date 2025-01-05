@@ -641,6 +641,7 @@ CM.Constants.DatabaseDefaults = {
     crosshairSize = 64,
     crosshairOpacity = 1.0,
     crosshairY = 50,
+    silenceAlerts = false,
     debugMode = false,
     bindings = DefaultBindings
   },
