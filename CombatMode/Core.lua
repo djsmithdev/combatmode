@@ -169,16 +169,22 @@ local function IsDefaultMouseActionBeingUsed()
 end
 
 local tooltipHidden = false
+local isTooltipHooked = false
 local function HideTooltip(shouldHide)
   tooltipHidden = shouldHide
-  local hookFunction = function()
-    if tooltipHidden then
-      GameTooltip:Hide()
-    end
-  end
 
-  hookFunction() -- Need to call it immediately in case there's a tooltip still fading while mouse locking
-  GameTooltip:HookScript("OnShow", hookFunction)
+  if not isTooltipHooked then
+    GameTooltip:HookScript("OnShow", function(self)
+      if tooltipHidden then
+        self:Hide()
+      end
+    end)
+    isTooltipHooked = true
+  end
+  -- Hide it immediately in case there's a tooltip still fading while mouse locking
+  if tooltipHidden and GameTooltip:IsShown() then
+    GameTooltip:Hide()
+  end
 end
 
 --[[
