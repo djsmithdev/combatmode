@@ -1,4 +1,4 @@
-## Interface: 110002, 110005, 110007
+## Interface: 110002, 110005, 110007, 110100
 ## Version: 2.4.15
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
