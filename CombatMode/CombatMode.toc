@@ -1,5 +1,5 @@
-## Interface: 110002, 110005, 110007, 110100
-## Version: 2.4.15
+## Interface: 110100
+## Version: 2.4.17
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
 ## Author: justice7ca, sampconrad.
@@ -10,6 +10,18 @@
 ## DefaultState: enabled
 ## LoadOnDemand: 0
 ## SavedVariables: CombatModeDB
+
+## Category-enUS: Combat
+## Category-deDE: Kampf
+## Category-esES: Combate
+## Category-esMX: Combate
+## Category-frFR: Combat
+## Category-itIT: Combattimento
+## Category-koKR: 전투
+## Category-ptBR: Combate
+## Category-ruRU: Бой
+## Category-zhCN: 战斗
+## Category-zhTW: 戰鬥
 
 ## X-Category: Misc
 ## X-Curse: curseforge.com/wow/addons/combat-mode
