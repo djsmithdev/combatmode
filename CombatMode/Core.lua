@@ -575,6 +575,10 @@ local function IsVendorMountOut()
   return false
 end
 
+local function IsFeignDeathActive()
+  return GetAuraDataBySpellName("player", "Feign Death", "HELPFUL") ~= nil
+end
+
 local function IsInPetBattle()
   if ON_RETAIL_CLIENT then
     return _G.C_PetBattles.IsInBattle()
@@ -592,7 +596,7 @@ end
 local function ShouldFreeLookBeOff()
   local evaluate = IsCustomConditionTrue() or
                      (FreeLookOverride or SpellIsTargeting() or InCinematic() or IsInCinematicScene() or
-                       IsUnlockFrameVisible() or IsVendorMountOut() or IsInPetBattle())
+                       IsUnlockFrameVisible() or IsVendorMountOut() or IsInPetBattle() or IsFeignDeathActive())
   return evaluate
 end
 
