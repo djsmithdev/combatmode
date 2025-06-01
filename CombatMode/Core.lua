@@ -18,7 +18,7 @@ local CreateFrame = _G.CreateFrame
 local CreateMacro = _G.CreateMacro
 local DisableAddOn = _G.C_AddOns.DisableAddOn
 local GetAddOnMetadata = _G.C_AddOns.GetAddOnMetadata
-local GetAuraDataBySpellName = _G.C_UnitAuras.GetAuraDataBySpellName
+local GetPlayerAuraBySpellID = _G.C_UnitAuras.GetPlayerAuraBySpellID
 local GameTooltip = _G.GameTooltip
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
@@ -563,7 +563,7 @@ local function IsVendorMountOut()
   end
 
   local function checkMount(mount)
-    return GetAuraDataBySpellName("player", mount, "HELPFUL") ~= nil
+    return GetPlayerAuraBySpellID(mount) ~= nil
   end
 
   for _, mount in ipairs(CM.Constants.MountsToCheck) do
@@ -576,7 +576,7 @@ local function IsVendorMountOut()
 end
 
 local function IsFeignDeathActive()
-  return GetAuraDataBySpellName("player", "Feign Death", "HELPFUL") ~= nil
+  return GetPlayerAuraBySpellID(5384) ~= nil
 end
 
 local function IsInPetBattle()

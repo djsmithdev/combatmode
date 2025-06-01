@@ -385,11 +385,11 @@ CM.Constants.WildcardFramesToCheck = {}
 
 -- Vendor mounts to force UnlockFreeLook
 CM.Constants.MountsToCheck = {
-  "Grand Expedition Yak",
-  "Traveler's Tundra Mammoth",
-  "Mighty Caravan Brutosaur",
-  "Trader's Gilded Brutosaur",
-  "Grizzly Hills Packmaster"
+  61447, -- Traveler's Tundra Mammoth
+  122708, -- Grand Expedition Yak
+  264058, -- "Mighty Caravan Brutosaur"
+  465235, -- "Trader's Gilded Brutosaur"
+  457485, -- "Grizzly Hills Packmaster"
 }
 
 ---------------------------------------------------------------------------------------
