@@ -1,27 +1,17 @@
-## Interface: 110107
-## Version: 2.4.19
+## Interface: 110107, 110200
+## Version: 2.5.0
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
+## Notes: Combat Mode transforms the standard tab-targeting combat into a more engaging and dynamic action-oriented experience.
+
 ## Author: justice7ca, sampconrad.
 ## X-Contributors: Orazur, DKulan, BennyFits.
-## Notes: Combat Mode transforms the standard tab-targeting combat into a more engaging and dynamic action-oriented experience.
+
 ## IconTexture: Interface\AddOns\CombatMode\assets\cmlogo
 
 ## DefaultState: enabled
 ## LoadOnDemand: 0
 ## SavedVariables: CombatModeDB
-
-## Category-enUS: Combat
-## Category-deDE: Kampf
-## Category-esES: Combate
-## Category-esMX: Combate
-## Category-frFR: Combat
-## Category-itIT: Combattimento
-## Category-koKR: 전투
-## Category-ptBR: Combate
-## Category-ruRU: Бой
-## Category-zhCN: 战斗
-## Category-zhTW: 戰鬥
 
 ## X-Category: Misc
 ## X-Curse: curseforge.com/wow/addons/combat-mode

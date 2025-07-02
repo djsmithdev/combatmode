@@ -48,10 +48,13 @@ local StaticPopupDialogs = _G.StaticPopupDialogs
 local StaticPopup_Show = _G.StaticPopup_Show
 local UIParent = _G.UIParent
 local UnitAffectingCombat = _G.UnitAffectingCombat
+local UnitCanAttack = _G.UnitCanAttack
 local UnitExists = _G.UnitExists
 local UnitGUID = _G.UnitGUID
 local UnitIsGameObject = _G.UnitIsGameObject
 local UnitReaction = _G.UnitReaction
+local UnitName = _G.UnitName
+local UnitIsPlayer = _G.UnitIsPlayer
 local unpack = _G.unpack
 
 -- INSTANTIATING ADDON & ENCAPSULATING NAMESPACE
@@ -95,13 +98,13 @@ function CM.DebugPrint(statement)
   end
 end
 
-local lastPrintTime = 0
+local LAST_PRINT_TIME = 0
 local function PreventDebugSpam(msg)
   local currentTime = GetTime()
 
-  if currentTime - lastPrintTime > 3 then
+  if currentTime - LAST_PRINT_TIME > 3 then
     CM.DebugPrint(msg)
-    lastPrintTime = currentTime
+    LAST_PRINT_TIME = currentTime
   end
 end
 
@@ -363,13 +366,13 @@ local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent
 local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 local CrosshairAnimation = CrosshairFrame:CreateAnimationGroup()
 local ScaleAnimation = CrosshairAnimation:CreateAnimation("Scale")
-local startingScale = 1
-local endingScale = 0.8
-local scaleDuration = 0.15
-ScaleAnimation:SetDuration(scaleDuration)
-ScaleAnimation:SetScaleFrom(startingScale, startingScale)
-ScaleAnimation:SetScaleTo(endingScale, endingScale)
-ScaleAnimation:SetSmoothProgress(scaleDuration)
+local STARTING_SCALE = 1
+local ENDING_SCALE = 0.8
+local SCALE_DURATION = 0.15
+ScaleAnimation:SetDuration(SCALE_DURATION)
+ScaleAnimation:SetScaleFrom(STARTING_SCALE, STARTING_SCALE)
+ScaleAnimation:SetScaleTo(ENDING_SCALE, ENDING_SCALE)
+ScaleAnimation:SetSmoothProgress(SCALE_DURATION)
 ScaleAnimation:SetSmoothing("IN_OUT")
 
 local function HideCrosshairWhileMounted()
@@ -386,8 +389,8 @@ local function SetCrosshairAppearance(state)
   -- Sets new scale at the end of animation
   CrosshairAnimation:SetScript("OnFinished", function()
     if state ~= "base" then
-      CrosshairFrame:SetScale(endingScale)
-      CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / endingScale)
+      CrosshairFrame:SetScale(ENDING_SCALE)
+      CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / ENDING_SCALE)
     end
   end)
 
@@ -395,7 +398,7 @@ local function SetCrosshairAppearance(state)
   CrosshairTexture:SetVertexColor(r, g, b, a)
   CrosshairAnimation:Play(reverseAnimation)
   if state == "base" then
-    CrosshairFrame:SetScale(startingScale)
+    CrosshairFrame:SetScale(STARTING_SCALE)
     CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos)
   end
 end
@@ -432,19 +435,70 @@ function CM.CreateCrosshair()
   AdjustCenteredCursorYPos(crosshairYPos)
 end
 
-local function HandleCrosshairReactionToTarget(target)
-  local isTargetVisible = (UnitExists(target) and UnitGUID(target)) and true or false
-  local reaction = UnitReaction("player", target)
-  local isTargetHostile = reaction and reaction <= 4
-  local isTargetFriendly = reaction and reaction >= 5
-  local isTargetObject = UnitIsGameObject(target)
+-- Track the last known unit under cursor and its reaction to update the crosshair appearance
+local lastKnownUnit = nil
+local lastKnownUnitReaction = nil
 
-  if isTargetVisible then
-    SetCrosshairAppearance(isTargetHostile and "hostile" or isTargetFriendly and "friendly" or "base")
-  elseif isTargetObject then
-    SetCrosshairAppearance("object")
-  else
-    SetCrosshairAppearance("base")
+-- Get the unit under the cursor and its reaction type for crosshair reactions
+local function GetUnitUnderCursor()
+  -- Check for game object interaction first using softinteract
+  local isTargetObject = UnitIsGameObject("softinteract")
+  if isTargetObject then
+    return "softinteract", "object"
+  end
+
+  -- If not a game object, check for regular units using mouseover
+  if UnitExists("mouseover") and UnitGUID("mouseover") then
+    local name = UnitName("mouseover")
+    if name and name ~= "" then
+
+      local reaction = UnitReaction("player", "mouseover")
+      local reactionType
+      if reaction then
+        if UnitIsPlayer("mouseover") then
+          if UnitCanAttack("player", "mouseover") then
+            reactionType = "hostile"
+          else
+            reactionType = "friendly_player"
+          end
+        elseif reaction <= 4 then
+          reactionType = "hostile"
+        elseif reaction >= 5 then
+          reactionType = "friendly_npc"
+        else
+          reactionType = "neutral"
+        end
+      else
+        reactionType = "base"
+      end
+
+      PreventDebugSpam("Found mouseover unit: " .. name .. " (reaction: " .. reactionType .. ")")
+      return "mouseover", reactionType
+    end
+  end
+-- no valid unit found (meaning it's not aiming at anything)
+  PreventDebugSpam("No unit under cursor, setting base appearance")
+  return nil, nil
+end
+
+-- Update crosshair appearance based on unit under cursor
+local function UpdateCrosshairReaction()
+  if not CM.DB.global.crosshair or HideCrosshairWhileMounted() then
+    return
+  end
+
+  local currentUnit, currentReaction = GetUnitUnderCursor()
+
+  -- Update if unit changed OR if reaction type changed (for same unit)
+  if currentUnit ~= lastKnownUnit or currentReaction ~= lastKnownUnitReaction then
+    lastKnownUnit = currentUnit
+    lastKnownUnitReaction = currentReaction
+
+    if currentUnit then
+      SetCrosshairAppearance(currentReaction or "base")
+    else
+      SetCrosshairAppearance("base")
+    end
   end
 end
 
@@ -677,19 +731,33 @@ end
 ---------------------------------------------------------------------------------------
 --                             FREE LOOK STATE FUNCTIONS                             --
 ---------------------------------------------------------------------------------------
+-- Helper function to handle UI state changes when toggling free look
+local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
+  if CM.DB.global.crosshair then
+    CM.DisplayCrosshair(isLocking)
+  end
+
+  if CM.DB.global.hideTooltip then
+    HideTooltip(isLocking)
+  end
+
+  -- Only reset Action Camera settings on permanent unlocks (user-initiated), not temporary ones (UI panels)
+  if CM.DB.global.actionCamera and CM.DB.global.actionCamMouselookDisable then
+    if isLocking or (not isLocking and isPermanentUnlock) then
+      CM.ConfigActionCamera(isLocking and "combatmode" or "blizzard")
+    end
+  end
+
+  if CM.DB.global.crosshair and CM.DB.char.stickyCrosshair then
+    CM.ConfigStickyCrosshair(isLocking and "combatmode" or "blizzard")
+  end
+end
+
 local function LockFreeLook()
   if not IsMouselooking() then
     MouselookStart()
     CenterCursor(true)
-
-    if CM.DB.global.crosshair then
-      CM.DisplayCrosshair(true)
-    end
-
-    if CM.DB.global.hideTooltip then
-      HideTooltip(true)
-    end
-
+    HandleFreeLookUIState(true, false)
     CM.DebugPrint("Free Look Enabled")
   end
 end
@@ -703,15 +771,22 @@ local function UnlockFreeLook()
       ShowCursorPulse()
     end
 
-    if CM.DB.global.crosshair then
-      CM.DisplayCrosshair(false)
-    end
-
-    if CM.DB.global.hideTooltip then
-      HideTooltip(false)
-    end
-
+    HandleFreeLookUIState(false, false)
     CM.DebugPrint("Free Look Disabled")
+  end
+end
+
+local function UnlockFreeLookPermanent()
+  if IsMouselooking() then
+    CenterCursor(false)
+    MouselookStop()
+
+    if CM.DB.global.pulseCursor then
+      ShowCursorPulse()
+    end
+
+    HandleFreeLookUIState(false, true)
+    CM.DebugPrint("Free Look Disabled (Permanent)")
   end
 end
 
@@ -726,7 +801,7 @@ local function ToggleFreeLook(state)
     LockFreeLook()
     FreeLookOverride = false
   elseif state then
-    UnlockFreeLook()
+    UnlockFreeLookPermanent()
     FreeLookOverride = true
   end
 end
@@ -784,17 +859,13 @@ local function HandleEventByCategory(category, event)
     REMATCH_EVENTS = function()
       Rematch()
     end,
-    TARGETING_EVENTS = function()
-      if not HideCrosshairWhileMounted() then
-        HandleCrosshairReactionToTarget(event == "PLAYER_SOFT_ENEMY_CHANGED" and "softenemy" or "softinteract")
-      end
-    end,
     FRIENDLY_TARGETING_EVENTS = function()
       HandleFriendlyTargetingInCombat()
     end,
     UNCATEGORIZED_EVENTS = function()
       SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
-    end
+    end,
+
   }
 
   if eventHandlers[category] then
@@ -820,15 +891,15 @@ end
 The game engine will call the OnUpdate function once each frame.
 This is (in most cases) extremely excessive, hence why we're adding a throttle.
 ]] --
-local ONUPDATE_INTERVAL = 0.15
-local TimeSinceLastUpdate = 0
+local ON_UPDATE_INTERVAL = 0.15
+local TIME_SINCE_LAST_UPDATE = 0
 function _G.CombatMode_OnUpdate(_, elapsed)
   -- Making this thread-safe by keeping track of the last update cycle
-  TimeSinceLastUpdate = TimeSinceLastUpdate + elapsed
+  TIME_SINCE_LAST_UPDATE = TIME_SINCE_LAST_UPDATE + elapsed
 
   -- As the frame watching doesn't need to perform a visibility check every frame, we're adding a stagger
-  if (TimeSinceLastUpdate >= ONUPDATE_INTERVAL) then
-    TimeSinceLastUpdate = 0
+  if (TIME_SINCE_LAST_UPDATE >= ON_UPDATE_INTERVAL) then
+    TIME_SINCE_LAST_UPDATE = 0
 
     if IsDefaultMouseActionBeingUsed() then
       return
@@ -842,6 +913,10 @@ function _G.CombatMode_OnUpdate(_, elapsed)
     if not IsMouselooking() then
       LockFreeLook()
     end
+
+    -- Update crosshair appearance based on unit under cursor
+    UpdateCrosshairReaction()
+
   end
 end
 

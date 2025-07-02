@@ -427,7 +427,7 @@ local CameraFeatures = {
       type = "toggle",
       name = "Load Combat Mode's |cffffd700Action Camera|r Preset |cffE37527•|r",
       desc = "Configures Blizzard's |cffffd700Action Camera|r feature to a curated preset that better matches Combat Mode's development environment. \n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r.|r \n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = "full",
+      width = 2,
       order = 1,
       confirmText = CM.METADATA["TITLE"] ..
         "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to Combat Mode's |cffffd700Action Camera|r Preset.|r \n\n|cffffd700Proceed?|r",
@@ -448,7 +448,27 @@ local CameraFeatures = {
         return CM.DynamicCam
       end
     },
-    spacing = Spacing("full", 1.1),
+    actionCamMouselookDisable = {
+      type = "toggle",
+      name = "Disable |cffffd700Action Camera|r with |cffE52B50Mouse Look|r",
+      desc = "Disable |cffffd700Action Camera|r features when toggling |cffE52B50Mouse Look|r off. \n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = 1.6,
+      order = 1.1,
+      confirmText = CM.METADATA["TITLE"] ..
+        "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to Combat Mode's |cffffd700Action Camera|r Preset.|r \n\n|cffffd700Proceed?|r",
+      confirm = true,
+      set = function(_, value)
+        CM.DB.global.actionCamMouselookDisable = value
+        ReloadUI()
+      end,
+      get = function()
+        return CM.DB.global.actionCamMouselookDisable
+      end,
+      disabled = function()
+        return CM.DynamicCam or CM.DB.global.actionCamera ~= true
+      end
+    },
+    spacing = Spacing("full", 1.2),
     shoulderOffset = {
       type = "range",
       name = "Camera Over Shoulder Offset |cff3B73FF©|r |cffE37527•|r",
