@@ -367,7 +367,7 @@ local CrosshairTexture = CrosshairFrame:CreateTexture(nil, "OVERLAY")
 local CrosshairAnimation = CrosshairFrame:CreateAnimationGroup()
 local ScaleAnimation = CrosshairAnimation:CreateAnimation("Scale")
 local STARTING_SCALE = 1
-local ENDING_SCALE = 0.8
+local ENDING_SCALE = 0.9
 local SCALE_DURATION = 0.15
 ScaleAnimation:SetDuration(SCALE_DURATION)
 ScaleAnimation:SetScaleFrom(STARTING_SCALE, STARTING_SCALE)
