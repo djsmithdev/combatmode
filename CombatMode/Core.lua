@@ -53,7 +53,6 @@ local UnitExists = _G.UnitExists
 local UnitGUID = _G.UnitGUID
 local UnitIsGameObject = _G.UnitIsGameObject
 local UnitReaction = _G.UnitReaction
-local UnitName = _G.UnitName
 local UnitIsPlayer = _G.UnitIsPlayer
 local unpack = _G.unpack
 
@@ -449,32 +448,28 @@ local function GetUnitUnderCursor()
 
   -- If not a game object, check for regular units using mouseover
   if UnitExists("mouseover") and UnitGUID("mouseover") then
-    local name = UnitName("mouseover")
-    if name and name ~= "" then
-
-      local reaction = UnitReaction("player", "mouseover")
-      local reactionType
-      if reaction then
-        if UnitIsPlayer("mouseover") then
-          if UnitCanAttack("player", "mouseover") then
-            reactionType = "hostile"
-          else
-            reactionType = "friendly_player"
-          end
-        elseif reaction <= 4 then
+    local reaction = UnitReaction("player", "mouseover")
+    local reactionType
+    if reaction then
+      if UnitIsPlayer("mouseover") then
+        if UnitCanAttack("player", "mouseover") then
           reactionType = "hostile"
-        elseif reaction >= 5 then
-          reactionType = "friendly_npc"
         else
-          reactionType = "neutral"
+          reactionType = "friendly_player"
         end
+      elseif reaction <= 4 then
+        reactionType = "hostile"
+      elseif reaction >= 5 then
+        reactionType = "friendly_npc"
       else
-        reactionType = "base"
+        reactionType = "neutral"
       end
-
-      PreventDebugSpam("Found mouseover unit: " .. name .. " (reaction: " .. reactionType .. ")")
-      return "mouseover", reactionType
+    else
+      reactionType = "base"
     end
+
+    PreventDebugSpam("Found mouseover unit (reaction: " .. reactionType .. ")")
+    return "mouseover", reactionType
   end
 -- no valid unit found (meaning it's not aiming at anything)
   PreventDebugSpam("No unit under cursor, setting base appearance")
