@@ -357,10 +357,9 @@ local function CreateSecureButtons()
   RadialState.secureContainer = container
 end
 
--- Create secure action buttons that will be bound to mouse buttons during mouselook
--- Strategy: Register for both down and up clicks
--- On DOWN: Show radial, but button has NO spell configured (type=nil), so nothing casts
--- On UP: PreClick sets the spell/target, then secure action fires and casts
+-- Create secure action buttons for spell casting
+-- These buttons are clicked programmatically by ExecuteAndHide() when mouse is released
+-- The mouselook override binding triggers HR.Show() on mouse down via a simple frame click
 local function CreateMouseOverrideButtons()
   -- Button key mappings
   local buttonMappings = {
@@ -375,65 +374,47 @@ local function CreateMouseOverrideButtons()
   }
 
   RadialState.overrideButtons = {}
+  RadialState.triggerButtons = {}
 
   for _, mapping in ipairs(buttonMappings) do
-    local btn = CreateFrame("Button", "CMHealRadial_" .. mapping.key:gsub("-", "_"), UIParent, "SecureActionButtonTemplate")
-    btn:SetSize(1, 1)
-    btn:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -100, -100)
-    btn.actionSlot = mapping.actionSlot
-    btn.buttonKey = mapping.key
+    -- Secure button for casting spells (clicked programmatically)
+    local castBtn = CreateFrame("Button", "CMHealRadialCast_" .. mapping.key:gsub("-", "_"), UIParent, "SecureActionButtonTemplate")
+    castBtn:SetSize(1, 1)
+    castBtn:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -100, -100)
+    castBtn.actionSlot = mapping.actionSlot
+    castBtn.buttonKey = mapping.key
+    castBtn:SetAttribute("type", nil)
 
-    -- Register for both down and up clicks
-    btn:RegisterForClicks("AnyDown", "AnyUp")
+    RadialState.overrideButtons[mapping.key] = castBtn
 
-    -- Start with NO action configured - this prevents spell cast on mouse down
-    btn:SetAttribute("type", nil)
+    -- Non-secure trigger button that shows the radial on mouse down
+    -- This is what the mouselook override binding clicks
+    local triggerBtn = CreateFrame("Button", "CMHealRadialTrigger_" .. mapping.key:gsub("-", "_"), UIParent)
+    triggerBtn:SetSize(1, 1)
+    triggerBtn:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -100, -100)
+    triggerBtn.buttonKey = mapping.key
+    triggerBtn:RegisterForClicks("AnyDown")
 
-    -- PreClick runs BEFORE the secure action attempts to fire
-    btn:SetScript("PreClick", function(self, mouseButton, isDown)
-      if isDown then
-        -- Mouse DOWN: Show radial, ensure no spell is configured
-        if not InCombatLockdown() then
-          self:SetAttribute("type", nil)
-          self:SetAttribute("unit", nil)
-        end
-        HR.Show(self.buttonKey)
-      else
-        -- Mouse UP: Configure spell and target RIGHT BEFORE secure action fires
-        if not InCombatLockdown() then
-          HR.ConfigureSpellForRelease(self)
-        end
-      end
+    triggerBtn:SetScript("OnClick", function(self)
+      HR.Show(self.buttonKey)
     end)
 
-    -- PostClick runs AFTER the secure action
-    btn:SetScript("PostClick", function(self, mouseButton, isDown)
-      if not isDown then
-        -- Mouse released, spell cast complete - hide radial and clear spell
-        if not InCombatLockdown() then
-          self:SetAttribute("type", nil)
-          self:SetAttribute("unit", nil)
-        end
-        HR.Hide(false)
-      end
-    end)
-
-    RadialState.overrideButtons[mapping.key] = btn
+    RadialState.triggerButtons[mapping.key] = triggerBtn
   end
 end
 
 -- Set up the mouselook override bindings for healing radial
 function HR.SetupMouselookBindings()
-  if not RadialState.overrideButtons then
+  if not RadialState.triggerButtons then
     return
   end
 
   local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 
-  for key, btn in pairs(RadialState.overrideButtons) do
-    -- Bind the mouse button to click our override button
-    SetMouselookOverrideBinding(key, "CLICK " .. btn:GetName() .. ":LeftButton")
-    CM.DebugPrint("Healing Radial: Bound " .. key .. " to " .. btn:GetName())
+  for key, triggerBtn in pairs(RadialState.triggerButtons) do
+    -- Bind the mouse button to click the trigger button (shows radial)
+    SetMouselookOverrideBinding(key, "CLICK " .. triggerBtn:GetName() .. ":LeftButton")
+    CM.DebugPrint("Healing Radial: Bound " .. key .. " to " .. triggerBtn:GetName())
   end
 end
 
@@ -467,57 +448,6 @@ function HR.SetCaptureActive(active)
     CM.OverrideDefaultButtons()
     CM.DebugPrint("Healing Radial: Deactivated")
   end
-end
-
--- Configure the spell and target on a button right before mouse release
--- This is called from PreClick when isDown=false (mouse up)
-function HR.ConfigureSpellForRelease(btn)
-  if not RadialState.isActive or not RadialState.selectedSlice then
-    -- No slice selected, don't cast anything
-    btn:SetAttribute("type", nil)
-    btn:SetAttribute("unit", nil)
-    CM.DebugPrint("Healing Radial: No target selected, skipping cast")
-    return
-  end
-
-  -- Find the unit for the selected slice
-  local targetUnit = nil
-  for _, member in ipairs(RadialState.partyData) do
-    if member.sliceIndex == RadialState.selectedSlice then
-      targetUnit = member.unitId
-      break
-    end
-  end
-
-  if not targetUnit then
-    btn:SetAttribute("type", nil)
-    btn:SetAttribute("unit", nil)
-    CM.DebugPrint("Healing Radial: No unit found for slice " .. RadialState.selectedSlice)
-    return
-  end
-
-  -- Get the spell from the action slot
-  local actionSlot = btn.actionSlot
-  local actionType, actionId = GetActionInfo(actionSlot)
-
-  -- Configure the button to cast the spell on the target
-  if actionType == "spell" then
-    btn:SetAttribute("type", "spell")
-    btn:SetAttribute("spell", actionId)
-  elseif actionType == "macro" then
-    btn:SetAttribute("type", "macro")
-    btn:SetAttribute("macro", actionId)
-  elseif actionType == "item" then
-    btn:SetAttribute("type", "item")
-    btn:SetAttribute("item", actionId)
-  else
-    -- Default to action button
-    btn:SetAttribute("type", "action")
-    btn:SetAttribute("action", actionSlot)
-  end
-
-  btn:SetAttribute("unit", targetUnit)
-  CM.DebugPrint("Healing Radial: Configured to cast on " .. targetUnit .. " (slice " .. RadialState.selectedSlice .. ")")
 end
 
 local function CreateMainFrame()
@@ -665,8 +595,39 @@ end
 ---------------------------------------------------------------------------------------
 --                              RADIAL CONTROL                                       --
 ---------------------------------------------------------------------------------------
+-- Check if the triggering mouse button is still held down
+local function IsMouseButtonStillDown(buttonKey)
+  if not buttonKey then return false end
+
+  -- Check for modifier + button combinations
+  local isShift = _G.IsShiftKeyDown()
+  local isCtrl = _G.IsControlKeyDown()
+  local isAlt = _G.IsAltKeyDown()
+
+  -- Determine which base button we're checking
+  local isButton1 = buttonKey:find("BUTTON1")
+  local isButton2 = buttonKey:find("BUTTON2")
+
+  -- Check the actual mouse button state
+  local mouseDown = false
+  if isButton1 then
+    mouseDown = _G.IsMouseButtonDown("LeftButton")
+  elseif isButton2 then
+    mouseDown = _G.IsMouseButtonDown("RightButton")
+  end
+
+  return mouseDown
+end
+
 local function TrackMousePosition(self, elapsed)
   if not RadialState.isActive then
+    return
+  end
+
+  -- Check if mouse button was released
+  if not IsMouseButtonStillDown(RadialState.currentButton) then
+    -- Mouse released - cast spell and hide radial
+    HR.ExecuteAndHide()
     return
   end
 
@@ -677,8 +638,6 @@ local function TrackMousePosition(self, elapsed)
   if newSlice ~= RadialState.selectedSlice then
     RadialState.selectedSlice = newSlice
     HighlightSlice(newSlice)
-    -- Note: The spell/target is configured in ConfigureSpellForRelease() on mouse UP
-    -- We just track the selected slice here for visual feedback
   end
 
   -- Update health bars periodically
@@ -705,9 +664,8 @@ function HR.Show(buttonKey)
     MouselookStop()
   end
 
-  -- NOTE: We do NOT configure the spell here on mouse DOWN
-  -- The spell is configured in ConfigureSpellForRelease() on mouse UP
-  -- This prevents the spell from casting immediately when the radial opens
+  -- NOTE: Spell casting happens in ExecuteAndHide() when mouse is released
+  -- This is detected by TrackMousePosition checking IsMouseButtonDown()
 
   -- Update visuals
   UpdateAllSlices()
@@ -729,13 +687,69 @@ function HR.Show(buttonKey)
   return true
 end
 
-function HR.Hide(executeSpell)
+-- Execute spell on selected target and hide the radial
+-- Called when mouse button is released (detected in TrackMousePosition)
+function HR.ExecuteAndHide()
   if not RadialState.isActive then
     return
   end
 
-  -- Note: Spell execution is handled by the override button's secure action
-  -- The executeSpell parameter is kept for API compatibility but no longer used
+  -- Get the override button for the current mouse button
+  local btn = RadialState.overrideButtons and RadialState.overrideButtons[RadialState.currentButton]
+
+  if btn and RadialState.selectedSlice then
+    -- Find the unit for the selected slice
+    local targetUnit = nil
+    for _, member in ipairs(RadialState.partyData) do
+      if member.sliceIndex == RadialState.selectedSlice then
+        targetUnit = member.unitId
+        break
+      end
+    end
+
+    if targetUnit and not InCombatLockdown() then
+      -- Configure the button with spell and target
+      local actionSlot = btn.actionSlot
+      local actionType, actionId = GetActionInfo(actionSlot)
+
+      if actionType == "spell" then
+        btn:SetAttribute("type", "spell")
+        btn:SetAttribute("spell", actionId)
+      elseif actionType == "macro" then
+        btn:SetAttribute("type", "macro")
+        btn:SetAttribute("macro", actionId)
+      elseif actionType == "item" then
+        btn:SetAttribute("type", "item")
+        btn:SetAttribute("item", actionId)
+      else
+        btn:SetAttribute("type", "action")
+        btn:SetAttribute("action", actionSlot)
+      end
+      btn:SetAttribute("unit", targetUnit)
+
+      -- Click the button to cast the spell
+      btn:Click()
+
+      CM.DebugPrint("Healing Radial: Cast on " .. targetUnit .. " (slice " .. RadialState.selectedSlice .. ")")
+
+      -- Clear the button attributes
+      btn:SetAttribute("type", nil)
+      btn:SetAttribute("unit", nil)
+    else
+      CM.DebugPrint("Healing Radial: No valid target or in combat lockdown")
+    end
+  else
+    CM.DebugPrint("Healing Radial: No slice selected, not casting")
+  end
+
+  -- Now hide the radial
+  HR.Hide(false)
+end
+
+function HR.Hide(executeSpell)
+  if not RadialState.isActive then
+    return
+  end
 
   -- Stop mouse tracking
   RadialState.mainFrame:SetScript("OnUpdate", nil)
