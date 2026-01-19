@@ -686,6 +686,11 @@ function CM.SetNewBinding(buttonSettings)
     return
   end
 
+  -- If healing radial is enabled, it manages its own bindings
+  if CM.DB.global.healingRadial and CM.DB.global.healingRadial.enabled then
+    return
+  end
+
   local valueToUse
   if buttonSettings.value == "MACRO" then
     valueToUse = "MACRO " .. buttonSettings.macroName

@@ -1073,6 +1073,8 @@ local HealingRadialOptions = {
       order = 3,
       set = function(_, value)
         CM.DB.global.healingRadial.enabled = value
+        -- Re-apply mouse button bindings (clears them if radial enabled, sets them if disabled)
+        CM.OverrideDefaultButtons()
         if CM.HealingRadial and CM.HealingRadial.SetCaptureActive then
           CM.HealingRadial.SetCaptureActive(value)
         end

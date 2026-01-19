@@ -264,37 +264,6 @@ local function UpdateSecureButtonTargets()
   RadialState.pendingUpdate = false
 end
 
--- Update secure button spell attributes based on action slot
-local function UpdateSecureButtonSpells(actionSlot)
-  if InCombatLockdown() then
-    return
-  end
-
-  local actionType, actionId, actionSubType = GetActionInfo(actionSlot)
-
-  for i = 1, 5 do
-    local btn = RadialState.secureButtons[i]
-    if btn then
-      if actionType == "spell" then
-        btn:SetAttribute("type", "spell")
-        btn:SetAttribute("spell", actionId)
-      elseif actionType == "macro" then
-        btn:SetAttribute("type", "macro")
-        btn:SetAttribute("macro", actionId)
-      elseif actionType == "item" then
-        btn:SetAttribute("type", "item")
-        btn:SetAttribute("item", actionId)
-      else
-        -- Default to action button
-        btn:SetAttribute("type", "action")
-        btn:SetAttribute("action", actionSlot)
-      end
-    end
-  end
-
-  CM.DebugPrint("Healing Radial: Updated spells for action slot " .. actionSlot)
-end
-
 ---------------------------------------------------------------------------------------
 --                                FRAME CREATION                                     --
 ---------------------------------------------------------------------------------------
@@ -388,81 +357,99 @@ local function CreateSecureButtons()
   RadialState.secureContainer = container
 end
 
--- Create the input capture frame for mouse button interception
-local function CreateInputCaptureFrame()
-  -- This frame captures mouse clicks when healing radial mode is active
-  -- It only activates during mouselook when healing radial is enabled
-  local captureFrame = CreateFrame("Button", "CMHealRadialCaptureFrame", UIParent)
-  captureFrame:SetFrameStrata("FULLSCREEN_DIALOG")
-  captureFrame:SetAllPoints()
-  captureFrame:EnableMouse(true)
-  captureFrame:RegisterForClicks("AnyDown", "AnyUp")
-  captureFrame:Hide()
+-- Create secure action buttons that will be bound to mouse buttons during mouselook
+-- These handle both showing the radial (on press) and executing (on release)
+local function CreateMouseOverrideButtons()
+  -- Button key mappings
+  local buttonMappings = {
+    { key = "BUTTON1", actionSlot = 1 },
+    { key = "BUTTON2", actionSlot = 2 },
+    { key = "SHIFT-BUTTON1", actionSlot = 3 },
+    { key = "SHIFT-BUTTON2", actionSlot = 4 },
+    { key = "CTRL-BUTTON1", actionSlot = 5 },
+    { key = "CTRL-BUTTON2", actionSlot = 6 },
+    { key = "ALT-BUTTON1", actionSlot = 7 },
+    { key = "ALT-BUTTON2", actionSlot = 8 },
+  }
 
-  -- Make the frame invisible but clickable
-  captureFrame:SetAlpha(0)
+  RadialState.overrideButtons = {}
 
-  -- Non-secure handlers for showing/hiding radial
-  captureFrame:SetScript("OnMouseDown", function(self, button)
-    if button == "LeftButton" or button == "RightButton" then
-      local modifier = ""
-      if _G.IsShiftKeyDown() then
-        modifier = "SHIFT-"
-      elseif _G.IsControlKeyDown() then
-        modifier = "CTRL-"
-      elseif _G.IsAltKeyDown() then
-        modifier = "ALT-"
+  for _, mapping in ipairs(buttonMappings) do
+    -- Create a button that shows radial on PreClick and casts on PostClick
+    local btn = CreateFrame("Button", "CMHealRadial_" .. mapping.key:gsub("-", "_"), UIParent, "SecureActionButtonTemplate")
+    btn:SetSize(1, 1)
+    btn:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -100, -100)
+    btn.actionSlot = mapping.actionSlot
+    btn.buttonKey = mapping.key
+
+    -- PreClick: Show the radial (runs before secure action)
+    btn:SetScript("PreClick", function(self, mouseButton, isDown)
+      if isDown then
+        -- Mouse button pressed - show radial
+        HR.Show(self.buttonKey)
       end
+    end)
 
-      local buttonKey = modifier .. (button == "LeftButton" and "BUTTON1" or "BUTTON2")
-      HR.Show(buttonKey)
-    end
-  end)
+    -- PostClick: Hide radial and potentially cast (runs after secure action)
+    btn:SetScript("PostClick", function(self, mouseButton, isDown)
+      if not isDown then
+        -- Mouse button released - hide radial (spell already cast by secure action)
+        HR.Hide(false) -- false because secure button already cast the spell
+      end
+    end)
 
-  captureFrame:SetScript("OnMouseUp", function(self, button)
-    if button == "LeftButton" or button == "RightButton" then
-      HR.Hide(true) -- true = execute spell
-    end
-  end)
+    -- The secure button will be configured to cast the appropriate spell
+    -- on the selected target when clicked
+    btn:RegisterForClicks("AnyDown", "AnyUp")
 
-  RadialState.captureFrame = captureFrame
+    RadialState.overrideButtons[mapping.key] = btn
+  end
+end
+
+-- Set up the mouselook override bindings for healing radial
+function HR.SetupMouselookBindings()
+  if not RadialState.overrideButtons then
+    return
+  end
+
+  local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
+
+  for key, btn in pairs(RadialState.overrideButtons) do
+    -- Bind the mouse button to click our override button
+    SetMouselookOverrideBinding(key, "CLICK " .. btn:GetName() .. ":LeftButton")
+    CM.DebugPrint("Healing Radial: Bound " .. key .. " to " .. btn:GetName())
+  end
+end
+
+-- Clear the mouselook override bindings (restore normal Combat Mode behavior)
+function HR.ClearMouselookBindings()
+  local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
+
+  for _, key in ipairs({"BUTTON1", "BUTTON2", "SHIFT-BUTTON1", "SHIFT-BUTTON2", "CTRL-BUTTON1", "CTRL-BUTTON2", "ALT-BUTTON1", "ALT-BUTTON2"}) do
+    SetMouselookOverrideBinding(key, nil)
+  end
+  CM.DebugPrint("Healing Radial: Cleared mouselook bindings")
 end
 
 -- Update capture frame visibility based on mouselook state
 -- This should be called from Core.lua's mouselook handlers
 function HR.OnMouselookChanged(isMouselooking)
-  if not RadialState.captureFrame then
-    return
-  end
-
-  local shouldBeActive = isMouselooking and HR.IsEnabled()
-
-  if shouldBeActive then
-    RadialState.captureFrame:Show()
-  else
-    RadialState.captureFrame:Hide()
-    -- If radial was showing, hide it
-    if RadialState.isActive then
-      HR.Hide(false) -- false = don't execute spell
-    end
+  -- If radial was showing and we exit mouselook, hide it
+  if not isMouselooking and RadialState.isActive then
+    HR.Hide(false) -- false = don't execute spell
   end
 end
 
--- Toggle the input capture frame (called when healing radial is enabled/disabled in settings)
+-- Toggle the healing radial system (called when enabled/disabled in settings)
 function HR.SetCaptureActive(active)
-  if not RadialState.captureFrame then
-    return
-  end
-
-  -- Only show if also in mouselook mode
-  local isMouselooking = _G.IsMouselooking()
-
-  if active and HR.IsEnabled() and isMouselooking then
-    RadialState.captureFrame:Show()
-    CM.DebugPrint("Healing Radial: Capture frame shown")
+  if active then
+    HR.SetupMouselookBindings()
+    CM.DebugPrint("Healing Radial: Activated")
   else
-    RadialState.captureFrame:Hide()
-    CM.DebugPrint("Healing Radial: Capture frame hidden")
+    HR.ClearMouselookBindings()
+    -- Restore normal Combat Mode bindings
+    CM.OverrideDefaultButtons()
+    CM.DebugPrint("Healing Radial: Deactivated")
   end
 end
 
@@ -623,6 +610,25 @@ local function TrackMousePosition(self, elapsed)
   if newSlice ~= RadialState.selectedSlice then
     RadialState.selectedSlice = newSlice
     HighlightSlice(newSlice)
+
+    -- Update the override button's target to match the selected slice
+    -- This allows the secure button to cast on the correct target on release
+    if not InCombatLockdown() and RadialState.currentButton and RadialState.overrideButtons then
+      local overrideBtn = RadialState.overrideButtons[RadialState.currentButton]
+      if overrideBtn then
+        local targetUnit = nil
+        if newSlice then
+          -- Find the unit assigned to this slice
+          for _, member in ipairs(RadialState.partyData) do
+            if member.sliceIndex == newSlice then
+              targetUnit = member.unitId
+              break
+            end
+          end
+        end
+        overrideBtn:SetAttribute("unit", targetUnit)
+      end
+    end
   end
 
   -- Update health bars periodically
@@ -649,9 +655,30 @@ function HR.Show(buttonKey)
     MouselookStop()
   end
 
-  -- Update spell based on which button was pressed
+  -- Update spell on the override button based on which button was pressed
   local actionSlot = GetActionSlotForButton(buttonKey)
-  UpdateSecureButtonSpells(actionSlot)
+  if not InCombatLockdown() and RadialState.overrideButtons then
+    local overrideBtn = RadialState.overrideButtons[buttonKey]
+    if overrideBtn then
+      local actionType, actionId = GetActionInfo(actionSlot)
+      if actionType == "spell" then
+        overrideBtn:SetAttribute("type", "spell")
+        overrideBtn:SetAttribute("spell", actionId)
+      elseif actionType == "macro" then
+        overrideBtn:SetAttribute("type", "macro")
+        overrideBtn:SetAttribute("macro", actionId)
+      elseif actionType == "item" then
+        overrideBtn:SetAttribute("type", "item")
+        overrideBtn:SetAttribute("item", actionId)
+      else
+        -- Default to action button
+        overrideBtn:SetAttribute("type", "action")
+        overrideBtn:SetAttribute("action", actionSlot)
+      end
+      -- Clear unit until user selects a slice
+      overrideBtn:SetAttribute("unit", nil)
+    end
+  end
 
   -- Update visuals
   UpdateAllSlices()
@@ -678,15 +705,8 @@ function HR.Hide(executeSpell)
     return
   end
 
-  -- Execute spell on selected target
-  if executeSpell and RadialState.selectedSlice then
-    local btn = RadialState.secureButtons[RadialState.selectedSlice]
-    if btn and btn:GetAttribute("unit") then
-      -- Click the secure button to cast the spell
-      btn:Click()
-      CM.DebugPrint("Healing Radial: Casting on slice " .. RadialState.selectedSlice)
-    end
-  end
+  -- Note: Spell execution is handled by the override button's secure action
+  -- The executeSpell parameter is kept for API compatibility but no longer used
 
   -- Stop mouse tracking
   RadialState.mainFrame:SetScript("OnUpdate", nil)
@@ -749,11 +769,16 @@ function HR.Initialize()
 
   CreateMainFrame()
   CreateSecureButtons()
-  CreateInputCaptureFrame()
+  CreateMouseOverrideButtons()
 
   -- Initial party data
   RefreshPartyData()
   UpdateSecureButtonTargets()
+
+  -- If healing radial is already enabled, set up the bindings
+  if CM.DB.global.healingRadial.enabled then
+    HR.SetupMouselookBindings()
+  end
 
   CM.DebugPrint("Healing Radial: Initialized")
 end
