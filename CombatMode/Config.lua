@@ -1047,6 +1047,184 @@ local AdvancedConfigOptions = {
 }
 
 ---------------------------------------------------------------------------------------
+--                               HEALING RADIAL CONFIG                               --
+---------------------------------------------------------------------------------------
+local HealingRadialOptions = {
+  name = CM.METADATA["TITLE"],
+  handler = CM,
+  type = "group",
+  args = {
+    header = {
+      type = "header",
+      name = "|cff00FF7FHEALING RADIAL|r",
+      order = 1
+    },
+    description = {
+      type = "description",
+      name = "\nA radial menu for quickly targeting party members when healing. While |cffE52B50Mouse Look|r is active and you're in a party, hold a mouse button to display the radial, flick toward your target, and release to cast.\n\n",
+      fontSize = "medium",
+      order = 2
+    },
+    enabled = {
+      type = "toggle",
+      name = "Enable |cff00FF7FHealing Radial|r",
+      desc = "Shows a radial menu when using click-cast buttons while in a party. Party members are arranged by role with the tank at 12 o'clock.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = "full",
+      order = 3,
+      set = function(_, value)
+        CM.DB.global.healingRadial.enabled = value
+        if CM.HealingRadial and CM.HealingRadial.SetCaptureActive then
+          CM.HealingRadial.SetCaptureActive(value)
+        end
+      end,
+      get = function()
+        return CM.DB.global.healingRadial.enabled
+      end,
+    },
+    spacing1 = Spacing("full", 3.1),
+    visualGroup = {
+      type = "group",
+      name = "Visual Settings",
+      order = 4,
+      inline = true,
+      args = {
+        showHealthBars = {
+          type = "toggle",
+          name = "Show Health Bars",
+          desc = "Display health bars on each party member slice.",
+          width = 1.2,
+          order = 1,
+          set = function(_, value)
+            CM.DB.global.healingRadial.showHealthBars = value
+          end,
+          get = function()
+            return CM.DB.global.healingRadial.showHealthBars
+          end,
+          disabled = function()
+            return not CM.DB.global.healingRadial.enabled
+          end
+        },
+        showHealthPercent = {
+          type = "toggle",
+          name = "Show Health %",
+          desc = "Display health percentage on each slice.",
+          width = 1.2,
+          order = 2,
+          set = function(_, value)
+            CM.DB.global.healingRadial.showHealthPercent = value
+          end,
+          get = function()
+            return CM.DB.global.healingRadial.showHealthPercent
+          end,
+          disabled = function()
+            return not CM.DB.global.healingRadial.enabled
+          end
+        },
+        showPlayerNames = {
+          type = "toggle",
+          name = "Show Names",
+          desc = "Display player names on each slice.",
+          width = 1.2,
+          order = 3,
+          set = function(_, value)
+            CM.DB.global.healingRadial.showPlayerNames = value
+          end,
+          get = function()
+            return CM.DB.global.healingRadial.showPlayerNames
+          end,
+          disabled = function()
+            return not CM.DB.global.healingRadial.enabled
+          end
+        },
+        showRoleIcons = {
+          type = "toggle",
+          name = "Show Role Icons",
+          desc = "Display role icons (tank, healer, DPS) on each slice.",
+          width = 1.2,
+          order = 4,
+          set = function(_, value)
+            CM.DB.global.healingRadial.showRoleIcons = value
+          end,
+          get = function()
+            return CM.DB.global.healingRadial.showRoleIcons
+          end,
+          disabled = function()
+            return not CM.DB.global.healingRadial.enabled
+          end
+        },
+        spacing2 = Spacing("full", 4.1),
+        sliceRadius = {
+          type = "range",
+          name = "Radial Size",
+          desc = "Distance from center to each party member slice.\n\n|cffffd700Default:|r |cff00FF7F120|r",
+          min = 60,
+          max = 200,
+          step = 10,
+          width = 1.5,
+          order = 5,
+          set = function(_, value)
+            CM.DB.global.healingRadial.sliceRadius = value
+          end,
+          get = function()
+            return CM.DB.global.healingRadial.sliceRadius
+          end,
+          disabled = function()
+            return not CM.DB.global.healingRadial.enabled
+          end
+        },
+        sliceSize = {
+          type = "range",
+          name = "Slice Size",
+          desc = "Size of each party member slice.\n\n|cffffd700Default:|r |cff00FF7F80|r",
+          min = 50,
+          max = 120,
+          step = 10,
+          width = 1.5,
+          order = 6,
+          set = function(_, value)
+            CM.DB.global.healingRadial.sliceSize = value
+          end,
+          get = function()
+            return CM.DB.global.healingRadial.sliceSize
+          end,
+          disabled = function()
+            return not CM.DB.global.healingRadial.enabled
+          end
+        },
+      }
+    },
+    spacing3 = Spacing("full", 5),
+    layoutInfo = {
+      type = "group",
+      name = "|cffffd700Layout Information|r",
+      order = 6,
+      inline = true,
+      args = {
+        layoutNote = {
+          type = "description",
+          name = "|cff909090Party members are automatically positioned by role:|r\n\n|cffcfcfcf• |cff00d1ffTank|r at 12 o'clock (top)\n• |cff00ff00Healer|r at 7 o'clock (bottom-left)\n• |cffff6060DPS|r fill remaining positions\n\nYour character is included in the radial at your role's position.|r",
+          order = 1
+        }
+      }
+    },
+    spacing4 = Spacing("full", 7),
+    devnote = {
+      type = "group",
+      name = "|cffffd700Developer Note|r",
+      order = 8,
+      inline = true,
+      args = {
+        note = {
+          type = "description",
+          name = "|cff909090The Healing Radial uses the same spell assignments as |cffB47EDCClick Casting|r. Configure which spells are bound to each mouse button in the Click Casting tab.|r\n\n|cffFF5050Note:|r Party assignments can only be updated outside of combat due to WoW API restrictions.",
+          order = 1
+        }
+      }
+    }
+  }
+}
+
+---------------------------------------------------------------------------------------
 --                              SETTINGS CATEGORY TREE                               --
 ---------------------------------------------------------------------------------------
 -- Header
@@ -1068,6 +1246,11 @@ CM.Config.OptionCategories = {
     id = "CombatMode_ClickCasting",
     name = "|cffB47EDC • Click Casting|r",
     table = ClickCastingOptions
+  },
+  {
+    id = "CombatMode_HealingRadial",
+    name = "|cff00FF7F • Healing Radial|r",
+    table = HealingRadialOptions
   },
   {
     id = "CombatMode_Advanced",
