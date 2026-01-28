@@ -651,10 +651,15 @@ local function IsUnlockFrameVisible()
            CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or isGenericPanelOpen
 end
 
+local function IsHealingRadialActive()
+  return CM.HealingRadial and CM.HealingRadial.IsActive and CM.HealingRadial.IsActive()
+end
+
 local function ShouldFreeLookBeOff()
   local evaluate = IsCustomConditionTrue() or
                      (FreeLookOverride or SpellIsTargeting() or InCinematic() or IsInCinematicScene() or
-                       IsUnlockFrameVisible() or IsVendorMountOut() or IsInPetBattle() or IsFeignDeathActive())
+                       IsUnlockFrameVisible() or IsVendorMountOut() or IsInPetBattle() or IsFeignDeathActive() or
+                       IsHealingRadialActive())
   return evaluate
 end
 
@@ -687,6 +692,11 @@ end
 
 function CM.SetNewBinding(buttonSettings)
   if not buttonSettings.enabled then
+    return
+  end
+
+  -- If healing radial is enabled, it manages its own bindings
+  if CM.DB.global.healingRadial and CM.DB.global.healingRadial.enabled then
     return
   end
 
@@ -762,6 +772,10 @@ local function LockFreeLook()
     MouselookStart()
     CenterCursor(true)
     HandleFreeLookUIState(true, false)
+    -- Notify Healing Radial of mouselook state change
+    if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
+      CM.HealingRadial.OnMouselookChanged(true)
+    end
     CM.DebugPrint("Free Look Enabled")
   end
 end
@@ -776,6 +790,10 @@ local function UnlockFreeLook()
     end
 
     HandleFreeLookUIState(false, false)
+    -- Notify Healing Radial of mouselook state change
+    if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
+      CM.HealingRadial.OnMouselookChanged(false)
+    end
     CM.DebugPrint("Free Look Disabled")
   end
 end
@@ -790,6 +808,10 @@ local function UnlockFreeLookPermanent()
     end
 
     HandleFreeLookUIState(false, true)
+    -- Notify Healing Radial of mouselook state change
+    if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
+      CM.HealingRadial.OnMouselookChanged(false)
+    end
     CM.DebugPrint("Free Look Disabled (Permanent)")
   end
 end
@@ -865,9 +887,18 @@ local function HandleEventByCategory(category, event)
     end,
     FRIENDLY_TARGETING_EVENTS = function()
       HandleFriendlyTargetingInCombat()
+      -- Also handle combat end for healing radial pending updates
+      if event == "PLAYER_REGEN_ENABLED" and CM.HealingRadial and CM.HealingRadial.OnCombatEnd then
+        CM.HealingRadial.OnCombatEnd()
+      end
     end,
     UNCATEGORIZED_EVENTS = function()
       SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
+    end,
+    HEALING_RADIAL_EVENTS = function()
+      if CM.HealingRadial and CM.HealingRadial.OnGroupRosterUpdate then
+        CM.HealingRadial.OnGroupRosterUpdate()
+      end
     end,
 
   }
@@ -1002,6 +1033,11 @@ function CM:OnEnable()
   CM.CreateCrosshair()
   CreatePulse()
   CreateTargetMacros()
+
+  -- Initialize Healing Radial module
+  if CM.HealingRadial and CM.HealingRadial.Initialize then
+    CM.HealingRadial.Initialize()
+  end
 
   -- Registering Blizzard Events from Constants.lua
   for _, events_to_register in pairs(CM.Constants.BLIZZARD_EVENTS) do
