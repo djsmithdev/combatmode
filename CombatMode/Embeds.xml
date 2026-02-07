@@ -12,7 +12,6 @@
     <!-- MODULES -->
 	<Script file="Core.lua"/>
 	<Script file="Constants.lua"/>
-	<Script file="HealingRadial.lua"/>
 	<Script file="Config.lua"/>
     <!-- FRAME -->
 	<Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
