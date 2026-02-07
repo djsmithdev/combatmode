@@ -370,7 +370,10 @@ CM.Constants.FramesToCheck = {
   "WantAds",
   "SubscriptionInterstitialFrame",
   "CinematicFrameCloseDialog",
-  "MovieFrame"
+  "MovieFrame",
+  "Baganator_CategoryViewBackpackViewFrameblizzard",
+  "Baganator_CategoryViewBackpackViewFramegw2_ui",
+  "Baganator_CategoryViewBackpackViewFrame"
 }
 
 -- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"
