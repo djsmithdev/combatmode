@@ -133,11 +133,7 @@ end
 local function RefreshPartyData()
   RadialState.partyData = {}
 
-  if not IsInGroup() then
-    return
-  end
-
-  -- Collect all party members including self
+  -- Collect all party members including self (works solo too)
   local members = {}
 
   -- Add self
@@ -694,10 +690,6 @@ function HR.Show(buttonKey)
     return false
   end
 
-  if not IsInGroup() then
-    return false
-  end
-
   -- Store state
   RadialState.isActive = true
   RadialState.currentButton = buttonKey
@@ -844,10 +836,6 @@ function HR.ShowFromKeybind()
     return false
   end
 
-  if not IsInGroup() then
-    return false
-  end
-
   if RadialState.isActive then
     return false
   end
@@ -914,7 +902,7 @@ function HR.IsActive()
 end
 
 function HR.IsEnabled()
-  return CM.DB.global.healingRadial and CM.DB.global.healingRadial.enabled and IsInGroup()
+  return CM.DB.global.healingRadial and CM.DB.global.healingRadial.enabled
 end
 
 ---------------------------------------------------------------------------------------
