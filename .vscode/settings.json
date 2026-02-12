@@ -45,7 +45,9 @@
     "UIParent",
     "GameTooltip",
     "WOW_PROJECT_ID",
-    "WOW_PROJECT_MAINLINE"
+    "WOW_PROJECT_MAINLINE",
+    "ChatEdit_InsertLink",
+    "ChatFrameUtil"
   ],
   "Lua.diagnostics.disable": [
     "undefined-field",
@@ -64,6 +66,6 @@
     "utf8": "disable"
   },
   "Lua.workspace.library": [
-    "~\\.vscode\\extensions\\ketho.wow-api-0.21.0\\Annotations\\Core"
+    "~\\.vscode\\extensions\\ketho.wow-api-0.22.1\\Annotations\\Core"
   ]
 }

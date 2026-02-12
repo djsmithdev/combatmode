@@ -36,6 +36,7 @@ local loadstring = _G.loadstring
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
 local OpenToCategory = _G.Settings.OpenToCategory
+local OpenSettingsPanel = _G.C_SettingsUtil and _G.C_SettingsUtil.OpenSettingsPanel
 local pcall = _G.pcall
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
@@ -112,7 +113,15 @@ local function OpenConfigPanel()
     print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open settings while in combat.|r")
     return
   end
-  OpenToCategory(CM.METADATA["TITLE"])
+
+  -- Use the new API if available (Patch 12.0.0+)
+  if OpenSettingsPanel then
+    local categoryID = AceConfigDialog.BlizOptionsIDMap[CM.METADATA["TITLE"]]
+    OpenSettingsPanel(categoryID)
+  else
+    -- Fallback to old API for older clients
+    OpenToCategory(CM.METADATA["TITLE"])
+  end
 end
 
 local function UndoCMChanges()

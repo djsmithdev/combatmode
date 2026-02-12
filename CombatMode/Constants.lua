@@ -53,7 +53,7 @@ CM.Constants.ActionCameraCVarValues = {
   ["test_cameraDynamicPitchBaseFovPadDownScale"] = 0.25, -- Down Scale
   ["test_cameraDynamicPitchSmartPivotCutoffDist"] = 10, -- Smart Pivot Cutoff Distance
   ["test_cameraHeadMovementStrength"] = 0, -- Head Tracking
-  ["test_cameraOverShoulder"] = 1.2, -- Shoulder horizontal offset
+  ["test_cameraOverShoulder"] = 1.0, -- Shoulder horizontal offset
   ["CameraKeepCharacterCentered"] = 0, -- Disable Motion Sickness
   ["CameraReduceUnexpectedMovement"] = 0 -- Disable Motion Sickness
 }
@@ -390,7 +390,10 @@ CM.Constants.FramesToCheck = {
   "SubscriptionInterstitialFrame",
   "CinematicFrameCloseDialog",
   "MovieFrame",
-  "CombatModeHealingRadialFrame"
+  "CombatModeHealingRadialFrame",
+  "Baganator_CategoryViewBackpackViewFrameblizzard",
+  "Baganator_CategoryViewBackpackViewFramegw2_ui",
+  "Baganator_CategoryViewBackpackViewFrame"
 }
 
 -- Default frames to check with a dynamic name: any frame containing a string defined here will be matched, e.g. "OPieRT" will match the frame "OPieRT-1234-5678"
@@ -659,7 +662,7 @@ CM.Constants.DatabaseDefaults = {
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
     crosshairSize = 64,
     crosshairOpacity = 1.0,
-    crosshairY = 50,
+    crosshairY = 100,
     silenceAlerts = false,
     debugMode = false,
     bindings = DefaultBindings,
@@ -683,7 +686,7 @@ CM.Constants.DatabaseDefaults = {
   },
   char = {
     useGlobalBindings = false,
-    shoulderOffset = 1.2,
+    shoulderOffset = 1.0,
     reticleTargeting = true,
     crosshairPriority = true,
     friendlyTargeting = false,
