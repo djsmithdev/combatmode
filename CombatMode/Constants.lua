@@ -390,7 +390,9 @@ CM.Constants.FramesToCheck = {
   "SubscriptionInterstitialFrame",
   "CinematicFrameCloseDialog",
   "MovieFrame",
-  "CombatModeHealingRadialFrame",
+  -- NOTE: CombatModeHealingRadialFrame removed from watchlist.
+  -- Healing radial visibility is handled by IsHealingRadialActive() in ShouldFreeLookBeOff().
+  -- Using the watchlist would conflict with alpha-based visibility used for combat compatibility.
   "Baganator_CategoryViewBackpackViewFrameblizzard",
   "Baganator_CategoryViewBackpackViewFramegw2_ui",
   "Baganator_CategoryViewBackpackViewFrame"

@@ -695,11 +695,6 @@ function CM.SetNewBinding(buttonSettings)
     return
   end
 
-  -- If healing radial is enabled, it manages its own bindings
-  if CM.DB.global.healingRadial and CM.DB.global.healingRadial.enabled then
-    return
-  end
-
   local valueToUse
   if buttonSettings.value == "MACRO" then
     valueToUse = "MACRO " .. buttonSettings.macroName
@@ -770,7 +765,9 @@ end
 local function LockFreeLook()
   if not IsMouselooking() then
     MouselookStart()
-    CenterCursor(true)
+    -- NOTE: CursorFreelookCentering is intentionally NOT set to 1 here.
+    -- The CVar is bugged since 10.2 and causes camera jolt when set to 1.
+    -- See Constants.lua comment and https://github.com/Stanzilla/WoWUIBugs/issues/504
     HandleFreeLookUIState(true, false)
     -- Notify Healing Radial of mouselook state change
     if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
@@ -967,6 +964,15 @@ end
 function _G.CombatMode_HoldKey(keystate)
   local state = keystate == "down"
   ToggleFreeLook(state)
+end
+
+function _G.CombatMode_HealingRadialKey(keystate)
+  if not CM.HealingRadial then return end
+  if keystate == "down" then
+    CM.HealingRadial.ShowFromKeybind()
+  elseif keystate == "up" then
+    CM.HealingRadial.HideFromKeybind()
+  end
 end
 
 -- CREATING /CM CHAT COMMAND

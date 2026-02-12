@@ -1073,8 +1073,6 @@ local HealingRadialOptions = {
       order = 3,
       set = function(_, value)
         CM.DB.global.healingRadial.enabled = value
-        -- Re-apply mouse button bindings (clears them if radial enabled, sets them if disabled)
-        CM.OverrideDefaultButtons()
         if CM.HealingRadial and CM.HealingRadial.SetCaptureActive then
           CM.HealingRadial.SetCaptureActive(value)
         end
@@ -1082,6 +1080,27 @@ local HealingRadialOptions = {
       get = function()
         return CM.DB.global.healingRadial.enabled
       end,
+    },
+    keybind = {
+      type = "keybinding",
+      name = "|cffffd700Hold to Open|r",
+      desc = "Hold this key to open the Healing Radial. Release to close. Hover over a party member to target them.",
+      width = 1.5,
+      order = 3.5,
+      set = function(_, key)
+        local oldKey = (GetBindingKey("(Hold) Healing Radial"))
+        if oldKey then
+          SetBinding(oldKey)
+        end
+        SetBinding(key, "(Hold) Healing Radial")
+        SaveBindings(GetCurrentBindingSet())
+      end,
+      get = function()
+        return (GetBindingKey("(Hold) Healing Radial"))
+      end,
+      disabled = function()
+        return not CM.DB.global.healingRadial.enabled
+      end
     },
     spacing1 = Spacing("full", 3.1),
     visualGroup = {

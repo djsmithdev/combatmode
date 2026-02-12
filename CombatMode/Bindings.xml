@@ -7,4 +7,9 @@
   			 CombatMode_HoldKey(keystate)
 		end
 	</Binding>
+	<Binding name="(Hold) Healing Radial" description="Hold to open Healing Radial for party targeting" header="Healing Radial" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t" runOnUp="true">
+		if keystate == "down" or keystate == "up" then
+			CombatMode_HealingRadialKey(keystate)
+		end
+	</Binding>
 </Bindings>
