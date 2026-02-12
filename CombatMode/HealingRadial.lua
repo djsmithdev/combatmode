@@ -286,16 +286,16 @@ local function CreateSliceFrame(sliceIndex)
   local y = radius * math.sin(math.rad(angle))
 
   -- Parent directly to UIParent (not sliceContainer) to avoid secure frame hierarchy
-  -- issues during InCombatLockdown. Position relative to screen center.
+  -- issues during InCombatLockdown. Position at final on-screen location permanently.
+  -- SetPoint/ClearAllPoints are PROTECTED on secure frames during combat lockdown,
+  -- so we never move slices at runtime. Visibility is controlled via SetAlpha and
+  -- SetMouseClickEnabled/SetMouseMotionEnabled (which are NOT protected).
   local slice = CreateFrame("Button", "CMHealRadialSlice" .. sliceIndex, UIParent, "SecureActionButtonTemplate")
   slice:SetFrameStrata("DIALOG")
   slice:SetSize(config.sliceSize, config.sliceSize)
   local crosshairY = CM.DB.global.crosshairY or 50
-  slice:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -200, -200) -- Start off-screen
+  slice:SetPoint("CENTER", UIParent, "CENTER", x, crosshairY + y)
   slice:SetAttribute("type", "target")
-  -- Store intended on-screen position for toggling
-  slice.onScreenX = x
-  slice.onScreenY = crosshairY + y
   slice:SetAttribute("unit", nil)
   slice:RegisterForClicks("AnyUp", "AnyDown")
   slice.sliceIndex = sliceIndex
@@ -364,9 +364,8 @@ local function CreateSliceFrame(sliceIndex)
   end)
 
   -- Keep slices always :Show() and EnableMouse(true) so they work in combat.
-  -- SecureActionButtonTemplate can't have Show/Hide or EnableMouse toggled during
-  -- InCombatLockdown. Slices are positioned off-screen when radial is closed
-  -- and moved on-screen when opened (SetPoint is not protected).
+  -- Show/Hide, EnableMouse, SetPoint, ClearAllPoints are ALL protected on
+  -- secure frames during InCombatLockdown. Only SetAlpha is safe to toggle.
   slice:SetAlpha(0)
   slice:EnableMouse(true)
 
@@ -473,8 +472,11 @@ end
 -- Update capture frame visibility based on mouselook state
 -- This should be called from Core.lua's mouselook handlers
 function HR.OnMouselookChanged(isMouselooking)
-  -- If radial was showing and we exit mouselook, hide it
-  if not isMouselooking and RadialState.isActive then
+  -- If radial was showing via mouse button and we exit mouselook, hide it.
+  -- Don't auto-hide when opened via keybind (currentButton == nil) since
+  -- the keybind handler manages the lifecycle.
+  CM.DebugPrint("Healing Radial: OnMouselookChanged(" .. tostring(isMouselooking) .. ") active=" .. tostring(RadialState.isActive) .. " btn=" .. tostring(RadialState.currentButton))
+  if not isMouselooking and RadialState.isActive and RadialState.currentButton then
     HR.Hide(false) -- false = don't execute spell
   end
 end
@@ -524,16 +526,12 @@ local function UpdateSliceVisual(sliceIndex)
   end
 
   if not memberData or not UnitExists(memberData.unitId) then
-    -- Move off-screen and hide visually. SetPoint is not protected so this is combat-safe.
+    -- Use alpha only (not Hide/Show or EnableMouse) to avoid protected frame errors in combat
     slice:SetAlpha(0)
-    slice:ClearAllPoints()
-    slice:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -200, -200)
     return
   end
 
-  -- Move on-screen and show visually
-  slice:ClearAllPoints()
-  slice:SetPoint("CENTER", UIParent, "CENTER", slice.onScreenX, slice.onScreenY)
+  -- Show visually via alpha (combat-safe)
   slice:SetAlpha(1)
 
   -- Update name
@@ -681,8 +679,8 @@ local function TrackMousePosition(self, elapsed)
       end
     end
   end
-  -- When opened via keybind (currentButton == nil), the radial closes
-  -- via HideFromKeybind() on key-up, not via mouse button release.
+  -- When opened via keybind, key release is handled by HideFromKeybind()
+  -- via runOnUp binding (with spurious key-up counter).
 
   -- Highlighting and targeting are handled by slice frame OnEnter/OnLeave
   -- (SecureHandlerEnterLeaveTemplate does targeting, HookScript does highlight)
@@ -801,17 +799,16 @@ function HR.Hide(executeSpell)
   if not RadialState.isActive then
     return
   end
+  CM.DebugPrint("Healing Radial: HR.Hide called from: " .. (debugstack(2, 1, 0) or "unknown"))
 
   -- Stop mouse tracking
   RadialState.mainFrame:SetScript("OnUpdate", nil)
 
-  -- Hide all slices: move off-screen and zero alpha (combat-safe, SetPoint is not protected)
+  -- Hide all slices via alpha (combat-safe, never toggle EnableMouse on secure frames)
   for i = 1, 5 do
     local slice = RadialState.sliceFrames[i]
     if slice then
       slice:SetAlpha(0)
-      slice:ClearAllPoints()
-      slice:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -200, -200)
     end
   end
 
@@ -827,6 +824,16 @@ function HR.Hide(executeSpell)
   -- no longer detects the radial as open.
   RadialState.isActive = false
   RadialState.selectedSlice = nil
+
+  -- Re-engage mouselook directly with CursorFreelookCentering OFF to avoid
+  -- camera jolt (CVar bug since 10.2). Set to 0 before MouselookStart, then
+  -- restore to 1 immediately after (the CVar only jolts at the moment mouselook
+  -- starts; once active, changing it back is safe).
+  if RadialState.wasMouselooking then
+    _G.C_CVar.SetCVar("CursorFreelookCentering", 0)
+    MouselookStart()
+    _G.C_CVar.SetCVar("CursorFreelookCentering", 1)
+  end
 
   CM.DebugPrint("Healing Radial: Hidden (combat=" .. tostring(InCombatLockdown()) .. ")")
 end
@@ -845,14 +852,22 @@ function HR.ShowFromKeybind()
     return false
   end
 
+  -- Find which key is bound so we can poll for release in TrackMousePosition
+  local boundKey = _G.GetBindingKey("(Hold) Healing Radial")
+
   -- Store state (currentButton = nil signals keybind mode)
   RadialState.isActive = true
   RadialState.currentButton = nil
+  RadialState.boundKey = boundKey
   RadialState.selectedSlice = nil
+  RadialState.keyUpCount = 0
   RadialState.wasMouselooking = _G.IsMouselooking()
   RadialState.showTime = _G.GetTime()
 
-  -- Stop mouselook so cursor is free for slice selection
+  -- Stop mouselook so cursor is free for slice selection.
+  -- NOTE: MouselookStop causes spurious key-up events for held keys. The
+  -- time-based filter in HideFromKeybind handles this by ignoring key-ups
+  -- that arrive within 0.3s of showing.
   if RadialState.wasMouselooking then
     MouselookStop()
   end
@@ -871,12 +886,26 @@ function HR.ShowFromKeybind()
     CM.DisplayCrosshair(false)
   end
 
-  CM.DebugPrint("Healing Radial: Shown via keybind")
+  CM.DebugPrint("Healing Radial: Shown via keybind (combat=" .. tostring(InCombatLockdown()) .. ", wasML=" .. tostring(RadialState.wasMouselooking) .. ")")
   return true
 end
 
 -- Close radial opened via keybind (no spell casting)
 function HR.HideFromKeybind()
+  if not RadialState.isActive then
+    CM.DebugPrint("Healing Radial: HideFromKeybind called but radial not active")
+    return
+  end
+  RadialState.keyUpCount = (RadialState.keyUpCount or 0) + 1
+  local elapsed = _G.GetTime() - (RadialState.showTime or 0)
+  CM.DebugPrint("Healing Radial: HideFromKeybind key-up #" .. RadialState.keyUpCount .. " elapsed=" .. string.format("%.3f", elapsed) .. "s combat=" .. tostring(InCombatLockdown()))
+  -- MouselookStop causes WoW to fire spurious key-up events. If mouselook
+  -- was active when the radial opened, skip key-ups that arrive before the
+  -- OnUpdate loop has had time to process (within 0.3s of showing).
+  if RadialState.wasMouselooking and elapsed < 0.3 then
+    CM.DebugPrint("Healing Radial: Ignoring spurious key-up")
+    return
+  end
   HR.Hide(false)
 end
 

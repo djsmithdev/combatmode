@@ -765,9 +765,7 @@ end
 local function LockFreeLook()
   if not IsMouselooking() then
     MouselookStart()
-    -- NOTE: CursorFreelookCentering is intentionally NOT set to 1 here.
-    -- The CVar is bugged since 10.2 and causes camera jolt when set to 1.
-    -- See Constants.lua comment and https://github.com/Stanzilla/WoWUIBugs/issues/504
+    CenterCursor(true)
     HandleFreeLookUIState(true, false)
     -- Notify Healing Radial of mouselook state change
     if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
