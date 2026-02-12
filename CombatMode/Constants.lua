@@ -144,7 +144,8 @@ CM.Constants.BLIZZARD_EVENTS = {
   },
   -- Events for Healing Radial
   HEALING_RADIAL_EVENTS = {
-    "GROUP_ROSTER_UPDATE", -- Party composition changed
+    "GROUP_ROSTER_UPDATE",      -- Party composition changed
+    "ACTIONBAR_SLOT_CHANGED",   -- Action bar spell/item changed (refresh slice attrs)
   },
 
 }

@@ -1,8 +1,8 @@
 ---------------------------------------------------------------------------------------
 --                              HEALING RADIAL MODULE                                --
 ---------------------------------------------------------------------------------------
--- A radial menu for quick party member targeting, designed for healers.
--- Shows party members as slices around screen center, cast on release.
+-- A radial menu for quick party member targeting and spell casting, designed for healers.
+-- Shows party members as slices around screen center. Click slices to cast (works in combat).
 
 -- IMPORTS
 local _G = _G
@@ -12,9 +12,11 @@ local AceAddon = _G.LibStub("AceAddon-3.0")
 local CreateFrame = _G.CreateFrame
 local GetActionInfo = _G.GetActionInfo
 local GetCursorPosition = _G.GetCursorPosition
+local GetMacroBody = _G.GetMacroBody
+local GetSpellName = _G.C_Spell.GetSpellName
+local GetItemInfo = _G.C_Item.GetItemInfo
 local GetTime = _G.GetTime
 local InCombatLockdown = _G.InCombatLockdown
-local IsInGroup = _G.IsInGroup
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
 local UnitClass = _G.UnitClass
@@ -30,6 +32,7 @@ local pairs = _G.pairs
 local ipairs = _G.ipairs
 local select = _G.select
 local table = _G.table
+local tostring = _G.tostring
 
 -- RETRIEVING ADDON TABLE
 local CM = AceAddon:GetAddon("CombatMode")
@@ -44,15 +47,41 @@ local HR = CM.HealingRadial
 local RadialState = {
   isActive = false,
   currentButton = nil,
-  currentModifier = nil,
   selectedSlice = nil,
   partyData = {},
   sliceFrames = {},
-  secureButtons = {},
   mainFrame = nil,
-  sliceContainer = nil,
   pendingUpdate = false,
   wasMouselooking = false,
+  triggerButtons = {},
+}
+
+---------------------------------------------------------------------------------------
+--                    MODIFIED ATTRIBUTE MAPPING FOR SPELL CASTING                   --
+---------------------------------------------------------------------------------------
+-- SecureActionButtonTemplate has a built-in modified attribute system that resolves
+-- attributes based on mouse button + modifier keys. For example:
+--   Left click checks: type1, macrotext1 (button suffix "1" = LeftButton)
+--   Shift+Right click checks: shift-type2, shift-macrotext2
+-- This happens automatically at click time — even during combat lockdown — because
+-- the resolution logic is part of the secure template, not addon code.
+--
+-- We use type="macro" + macrotext="/cast [@unitId] SpellName" because type="spell"
+-- does not work on addon-created SecureActionButtonTemplate, while type="macro" does.
+--
+-- We pre-configure all 8 button+modifier combos on each slice out of combat.
+-- When action bar content or group roster changes, we refresh the attributes.
+
+-- Maps button+modifier combo to: attribute prefix, attribute button suffix, action bar slot
+local BUTTON_ATTR_MAP = {
+  { prefix = "",       suffix = "1", slot = 1 }, -- Left click       → slot 1
+  { prefix = "",       suffix = "2", slot = 2 }, -- Right click      → slot 2
+  { prefix = "shift-", suffix = "1", slot = 3 }, -- Shift+Left       → slot 3
+  { prefix = "shift-", suffix = "2", slot = 4 }, -- Shift+Right      → slot 4
+  { prefix = "ctrl-",  suffix = "1", slot = 5 }, -- Ctrl+Left        → slot 5
+  { prefix = "ctrl-",  suffix = "2", slot = 6 }, -- Ctrl+Right       → slot 6
+  { prefix = "alt-",   suffix = "1", slot = 7 }, -- Alt+Left         → slot 7
+  { prefix = "alt-",   suffix = "2", slot = 8 }, -- Alt+Right        → slot 8
 }
 
 ---------------------------------------------------------------------------------------
@@ -112,20 +141,6 @@ local function GetSliceFromAngle(angle)
   return nil
 end
 
--- Get the action slot based on button and modifier
-local function GetActionSlotForButton(buttonKey, modifier)
-  local slotMap = {
-    ["BUTTON1"] = 1,
-    ["BUTTON2"] = 2,
-    ["SHIFT-BUTTON1"] = 3,
-    ["SHIFT-BUTTON2"] = 4,
-    ["CTRL-BUTTON1"] = 5,
-    ["CTRL-BUTTON2"] = 6,
-    ["ALT-BUTTON1"] = 7,
-    ["ALT-BUTTON2"] = 8,
-  }
-  return slotMap[buttonKey] or 1
-end
 
 ---------------------------------------------------------------------------------------
 --                              PARTY DATA MANAGEMENT                                --
@@ -232,7 +247,7 @@ local function RefreshPartyData()
   CM.DebugPrint("Healing Radial: Refreshed party data, " .. #RadialState.partyData .. " members")
 end
 
--- Update secure button unit attributes (only safe out of combat)
+-- Update slice frame unit attributes (only safe out of combat)
 local function UpdateSecureButtonTargets()
   if InCombatLockdown() then
     RadialState.pendingUpdate = true
@@ -240,24 +255,16 @@ local function UpdateSecureButtonTargets()
     return
   end
 
-  -- Clear all buttons first
+  -- Clear all slices first
   for i = 1, 5 do
-    local btn = RadialState.secureButtons[i]
-    if btn then
-      btn:SetAttribute("unit", nil)
-    end
     local slice = RadialState.sliceFrames[i]
     if slice then
       slice:SetAttribute("unit", nil)
     end
   end
 
-  -- Assign units to secure buttons and slice frames based on party data
+  -- Assign units to slice frames based on party data
   for _, member in ipairs(RadialState.partyData) do
-    local btn = RadialState.secureButtons[member.sliceIndex]
-    if btn then
-      btn:SetAttribute("unit", member.unitId)
-    end
     local slice = RadialState.sliceFrames[member.sliceIndex]
     if slice then
       slice:SetAttribute("unit", member.unitId)
@@ -266,6 +273,79 @@ local function UpdateSecureButtonTargets()
   end
 
   RadialState.pendingUpdate = false
+end
+
+-- Build the macrotext for a given action bar slot targeting a specific unit.
+-- Returns macrotext string or nil if the slot is empty.
+-- Uses /cast [@unit] SpellName for spells, /use [@unit] ItemName for items,
+-- and raw macro body for user macros (which handle their own targeting).
+local function BuildMacrotext(slot, unitId)
+  local actionType, actionId = GetActionInfo(slot)
+  if not actionType then return nil end
+
+  if actionType == "spell" then
+    local spellName = GetSpellName(actionId)
+    if spellName and unitId then
+      return "/cast [@" .. unitId .. "] " .. spellName
+    elseif spellName then
+      return "/cast " .. spellName
+    end
+  elseif actionType == "item" then
+    local itemName = GetItemInfo(actionId)
+    if itemName and unitId then
+      return "/use [@" .. unitId .. "] " .. itemName
+    elseif itemName then
+      return "/use " .. itemName
+    end
+  elseif actionType == "macro" then
+    -- User macros define their own targeting; use raw body
+    return GetMacroBody(actionId)
+  end
+
+  return nil
+end
+
+-- Pre-configure modified attributes on all slices for spell casting.
+-- SecureActionButtonTemplate resolves "shift-type1" before "type1" before "type"
+-- automatically at click time, even during combat. We just need to set the
+-- attributes ahead of time (out of combat) so the template knows what to do.
+--
+-- We use type="macro" + macrotext="/cast [@unitId] SpellName" because
+-- type="spell" does not work on addon-created SecureActionButtonTemplate buttons,
+-- while type="macro" with macrotext does.
+--
+-- Called on init, on action bar changes, on roster changes, and on combat end.
+local function UpdateSliceActionAttributes()
+  if InCombatLockdown() then
+    RadialState.pendingUpdate = true
+    CM.DebugPrint("Healing Radial: Queueing action attr update (in combat)")
+    return
+  end
+
+  for i = 1, 5 do
+    local slice = RadialState.sliceFrames[i]
+    if not slice then break end
+
+    local unitId = slice:GetAttribute("unit")
+
+    for _, mapping in ipairs(BUTTON_ATTR_MAP) do
+      local p = mapping.prefix   -- "" or "shift-" or "ctrl-" or "alt-"
+      local s = mapping.suffix   -- "1" (left) or "2" (right)
+      local macrotext = BuildMacrotext(mapping.slot, unitId)
+
+      if macrotext then
+        slice:SetAttribute(p .. "type" .. s, "macro")
+        slice:SetAttribute(p .. "macrotext" .. s, macrotext)
+        CM.DebugPrint("  Slice " .. i .. " (" .. tostring(unitId) .. "): " .. p .. "type" .. s .. "=macro -> " .. macrotext)
+      else
+        -- Empty slot: target on click (harmless fallback)
+        slice:SetAttribute(p .. "type" .. s, "target")
+        slice:SetAttribute(p .. "macrotext" .. s, nil)
+      end
+    end
+  end
+
+  CM.DebugPrint("Healing Radial: Updated slice action attributes")
 end
 
 ---------------------------------------------------------------------------------------
@@ -291,8 +371,10 @@ local function CreateSliceFrame(sliceIndex)
   slice:SetSize(config.sliceSize, config.sliceSize)
   local crosshairY = CM.DB.global.crosshairY or 50
   slice:SetPoint("CENTER", UIParent, "CENTER", x, crosshairY + y)
+  -- Base type="target" is overridden by modified attributes (type1, shift-type2, etc.)
+  -- set by UpdateSliceActionAttributes(). The unit attribute is used by type="target"
+  -- for hover-targeting fallback; spell casting uses macrotext with [@unit] instead.
   slice:SetAttribute("type", "target")
-  slice:SetAttribute("unit", nil)
   slice:RegisterForClicks("AnyUp", "AnyDown")
   slice.sliceIndex = sliceIndex
 
@@ -342,15 +424,18 @@ local function CreateSliceFrame(sliceIndex)
   slice.border:SetColorTexture(1, 1, 0, 0.8)
   slice.border:Hide()
 
-  -- Visual highlight + targeting on mouse enter
+  -- Visual highlight on mouse enter/leave. No programmatic Click() here —
+  -- calling Click() from addon code triggers the SecureHandler chain on an
+  -- insecure path, which causes "Invalid header frame handle" errors.
+  -- Spell casting uses type="macro" with macrotext="/cast [@unit] Spell"
+  -- set by UpdateSliceActionAttributes(), triggered by hardware mouse clicks.
+  slice:HookScript("PostClick", function(self, btn, down)
+    CM.DebugPrint("Healing Radial: PostClick slice " .. self.sliceIndex
+      .. " btn=" .. tostring(btn) .. " unit=" .. tostring(self:GetAttribute("unit")))
+  end)
   slice:HookScript("OnEnter", function(self)
     RadialState.selectedSlice = self.sliceIndex
     HR.HighlightSlice(self.sliceIndex)
-    -- Fire secure target action via Click() (attributes pre-configured before combat)
-    if self:GetAttribute("unit") then
-      self:Click()
-    end
-    CM.DebugPrint("Healing Radial: Hover slice " .. self.sliceIndex)
   end)
   slice:HookScript("OnLeave", function(self)
     if RadialState.selectedSlice == self.sliceIndex then
@@ -369,74 +454,33 @@ local function CreateSliceFrame(sliceIndex)
   return slice
 end
 
-local function CreateSecureButtons()
-  -- Create a secure container
-  local container = CreateFrame("Frame", "CMHealRadialSecureContainer", UIParent, "SecureHandlerStateTemplate")
-  container:SetSize(1, 1)
-  container:SetPoint("CENTER")
 
-  for i = 1, 5 do
-    local btn = CreateFrame("Button", "CMHealRadialBtn" .. i, container, "SecureActionButtonTemplate")
-    btn:SetAttribute("type", nil)
-    btn:SetAttribute("unit", nil)
-    btn:SetSize(1, 1)
-    btn:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -100, -100)
-    btn:Show()
-
-    RadialState.secureButtons[i] = btn
-  end
-
-  -- Store reference for secure execution
-  for i = 1, 5 do
-    container:SetFrameRef("slice" .. i, RadialState.secureButtons[i])
-  end
-
-  RadialState.secureContainer = container
-end
-
--- Create secure action buttons for spell casting
--- These buttons are clicked programmatically by ExecuteAndHide() when mouse is released
--- The mouselook override binding triggers HR.Show() on mouse down via a simple frame click
+-- Create non-secure trigger buttons for mouselook override bindings.
+-- When mouselook is active and the player presses a mouse button, the override
+-- binding clicks the trigger button, which calls HR.Show() to open the radial.
+-- Spell casting is handled by the modified attributes on the slice frames.
 local function CreateMouseOverrideButtons()
-  -- Button key mappings
-  local buttonMappings = {
-    { key = "BUTTON1", actionSlot = 1 },
-    { key = "BUTTON2", actionSlot = 2 },
-    { key = "SHIFT-BUTTON1", actionSlot = 3 },
-    { key = "SHIFT-BUTTON2", actionSlot = 4 },
-    { key = "CTRL-BUTTON1", actionSlot = 5 },
-    { key = "CTRL-BUTTON2", actionSlot = 6 },
-    { key = "ALT-BUTTON1", actionSlot = 7 },
-    { key = "ALT-BUTTON2", actionSlot = 8 },
+  local buttonKeys = {
+    "BUTTON1", "BUTTON2",
+    "SHIFT-BUTTON1", "SHIFT-BUTTON2",
+    "CTRL-BUTTON1", "CTRL-BUTTON2",
+    "ALT-BUTTON1", "ALT-BUTTON2",
   }
 
-  RadialState.overrideButtons = {}
   RadialState.triggerButtons = {}
 
-  for _, mapping in ipairs(buttonMappings) do
-    -- Secure button for casting spells (clicked programmatically)
-    local castBtn = CreateFrame("Button", "CMHealRadialCast_" .. mapping.key:gsub("-", "_"), UIParent, "SecureActionButtonTemplate")
-    castBtn:SetSize(1, 1)
-    castBtn:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -100, -100)
-    castBtn.actionSlot = mapping.actionSlot
-    castBtn.buttonKey = mapping.key
-    castBtn:SetAttribute("type", nil)
-
-    RadialState.overrideButtons[mapping.key] = castBtn
-
-    -- Non-secure trigger button that shows the radial on mouse down
-    -- This is what the mouselook override binding clicks
-    local triggerBtn = CreateFrame("Button", "CMHealRadialTrigger_" .. mapping.key:gsub("-", "_"), UIParent)
+  for _, key in ipairs(buttonKeys) do
+    local triggerBtn = CreateFrame("Button", "CMHealRadialTrigger_" .. key:gsub("-", "_"), UIParent)
     triggerBtn:SetSize(1, 1)
     triggerBtn:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -100, -100)
-    triggerBtn.buttonKey = mapping.key
+    triggerBtn.buttonKey = key
     triggerBtn:RegisterForClicks("AnyDown")
 
     triggerBtn:SetScript("OnClick", function(self)
       HR.Show(self.buttonKey)
     end)
 
-    RadialState.triggerButtons[mapping.key] = triggerBtn
+    RadialState.triggerButtons[key] = triggerBtn
   end
 end
 
@@ -678,8 +722,8 @@ local function TrackMousePosition(self, elapsed)
   -- When opened via keybind, key release is handled by HideFromKeybind()
   -- via runOnUp binding (with spurious key-up counter).
 
-  -- Highlighting and targeting are handled by slice frame OnEnter/OnLeave
-  -- (SecureHandlerEnterLeaveTemplate does targeting, HookScript does highlight)
+  -- Highlighting is handled by slice frame OnEnter/OnLeave hooks.
+  -- Casting is handled by modified attributes on slice frames (hardware clicks).
 
   -- Update health bars periodically
   UpdateAllSlices()
@@ -702,8 +746,8 @@ function HR.Show(buttonKey)
     MouselookStop()
   end
 
-  -- NOTE: Spell casting happens in ExecuteAndHide() when mouse is released
-  -- This is detected by TrackMousePosition checking IsMouseButtonDown()
+  -- Spell casting happens via modified attributes (type1="macro", macrotext1=...)
+  -- on slice frames, triggered by hardware mouse clicks over a slice.
 
   -- Update visuals
   UpdateAllSlices()
@@ -725,65 +769,22 @@ function HR.Show(buttonKey)
   return true
 end
 
--- Execute spell on selected target and hide the radial
--- Called when mouse button is released (detected in TrackMousePosition)
+-- Close the radial when the triggering mouse button is released.
+-- Spell casting is handled by modified attributes on each slice:
+--   type1="macro", macrotext1="/cast [@partyN] SpellName" (set out of combat)
+--   SecureActionButtonTemplate resolves the modifier+button combo and fires the macro
+-- This function is called from TrackMousePosition when the mouse button is released.
 function HR.ExecuteAndHide()
   if not RadialState.isActive then
     return
   end
 
   if RadialState.selectedSlice then
-    -- Find the unit for the selected slice
-    local targetUnit = nil
-    for _, member in ipairs(RadialState.partyData) do
-      if member.sliceIndex == RadialState.selectedSlice then
-        targetUnit = member.unitId
-        break
-      end
-    end
-
-    if targetUnit then
-      if not InCombatLockdown() then
-        -- Out of combat: cast spell directly via secure button attributes
-        local castBtn = RadialState.overrideButtons and RadialState.overrideButtons[RadialState.currentButton]
-        if castBtn then
-          local actionSlot = castBtn.actionSlot
-          local actionType, actionId = GetActionInfo(actionSlot)
-
-          if actionType == "spell" then
-            castBtn:SetAttribute("type", "spell")
-            castBtn:SetAttribute("spell", actionId)
-          elseif actionType == "macro" then
-            castBtn:SetAttribute("type", "macro")
-            castBtn:SetAttribute("macro", actionId)
-          elseif actionType == "item" then
-            castBtn:SetAttribute("type", "item")
-            castBtn:SetAttribute("item", actionId)
-          else
-            castBtn:SetAttribute("type", "action")
-            castBtn:SetAttribute("action", actionSlot)
-          end
-          castBtn:SetAttribute("unit", targetUnit)
-          castBtn:Click()
-
-          CM.DebugPrint("Healing Radial: Cast on " .. targetUnit .. " (slice " .. RadialState.selectedSlice .. ")")
-
-          castBtn:SetAttribute("type", nil)
-          castBtn:SetAttribute("unit", nil)
-        end
-      else
-        -- In combat: target was already set via slice OnEnter Click().
-        -- Can't call SetAttribute() in combat, but target persists after radial closes.
-        CM.DebugPrint("Healing Radial: In combat, target " .. targetUnit .. " set via hover (slice " .. RadialState.selectedSlice .. ")")
-      end
-    else
-      CM.DebugPrint("Healing Radial: No valid target")
-    end
+    CM.DebugPrint("Healing Radial: Closing (slice " .. RadialState.selectedSlice .. " was hovered)")
   else
-    CM.DebugPrint("Healing Radial: No slice selected, not casting")
+    CM.DebugPrint("Healing Radial: Closing (no slice selected)")
   end
 
-  -- Now hide the radial
   HR.Hide(false)
 end
 
@@ -830,7 +831,7 @@ function HR.Hide(executeSpell)
   CM.DebugPrint("Healing Radial: Hidden (combat=" .. tostring(InCombatLockdown()) .. ")")
 end
 
--- Open radial via keybind (no spell casting, just targeting on hover)
+-- Open radial via keybind (targeting on hover, casting via mouse clicks on slices)
 function HR.ShowFromKeybind()
   if not CM.DB.global.healingRadial or not CM.DB.global.healingRadial.enabled then
     return false
@@ -878,7 +879,7 @@ function HR.ShowFromKeybind()
   return true
 end
 
--- Close radial opened via keybind (no spell casting)
+-- Close radial opened via keybind
 function HR.HideFromKeybind()
   if not RadialState.isActive then
     CM.DebugPrint("Healing Radial: HideFromKeybind called but radial not active")
@@ -911,6 +912,9 @@ end
 function HR.OnGroupRosterUpdate()
   RefreshPartyData()
   UpdateSecureButtonTargets()
+  -- Rebuild macrotext because [@unitId] in the macrotext depends on which
+  -- party member is assigned to each slice (changes with roster)
+  UpdateSliceActionAttributes()
 
   if RadialState.isActive then
     UpdateAllSlices()
@@ -918,10 +922,17 @@ function HR.OnGroupRosterUpdate()
 end
 
 function HR.OnCombatEnd()
-  -- Apply any pending updates
+  -- Apply any pending updates that were blocked during combat
   if RadialState.pendingUpdate then
     UpdateSecureButtonTargets()
+    UpdateSliceActionAttributes()
   end
+end
+
+-- Called when action bar content changes (ACTIONBAR_SLOT_CHANGED).
+-- Refreshes the modified attributes so slices cast the correct spells.
+function HR.OnActionBarChanged()
+  UpdateSliceActionAttributes()
 end
 
 ---------------------------------------------------------------------------------------
@@ -934,12 +945,12 @@ function HR.Initialize()
   end
 
   CreateMainFrame()
-  CreateSecureButtons()
   CreateMouseOverrideButtons()
 
-  -- Initial party data
+  -- Initial party data and action bar attributes
   RefreshPartyData()
   UpdateSecureButtonTargets()
+  UpdateSliceActionAttributes()
 
   CM.DebugPrint("Healing Radial: Initialized")
 end

@@ -891,8 +891,11 @@ local function HandleEventByCategory(category, event)
       SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
     end,
     HEALING_RADIAL_EVENTS = function()
-      if CM.HealingRadial and CM.HealingRadial.OnGroupRosterUpdate then
+      if not CM.HealingRadial then return end
+      if event == "GROUP_ROSTER_UPDATE" and CM.HealingRadial.OnGroupRosterUpdate then
         CM.HealingRadial.OnGroupRosterUpdate()
+      elseif event == "ACTIONBAR_SLOT_CHANGED" and CM.HealingRadial.OnActionBarChanged then
+        CM.HealingRadial.OnActionBarChanged()
       end
     end,
 
