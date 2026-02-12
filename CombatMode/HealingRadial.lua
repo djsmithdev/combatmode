@@ -291,8 +291,11 @@ local function CreateSliceFrame(sliceIndex)
   slice:SetFrameStrata("DIALOG")
   slice:SetSize(config.sliceSize, config.sliceSize)
   local crosshairY = CM.DB.global.crosshairY or 50
-  slice:SetPoint("CENTER", UIParent, "CENTER", x, crosshairY + y)
+  slice:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -200, -200) -- Start off-screen
   slice:SetAttribute("type", "target")
+  -- Store intended on-screen position for toggling
+  slice.onScreenX = x
+  slice.onScreenY = crosshairY + y
   slice:SetAttribute("unit", nil)
   slice:RegisterForClicks("AnyUp", "AnyDown")
   slice.sliceIndex = sliceIndex
@@ -362,8 +365,8 @@ local function CreateSliceFrame(sliceIndex)
 
   -- Keep slices always :Show() and EnableMouse(true) so they work in combat.
   -- SecureActionButtonTemplate can't have Show/Hide or EnableMouse toggled during
-  -- InCombatLockdown. Use alpha only for visibility. Slices won't interfere when
-  -- radial is hidden because mouselook captures the cursor.
+  -- InCombatLockdown. Slices are positioned off-screen when radial is closed
+  -- and moved on-screen when opened (SetPoint is not protected).
   slice:SetAlpha(0)
   slice:EnableMouse(true)
 
@@ -521,11 +524,16 @@ local function UpdateSliceVisual(sliceIndex)
   end
 
   if not memberData or not UnitExists(memberData.unitId) then
-    -- Use alpha only (not Hide/Show or EnableMouse) to avoid protected frame errors in combat
+    -- Move off-screen and hide visually. SetPoint is not protected so this is combat-safe.
     slice:SetAlpha(0)
+    slice:ClearAllPoints()
+    slice:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -200, -200)
     return
   end
 
+  -- Move on-screen and show visually
+  slice:ClearAllPoints()
+  slice:SetPoint("CENTER", UIParent, "CENTER", slice.onScreenX, slice.onScreenY)
   slice:SetAlpha(1)
 
   -- Update name
@@ -797,11 +805,13 @@ function HR.Hide(executeSpell)
   -- Stop mouse tracking
   RadialState.mainFrame:SetScript("OnUpdate", nil)
 
-  -- Hide all slices via alpha (combat-safe, never toggle EnableMouse on secure frames)
+  -- Hide all slices: move off-screen and zero alpha (combat-safe, SetPoint is not protected)
   for i = 1, 5 do
     local slice = RadialState.sliceFrames[i]
     if slice then
       slice:SetAlpha(0)
+      slice:ClearAllPoints()
+      slice:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -200, -200)
     end
   end
 
