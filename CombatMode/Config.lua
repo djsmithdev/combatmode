@@ -822,7 +822,7 @@ local CrosshairGroup = {
     crosshairY = {
       type = "range",
       name = "Crosshair Vertical Position",
-      desc = "Adjusts the vertical position of the crosshair. \n\n|cffffd700Default:|r |cff00FF7F50|r",
+      desc = "Adjusts the vertical position of the crosshair. \n\n|cffffd700Default:|r |cff00FF7F100|r",
       min = 0,
       max = 200,
       softMin = 0,
@@ -837,6 +837,10 @@ local CrosshairGroup = {
         CM.DB.global.crosshairY = value
         if value then
           CM.CreateCrosshair()
+        end
+        -- Update healing radial position so it stays aligned with crosshair without reload
+        if CM.HealingRadial and CM.HealingRadial.UpdateMainFramePosition then
+          CM.HealingRadial.UpdateMainFramePosition()
         end
       end,
       get = function()
@@ -1069,7 +1073,7 @@ local HealingRadialOptions = {
       type = "toggle",
       name = "Enable |cff00FF7FHealing Radial|r",
       desc = "Shows a radial menu when using click-cast buttons while in a party. Party members are arranged by role with the tank at 12 o'clock.\n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = "full",
+      width = 2.3,
       order = 3,
       set = function(_, value)
         CM.DB.global.healingRadial.enabled = value
@@ -1083,10 +1087,10 @@ local HealingRadialOptions = {
     },
     keybind = {
       type = "keybinding",
-      name = "|cffffd700Hold to Open|r",
-      desc = "Hold this key to open the Healing Radial. Release to close. Hover over a party member to target them.",
-      width = 1.5,
-      order = 3.5,
+      name = "|cffffd700Hold + Toggle Key|r",
+      desc = "Hold this key to temporarily display the |cff00FF7FHealing Radial|r, and release to close it.\n\nTaping this key will toggle the |cff00FF7FHealing Radial|r until the next tap closes it.",
+      width = 1.25,
+      order = 4,
       set = function(_, key)
         local oldKey = (GetBindingKey("(Hold) Healing Radial"))
         if oldKey then
@@ -1102,19 +1106,104 @@ local HealingRadialOptions = {
         return not CM.DB.global.healingRadial.enabled
       end
     },
-    spacing1 = Spacing("full", 3.1),
     visualGroup = {
       type = "group",
       name = "Visual Settings",
-      order = 4,
+      order = 5,
       inline = true,
       args = {
+        sliceRadius = {
+          type = "range",
+          name = "Radial Size",
+          desc = "Distance from center to each party member slice.\n\n|cffffd700Default:|r |cff00FF7F100|r",
+          min = 100,
+          max = 200,
+          step = 10,
+          width = 1.75,
+          order = 1,
+          set = function(_, value)
+            CM.DB.global.healingRadial.sliceRadius = value
+            if CM.HealingRadial and CM.HealingRadial.UpdateSlicePositionsAndSizes then
+              CM.HealingRadial.UpdateSlicePositionsAndSizes()
+            end
+          end,
+          get = function()
+            return CM.DB.global.healingRadial.sliceRadius
+          end,
+          disabled = function()
+            return not CM.DB.global.healingRadial.enabled
+          end
+        },
+        spacing = Spacing(0.15, 1.1),
+        sliceSize = {
+          type = "range",
+          name = "Slice Scale",
+          desc = "Scale factor for slice elements (role icon, name, health bar). Hover increases by 10%.\n\n|cffffd700Default:|r |cff00FF7F1.0|r (100%)",
+          min = 0.5,
+          max = 1.5,
+          step = 0.1,
+          width = 1.75,
+          order = 2,
+          set = function(_, value)
+            CM.DB.global.healingRadial.sliceSize = value
+            if CM.HealingRadial and CM.HealingRadial.UpdateSlicePositionsAndSizes then
+              CM.HealingRadial.UpdateSlicePositionsAndSizes()
+            end
+          end,
+          get = function()
+            return CM.DB.global.healingRadial.sliceSize
+          end,
+          disabled = function()
+            return not CM.DB.global.healingRadial.enabled
+          end
+        },
+        spacing2 = Spacing("full", 2.1),
+        nameFontSize = {
+          type = "range",
+          name = "Name Font Size",
+          desc = "Size of party member names on each slice.\n\n|cffffd700Default:|r |cff00FF7F13|r",
+          min = 8,
+          max = 24,
+          step = 1,
+          width = 1.75,
+          order = 3,
+          set = function(_, value)
+            CM.DB.global.healingRadial.nameFontSize = value
+          end,
+          get = function()
+            return CM.DB.global.healingRadial.nameFontSize or 13
+          end,
+          disabled = function()
+            return not CM.DB.global.healingRadial.enabled
+          end
+        },
+        spacing3 = Spacing(0.15, 3.1),
+        roleIconSize = {
+          type = "range",
+          name = "Role Icon Size",
+          desc = "Size of the role icons (tank, healer, DPS) on each slice.\n\n|cffffd700Default:|r |cff00FF7F64|r",
+          min = 16,
+          max = 96,
+          step = 16,
+          width = 1.75,
+          order = 4,
+          set = function(_, value)
+            CM.DB.global.healingRadial.roleIconSize = value
+          end,
+          get = function()
+            return CM.DB.global.healingRadial.roleIconSize or 64
+          end,
+          disabled = function()
+            return not CM.DB.global.healingRadial.enabled
+          end
+        },
+        spacing4 = Spacing("full", 4.1),
         showHealthBars = {
           type = "toggle",
           name = "Show Health Bars",
-          desc = "Display health bars on each party member slice.",
+          desc = "Display health bars on each party member slice.\n\n|cffffd700Default:|r |cffE52B50Off|r",
           width = 1.2,
-          order = 1,
+          order = 5,
           set = function(_, value)
             CM.DB.global.healingRadial.showHealthBars = value
           end,
@@ -1125,96 +1214,9 @@ local HealingRadialOptions = {
             return not CM.DB.global.healingRadial.enabled
           end
         },
-        showHealthPercent = {
-          type = "toggle",
-          name = "Show Health %",
-          desc = "Display health percentage on each slice.",
-          width = 1.2,
-          order = 2,
-          set = function(_, value)
-            CM.DB.global.healingRadial.showHealthPercent = value
-          end,
-          get = function()
-            return CM.DB.global.healingRadial.showHealthPercent
-          end,
-          disabled = function()
-            return not CM.DB.global.healingRadial.enabled
-          end
-        },
-        showPlayerNames = {
-          type = "toggle",
-          name = "Show Names",
-          desc = "Display player names on each slice.",
-          width = 1.2,
-          order = 3,
-          set = function(_, value)
-            CM.DB.global.healingRadial.showPlayerNames = value
-          end,
-          get = function()
-            return CM.DB.global.healingRadial.showPlayerNames
-          end,
-          disabled = function()
-            return not CM.DB.global.healingRadial.enabled
-          end
-        },
-        showRoleIcons = {
-          type = "toggle",
-          name = "Show Role Icons",
-          desc = "Display role icons (tank, healer, DPS) on each slice.",
-          width = 1.2,
-          order = 4,
-          set = function(_, value)
-            CM.DB.global.healingRadial.showRoleIcons = value
-          end,
-          get = function()
-            return CM.DB.global.healingRadial.showRoleIcons
-          end,
-          disabled = function()
-            return not CM.DB.global.healingRadial.enabled
-          end
-        },
-        spacing2 = Spacing("full", 4.1),
-        sliceRadius = {
-          type = "range",
-          name = "Radial Size",
-          desc = "Distance from center to each party member slice.\n\n|cffffd700Default:|r |cff00FF7F120|r",
-          min = 60,
-          max = 200,
-          step = 10,
-          width = 1.5,
-          order = 5,
-          set = function(_, value)
-            CM.DB.global.healingRadial.sliceRadius = value
-          end,
-          get = function()
-            return CM.DB.global.healingRadial.sliceRadius
-          end,
-          disabled = function()
-            return not CM.DB.global.healingRadial.enabled
-          end
-        },
-        sliceSize = {
-          type = "range",
-          name = "Slice Size",
-          desc = "Size of each party member slice.\n\n|cffffd700Default:|r |cff00FF7F80|r",
-          min = 50,
-          max = 120,
-          step = 10,
-          width = 1.5,
-          order = 6,
-          set = function(_, value)
-            CM.DB.global.healingRadial.sliceSize = value
-          end,
-          get = function()
-            return CM.DB.global.healingRadial.sliceSize
-          end,
-          disabled = function()
-            return not CM.DB.global.healingRadial.enabled
-          end
-        },
       }
     },
-    spacing3 = Spacing("full", 5),
+    spacing3 = Spacing("full", 5.1),
     layoutInfo = {
       type = "group",
       name = "|cffffd700Layout Information|r",
@@ -1228,16 +1230,15 @@ local HealingRadialOptions = {
         }
       }
     },
-    spacing4 = Spacing("full", 7),
     devnote = {
       type = "group",
       name = "|cffffd700Developer Note|r",
-      order = 8,
+      order = 7,
       inline = true,
       args = {
         note = {
           type = "description",
-          name = "|cff909090The Healing Radial uses the same spell assignments as |cffB47EDCClick Casting|r. Configure which spells are bound to each mouse button in the Click Casting tab.|r\n\n|cffFF5050Note:|r Party assignments can only be updated outside of combat due to WoW API restrictions.",
+          name = "|cff909090The |cff00FF7FHealing Radial|r uses the same spell assignments as |cffB47EDCClick Casting|r. Configure which spells are bound to each mouse button in the Click Casting tab.|r\n\n|cffFF5050Note:|r Party assignments can only be updated outside of combat due to WoW API restrictions.",
           order = 1
         }
       }

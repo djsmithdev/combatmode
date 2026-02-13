@@ -114,6 +114,11 @@ local function OpenConfigPanel()
     return
   end
 
+  -- Dismiss healing radial if active (opening config panel should close radial)
+  if CM.HealingRadial and CM.HealingRadial.IsActive and CM.HealingRadial.IsActive() then
+    CM.HealingRadial.Hide()
+  end
+
   -- Use the new API if available (Patch 12.0.0+)
   if OpenSettingsPanel then
     local categoryID = AceConfigDialog.BlizOptionsIDMap[CM.METADATA["TITLE"]]
@@ -414,6 +419,11 @@ end
 function CM.DisplayCrosshair(shouldShow)
   if shouldShow then
     CrosshairTexture:Show()
+    -- Restore frame opacity from config so crosshair is not left dimmed by lock-in animation
+    local DefaultConfig = CM.Constants.DatabaseDefaults.global
+    local UserConfig = CM.DB.global or {}
+    local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
+    CrosshairFrame:SetAlpha(crosshairOpacity)
   else
     CrosshairTexture:Hide()
   end
@@ -431,17 +441,50 @@ function CM.CreateCrosshair()
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
   local UserConfig = CM.DB.global or {}
   local crosshairYPos = UserConfig.crosshairY or DefaultConfig.crosshairY
+  local crosshairSize = UserConfig.crosshairSize or DefaultConfig.crosshairSize
+  local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
 
   CrosshairTexture:SetAllPoints(CrosshairFrame)
   CrosshairTexture:SetBlendMode("BLEND")
   CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos)
-  CrosshairFrame:SetSize(UserConfig.crosshairSize or DefaultConfig.crosshairSize,
-    UserConfig.crosshairSize or DefaultConfig.crosshairSize)
-  CrosshairFrame:SetAlpha(UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity)
+  CrosshairFrame:SetSize(crosshairSize, crosshairSize)
+  CrosshairFrame:SetAlpha(crosshairOpacity)
 
   SetCrosshairAppearance("base")
   AdjustCenteredCursorYPos(crosshairYPos)
 end
+
+-- Debug crosshair: shows a texture at the cursor position while in mouselook (when debug mode is on),
+-- so you can verify the cursor is being moved to the crosshair position.
+local DebugCrosshairFrame = CreateFrame("Frame", "CombatModeDebugCrosshairFrame", UIParent)
+DebugCrosshairFrame:SetFrameStrata("DIALOG")
+DebugCrosshairFrame:SetFrameLevel(0)
+local DebugCrosshairTexture = DebugCrosshairFrame:CreateTexture(nil, "OVERLAY")
+DebugCrosshairTexture:SetTexture("Interface\\AddOns\\CombatMode\\assets\\crosshairX.blp")
+DebugCrosshairTexture:SetAllPoints(DebugCrosshairFrame)
+DebugCrosshairTexture:SetBlendMode("BLEND")
+DebugCrosshairTexture:SetVertexColor(0, 1, 0, 1) -- green so it's obvious it's the cursor-position marker
+DebugCrosshairFrame:SetAlpha(0.8)
+DebugCrosshairFrame:Hide()
+
+local DebugCrosshairUpdater = CreateFrame("Frame", nil, UIParent)
+DebugCrosshairUpdater:SetScript("OnUpdate", function()
+  if not (CM.DB.global and CM.DB.global.debugMode) then
+    DebugCrosshairFrame:Hide()
+    return
+  end
+  if IsMouselooking() then
+    local x, y = GetCursorPosition()
+    local scale = UIParent:GetEffectiveScale()
+    DebugCrosshairFrame:ClearAllPoints()
+    DebugCrosshairFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x / scale, y / scale)
+    local size = (CM.DB.global.crosshairSize) or (CM.Constants.DatabaseDefaults and CM.Constants.DatabaseDefaults.global and CM.Constants.DatabaseDefaults.global.crosshairSize) or 64
+    DebugCrosshairFrame:SetSize(size, size)
+    DebugCrosshairFrame:Show()
+  else
+    DebugCrosshairFrame:Hide()
+  end
+end)
 
 -- Track the last known unit under cursor and its reaction to update the crosshair appearance
 local lastKnownUnit = nil
@@ -551,12 +594,82 @@ local function UpdatePulse(_, elapsed)
   PulseFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", (cursorX / scale) - size / 2, (cursorY / scale) - size / 2)
 end
 
-local function ShowCursorPulse()
+function CM.ShowCursorPulse()
   PULSE_TOTAL_ELAPSED = 0
   PulseFrame:Show()
 end
 
 PulseFrame:SetScript("OnUpdate", UpdatePulse)
+
+---------------------------------------------------------------------------------------
+--                            CROSSHAIR LOCK-IN ANIMATION                             --
+---------------------------------------------------------------------------------------
+local LOCK_IN_DURATION = 0.25 -- duration of lock-in animation
+local LOCK_IN_STARTING_SCALE = 1.3 -- start larger, snap down to 1.0
+local LOCK_IN_STARTING_ALPHA = 0.0 -- start invisible, fade in
+local LOCK_IN_TOTAL_ELAPSED = -1 -- -1 = idle, 0+ = animating
+local LOCK_IN_TARGET_SCALE = 1.0 -- what scale to animate toward
+local LOCK_IN_TARGET_ALPHA = 1.0 -- target alpha (full opacity)
+local LOCK_IN_ORIGINAL_Y_POS = 0 -- configured crosshair Y (visual position at scale 1.0)
+
+local function UpdateCrosshairLockIn(_, elapsed)
+  if LOCK_IN_TOTAL_ELAPSED == -1 then
+    return
+  end
+
+  LOCK_IN_TOTAL_ELAPSED = LOCK_IN_TOTAL_ELAPSED + elapsed
+
+  if LOCK_IN_TOTAL_ELAPSED >= LOCK_IN_DURATION then
+    -- Lock-in animation complete
+    LOCK_IN_TOTAL_ELAPSED = -1
+    CrosshairFrame:SetScale(LOCK_IN_TARGET_SCALE)
+    CrosshairFrame:SetAlpha(LOCK_IN_TARGET_ALPHA)
+    local finalYPos = LOCK_IN_ORIGINAL_Y_POS / LOCK_IN_TARGET_SCALE
+    CrosshairFrame:SetPoint("CENTER", 0, finalYPos)
+    return
+  end
+
+  local progress = LOCK_IN_TOTAL_ELAPSED / LOCK_IN_DURATION
+  progress = math.max(0, math.min(1, progress))
+  local easedProgress = 1 - (1 - progress) * (1 - progress)
+
+  local currentScale = LOCK_IN_STARTING_SCALE + (LOCK_IN_TARGET_SCALE - LOCK_IN_STARTING_SCALE) * easedProgress
+  currentScale = math.max(0.01, currentScale)
+  CrosshairFrame:SetScale(currentScale)
+
+  local currentAlpha = LOCK_IN_STARTING_ALPHA + (LOCK_IN_TARGET_ALPHA - LOCK_IN_STARTING_ALPHA) * easedProgress
+  CrosshairFrame:SetAlpha(currentAlpha)
+
+  CrosshairFrame:SetPoint("CENTER", 0, LOCK_IN_ORIGINAL_Y_POS / currentScale)
+end
+
+function CM.ShowCrosshairLockIn()
+  if not CM.DB.global.crosshair then
+    return
+  end
+
+  CrosshairTexture:Show()
+  local currentScale = CrosshairFrame:GetScale()
+  local currentAlpha = CrosshairFrame:GetAlpha()
+  local crosshairYPos = CM.DB.global.crosshairY or 0
+
+  LOCK_IN_ORIGINAL_Y_POS = crosshairYPos
+  LOCK_IN_STARTING_SCALE = currentScale * 1.3
+  LOCK_IN_STARTING_ALPHA = 0.0
+  LOCK_IN_TARGET_SCALE = currentScale
+  LOCK_IN_TARGET_ALPHA = currentAlpha
+
+  CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / LOCK_IN_STARTING_SCALE)
+  CrosshairFrame:SetScale(LOCK_IN_STARTING_SCALE)
+  CrosshairFrame:SetAlpha(LOCK_IN_STARTING_ALPHA)
+
+  LOCK_IN_TOTAL_ELAPSED = 0
+end
+
+-- Hook into crosshair frame's OnUpdate (reuse existing or add to it)
+CrosshairFrame:SetScript("OnUpdate", function(self, elapsed)
+  UpdateCrosshairLockIn(self, elapsed)
+end)
 
 ---------------------------------------------------------------------------------------
 --                      FRAME WATCHING / CURSOR UNLOCK FUNCTIONS                     --
@@ -762,11 +875,12 @@ local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
   end
 end
 
-local function LockFreeLook()
+function CM.LockFreeLook()
   if not IsMouselooking() then
     MouselookStart()
     CenterCursor(true)
     HandleFreeLookUIState(true, false)
+    CM.ShowCrosshairLockIn()
     -- Notify Healing Radial of mouselook state change
     if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
       CM.HealingRadial.OnMouselookChanged(true)
@@ -775,13 +889,13 @@ local function LockFreeLook()
   end
 end
 
-local function UnlockFreeLook()
+function CM.UnlockFreeLook()
   if IsMouselooking() then
     CenterCursor(false)
     MouselookStop()
 
     if CM.DB.global.pulseCursor then
-      ShowCursorPulse()
+      CM.ShowCursorPulse()
     end
 
     HandleFreeLookUIState(false, false)
@@ -799,7 +913,7 @@ local function UnlockFreeLookPermanent()
     MouselookStop()
 
     if CM.DB.global.pulseCursor then
-      ShowCursorPulse()
+      CM.ShowCursorPulse()
     end
 
     HandleFreeLookUIState(false, true)
@@ -819,7 +933,7 @@ local function ToggleFreeLook(state)
 
   -- the Override state change is enough to trigger a Free Look update, but we call the fns directly to bypass the OnUpdate throttle
   if not state then
-    LockFreeLook()
+    CM.LockFreeLook()
     FreeLookOverride = false
   elseif state then
     UnlockFreeLookPermanent()
@@ -852,16 +966,30 @@ local function Rematch()
   end
 
   if CM.DB.global.crosshair then
+    -- Stop lock-in animation so it does not leave crosshair at reduced opacity after load
+    LOCK_IN_TOTAL_ELAPSED = -1
+    -- Re-apply crosshair frame from config (scale, alpha, position) so we are not left
+    -- in a half-finished animation state after loading screen / zone change
+    CM.CreateCrosshair()
     SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
 
     if CM.DB.char.stickyCrosshair then
       CM.ConfigStickyCrosshair("combatmode")
     end
+    -- Sync crosshair visibility with mouselook state after load/zone change so the
+    -- texture shows again when leaving dungeon or after loading screen
+    CM.DisplayCrosshair(IsMouselooking())
   elseif CM.DB.global.crosshair == false then
     CM.DisplayCrosshair(false)
   end
 
-  LockFreeLook()
+  -- Dismiss healing radial so it is not considered "active" after load (fixes crosshair
+  -- not showing when healing radial is enabled, since IsHealingRadialActive() would block)
+  if CM.HealingRadial and CM.HealingRadial.DismissOnLoad then
+    CM.HealingRadial.DismissOnLoad()
+  end
+
+  CM.LockFreeLook()
 end
 
 --[[
@@ -872,10 +1000,10 @@ Checks which category in the table the event that's been fired belongs to, and t
 local function HandleEventByCategory(category, event)
   local eventHandlers = {
     UNLOCK_EVENTS = function()
-      UnlockFreeLook()
+      CM.UnlockFreeLook()
     end,
     LOCK_EVENTS = function()
-      LockFreeLook()
+      CM.LockFreeLook()
     end,
     REMATCH_EVENTS = function()
       Rematch()
@@ -939,12 +1067,12 @@ function _G.CombatMode_OnUpdate(_, elapsed)
     end
 
     if ShouldFreeLookBeOff() then
-      UnlockFreeLook()
+      CM.UnlockFreeLook()
       return
     end
 
     if not IsMouselooking() then
-      LockFreeLook()
+      CM.LockFreeLook()
     end
 
     -- Update crosshair appearance based on unit under cursor
