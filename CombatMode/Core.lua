@@ -1010,9 +1010,13 @@ local function HandleEventByCategory(category, event)
     end,
     FRIENDLY_TARGETING_EVENTS = function()
       HandleFriendlyTargetingInCombat()
-      -- Also handle combat end for healing radial pending updates
-      if event == "PLAYER_REGEN_ENABLED" and CM.HealingRadial and CM.HealingRadial.OnCombatEnd then
-        CM.HealingRadial.OnCombatEnd()
+      -- Handle combat start/end for healing radial
+      if CM.HealingRadial then
+        if event == "PLAYER_REGEN_DISABLED" and CM.HealingRadial.OnCombatStart then
+          CM.HealingRadial.OnCombatStart()
+        elseif event == "PLAYER_REGEN_ENABLED" and CM.HealingRadial.OnCombatEnd then
+          CM.HealingRadial.OnCombatEnd()
+        end
       end
     end,
     UNCATEGORIZED_EVENTS = function()
