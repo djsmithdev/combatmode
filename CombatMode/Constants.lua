@@ -636,10 +636,6 @@ local DefaultBindings = {
   toggle = {
     key = "Combat Mode Toggle",
     value = "BUTTON3"
-  },
-  hold = {
-    key = "(Hold) Switch Mode",
-    value = "BUTTON4"
   }
 }
 

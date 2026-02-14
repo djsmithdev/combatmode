@@ -64,9 +64,10 @@ _G["CM"] = CM
 -- INITIAL STATE VARIABLES
 --[[
 Changes when Free Look state is modified through user input
-("Toggle" or "Press & Hold" keybinds and "/cm" cmd)
+("Toggle / Hold" keybind and "/cm" cmd)
 ]] --
 local FreeLookOverride = false
+local CursorModeShowTime = 0 -- GetTime() when cursor was unlocked via keybind (for spurious key-up filter)
 
 ---------------------------------------------------------------------------------------
 --                                 UTILITY FUNCTIONS                                 --
@@ -925,21 +926,9 @@ local function UnlockFreeLookPermanent()
   end
 end
 
-local function ToggleFreeLook(state)
-  if IsDefaultMouseActionBeingUsed() then
-    CM.DebugPrint("Cannot toggle Free Look while holding down your left or right click.")
-    return
-  end
-
-  -- the Override state change is enough to trigger a Free Look update, but we call the fns directly to bypass the OnUpdate throttle
-  if not state then
-    CM.LockFreeLook()
-    FreeLookOverride = false
-  elseif state then
-    UnlockFreeLookPermanent()
-    FreeLookOverride = true
-  end
-end
+-- NOTE: ToggleFreeLook() was removed. Its logic is now inlined in
+-- CombatMode_CursorModeKey() which handles both tap-to-toggle and hold-to-unlock
+-- via a single runOnUp="true" keybind with spurious key-up filtering.
 
 ---------------------------------------------------------------------------------------
 --                                   EVENT HANDLING                                  --
@@ -1010,9 +999,13 @@ local function HandleEventByCategory(category, event)
     end,
     FRIENDLY_TARGETING_EVENTS = function()
       HandleFriendlyTargetingInCombat()
-      -- Also handle combat end for healing radial pending updates
-      if event == "PLAYER_REGEN_ENABLED" and CM.HealingRadial and CM.HealingRadial.OnCombatEnd then
-        CM.HealingRadial.OnCombatEnd()
+      -- Handle combat start/end for healing radial
+      if CM.HealingRadial then
+        if event == "PLAYER_REGEN_DISABLED" and CM.HealingRadial.OnCombatStart then
+          CM.HealingRadial.OnCombatStart()
+        elseif event == "PLAYER_REGEN_ENABLED" and CM.HealingRadial.OnCombatEnd then
+          CM.HealingRadial.OnCombatEnd()
+        end
       end
     end,
     UNCATEGORIZED_EVENTS = function()
@@ -1085,14 +1078,45 @@ end
 --                            KEYBIND FUNCTIONS & COMMANDS                           --
 ---------------------------------------------------------------------------------------
 -- FUNCTIONS CALLED FROM BINDINGS.XML
-function _G.CombatMode_ToggleKey()
-  local state = IsMouselooking()
-  ToggleFreeLook(state)
-end
 
-function _G.CombatMode_HoldKey(keystate)
-  local state = keystate == "down"
-  ToggleFreeLook(state)
+-- Unified cursor mode keybind: tap to toggle, hold to temporarily unlock.
+-- Uses the same spurious key-up filter as the Healing Radial keybind.
+-- MouselookStop() fires spurious key-up events for held keys, so we ignore
+-- key-ups within 0.3s of unlocking. A quick tap leaves the cursor free (toggle);
+-- holding longer than 0.3s re-locks on release (hold).
+function _G.CombatMode_CursorModeKey(keystate)
+  if IsDefaultMouseActionBeingUsed() then
+    CM.DebugPrint("Cannot toggle Free Look while holding down your left or right click.")
+    return
+  end
+
+  if keystate == "down" then
+    if not IsMouselooking() and FreeLookOverride then
+      -- Already unlocked via previous tap — re-lock (toggle off)
+      CM.LockFreeLook()
+      FreeLookOverride = false
+      CursorModeShowTime = 0 -- No spurious filter needed for lock
+    elseif IsMouselooking() then
+      -- Currently mouselooking — unlock cursor
+      CursorModeShowTime = GetTime()
+      UnlockFreeLookPermanent()
+      FreeLookOverride = true
+    end
+  elseif keystate == "up" then
+    if not FreeLookOverride then
+      -- Already re-locked on key-down (toggle-off case), nothing to do
+      return
+    end
+    -- Ignore spurious key-ups from MouselookStop (within 0.3s)
+    local elapsed = GetTime() - CursorModeShowTime
+    if elapsed < 0.3 then
+      CM.DebugPrint("Cursor Mode: Ignoring spurious key-up (elapsed=" .. string.format("%.3f", elapsed) .. "s)")
+      return
+    end
+    -- Hold release: re-lock mouselook
+    CM.LockFreeLook()
+    FreeLookOverride = false
+  end
 end
 
 function _G.CombatMode_HealingRadialKey(keystate)

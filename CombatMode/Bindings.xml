@@ -1,10 +1,7 @@
 <Bindings>
-	<Binding name="Combat Mode Toggle" description="Toggle Combat Mode" header="Combat Mode Toggle" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
-		CombatMode_ToggleKey()
-	</Binding>
-	<Binding name="(Hold) Switch Mode" description="Hold to Switch Modes" header="Combat Mode Switch" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t" runOnUp="true">
+	<Binding name="Combat Mode Toggle" description="Tap to toggle, hold to temporarily switch" header="Combat Mode Toggle" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t" runOnUp="true">
 		if keystate == "down" or keystate == "up" then
-  			 CombatMode_HoldKey(keystate)
+			CombatMode_CursorModeKey(keystate)
 		end
 	</Binding>
 	<Binding name="(Hold) Healing Radial" description="Hold to open Healing Radial for party targeting" header="Healing Radial" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t" runOnUp="true">
