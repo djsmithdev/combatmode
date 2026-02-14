@@ -526,8 +526,8 @@ local FreeLookOptions = {
     description = Description("freelook", 2),
     toggle = {
       type = "keybinding",
-      name = "|cffffd700Toggle|r",
-      desc = "Toggles the |cffE52B50Mouse Look|r camera ON or OFF.",
+      name = "|cffffd700Toggle / Hold|r",
+      desc = "Tap to toggle the |cffE52B50Mouse Look|r camera ON or OFF.\nHold to temporarily deactivate — releasing re-engages mouselook.",
       width = 1.25,
       order = 3,
       set = function(_, key)
@@ -540,24 +540,6 @@ local FreeLookOptions = {
       end,
       get = function()
         return (GetBindingKey("Combat Mode Toggle"))
-      end
-    },
-    hold = {
-      type = "keybinding",
-      name = "|cffffd700Press & Hold|r",
-      desc = "Hold to temporarily deactivate the |cffE52B50Mouse Look|r camera.",
-      width = 1.25,
-      order = 4,
-      set = function(_, key)
-        local oldKey = (GetBindingKey("(Hold) Switch Mode"))
-        if oldKey then
-          SetBinding(oldKey)
-        end
-        SetBinding(key, "(Hold) Switch Mode")
-        SaveBindings(GetCurrentBindingSet())
-      end,
-      get = function()
-        return (GetBindingKey("(Hold) Switch Mode"))
       end
     },
     interact = {
