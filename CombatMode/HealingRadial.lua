@@ -97,6 +97,14 @@ local BUTTON_ATTR_MAP = {
   { prefix = "alt-",   suffix = "2", slot = 8 }, -- Alt+Right        → slot 8
 }
 
+-- All mouselook override binding keys
+local ALL_OVERRIDE_KEYS = {
+  "BUTTON1", "BUTTON2",
+  "SHIFT-BUTTON1", "SHIFT-BUTTON2",
+  "CTRL-BUTTON1", "CTRL-BUTTON2",
+  "ALT-BUTTON1", "ALT-BUTTON2",
+}
+
 ---------------------------------------------------------------------------------------
 --                                UTILITY FUNCTIONS                                  --
 ---------------------------------------------------------------------------------------
@@ -506,6 +514,10 @@ local function SetSliceMouseEnabled(enabled)
       slice:EnableMouse(enabled)
     end
   end
+  -- Toggle click catcher alongside slices (same enable/disable lifecycle)
+  if RadialState.clickCatcher then
+    RadialState.clickCatcher:EnableMouse(enabled)
+  end
 end
 
 -- Update main frame vertical position when crosshair Y changes (no reload needed)
@@ -519,6 +531,12 @@ function HR.UpdateMainFramePosition()
     local crosshairY = CM.DB.global and CM.DB.global.crosshairY or 50
     RadialState.mainFrame:ClearAllPoints()
     RadialState.mainFrame:SetPoint("CENTER", UIParent, "CENTER", 0, crosshairY)
+    -- Update click catcher's centerY attribute so the secure snippet computes
+    -- angles from the correct screen-center offset
+    if RadialState.clickCatcher then
+      local screenH = UIParent:GetHeight()
+      RadialState.clickCatcher:SetAttribute("centerY", 0.5 + (crosshairY / screenH))
+    end
   end
 end
 
@@ -604,7 +622,7 @@ end
 function HR.ClearMouselookBindings()
   local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 
-  for _, key in ipairs({"BUTTON1", "BUTTON2", "SHIFT-BUTTON1", "SHIFT-BUTTON2", "CTRL-BUTTON1", "CTRL-BUTTON2", "ALT-BUTTON1", "ALT-BUTTON2"}) do
+  for _, key in ipairs(ALL_OVERRIDE_KEYS) do
     SetMouselookOverrideBinding(key, nil)
   end
   CM.DebugPrint("Healing Radial: Cleared mouselook bindings")
@@ -661,6 +679,10 @@ function HR.SetCaptureActive(active)
   if active then
     CM.DebugPrint("Healing Radial: Activated")
   else
+    -- Dismiss radial if currently open
+    if RadialState.isActive then
+      HR.Hide()
+    end
     CM.DebugPrint("Healing Radial: Deactivated")
   end
 end
@@ -757,15 +779,121 @@ local function CreateMainFrame()
     self:SetAlpha(currentAlpha)
   end)
 
-  -- NOTE: No full-screen click catcher — SyncClickCatcherAttributes() calls SetAttribute()
-  -- every frame during TrackMousePosition, which is PROTECTED during InCombatLockdown().
-  -- The click catcher can never work in combat. Instead, slices receive clicks directly
-  -- via their pre-set attributes (unit, macrotext) from UpdateSliceActionAttributes().
-
   -- Create slice frames (parented to mainFrame so they inherit alpha/position).
   for i = 1, 5 do
     CreateSliceFrame(i)
   end
+
+  -- Full-screen click catcher: a SecureActionButtonTemplate that intercepts clicks
+  -- anywhere on screen and casts the correct slice's spell based on cursor angle.
+  --
+  -- Architecture: SecureHandlerWrapScript wraps PreClick with a secure snippet that runs
+  -- BEFORE SecureActionButton_OnClick resolves the action. The snippet computes the cursor
+  -- angle via self:GetMousePosition() (0-1 normalized), determines which slice the angle
+  -- falls into, reads that slice's macrotext attribute via GetFrameRef, and copies it onto
+  -- self. SecureActionButton_OnClick then fires the macro as if it were the slice itself.
+  --
+  -- Frame stacking: click catcher sits BEHIND slices so clicks directly on a slice icon
+  -- still hit the slice frame. Clicks beyond the slice icons fall through to the catcher.
+  -- Parent to UIParent (not mainFrame) so mouse hit-testing covers the full screen.
+  local catcher = CreateFrame("Button", "CMHealRadialClickCatcher", UIParent,
+    "SecureActionButtonTemplate")
+  catcher:SetAllPoints(UIParent)
+  catcher:SetFrameStrata("DIALOG")
+  catcher:SetFrameLevel(mainFrame:GetFrameLevel()) -- Behind slices (slices are at higher levels)
+  catcher:RegisterForClicks("AnyUp", "AnyDown")
+  catcher:EnableMouse(false) -- Disabled when radial is hidden
+  catcher:SetAlpha(0)        -- Invisible (clicks still register with EnableMouse=true)
+
+  -- Store frame references to all 5 slices so the secure snippet can read their attributes
+  for i = 1, 5 do
+    _G.SecureHandlerSetFrameRef(catcher, "slice" .. i, RadialState.sliceFrames[i])
+  end
+
+  -- Store the center Y offset as a fraction of screen height (for angle calculation)
+  local screenH = UIParent:GetHeight()
+  local crosshairY = CM.DB.global.crosshairY or 50
+  catcher:SetAttribute("centerY", 0.5 + (crosshairY / screenH))
+
+  -- Store slice center angles as attributes (restricted env forbids table creation)
+  -- 5 slices at 72° arcs centered at: 90° (top), 162° (upper-left), 234° (lower-left),
+  -- 306° (lower-right), 18° (upper-right). Angles use math convention (0=right, CCW+).
+  catcher:SetAttribute("sliceCenter1", 90)
+  catcher:SetAttribute("sliceCenter2", 162)
+  catcher:SetAttribute("sliceCenter3", 234)
+  catcher:SetAttribute("sliceCenter4", 306)
+  catcher:SetAttribute("sliceCenter5", 18)
+
+  -- Wrap PreClick with a secure snippet that computes the target slice BEFORE
+  -- SecureActionButton_OnClick resolves the action.
+  -- The snippet reads the selected slice's type/macrotext attributes and copies them
+  -- onto self, so the catcher fires the spell directly (no click forwarding needed).
+  -- Modifier prefix (shift-/ctrl-/alt-) and button suffix (1/2) are resolved by
+  -- SecureActionButtonTemplate automatically — we just need to copy all 8 combos.
+  _G.SecureHandlerWrapScript(catcher, "PreClick", catcher, [=[
+    local x, y = self:GetMousePosition()
+    if not x then return end
+
+    local centerY = self:GetAttribute("centerY") or 0.5
+    local dx = x - 0.5
+    local dy = y - centerY
+
+    -- Dead zone: ignore clicks too close to center
+    local dist = (dx * dx + dy * dy) ^ 0.5
+    if dist < 0.02 then
+      self:SetAttribute("type", nil)
+      return
+    end
+
+    -- Angle in degrees (0=right, counter-clockwise positive)
+    local angle = math.deg(math.atan2(dy, dx))
+    if angle < 0 then angle = angle + 360 end
+
+    -- Match angle to one of 5 slices (72° arcs, halfArc = 36°)
+    local selectedSlice = nil
+    for i = 1, 5 do
+      local c = self:GetAttribute("sliceCenter" .. i)
+      local lo = (c - 36) % 360
+      local hi = (c + 36) % 360
+      if lo <= hi then
+        if angle >= lo and angle < hi then selectedSlice = i end
+      else
+        if angle >= lo or angle < hi then selectedSlice = i end
+      end
+      if selectedSlice then break end
+    end
+
+    if selectedSlice then
+      local slice = self:GetFrameRef("slice" .. selectedSlice)
+      if slice then
+        -- Copy all 8 modifier+button attribute combos from the slice onto the catcher.
+        -- SecureActionButtonTemplate resolves the correct combo at click time.
+        self:SetAttribute("type1", slice:GetAttribute("type1"))
+        self:SetAttribute("macrotext1", slice:GetAttribute("macrotext1"))
+        self:SetAttribute("type2", slice:GetAttribute("type2"))
+        self:SetAttribute("macrotext2", slice:GetAttribute("macrotext2"))
+        self:SetAttribute("shift-type1", slice:GetAttribute("shift-type1"))
+        self:SetAttribute("shift-macrotext1", slice:GetAttribute("shift-macrotext1"))
+        self:SetAttribute("shift-type2", slice:GetAttribute("shift-type2"))
+        self:SetAttribute("shift-macrotext2", slice:GetAttribute("shift-macrotext2"))
+        self:SetAttribute("ctrl-type1", slice:GetAttribute("ctrl-type1"))
+        self:SetAttribute("ctrl-macrotext1", slice:GetAttribute("ctrl-macrotext1"))
+        self:SetAttribute("ctrl-type2", slice:GetAttribute("ctrl-type2"))
+        self:SetAttribute("ctrl-macrotext2", slice:GetAttribute("ctrl-macrotext2"))
+        self:SetAttribute("alt-type1", slice:GetAttribute("alt-type1"))
+        self:SetAttribute("alt-macrotext1", slice:GetAttribute("alt-macrotext1"))
+        self:SetAttribute("alt-type2", slice:GetAttribute("alt-type2"))
+        self:SetAttribute("alt-macrotext2", slice:GetAttribute("alt-macrotext2"))
+        self:SetAttribute("unit", slice:GetAttribute("unit"))
+      end
+    else
+      self:SetAttribute("type", nil)
+    end
+  ]=])
+
+
+
+  RadialState.clickCatcher = catcher
 end
 
 ---------------------------------------------------------------------------------------
