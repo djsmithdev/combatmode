@@ -534,8 +534,10 @@ function HR.UpdateMainFramePosition()
     -- Update click catcher's centerY attribute so the secure snippet computes
     -- angles from the correct screen-center offset
     if RadialState.clickCatcher then
+      local screenW = UIParent:GetWidth()
       local screenH = UIParent:GetHeight()
       RadialState.clickCatcher:SetAttribute("centerY", 0.5 + (crosshairY / screenH))
+      RadialState.clickCatcher:SetAttribute("aspectRatio", screenW / screenH)
     end
   end
 end
@@ -811,9 +813,15 @@ local function CreateMainFrame()
   end
 
   -- Store the center Y offset as a fraction of screen height (for angle calculation)
+  local screenW = UIParent:GetWidth()
   local screenH = UIParent:GetHeight()
   local crosshairY = CM.DB.global.crosshairY or 50
   catcher:SetAttribute("centerY", 0.5 + (crosshairY / screenH))
+  -- Store aspect ratio so the secure snippet can correct for non-square pixels.
+  -- GetMousePosition() returns 0-1 normalized coords independently for X and Y,
+  -- so dx=0.1 spans more physical pixels than dy=0.1 on widescreen monitors.
+  -- Multiplying dx by aspectRatio converts both to the same physical scale.
+  catcher:SetAttribute("aspectRatio", screenW / screenH)
 
   -- Store slice center angles as attributes (restricted env forbids table creation)
   -- 5 slices at 72° arcs centered at: 90° (top), 162° (upper-left), 234° (lower-left),
@@ -835,7 +843,10 @@ local function CreateMainFrame()
     if not x then return end
 
     local centerY = self:GetAttribute("centerY") or 0.5
-    local dx = x - 0.5
+    local aspectRatio = self:GetAttribute("aspectRatio") or 1
+    -- Correct for non-square normalized coords: dx spans screen width, dy spans
+    -- screen height. Multiply dx by aspectRatio so both represent equal physical distance.
+    local dx = (x - 0.5) * aspectRatio
     local dy = y - centerY
 
     -- Dead zone: ignore clicks too close to center
