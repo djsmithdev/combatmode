@@ -1036,18 +1036,18 @@ function HR.Show(buttonKey)
   -- Start mouse tracking
   RadialState.mainFrame:SetScript("OnUpdate", TrackMousePosition)
 
-  -- Play arrow lock-in animation
+  -- Play arrow lock-in animation (always start from base scale 1.0 to prevent compounding)
   local arrowFrame = RadialState.centerArrowFrame
   if arrowFrame then
-    local currentScale = arrowFrame:GetScale()
-    local currentAlpha = arrowFrame:GetAlpha()
-    arrowFrame.arrowLockInOriginalScale = currentScale
-    arrowFrame.arrowLockInOriginalAlpha = currentAlpha
+    local baseArrowScale = 1.0
+    local baseArrowAlpha = (CM.DB.global and CM.DB.global.crosshairOpacity) or 1.0
+    arrowFrame.arrowLockInOriginalScale = baseArrowScale
+    arrowFrame.arrowLockInOriginalAlpha = baseArrowAlpha
     arrowFrame.arrowLockInIsUnlocking = false
-    arrowFrame.arrowLockInStartingScale = currentScale * 1.3
+    arrowFrame.arrowLockInStartingScale = baseArrowScale * 1.3
     arrowFrame.arrowLockInStartingAlpha = 0.0
-    arrowFrame.arrowLockInTargetScale = currentScale
-    arrowFrame.arrowLockInTargetAlpha = currentAlpha
+    arrowFrame.arrowLockInTargetScale = baseArrowScale
+    arrowFrame.arrowLockInTargetAlpha = baseArrowAlpha
     arrowFrame:SetScale(arrowFrame.arrowLockInStartingScale)
     arrowFrame:SetAlpha(arrowFrame.arrowLockInStartingAlpha)
     arrowFrame.arrowLockInElapsed = 0
@@ -1105,10 +1105,11 @@ function HR.Hide()
     end
   end
 
-  -- Reset arrow animation state (no unlock animation needed since frame is hidden immediately)
+  -- Reset arrow animation state and scale (prevents compounding on next Show)
   local arrowFrame = RadialState.centerArrowFrame
   if arrowFrame then
     arrowFrame.arrowLockInElapsed = -1
+    arrowFrame:SetScale(1.0)
   end
 
   -- Hide mainFrame (center dot). Safe in combat — no secure descendants.
@@ -1194,18 +1195,18 @@ function HR.ShowFromKeybind()
   -- Start mouse tracking (for health bar updates and OnEnter/OnLeave)
   RadialState.mainFrame:SetScript("OnUpdate", TrackMousePosition)
 
-  -- Play arrow lock-in animation
+  -- Play arrow lock-in animation (always start from base scale 1.0 to prevent compounding)
   local arrowFrame = RadialState.centerArrowFrame
   if arrowFrame then
-    local currentScale = arrowFrame:GetScale()
-    local currentAlpha = arrowFrame:GetAlpha()
-    arrowFrame.arrowLockInOriginalScale = currentScale
-    arrowFrame.arrowLockInOriginalAlpha = currentAlpha
+    local baseArrowScale = 1.0
+    local baseArrowAlpha = (CM.DB.global and CM.DB.global.crosshairOpacity) or 1.0
+    arrowFrame.arrowLockInOriginalScale = baseArrowScale
+    arrowFrame.arrowLockInOriginalAlpha = baseArrowAlpha
     arrowFrame.arrowLockInIsUnlocking = false
-    arrowFrame.arrowLockInStartingScale = currentScale * 1.3
+    arrowFrame.arrowLockInStartingScale = baseArrowScale * 1.3
     arrowFrame.arrowLockInStartingAlpha = 0.0
-    arrowFrame.arrowLockInTargetScale = currentScale
-    arrowFrame.arrowLockInTargetAlpha = currentAlpha
+    arrowFrame.arrowLockInTargetScale = baseArrowScale
+    arrowFrame.arrowLockInTargetAlpha = baseArrowAlpha
     arrowFrame:SetScale(arrowFrame.arrowLockInStartingScale)
     arrowFrame:SetAlpha(arrowFrame.arrowLockInStartingAlpha)
     arrowFrame.arrowLockInElapsed = 0
