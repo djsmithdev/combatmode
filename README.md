@@ -29,6 +29,10 @@ Experience <em>World of Warcraft</em> like never before with <strong>Combat Mode
 - <strong>Reticle Targeting</strong> - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of @mouseover and @cursor macro decorators in combination with the crosshairs.
 - <strong>Mouse Click Casting</strong> - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them.
 - <strong>Cursor Unlock</strong> - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.
+- <strong>Healing Radial</strong> - Radial menu for quickly targeting and casting helpful spells at party members.
+<p align="center">
+  <img src="./previewGif2.gif">
+</p>
 
 <br />
 
