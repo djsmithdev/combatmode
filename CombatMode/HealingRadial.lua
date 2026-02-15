@@ -23,6 +23,7 @@ local UnitHealth = _G.UnitHealth
 local UnitHealthMax = _G.UnitHealthMax
 local UnitInRange = _G.UnitInRange
 local UnitIsConnected = _G.UnitIsConnected
+local UnitIsUnit = _G.UnitIsUnit
 local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitName = _G.UnitName
 local EvaluateColorFromBoolean = _G.C_CurveUtil and _G.C_CurveUtil.EvaluateColorFromBoolean
@@ -449,19 +450,34 @@ local function CreateSliceFrame(sliceIndex)
   slice.healthFill:SetStatusBarTexture("Interface\\BUTTONS\\WHITE8X8")
   slice.healthFill:SetStatusBarColor(unpack(config.healthyColor))
 
-  -- Role icon background/shadow (created before role icon so it's behind it)
+  -- Role icon (created first so roleIconBG can anchor to it)
   local roleIconSize = config.roleIconSize or 18
-  slice.roleIconBG = inner:CreateTexture(nil, "BORDER")
-  slice.roleIconBG:SetTexture("Interface\\AddOns\\CombatMode\\assets\\circlemask.blp")
-  slice.roleIconBG:SetSize(roleIconSize * 1.1, roleIconSize * 1.1) -- 10% larger for shadow
-  slice.roleIconBG:SetPoint("TOP", inner, "TOP", -1, 0)
-  slice.roleIconBG:SetBlendMode("BLEND")
-  slice.roleIconBG:SetVertexColor(0, 0, 0, 0.3)
-
-  -- Role icon (created before name text so name can anchor below it)
   slice.roleIcon = inner:CreateTexture(nil, "OVERLAY")
   slice.roleIcon:SetSize(roleIconSize, roleIconSize)
   slice.roleIcon:SetPoint("TOP", inner, "TOP", 0, -4)
+
+  -- Role icon backdrop (Radial_Wheel_BG_Small from interface/radialwheel/uiradialwheel, 189x189)
+  -- Centered on role icon, larger so the shadow extends around it.
+  slice.roleIconBG = inner:CreateTexture(nil, "BORDER")
+  slice.roleIconBG:SetAtlas("Radial_Wheel_BG_Small")
+  slice.roleIconBG:SetSize(roleIconSize * 1.5, roleIconSize * 1.5)
+  slice.roleIconBG:SetPoint("CENTER", slice.roleIcon, "CENTER", 0, 0)
+
+  -- Role icon hover border (UI-LFG-RoleIcon-Incentive from interface/lfgframe/uilfgprompts)
+  -- Overlays the role icon for the currently moused-over slice only.
+  slice.roleIconBorder = inner:CreateTexture(nil, "OVERLAY")
+  slice.roleIconBorder:SetAtlas("UI-LFG-RoleIcon-Incentive")
+  slice.roleIconBorder:SetSize(roleIconSize, roleIconSize)
+  slice.roleIconBorder:SetPoint("TOP", inner, "TOP", 0, -4)
+  slice.roleIconBorder:Hide()
+
+  -- Role icon checkmark (UI-LFG-ReadyMark from interface/lfgframe/uilfgprompts)
+  -- Overlays the role icon when this slice's unit is the current target.
+  slice.roleIconCheckmark = inner:CreateTexture(nil, "OVERLAY")
+  slice.roleIconCheckmark:SetAtlas("UI-LFG-ReadyMark")
+  slice.roleIconCheckmark:SetSize(roleIconSize * 0.7, roleIconSize * 0.7) -- smaller so it sits inside the role icon
+  slice.roleIconCheckmark:SetPoint("CENTER", slice.roleIcon, "CENTER", 0, 0)
+  slice.roleIconCheckmark:Hide()
 
   -- Name text (below role icon so it doesn't overlap when icon size increases)
   slice.nameText = inner:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -560,7 +576,7 @@ function HR.UpdateSlicePositionsAndSizes()
   local config = CM.DB.global.healingRadial
   if not config then return end
 
-  local radius = config.sliceRadius or 100
+  local radius = config.sliceRadius or 120
   local sliceScale = config.sliceSize or 1.0 -- sliceSize is now a scale factor
 
   for i = 1, 5 do
@@ -717,10 +733,26 @@ local function CreateMainFrame()
   mainFrame:EnableMouse(false)
   mainFrame:Show()
 
+  -- Wheel background (Radial_Wheel_BG from interface/radialwheel/uiradialwheel), ~30% larger than frame
+  local wheelBG = mainFrame:CreateTexture(nil, "BACKGROUND")
+  wheelBG:SetAtlas("Radial_Wheel_BG")
+  local frameSize = 400
+  wheelBG:SetSize(frameSize * 1.3, frameSize * 1.3)
+  wheelBG:SetPoint("CENTER", mainFrame, "CENTER", 0, 0)
+  wheelBG:SetShown(CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground)
+  RadialState.wheelBG = wheelBG
+
   RadialState.mainFrame = mainFrame
 
-  -- Center arrow: rotates with cursor, colored by selected slice's party member class.
-  -- Size and opacity use the user's crosshair settings (CM.DB.global.crosshairSize / crosshairOpacity).
+  -- Refresh slice visuals (e.g. target checkmark) when the player's target changes
+  mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
+  mainFrame:SetScript("OnEvent", function(_, event)
+    if event == "PLAYER_TARGET_CHANGED" and HR.UpdateAllSlices then
+      HR.UpdateAllSlices()
+    end
+  end)
+
+  -- Center arrow: static BG with rotating pointer on top. Size/opacity use crosshair settings.
   local defaultSize = CM.Constants.DatabaseDefaults and CM.Constants.DatabaseDefaults.global and CM.Constants.DatabaseDefaults.global.crosshairSize or 64
   local defaultOpacity = CM.Constants.DatabaseDefaults and CM.Constants.DatabaseDefaults.global and CM.Constants.DatabaseDefaults.global.crosshairOpacity or 1
   local arrowSize = (CM.DB.global and CM.DB.global.crosshairSize) or defaultSize
@@ -731,12 +763,34 @@ local function CreateMainFrame()
   arrowFrame:SetFrameStrata("DIALOG")
   arrowFrame:SetFrameLevel(2)
   arrowFrame:SetAlpha(arrowOpacity)
+  -- Static background (Ping_OVMarker_Pointer_BG from interface/radialwheel/uipingsystem2x, 47x47)
+  local centerBGScale = 0.7 -- BG, close icon, and Select_Close use this scale relative to frame
+  local arrowBG = arrowFrame:CreateTexture(nil, "BACKGROUND")
+  arrowBG:SetAtlas("Ping_OVMarker_Pointer_BG")
+  arrowBG:SetSize(arrowSize * centerBGScale, arrowSize * centerBGScale)
+  arrowBG:SetPoint("CENTER", arrowFrame, "CENTER", 0, 0)
+  -- Static close icon (Radial_Wheel_Icon_Close from interface/radialwheel/uiradialwheel), always visible
+  local centerIconClose = arrowFrame:CreateTexture(nil, "ARTWORK")
+  centerIconClose:SetAtlas("Radial_Wheel_Icon_Close")
+  centerIconClose:SetSize(arrowSize * centerBGScale * 0.5, arrowSize * centerBGScale * 0.5) -- half of BG size
+  centerIconClose:SetPoint("CENTER", arrowFrame, "CENTER", 0, 0)
+  -- Select-close state (Radial_Wheel_Select_Close), shown when cursor over dead center instead of rotating arrow
+  local centerSelectClose = arrowFrame:CreateTexture(nil, "ARTWORK")
+  centerSelectClose:SetAtlas("Radial_Wheel_Select_Close")
+  centerSelectClose:SetSize(arrowSize * centerBGScale, arrowSize * centerBGScale)
+  centerSelectClose:SetPoint("CENTER", arrowFrame, "CENTER", 0, 0)
+  centerSelectClose:Hide()
+  -- Rotating pointer (Ping_OVMarker_Pointer_Assist from interface/radialwheel/uiradialwheel, 75x75)
   local arrowTex = arrowFrame:CreateTexture(nil, "OVERLAY")
-  arrowTex:SetTexture("Interface\\AddOns\\CombatMode\\assets\\arrow.blp")
-  arrowTex:SetAllPoints(arrowFrame)
-  arrowTex:SetBlendMode("BLEND")
+  arrowTex:SetAtlas("Ping_OVMarker_Pointer_Assist")
+  arrowTex:SetSize(arrowSize * 1.3, arrowSize * 1.3) -- larger than BG so it extends beyond
+  arrowTex:SetPoint("CENTER", arrowFrame, "CENTER", 0, 0)
   RadialState.centerArrowFrame = arrowFrame
   RadialState.centerArrowTexture = arrowTex
+  RadialState.centerArrowBG = arrowBG
+  RadialState.centerBGScale = centerBGScale
+  RadialState.centerIconClose = centerIconClose
+  RadialState.centerSelectClose = centerSelectClose
 
   -- Arrow lock-in animation state (similar to crosshair lock-in animation)
   arrowFrame.arrowLockInElapsed = -1 -- -1 = idle, 0+ = animating
@@ -917,7 +971,17 @@ local function CreateMainFrame()
   -- This handles tap-to-toggle: Mouse4/Mouse5 (or any bound key that is a mouse button)
   -- gets consumed by the catcher's EnableMouse, so the binding system never sees it.
   -- We detect it here and close the radial manually.
+  -- When the user clicks the dead center (Left/Right), lock free look and close.
+  local CENTER_DEAD_ZONE_PX = 30
   catcher:HookScript("PostClick", function(self, button, down)
+    if down and (button == "LeftButton" or button == "RightButton") then
+      local _, distance = GetMouseAngleAndDistanceFromCenter()
+      if distance <= CENTER_DEAD_ZONE_PX then
+        CM.LockFreeLook()
+        HR.Hide()
+        return
+      end
+    end
     if down and button ~= "LeftButton" and button ~= "RightButton" then
       CM.DebugPrint("Healing Radial: Click catcher received " .. tostring(button) .. ", closing radial")
       HR.Hide()
@@ -1027,12 +1091,19 @@ local function UpdateSliceVisual(sliceIndex)
     slice.healthFill:Hide()
   end
 
-  -- Update role icon background/shadow (always shown when role icon is shown)
+  -- Update role icon backdrop (centered on role icon, extends beyond for shadow)
   local size = config.roleIconSize or 18
-  slice.roleIconBG:SetSize(size * 1.1, size * 1.1) -- 10% larger for shadow
+  slice.roleIconBG:SetSize(size * 1.5, size * 1.5)
 
   -- Update role icon (always shown)
   slice.roleIcon:SetSize(size, size)
+  if slice.roleIconBorder then
+    slice.roleIconBorder:SetSize(size, size)
+  end
+  if slice.roleIconCheckmark then
+    local checkSize = size * 0.7 -- smaller so it sits inside the role icon
+    slice.roleIconCheckmark:SetSize(checkSize, checkSize)
+  end
   local roleAtlas = {
     TANK = "UI-LFG-RoleIcon-Tank",
     HEALER = "UI-LFG-RoleIcon-Healer",
@@ -1042,9 +1113,20 @@ local function UpdateSliceVisual(sliceIndex)
     slice.roleIcon:SetAtlas(roleAtlas[memberData.role])
     slice.roleIcon:Show()
     slice.roleIconBG:Show() -- Show background when role icon is shown
+    -- Show checkmark when this slice's unit is the current target
+    if slice.roleIconCheckmark then
+      if UnitIsUnit(memberData.unitId, "target") then
+        slice.roleIconCheckmark:Show()
+      else
+        slice.roleIconCheckmark:Hide()
+      end
+    end
   else
     slice.roleIcon:Hide()
     slice.roleIconBG:Hide() -- Hide background when role icon is hidden
+    if slice.roleIconCheckmark then
+      slice.roleIconCheckmark:Hide()
+    end
   end
 end
 
@@ -1053,6 +1135,7 @@ local function UpdateAllSlices()
     UpdateSliceVisual(i)
   end
 end
+HR.UpdateAllSlices = UpdateAllSlices
 
 -- Accessible via HR so closures created before this point can call it
 function HR.HighlightSlice(sliceIndex)
@@ -1072,6 +1155,14 @@ function HR.HighlightSlice(sliceIndex)
         slice.targetScale = BASE_INNER
       end
       slice.scaleElapsed = 0
+    end
+    -- Show role icon incentive border only on the moused-over slice
+    if slice and slice.roleIconBorder then
+      if sliceIndex and i == sliceIndex and slice:GetAlpha() > 0 then
+        slice.roleIconBorder:Show()
+      else
+        slice.roleIconBorder:Hide()
+      end
     end
   end
 end
@@ -1130,37 +1221,50 @@ local function TrackMousePosition(_, elapsed)
     HR.HighlightSlice(sliceIndex)
   end
 
-  -- Center arrow: rotate toward cursor, tint by selected slice's class color; use crosshair size/opacity
-  -- Arrow alpha: 1.0 over a player, 0.5 not over a player, 0.2 dead center. Don't override if lock-in animation is running.
+  -- Center: static X (Icon_Close) always visible; over dead zone show Select_Close and hide rotating arrow
   local arrowFrame = RadialState.centerArrowFrame
   local arrowTex = RadialState.centerArrowTexture
+  local centerSelectClose = RadialState.centerSelectClose
+  local centerIconClose = RadialState.centerIconClose
+  local centerArrowBG = RadialState.centerArrowBG
+  local centerBGScale = RadialState.centerBGScale or 0.7
   if arrowFrame and arrowTex then
     local size = CM.DB.global.crosshairSize or 64
     arrowFrame:SetSize(size, size)
+    if centerArrowBG then
+      centerArrowBG:SetSize(size * centerBGScale, size * centerBGScale)
+    end
+    if centerIconClose then
+      centerIconClose:SetSize(size * centerBGScale * 0.5, size * centerBGScale * 0.5)
+    end
+    if centerSelectClose then
+      centerSelectClose:SetSize(size * centerBGScale, size * centerBGScale)
+    end
+    local overDeadCenter = (distance <= CENTER_DEAD_ZONE)
+    if centerSelectClose then
+      if overDeadCenter then
+        centerSelectClose:Show()
+        arrowTex:Hide()
+      else
+        centerSelectClose:Hide()
+        arrowTex:Show()
+      end
+    end
+    arrowTex:SetSize(size * 1.3, size * 1.3) -- rotating pointer larger than BG
     if arrowFrame.arrowLockInElapsed == -1 then
+      -- Alpha: full when over dead center; 1.0 over a player, 0.5 not over a player when outside center
       local arrowAlpha
-      if distance <= CENTER_DEAD_ZONE then
-        arrowAlpha = 0.2 -- dead center
+      if overDeadCenter then
+        arrowAlpha = 1.0
       else
         local selectedSlice = sliceIndex and RadialState.sliceFrames[sliceIndex]
         local unitId = selectedSlice and selectedSlice:GetAttribute("unit")
-        arrowAlpha = (unitId and unitId ~= "") and 1.0 or 0.5 -- 1.0 if slice has a unit, else 0.5
+        arrowAlpha = (unitId and unitId ~= "") and 1.0 or 0.5
       end
       arrowFrame:SetAlpha(arrowAlpha)
     end
-    -- Rotation: angle 0 = right, 90 = up; texture default is typically up, so rotate by (angle - 90)
-    arrowTex:SetRotation(math.rad(angle - 90))
-    local r, g, b = 1, 1, 1
-    if sliceIndex then
-      for _, member in ipairs(RadialState.partyData) do
-        if member.sliceIndex == sliceIndex and member.class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[member.class] then
-          local c = RAID_CLASS_COLORS[member.class]
-          r, g, b = c.r, c.g, c.b
-          break
-        end
-      end
-    end
-    arrowTex:SetVertexColor(r, g, b, 0.7)
+    -- Rotation: angle 0 = right, 90 = up; atlas arrow points down, so rotate by (angle + 90) to align with cursor
+    arrowTex:SetRotation(math.rad(angle + 90))
   end
 
   -- Smooth scale transition on innerFrame (duration-based, always combat-safe).
@@ -1228,6 +1332,9 @@ function HR.Show(buttonKey)
 
   -- Show mainFrame + children via alpha (combat-safe). SetAlpha propagates
   -- to child frames (slices inherit parent alpha).
+  if RadialState.wheelBG then
+    RadialState.wheelBG:SetShown(CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground)
+  end
   RadialState.mainFrame:SetAlpha(1)
 
   -- Apply initial highlight AFTER slices are visible
@@ -1398,6 +1505,9 @@ function HR.ShowFromKeybind()
   SetSliceMouseEnabled(true)
 
   -- Show mainFrame + children via alpha (combat-safe). SetAlpha propagates to child slices.
+  if RadialState.wheelBG then
+    RadialState.wheelBG:SetShown(CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground)
+  end
   RadialState.mainFrame:SetAlpha(1)
 
   -- Apply initial highlight AFTER slices are visible

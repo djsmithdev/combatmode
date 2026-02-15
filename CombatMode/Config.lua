@@ -526,8 +526,8 @@ local FreeLookOptions = {
     description = Description("freelook", 2),
     toggle = {
       type = "keybinding",
-      name = "|cffffd700Toggle / Hold|r",
-      desc = "Tap to toggle the |cffE52B50Mouse Look|r camera ON or OFF.\nHold to temporarily deactivate — releasing re-engages mouselook.",
+      name = "|cffffd700Toggle / Hold - Mouse Look|r",
+      desc = "Tap to toggle the |cffE52B50Mouse Look|r camera |cff00FF7FOn|r or |cffE52B50Off|r.\n\nHold to temporarily deactivate it — releasing re-engages it.",
       width = 1.25,
       order = 3,
       set = function(_, key)
@@ -542,6 +542,7 @@ local FreeLookOptions = {
         return (GetBindingKey("Combat Mode Toggle"))
       end
     },
+    spacing0 = Spacing(1.0, 3.1),
     interact = {
       type = "keybinding",
       name = "|cffffd700Interact With Target|r",
@@ -1069,8 +1070,8 @@ local HealingRadialOptions = {
     },
     keybind = {
       type = "keybinding",
-      name = "|cffffd700Hold + Toggle Key|r",
-      desc = "Hold this key to temporarily display the |cff00FF7FHealing Radial|r, and release to close it.\n\nTaping this key will toggle the |cff00FF7FHealing Radial|r until the next tap closes it.",
+      name = "|cffffd700Toggle / Hold - Radial|r",
+      desc = "Tap to toggle the |cff00FF7FHealing Radial|r menu |cff00FF7FOn|r or |cffE52B50Off|r.\n\nHold to temporarily display it — releasing closes it.",
       width = 1.25,
       order = 4,
       set = function(_, key)
@@ -1097,7 +1098,7 @@ local HealingRadialOptions = {
         sliceRadius = {
           type = "range",
           name = "Radial Size",
-          desc = "Distance from center to each party member slice.\n\n|cffffd700Default:|r |cff00FF7F100|r",
+          desc = "Distance from center to each party member slice.\n\n|cffffd700Default:|r |cff00FF7F120|r",
           min = 100,
           max = 200,
           step = 10,
@@ -1184,13 +1185,29 @@ local HealingRadialOptions = {
           type = "toggle",
           name = "Show Health Bars",
           desc = "Display health bars on each party member slice.\n\n|cffffd700Default:|r |cffE52B50Off|r",
-          width = 1.2,
+          width = 1.9,
           order = 5,
           set = function(_, value)
             CM.DB.global.healingRadial.showHealthBars = value
           end,
           get = function()
             return CM.DB.global.healingRadial.showHealthBars
+          end,
+          disabled = function()
+            return not CM.DB.global.healingRadial.enabled
+          end
+        },
+        showBackground = {
+          type = "toggle",
+          name = "Show Radial Background",
+          desc = "Display a background behind the |cff00FF7FHealing Radial|r.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
+          width = 1.2,
+          order = 6,
+          set = function(_, value)
+            CM.DB.global.healingRadial.showBackground = value
+          end,
+          get = function()
+            return CM.DB.global.healingRadial.showBackground
           end,
           disabled = function()
             return not CM.DB.global.healingRadial.enabled
