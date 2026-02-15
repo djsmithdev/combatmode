@@ -1121,10 +1121,17 @@ end
 
 function _G.CombatMode_HealingRadialKey(keystate)
   if not CM.HealingRadial then return end
+  local HR = CM.HealingRadial
+  CM.DebugPrint("HealingRadialKey: keystate=" .. tostring(keystate) .. " isActive=" .. tostring(HR.IsActive()))
   if keystate == "down" then
-    CM.HealingRadial.ShowFromKeybind()
+    if HR.IsActive() then
+      -- Already open (tap-to-toggle: second press closes)
+      HR.Hide()
+    else
+      HR.ShowFromKeybind()
+    end
   elseif keystate == "up" then
-    CM.HealingRadial.HideFromKeybind()
+    HR.HideFromKeybind()
   end
 end
 
