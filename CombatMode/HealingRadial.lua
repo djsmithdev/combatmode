@@ -22,9 +22,7 @@ local UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned
 local UnitHealth = _G.UnitHealth
 local UnitHealthMax = _G.UnitHealthMax
 local UnitInRange = _G.UnitInRange
-local UnitIsConnected = _G.UnitIsConnected
 local UnitIsUnit = _G.UnitIsUnit
-local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitName = _G.UnitName
 local EvaluateColorFromBoolean = _G.C_CurveUtil and _G.C_CurveUtil.EvaluateColorFromBoolean
 local CreateColor = _G.CreateColor
@@ -912,10 +910,29 @@ local function CreateMainFrame()
     local dx = (x - 0.5) * aspectRatio
     local dy = y - centerY
 
-    -- Dead zone: ignore clicks too close to center
+    -- Dead zone: ignore clicks too close to center. Clear all action attributes
+    -- so no targeting or macro runs (otherwise stale type1/unit from a previous
+    -- slice click would e.g. target player when closing).
     local dist = (dx * dx + dy * dy) ^ 0.5
     if dist < 0.02 then
       self:SetAttribute("type", nil)
+      self:SetAttribute("type1", nil)
+      self:SetAttribute("type2", nil)
+      self:SetAttribute("unit", nil)
+      self:SetAttribute("macrotext1", nil)
+      self:SetAttribute("macrotext2", nil)
+      self:SetAttribute("shift-type1", nil)
+      self:SetAttribute("shift-type2", nil)
+      self:SetAttribute("shift-macrotext1", nil)
+      self:SetAttribute("shift-macrotext2", nil)
+      self:SetAttribute("ctrl-type1", nil)
+      self:SetAttribute("ctrl-type2", nil)
+      self:SetAttribute("ctrl-macrotext1", nil)
+      self:SetAttribute("ctrl-macrotext2", nil)
+      self:SetAttribute("alt-type1", nil)
+      self:SetAttribute("alt-type2", nil)
+      self:SetAttribute("alt-macrotext1", nil)
+      self:SetAttribute("alt-macrotext2", nil)
       return
     end
 
@@ -971,7 +988,7 @@ local function CreateMainFrame()
   -- We detect it here and close the radial manually.
   -- When the user clicks the dead center (Left/Right), lock free look and close.
   local CENTER_DEAD_ZONE_PX = 30
-  catcher:HookScript("PostClick", function(self, button, down)
+  catcher:HookScript("PostClick", function(_, button, down)
     if down and (button == "LeftButton" or button == "RightButton") then
       local _, distance = GetMouseAngleAndDistanceFromCenter()
       if distance <= CENTER_DEAD_ZONE_PX then
