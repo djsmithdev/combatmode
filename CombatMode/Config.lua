@@ -5,9 +5,6 @@
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
 
--- Check if running on Retail or Classic
-local ON_RETAIL_CLIENT = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
-
 -- CACHING GLOBAL VARIABLES
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
@@ -873,65 +870,24 @@ local ReticleTargetingOptions = {
         return CM.DB.char.reticleTargeting
       end
     },
-    friendlyTargeting = {
+    reticleTargetingEnemyOnly = {
       type = "toggle",
-      name = "Allow Reticle To Target Friendlies |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nAllows the reticle to target friendly NPCs or Players while |cffE52B50Mouse Look|r is active.\n\n|cff909090Disabled by default to avoid situations like the Fiery Brand bug.|r\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      name = "Only Allow Reticle To Target Enemies |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nOnly allows the reticle to target enemies while |cffE52B50Mouse Look|r is active, ignoring friendly NPCs and Players\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = 1.5,
       order = 4,
       confirm = true,
       confirmText = CM.METADATA["TITLE"] ..
-        "\n\n|cffcfcfcfAllowing the reticle to target friendlies can, under certain conditions, cause a |cffE52B50Invalid Target|r bug. \n\n|cffffd700Proceed anyway?|r|r",
+        "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to |cff00FFFFReticle Targeting|r.|r \n\n|cffffd700Proceed?|r",
       set = function(_, value)
-        CM.DB.char.friendlyTargeting = value
-        if value then
-          CM.SetFriendlyTargeting(true)
-        else
-          CM.SetFriendlyTargeting(false)
-        end
+        CM.DB.char.reticleTargetingEnemyOnly = value
+        ReloadUI()
       end,
       get = function()
-        return CM.DB.char.friendlyTargeting
+        return CM.DB.char.reticleTargetingEnemyOnly
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting
-      end
-    },
-    crosshairPriority = {
-      type = "toggle",
-      name = "Always Prioritize Target Under Reticle |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nGives the reticle the highest priority when determining which unit the spell will be cast on, |cffFF5050ignoring even manually selected (hard-locked) targets in favor of the unit you're aiming at.|r \n\n|cff909090Disabling this will prevent the crosshair from swapping off hard-locked targets.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = 2.1,
-      order = 5,
-      set = function(_, value)
-        CM.DB.char.crosshairPriority = value
-        if value then
-          CM.SetCrosshairPriority(true)
-        else
-          CM.SetCrosshairPriority(false)
-        end
-      end,
-      get = function()
-        return CM.DB.char.crosshairPriority
-      end,
-      disabled = function()
-        return CM.DB.char.reticleTargeting ~= true or ON_RETAIL_CLIENT == false
-      end
-    },
-    friendlyTargetingInCombat = {
-      type = "toggle",
-      name = "Disable Friendly Targeting In Combat |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nTemporaroly disables friendly targeting while |cffffd700in combat|r.\n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = 1.5,
-      order = 6,
-      set = function(_, value)
-        CM.DB.char.friendlyTargetingInCombat = value
-      end,
-      get = function()
-        return CM.DB.char.friendlyTargetingInCombat
-      end,
-      disabled = function()
-        return not CM.DB.char.reticleTargeting or not CM.DB.char.friendlyTargeting
       end
     },
     spacing = Spacing("full", 6.1),

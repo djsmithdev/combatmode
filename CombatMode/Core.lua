@@ -48,7 +48,6 @@ local SpellIsTargeting = _G.SpellIsTargeting
 local StaticPopupDialogs = _G.StaticPopupDialogs
 local StaticPopup_Show = _G.StaticPopup_Show
 local UIParent = _G.UIParent
-local UnitAffectingCombat = _G.UnitAffectingCombat
 local UnitCanAttack = _G.UnitCanAttack
 local UnitExists = _G.UnitExists
 local UnitGUID = _G.UnitGUID
@@ -308,7 +307,7 @@ function CM.SetShoulderOffset()
   CM.DebugPrint("Setting Shoulder Offset to " .. offset)
 end
 
-function CM.SetCrosshairPriority(enabled)
+function CM.HandleMouseoverCasting(enabled)
   if ON_RETAIL_CLIENT == false then
     return
   end
@@ -323,7 +322,7 @@ function CM.SetCrosshairPriority(enabled)
   end
 end
 
-function CM.SetFriendlyTargeting(enabled)
+function CM.HandleSoftTargetFriend(enabled)
   if enabled then
     SetCVar("SoftTargetFriend", 3)
     CM.DebugPrint("Enabling Friendly Targeting out of combat")
@@ -333,24 +332,6 @@ function CM.SetFriendlyTargeting(enabled)
   end
 end
 
--- Temporarily disable friendly targeting during combat
-local function HandleFriendlyTargetingInCombat()
-  local CharConfig = CM.DB.char or {}
-  local isFriendlyTargetingInCombatOn = CharConfig.reticleTargeting and CharConfig.friendlyTargeting and
-                                          CharConfig.friendlyTargetingInCombat
-
-  if not isFriendlyTargetingInCombatOn then
-    return
-  end
-
-  local InCombat = UnitAffectingCombat("player")
-
-  if InCombat then
-    CM.SetFriendlyTargeting(false)
-  else
-    CM.SetFriendlyTargeting(true)
-  end
-end
 
 local function CenterCursor(shouldCenter)
   if shouldCenter then
@@ -366,8 +347,8 @@ function CM:ResetCVarsToDefault()
   self.ConfigReticleTargeting("blizzard")
   self.ConfigActionCamera("blizzard")
   self.ConfigStickyCrosshair("blizzard")
-  self.SetCrosshairPriority(false)
-  self.SetFriendlyTargeting(false)
+  self.HandleMouseoverCasting(false)
+  self.HandleSoftTargetFriend(false)
 
   print(CM.Constants.BasePrintMsg .. "|cff909090: all changes have been reverted.|r")
 end
@@ -800,27 +781,95 @@ end
 ---------------------------------------------------------------------------------------
 --                             BUTTON OVERRIDE FUNCTIONS                             --
 ---------------------------------------------------------------------------------------
+-- Click-cast macro wrapper: binding value (e.g. ACTIONBUTTON1) -> pre-line + /click frameName.
+local CLICKCAST_BARS = {
+  { bind = "ACTIONBUTTON", frame = "ActionButton", count = 12 },
+  { bind = "MULTIACTIONBAR1BUTTON", frame = "MultiBarBottomLeftButton", count = 12 },
+  { bind = "MULTIACTIONBAR2BUTTON", frame = "MultiBarBottomRightButton", count = 12 },
+  { bind = "MULTIACTIONBAR3BUTTON", frame = "MultiBarRightButton", count = 12 },
+  { bind = "MULTIACTIONBAR4BUTTON", frame = "MultiBarLeftButton", count = 12 },
+}
+local BindingToClickFrame = {}
+for _, bar in ipairs(CLICKCAST_BARS) do
+  for i = 1, bar.count do
+    BindingToClickFrame[bar.bind .. i] = bar.frame .. i
+  end
+end
+
+local CLICKCAST_PRE_LINE_ANY = "/target [@mouseover,exists]" -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
+local CLICKCAST_PRE_LINE_ENEMY = "/target [@mouseover,harm,nodead][@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
+
+local function GetClickCastPreLine()
+  if not CM.DB.char.reticleTargeting then return nil end
+  if CM.DB.char.reticleTargetingEnemyOnly then return CLICKCAST_PRE_LINE_ENEMY end
+  return CLICKCAST_PRE_LINE_ANY
+end
+
+local CLICKCAST_KEYS = { "BUTTON1", "BUTTON2", "SHIFT-BUTTON1", "SHIFT-BUTTON2", "CTRL-BUTTON1", "CTRL-BUTTON2", "ALT-BUTTON1", "ALT-BUTTON2" }
+local ClickCastFramesByKey = {}
+for i, key in ipairs(CLICKCAST_KEYS) do
+  local f = CreateFrame("Button", "CombatModeClickCast" .. i, UIParent, "SecureActionButtonTemplate")
+  f:SetAttribute("type", "macro")
+  f:RegisterForClicks("AnyUp", "AnyDown")
+  ClickCastFramesByKey[key] = f
+end
+
+local function BuildClickCastMacroText(bindingValue)
+  local clickFrame = BindingToClickFrame[bindingValue]
+  if not clickFrame then return nil end
+  local pre = GetClickCastPreLine()
+  return pre and (pre .. "\n/click " .. clickFrame) or ("/click " .. clickFrame)
+end
+
+local function SetClickCastFrameMacro(frame, macroText)
+  if frame and macroText and not InCombatLockdown() then
+    frame:SetAttribute("macrotext", macroText)
+  end
+end
+
+local function RefreshClickCastMacros()
+  if InCombatLockdown() then return end
+  local bindings = CM.DB[CM.GetBindingsLocation()].bindings
+  for _, buttonName in ipairs(CM.Constants.ButtonsToOverride) do
+    local s = bindings[buttonName]
+    if s and s.enabled then
+      local frame = ClickCastFramesByKey[s.key]
+      SetClickCastFrameMacro(frame, BuildClickCastMacroText(s.value))
+    end
+  end
+end
+
+local function ClickCastMouseButton(key)
+  return key:match("BUTTON2") and "RightButton" or "LeftButton"
+end
+
 function CM.GetBindingsLocation()
   return CM.DB.char.useGlobalBindings and "global" or "char"
 end
 
 function CM.SetNewBinding(buttonSettings)
-  if not buttonSettings.enabled then
-    return
-  end
+  if not buttonSettings.enabled then return end
 
+  local key, value = buttonSettings.key, buttonSettings.value
   local valueToUse
-  if buttonSettings.value == "MACRO" then
+  if value == "MACRO" then
     valueToUse = "MACRO " .. buttonSettings.macroName
-  elseif buttonSettings.value == "CLEARTARGET" then
+  elseif value == "CLEARTARGET" then
     valueToUse = "MACRO CM_ClearTarget"
-  elseif buttonSettings.value == "CLEARFOCUS" then
+  elseif value == "CLEARFOCUS" then
     valueToUse = "MACRO CM_ClearFocus"
   else
-    valueToUse = buttonSettings.value
+    local frame = ClickCastFramesByKey[key]
+    local macroText = BuildClickCastMacroText(value)
+    if frame and macroText then
+      SetClickCastFrameMacro(frame, macroText)
+      valueToUse = "CLICK " .. frame:GetName() .. ":" .. ClickCastMouseButton(key)
+    else
+      valueToUse = value
+    end
   end
-  SetMouselookOverrideBinding(buttonSettings.key, valueToUse)
-  CM.DebugPrint(buttonSettings.key .. "'s override binding is now " .. valueToUse)
+  SetMouselookOverrideBinding(key, valueToUse)
+  CM.DebugPrint(key .. "'s override binding is now " .. valueToUse)
 end
 
 function CM.OverrideDefaultButtons()
@@ -945,12 +994,11 @@ local function Rematch()
   if CM.DB.char.reticleTargeting then
     CM.ConfigReticleTargeting("combatmode")
 
-    if CM.DB.char.crosshairPriority then
-      CM.SetCrosshairPriority(true)
-    end
+    CM.HandleMouseoverCasting(true)
 
-    if CM.DB.char.friendlyTargeting then
-      CM.SetFriendlyTargeting(true)
+    -- if "Only Allow Reticle to Target Enemies" is turned off, activate Soft Targeting Friend
+    if not CM.DB.char.reticleTargetingEnemyOnly then
+      CM.HandleSoftTargetFriend(true)
     end
   end
 
@@ -998,7 +1046,6 @@ local function HandleEventByCategory(category, event)
       Rematch()
     end,
     FRIENDLY_TARGETING_EVENTS = function()
-      HandleFriendlyTargetingInCombat()
       -- Handle combat start/end for healing radial
       if CM.HealingRadial then
         if event == "PLAYER_REGEN_DISABLED" and CM.HealingRadial.OnCombatStart then
@@ -1012,6 +1059,9 @@ local function HandleEventByCategory(category, event)
       SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
     end,
     HEALING_RADIAL_EVENTS = function()
+      if event == "ACTIONBAR_SLOT_CHANGED" then
+        RefreshClickCastMacros()
+      end
       if not CM.HealingRadial then return end
       if event == "GROUP_ROSTER_UPDATE" and CM.HealingRadial.OnGroupRosterUpdate then
         CM.HealingRadial.OnGroupRosterUpdate()

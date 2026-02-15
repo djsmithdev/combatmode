@@ -100,15 +100,11 @@ CM.Constants.BlizzardTagetFocusCVarValues = {
 ---------------------------------------------------------------------------------------
 --                                       MACROS                                      --
 ---------------------------------------------------------------------------------------
--- For interrupts/taunts we use CM_PrioritizeTarge
--- For everything else we wannna macro, we use CM_PrioritizeCursor
+
 CM.Constants.Macros = {
   CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",
   CM_ClearFocus = "/stopmacro [noexists]\n/clearfocus",
   CM_CastCursor = "#showtooltip\n/cast [mod:shift] SPELL; [@cursor] SPELL",
-  CM_PrioritizeTarget = "#showtooltip\n/cleartarget [help][noharm][dead]\n/cast [@target,harm,nodead][@mouseover,harm,nodead] SPELL\n/startattack",
-  CM_PrioritizeCursor = "#showtooltip\n/cleartarget [help][noharm][dead]\n/cast [@mouseover,harm,nodead][@target,harm,nodead] SPELL\n/startattack",
-  CM_PrioritizeCursorShift = "#showtooltip [mod:shift] SPELL_1; SPELL_2\n/cleartarget [help][noharm][dead]\n/cast [mod:shift,@mouseover,harm,nodead][mod:shift,@target,harm,nodead] SPELL_1; [@mouseover,harm,nodead][@target,harm,nodead] SPELL_2\n/startattack",
 }
 
 ---------------------------------------------------------------------------------------
@@ -132,7 +128,7 @@ CM.Constants.BLIZZARD_EVENTS = {
   REMATCH_EVENTS = {
     "PLAYER_ENTERING_WORLD" -- Loading Cvars on every reload
   },
-  -- Events that fire HandleFriendlyTargetingInCombat()
+  -- Events for the Healing Radial
   FRIENDLY_TARGETING_EVENTS = {
     "PLAYER_REGEN_ENABLED", -- Disabling friendly targeting when leaving combat
     "PLAYER_REGEN_DISABLED" -- Enabling friendly targeting when entering combat
@@ -684,9 +680,7 @@ CM.Constants.DatabaseDefaults = {
     useGlobalBindings = false,
     shoulderOffset = 1.0,
     reticleTargeting = true,
-    crosshairPriority = true,
-    friendlyTargeting = false,
-    friendlyTargetingInCombat = false,
+    reticleTargetingEnemyOnly = true,
     stickyCrosshair = false,
     bindings = DefaultBindings
   }
