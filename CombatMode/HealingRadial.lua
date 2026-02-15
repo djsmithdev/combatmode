@@ -380,6 +380,7 @@ end
 -- and top/bottom slices don't displace asymmetrically. Returns anchor, offsetX, offsetY.
 -- Uses fixed base size for positioning (sliceSize is now a scale factor, not pixel size)
 local BASE_SLICE_SIZE = 80 -- Fixed base size for slice frame
+local CENTER_FIXED_SIZE = 64 -- Fixed size for dead-center elements (not tied to crosshair size)
 local function GetSliceInnerAnchor(angleDeg, radius)
   local a = math.rad(angleDeg)
   local x = radius * math.cos(a)
@@ -752,38 +753,35 @@ local function CreateMainFrame()
     end
   end)
 
-  -- Center arrow: static BG with rotating pointer on top. Size/opacity use crosshair settings.
-  local defaultSize = CM.Constants.DatabaseDefaults and CM.Constants.DatabaseDefaults.global and CM.Constants.DatabaseDefaults.global.crosshairSize or 64
-  local defaultOpacity = CM.Constants.DatabaseDefaults and CM.Constants.DatabaseDefaults.global and CM.Constants.DatabaseDefaults.global.crosshairOpacity or 1
-  local arrowSize = (CM.DB.global and CM.DB.global.crosshairSize) or defaultSize
-  local arrowOpacity = (CM.DB.global and CM.DB.global.crosshairOpacity) or defaultOpacity
+  -- Center arrow: static BG with rotating pointer on top. Fixed size and opacity (not tied to crosshair).
+  local centerSize = CENTER_FIXED_SIZE
   local arrowFrame = CreateFrame("Frame", nil, mainFrame)
-  arrowFrame:SetSize(arrowSize, arrowSize)
+  arrowFrame:SetSize(centerSize, centerSize)
   arrowFrame:SetPoint("CENTER", mainFrame, "CENTER", 0, 0)
   arrowFrame:SetFrameStrata("DIALOG")
   arrowFrame:SetFrameLevel(2)
-  arrowFrame:SetAlpha(arrowOpacity)
+  arrowFrame:SetAlpha(1.0)
   -- Static background (Ping_OVMarker_Pointer_BG from interface/radialwheel/uipingsystem2x, 47x47)
   local centerBGScale = 0.7 -- BG, close icon, and Select_Close use this scale relative to frame
   local arrowBG = arrowFrame:CreateTexture(nil, "BACKGROUND")
   arrowBG:SetAtlas("Ping_OVMarker_Pointer_BG")
-  arrowBG:SetSize(arrowSize * centerBGScale, arrowSize * centerBGScale)
+  arrowBG:SetSize(centerSize * centerBGScale, centerSize * centerBGScale)
   arrowBG:SetPoint("CENTER", arrowFrame, "CENTER", 0, 0)
   -- Static close icon (Radial_Wheel_Icon_Close from interface/radialwheel/uiradialwheel), always visible
   local centerIconClose = arrowFrame:CreateTexture(nil, "ARTWORK")
   centerIconClose:SetAtlas("Radial_Wheel_Icon_Close")
-  centerIconClose:SetSize(arrowSize * centerBGScale * 0.5, arrowSize * centerBGScale * 0.5) -- half of BG size
+  centerIconClose:SetSize(centerSize * centerBGScale * 0.5, centerSize * centerBGScale * 0.5) -- half of BG size
   centerIconClose:SetPoint("CENTER", arrowFrame, "CENTER", 0, 0)
   -- Select-close state (Radial_Wheel_Select_Close), shown when cursor over dead center instead of rotating arrow
   local centerSelectClose = arrowFrame:CreateTexture(nil, "ARTWORK")
   centerSelectClose:SetAtlas("Radial_Wheel_Select_Close")
-  centerSelectClose:SetSize(arrowSize * centerBGScale, arrowSize * centerBGScale)
+  centerSelectClose:SetSize(centerSize * centerBGScale, centerSize * centerBGScale)
   centerSelectClose:SetPoint("CENTER", arrowFrame, "CENTER", 0, 0)
   centerSelectClose:Hide()
   -- Rotating pointer (Ping_OVMarker_Pointer_Assist from interface/radialwheel/uiradialwheel, 75x75)
   local arrowTex = arrowFrame:CreateTexture(nil, "OVERLAY")
   arrowTex:SetAtlas("Ping_OVMarker_Pointer_Assist")
-  arrowTex:SetSize(arrowSize * 1.3, arrowSize * 1.3) -- larger than BG so it extends beyond
+  arrowTex:SetSize(centerSize * 1.25, centerSize * 1.25) -- larger than BG so it extends beyond
   arrowTex:SetPoint("CENTER", arrowFrame, "CENTER", 0, 0)
   RadialState.centerArrowFrame = arrowFrame
   RadialState.centerArrowTexture = arrowTex
@@ -1222,24 +1220,11 @@ local function TrackMousePosition(_, elapsed)
   end
 
   -- Center: static X (Icon_Close) always visible; over dead zone show Select_Close and hide rotating arrow
+  -- Center size is fixed (CENTER_FIXED_SIZE), not tied to crosshair.
   local arrowFrame = RadialState.centerArrowFrame
   local arrowTex = RadialState.centerArrowTexture
   local centerSelectClose = RadialState.centerSelectClose
-  local centerIconClose = RadialState.centerIconClose
-  local centerArrowBG = RadialState.centerArrowBG
-  local centerBGScale = RadialState.centerBGScale or 0.7
   if arrowFrame and arrowTex then
-    local size = CM.DB.global.crosshairSize or 64
-    arrowFrame:SetSize(size, size)
-    if centerArrowBG then
-      centerArrowBG:SetSize(size * centerBGScale, size * centerBGScale)
-    end
-    if centerIconClose then
-      centerIconClose:SetSize(size * centerBGScale * 0.5, size * centerBGScale * 0.5)
-    end
-    if centerSelectClose then
-      centerSelectClose:SetSize(size * centerBGScale, size * centerBGScale)
-    end
     local overDeadCenter = (distance <= CENTER_DEAD_ZONE)
     if centerSelectClose then
       if overDeadCenter then
@@ -1250,7 +1235,6 @@ local function TrackMousePosition(_, elapsed)
         arrowTex:Show()
       end
     end
-    arrowTex:SetSize(size * 1.3, size * 1.3) -- rotating pointer larger than BG
     if arrowFrame.arrowLockInElapsed == -1 then
       -- Alpha: full when over dead center; 1.0 over a player, 0.5 not over a player when outside center
       local arrowAlpha
@@ -1347,7 +1331,7 @@ function HR.Show(buttonKey)
   local arrowFrame = RadialState.centerArrowFrame
   if arrowFrame then
     local baseArrowScale = 1.0
-    local baseArrowAlpha = (CM.DB.global and CM.DB.global.crosshairOpacity) or 1.0
+    local baseArrowAlpha = 1.0
     arrowFrame.arrowLockInOriginalScale = baseArrowScale
     arrowFrame.arrowLockInOriginalAlpha = baseArrowAlpha
     arrowFrame.arrowLockInIsUnlocking = false
@@ -1520,7 +1504,7 @@ function HR.ShowFromKeybind()
   local arrowFrame = RadialState.centerArrowFrame
   if arrowFrame then
     local baseArrowScale = 1.0
-    local baseArrowAlpha = (CM.DB.global and CM.DB.global.crosshairOpacity) or 1.0
+    local baseArrowAlpha = 1.0
     arrowFrame.arrowLockInOriginalScale = baseArrowScale
     arrowFrame.arrowLockInOriginalAlpha = baseArrowAlpha
     arrowFrame.arrowLockInIsUnlocking = false
