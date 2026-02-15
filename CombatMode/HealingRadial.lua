@@ -420,6 +420,9 @@ local function CreateSliceFrame(sliceIndex)
   -- set by UpdateSliceActionAttributes(). The unit attribute is used by type="target"
   -- for hover-targeting fallback; spell casting uses macrotext with [@unit] instead.
   slice:SetAttribute("type", "target")
+  -- Register all clicks so Mouse4/Mouse5 don't get silently swallowed by EnableMouse.
+  -- Left/right fire spell casting via SecureActionButtonTemplate attributes.
+  -- Other buttons are caught by PostClick below to close the radial (tap-to-toggle).
   slice:RegisterForClicks("AnyUp", "AnyDown")
   slice.sliceIndex = sliceIndex
 
@@ -474,9 +477,14 @@ local function CreateSliceFrame(sliceIndex)
   -- Visual feedback on mouse enter/leave: scale slice instead of yellow highlight.
   -- Spell casting uses type="macro" with macrotext="/cast [@unit] Spell"
   -- set by UpdateSliceActionAttributes(), triggered by hardware mouse clicks.
-  slice:HookScript("PostClick", function(self, btn)
+  slice:HookScript("PostClick", function(self, btn, down)
     CM.DebugPrint("Healing Radial: PostClick slice " .. self.sliceIndex
       .. " btn=" .. tostring(btn) .. " unit=" .. tostring(self:GetAttribute("unit")))
+    -- Close radial on non-left/right clicks (e.g. Mouse4/Mouse5 tap-to-toggle)
+    if down and btn ~= "LeftButton" and btn ~= "RightButton" then
+      CM.DebugPrint("Healing Radial: Slice received " .. tostring(btn) .. ", closing radial")
+      HR.Hide()
+    end
   end)
   -- Selection is driven by cursor angle in TrackMousePosition (traditional pie-style radial), not OnEnter/OnLeave.
   -- Slices remain clickable for casting.
@@ -803,6 +811,9 @@ local function CreateMainFrame()
   catcher:SetAllPoints(UIParent)
   catcher:SetFrameStrata("DIALOG")
   catcher:SetFrameLevel(mainFrame:GetFrameLevel()) -- Behind slices (slices are at higher levels)
+  -- Register all clicks so the catcher doesn't block any mouse buttons from being
+  -- detected. Left/right clicks cast spells via PreClick; other buttons (Mouse4/Mouse5)
+  -- are handled in PostClick to close the radial (tap-to-toggle).
   catcher:RegisterForClicks("AnyUp", "AnyDown")
   catcher:EnableMouse(false) -- Disabled when radial is hidden
   catcher:SetAlpha(0)        -- Invisible (clicks still register with EnableMouse=true)
@@ -902,7 +913,16 @@ local function CreateMainFrame()
     end
   ]=])
 
-
+  -- Close the radial when a non-left/right mouse button is clicked on the catcher.
+  -- This handles tap-to-toggle: Mouse4/Mouse5 (or any bound key that is a mouse button)
+  -- gets consumed by the catcher's EnableMouse, so the binding system never sees it.
+  -- We detect it here and close the radial manually.
+  catcher:HookScript("PostClick", function(self, button, down)
+    if down and button ~= "LeftButton" and button ~= "RightButton" then
+      CM.DebugPrint("Healing Radial: Click catcher received " .. tostring(button) .. ", closing radial")
+      HR.Hide()
+    end
+  end)
 
   RadialState.clickCatcher = catcher
 end
@@ -1341,10 +1361,6 @@ function HR.ShowFromKeybind()
     return false
   end
 
-  if RadialState.isActive then
-    return false
-  end
-
   -- Find which key is bound so we can poll for release in TrackMousePosition
   local boundKey = _G.GetBindingKey("(Hold) Healing Radial")
 
@@ -1422,14 +1438,14 @@ function HR.HideFromKeybind()
     CM.DebugPrint("Healing Radial: HideFromKeybind called but radial not active")
     return
   end
-  RadialState.keyUpCount = (RadialState.keyUpCount or 0) + 1
   local elapsed = _G.GetTime() - (RadialState.showTime or 0)
-  CM.DebugPrint("Healing Radial: HideFromKeybind key-up #" .. RadialState.keyUpCount .. " elapsed=" .. string.format("%.3f", elapsed) .. "s combat=" .. tostring(InCombatLockdown()))
-  -- MouselookStop causes WoW to fire spurious key-up events. If mouselook
-  -- was active when the radial opened, skip key-ups that arrive before the
-  -- OnUpdate loop has had time to process (within 0.3s of showing).
-  if RadialState.wasMouselooking and elapsed < 0.3 then
-    CM.DebugPrint("Healing Radial: Ignoring spurious key-up")
+  CM.DebugPrint("Healing Radial: HideFromKeybind elapsed=" .. string.format("%.3f", elapsed) .. "s combat=" .. tostring(InCombatLockdown()))
+  -- Tap vs hold detection: if key-up arrives quickly (< 0.3s), treat as a tap —
+  -- keep the radial open so the user can select a slice with the mouse. A second
+  -- key-down (handled in CombatMode_HealingRadialKey) will close it.
+  -- If key-up arrives after 0.3s, treat as a hold release — close the radial.
+  if elapsed < 0.3 then
+    CM.DebugPrint("Healing Radial: Tap detected, keeping open")
     return
   end
   HR.Hide()
