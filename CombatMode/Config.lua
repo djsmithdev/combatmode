@@ -46,7 +46,7 @@ local function Header(option, order)
     },
     unlock = {
       type = "header",
-      name = "|cff00FF7FAUTO CURSOR UNLOCK|r",
+      name = "|cffffd700AUTO CURSOR UNLOCK|r",
       order = order
     },
     reticle = {
@@ -57,6 +57,11 @@ local function Header(option, order)
     clicks = {
       type = "header",
       name = "|cffB47EDCCLICK CASTING|r",
+      order = order
+    },
+    radial = {
+      type = "header",
+      name = "|cff00FF7FHEALING RADIAL|r",
       order = order
     },
     advanced = {
@@ -94,9 +99,15 @@ local function Description(option, order)
       fontSize = "medium",
       order = order
     },
+    radial = {
+      type = "description",
+      name = "\nA radial menu for quickly targeting and casting helpful spells at party members. While |cffE52B50Mouse Look|r is active and you're in a party, hold a mouse button to display the radial, flick toward your target, and release to cast.\n\n",
+      fontSize = "medium",
+      order = order
+    },
     advanced = {
       type = "description",
-      name = "\nCreate your own custom condition that forces a |cff00FF7FCursor Unlock|r by entering a chunk of Lua code that at the end evaluates to |cff00FF7FTrue|r if the cursor should be freed, |cffE52B50False|r otherwise.\n\n|cff909090For example, this would unlock the cursor while standing still but not while mounted: \n\n|cff69ccf0local isStill = GetUnitSpeed('player') == 0 \nlocal onMount = IsMounted()\nreturn not onMount and isStill|r\n\n",
+      name = "\nCreate your own custom condition that forces a |cffffd700Cursor Unlock|r by entering a chunk of Lua code that at the end evaluates to |cff00FF7FTrue|r if the cursor should be freed, |cffE52B50False|r otherwise.\n\n|cff909090For example, this would unlock the cursor while standing still but not while mounted: \n\n|cff69ccf0local isStill = GetUnitSpeed('player') == 0 \nlocal onMount = IsMounted()\nreturn not onMount and isStill|r\n\n",
       fontSize = "medium",
       order = order
     }
@@ -370,7 +381,7 @@ local AboutOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Mouse Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of |cffcfcfcf@mouseover|r and |cffcfcfcf@cursor|r macro decorators in combination with the |cff00FFFFCrosshair|r. \n• |cffB47EDEMouse Click Casting|r - When Mouse Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cff00FF7FCursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc. \n• |cff00FF7FHealing Radial|r - Radial menu for quickly targeting and casting helpful spells at party members.\n\n",
+      name = "|cff909090• |cffE52B50Mouse Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of |cffcfcfcf@mouseover|r and |cffcfcfcf@cursor|r macro decorators in combination with the |cff00FFFFCrosshair|r. \n• |cffB47EDEMouse Click Casting|r - When Mouse Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cffffd700Cursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc. \n• |cff00FF7FHealing Radial|r - Radial menu for quickly targeting and casting helpful spells at party members.\n\n",
       order = 3
     },
     versionNumber = {
@@ -602,7 +613,7 @@ local FreeLookOptions = {
     description2 = Description("unlock", 11),
     cursorUnlock = {
       type = "toggle",
-      name = "Enable |cff00FF7FAuto Cursor Unlock|r",
+      name = "Enable |cffffd700Auto Cursor Unlock|r",
       desc = "Automatically disables |cffE52B50Mouse Look|r and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = 2.1,
       order = 12,
@@ -629,7 +640,7 @@ local FreeLookOptions = {
     spacing6 = Spacing("full", 13.1),
     watchlist = {
       name = "Frame Watchlist",
-      desc = "Expand the list of Blizzard panels or |cffE37527AddOn|r frames that trigger a |cff00FF7FCursor Unlock.|r \n\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame|r.\nEx: LootFrame|r\n\n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
+      desc = "Expand the list of Blizzard panels or |cffE37527AddOn|r frames that trigger a |cffffd700Cursor Unlock.|r \n\n|cff909090Use command |cff69ccf0/fstack|r in chat to check frame names. Mouse over the frame you want to add and look for the identification that usually follows this naming convention: |cffcfcfcfAddonName + Frame|r.\nEx: LootFrame|r\n\n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
       type = "input",
       multiline = true,
       width = "full",
@@ -976,64 +987,6 @@ local ClickCastingOptions = {
 }
 
 ---------------------------------------------------------------------------------------
---                               ADVANCED CONFIG PANEL                               --
----------------------------------------------------------------------------------------
-local AdvancedConfigOptions = {
-  name = CM.METADATA["TITLE"],
-  handler = CM,
-  type = "group",
-  args = {
-    header = Header("advanced", 1),
-    description = Description("advanced", 2),
-    customCondition = {
-      type = "group",
-      name = "",
-      order = 3,
-      inline = true,
-      args = {
-        customConditionCode = {
-          type = "input",
-          name = "Custom Condition:",
-          order = 1,
-          multiline = 14,
-          width = "full",
-          set = function(_, input)
-            CM.DB.global.customCondition = input
-          end,
-          get = function()
-            return CM.DB.global.customCondition
-          end
-        },
-        spacing5 = Spacing("full", 2),
-        devnote = {
-          type = "group",
-          name = "|cffffd700Developer Note|r",
-          order = 3,
-          inline = true,
-          args = {
-            crosshairNote = {
-              type = "description",
-              name = "|cff909090Knowing the basics of |cff69ccf0Lua|r and the |cffffd700WoW API|r is essential for using custom conditions.|r \n\n|cffFF5050Combat Mode's authors are not responsible for custom code issues and are not obligated to provide users any support for it.|r",
-              order = 1
-            },
-            wowpediaApi = {
-              name = "You can find the documentation for the WoW API here:",
-              desc = "warcraft.wiki.gg/wiki/World_of_Warcraft_API",
-              type = "input",
-              width = 2.2,
-              order = 3,
-              get = function()
-                return "warcraft.wiki.gg/wiki/World_of_Warcraft_API"
-              end
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
----------------------------------------------------------------------------------------
 --                               HEALING RADIAL CONFIG                               --
 ---------------------------------------------------------------------------------------
 local HealingRadialOptions = {
@@ -1041,21 +994,12 @@ local HealingRadialOptions = {
   handler = CM,
   type = "group",
   args = {
-    header = {
-      type = "header",
-      name = "|cff00FF7FHEALING RADIAL|r",
-      order = 1
-    },
-    description = {
-      type = "description",
-      name = "\nA radial menu for quickly targeting party members when healing. While |cffE52B50Mouse Look|r is active and you're in a party, hold a mouse button to display the radial, flick toward your target, and release to cast.\n\n",
-      fontSize = "medium",
-      order = 2
-    },
+    header = Header("radial", 1),
+    description = Description("radial", 2),
     enabled = {
       type = "toggle",
       name = "Enable |cff00FF7FHealing Radial|r",
-      desc = "Shows a radial menu when using click-cast buttons while in a party. Party members are arranged by role with the tank at 12 o'clock.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      desc = "Enables a radial menu for quickly targeting and casting helpful spells at party members. While |cffE52B50Mouse Look|r is active and you're in a party, hold a mouse button to display the radial, flick toward your target, and release to cast.\n\n|cffffd700Default:|r |cffE52B50Off|r",
       width = 2.3,
       order = 3,
       set = function(_, value)
@@ -1239,6 +1183,64 @@ local HealingRadialOptions = {
           type = "description",
           name = "|cff909090The |cff00FF7FHealing Radial|r uses the same spell assignments as |cffB47EDCClick Casting|r. Configure which spells are bound to each mouse button in the Click Casting tab.|r\n\n|cffFF5050Note:|r Party assignments can only be updated outside of combat due to WoW API restrictions.",
           order = 1
+        }
+      }
+    }
+  }
+}
+
+---------------------------------------------------------------------------------------
+--                               ADVANCED CONFIG PANEL                               --
+---------------------------------------------------------------------------------------
+local AdvancedConfigOptions = {
+  name = CM.METADATA["TITLE"],
+  handler = CM,
+  type = "group",
+  args = {
+    header = Header("advanced", 1),
+    description = Description("advanced", 2),
+    customCondition = {
+      type = "group",
+      name = "",
+      order = 3,
+      inline = true,
+      args = {
+        customConditionCode = {
+          type = "input",
+          name = "Custom Condition:",
+          order = 1,
+          multiline = 14,
+          width = "full",
+          set = function(_, input)
+            CM.DB.global.customCondition = input
+          end,
+          get = function()
+            return CM.DB.global.customCondition
+          end
+        },
+        spacing5 = Spacing("full", 2),
+        devnote = {
+          type = "group",
+          name = "|cffffd700Developer Note|r",
+          order = 3,
+          inline = true,
+          args = {
+            crosshairNote = {
+              type = "description",
+              name = "|cff909090Knowing the basics of |cff69ccf0Lua|r and the |cffffd700WoW API|r is essential for using custom conditions.|r \n\n|cffFF5050Combat Mode's authors are not responsible for custom code issues and are not obligated to provide users any support for it.|r",
+              order = 1
+            },
+            wowpediaApi = {
+              name = "You can find the documentation for the WoW API here:",
+              desc = "warcraft.wiki.gg/wiki/World_of_Warcraft_API",
+              type = "input",
+              width = 2.2,
+              order = 3,
+              get = function()
+                return "warcraft.wiki.gg/wiki/World_of_Warcraft_API"
+              end
+            }
+          }
         }
       }
     }
