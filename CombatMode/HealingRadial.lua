@@ -775,7 +775,7 @@ local function CreateMainFrame()
   -- Select-close state (Radial_Wheel_Select_Close), shown when cursor over dead center instead of rotating arrow
   local centerSelectClose = arrowFrame:CreateTexture(nil, "ARTWORK")
   centerSelectClose:SetAtlas("Radial_Wheel_Select_Close")
-  centerSelectClose:SetSize(centerSize * centerBGScale, centerSize * centerBGScale)
+  centerSelectClose:SetSize(centerSize * centerBGScale * 1.15, centerSize * centerBGScale * 1.15) -- slightly larger than BG
   centerSelectClose:SetPoint("CENTER", arrowFrame, "CENTER", 0, 0)
   centerSelectClose:Hide()
   -- Rotating pointer (Ping_OVMarker_Pointer_Assist from interface/radialwheel/uiradialwheel, 75x75)
@@ -1453,7 +1453,7 @@ function HR.ShowFromKeybind()
   end
 
   -- Find which key is bound so we can poll for release in TrackMousePosition
-  local boundKey = _G.GetBindingKey("(Hold) Healing Radial")
+  local boundKey = _G.GetBindingKey("Combat Mode - Healing Radial")
 
   -- Store state (currentButton = nil signals keybind mode)
   RadialState.isActive = true

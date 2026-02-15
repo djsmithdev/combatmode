@@ -838,7 +838,7 @@ end
 local function UnbindMoveAndSteer()
   local key = GetBindingKey("MOVEANDSTEER")
   if key then
-    SetBinding(key, "Combat Mode Toggle")
+    SetBinding(key, "Combat Mode - Mouse Look")
   end
   SaveBindings(GetCurrentBindingSet())
 end

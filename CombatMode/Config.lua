@@ -531,15 +531,15 @@ local FreeLookOptions = {
       width = 1.25,
       order = 3,
       set = function(_, key)
-        local oldKey = (GetBindingKey("Combat Mode Toggle"))
+        local oldKey = (GetBindingKey("Combat Mode - Mouse Look"))
         if oldKey then
           SetBinding(oldKey)
         end
-        SetBinding(key, "Combat Mode Toggle")
+        SetBinding(key, "Combat Mode - Mouse Look")
         SaveBindings(GetCurrentBindingSet())
       end,
       get = function()
-        return (GetBindingKey("Combat Mode Toggle"))
+        return (GetBindingKey("Combat Mode - Mouse Look"))
       end
     },
     spacing0 = Spacing(1.0, 3.1),
@@ -1075,15 +1075,15 @@ local HealingRadialOptions = {
       width = 1.25,
       order = 4,
       set = function(_, key)
-        local oldKey = (GetBindingKey("(Hold) Healing Radial"))
+        local oldKey = (GetBindingKey("Combat Mode - Healing Radial"))
         if oldKey then
           SetBinding(oldKey)
         end
-        SetBinding(key, "(Hold) Healing Radial")
+        SetBinding(key, "Combat Mode - Healing Radial")
         SaveBindings(GetCurrentBindingSet())
       end,
       get = function()
-        return (GetBindingKey("(Hold) Healing Radial"))
+        return (GetBindingKey("Combat Mode - Healing Radial"))
       end,
       disabled = function()
         return not CM.DB.global.healingRadial.enabled

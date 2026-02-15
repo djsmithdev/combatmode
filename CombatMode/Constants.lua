@@ -634,7 +634,7 @@ local DefaultBindings = {
     macroName = ""
   },
   toggle = {
-    key = "Combat Mode Toggle",
+    key = "Combat Mode - Mouse Look",
     value = "BUTTON3"
   }
 }
