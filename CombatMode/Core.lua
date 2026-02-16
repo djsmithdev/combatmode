@@ -1312,7 +1312,10 @@ local function HandleEventByCategory(category, event)
       if not CM.HealingRadial then return end
       if event == "GROUP_ROSTER_UPDATE" and CM.HealingRadial.OnGroupRosterUpdate then
         CM.HealingRadial.OnGroupRosterUpdate()
-      elseif event == "ACTIONBAR_SLOT_CHANGED" and CM.HealingRadial.OnActionBarChanged then
+      elseif CM.HealingRadial.OnActionBarChanged then
+        -- All other events in this category (ACTIONBAR_SLOT_CHANGED, UPDATE_BONUS_ACTIONBAR,
+        -- UPDATE_OVERRIDE_ACTIONBAR, UPDATE_SHAPESHIFT_FORM, ACTIONBAR_PAGE_CHANGED) indicate
+        -- the action bar content has changed and slice spell attributes need refreshing.
         CM.HealingRadial.OnActionBarChanged()
       end
     end,

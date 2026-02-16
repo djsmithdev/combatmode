@@ -303,6 +303,17 @@ end
 -- Uses /cast [@unit] SpellName for spells, /use [@unit] ItemName for items,
 -- and raw macro body for user macros (which handle their own targeting).
 local function BuildMacrotext(slot, unitId)
+  -- When a vehicle, override, or temp shapeshift bar is active, slots 1-8 contain
+  -- vehicle/override abilities instead of the player's healing spells. Casting these
+  -- on party members can cause unintended effects (e.g. dismounting from a vehicle).
+  -- Return nil so slices fall back to harmless "target" action instead.
+  local HasOverride = _G.C_ActionBar and _G.C_ActionBar.HasOverrideActionBar
+  local HasVehicle = _G.C_ActionBar and _G.C_ActionBar.HasVehicleActionBar
+  local HasTempShapeshift = _G.C_ActionBar and _G.C_ActionBar.HasTempShapeshiftActionBar
+  if (HasOverride and HasOverride()) or (HasVehicle and HasVehicle()) or (HasTempShapeshift and HasTempShapeshift()) then
+    return nil
+  end
+
   local actionType, actionId = GetActionInfo(slot)
   if not actionType then return nil end
 
