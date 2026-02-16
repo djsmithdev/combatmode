@@ -142,6 +142,10 @@ CM.Constants.BLIZZARD_EVENTS = {
   HEALING_RADIAL_EVENTS = {
     "GROUP_ROSTER_UPDATE",      -- Party composition changed
     "ACTIONBAR_SLOT_CHANGED",   -- Action bar spell/item changed (refresh slice attrs)
+    "UPDATE_BONUS_ACTIONBAR",   -- Bonus bar changed (druid form, rogue stealth, etc.)
+    "UPDATE_OVERRIDE_ACTIONBAR", -- Override bar appeared/changed (vehicle, quest UI)
+    "UPDATE_SHAPESHIFT_FORM",   -- Shapeshift form changed
+    "ACTIONBAR_PAGE_CHANGED",   -- Action bar page switched
   },
   -- Events for target lock detection
   TARGET_LOCK_EVENTS = {

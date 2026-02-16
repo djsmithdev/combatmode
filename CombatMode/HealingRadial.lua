@@ -302,8 +302,53 @@ end
 -- Returns macrotext string or nil if the slot is empty.
 -- Uses /cast [@unit] SpellName for spells, /use [@unit] ItemName for items,
 -- and raw macro body for user macros (which handle their own targeting).
+-- Resolve the effective action slot for a button index (1-8).
+-- Blizzard's ActionButton frames compute the current slot based on bar page, bonus bar
+-- (druid form, rogue stealth), vehicle bar, and override bar.
+-- We try multiple resolution strategies in priority order.
+local function ResolveActionSlot(buttonIndex)
+  local frame = _G["ActionButton" .. buttonIndex]
+  if not frame then return buttonIndex end
+
+  -- 1. Try .action field (set by CalculateAction on Blizzard action button mixin)
+  if frame.action and type(frame.action) == "number" and frame.action > 0 then
+    return frame.action
+  end
+
+  -- 2. Try :CalculateAction() method (ActionBarActionButtonMixin)
+  if frame.CalculateAction then
+    local ok, action = pcall(frame.CalculateAction, frame)
+    if ok and action and type(action) == "number" and action > 0 then
+      return action
+    end
+  end
+
+  -- 3. Try "action" attribute
+  if frame.GetAttribute then
+    local action = frame:GetAttribute("action")
+    if action and tonumber(action) and tonumber(action) > 0 then
+      return tonumber(action)
+    end
+    -- 4. Try "actionpage" attribute and compute
+    local page = frame:GetAttribute("actionpage")
+    if page and tonumber(page) and tonumber(page) > 0 then
+      return (tonumber(page) - 1) * 12 + buttonIndex
+    end
+  end
+
+  return buttonIndex
+end
+
 local function BuildMacrotext(slot, unitId)
-  local actionType, actionId = GetActionInfo(slot)
+  -- When the vehicle/override bar is shown, skip spell resolution entirely.
+  -- Vehicle abilities cast on party members can cause unintended effects (e.g. dismount).
+  local overrideBar = _G.OverrideActionBar
+  if overrideBar and overrideBar:IsShown() then
+    return nil
+  end
+
+  local effectiveSlot = ResolveActionSlot(slot)
+  local actionType, actionId = GetActionInfo(effectiveSlot)
   if not actionType then return nil end
 
   if actionType == "spell" then
