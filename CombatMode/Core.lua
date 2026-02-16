@@ -982,13 +982,24 @@ for i, key in ipairs(CLICKCAST_KEYS) do
 end
 
 local function BuildClickCastMacroText(bindingValue)
+  -- For ACTIONBUTTON bindings, use a conditional /click so vehicle vs normal bar is resolved
+  -- at macro run time (works when exiting vehicle in combat; we can't refresh bindings then).
+  local buttonNum = bindingValue:match("^ACTIONBUTTON(%d+)$")
+  local useConditionalClick = buttonNum ~= nil
+
   local clickFrame = ResolveActionButtonFrame(bindingValue)
   if not clickFrame then return nil end
 
   -- Check if this is a vehicle override button (don't inject preline for vehicle abilities)
   local isVehicleButton = clickFrame:match("^OverrideActionBarButton")
 
-  local castLine = "/click " .. clickFrame
+  local castLine
+  if useConditionalClick then
+    castLine = "/click [overridebar] OverrideActionBarButton" .. buttonNum .. "; ActionButton" .. buttonNum
+  else
+    castLine = "/click " .. clickFrame
+  end
+
   local ok, actionFrame = pcall(function() return _G[clickFrame] end)
   if ok and actionFrame then
     local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action") or actionFrame.action
@@ -1023,6 +1034,7 @@ local function BuildClickCastMacroText(bindingValue)
   end
 
   local pre = GetClickCastPreLine()
+  -- Do not prefix pre-line with [nooverridebar]; that can be misinterpreted in combat and echo to chat.
   return pre and (pre .. "\n" .. castLine) or castLine
 end
 
