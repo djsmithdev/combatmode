@@ -537,6 +537,9 @@ local function SetSliceMouseEnabled(enabled)
       slice:EnableMouse(enabled)
     end
   end
+  if RadialState.closeButton then
+    RadialState.closeButton:EnableMouse(enabled)
+  end
 end
 
 -- Update main frame vertical position when crosshair Y changes (no reload needed)
@@ -827,6 +830,30 @@ local function CreateMainFrame()
     self:SetAlpha(currentAlpha)
   end)
 
+  -- Center close button: an invisible button covering the dead zone (30px radius).
+  -- Clicking the center X closes the radial and re-engages mouselook.
+  -- This replaces the dead-center handling that was previously in the click catcher.
+  -- Uses a regular Button (not SecureActionButtonTemplate) since LockFreeLook and
+  -- HR.Hide are not protected actions.
+  local CENTER_DEAD_ZONE_PX = 30
+  local closeBtn = CreateFrame("Button", nil, mainFrame)
+  closeBtn:SetSize(CENTER_DEAD_ZONE_PX * 2, CENTER_DEAD_ZONE_PX * 2)
+  closeBtn:SetPoint("CENTER", mainFrame, "CENTER", 0, 0)
+  closeBtn:SetFrameStrata("DIALOG")
+  closeBtn:SetFrameLevel(arrowFrame:GetFrameLevel() + 10) -- Above slices so it catches clicks first
+  closeBtn:RegisterForClicks("AnyDown")
+  closeBtn:EnableMouse(false) -- Toggled by SetSliceMouseEnabled alongside slices
+  closeBtn:SetScript("OnClick", function(_, button)
+    if button == "LeftButton" or button == "RightButton" then
+      CM.LockFreeLook()
+      HR.Hide()
+    else
+      -- Non-left/right (e.g. Mouse5 tap-to-toggle): just close the radial
+      HR.Hide()
+    end
+  end)
+  RadialState.closeButton = closeBtn
+
   -- Create slice frames (parented to mainFrame so they inherit alpha/position).
   for i = 1, 5 do
     CreateSliceFrame(i)
@@ -1051,12 +1078,14 @@ local function TrackMousePosition(_, elapsed)
   -- When opened via keybind, key release is handled by HideFromKeybind()
   -- via runOnUp binding (with spurious key-up counter).
 
-  -- Traditional radial: selection follows cursor angle (entire screen = pie chart)
-  -- Center acts as neutral zone - if cursor is too close, no slice is selected
+  -- Radial selection: cursor angle picks a slice, but only within a reasonable
+  -- distance from center. Beyond the outer edge of slices, nothing is selected
+  -- so the hover animation doesn't mislead the user into clicking outside the frames.
+  -- Uses RadialState.maxSelectDistance computed at Show time (combat-safe, no DB access).
   local angle, distance = GetMouseAngleAndDistanceFromCenter()
-  local CENTER_DEAD_ZONE = 30 -- pixels from center where no slice is selected
+  local CENTER_DEAD_ZONE = 30
   local sliceIndex = nil
-  if distance > CENTER_DEAD_ZONE then
+  if distance > CENTER_DEAD_ZONE and distance <= (RadialState.maxSelectDistance or 160) then
     sliceIndex = GetSliceFromAngle(angle)
   end
   if sliceIndex ~= RadialState.selectedSlice then
@@ -1133,6 +1162,9 @@ function HR.Show(buttonKey)
   RadialState.currentButton = buttonKey
   RadialState.wasMouselooking = _G.IsMouselooking()
   RadialState.showTime = _G.GetTime()
+  -- Cache max selection distance for TrackMousePosition (avoids DB access in combat)
+  local hrConfig = CM.DB.global.healingRadial
+  RadialState.maxSelectDistance = ((hrConfig and hrConfig.sliceRadius) or 120) + BASE_SLICE_SIZE / 2
 
   -- Stop mouselook so cursor is free for slice selection
   -- Use UnlockFreeLook() instead of direct MouselookStop() to ensure proper state management
@@ -1143,12 +1175,12 @@ function HR.Show(buttonKey)
     RadialState.isTogglingMouselook = false
   end
 
-  -- Initial selection from current cursor angle (traditional radial: screen = pie)
-  -- Center acts as neutral zone - if cursor is too close, no slice is selected
+  -- Initial selection from current cursor angle
+  -- Only select within dead zone → outer edge of slices range
   local angle, distance = GetMouseAngleAndDistanceFromCenter()
-  local CENTER_DEAD_ZONE = 30 -- pixels from center where no slice is selected
+  local CENTER_DEAD_ZONE = 30
   RadialState.selectedSlice = nil
-  if distance > CENTER_DEAD_ZONE then
+  if distance > CENTER_DEAD_ZONE and distance <= RadialState.maxSelectDistance then
     RadialState.selectedSlice = GetSliceFromAngle(angle)
   end
   -- Update visuals first so slice alpha is set to 1 for populated slices
@@ -1307,6 +1339,9 @@ function HR.ShowFromKeybind()
   RadialState.keyUpCount = 0
   RadialState.wasMouselooking = _G.IsMouselooking()
   RadialState.showTime = _G.GetTime()
+  -- Cache max selection distance for TrackMousePosition (avoids DB access in combat)
+  local hrConfig = CM.DB.global.healingRadial
+  RadialState.maxSelectDistance = ((hrConfig and hrConfig.sliceRadius) or 120) + BASE_SLICE_SIZE / 2
 
   -- Stop mouselook so cursor is free for slice selection.
   -- NOTE: MouselookStop causes spurious key-up events for held keys. The
@@ -1319,12 +1354,12 @@ function HR.ShowFromKeybind()
     RadialState.isTogglingMouselook = false
   end
 
-  -- Initial selection from current cursor angle (traditional radial: screen = pie)
-  -- Center acts as neutral zone - if cursor is too close, no slice is selected
+  -- Initial selection from current cursor angle
+  -- Only select within dead zone → outer edge of slices range
   local angle, distance = GetMouseAngleAndDistanceFromCenter()
-  local CENTER_DEAD_ZONE = 30 -- pixels from center where no slice is selected
+  local CENTER_DEAD_ZONE = 30
   RadialState.selectedSlice = nil
-  if distance > CENTER_DEAD_ZONE then
+  if distance > CENTER_DEAD_ZONE and distance <= RadialState.maxSelectDistance then
     RadialState.selectedSlice = GetSliceFromAngle(angle)
   end
   -- Update visuals first so slice alpha is set to 1 for populated slices
