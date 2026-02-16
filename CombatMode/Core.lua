@@ -855,25 +855,31 @@ end
 local function BuildClickCastMacroText(bindingValue)
   local clickFrame = BindingToClickFrame[bindingValue]
   if not clickFrame then return nil end
-  local pre = GetClickCastPreLine()
   local castLine = "/click " .. clickFrame
-  -- If the slot has a ground-targeted spell from our whitelist, use only /cast [@cursor] (no pre-line) so it casts at reticle.
   local ok, actionFrame = pcall(function() return _G[clickFrame] end)
   if ok and actionFrame then
     local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action") or actionFrame.action
     local action = rawAction and tonumber(rawAction)
     if action and action > 0 then
       local getOk, atype, id = pcall(GetActionInfo, action)
-      if getOk and atype == "spell" and id and type(id) == "number" and id > 0 and IsCastAtCursorSpell(id) then
-        local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(id)
-        local spellName = spellInfo and spellInfo.name
-        if spellName and spellName ~= "" then
-          return "/cast [@cursor] " .. spellName
+      if getOk then
+        -- Slot is a macro: don't inject pre-line so the macro runs as written (e.g. [mod:shift], [@cursor]).
+        if atype == "macro" then
+          return castLine
         end
-        return "/cast [@cursor] spell:" .. id
+        -- Ground-targeted spell from whitelist: use /cast [@cursor] only (no pre-line).
+        if atype == "spell" and id and type(id) == "number" and id > 0 and IsCastAtCursorSpell(id) then
+          local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(id)
+          local spellName = spellInfo and spellInfo.name
+          if spellName and spellName ~= "" then
+            return "/cast [@cursor] " .. spellName
+          end
+          return "/cast [@cursor] spell:" .. id
+        end
       end
     end
   end
+  local pre = GetClickCastPreLine()
   return pre and (pre .. "\n" .. castLine) or castLine
 end
 
@@ -883,18 +889,37 @@ local function SetClickCastFrameMacro(frame, macroText)
   end
 end
 
+-- Returns true if the given action bar binding (e.g. ACTIONBUTTON5) currently has a macro in that slot.
+local function IsSlotMacro(bindingValue)
+  local clickFrame = BindingToClickFrame[bindingValue]
+  if not clickFrame then return false end
+  local ok, actionFrame = pcall(function() return _G[clickFrame] end)
+  if not ok or not actionFrame then return false end
+  local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action") or actionFrame.action
+  local action = rawAction and tonumber(rawAction)
+  if not action or action <= 0 then return false end
+  local getOk, atype = pcall(GetActionInfo, action)
+  return getOk and atype == "macro"
+end
+
 -- Override keyboard keys (Q, E, etc.) to click our slot frame so the same macro logic runs (pre-line + /click or /cast [@cursor] for ground spells). No per-spell macros.
 local function ApplyGroundCastKeyOverrides()
   if InCombatLockdown() then return end
   ClearOverrideBindings(GroundCastKeyOverrideOwner)
   for _, bindingName in ipairs(OrderedBindingNames) do
-    local frame = SlotFramesByBindingName[bindingName]
-    local macroText = BuildClickCastMacroText(bindingName)
-    if frame and macroText then
-      SetClickCastFrameMacro(frame, macroText)
-      local key = GetBindingKey(bindingName)
-      if key then
-        SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, frame:GetName(), "LeftButton")
+    local key = GetBindingKey(bindingName)
+    if key then
+      local realFrame = BindingToClickFrame[bindingName]
+      if realFrame and IsSlotMacro(bindingName) then
+        -- Slot is a macro: override key to click the real action bar button so the macro runs.
+        SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, realFrame, "LeftButton")
+      else
+        local frame = SlotFramesByBindingName[bindingName]
+        local macroText = BuildClickCastMacroText(bindingName)
+        if frame and macroText then
+          SetClickCastFrameMacro(frame, macroText)
+          SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, frame:GetName(), "LeftButton")
+        end
       end
     end
   end
@@ -902,14 +927,8 @@ end
 
 local function RefreshClickCastMacros()
   if InCombatLockdown() then return end
-  local bindings = CM.DB[CM.GetBindingsLocation()].bindings
-  for _, buttonName in ipairs(CM.Constants.ButtonsToOverride) do
-    local s = bindings[buttonName]
-    if s and s.enabled then
-      local frame = ClickCastFramesByKey[s.key]
-      SetClickCastFrameMacro(frame, BuildClickCastMacroText(s.value))
-    end
-  end
+  -- Re-apply all bindings so macro slots get "click real button" and spell slots get our frame.
+  CM.OverrideDefaultButtons()
   ApplyGroundCastKeyOverrides()
 end
 
@@ -933,13 +952,19 @@ function CM.SetNewBinding(buttonSettings)
   elseif value == "CLEARFOCUS" then
     valueToUse = "MACRO CM_ClearFocus"
   else
-    local frame = ClickCastFramesByKey[key]
-    local macroText = BuildClickCastMacroText(value)
-    if frame and macroText then
-      SetClickCastFrameMacro(frame, macroText)
-      valueToUse = "CLICK " .. frame:GetName() .. ":" .. ClickCastMouseButton(key)
+    local realFrame = BindingToClickFrame[value]
+    if realFrame and IsSlotMacro(value) then
+      -- Slot is a macro: bind key to click the real action bar button so the macro runs as written.
+      valueToUse = "CLICK " .. realFrame .. ":" .. ClickCastMouseButton(key)
     else
-      valueToUse = value
+      local frame = ClickCastFramesByKey[key]
+      local macroText = BuildClickCastMacroText(value)
+      if frame and macroText then
+        SetClickCastFrameMacro(frame, macroText)
+        valueToUse = "CLICK " .. frame:GetName() .. ":" .. ClickCastMouseButton(key)
+      else
+        valueToUse = value
+      end
     end
   end
   SetMouselookOverrideBinding(key, valueToUse)
