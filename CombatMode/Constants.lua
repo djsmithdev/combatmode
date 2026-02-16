@@ -681,6 +681,7 @@ CM.Constants.DatabaseDefaults = {
     shoulderOffset = 1.0,
     reticleTargeting = true,
     reticleTargetingEnemyOnly = true,
+    castAtCursorSpells = "Heroic Leap, Shift, Sigil of Flame, Infernal Strike, Blizzard",
     stickyCrosshair = false,
     bindings = DefaultBindings
   }

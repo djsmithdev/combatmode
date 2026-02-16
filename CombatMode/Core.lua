@@ -20,6 +20,8 @@ local DisableAddOn = _G.C_AddOns.DisableAddOn
 local GetAddOnMetadata = _G.C_AddOns.GetAddOnMetadata
 local GetPlayerAuraBySpellID = _G.C_UnitAuras.GetPlayerAuraBySpellID
 local GameTooltip = _G.GameTooltip
+local C_Spell = _G.C_Spell
+local GetActionInfo = _G.GetActionInfo
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local GetCursorPosition = _G.GetCursorPosition
@@ -44,6 +46,9 @@ local SetBinding = _G.SetBinding
 local SetCVar = _G.C_CVar.SetCVar
 local SetModifiedClick = _G.SetModifiedClick
 local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
+local strtrim = _G.strtrim
+local ClearOverrideBindings = _G.ClearOverrideBindings
+local SetOverrideBindingClick = _G.SetOverrideBindingClick
 local SpellIsTargeting = _G.SpellIsTargeting
 local StaticPopupDialogs = _G.StaticPopupDialogs
 local StaticPopup_Show = _G.StaticPopup_Show
@@ -799,6 +804,39 @@ end
 local CLICKCAST_PRE_LINE_ANY = "/target [@mouseover,exists]" -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
 local CLICKCAST_PRE_LINE_ENEMY = "/target [@mouseover,harm,nodead][@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
 
+-- Returns true if spellId is in the user's "Cast @Cursor Spells" list (comma-separated names in options).
+local function IsCastAtCursorSpell(spellId)
+  if not spellId or spellId <= 0 then return false end
+  local list = CM.DB.char.castAtCursorSpells
+  if not list or list == "" then return false end
+  local set = {}
+  for name in string.gmatch(list, "[^,]+") do
+    local n = strtrim(name):lower()
+    if n ~= "" then set[n] = true end
+  end
+  local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellId)
+  local spellName = spellInfo and spellInfo.name
+  if not spellName or spellName == "" then return false end
+  return set[spellName:lower()] == true
+end
+
+-- Ordered list of all binding names (ACTIONBUTTON1..12, MULTIACTIONBAR1BUTTON1..12, etc.)
+local OrderedBindingNames = {}
+for _, bar in ipairs(CLICKCAST_BARS) do
+  for i = 1, bar.count do
+    OrderedBindingNames[#OrderedBindingNames + 1] = bar.bind .. i
+  end
+end
+
+local GroundCastKeyOverrideOwner = CreateFrame("Frame", nil, UIParent)
+local SlotFramesByBindingName = {}
+for idx, bindingName in ipairs(OrderedBindingNames) do
+  local f = CreateFrame("Button", "CombatModeSlot" .. idx, GroundCastKeyOverrideOwner, "SecureActionButtonTemplate")
+  f:SetAttribute("type", "macro")
+  f:RegisterForClicks("AnyUp", "AnyDown")
+  SlotFramesByBindingName[bindingName] = f
+end
+
 local function GetClickCastPreLine()
   if not CM.DB.char.reticleTargeting then return nil end
   if CM.DB.char.reticleTargetingEnemyOnly then return CLICKCAST_PRE_LINE_ENEMY end
@@ -818,12 +856,47 @@ local function BuildClickCastMacroText(bindingValue)
   local clickFrame = BindingToClickFrame[bindingValue]
   if not clickFrame then return nil end
   local pre = GetClickCastPreLine()
-  return pre and (pre .. "\n/click " .. clickFrame) or ("/click " .. clickFrame)
+  local castLine = "/click " .. clickFrame
+  -- If the slot has a ground-targeted spell from our whitelist, use only /cast [@cursor] (no pre-line) so it casts at reticle.
+  local ok, actionFrame = pcall(function() return _G[clickFrame] end)
+  if ok and actionFrame then
+    local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action") or actionFrame.action
+    local action = rawAction and tonumber(rawAction)
+    if action and action > 0 then
+      local getOk, atype, id = pcall(GetActionInfo, action)
+      if getOk and atype == "spell" and id and type(id) == "number" and id > 0 and IsCastAtCursorSpell(id) then
+        local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(id)
+        local spellName = spellInfo and spellInfo.name
+        if spellName and spellName ~= "" then
+          return "/cast [@cursor] " .. spellName
+        end
+        return "/cast [@cursor] spell:" .. id
+      end
+    end
+  end
+  return pre and (pre .. "\n" .. castLine) or castLine
 end
 
 local function SetClickCastFrameMacro(frame, macroText)
   if frame and macroText and not InCombatLockdown() then
     frame:SetAttribute("macrotext", macroText)
+  end
+end
+
+-- Override keyboard keys (Q, E, etc.) to click our slot frame so the same macro logic runs (pre-line + /click or /cast [@cursor] for ground spells). No per-spell macros.
+local function ApplyGroundCastKeyOverrides()
+  if InCombatLockdown() then return end
+  ClearOverrideBindings(GroundCastKeyOverrideOwner)
+  for _, bindingName in ipairs(OrderedBindingNames) do
+    local frame = SlotFramesByBindingName[bindingName]
+    local macroText = BuildClickCastMacroText(bindingName)
+    if frame and macroText then
+      SetClickCastFrameMacro(frame, macroText)
+      local key = GetBindingKey(bindingName)
+      if key then
+        SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, frame:GetName(), "LeftButton")
+      end
+    end
   end
 end
 
@@ -837,6 +910,7 @@ local function RefreshClickCastMacros()
       SetClickCastFrameMacro(frame, BuildClickCastMacroText(s.value))
     end
   end
+  ApplyGroundCastKeyOverrides()
 end
 
 local function ClickCastMouseButton(key)
@@ -877,6 +951,9 @@ function CM.OverrideDefaultButtons()
     CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button])
   end
 end
+
+CM.ApplyGroundCastKeyOverrides = ApplyGroundCastKeyOverrides
+CM.RefreshClickCastMacros = RefreshClickCastMacros
 
 function CM.ResetBindingOverride(buttonSettings)
   SetMouselookOverrideBinding(buttonSettings.key, nil)
@@ -1244,6 +1321,7 @@ the game that wasn't available in OnInitialize
 function CM:OnEnable()
   RenameBindableActions()
   CM.OverrideDefaultButtons()
+  CM.ApplyGroundCastKeyOverrides()
   UnbindMoveAndSteer()
   InitializeWildcardFrameTracking(CM.Constants.WildcardFramesToMatch)
   CM.CreateCrosshair()

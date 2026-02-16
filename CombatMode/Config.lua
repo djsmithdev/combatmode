@@ -11,6 +11,7 @@ local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
+local strtrim = _G.strtrim
 
 -- RETRIEVING ADDON TABLE
 local CM = AceAddon:GetAddon("CombatMode")
@@ -893,6 +894,24 @@ local ReticleTargetingOptions = {
     spacing = Spacing("full", 6.1),
     CrosshairGroup = CrosshairGroup,
     spacing3 = Spacing("full", 7.1),
+    castAtCursorSpells = {
+      name = "|cff00ff00Ground-targeted|r spells to be cast |cffB47EDE@CURSOR|r",
+      desc = "Ground-targeted spells that you want cast directly at the position of the |cff00FFFFReticle|r without requiring thre |cff00ff00green circle|r to be placed.\n\n|cff909090Ex: Heroic Leap, Shift, Blizzard.|r\n\n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
+      type = "input",
+      multiline = true,
+      width = "full",
+      order = 7.5,
+      set = function(_, value)
+        CM.DB.char.castAtCursorSpells = value and strtrim(value) or ""
+        if CM.RefreshClickCastMacros then CM.RefreshClickCastMacros() end
+      end,
+      get = function()
+        return CM.DB.char.castAtCursorSpells or ""
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end
+    },
     devnote = {
       type = "group",
       name = "|cffffd700Developer Note|r",
@@ -901,7 +920,7 @@ local ReticleTargetingOptions = {
       args = {
         crosshairNote = {
           type = "description",
-          name = "|cff909090While |cffE52B50Mouse Look|r is active, the |cffcfcfcfCursor|r will be moved to the position of the |cff00FFFFCrosshair|r and hidden, allowing it to reliably respond to |cffB47EDE@mouseover|r and |cffB47EDE@cursor|r macros.|r \n|cffcfcfcfExample macros have been added to your account-wide macros list (Esc > Macros) for users who'd like more control over target acquisition through either Soft-Locking or Hard-Locking Targeting.|r",
+          name = "|cff909090While |cffE52B50Mouse Look|r is active, the |cffcfcfcfCursor|r will be moved to the position of the |cff00FFFFCrosshair|r and hidden, allowing it to reliably respond to |cffB47EDE@mouseover|r and |cffB47EDE@cursor|r macros.|r",
           order = 1
         }
       }
