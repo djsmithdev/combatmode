@@ -406,8 +406,8 @@ local function UpdateSliceActionAttributes()
         slice:SetAttribute(p .. "macrotext" .. s, macrotext)
         CM.DebugPrint("  Slice " .. i .. " (" .. tostring(unitId) .. "): " .. p .. "type" .. s .. "=macro -> " .. macrotext)
       else
-        -- Empty slot: target on click (harmless fallback)
-        slice:SetAttribute(p .. "type" .. s, "target")
+        -- Empty slot: clear action so clicking does nothing (no hard-targeting)
+        slice:SetAttribute(p .. "type" .. s, nil)
         slice:SetAttribute(p .. "macrotext" .. s, nil)
       end
     end
@@ -461,10 +461,10 @@ local function CreateSliceFrame(sliceIndex)
   slice:SetSize(BASE_SLICE_SIZE, BASE_SLICE_SIZE)
   slice:SetPoint(anchor, radialCenter, "CENTER", offsetX, offsetY)
   slice:SetScale(sliceScale) -- Apply config scale factor
-  -- Base type="target" is overridden by modified attributes (type1, shift-type2, etc.)
-  -- set by UpdateSliceActionAttributes(). The unit attribute is used by type="target"
-  -- for hover-targeting fallback; spell casting uses macrotext with [@unit] instead.
-  slice:SetAttribute("type", "target")
+  -- No base "type" attribute: unrecognized button clicks (Mouse4/Mouse5 etc.)
+  -- fall through to nil and do nothing. Spell casting is handled by modified
+  -- attributes (type1, shift-type2, etc.) set by UpdateSliceActionAttributes().
+  -- Previously type="target" here caused Mouse4/5 releases to hard-target the unit.
   -- Register all clicks so Mouse4/Mouse5 don't get silently swallowed by EnableMouse.
   -- Left/right fire spell casting via SecureActionButtonTemplate attributes.
   -- Other buttons are caught by PostClick below to close the radial (tap-to-toggle).
