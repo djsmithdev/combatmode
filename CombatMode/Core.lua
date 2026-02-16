@@ -312,20 +312,21 @@ function CM.SetShoulderOffset()
   CM.DebugPrint("Setting Shoulder Offset to " .. offset)
 end
 
-function CM.HandleMouseoverCasting(enabled)
-  if ON_RETAIL_CLIENT == false then
-    return
-  end
-  if enabled then
-    SetCVar("enableMouseoverCast", 1)
-    SetModifiedClick("MOUSEOVERCAST", "NONE")
-    SaveBindings(GetCurrentBindingSet())
-    CM.DebugPrint("Enabling Crosshair Priority")
-  else
-    SetCVar("enableMouseoverCast", 0)
-    CM.DebugPrint("Disabling Crosshair Priority")
-  end
-end
+-- Disabling this for now while we're testing the new macro wrapper implementation for targeting
+-- function CM.HandleMouseoverCasting(enabled)
+--   if ON_RETAIL_CLIENT == false then
+--     return
+--   end
+--   if enabled then
+--     SetCVar("enableMouseoverCast", 1)
+--     SetModifiedClick("MOUSEOVERCAST", "NONE")
+--     SaveBindings(GetCurrentBindingSet())
+--     CM.DebugPrint("Enabling Crosshair Priority")
+--   else
+--     SetCVar("enableMouseoverCast", 0)
+--     CM.DebugPrint("Disabling Crosshair Priority")
+--   end
+-- end
 
 function CM.HandleSoftTargetFriend(enabled)
   if enabled then
@@ -352,7 +353,7 @@ function CM:ResetCVarsToDefault()
   self.ConfigReticleTargeting("blizzard")
   self.ConfigActionCamera("blizzard")
   self.ConfigStickyCrosshair("blizzard")
-  self.HandleMouseoverCasting(false)
+  -- self.HandleMouseoverCasting(false)
   self.HandleSoftTargetFriend(false)
 
   print(CM.Constants.BasePrintMsg .. "|cff909090: all changes have been reverted.|r")
@@ -1239,14 +1240,14 @@ local function Rematch()
   if CM.DB.char.reticleTargeting then
     CM.ConfigReticleTargeting("combatmode")
 
-    CM.HandleMouseoverCasting(true)
+    -- CM.HandleMouseoverCasting(true)
 
     -- if "Only Allow Reticle to Target Enemies" is turned off, activate Soft Targeting Friend
     if not CM.DB.char.reticleTargetingEnemyOnly then
       CM.HandleSoftTargetFriend(true)
     end
-  else
-    CM.HandleMouseoverCasting(false)
+  -- else
+  --   CM.HandleMouseoverCasting(false)
   end
 
   if CM.DB.global.crosshair then
