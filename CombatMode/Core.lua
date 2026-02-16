@@ -1102,6 +1102,8 @@ local function Rematch()
     if not CM.DB.char.reticleTargetingEnemyOnly then
       CM.HandleSoftTargetFriend(true)
     end
+  else
+    CM.HandleMouseoverCasting(false)
   end
 
   if CM.DB.global.crosshair then
