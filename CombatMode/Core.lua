@@ -1070,6 +1070,7 @@ end
 local function RefreshClickCastMacros()
   if InCombatLockdown() then return end
   -- Re-apply all bindings so macro slots get "click real button" and spell slots get our frame.
+  -- This refreshes both keyboard bindings (via ApplyGroundCastKeyOverrides) and mouse button bindings (via OverrideDefaultButtons)
   CM.OverrideDefaultButtons()
   ApplyGroundCastKeyOverrides()
 end
@@ -1348,6 +1349,19 @@ local function HandleEventByCategory(category, event)
             CM.DebugPrint("Hard lock detected, playing crosshair lock-in animation (reaction: " .. targetReaction .. ")")
           end
         end
+      end
+    end,
+    VEHICLE_EVENTS = function()
+      -- Refresh click cast macros when vehicle state changes
+      -- Use a small delay to ensure OverrideActionBar is fully initialized
+      if _G.C_Timer and _G.C_Timer.After then
+        _G.C_Timer.After(0.1, function()
+          CM.DebugPrint("Vehicle state changed, refreshing click cast macros")
+          RefreshClickCastMacros()
+        end)
+      else
+        -- Fallback: refresh immediately if C_Timer not available
+        RefreshClickCastMacros()
       end
     end,
 
