@@ -709,7 +709,7 @@ local CrosshairGroup = {
       type = "toggle",
       name = "Sticky Crosshair |cff3B73FF©|r |cffE37527•|r",
       desc = "|cff3B73FF© Character-based option|r\n\nMakes the crosshair stick to enemies slightly, making it harder to untarget them by accident.\n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = 2.1,
+      width = 2.04,
       order = 3,
       set = function(_, value)
         CM.DB.char.stickyCrosshair = value
@@ -726,7 +726,23 @@ local CrosshairGroup = {
         return CM.DynamicCam or CM.DB.global.crosshair ~= true
       end
     },
-    spacing2 = Spacing("full", 3.1),
+    crosshairAnimation = {
+      type = "toggle",
+      name = "Target Lock-in Animation",
+      desc = "Animates the crosshair when locking onto a new target. The animation resets the crosshair to base state, then transitions to the appropriate appearance based on the target's reaction.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = 1.4,
+      order = 3.1,
+      set = function(_, value)
+        CM.DB.global.crosshairAnimation = value
+      end,
+      get = function()
+        return CM.DB.global.crosshairAnimation
+      end,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end
+    },
+    spacing2 = Spacing("full", 3.2),
     crosshairAppearance = {
       name = "Crosshair Appearance",
       desc = "Select the appearance of the crosshair texture.",
@@ -874,7 +890,7 @@ local ReticleTargetingOptions = {
     reticleTargetingEnemyOnly = {
       type = "toggle",
       name = "Only Allow Reticle To Target Enemies |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nOnly allows the reticle to target enemies while |cffE52B50Mouse Look|r is active, ignoring friendly NPCs and Players\n\n|cffffd700Default:|r |cff00FF7FOn|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nDuring combat, only allows the reticle to target enemies while |cffE52B50Mouse Look|r is active, ignoring friendly NPCs and Players\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = 1.5,
       order = 4,
       confirm = true,
