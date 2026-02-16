@@ -477,6 +477,46 @@ end)
 local lastKnownUnit = nil
 local lastKnownUnitReaction = nil
 
+-- Get the reaction type for a given unitID
+-- Returns: reactionType string ("hostile", "friendly_player", "friendly_npc", "neutral", "object", "base")
+local function GetUnitReactionType(unitID)
+  if not unitID then
+    return "base"
+  end
+
+  -- Check if unit exists and has a GUID
+  if not UnitExists(unitID) or not UnitGUID(unitID) then
+    return "base"
+  end
+
+  -- Check for game object first
+  local isTargetObject = UnitIsGameObject(unitID)
+  if isTargetObject then
+    return "object"
+  end
+
+  -- Get reaction value
+  local reaction = UnitReaction("player", unitID)
+  if not reaction then
+    return "base"
+  end
+
+  -- Determine reaction type based on reaction value and unit type
+  if UnitIsPlayer(unitID) then
+    if UnitCanAttack("player", unitID) then
+      return "hostile"
+    else
+      return "friendly_player"
+    end
+  elseif reaction <= 4 then
+    return "hostile"
+  elseif reaction >= 5 then
+    return "friendly_npc"
+  else
+    return "neutral"
+  end
+end
+
 -- Get the unit under the cursor and its reaction type for crosshair reactions
 local function GetUnitUnderCursor()
   -- Check for game object interaction first using softinteract
@@ -487,32 +527,19 @@ local function GetUnitUnderCursor()
 
   -- If not a game object, check for regular units using mouseover
   if UnitExists("mouseover") and UnitGUID("mouseover") then
-    local reaction = UnitReaction("player", "mouseover")
-    local reactionType
-    if reaction then
-      if UnitIsPlayer("mouseover") then
-        if UnitCanAttack("player", "mouseover") then
-          reactionType = "hostile"
-        else
-          reactionType = "friendly_player"
-        end
-      elseif reaction <= 4 then
-        reactionType = "hostile"
-      elseif reaction >= 5 then
-        reactionType = "friendly_npc"
-      else
-        reactionType = "neutral"
-      end
-    else
-      reactionType = "base"
-    end
-
+    local reactionType = GetUnitReactionType("mouseover")
     PreventDebugSpam("Found mouseover unit (reaction: " .. reactionType .. ")")
     return "mouseover", reactionType
   end
--- no valid unit found (meaning it's not aiming at anything)
+
+  -- no valid unit found (meaning it's not aiming at anything)
   PreventDebugSpam("No unit under cursor, setting base appearance")
   return nil, nil
+end
+
+-- Get the reaction type for the "target" unit
+local function GetTargetReaction()
+  return GetUnitReactionType("target")
 end
 
 -- Update crosshair appearance based on unit under cursor
@@ -630,27 +657,92 @@ local function UpdateCrosshairLockIn(_, elapsed)
   CrosshairFrame:SetPoint("CENTER", 0, LOCK_IN_ORIGINAL_Y_POS / currentScale)
 end
 
-function CM.ShowCrosshairLockIn()
+function CM.ShowCrosshairLockIn(targetReaction)
   if not CM.DB.global.crosshair then
     return
   end
 
   CrosshairTexture:Show()
-  local currentScale = CrosshairFrame:GetScale()
-  local currentAlpha = CrosshairFrame:GetAlpha()
   local crosshairYPos = CM.DB.global.crosshairY or 0
 
-  LOCK_IN_ORIGINAL_Y_POS = crosshairYPos
-  LOCK_IN_STARTING_SCALE = currentScale * 1.3
-  LOCK_IN_STARTING_ALPHA = 0.0
-  LOCK_IN_TARGET_SCALE = currentScale
-  LOCK_IN_TARGET_ALPHA = currentAlpha
+  -- If targetReaction is provided, we're transitioning from base to reaction state
+  if targetReaction then
+    -- First, reset to base state immediately
+    SetCrosshairAppearance("base")
 
-  CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / LOCK_IN_STARTING_SCALE)
-  CrosshairFrame:SetScale(LOCK_IN_STARTING_SCALE)
-  CrosshairFrame:SetAlpha(LOCK_IN_STARTING_ALPHA)
+    -- Store the target reaction for when animation completes
+    local targetReactionToSet = targetReaction
 
-  LOCK_IN_TOTAL_ELAPSED = 0
+    -- Use a small delay to ensure base state is visible before starting animation
+    -- Use _G.C_Timer if available, otherwise fall back to immediate execution
+    local timerFunc = _G.C_Timer and _G.C_Timer.After
+    if timerFunc then
+      timerFunc(0.05, function()
+        local DefaultConfig = CM.Constants.DatabaseDefaults.global
+        local UserConfig = CM.DB.global or {}
+        local baseOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
+
+        LOCK_IN_ORIGINAL_Y_POS = crosshairYPos
+        LOCK_IN_STARTING_SCALE = STARTING_SCALE * 1.3
+        LOCK_IN_STARTING_ALPHA = 0.0
+
+        -- Determine target scale based on reaction (base uses STARTING_SCALE, others use ENDING_SCALE)
+        local targetScale = targetReactionToSet == "base" and STARTING_SCALE or ENDING_SCALE
+        LOCK_IN_TARGET_SCALE = targetScale
+        LOCK_IN_TARGET_ALPHA = baseOpacity
+
+        -- Set the final appearance after animation completes
+        CrosshairAnimation:SetScript("OnFinished", function()
+          SetCrosshairAppearance(targetReactionToSet)
+        end)
+
+        CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / LOCK_IN_STARTING_SCALE)
+        CrosshairFrame:SetScale(LOCK_IN_STARTING_SCALE)
+        CrosshairFrame:SetAlpha(LOCK_IN_STARTING_ALPHA)
+
+        LOCK_IN_TOTAL_ELAPSED = 0
+      end)
+    else
+      -- Fallback: execute immediately if C_Timer is not available
+      local DefaultConfig = CM.Constants.DatabaseDefaults.global
+      local UserConfig = CM.DB.global or {}
+      local baseOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
+
+      LOCK_IN_ORIGINAL_Y_POS = crosshairYPos
+      LOCK_IN_STARTING_SCALE = STARTING_SCALE * 1.3
+      LOCK_IN_STARTING_ALPHA = 0.0
+
+      local targetScale = targetReactionToSet == "base" and STARTING_SCALE or ENDING_SCALE
+      LOCK_IN_TARGET_SCALE = targetScale
+      LOCK_IN_TARGET_ALPHA = baseOpacity
+
+      CrosshairAnimation:SetScript("OnFinished", function()
+        SetCrosshairAppearance(targetReactionToSet)
+      end)
+
+      CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / LOCK_IN_STARTING_SCALE)
+      CrosshairFrame:SetScale(LOCK_IN_STARTING_SCALE)
+      CrosshairFrame:SetAlpha(LOCK_IN_STARTING_ALPHA)
+
+      LOCK_IN_TOTAL_ELAPSED = 0
+    end
+  else
+    -- Original behavior: lock-in from current state
+    local currentScale = CrosshairFrame:GetScale()
+    local currentAlpha = CrosshairFrame:GetAlpha()
+
+    LOCK_IN_ORIGINAL_Y_POS = crosshairYPos
+    LOCK_IN_STARTING_SCALE = currentScale * 1.3
+    LOCK_IN_STARTING_ALPHA = 0.0
+    LOCK_IN_TARGET_SCALE = currentScale
+    LOCK_IN_TARGET_ALPHA = currentAlpha
+
+    CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / LOCK_IN_STARTING_SCALE)
+    CrosshairFrame:SetScale(LOCK_IN_STARTING_SCALE)
+    CrosshairFrame:SetAlpha(LOCK_IN_STARTING_ALPHA)
+
+    LOCK_IN_TOTAL_ELAPSED = 0
+  end
 end
 
 -- Hook into crosshair frame's OnUpdate (reuse existing or add to it)
@@ -801,6 +893,42 @@ for _, bar in ipairs(CLICKCAST_BARS) do
   end
 end
 
+-- Helper function to resolve the correct frame name for ACTIONBUTTON bindings
+-- Checks for OverrideActionBarButton when in a vehicle, falls back to ActionButton otherwise
+local function ResolveActionButtonFrame(bindingValue)
+  if not bindingValue:match("^ACTIONBUTTON") then
+    -- Not an ACTIONBUTTON binding, return the mapped frame directly
+    return BindingToClickFrame[bindingValue]
+  end
+
+  -- Extract button number from binding (e.g., "ACTIONBUTTON5" -> 5)
+  local buttonNum = bindingValue:match("(%d+)$")
+  if not buttonNum then
+    return BindingToClickFrame[bindingValue]
+  end
+
+  -- First check for OverrideActionBarButton (vehicle override bar)
+  -- Check if OverrideActionBar exists and is shown (indicates vehicle mode)
+  local overrideBar = _G.OverrideActionBar
+  local isInVehicle = overrideBar and overrideBar:IsShown()
+
+  if isInVehicle then
+    local overrideFrameName = "OverrideActionBarButton" .. buttonNum
+    local ok, overrideFrame = pcall(function() return _G[overrideFrameName] end)
+    if ok and overrideFrame then
+      -- Check if the override frame has an action assigned
+      local rawAction = overrideFrame.GetAttribute and overrideFrame:GetAttribute("action") or overrideFrame.action
+      local action = rawAction and tonumber(rawAction)
+      if action and action > 0 then
+        return overrideFrameName
+      end
+    end
+  end
+
+  -- Fall back to regular ActionButton
+  return BindingToClickFrame[bindingValue]
+end
+
 local CLICKCAST_PRE_LINE_ANY = "/target [@mouseover,exists]" -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
 local CLICKCAST_PRE_LINE_ENEMY = "/target [@mouseover,harm,nodead][@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
 
@@ -853,8 +981,12 @@ for i, key in ipairs(CLICKCAST_KEYS) do
 end
 
 local function BuildClickCastMacroText(bindingValue)
-  local clickFrame = BindingToClickFrame[bindingValue]
+  local clickFrame = ResolveActionButtonFrame(bindingValue)
   if not clickFrame then return nil end
+
+  -- Check if this is a vehicle override button (don't inject preline for vehicle abilities)
+  local isVehicleButton = clickFrame:match("^OverrideActionBarButton")
+
   local castLine = "/click " .. clickFrame
   local ok, actionFrame = pcall(function() return _G[clickFrame] end)
   if ok and actionFrame then
@@ -865,6 +997,10 @@ local function BuildClickCastMacroText(bindingValue)
       if getOk then
         -- Slot is a macro: don't inject pre-line so the macro runs as written (e.g. [mod:shift], [@cursor]).
         if atype == "macro" then
+          return castLine
+        end
+        -- Vehicle abilities: don't inject pre-line, just click the button directly
+        if isVehicleButton then
           return castLine
         end
         -- Ground-targeted spell from whitelist: use /cast [@cursor] only (no pre-line).
@@ -879,6 +1015,12 @@ local function BuildClickCastMacroText(bindingValue)
       end
     end
   end
+
+  -- Don't inject preline for vehicle buttons
+  if isVehicleButton then
+    return castLine
+  end
+
   local pre = GetClickCastPreLine()
   return pre and (pre .. "\n" .. castLine) or castLine
 end
@@ -891,7 +1033,7 @@ end
 
 -- Returns true if the given action bar binding (e.g. ACTIONBUTTON5) currently has a macro in that slot.
 local function IsSlotMacro(bindingValue)
-  local clickFrame = BindingToClickFrame[bindingValue]
+  local clickFrame = ResolveActionButtonFrame(bindingValue)
   if not clickFrame then return false end
   local ok, actionFrame = pcall(function() return _G[clickFrame] end)
   if not ok or not actionFrame then return false end
@@ -909,7 +1051,7 @@ local function ApplyGroundCastKeyOverrides()
   for _, bindingName in ipairs(OrderedBindingNames) do
     local key = GetBindingKey(bindingName)
     if key then
-      local realFrame = BindingToClickFrame[bindingName]
+      local realFrame = ResolveActionButtonFrame(bindingName)
       if realFrame and IsSlotMacro(bindingName) then
         -- Slot is a macro: override key to click the real action bar button so the macro runs.
         SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, realFrame, "LeftButton")
@@ -952,7 +1094,7 @@ function CM.SetNewBinding(buttonSettings)
   elseif value == "CLEARFOCUS" then
     valueToUse = "MACRO CM_ClearFocus"
   else
-    local realFrame = BindingToClickFrame[value]
+    local realFrame = ResolveActionButtonFrame(value)
     if realFrame and IsSlotMacro(value) then
       -- Slot is a macro: bind key to click the real action bar button so the macro runs as written.
       valueToUse = "CLICK " .. realFrame .. ":" .. ClickCastMouseButton(key)
@@ -1171,6 +1313,41 @@ local function HandleEventByCategory(category, event)
         CM.HealingRadial.OnGroupRosterUpdate()
       elseif event == "ACTIONBAR_SLOT_CHANGED" and CM.HealingRadial.OnActionBarChanged then
         CM.HealingRadial.OnActionBarChanged()
+      end
+    end,
+    TARGET_LOCK_EVENTS = function()
+      if event == "PLAYER_TARGET_CHANGED" then
+        -- Only proceed if crosshair animation is enabled
+        if not CM.DB.global.crosshairAnimation then
+          return
+        end
+
+        -- Check if target exists and is hard locked (not loose)
+        if UnitExists("target") then
+          -- Check if IsTargetLoose API exists and use it to determine if target is soft locked
+          -- IsTargetLoose may take a unitID parameter or no parameters (checking current target)
+          local isTargetLoose = false
+          if _G.IsTargetLoose then
+            -- Try calling with unitID first, fall back to no arguments if that fails
+            local success, result = pcall(_G.IsTargetLoose, "target")
+            if success then
+              isTargetLoose = result
+            else
+              -- Try without arguments (checks current target)
+              success, result = pcall(_G.IsTargetLoose)
+              if success then
+                isTargetLoose = result
+              end
+            end
+          end
+
+          -- If target is NOT loose (i.e., hard locked), play the lock-in animation
+          if not isTargetLoose then
+            local targetReaction = GetTargetReaction()
+            CM.ShowCrosshairLockIn(targetReaction)
+            CM.DebugPrint("Hard lock detected, playing crosshair lock-in animation (reaction: " .. targetReaction .. ")")
+          end
+        end
       end
     end,
 

@@ -143,6 +143,10 @@ CM.Constants.BLIZZARD_EVENTS = {
     "GROUP_ROSTER_UPDATE",      -- Party composition changed
     "ACTIONBAR_SLOT_CHANGED",   -- Action bar spell/item changed (refresh slice attrs)
   },
+  -- Events for target lock detection
+  TARGET_LOCK_EVENTS = {
+    "PLAYER_TARGET_CHANGED",    -- Target changed (hard lock detection)
+  },
 
 }
 
@@ -653,6 +657,7 @@ CM.Constants.DatabaseDefaults = {
     customCondition = "",
     crosshair = true,
     crosshairMounted = false,
+    crosshairAnimation = false,
     hideTooltip = true,
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
     crosshairSize = 64,
