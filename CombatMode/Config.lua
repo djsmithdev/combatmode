@@ -868,7 +868,7 @@ local ReticleTargetingOptions = {
     reticleTargeting = {
       type = "toggle",
       name = "Enable |cff00FFFFReticle Targeting|r |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nConfigures Blizzard's |cffffd700Action Targeting|r feature to be more precise and responsive. \n\n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n\n|cff909090Uncheck to reset them to their default values.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nConfigures Blizzard's |cffffd700Action Targeting|r feature to be more precise and responsive. \n\nWraps actions with |cffB47EDEtargeting macro conditionals|r that select the unit under the crosshair when using an ability. \n\n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n\n|cff909090Uncheck to reset them to their default values.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = 2.1,
       order = 3,
       confirmText = CM.METADATA["TITLE"] ..
@@ -890,7 +890,7 @@ local ReticleTargetingOptions = {
     reticleTargetingEnemyOnly = {
       type = "toggle",
       name = "Only Allow Reticle To Target Enemies |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nDuring combat, only allows the reticle to target enemies while |cffE52B50Mouse Look|r is active, ignoring friendly NPCs and Players\n\n|cffffd700Default:|r |cff00FF7FOn|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nOnly allow |cff00FFFFReticle Targeting|r to select hostile units, ignoring friendly NPCs and Players.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
       width = 1.5,
       order = 4,
       confirm = true,
@@ -902,6 +902,26 @@ local ReticleTargetingOptions = {
       end,
       get = function()
         return CM.DB.char.reticleTargetingEnemyOnly
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end
+    },
+    macroInjectionClickCastOnly = {
+      type = "toggle",
+      name = "Limit Reticle Targeting to |cffB47EDEClick Casting|r actions |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nWhen enabled, the reticle unit targeting and ground-targeted macro injection apply only to |cffB47EDEClick Casting|r bindings. All other action bar slots will not have the targeting macro injection applied.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = "full",
+      order = 5,
+      confirm = true,
+      confirmText = CM.METADATA["TITLE"] ..
+        "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to |cff00FFFFReticle Targeting|r.|r \n\n|cffffd700Proceed?|r",
+      set = function(_, value)
+        CM.DB.char.macroInjectionClickCastOnly = value
+        ReloadUI()
+      end,
+      get = function()
+        return CM.DB.char.macroInjectionClickCastOnly
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting

@@ -1058,9 +1058,13 @@ local function IsSlotMacro(bindingValue)
 end
 
 -- Override keyboard keys (Q, E, etc.) to click our slot frame so the same macro logic runs (pre-line + /click or /cast [@cursor] for ground spells). No per-spell macros.
+-- When macroInjectionClickCastOnly is true, skip keyboard overrides so only the 8 click-cast mouse bindings get the injection.
 local function ApplyGroundCastKeyOverrides()
   if InCombatLockdown() then return end
   ClearOverrideBindings(GroundCastKeyOverrideOwner)
+  if CM.DB.char.reticleTargeting and CM.DB.char.macroInjectionClickCastOnly then
+    return
+  end
   for _, bindingName in ipairs(OrderedBindingNames) do
     local key = GetBindingKey(bindingName)
     if key then

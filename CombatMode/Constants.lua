@@ -128,7 +128,6 @@ CM.Constants.BLIZZARD_EVENTS = {
   REMATCH_EVENTS = {
     "PLAYER_ENTERING_WORLD" -- Loading Cvars on every reload
   },
-  -- Events for the Healing Radial
   FRIENDLY_TARGETING_EVENTS = {
     "PLAYER_REGEN_ENABLED", -- Disabling friendly targeting when leaving combat
     "PLAYER_REGEN_DISABLED" -- Enabling friendly targeting when entering combat
@@ -698,6 +697,7 @@ CM.Constants.DatabaseDefaults = {
     shoulderOffset = 1.0,
     reticleTargeting = true,
     reticleTargetingEnemyOnly = true,
+    macroInjectionClickCastOnly = false,
     castAtCursorSpells = "Heroic Leap, Shift, Sigil of Flame, Infernal Strike, Blizzard",
     stickyCrosshair = false,
     bindings = DefaultBindings
