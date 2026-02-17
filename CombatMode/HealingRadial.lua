@@ -735,15 +735,16 @@ function HR.DismissOnLoad()
   RadialState.boundKey = nil
 end
 
--- Toggle the healing radial system (called when enabled/disabled in settings)
+-- Toggle the healing radial system (called when enabled/disabled in settings).
+-- When enabling/disabling, the config setter forces ReloadUI() so the frame is created
+-- or not in HR.Initialize(); this is only for any other callers that need to dismiss the radial.
 function HR.SetCaptureActive(active)
+  if not active and RadialState.isActive then
+    HR.Hide()
+  end
   if active then
     CM.DebugPrint("Healing Radial: Activated")
   else
-    -- Dismiss radial if currently open
-    if RadialState.isActive then
-      HR.Hide()
-    end
     CM.DebugPrint("Healing Radial: Deactivated")
   end
 end
@@ -1196,6 +1197,9 @@ function HR.Show(buttonKey)
   if not CM.DB.global.healingRadial or not CM.DB.global.healingRadial.enabled then
     return false
   end
+  if not RadialState.mainFrame then
+    return false
+  end
 
   -- Only allow activation when mouselook is active
   if not _G.IsMouselooking() then
@@ -1299,6 +1303,13 @@ function HR.Hide()
   if not RadialState.isActive then
     return
   end
+  if not RadialState.mainFrame then
+    RadialState.isActive = false
+    RadialState.selectedSlice = nil
+    RadialState.currentButton = nil
+    RadialState.boundKey = nil
+    return
+  end
   CM.DebugPrint("Healing Radial: HR.Hide called from: " .. (debugstack(2, 1, 0) or "unknown"))
 
   -- Stop mouse tracking
@@ -1366,6 +1377,9 @@ end
 -- Open radial via keybind (targeting on hover, casting via mouse clicks on slices)
 function HR.ShowFromKeybind()
   if not CM.DB.global.healingRadial or not CM.DB.global.healingRadial.enabled then
+    return false
+  end
+  if not RadialState.mainFrame then
     return false
   end
 
@@ -1532,13 +1546,14 @@ function HR.Initialize()
     CM.DB.global.healingRadial = CM.Constants.DatabaseDefaults.global.healingRadial
   end
 
-  CreateMainFrame()
-  CreateMouseOverrideButtons()
-
-  -- Initial party data and action bar attributes
-  RefreshPartyData()
-  UpdateSecureButtonTargets()
-  UpdateSliceActionAttributes()
+  -- Only create the frame and overlay when healing radial is enabled (avoids drawing anything when disabled)
+  if CM.DB.global.healingRadial.enabled then
+    CreateMainFrame()
+    CreateMouseOverrideButtons()
+    RefreshPartyData()
+    UpdateSecureButtonTargets()
+    UpdateSliceActionAttributes()
+  end
 
   CM.DebugPrint("Healing Radial: Initialized")
 end

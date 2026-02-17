@@ -34,6 +34,7 @@ local InCombatLockdown = _G.InCombatLockdown
 local IsMounted = _G.IsMounted
 local IsMouseButtonDown = _G.IsMouseButtonDown
 local IsMouselooking = _G.IsMouselooking
+local C_ActionBar = _G.C_ActionBar
 local loadstring = _G.loadstring
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
@@ -894,8 +895,42 @@ for _, bar in ipairs(CLICKCAST_BARS) do
   end
 end
 
+-- Helper function to check which action bar type is currently active
+-- Returns the frame prefix for the active bar type, or nil if using default bar
+local function GetActiveActionBarType()
+  if C_ActionBar then
+    -- Check for override action bar (vehicles, quest UIs, etc.)
+    if C_ActionBar.HasOverrideActionBar and C_ActionBar.HasOverrideActionBar() then
+      return "OverrideActionBarButton"
+    end
+    -- Check for bonus action bar (druid forms, rogue stealth, etc.)
+    if C_ActionBar.HasBonusActionBar and C_ActionBar.HasBonusActionBar() then
+      return "BonusActionButton"
+    end
+    -- Check for extra action bar (encounter-specific abilities)
+    if C_ActionBar.HasExtraActionBar and C_ActionBar.HasExtraActionBar() then
+      -- Extra action bar uses ExtraActionButton1, not ACTIONBUTTON bindings
+      return nil
+    end
+    -- Check for temp shapeshift action bar
+    if C_ActionBar.HasTempShapeshiftActionBar and C_ActionBar.HasTempShapeshiftActionBar() then
+      return "TempShapeshiftActionButton"
+    end
+  end
+
+  -- Fallback to frame visibility check for override bar (for older clients or if API unavailable)
+  local overrideBar = _G.OverrideActionBar
+  if overrideBar and overrideBar:IsShown() then
+    return "OverrideActionBarButton"
+  end
+
+  -- Default action bar
+  return nil
+end
+
 -- Helper function to resolve the correct frame name for ACTIONBUTTON bindings
--- Checks for OverrideActionBarButton when in a vehicle, falls back to ActionButton otherwise
+-- Checks for OverrideActionBarButton, BonusActionButton, or TempShapeshiftActionButton when active,
+-- falls back to ActionButton otherwise
 local function ResolveActionButtonFrame(bindingValue)
   if not bindingValue:match("^ACTIONBUTTON") then
     -- Not an ACTIONBUTTON binding, return the mapped frame directly
@@ -908,20 +943,17 @@ local function ResolveActionButtonFrame(bindingValue)
     return BindingToClickFrame[bindingValue]
   end
 
-  -- First check for OverrideActionBarButton (vehicle override bar)
-  -- Check if OverrideActionBar exists and is shown (indicates vehicle mode)
-  local overrideBar = _G.OverrideActionBar
-  local isInVehicle = overrideBar and overrideBar:IsShown()
-
-  if isInVehicle then
-    local overrideFrameName = "OverrideActionBarButton" .. buttonNum
-    local ok, overrideFrame = pcall(function() return _G[overrideFrameName] end)
-    if ok and overrideFrame then
-      -- Check if the override frame has an action assigned
-      local rawAction = overrideFrame.GetAttribute and overrideFrame:GetAttribute("action") or overrideFrame.action
+  -- Check which action bar type is currently active
+  local activeBarType = GetActiveActionBarType()
+  if activeBarType then
+    local frameName = activeBarType .. buttonNum
+    local ok, actionFrame = pcall(function() return _G[frameName] end)
+    if ok and actionFrame then
+      -- Check if the frame has an action assigned
+      local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action") or actionFrame.action
       local action = rawAction and tonumber(rawAction)
       if action and action > 0 then
-        return overrideFrameName
+        return frameName
       end
     end
   end
@@ -930,8 +962,8 @@ local function ResolveActionButtonFrame(bindingValue)
   return BindingToClickFrame[bindingValue]
 end
 
-local CLICKCAST_PRE_LINE_ANY = "/target [@mouseover,exists]" -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
-local CLICKCAST_PRE_LINE_ENEMY = "/target [@mouseover,harm,nodead][@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
+local CLICKCAST_PRE_LINE_ANY = "/target [nomounted,@mouseover,exists]" -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
+local CLICKCAST_PRE_LINE_ENEMY = "/target [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
 
 -- Returns true if spellId is in the user's "Cast @Cursor Spells" list (comma-separated names in options).
 local function IsCastAtCursorSpell(spellId)
@@ -982,19 +1014,24 @@ for i, key in ipairs(CLICKCAST_KEYS) do
 end
 
 local function BuildClickCastMacroText(bindingValue)
-  -- For ACTIONBUTTON bindings, use a conditional /click so vehicle vs normal bar is resolved
-  -- at macro run time (works when exiting vehicle in combat; we can't refresh bindings then).
+  -- For ACTIONBUTTON bindings, use a conditional /click so action bar type is resolved
+  -- at macro run time (works when action bars change in combat; we can't refresh bindings then).
   local buttonNum = bindingValue:match("^ACTIONBUTTON(%d+)$")
   local useConditionalClick = buttonNum ~= nil
 
   local clickFrame = ResolveActionButtonFrame(bindingValue)
   if not clickFrame then return nil end
 
-  -- Check if this is a vehicle override button (don't inject preline for vehicle abilities)
-  local isVehicleButton = clickFrame:match("^OverrideActionBarButton")
+  -- Check if this is a special action bar button (don't inject preline for special bar abilities)
+  local isSpecialBarButton = clickFrame:match("^OverrideActionBarButton") or
+                             clickFrame:match("^BonusActionButton") or
+                             clickFrame:match("^TempShapeshiftActionButton")
 
   local castLine
   if useConditionalClick then
+    -- Use conditional macro to check for override bar at runtime
+    -- (works when exiting vehicle in combat; we can't refresh bindings then)
+    -- For bonus/shapeshift bars, bindings are refreshed via events when out of combat
     castLine = "/click [overridebar] OverrideActionBarButton" .. buttonNum .. "; ActionButton" .. buttonNum
   else
     castLine = "/click " .. clickFrame
@@ -1011,8 +1048,8 @@ local function BuildClickCastMacroText(bindingValue)
         if atype == "macro" then
           return castLine
         end
-        -- Vehicle abilities: don't inject pre-line, just click the button directly
-        if isVehicleButton then
+        -- Special action bar abilities (override, bonus, shapeshift): don't inject pre-line, just click the button directly
+        if isSpecialBarButton then
           return castLine
         end
         -- Ground-targeted spell from whitelist: use /cast [@cursor] only (no pre-line).
@@ -1028,8 +1065,8 @@ local function BuildClickCastMacroText(bindingValue)
     end
   end
 
-  -- Don't inject preline for vehicle buttons
-  if isVehicleButton then
+  -- Don't inject preline for special action bar buttons
+  if isSpecialBarButton then
     return castLine
   end
 
@@ -1322,17 +1359,22 @@ local function HandleEventByCategory(category, event)
     UNCATEGORIZED_EVENTS = function()
       SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
     end,
-    HEALING_RADIAL_EVENTS = function()
-      if event == "ACTIONBAR_SLOT_CHANGED" then
+    REFRESH_BINDINGS_EVENTS = function()
+      if _G.C_Timer and _G.C_Timer.After then
+        _G.C_Timer.After(0.1, function()
+          CM.DebugPrint("Action Bar state changed, refreshing binding macros")
+          RefreshClickCastMacros()
+        end)
+      else
+        -- Fallback: refresh immediately if C_Timer not available
         RefreshClickCastMacros()
       end
+
+      -- Healing Radial: update slice targets and spell attributes when roster or action bar changes
       if not CM.HealingRadial then return end
       if event == "GROUP_ROSTER_UPDATE" and CM.HealingRadial.OnGroupRosterUpdate then
         CM.HealingRadial.OnGroupRosterUpdate()
       elseif CM.HealingRadial.OnActionBarChanged then
-        -- All other events in this category (ACTIONBAR_SLOT_CHANGED, UPDATE_BONUS_ACTIONBAR,
-        -- UPDATE_OVERRIDE_ACTIONBAR, UPDATE_SHAPESHIFT_FORM, ACTIONBAR_PAGE_CHANGED) indicate
-        -- the action bar content has changed and slice spell attributes need refreshing.
         CM.HealingRadial.OnActionBarChanged()
       end
     end,
@@ -1369,19 +1411,6 @@ local function HandleEventByCategory(category, event)
             CM.DebugPrint("Hard lock detected, playing crosshair lock-in animation (reaction: " .. targetReaction .. ")")
           end
         end
-      end
-    end,
-    VEHICLE_EVENTS = function()
-      -- Refresh click cast macros when vehicle state changes
-      -- Use a small delay to ensure OverrideActionBar is fully initialized
-      if _G.C_Timer and _G.C_Timer.After then
-        _G.C_Timer.After(0.1, function()
-          CM.DebugPrint("Vehicle state changed, refreshing click cast macros")
-          RefreshClickCastMacros()
-        end)
-      else
-        -- Fallback: refresh immediately if C_Timer not available
-        RefreshClickCastMacros()
       end
     end,
 

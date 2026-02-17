@@ -1000,11 +1000,13 @@ local HealingRadialOptions = {
       desc = "Enables a radial menu for quickly targeting and casting helpful spells at party members. While |cffE52B50Mouse Look|r is active and you're in a party, hold a mouse button to display the radial, flick toward your target, and release to cast.\n\n|cffffd700Default:|r |cffE52B50Off|r",
       width = 2.3,
       order = 3,
+      confirm = true,
+      confirmText = CM.METADATA["TITLE"] ..
+        "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to the |cff00FF7FHealing Radial|r.|r \n\n|cffffd700Proceed?|r",
       set = function(_, value)
         CM.DB.global.healingRadial.enabled = value
-        if CM.HealingRadial and CM.HealingRadial.SetCaptureActive then
-          CM.HealingRadial.SetCaptureActive(value)
-        end
+        -- Reload required: frame is only created in HR.Initialize() when enabled is true
+        ReloadUI()
       end,
       get = function()
         return CM.DB.global.healingRadial.enabled

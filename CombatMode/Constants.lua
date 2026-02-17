@@ -137,26 +137,23 @@ CM.Constants.BLIZZARD_EVENTS = {
     "PLAYER_MOUNT_DISPLAY_CHANGED", -- Toggling crosshair when mounting/dismounting
     "PLAYER_REGEN_ENABLED" -- Resetting crosshair when leaving combat
   },
-  -- Events for Healing Radial
-  HEALING_RADIAL_EVENTS = {
-    "GROUP_ROSTER_UPDATE",      -- Party composition changed
-    "ACTIONBAR_SLOT_CHANGED",   -- Action bar spell/item changed (refresh slice attrs)
-    "UPDATE_BONUS_ACTIONBAR",   -- Bonus bar changed (druid form, rogue stealth, etc.)
+  -- Events that trigger refresh of click-cast bindings (and Healing Radial slice attrs when applicable)
+  REFRESH_BINDINGS_EVENTS = {
+    "GROUP_ROSTER_UPDATE",       -- Party composition changed
+    "ACTIONBAR_SLOT_CHANGED",    -- Action bar spell/item changed
+    "UPDATE_VEHICLE_ACTIONBAR",  -- Vehicle action bar updated
+    "UPDATE_BONUS_ACTIONBAR",    -- Bonus bar changed (druid form, rogue stealth, etc.)
     "UPDATE_OVERRIDE_ACTIONBAR", -- Override bar appeared/changed (vehicle, quest UI)
-    "UPDATE_SHAPESHIFT_FORM",   -- Shapeshift form changed
-    "ACTIONBAR_PAGE_CHANGED",   -- Action bar page switched
+    "UPDATE_SHAPESHIFT_FORM",    -- Shapeshift form changed
+    "ACTIONBAR_PAGE_CHANGED",    -- Action bar page switched
+    "PLAYER_GAINS_VEHICLE_DATA", -- Player entered a vehicle
+    "PLAYER_LOSES_VEHICLE_DATA", -- Player exited a vehicle
+    "UNIT_ENTERED_VEHICLE",      -- Player entered a vehicle (alternative)
+    "UNIT_EXITED_VEHICLE",       -- Player exited a vehicle (alternative)
   },
   -- Events for target lock detection
   TARGET_LOCK_EVENTS = {
     "PLAYER_TARGET_CHANGED",    -- Target changed (hard lock detection)
-  },
-  -- Events for vehicle state changes
-  VEHICLE_EVENTS = {
-    "PLAYER_GAINS_VEHICLE_DATA", -- Player entered a vehicle
-    "PLAYER_LOSES_VEHICLE_DATA", -- Player exited a vehicle
-    "UNIT_ENTERED_VEHICLE",      -- Player entered a vehicle (alternative event)
-    "UNIT_EXITED_VEHICLE",       -- Player exited a vehicle (alternative event)
-    "UPDATE_VEHICLE_ACTIONBAR",  -- Vehicle action bar updated
   },
 
 }
