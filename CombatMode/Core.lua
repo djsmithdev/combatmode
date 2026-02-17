@@ -981,6 +981,22 @@ local function IsCastAtCursorSpell(spellId)
   return set[spellName:lower()] == true
 end
 
+-- Returns true if spellId is in the user's "Exclude from targeting" blacklist (no pre-line applied).
+local function IsExcludedFromTargetingSpell(spellId)
+  if not spellId or spellId <= 0 then return false end
+  local list = CM.DB.char.excludeFromTargetingSpells
+  if not list or list == "" then return false end
+  local set = {}
+  for name in string.gmatch(list, "[^,]+") do
+    local n = strtrim(name):lower()
+    if n ~= "" then set[n] = true end
+  end
+  local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellId)
+  local spellName = spellInfo and spellInfo.name
+  if not spellName or spellName == "" then return false end
+  return set[spellName:lower()] == true
+end
+
 -- Ordered list of all binding names (ACTIONBUTTON1..12, MULTIACTIONBAR1BUTTON1..12, etc.)
 local OrderedBindingNames = {}
 for _, bar in ipairs(CLICKCAST_BARS) do
@@ -1060,6 +1076,10 @@ local function BuildClickCastMacroText(bindingValue)
             return "/cast [@cursor] " .. spellName
           end
           return "/cast [@cursor] spell:" .. id
+        end
+        -- Spell in blacklist (e.g. self-cast defensives): don't apply targeting pre-line.
+        if atype == "spell" and id and type(id) == "number" and id > 0 and IsExcludedFromTargetingSpell(id) then
+          return castLine
         end
       end
     end

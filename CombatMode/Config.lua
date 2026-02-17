@@ -932,7 +932,7 @@ local ReticleTargetingOptions = {
     spacing3 = Spacing("full", 7.1),
     castAtCursorSpells = {
       name = "|cff00ff00Ground-targeted|r spells to be cast at the |cff00FFFFReticle|r",
-      desc = "Abilities that you want cast with the |cffB47EDE@cursor|r modifier directly at the position of the |cff00FFFFcrosshair|r without requiring the |cff00ff00green circle|r to be placed.\n\n|cff909090Ex: Heroic Leap, Shift, Blizzard.|r\n\n|cffffd700Separate names with commas.|r \n|cffffd700Names are case sensitive.|r",
+      desc = "Abilities that you want cast with the |cffB47EDE@cursor|r modifier directly at the position of the |cff00FFFFcrosshair|r without requiring the |cff00ff00green circle|r to be placed.\n\n|cff909090Ex: Heroic Leap, Shift, Blizzard.|r\n\n|cffffd700Separate names with commas.|r \n|cffffd700Names are case insensitive.|r",
       type = "input",
       multiline = true,
       width = "full",
@@ -943,6 +943,24 @@ local ReticleTargetingOptions = {
       end,
       get = function()
         return CM.DB.char.castAtCursorSpells or ""
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end
+    },
+    excludeFromTargetingSpells = {
+      name = "Spells to |cffE52B50exclude|r from reticle targeting",
+      desc = "Spells that should |cffE52B50not|r have the targeting macro applied (e.g. self-cast defensives that you want to cast on yourself, not the unit under the crosshair).\n\n|cff909090Ex: Shield Wall, Ice Block, Bladestorm, Divine Shield.|r\n\n|cffffd700Separate names with commas.|r\n|cffffd700Names are case insensitive.|r",
+      type = "input",
+      multiline = true,
+      width = "full",
+      order = 7.6,
+      set = function(_, value)
+        CM.DB.char.excludeFromTargetingSpells = value and strtrim(value) or ""
+        if CM.RefreshClickCastMacros then CM.RefreshClickCastMacros() end
+      end,
+      get = function()
+        return CM.DB.char.excludeFromTargetingSpells or ""
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting

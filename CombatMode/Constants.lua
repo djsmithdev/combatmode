@@ -696,6 +696,7 @@ CM.Constants.DatabaseDefaults = {
     reticleTargetingEnemyOnly = true,
     macroInjectionClickCastOnly = false,
     castAtCursorSpells = "Heroic Leap, Shift, Sigil of Flame, Infernal Strike, Blizzard",
+    excludeFromTargetingSpells = "",
     stickyCrosshair = false,
     bindings = DefaultBindings
   }
