@@ -9,4 +9,7 @@
 			CombatMode_HealingRadialKey(keystate)
 		end
 	</Binding>
+	<Binding name="Combat Mode - Toggle Focus Target" description="Tap to focus target, tap again to clear focus" header="Reticle Targeting" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
+		CombatMode_ToggleFocusTarget()
+	</Binding>
 </Bindings>

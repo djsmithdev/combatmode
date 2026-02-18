@@ -970,6 +970,13 @@ for i, key in ipairs(CLICKCAST_KEYS) do
   ClickCastFramesByKey[key] = f
 end
 
+-- Secure action button for toggle focus target
+local ToggleFocusTargetOverrideOwner = CreateFrame("Frame", nil, UIParent)
+local ToggleFocusTargetButton = CreateFrame("Button", "CombatModeToggleFocusTarget", ToggleFocusTargetOverrideOwner, "SecureActionButtonTemplate")
+ToggleFocusTargetButton:SetAttribute("type", "macro")
+ToggleFocusTargetButton:SetAttribute("macrotext", "/focus [@focus,exists] none; [@target,exists][]")
+ToggleFocusTargetButton:RegisterForClicks("AnyUp", "AnyDown")
+
 local function BuildClickCastMacroText(bindingValue)
   -- When reticle targeting is off, no macro wrapping (no pre-line, no castAtCursor, no excludeFromTargeting).
   if not CM.DB.char.reticleTargeting then return nil end
@@ -1059,7 +1066,7 @@ end
 
 -- Override keyboard keys (Q, E, etc.) to click our slot frame so the same macro logic runs (pre-line + /click or /cast [@cursor] for ground spells). No per-spell macros.
 -- When macroInjectionClickCastOnly is true, skip keyboard overrides so only the 8 click-cast mouse bindings get the injection.
-local function ApplyGroundCastKeyOverrides()
+function CM.ApplyGroundCastKeyOverrides()
   if InCombatLockdown() then return end
   ClearOverrideBindings(GroundCastKeyOverrideOwner)
   -- When reticle targeting is off, no macro injection on keybinds at all.
@@ -1085,12 +1092,12 @@ local function ApplyGroundCastKeyOverrides()
   end
 end
 
-local function RefreshClickCastMacros()
+function CM.RefreshClickCastMacros()
   if InCombatLockdown() then return end
   -- Re-apply all bindings so macro slots get "click real button" and spell slots get our frame.
   -- This refreshes both keyboard bindings (via ApplyGroundCastKeyOverrides) and mouse button bindings (via OverrideDefaultButtons)
   CM.OverrideDefaultButtons()
-  ApplyGroundCastKeyOverrides()
+  CM.ApplyGroundCastKeyOverrides()
 end
 
 local function ClickCastMouseButton(key)
@@ -1112,6 +1119,8 @@ function CM.SetNewBinding(buttonSettings)
     valueToUse = "MACRO CM_ClearTarget"
   elseif value == "CLEARFOCUS" then
     valueToUse = "MACRO CM_ClearFocus"
+  elseif value == "TOGGLEFOCUS" then
+    valueToUse = "MACRO CM_ToggleFocus"
   else
     -- When reticle targeting is off, no macro wrapping: use raw binding (no pre-line, no castAtCursor/excludeFromTargeting).
     if not CM.DB.char.reticleTargeting then
@@ -1142,9 +1151,6 @@ function CM.OverrideDefaultButtons()
     CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button])
   end
 end
-
-CM.ApplyGroundCastKeyOverrides = ApplyGroundCastKeyOverrides
-CM.RefreshClickCastMacros = RefreshClickCastMacros
 
 function CM.ResetBindingOverride(buttonSettings)
   SetMouselookOverrideBinding(buttonSettings.key, nil)
@@ -1354,11 +1360,11 @@ local function HandleEventByCategory(category, event)
       if _G.C_Timer and _G.C_Timer.After then
         _G.C_Timer.After(0.1, function()
           CM.DebugPrint("Action Bar state changed, refreshing binding macros")
-          RefreshClickCastMacros()
+          CM.RefreshClickCastMacros()
         end)
       else
         -- Fallback: refresh immediately if C_Timer not available
-        RefreshClickCastMacros()
+        CM.RefreshClickCastMacros()
       end
 
       -- Healing Radial: update slice targets and spell attributes when roster or action bar changes
@@ -1495,6 +1501,23 @@ function _G.CombatMode_HealingRadialKey(keystate)
   end
 end
 
+-- Apply override binding for toggle focus target
+function CM.ApplyToggleFocusTargetBinding()
+  if InCombatLockdown() then return end
+  local key = GetBindingKey("Combat Mode - Toggle Focus Target")
+  if key then
+    ClearOverrideBindings(ToggleFocusTargetOverrideOwner)
+    SetOverrideBindingClick(ToggleFocusTargetOverrideOwner, false, key, ToggleFocusTargetButton:GetName(), "LeftButton")
+    CM.DebugPrint("Toggle Focus Target binding applied to " .. tostring(key))
+  end
+end
+
+-- Handler for toggle focus target keybinding (fallback - should be overridden)
+function _G.CombatMode_ToggleFocusTarget()
+  -- This should be overridden by SetOverrideBindingClick, but kept as fallback
+  CM.DebugPrint("Toggle Focus Target handler called (should be overridden)")
+end
+
 -- CREATING /CM CHAT COMMAND
 function CM:OpenConfigCMD(input)
   if not input or input:trim() == "" then
@@ -1560,6 +1583,14 @@ function CM:OnEnable()
   CM.CreateCrosshair()
   CreatePulse()
   CreateTargetMacros()
+
+  -- Ensure toggle focus target button macrotext is set
+  if ToggleFocusTargetButton and CM.Constants.Macros.CM_ToggleFocus then
+    ToggleFocusTargetButton:SetAttribute("macrotext", CM.Constants.Macros.CM_ToggleFocus)
+  end
+  
+  -- Apply toggle focus target override binding
+  CM.ApplyToggleFocusTargetBinding()
 
   -- Initialize Healing Radial module
   if CM.HealingRadial and CM.HealingRadial.Initialize then

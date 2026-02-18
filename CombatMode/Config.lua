@@ -535,9 +535,9 @@ local FreeLookOptions = {
     description = Description("freelook", 2),
     toggle = {
       type = "keybinding",
-      name = "|cffffd700Toggle / Hold - Mouse Look|r",
+      name = "|cffffd700Toggle / Hold - |cffE52B50Mouse Look|r|r",
       desc = "Tap to toggle the |cffE52B50Mouse Look|r camera |cff00FF7FOn|r or |cffE52B50Off|r.\n\nHold to temporarily deactivate it — releasing re-engages it.",
-      width = 1.25,
+      width = 1.15,
       order = 3,
       set = function(_, key)
         local oldKey = (GetBindingKey("Combat Mode - Mouse Look"))
@@ -551,12 +551,33 @@ local FreeLookOptions = {
         return (GetBindingKey("Combat Mode - Mouse Look"))
       end
     },
-    spacing0 = Spacing(1.0, 3.1),
+    spacing0 = Spacing(0.1, 3.1),
+    toggleFocusTarget = {
+      type = "keybinding",
+      name = "|cffffd700Toggle - |cffcc00ffTarget Lock|r|r",
+      desc = "Tap to |cffcc00ffTarget Lock|r (Focus) your current target. Tap again to unlock it.\n\nWhile |cffcc00ffTarget Lock|r is active, |cff00FFFFReticle Targeting|r will not be stopped from swapping off your current target.\n\n|cff909090Control of which type of unit can be locked is determined by the |cff00FFFFReticle Targeting|r settings.|r",
+      width = 1.15,
+      order = 4,
+      set = function(_, key)
+        local oldKey = (GetBindingKey("Combat Mode - Toggle Focus Target"))
+        if oldKey then
+          SetBinding(oldKey)
+        end
+        SetBinding(key, "Combat Mode - Toggle Focus Target")
+        SaveBindings(GetCurrentBindingSet())
+        -- Apply override binding to click secure button
+        CM.ApplyToggleFocusTargetBinding()
+      end,
+      get = function()
+        return (GetBindingKey("Combat Mode - Toggle Focus Target"))
+      end
+    },
+    spacing1 = Spacing(0.1, 4.1),
     interact = {
       type = "keybinding",
       name = "|cffffd700Interact With Target|r",
       desc = "Press to interact with crosshair target when in range. \n\n|cff909090This particular targeting arc is intentionally wider to facilitate interaction with NPCs surrounded by players.|r",
-      width = 1.25,
+      width = 1.15,
       order = 5,
       set = function(_, key)
         local oldKey = (GetBindingKey("INTERACTTARGET"))
@@ -895,7 +916,7 @@ local ReticleTargetingOptions = {
       type = "toggle",
       name = "Limit Reticle Targeting to |cffB47EDEClick Casting|r actions |cff3B73FF©|r",
       desc = "|cff3B73FF© Character-based option|r\n\nWhen enabled, the reticle unit targeting and ground-targeted macro injection apply only to |cffB47EDEClick Casting|r bindings. All other action bar slots will not have the targeting macro injection applied.\n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = "full",
+      width = 1.75,
       order = 5,
       confirm = true,
       confirmText = CM.METADATA["TITLE"] ..

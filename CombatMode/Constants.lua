@@ -104,7 +104,7 @@ CM.Constants.BlizzardTagetFocusCVarValues = {
 CM.Constants.Macros = {
   CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",
   CM_ClearFocus = "/stopmacro [noexists]\n/clearfocus",
-  CM_CastCursor = "#showtooltip\n/cast [mod:shift] SPELL; [@cursor] SPELL",
+  CM_ToggleFocus = "/focus [@focus,exists] none; [@target,exists][]",
 }
 
 ---------------------------------------------------------------------------------------
@@ -576,6 +576,7 @@ CM.Constants.ActionsToProcess = {
 CM.Constants.OverrideActions = {
   CLEARFOCUS = "|cff69ccf0Clear Focus|r",
   CLEARTARGET = "|cff69ccf0Clear Target|r",
+  TOGGLEFOCUS = "|cff69ccf0Toggle Focus|r",
   MACRO = "|cff69ccf0Run MACRO|r"
 }
 
