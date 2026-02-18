@@ -45,7 +45,6 @@ local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
 local SetCVar = _G.C_CVar.SetCVar
-local SetModifiedClick = _G.SetModifiedClick
 local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 local strtrim = _G.strtrim
 local ClearOverrideBindings = _G.ClearOverrideBindings
@@ -398,6 +397,10 @@ local function SetCrosshairAppearance(state)
 
   CrosshairTexture:SetTexture(textureToUse)
   CrosshairTexture:SetVertexColor(r, g, b, a)
+  -- Show texture when not in mounted state (mounted state has alpha 0, so texture visibility doesn't matter)
+  if state ~= "mounted" and IsMouselooking() then
+    CrosshairTexture:Show()
+  end
   CrosshairAnimation:Play(reverseAnimation)
   if state == "base" then
     CrosshairFrame:SetScale(STARTING_SCALE)
@@ -475,9 +478,8 @@ DebugCrosshairUpdater:SetScript("OnUpdate", function()
   end
 end)
 
--- Track the last known unit under cursor and its reaction to update the crosshair appearance
-local lastKnownUnit = nil
-local lastKnownUnitReaction = nil
+-- Track the last known appearance state to prevent unnecessary updates
+local lastKnownAppearanceState = nil
 
 -- Get the reaction type for a given unitID
 -- Returns: reactionType string ("hostile", "friendly_player", "friendly_npc", "neutral", "object", "base")
@@ -539,29 +541,31 @@ local function GetUnitUnderCursor()
   return nil, nil
 end
 
--- Get the reaction type for the "target" unit
-local function GetTargetReaction()
-  return GetUnitReactionType("target")
-end
-
 -- Update crosshair appearance based on unit under cursor
 local function UpdateCrosshairReaction()
   if not CM.DB.global.crosshair or HideCrosshairWhileMounted() then
     return
   end
 
+  -- Check for focus target first (highest priority)
+  local hasFocus = UnitExists("focus")
+
   local currentUnit, currentReaction = GetUnitUnderCursor()
 
-  -- Update if unit changed OR if reaction type changed (for same unit)
-  if currentUnit ~= lastKnownUnit or currentReaction ~= lastKnownUnitReaction then
-    lastKnownUnit = currentUnit
-    lastKnownUnitReaction = currentReaction
+  -- Determine the appearance state: focus takes priority over unit under cursor
+  local appearanceState
+  if hasFocus then
+    appearanceState = "focus"
+  elseif currentUnit then
+    appearanceState = currentReaction or "base"
+  else
+    appearanceState = "base"
+  end
 
-    if currentUnit then
-      SetCrosshairAppearance(currentReaction or "base")
-    else
-      SetCrosshairAppearance("base")
-    end
+  -- Only update if the appearance state actually changed (prevents scale animations when mouseover changes while focus is active)
+  if appearanceState ~= lastKnownAppearanceState then
+    lastKnownAppearanceState = appearanceState
+    SetCrosshairAppearance(appearanceState)
   end
 end
 
@@ -659,7 +663,7 @@ local function UpdateCrosshairLockIn(_, elapsed)
   CrosshairFrame:SetPoint("CENTER", 0, LOCK_IN_ORIGINAL_Y_POS / currentScale)
 end
 
-function CM.ShowCrosshairLockIn(targetReaction)
+function CM.ShowCrosshairLockIn()
   if not CM.DB.global.crosshair then
     return
   end
@@ -667,84 +671,21 @@ function CM.ShowCrosshairLockIn(targetReaction)
   CrosshairTexture:Show()
   local crosshairYPos = CM.DB.global.crosshairY or 0
 
-  -- If targetReaction is provided, we're transitioning from base to reaction state
-  if targetReaction then
-    -- First, reset to base state immediately
-    SetCrosshairAppearance("base")
+  -- Lock-in animation from current state
+  local currentScale = CrosshairFrame:GetScale()
+  local currentAlpha = CrosshairFrame:GetAlpha()
 
-    -- Store the target reaction for when animation completes
-    local targetReactionToSet = targetReaction
+  LOCK_IN_ORIGINAL_Y_POS = crosshairYPos
+  LOCK_IN_STARTING_SCALE = currentScale * 1.3
+  LOCK_IN_STARTING_ALPHA = 0.0
+  LOCK_IN_TARGET_SCALE = currentScale
+  LOCK_IN_TARGET_ALPHA = currentAlpha
 
-    -- Use a small delay to ensure base state is visible before starting animation
-    -- Use _G.C_Timer if available, otherwise fall back to immediate execution
-    local timerFunc = _G.C_Timer and _G.C_Timer.After
-    if timerFunc then
-      timerFunc(0.05, function()
-        local DefaultConfig = CM.Constants.DatabaseDefaults.global
-        local UserConfig = CM.DB.global or {}
-        local baseOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
+  CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / LOCK_IN_STARTING_SCALE)
+  CrosshairFrame:SetScale(LOCK_IN_STARTING_SCALE)
+  CrosshairFrame:SetAlpha(LOCK_IN_STARTING_ALPHA)
 
-        LOCK_IN_ORIGINAL_Y_POS = crosshairYPos
-        LOCK_IN_STARTING_SCALE = STARTING_SCALE * 1.3
-        LOCK_IN_STARTING_ALPHA = 0.0
-
-        -- Determine target scale based on reaction (base uses STARTING_SCALE, others use ENDING_SCALE)
-        local targetScale = targetReactionToSet == "base" and STARTING_SCALE or ENDING_SCALE
-        LOCK_IN_TARGET_SCALE = targetScale
-        LOCK_IN_TARGET_ALPHA = baseOpacity
-
-        -- Set the final appearance after animation completes
-        CrosshairAnimation:SetScript("OnFinished", function()
-          SetCrosshairAppearance(targetReactionToSet)
-        end)
-
-        CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / LOCK_IN_STARTING_SCALE)
-        CrosshairFrame:SetScale(LOCK_IN_STARTING_SCALE)
-        CrosshairFrame:SetAlpha(LOCK_IN_STARTING_ALPHA)
-
-        LOCK_IN_TOTAL_ELAPSED = 0
-      end)
-    else
-      -- Fallback: execute immediately if C_Timer is not available
-      local DefaultConfig = CM.Constants.DatabaseDefaults.global
-      local UserConfig = CM.DB.global or {}
-      local baseOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
-
-      LOCK_IN_ORIGINAL_Y_POS = crosshairYPos
-      LOCK_IN_STARTING_SCALE = STARTING_SCALE * 1.3
-      LOCK_IN_STARTING_ALPHA = 0.0
-
-      local targetScale = targetReactionToSet == "base" and STARTING_SCALE or ENDING_SCALE
-      LOCK_IN_TARGET_SCALE = targetScale
-      LOCK_IN_TARGET_ALPHA = baseOpacity
-
-      CrosshairAnimation:SetScript("OnFinished", function()
-        SetCrosshairAppearance(targetReactionToSet)
-      end)
-
-      CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / LOCK_IN_STARTING_SCALE)
-      CrosshairFrame:SetScale(LOCK_IN_STARTING_SCALE)
-      CrosshairFrame:SetAlpha(LOCK_IN_STARTING_ALPHA)
-
-      LOCK_IN_TOTAL_ELAPSED = 0
-    end
-  else
-    -- Original behavior: lock-in from current state
-    local currentScale = CrosshairFrame:GetScale()
-    local currentAlpha = CrosshairFrame:GetAlpha()
-
-    LOCK_IN_ORIGINAL_Y_POS = crosshairYPos
-    LOCK_IN_STARTING_SCALE = currentScale * 1.3
-    LOCK_IN_STARTING_ALPHA = 0.0
-    LOCK_IN_TARGET_SCALE = currentScale
-    LOCK_IN_TARGET_ALPHA = currentAlpha
-
-    CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / LOCK_IN_STARTING_SCALE)
-    CrosshairFrame:SetScale(LOCK_IN_STARTING_SCALE)
-    CrosshairFrame:SetAlpha(LOCK_IN_STARTING_ALPHA)
-
-    LOCK_IN_TOTAL_ELAPSED = 0
-  end
+  LOCK_IN_TOTAL_ELAPSED = 0
 end
 
 -- Hook into crosshair frame's OnUpdate (reuse existing or add to it)
@@ -962,8 +903,8 @@ local function ResolveActionButtonFrame(bindingValue)
   return BindingToClickFrame[bindingValue]
 end
 
-local CLICKCAST_PRE_LINE_ANY = "/target [nomounted,@mouseover,exists]" -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
-local CLICKCAST_PRE_LINE_ENEMY = "/target [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
+local CLICKCAST_PRE_LINE_ANY = "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,exists] mouseover" -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
+local CLICKCAST_PRE_LINE_ENEMY = "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
 
 -- Returns true if spellId is in the user's "Cast @Cursor Spells" list (comma-separated names in options).
 local function IsCastAtCursorSpell(spellId)
@@ -1337,7 +1278,12 @@ local function Rematch()
     -- Re-apply crosshair frame from config (scale, alpha, position) so we are not left
     -- in a half-finished animation state after loading screen / zone change
     CM.CreateCrosshair()
-    SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
+    -- Update crosshair appearance based on current state (focus, unit under cursor, etc.)
+    if HideCrosshairWhileMounted() then
+      SetCrosshairAppearance("mounted")
+    else
+      UpdateCrosshairReaction()
+    end
 
     if CM.DB.char.stickyCrosshair then
       CM.ConfigStickyCrosshair("combatmode")
@@ -1385,7 +1331,24 @@ local function HandleEventByCategory(category, event)
       end
     end,
     UNCATEGORIZED_EVENTS = function()
-      SetCrosshairAppearance(HideCrosshairWhileMounted() and "mounted" or "base")
+      -- Update crosshair appearance based on current state (focus, unit under cursor, etc.)
+      -- Only override with mounted/base if actually mounted, otherwise use UpdateCrosshairReaction
+      if HideCrosshairWhileMounted() then
+        SetCrosshairAppearance("mounted")
+        lastKnownAppearanceState = "mounted"
+        -- Hide crosshair when mounted
+        if IsMouselooking() then
+          CM.DisplayCrosshair(false)
+        end
+      else
+        -- Reset appearance state tracking to force update when dismounting
+        lastKnownAppearanceState = nil
+        UpdateCrosshairReaction()
+        -- Show crosshair when dismounting (if mouselook is active) - call after UpdateCrosshairReaction to ensure it's visible
+        if IsMouselooking() then
+          CM.DisplayCrosshair(true)
+        end
+      end
     end,
     REFRESH_BINDINGS_EVENTS = function()
       if _G.C_Timer and _G.C_Timer.After then
@@ -1406,41 +1369,16 @@ local function HandleEventByCategory(category, event)
         CM.HealingRadial.OnActionBarChanged()
       end
     end,
-    -- TARGET_LOCK_EVENTS = function()
-    --   if event == "PLAYER_TARGET_CHANGED" then
-    --     -- Only proceed if crosshair animation is enabled
-    --     if not CM.DB.global.crosshairAnimation then
-    --       return
-    --     end
-
-    --     -- Check if target exists and is hard locked (not loose)
-    --     if UnitExists("target") then
-    --       -- Check if IsTargetLoose API exists and use it to determine if target is soft locked
-    --       -- IsTargetLoose may take a unitID parameter or no parameters (checking current target)
-    --       local isTargetLoose = false
-    --       if _G.IsTargetLoose then
-    --         -- Try calling with unitID first, fall back to no arguments if that fails
-    --         local success, result = pcall(_G.IsTargetLoose, "target")
-    --         if success then
-    --           isTargetLoose = result
-    --         else
-    --           -- Try without arguments (checks current target)
-    --           success, result = pcall(_G.IsTargetLoose)
-    --           if success then
-    --             isTargetLoose = result
-    --           end
-    --         end
-    --       end
-
-    --       -- If target is NOT loose (i.e., hard locked), play the lock-in animation
-    --       if not isTargetLoose then
-    --         local targetReaction = GetTargetReaction()
-    --         CM.ShowCrosshairLockIn(targetReaction)
-    --         CM.DebugPrint("Hard lock detected, playing crosshair lock-in animation (reaction: " .. targetReaction .. ")")
-    --       end
-    --     end
-    --   end
-    -- end,
+    FOCUS_LOCK_EVENTS = function()
+      if event == "PLAYER_FOCUS_CHANGED" then
+        -- Play lock-in animation when focus is set (only if focus exists and mouselook is active)
+        if UnitExists("focus") and IsMouselooking() then
+          CM.ShowCrosshairLockIn()
+        end
+        -- Update crosshair appearance to show focus state
+        UpdateCrosshairReaction()
+      end
+    end,
 
   }
 

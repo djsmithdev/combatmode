@@ -151,9 +151,9 @@ CM.Constants.BLIZZARD_EVENTS = {
     "UNIT_ENTERED_VEHICLE",      -- Player entered a vehicle (alternative)
     "UNIT_EXITED_VEHICLE",       -- Player exited a vehicle (alternative)
   },
-  -- Events for target lock detection
-  TARGET_LOCK_EVENTS = {
-    "PLAYER_TARGET_CHANGED",    -- Target changed (hard lock detection)
+  -- Events for focus lock detection
+  FOCUS_LOCK_EVENTS = {
+    "PLAYER_FOCUS_CHANGED",     -- Focus changed (lock-in animation)
   },
 
 }
@@ -235,7 +235,8 @@ CM.Constants.CrosshairReactionColors = {
   friendly_player = {0.3, 0.6, 1, 0.8}, -- blue (friendly players)
   object = {1, 0.8, 0.2, 0.8}, -- yellow
   base = {1, 1, 1, 0.5}, -- white
-  mounted = {1, 1, 1, 0} -- transparent
+  mounted = {1, 1, 1, 0}, -- transparent
+  focus = {1, 0, 1, 1} -- purple
 }
 
 ---------------------------------------------------------------------------------------
@@ -632,13 +633,13 @@ local DefaultBindings = {
   altbutton1 = {
     enabled = true,
     key = "ALT-BUTTON1",
-    value = "ACTIONBUTTON7",
+    value = "FOCUSTARGET",
     macroName = ""
   },
   altbutton2 = {
     enabled = true,
     key = "ALT-BUTTON2",
-    value = "ACTIONBUTTON8",
+    value = "CLEARFOCUS",
     macroName = ""
   },
   toggle = {
@@ -665,7 +666,6 @@ CM.Constants.DatabaseDefaults = {
     customCondition = "",
     crosshair = true,
     crosshairMounted = false,
-    -- crosshairAnimation = false,
     hideTooltip = true,
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
     crosshairSize = 64,

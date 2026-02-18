@@ -726,22 +726,6 @@ local CrosshairGroup = {
         return CM.DynamicCam or CM.DB.global.crosshair ~= true
       end
     },
-    -- crosshairAnimation = {
-    --   type = "toggle",
-    --   name = "Target Lock-in Animation",
-    --   desc = "Animates the crosshair when locking onto a new target. The animation resets the crosshair to base state, then transitions to the appropriate appearance based on the target's reaction.\n\n|cffffd700Default:|r |cffE52B50Off|r",
-    --   width = 1.4,
-    --   order = 3.1,
-    --   set = function(_, value)
-    --     CM.DB.global.crosshairAnimation = value
-    --   end,
-    --   get = function()
-    --     return CM.DB.global.crosshairAnimation
-    --   end,
-    --   disabled = function()
-    --     return CM.DB.global.crosshair ~= true
-    --   end
-    -- },
     spacing2 = Spacing("full", 3.2),
     crosshairAppearance = {
       name = "Crosshair Appearance",
@@ -831,9 +815,9 @@ local CrosshairGroup = {
       type = "range",
       name = "Crosshair Vertical Position",
       desc = "Adjusts the vertical position of the crosshair. \n\n|cffffd700Default:|r |cff00FF7F100|r",
-      min = 0,
+      min = -200,
       max = 200,
-      softMin = 0,
+      softMin = -200,
       softMax = 200,
       step = 10,
       width = 1.75,
