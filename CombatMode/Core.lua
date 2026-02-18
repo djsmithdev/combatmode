@@ -1030,6 +1030,8 @@ for i, key in ipairs(CLICKCAST_KEYS) do
 end
 
 local function BuildClickCastMacroText(bindingValue)
+  -- When reticle targeting is off, no macro wrapping (no pre-line, no castAtCursor, no excludeFromTargeting).
+  if not CM.DB.char.reticleTargeting then return nil end
   -- For ACTIONBUTTON bindings, use a conditional /click so action bar type is resolved
   -- at macro run time (works when action bars change in combat; we can't refresh bindings then).
   local buttonNum = bindingValue:match("^ACTIONBUTTON(%d+)$")
@@ -1119,9 +1121,10 @@ end
 local function ApplyGroundCastKeyOverrides()
   if InCombatLockdown() then return end
   ClearOverrideBindings(GroundCastKeyOverrideOwner)
-  if CM.DB.char.reticleTargeting and CM.DB.char.macroInjectionClickCastOnly then
-    return
-  end
+  -- When reticle targeting is off, no macro injection on keybinds at all.
+  if not CM.DB.char.reticleTargeting then return end
+  -- When macroInjectionClickCastOnly is on, only click-cast bindings get injection; skip keyboard overrides.
+  if CM.DB.char.macroInjectionClickCastOnly then return end
   for _, bindingName in ipairs(OrderedBindingNames) do
     local key = GetBindingKey(bindingName)
     if key then
@@ -1169,18 +1172,23 @@ function CM.SetNewBinding(buttonSettings)
   elseif value == "CLEARFOCUS" then
     valueToUse = "MACRO CM_ClearFocus"
   else
-    local realFrame = ResolveActionButtonFrame(value)
-    if realFrame and IsSlotMacro(value) then
-      -- Slot is a macro: bind key to click the real action bar button so the macro runs as written.
-      valueToUse = "CLICK " .. realFrame .. ":" .. ClickCastMouseButton(key)
+    -- When reticle targeting is off, no macro wrapping: use raw binding (no pre-line, no castAtCursor/excludeFromTargeting).
+    if not CM.DB.char.reticleTargeting then
+      valueToUse = value
     else
-      local frame = ClickCastFramesByKey[key]
-      local macroText = BuildClickCastMacroText(value)
-      if frame and macroText then
-        SetClickCastFrameMacro(frame, macroText)
-        valueToUse = "CLICK " .. frame:GetName() .. ":" .. ClickCastMouseButton(key)
+      local realFrame = ResolveActionButtonFrame(value)
+      if realFrame and IsSlotMacro(value) then
+        -- Slot is a macro: bind key to click the real action bar button so the macro runs as written.
+        valueToUse = "CLICK " .. realFrame .. ":" .. ClickCastMouseButton(key)
       else
-        valueToUse = value
+        local frame = ClickCastFramesByKey[key]
+        local macroText = BuildClickCastMacroText(value)
+        if frame and macroText then
+          SetClickCastFrameMacro(frame, macroText)
+          valueToUse = "CLICK " .. frame:GetName() .. ":" .. ClickCastMouseButton(key)
+        else
+          valueToUse = value
+        end
       end
     end
   end
@@ -1398,41 +1406,41 @@ local function HandleEventByCategory(category, event)
         CM.HealingRadial.OnActionBarChanged()
       end
     end,
-    TARGET_LOCK_EVENTS = function()
-      if event == "PLAYER_TARGET_CHANGED" then
-        -- Only proceed if crosshair animation is enabled
-        if not CM.DB.global.crosshairAnimation then
-          return
-        end
+    -- TARGET_LOCK_EVENTS = function()
+    --   if event == "PLAYER_TARGET_CHANGED" then
+    --     -- Only proceed if crosshair animation is enabled
+    --     if not CM.DB.global.crosshairAnimation then
+    --       return
+    --     end
 
-        -- Check if target exists and is hard locked (not loose)
-        if UnitExists("target") then
-          -- Check if IsTargetLoose API exists and use it to determine if target is soft locked
-          -- IsTargetLoose may take a unitID parameter or no parameters (checking current target)
-          local isTargetLoose = false
-          if _G.IsTargetLoose then
-            -- Try calling with unitID first, fall back to no arguments if that fails
-            local success, result = pcall(_G.IsTargetLoose, "target")
-            if success then
-              isTargetLoose = result
-            else
-              -- Try without arguments (checks current target)
-              success, result = pcall(_G.IsTargetLoose)
-              if success then
-                isTargetLoose = result
-              end
-            end
-          end
+    --     -- Check if target exists and is hard locked (not loose)
+    --     if UnitExists("target") then
+    --       -- Check if IsTargetLoose API exists and use it to determine if target is soft locked
+    --       -- IsTargetLoose may take a unitID parameter or no parameters (checking current target)
+    --       local isTargetLoose = false
+    --       if _G.IsTargetLoose then
+    --         -- Try calling with unitID first, fall back to no arguments if that fails
+    --         local success, result = pcall(_G.IsTargetLoose, "target")
+    --         if success then
+    --           isTargetLoose = result
+    --         else
+    --           -- Try without arguments (checks current target)
+    --           success, result = pcall(_G.IsTargetLoose)
+    --           if success then
+    --             isTargetLoose = result
+    --           end
+    --         end
+    --       end
 
-          -- If target is NOT loose (i.e., hard locked), play the lock-in animation
-          if not isTargetLoose then
-            local targetReaction = GetTargetReaction()
-            CM.ShowCrosshairLockIn(targetReaction)
-            CM.DebugPrint("Hard lock detected, playing crosshair lock-in animation (reaction: " .. targetReaction .. ")")
-          end
-        end
-      end
-    end,
+    --       -- If target is NOT loose (i.e., hard locked), play the lock-in animation
+    --       if not isTargetLoose then
+    --         local targetReaction = GetTargetReaction()
+    --         CM.ShowCrosshairLockIn(targetReaction)
+    --         CM.DebugPrint("Hard lock detected, playing crosshair lock-in animation (reaction: " .. targetReaction .. ")")
+    --       end
+    --     end
+    --   end
+    -- end,
 
   }
 
