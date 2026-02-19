@@ -140,6 +140,7 @@ CM.Constants.BLIZZARD_EVENTS = {
   },
   -- Events that trigger refresh of click-cast bindings (and Healing Radial slice attrs when applicable)
   REFRESH_BINDINGS_EVENTS = {
+    "UPDATE_BINDINGS",           -- User changed/saved keybinds; refresh overrides so they match new bindings
     "HOUSE_EDITOR_MODE_CHANGED", -- Enter/exit housing edit mode; refresh so action bar overrides are skipped in editor
     "GROUP_ROSTER_UPDATE",       -- Party composition changed
     "ACTIONBAR_SLOT_CHANGED",    -- Action bar spell/item changed
