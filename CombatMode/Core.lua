@@ -1123,24 +1123,11 @@ function CM.ApplyGroundCastKeyOverrides()
     if key then
       local realFrame = ResolveActionButtonFrame(bindingName)
       if realFrame and IsSlotMacro(bindingName) then
-        -- Slot is a macro: use conditional click macro so it works when override bar is active or inactive
-        -- (prevents broken bindings after dismounting from skyriding mounts with override bars)
-        local buttonNum = bindingName:match("^ACTIONBUTTON(%d+)$")
-        if buttonNum then
-          -- ACTIONBUTTON binding: use conditional click that checks override bar at runtime
-          local frame = SlotFramesByBindingName[bindingName]
-          if frame then
-            local conditionalClickMacro = "/click [overridebar] OverrideActionBarButton" .. buttonNum .. "; ActionButton" .. buttonNum
-            SetClickCastFrameMacro(frame, conditionalClickMacro)
-            SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, frame:GetName(), "LeftButton")
-          else
-            -- Fallback: direct click to resolved frame (shouldn't happen, but safe)
-            SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, realFrame, "LeftButton")
-          end
-        else
-          -- Non-ACTIONBUTTON binding: direct click to resolved frame
-          SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, realFrame, "LeftButton")
-        end
+        -- Slot is a macro: bind key to click the real action bar button directly (same as click-cast path).
+        -- Using an intermediate frame with a /click macro breaks in default UI (key doesn't fire the macro).
+        -- We refresh on UPDATE_OVERRIDE_ACTIONBAR etc., so the key will click OverrideActionBarButton when
+        -- mounted and ActionButton when not. In-combat dismount cannot refresh, so key may stay on override bar until out of combat.
+        SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, realFrame, "LeftButton")
       else
         local frame = SlotFramesByBindingName[bindingName]
         local macroText = BuildClickCastMacroText(bindingName)
