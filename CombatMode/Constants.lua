@@ -104,7 +104,8 @@ CM.Constants.BlizzardTagetFocusCVarValues = {
 CM.Constants.Macros = {
   CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",
   CM_ClearFocus = "/stopmacro [noexists]\n/clearfocus",
-  CM_ToggleFocus = "/focus [@focus,exists] none; [@target,exists][]",
+  CM_ToggleFocusAny = "/focus [@focus,exists] none; [@mouseover,exists][]",
+  CM_ToggleFocusEnemy = "/focus [@focus,exists] none; [@mouseover,exists,harm,nodead][]",
 }
 
 ---------------------------------------------------------------------------------------
@@ -139,6 +140,7 @@ CM.Constants.BLIZZARD_EVENTS = {
   },
   -- Events that trigger refresh of click-cast bindings (and Healing Radial slice attrs when applicable)
   REFRESH_BINDINGS_EVENTS = {
+    "HOUSE_EDITOR_MODE_CHANGED", -- Enter/exit housing edit mode; refresh so action bar overrides are skipped in editor
     "GROUP_ROSTER_UPDATE",       -- Party composition changed
     "ACTIONBAR_SLOT_CHANGED",    -- Action bar spell/item changed
     "UPDATE_VEHICLE_ACTIONBAR",  -- Vehicle action bar updated
@@ -576,7 +578,8 @@ CM.Constants.ActionsToProcess = {
 CM.Constants.OverrideActions = {
   CLEARFOCUS = "|cff69ccf0Clear Focus|r",
   CLEARTARGET = "|cff69ccf0Clear Target|r",
-  TOGGLEFOCUS = "|cff69ccf0Toggle Focus|r",
+  TOGGLEFOCUSANY = "|cff69ccf0Toggle Focus Any|r",
+  TOGGLEFOCUSENEMY = "|cff69ccf0Toggle Focus Enemy|r",
   MACRO = "|cff69ccf0Run MACRO|r"
 }
 

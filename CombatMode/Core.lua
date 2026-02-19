@@ -670,16 +670,18 @@ function CM.ShowCrosshairLockIn()
 
   CrosshairTexture:Show()
   local crosshairYPos = CM.DB.global.crosshairY or 0
+  local DefaultConfig = CM.Constants.DatabaseDefaults.global
+  local UserConfig = CM.DB.global or {}
+  local configuredOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
 
-  -- Lock-in animation from current state
+  -- Start from current visual state so rapid re-triggers don't jump; always animate TO configured rest state
+  -- so stacking (lock/unlock many times quickly) doesn't leave crosshair dimmed or wrong scale.
   local currentScale = CrosshairFrame:GetScale()
-  local currentAlpha = CrosshairFrame:GetAlpha()
-
   LOCK_IN_ORIGINAL_Y_POS = crosshairYPos
   LOCK_IN_STARTING_SCALE = currentScale * 1.3
   LOCK_IN_STARTING_ALPHA = 0.0
-  LOCK_IN_TARGET_SCALE = currentScale
-  LOCK_IN_TARGET_ALPHA = currentAlpha
+  LOCK_IN_TARGET_SCALE = 1.0
+  LOCK_IN_TARGET_ALPHA = configuredOpacity
 
   CrosshairFrame:SetPoint("CENTER", 0, crosshairYPos / LOCK_IN_STARTING_SCALE)
   CrosshairFrame:SetScale(LOCK_IN_STARTING_SCALE)
@@ -778,6 +780,13 @@ local function IsInPetBattle()
   else
     return false
   end
+end
+
+-- House Editor (housing) is active; do not override action bar keys so housing bindings (e.g. R to return item) work.
+local function IsHouseEditorActive()
+  if not _G.C_HouseEditor or not _G.C_HouseEditor.IsHouseEditorActive then return false end
+  local ok, active = pcall(_G.C_HouseEditor.IsHouseEditorActive)
+  return ok and active
 end
 
 local function IsUnlockFrameVisible()
@@ -974,8 +983,14 @@ end
 local ToggleFocusTargetOverrideOwner = CreateFrame("Frame", nil, UIParent)
 local ToggleFocusTargetButton = CreateFrame("Button", "CombatModeToggleFocusTarget", ToggleFocusTargetOverrideOwner, "SecureActionButtonTemplate")
 ToggleFocusTargetButton:SetAttribute("type", "macro")
-ToggleFocusTargetButton:SetAttribute("macrotext", "/focus [@focus,exists] none; [@target,exists][]")
+-- macrotext set by UpdateToggleFocusTargetMacroText() based on reticleTargetingEnemyOnly
 ToggleFocusTargetButton:RegisterForClicks("AnyUp", "AnyDown")
+
+local function UpdateToggleFocusTargetMacroText()
+  if not ToggleFocusTargetButton then return end
+  local macroText = CM.DB.char.reticleTargetingEnemyOnly and CM.Constants.Macros.CM_ToggleFocusEnemy or CM.Constants.Macros.CM_ToggleFocusAny
+  ToggleFocusTargetButton:SetAttribute("macrotext", macroText)
+end
 
 local function BuildClickCastMacroText(bindingValue)
   -- When reticle targeting is off, no macro wrapping (no pre-line, no castAtCursor, no excludeFromTargeting).
@@ -1073,6 +1088,8 @@ function CM.ApplyGroundCastKeyOverrides()
   if not CM.DB.char.reticleTargeting then return end
   -- When macroInjectionClickCastOnly is on, only click-cast bindings get injection; skip keyboard overrides.
   if CM.DB.char.macroInjectionClickCastOnly then return end
+  -- When House Editor (housing) is active, do not override action bar keys so housing bindings (e.g. R to return item to box) work.
+  if IsHouseEditorActive() then return end
   for _, bindingName in ipairs(OrderedBindingNames) do
     local key = GetBindingKey(bindingName)
     if key then
@@ -1119,8 +1136,10 @@ function CM.SetNewBinding(buttonSettings)
     valueToUse = "MACRO CM_ClearTarget"
   elseif value == "CLEARFOCUS" then
     valueToUse = "MACRO CM_ClearFocus"
-  elseif value == "TOGGLEFOCUS" then
-    valueToUse = "MACRO CM_ToggleFocus"
+  elseif value == "TOGGLEFOCUSANY" then
+    valueToUse = "MACRO CM_ToggleFocusAny"
+  elseif value == "TOGGLEFOCUSENEMY" then
+    valueToUse = "MACRO CM_ToggleFocusEnemy"
   else
     -- When reticle targeting is off, no macro wrapping: use raw binding (no pre-line, no castAtCursor/excludeFromTargeting).
     if not CM.DB.char.reticleTargeting then
@@ -1350,9 +1369,13 @@ local function HandleEventByCategory(category, event)
         -- Reset appearance state tracking to force update when dismounting
         lastKnownAppearanceState = nil
         UpdateCrosshairReaction()
-        -- Show crosshair when dismounting (if mouselook is active) - call after UpdateCrosshairReaction to ensure it's visible
+        -- Show crosshair when dismounting / leaving combat (if mouselook is active) only when Show Crosshair is enabled
         if IsMouselooking() then
-          CM.DisplayCrosshair(true)
+          if CM.DB.global.crosshair then
+            CM.DisplayCrosshair(true)
+          else
+            CM.DisplayCrosshair(false)
+          end
         end
       end
     end,
@@ -1504,6 +1527,7 @@ end
 -- Apply override binding for toggle focus target
 function CM.ApplyToggleFocusTargetBinding()
   if InCombatLockdown() then return end
+  UpdateToggleFocusTargetMacroText()
   local key = GetBindingKey("Combat Mode - Toggle Focus Target")
   if key then
     ClearOverrideBindings(ToggleFocusTargetOverrideOwner)
@@ -1584,12 +1608,7 @@ function CM:OnEnable()
   CreatePulse()
   CreateTargetMacros()
 
-  -- Ensure toggle focus target button macrotext is set
-  if ToggleFocusTargetButton and CM.Constants.Macros.CM_ToggleFocus then
-    ToggleFocusTargetButton:SetAttribute("macrotext", CM.Constants.Macros.CM_ToggleFocus)
-  end
-  
-  -- Apply toggle focus target override binding
+  -- Toggle focus target: macrotext (Any vs Enemy) set inside ApplyToggleFocusTargetBinding
   CM.ApplyToggleFocusTargetBinding()
 
   -- Initialize Healing Radial module
