@@ -1018,6 +1018,20 @@ local function BuildClickCastMacroText(bindingValue)
     castLine = "/click " .. clickFrame
   end
 
+  -- For ACTIONBUTTON bindings, check slot directly (same as IsSlotMacro) to avoid stale action attributes after dismounting
+  if useConditionalClick and buttonNum then
+    local slotNum = tonumber(buttonNum)
+    if slotNum and slotNum >= 1 and slotNum <= 12 then
+      local getOk, atype = pcall(GetActionInfo, slotNum)
+      if getOk then
+        -- Slot is a macro: don't inject pre-line so the macro runs as written (e.g. [mod:shift], [@cursor]).
+        if atype == "macro" then
+          return castLine
+        end
+      end
+    end
+  end
+
   local ok, actionFrame = pcall(function() return _G[clickFrame] end)
   if ok and actionFrame then
     local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action") or actionFrame.action
@@ -1067,10 +1081,24 @@ local function SetClickCastFrameMacro(frame, macroText)
 end
 
 -- Returns true if the given action bar binding (e.g. ACTIONBUTTON5) currently has a macro in that slot.
+-- Always checks the regular ActionButton slot directly, not override/bonus bars, since macros are stored in the slot itself.
 local function IsSlotMacro(bindingValue)
-  local clickFrame = ResolveActionButtonFrame(bindingValue)
-  if not clickFrame then return false end
-  local ok, actionFrame = pcall(function() return _G[clickFrame] end)
+  -- For ACTIONBUTTON bindings, check the slot number directly (1-12) instead of using the frame's action attribute,
+  -- which may be stale after dismounting (e.g., still pointing to override bar action 127 that no longer exists)
+  local buttonNum = bindingValue:match("^ACTIONBUTTON(%d+)$")
+  if buttonNum then
+    local slotNum = tonumber(buttonNum)
+    if slotNum and slotNum >= 1 and slotNum <= 12 then
+      -- Check the slot directly - this works even when frame's action attribute is stale after dismounting
+      local getOk, atype = pcall(GetActionInfo, slotNum)
+      return getOk and atype == "macro"
+    end
+  end
+
+  -- For non-ACTIONBUTTON bindings, use resolved frame and check its action
+  local frameToCheck = ResolveActionButtonFrame(bindingValue)
+  if not frameToCheck then return false end
+  local ok, actionFrame = pcall(function() return _G[frameToCheck] end)
   if not ok or not actionFrame then return false end
   local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action") or actionFrame.action
   local action = rawAction and tonumber(rawAction)
@@ -1095,8 +1123,24 @@ function CM.ApplyGroundCastKeyOverrides()
     if key then
       local realFrame = ResolveActionButtonFrame(bindingName)
       if realFrame and IsSlotMacro(bindingName) then
-        -- Slot is a macro: override key to click the real action bar button so the macro runs.
-        SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, realFrame, "LeftButton")
+        -- Slot is a macro: use conditional click macro so it works when override bar is active or inactive
+        -- (prevents broken bindings after dismounting from skyriding mounts with override bars)
+        local buttonNum = bindingName:match("^ACTIONBUTTON(%d+)$")
+        if buttonNum then
+          -- ACTIONBUTTON binding: use conditional click that checks override bar at runtime
+          local frame = SlotFramesByBindingName[bindingName]
+          if frame then
+            local conditionalClickMacro = "/click [overridebar] OverrideActionBarButton" .. buttonNum .. "; ActionButton" .. buttonNum
+            SetClickCastFrameMacro(frame, conditionalClickMacro)
+            SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, frame:GetName(), "LeftButton")
+          else
+            -- Fallback: direct click to resolved frame (shouldn't happen, but safe)
+            SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, realFrame, "LeftButton")
+          end
+        else
+          -- Non-ACTIONBUTTON binding: direct click to resolved frame
+          SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, realFrame, "LeftButton")
+        end
       else
         local frame = SlotFramesByBindingName[bindingName]
         local macroText = BuildClickCastMacroText(bindingName)
