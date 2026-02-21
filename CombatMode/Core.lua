@@ -60,6 +60,7 @@ local UnitIsGameObject = _G.UnitIsGameObject
 local UnitReaction = _G.UnitReaction
 local UnitIsPlayer = _G.UnitIsPlayer
 local unpack = _G.unpack
+local C_Timer = _G.C_Timer
 
 -- INSTANTIATING ADDON & ENCAPSULATING NAMESPACE
 local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
@@ -1255,8 +1256,16 @@ end
 function CM.LockFreeLook()
   if not IsMouselooking() then
     MouselookStart()
-    CenterCursor(true)
-    HandleFreeLookUIState(true, false)
+    -- Defer UI state changes to avoid taint during protected mouselook initialization
+    if C_Timer and C_Timer.After then
+      C_Timer.After(0, function()
+        CenterCursor(true)
+        HandleFreeLookUIState(true, false)
+      end)
+    else
+      CenterCursor(true)
+      HandleFreeLookUIState(true, false)
+    end
     CM.ShowCrosshairLockIn()
     -- Notify Healing Radial of mouselook state change
     if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
@@ -1268,14 +1277,22 @@ end
 
 function CM.UnlockFreeLook()
   if IsMouselooking() then
-    CenterCursor(false)
+    -- Defer UI state changes to avoid taint during protected mouselook operations
+    if C_Timer and C_Timer.After then
+      C_Timer.After(0, function()
+        CenterCursor(false)
+        HandleFreeLookUIState(false, false)
+      end)
+    else
+      CenterCursor(false)
+      HandleFreeLookUIState(false, false)
+    end
     MouselookStop()
 
     if CM.DB.global.pulseCursor then
       CM.ShowCursorPulse()
     end
 
-    HandleFreeLookUIState(false, false)
     -- Notify Healing Radial of mouselook state change
     if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
       CM.HealingRadial.OnMouselookChanged(false)
@@ -1286,14 +1303,22 @@ end
 
 local function UnlockFreeLookPermanent()
   if IsMouselooking() then
-    CenterCursor(false)
+    -- Defer UI state changes to avoid taint during protected mouselook operations
+    if C_Timer and C_Timer.After then
+      C_Timer.After(0, function()
+        CenterCursor(false)
+        HandleFreeLookUIState(false, true)
+      end)
+    else
+      CenterCursor(false)
+      HandleFreeLookUIState(false, true)
+    end
     MouselookStop()
 
     if CM.DB.global.pulseCursor then
       CM.ShowCursorPulse()
     end
 
-    HandleFreeLookUIState(false, true)
     -- Notify Healing Radial of mouselook state change
     if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
       CM.HealingRadial.OnMouselookChanged(false)
@@ -1414,8 +1439,8 @@ local function HandleEventByCategory(category, event)
       end
     end,
     REFRESH_BINDINGS_EVENTS = function()
-      if _G.C_Timer and _G.C_Timer.After then
-        _G.C_Timer.After(0.1, function()
+      if C_Timer and C_Timer.After then
+        C_Timer.After(0.1, function()
           CM.DebugPrint("Action Bar state changed, refreshing binding macros")
           CM.RefreshClickCastMacros()
         end)
@@ -1572,8 +1597,7 @@ end
 
 -- Handler for toggle focus target keybinding (fallback - should be overridden)
 function _G.CombatMode_ToggleFocusTarget()
-  -- This should be overridden by SetOverrideBindingClick, but kept as fallback
-  CM.DebugPrint("Toggle Focus Target handler called (should be overridden)")
+    -- Nothing inside here will work as it will be overriden by ApplyToggleFocusTargetBinding calling UpdateToggleFocusTargetMacroText
 end
 
 -- CREATING /CM CHAT COMMAND

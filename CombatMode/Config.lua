@@ -696,7 +696,7 @@ local CrosshairGroup = {
       type = "toggle",
       name = "Show Crosshair",
       desc = "Places a dynamic crosshair marker in the center of the screen to assist with |cff00FFFFReticle Targeting|r.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = 2.04,
+      width = 1.75,
       order = 1,
       set = function(_, value)
         CM.DB.global.crosshair = value
@@ -710,11 +710,12 @@ local CrosshairGroup = {
         return CM.DB.global.crosshair
       end
     },
+    spacing = Spacing(0.15, 1.1),
     crosshairMounted = {
       type = "toggle",
       name = "Hide Crosshair While Mounted",
       desc = "Hides the crosshair while mounted.\n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = 1.4,
+      width = 1.75,
       order = 2,
       set = function(_, value)
         CM.DB.global.crosshairMounted = value
@@ -730,7 +731,7 @@ local CrosshairGroup = {
       type = "toggle",
       name = "Sticky Crosshair |cff3B73FF©|r |cffE37527•|r",
       desc = "|cff3B73FF© Character-based option|r\n\nMakes the crosshair stick to enemies slightly, making it harder to untarget them by accident.\n\n|cffE37527•|r |cff909090If detected, control of this feature will be relinquished to |cffE37527DynamicCam|r. \n\n|cffffd700Default:|r |cffE52B50Off|r",
-      width = 2.04,
+      width = 1.75,
       order = 3,
       set = function(_, value)
         CM.DB.char.stickyCrosshair = value
@@ -747,13 +748,14 @@ local CrosshairGroup = {
         return CM.DynamicCam or CM.DB.global.crosshair ~= true
       end
     },
-    spacing2 = Spacing("full", 3.2),
+    spacing1 = Spacing(0.15, 3.1),
+    spacingTemp = Spacing(1.75, 3.2),
     crosshairAppearance = {
       name = "Crosshair Appearance",
       desc = "Select the appearance of the crosshair texture.",
       type = "select",
       width = 1.4,
-      order = 4,
+      order = 5,
       values = CM.Constants.CrosshairAppearanceSelectValues,
       set = function(_, value)
         CM.DB.global.crosshairAppearance = CM.Constants.CrosshairTextureObj[value]
@@ -768,10 +770,10 @@ local CrosshairGroup = {
         return CM.DB.global.crosshair ~= true
       end
     },
-    spacing3 = Spacing(0.1, 4.1),
+    spacing3 = Spacing(0.1, 5.1),
     crosshairPreview = {
       type = "description",
-      order = 5,
+      order = 6,
       name = "",
       width = 0.25,
       image = function()
@@ -780,7 +782,7 @@ local CrosshairGroup = {
       imageWidth = 42,
       imageHeight = 42
     },
-    spacing4 = Spacing(0.15, 5.1),
+    spacing4 = Spacing(0.15, 6.1),
     crosshairSize = {
       type = "range",
       name = "Crosshair Size",
@@ -805,7 +807,7 @@ local CrosshairGroup = {
         return CM.DB.global.crosshairSize
       end
     },
-    spacing5 = Spacing("full", 6.1),
+    spacing5 = Spacing("full", 7.1),
     crosshairAlpha = {
       type = "range",
       name = "Crosshair Opacity",
@@ -831,7 +833,7 @@ local CrosshairGroup = {
         return CM.DB.global.crosshairOpacity
       end
     },
-    spacing6 = Spacing(0.15, 7.1),
+    spacing6 = Spacing(0.15, 8.1),
     crosshairY = {
       type = "range",
       name = "Crosshair Vertical Position",
@@ -842,7 +844,7 @@ local CrosshairGroup = {
       softMax = 200,
       step = 10,
       width = 1.75,
-      order = 6,
+      order = 9,
       disabled = function()
         return CM.DB.global.crosshair ~= true
       end,
