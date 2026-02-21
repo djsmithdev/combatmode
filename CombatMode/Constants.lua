@@ -106,6 +106,7 @@ CM.Constants.Macros = {
   CM_ClearFocus = "/stopmacro [noexists]\n/clearfocus",
   CM_ToggleFocusAny = "/focus [@focus,exists] none; [@mouseover,exists][]",
   CM_ToggleFocusEnemy = "/focus [@focus,exists] none; [@mouseover,exists,harm,nodead][]",
+  CM_ToggleFocusTarget = "/focus [@focus,exists] none; [@target,exists][]",
 }
 
 ---------------------------------------------------------------------------------------
@@ -700,6 +701,7 @@ CM.Constants.DatabaseDefaults = {
     reticleTargeting = true,
     reticleTargetingEnemyOnly = true,
     macroInjectionClickCastOnly = false,
+    focusCurrentTargetNotCrosshair = false,
     castAtCursorSpells = "Heroic Leap, Shift, Sigil of Flame, Infernal Strike, Blizzard",
     excludeFromTargetingSpells = "Shield Wall, Ice Block, Divine Shield, Blur",
     stickyCrosshair = false,

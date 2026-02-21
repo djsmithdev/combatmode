@@ -874,7 +874,7 @@ local ReticleTargetingOptions = {
       type = "toggle",
       name = "Enable |cff00FFFFReticle Targeting|r |cff3B73FF©|r",
       desc = "|cff3B73FF© Character-based option|r\n\nConfigures Blizzard's |cffffd700Action Targeting|r feature to be more precise and responsive. \n\nWraps actions with |cffB47EDEtargeting macro conditionals|r that select the unit under the crosshair when using an ability. \n\n|cffFF5050Be aware that this will override all CVar values related to SoftTarget.|r \n\n|cff909090Uncheck to reset them to their default values.|r\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = 2.1,
+      width = 1.75,
       order = 3,
       confirmText = CM.METADATA["TITLE"] ..
         "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to |cff00FFFFReticle Targeting|r.|r \n\n|cffffd700Proceed?|r",
@@ -892,11 +892,12 @@ local ReticleTargetingOptions = {
         return CM.DB.char.reticleTargeting
       end
     },
+    spacing0 = Spacing(0.25, 3.1),
     reticleTargetingEnemyOnly = {
       type = "toggle",
       name = "Only Allow Reticle To Target Enemies |cff3B73FF©|r",
       desc = "|cff3B73FF© Character-based option|r\n\nOnly allow |cff00FFFFReticle Targeting|r to select hostile units, ignoring friendly NPCs and Players.\n\n|cffffd700Default:|r |cff00FF7FOn|r",
-      width = 1.5,
+      width = 1.75,
       order = 4,
       confirm = true,
       confirmText = CM.METADATA["TITLE"] ..
@@ -914,7 +915,7 @@ local ReticleTargetingOptions = {
     },
     macroInjectionClickCastOnly = {
       type = "toggle",
-      name = "Limit Reticle Targeting to |cffB47EDEClick Casting|r actions |cff3B73FF©|r",
+      name = "Limit Reticle Targeting To |cffB47EDEClick Casting|r Actions |cff3B73FF©|r",
       desc = "|cff3B73FF© Character-based option|r\n\nWhen enabled, the reticle unit targeting and ground-targeted macro injection apply only to |cffB47EDEClick Casting|r bindings. All other action bar slots will not have the targeting macro injection applied.\n\n|cffffd700Default:|r |cffE52B50Off|r",
       width = 1.75,
       order = 5,
@@ -932,7 +933,28 @@ local ReticleTargetingOptions = {
         return not CM.DB.char.reticleTargeting
       end
     },
-    spacing = Spacing("full", 5.1),
+    spacing1= Spacing(0.25, 5.1),
+    focusCurrentTargetNotCrosshair = {
+      type = "toggle",
+      name = "|cffcc00ffTarget Lock|r Selected Target |cffE52B50Not|r The Crosshair |cff3B73FF©|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nWhen enabled, |cffcc00ffTarget Lock|r will lock onto your currently selected target rather than the unit under your crosshair.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      width = 1.75,
+      order = 5.2,
+      confirm = true,
+      confirmText = CM.METADATA["TITLE"] ..
+        "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to |cff00FFFFReticle Targeting|r.|r \n\n|cffffd700Proceed?|r",
+      set = function(_, value)
+        CM.DB.char.focusCurrentTargetNotCrosshair = value
+        ReloadUI()
+      end,
+      get = function()
+        return CM.DB.char.focusCurrentTargetNotCrosshair
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end
+    },
+    spacing = Spacing("full", 5.3),
     excludeFromTargetingSpells = {
       name = "Spells to |cffE52B50exclude|r from |cff00FFFFReticle Targeting|r:",
       desc = "Spells that you |cffE52B50DON'T|r want the |cffB47EDEtargeting macro conditionals|r applied to, thus not being able to select the crosshair unit.\n\n|cff909090Ex: Shield Wall, Ice Block, Divine Shield.|r\n\n|cffffd700Separate names with commas.|r\n|cffffd700Names are case insensitive.|r",
@@ -1233,7 +1255,7 @@ local AdvancedConfigOptions = {
           type = "input",
           name = "Custom Condition:",
           order = 1,
-          multiline = 14,
+          multiline = 10,
           width = "full",
           set = function(_, input)
             CM.DB.global.customCondition = input
