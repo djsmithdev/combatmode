@@ -84,17 +84,37 @@ local RadialState = {
 -- We pre-configure all 8 button+modifier combos on each slice out of combat.
 -- When action bar content or group roster changes, we refresh the attributes.
 
--- Maps button+modifier combo to: attribute prefix, attribute button suffix, action bar slot
-local BUTTON_ATTR_MAP = {
-  { prefix = "",       suffix = "1", slot = 1 }, -- Left click       → slot 1
-  { prefix = "",       suffix = "2", slot = 2 }, -- Right click      → slot 2
-  { prefix = "shift-", suffix = "1", slot = 3 }, -- Shift+Left       → slot 3
-  { prefix = "shift-", suffix = "2", slot = 4 }, -- Shift+Right      → slot 4
-  { prefix = "ctrl-",  suffix = "1", slot = 5 }, -- Ctrl+Left        → slot 5
-  { prefix = "ctrl-",  suffix = "2", slot = 6 }, -- Ctrl+Right       → slot 6
-  { prefix = "alt-",   suffix = "1", slot = 7 }, -- Alt+Left         → slot 7
-  { prefix = "alt-",   suffix = "2", slot = 8 }, -- Alt+Right        → slot 8
+-- Maps DB binding key to the SecureActionButton attribute prefix/suffix.
+-- Slot is resolved dynamically from the user's configured binding value.
+local BINDING_KEY_TO_ATTR = {
+  { dbKey = "button1",      prefix = "",       suffix = "1" }, -- Left click
+  { dbKey = "button2",      prefix = "",       suffix = "2" }, -- Right click
+  { dbKey = "shiftbutton1", prefix = "shift-", suffix = "1" }, -- Shift+Left
+  { dbKey = "shiftbutton2", prefix = "shift-", suffix = "2" }, -- Shift+Right
+  { dbKey = "ctrlbutton1",  prefix = "ctrl-",  suffix = "1" }, -- Ctrl+Left
+  { dbKey = "ctrlbutton2",  prefix = "ctrl-",  suffix = "2" }, -- Ctrl+Right
+  { dbKey = "altbutton1",   prefix = "alt-",   suffix = "1" }, -- Alt+Left
+  { dbKey = "altbutton2",   prefix = "alt-",   suffix = "2" }, -- Alt+Right
 }
+
+-- Build the button→slot map from the user's current binding settings.
+-- Only ACTIONBUTTON bindings produce a slot; other values (FOCUSTARGET, etc.) yield nil.
+local function BuildButtonAttrMap()
+  local bindings = CM.DB[CM.GetBindingsLocation()].bindings
+  local map = {}
+  for _, entry in ipairs(BINDING_KEY_TO_ATTR) do
+    local binding = bindings[entry.dbKey]
+    local slot = nil
+    if binding and binding.enabled and binding.value then
+      local num = binding.value:match("^ACTIONBUTTON(%d+)$")
+      if num then
+        slot = tonumber(num)
+      end
+    end
+    map[#map + 1] = { prefix = entry.prefix, suffix = entry.suffix, slot = slot, isSpellBinding = (slot ~= nil) }
+  end
+  return map
+end
 
 -- All mouselook override binding keys
 local ALL_OVERRIDE_KEYS = {
@@ -390,23 +410,30 @@ local function UpdateSliceActionAttributes()
     return
   end
 
+  local buttonAttrMap = BuildButtonAttrMap()
+
   for i = 1, 5 do
     local slice = RadialState.sliceFrames[i]
     if not slice then break end
 
     local unitId = slice:GetAttribute("unit")
 
-    for _, mapping in ipairs(BUTTON_ATTR_MAP) do
+    for _, mapping in ipairs(buttonAttrMap) do
       local p = mapping.prefix   -- "" or "shift-" or "ctrl-" or "alt-"
       local s = mapping.suffix   -- "1" (left) or "2" (right)
-      local macrotext = BuildMacrotext(mapping.slot, unitId)
+      local macrotext = mapping.slot and BuildMacrotext(mapping.slot, unitId) or nil
 
       if macrotext then
         slice:SetAttribute(p .. "type" .. s, "macro")
         slice:SetAttribute(p .. "macrotext" .. s, macrotext)
         CM.DebugPrint("  Slice " .. i .. " (" .. tostring(unitId) .. "): " .. p .. "type" .. s .. "=macro -> " .. macrotext)
+      elseif not mapping.isSpellBinding then
+        -- Non-ACTIONBUTTON binding (FOCUSTARGET, CLEARFOCUS, etc.): target the party member
+        slice:SetAttribute(p .. "type" .. s, "target")
+        slice:SetAttribute(p .. "macrotext" .. s, nil)
+        CM.DebugPrint("  Slice " .. i .. " (" .. tostring(unitId) .. "): " .. p .. "type" .. s .. "=target (non-spell binding)")
       else
-        -- Empty slot: clear action so clicking does nothing (no hard-targeting)
+        -- ACTIONBUTTON binding but empty slot: clear action so clicking does nothing
         slice:SetAttribute(p .. "type" .. s, nil)
         slice:SetAttribute(p .. "macrotext" .. s, nil)
       end
@@ -1534,6 +1561,12 @@ end
 -- Called when action bar content changes (ACTIONBAR_SLOT_CHANGED).
 -- Refreshes the modified attributes so slices cast the correct spells.
 function HR.OnActionBarChanged()
+  UpdateSliceActionAttributes()
+end
+
+-- Called when the user changes a mouse button binding in the Config panel.
+-- Rebuilds the slot map from the updated binding settings.
+function HR.OnBindingChanged()
   UpdateSliceActionAttributes()
 end
 

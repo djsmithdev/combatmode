@@ -150,6 +150,9 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
           else
             CM.ResetBindingOverride(CM.DB[CM.GetBindingsLocation()].bindings[button1Settings])
           end
+          if CM.HealingRadial and CM.HealingRadial.OnBindingChanged then
+            CM.HealingRadial.OnBindingChanged()
+          end
         end,
         get = function()
           return CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].enabled
@@ -166,6 +169,9 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         set = function(_, value)
           CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].value = value
           CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button1Settings])
+          if CM.HealingRadial and CM.HealingRadial.OnBindingChanged then
+            CM.HealingRadial.OnBindingChanged()
+          end
         end,
         get = function()
           return CM.DB[CM.GetBindingsLocation()].bindings[button1Settings].value
@@ -220,6 +226,9 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
           else
             CM.ResetBindingOverride(CM.DB[CM.GetBindingsLocation()].bindings[button2Settings])
           end
+          if CM.HealingRadial and CM.HealingRadial.OnBindingChanged then
+            CM.HealingRadial.OnBindingChanged()
+          end
         end,
         get = function()
           return CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].enabled
@@ -236,6 +245,9 @@ local function GetButtonOverrideGroup(modifier, groupOrder)
         set = function(_, value)
           CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].value = value
           CM.SetNewBinding(CM.DB[CM.GetBindingsLocation()].bindings[button2Settings])
+          if CM.HealingRadial and CM.HealingRadial.OnBindingChanged then
+            CM.HealingRadial.OnBindingChanged()
+          end
         end,
         get = function()
           return CM.DB[CM.GetBindingsLocation()].bindings[button2Settings].value
