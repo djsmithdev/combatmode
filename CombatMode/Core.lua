@@ -522,6 +522,11 @@ local function GetUnitReactionType(unitID)
   end
 end
 
+-- Returns true when reticle reactions should only consider hostile units.
+local function IsEnemyOnlyReticleInCombat()
+  return CM.DB and CM.DB.char and CM.DB.char.reticleTargetingEnemyOnly and InCombatLockdown()
+end
+
 -- Get the unit under the cursor and its reaction type for crosshair reactions
 local function GetUnitUnderCursor()
   -- Check for game object interaction first using softinteract
@@ -533,8 +538,29 @@ local function GetUnitUnderCursor()
   -- If not a game object, check for regular units using mouseover
   if UnitExists("mouseover") and UnitGUID("mouseover") then
     local reactionType = GetUnitReactionType("mouseover")
-    PreventDebugSpam("Found mouseover unit (reaction: " .. reactionType .. ")")
-    return "mouseover", reactionType
+    local enemyOnlyInCombat = IsEnemyOnlyReticleInCombat()
+
+    if not enemyOnlyInCombat or reactionType == "hostile" then
+      PreventDebugSpam("Found mouseover unit (reaction: " .. reactionType .. ")")
+      return "mouseover", reactionType
+    end
+
+    -- Enemy-only in combat: only use fallback for friendly obfuscation cases.
+    -- Using anyenemy can stick to selected target; keep fallback scoped to softenemy only.
+    local isFriendlyMouseover = reactionType == "friendly_player" or reactionType == "friendly_npc"
+    if isFriendlyMouseover then
+      local fallbackUnitID = "softenemy"
+      if UnitExists(fallbackUnitID) and UnitGUID(fallbackUnitID) then
+        local fallbackReactionType = GetUnitReactionType(fallbackUnitID)
+        if fallbackReactionType == "hostile" then
+          PreventDebugSpam("Mouseover friendly; fallback hostile unit: " .. fallbackUnitID)
+          return fallbackUnitID, fallbackReactionType
+        end
+      end
+    end
+
+    PreventDebugSpam("Mouseover non-hostile in enemy-only combat mode; setting base appearance")
+    return nil, nil
   end
 
   -- no valid unit found (meaning it's not aiming at anything)
