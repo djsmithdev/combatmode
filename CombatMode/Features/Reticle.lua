@@ -30,6 +30,11 @@ local UnitGUID = _G.UnitGUID
 local UnitIsGameObject = _G.UnitIsGameObject
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitReaction = _G.UnitReaction
+local UnitName = _G.UnitName
+local UnitNameUnmodified = _G.UnitNameUnmodified
+local GetUnitName = _G.GetUnitName
+local SetUnitCursorTexture = _G.SetUnitCursorTexture
+local strfind = _G.string.find
 local math = _G.math
 local unpack = _G.unpack
 
@@ -90,6 +95,262 @@ CreateCrosshairScaleAnimation(CrosshairAnimation)
 function CM.HideCrosshairWhileMounted()
   return CM.DB.global.crosshairMounted and IsMounted()
 end
+
+---------------------------------------------------------------------------------------
+--                                   INTERACTION HUD                                 --
+---------------------------------------------------------------------------------------
+local InteractionHUDCluster
+local InteractionHUDShadow
+local InteractionHUDIcon
+local InteractionHUDLabel
+local interactionHUDNameRetry = 0
+
+local IH_GAP = 7
+local IH_LABEL_MAX_W = 280
+local IH_TEXT_PAD = 4 -- shadow bleed past glyphs
+local IH_ICON = 22
+local IH_FONT = 13 -- matches healing radial slice name size
+local IH_NAME_GOLD = { 1, 204 / 255, 0 }
+local IH_NAME_GREY = { 0.62, 0.62, 0.62 }
+local IH_SHADOW_ATLAS = "PetJournal-BattleSlot-Shadow"
+local IH_SHADOW_ALPHA = 0.7 -- × range dim × crosshair opacity
+local IH_OFFSET_X = 24 -- px right of crosshair center (LEFT anchor)
+
+local function HasInteractionHUDTarget()
+  return UnitGUID("softinteract") ~= nil
+    or UnitExists("softinteract")
+    or UnitIsGameObject("softinteract")
+end
+
+local function GetInteractionHUDUnitName()
+  local name = UnitName("softinteract")
+  if name and name ~= "" then
+    return name
+  end
+  if UnitNameUnmodified then
+    name = UnitNameUnmodified("softinteract")
+    if name and name ~= "" then
+      return name
+    end
+  end
+  if GetUnitName then
+    name = GetUnitName("softinteract", false)
+    if name and name ~= "" then
+      return name
+    end
+  end
+end
+
+-- Texture file IDs / paths for "unable" interact cursor (dim + grey name).
+local IH_CURSOR_UNABLE = {
+  ["4675695"] = true,
+  ["4675705"] = true,
+  ["4675693"] = true,
+  ["4675702"] = true,
+  ["4675694"] = true,
+  ["4675720"] = true,
+  ["4675725"] = true,
+  ["4675677"] = true
+}
+
+local function HideInteractionHUD()
+  if InteractionHUDCluster then
+    InteractionHUDCluster:Hide()
+  end
+end
+
+local function LayoutInteractionHUDShadow()
+  if not InteractionHUDShadow or not InteractionHUDCluster then
+    return
+  end
+  local cw = InteractionHUDCluster:GetWidth()
+  if not cw or cw < 1 then
+    return
+  end
+  InteractionHUDShadow:ClearAllPoints()
+  local padL, padT, padR, padB = 88, 22, 48, 14
+  local shiftX, shiftY = 22, -3
+  InteractionHUDShadow:SetPoint("TOPLEFT", InteractionHUDCluster, "TOPLEFT", -padL + shiftX, padT + shiftY)
+  InteractionHUDShadow:SetPoint("BOTTOMRIGHT", InteractionHUDCluster, "BOTTOMRIGHT", padR + shiftX, -padB + shiftY)
+end
+
+local function LayoutInteractionHUDChildren(sw)
+  if not InteractionHUDCluster or not InteractionHUDIcon or not InteractionHUDLabel then
+    return
+  end
+  local lw = InteractionHUDLabel:GetWidth()
+  if not lw or lw < 1 then
+    lw = sw
+  end
+  InteractionHUDIcon:ClearAllPoints()
+  InteractionHUDIcon:SetPoint("CENTER", InteractionHUDCluster, "LEFT", IH_ICON / 2, 1)
+  InteractionHUDLabel:ClearAllPoints()
+  InteractionHUDLabel:SetJustifyH("LEFT")
+  InteractionHUDLabel:SetPoint("CENTER", InteractionHUDIcon, "CENTER", IH_ICON / 2 + IH_GAP + lw / 2, 0)
+end
+
+local function ResizeInteractionHUDCluster()
+  if not InteractionHUDCluster or not InteractionHUDLabel then
+    return
+  end
+  InteractionHUDLabel:SetWidth(0)
+  local sw = InteractionHUDLabel.GetUnboundedStringWidth and InteractionHUDLabel:GetUnboundedStringWidth()
+    or InteractionHUDLabel:GetStringWidth()
+  if not sw or sw < 1 then
+    sw = 1
+  end
+  if sw > IH_LABEL_MAX_W then
+    InteractionHUDLabel:SetWidth(IH_LABEL_MAX_W)
+    InteractionHUDLabel:SetWordWrap(true)
+    sw = IH_LABEL_MAX_W
+  else
+    InteractionHUDLabel:SetWordWrap(false)
+  end
+  local sh = InteractionHUDLabel:GetHeight()
+  if not sh or sh < 1 then
+    sh = InteractionHUDLabel:GetStringHeight()
+  end
+  if not sh or sh < 1 then
+    sh = IH_FONT
+  end
+  local w = IH_ICON + IH_GAP + sw + IH_TEXT_PAD
+  local h = math.max(IH_ICON, sh)
+  InteractionHUDCluster:SetSize(w, h)
+  LayoutInteractionHUDChildren(sw)
+  LayoutInteractionHUDShadow()
+end
+
+local function ApplyInteractionHUDLayout()
+  if not InteractionHUDCluster then
+    return
+  end
+  local DefaultConfig = CM.Constants.DatabaseDefaults.global
+  local UserConfig = CM.DB and CM.DB.global or {}
+  local crosshairSize = UserConfig.crosshairSize or DefaultConfig.crosshairSize
+  local x = (crosshairSize / 2) + IH_OFFSET_X
+  InteractionHUDCluster:ClearAllPoints()
+  InteractionHUDCluster:SetPoint("LEFT", CrosshairFrame, "CENTER", x, 0)
+  ResizeInteractionHUDCluster()
+end
+
+-- FRIZQT + drop shadow only (matches HealingRadial slice names); color set in RefreshInteractionHUD.
+local function ApplyInteractionHUDLabelFont()
+  if not InteractionHUDLabel then
+    return
+  end
+  InteractionHUDLabel:SetFont("Fonts\\FRIZQT__.TTF", IH_FONT, nil)
+  InteractionHUDLabel:SetShadowColor(0, 0, 0, 1)
+  InteractionHUDLabel:SetShadowOffset(1, -1)
+end
+
+local function EnsureInteractionHUD()
+  if InteractionHUDCluster then
+    return
+  end
+  InteractionHUDCluster = CreateFrame("Frame", "CombatModeInteractionHUD", CrosshairFrame)
+  InteractionHUDCluster:SetFrameStrata(CrosshairFrame:GetFrameStrata())
+  InteractionHUDCluster:SetFrameLevel(CrosshairFrame:GetFrameLevel() + 1)
+  InteractionHUDCluster:Hide()
+
+  InteractionHUDShadow = InteractionHUDCluster:CreateTexture(nil, "BACKGROUND")
+  InteractionHUDShadow:SetAtlas(IH_SHADOW_ATLAS)
+  InteractionHUDShadow:SetBlendMode("BLEND")
+  InteractionHUDShadow:SetVertexColor(0, 0, 0, 1)
+  InteractionHUDShadow:Hide()
+
+  InteractionHUDIcon = InteractionHUDCluster:CreateTexture(nil, "OVERLAY")
+  InteractionHUDIcon:SetSize(IH_ICON, IH_ICON)
+  InteractionHUDIcon:SetTexCoord(0, 1, 0, 1)
+  InteractionHUDIcon:Hide()
+
+  InteractionHUDLabel = InteractionHUDCluster:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+  InteractionHUDLabel:SetJustifyH("LEFT")
+  InteractionHUDLabel:Hide()
+
+  ApplyInteractionHUDLabelFont()
+  ApplyInteractionHUDLayout()
+end
+
+-- SetUnitCursorTexture("softinteract") → file id/path; dim + grey name when "unable" art.
+local function GetInteractionHUDCursorDim()
+  if not InteractionHUDIcon then
+    return 0.9, true
+  end
+  if not SetUnitCursorTexture(InteractionHUDIcon, "softinteract") then
+    InteractionHUDIcon:SetAtlas("mechagon-projects")
+  end
+  local filePath = InteractionHUDIcon:GetTextureFilePath()
+  if type(filePath) ~= "string" or (filePath and strfind(filePath, "FileData")) then
+    filePath = tostring(InteractionHUDIcon:GetTextureFileID())
+  end
+  if not filePath then
+    return 0.9, true
+  end
+  if IH_CURSOR_UNABLE[filePath] or (type(filePath) == "string" and strfind(filePath, "Unable")) then
+    return 0.5, false
+  end
+  return 0.9, true
+end
+
+local function RefreshInteractionHUD()
+  EnsureInteractionHUD()
+  local DefaultConfig = CM.Constants.DatabaseDefaults.global
+  local g = CM.DB and CM.DB.global
+  if not g or g.interactionHUD ~= true then
+    HideInteractionHUD()
+    return
+  end
+  if not g.crosshair or CM.HideCrosshairWhileMounted() then
+    HideInteractionHUD()
+    return
+  end
+  if not CrosshairTexture:IsShown() then
+    interactionHUDNameRetry = 0
+    HideInteractionHUD()
+    return
+  end
+  if not HasInteractionHUDTarget() then
+    interactionHUDNameRetry = 0
+    HideInteractionHUD()
+    return
+  end
+  local name = GetInteractionHUDUnitName()
+  if not name or name == "" then
+    if UnitIsGameObject("softinteract") and interactionHUDNameRetry < 1 then
+      interactionHUDNameRetry = interactionHUDNameRetry + 1
+      local C_Timer = _G.C_Timer
+      if C_Timer and C_Timer.After then
+        C_Timer.After(0, RefreshInteractionHUD)
+      end
+      return
+    end
+    interactionHUDNameRetry = 0
+    HideInteractionHUD()
+    return
+  end
+  interactionHUDNameRetry = 0
+  ApplyInteractionHUDLabelFont()
+  InteractionHUDLabel:SetText(name)
+  ResizeInteractionHUDCluster()
+  local C_Timer = _G.C_Timer
+  if C_Timer and C_Timer.After then
+    C_Timer.After(0, ResizeInteractionHUDCluster)
+  end
+  local dim, inRange = GetInteractionHUDCursorDim()
+  local crosshairOpacity = g.crosshairOpacity or DefaultConfig.crosshairOpacity
+  local a = dim * crosshairOpacity
+  local rgb = inRange and IH_NAME_GOLD or IH_NAME_GREY
+  InteractionHUDLabel:SetTextColor(rgb[1], rgb[2], rgb[3], 1)
+  InteractionHUDShadow:SetAlpha(a * IH_SHADOW_ALPHA)
+  InteractionHUDIcon:SetAlpha(a)
+  InteractionHUDLabel:SetAlpha(a)
+  InteractionHUDShadow:Show()
+  InteractionHUDIcon:Show()
+  InteractionHUDLabel:Show()
+  InteractionHUDCluster:Show()
+end
+
+CM.RefreshInteractionHUD = RefreshInteractionHUD
 
 local function AdjustCenteredCursorYPos()
   if not (CM.DB and CM.DB.char and CM.DB.char.reticleTargeting) then
@@ -227,6 +488,7 @@ function CM.DisplayCrosshair(shouldShow)
   else
     CrosshairTexture:Hide()
   end
+  RefreshInteractionHUD()
 end
 
 function CM.CreateCrosshair()
@@ -248,6 +510,8 @@ function CM.CreateCrosshair()
   CM.ApplyCrosshairPositionForLayout(GetActiveLayoutNameSafe())
   SetCrosshairAppearance("base")
   CM.RefreshCrosshairEditPreview()
+  ApplyInteractionHUDLayout()
+  RefreshInteractionHUD()
 end
 
 local DebugCrosshairFrame = CreateFrame("Frame", "CombatModeDebugCrosshairFrame", UIParent)
@@ -437,6 +701,16 @@ function CM.ShowCrosshairLockIn()
   LOCK_IN_TOTAL_ELAPSED = 0
 end
 
+CrosshairFrame:SetScript("OnEvent", function(_, event, _, newTarget)
+  if event == "PLAYER_SOFT_INTERACT_CHANGED" then
+    if newTarget then
+      RefreshInteractionHUD()
+    else
+      HideInteractionHUD()
+    end
+  end
+end)
+CrosshairFrame:RegisterEvent("PLAYER_SOFT_INTERACT_CHANGED")
 CrosshairFrame:SetScript("OnUpdate", function(self, elapsed)
   UpdateCrosshairLockIn(self, elapsed)
 end)

@@ -704,6 +704,7 @@ CM.Constants.DatabaseDefaults = {
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
     crosshairSize = 64,
     crosshairOpacity = 1.0,
+    interactionHUD = true,
     crosshairY = 100,
     crosshairLayoutPositions = {},
     silenceAlerts = false,

@@ -369,6 +369,24 @@ function CM.RegisterCrosshairEditMode()
       disabled = function()
         return CM.DB.global.crosshair ~= true
       end
+    },
+    {
+      name = "Show Interaction HUD",
+      kind = ST.Checkbox,
+      default = true,
+      desc = "Display a HUD for interactable NPCs or objects to the right of the crosshair.\nKeybind |cffffd700Interact - |cff00FFFFReticle Target|r under |cffE52B50Mouse Look|r to interact with the target when in range.",
+      get = function()
+        return CM.DB.global.interactionHUD
+      end,
+      set = function(_, value)
+        CM.DB.global.interactionHUD = value
+        if CM.RefreshInteractionHUD then
+          CM.RefreshInteractionHUD()
+        end
+      end,
+      disabled = function()
+        return CM.DB.global.crosshair ~= true
+      end
     }
   })
 
