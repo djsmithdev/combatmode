@@ -104,6 +104,10 @@ local InteractionHUDShadow
 local InteractionHUDIcon
 local InteractionHUDLabel
 local interactionHUDNameRetry = 0
+local ihRangeBlend -- 0 = out of range, 1 = in range (lerped)
+local ihSnapRangeBlend = true -- snap on next HUD show after hide
+local ihClusterFade = 0 -- parent alpha (fade in / fade out)
+local ihClusterFadeTarget = 0 -- 0 = hidden, 1 = visible
 
 local IH_GAP = 7
 local IH_LABEL_MAX_W = 280
@@ -113,8 +117,12 @@ local IH_FONT = 13 -- matches healing radial slice name size
 local IH_NAME_GOLD = { 1, 204 / 255, 0 }
 local IH_NAME_GREY = { 0.62, 0.62, 0.62 }
 local IH_SHADOW_ATLAS = "PetJournal-BattleSlot-Shadow"
-local IH_SHADOW_ALPHA = 0.7 -- × range dim × crosshair opacity
+local IH_SHADOW_ALPHA = 0.7 -- × crosshair opacity only (not dimmed when out of range)
 local IH_OFFSET_X = 24 -- px right of crosshair center (LEFT anchor)
+local IH_DIM_MIN = 0.5 -- GetInteractionHUDCursorDim when unable
+local IH_DIM_MAX = 0.9 -- when able
+local IH_RANGE_LERP_SPEED = 14
+local IH_CLUSTER_FADE_SPEED = 16
 
 local function HasInteractionHUDTarget()
   return UnitGUID("softinteract") ~= nil
@@ -154,7 +162,15 @@ local IH_CURSOR_UNABLE = {
 }
 
 local function HideInteractionHUD()
-  if InteractionHUDCluster then
+  ihSnapRangeBlend = true
+  if not InteractionHUDCluster then
+    return
+  end
+  ihClusterFadeTarget = 0
+  if not InteractionHUDCluster:IsShown() then
+    return
+  end
+  if ihClusterFade <= 0.001 then
     InteractionHUDCluster:Hide()
   end
 end
@@ -233,7 +249,7 @@ local function ApplyInteractionHUDLayout()
   ResizeInteractionHUDCluster()
 end
 
--- FRIZQT + drop shadow only (matches HealingRadial slice names); color set in RefreshInteractionHUD.
+-- FRIZQT + drop shadow only; visuals updated in UpdateInteractionHUDVisual.
 local function ApplyInteractionHUDLabelFont()
   if not InteractionHUDLabel then
     return
@@ -241,6 +257,86 @@ local function ApplyInteractionHUDLabelFont()
   InteractionHUDLabel:SetFont("Fonts\\FRIZQT__.TTF", IH_FONT, nil)
   InteractionHUDLabel:SetShadowColor(0, 0, 0, 1)
   InteractionHUDLabel:SetShadowOffset(1, -1)
+end
+
+-- SetUnitCursorTexture("softinteract") → file id/path; dim when "unable" art.
+local function GetInteractionHUDCursorDim()
+  if not InteractionHUDIcon then
+    return 0.9, true
+  end
+  if not SetUnitCursorTexture(InteractionHUDIcon, "softinteract") then
+    InteractionHUDIcon:SetAtlas("mechagon-projects")
+  end
+  local filePath = InteractionHUDIcon:GetTextureFilePath()
+  if type(filePath) ~= "string" or (filePath and strfind(filePath, "FileData")) then
+    filePath = tostring(InteractionHUDIcon:GetTextureFileID())
+  end
+  if not filePath then
+    return 0.9, true
+  end
+  if IH_CURSOR_UNABLE[filePath] or (type(filePath) == "string" and strfind(filePath, "Unable")) then
+    return 0.5, false
+  end
+  return 0.9, true
+end
+
+local function UpdateInteractionHUDVisual(elapsed)
+  if not InteractionHUDCluster then
+    return
+  end
+  local dt = (elapsed and elapsed > 0) and elapsed or (1 / 60)
+
+  if math.abs(ihClusterFade - ihClusterFadeTarget) > 0.001 then
+    local step = math.min(1, dt * IH_CLUSTER_FADE_SPEED)
+    ihClusterFade = ihClusterFade + (ihClusterFadeTarget - ihClusterFade) * step
+    if math.abs(ihClusterFade - ihClusterFadeTarget) < 0.01 then
+      ihClusterFade = ihClusterFadeTarget
+    end
+  else
+    ihClusterFade = ihClusterFadeTarget
+  end
+  InteractionHUDCluster:SetAlpha(ihClusterFade)
+  if ihClusterFadeTarget == 0 and ihClusterFade <= 0.001 then
+    InteractionHUDCluster:Hide()
+    ihClusterFade = 0
+    return
+  end
+
+  if not InteractionHUDCluster:IsShown() then
+    return
+  end
+  -- Fading out: do not call SetUnitCursorTexture — softinteract may already be cleared (fallback gear).
+  if ihClusterFadeTarget == 0 then
+    return
+  end
+  local g = CM.DB and CM.DB.global
+  if not g or g.interactionHUD ~= true or not g.crosshair or not InteractionHUDIcon or not InteractionHUDLabel then
+    return
+  end
+  local _, inRange = GetInteractionHUDCursorDim()
+  local target = inRange and 1 or 0
+  if ihRangeBlend == nil or ihSnapRangeBlend then
+    ihRangeBlend = target
+    ihSnapRangeBlend = false
+  else
+    local step = math.min(1, dt * IH_RANGE_LERP_SPEED)
+    ihRangeBlend = ihRangeBlend + (target - ihRangeBlend) * step
+    if math.abs(ihRangeBlend - target) < 0.002 then
+      ihRangeBlend = target
+    end
+  end
+  local dim = IH_DIM_MIN + (IH_DIM_MAX - IH_DIM_MIN) * ihRangeBlend
+  local DefaultConfig = CM.Constants.DatabaseDefaults.global
+  local crosshairOpacity = g.crosshairOpacity or DefaultConfig.crosshairOpacity
+  local contentAlpha = dim * crosshairOpacity
+  local t = ihRangeBlend
+  local r = IH_NAME_GREY[1] + (IH_NAME_GOLD[1] - IH_NAME_GREY[1]) * t
+  local gg = IH_NAME_GREY[2] + (IH_NAME_GOLD[2] - IH_NAME_GREY[2]) * t
+  local b = IH_NAME_GREY[3] + (IH_NAME_GOLD[3] - IH_NAME_GREY[3]) * t
+  InteractionHUDLabel:SetTextColor(r, gg, b, 1)
+  InteractionHUDShadow:SetAlpha(crosshairOpacity * IH_SHADOW_ALPHA)
+  InteractionHUDIcon:SetAlpha(contentAlpha)
+  InteractionHUDLabel:SetAlpha(contentAlpha)
 end
 
 local function EnsureInteractionHUD()
@@ -269,27 +365,12 @@ local function EnsureInteractionHUD()
 
   ApplyInteractionHUDLabelFont()
   ApplyInteractionHUDLayout()
-end
-
--- SetUnitCursorTexture("softinteract") → file id/path; dim + grey name when "unable" art.
-local function GetInteractionHUDCursorDim()
-  if not InteractionHUDIcon then
-    return 0.9, true
-  end
-  if not SetUnitCursorTexture(InteractionHUDIcon, "softinteract") then
-    InteractionHUDIcon:SetAtlas("mechagon-projects")
-  end
-  local filePath = InteractionHUDIcon:GetTextureFilePath()
-  if type(filePath) ~= "string" or (filePath and strfind(filePath, "FileData")) then
-    filePath = tostring(InteractionHUDIcon:GetTextureFileID())
-  end
-  if not filePath then
-    return 0.9, true
-  end
-  if IH_CURSOR_UNABLE[filePath] or (type(filePath) == "string" and strfind(filePath, "Unable")) then
-    return 0.5, false
-  end
-  return 0.9, true
+  InteractionHUDCluster:SetAlpha(0)
+  ihClusterFade = 0
+  ihClusterFadeTarget = 0
+  InteractionHUDCluster:SetScript("OnUpdate", function(_, elapsed)
+    UpdateInteractionHUDVisual(elapsed)
+  end)
 end
 
 local function RefreshInteractionHUD()
@@ -336,18 +417,12 @@ local function RefreshInteractionHUD()
   if C_Timer and C_Timer.After then
     C_Timer.After(0, ResizeInteractionHUDCluster)
   end
-  local dim, inRange = GetInteractionHUDCursorDim()
-  local crosshairOpacity = g.crosshairOpacity or DefaultConfig.crosshairOpacity
-  local a = dim * crosshairOpacity
-  local rgb = inRange and IH_NAME_GOLD or IH_NAME_GREY
-  InteractionHUDLabel:SetTextColor(rgb[1], rgb[2], rgb[3], 1)
-  InteractionHUDShadow:SetAlpha(a * IH_SHADOW_ALPHA)
-  InteractionHUDIcon:SetAlpha(a)
-  InteractionHUDLabel:SetAlpha(a)
+  ihClusterFadeTarget = 1
   InteractionHUDShadow:Show()
   InteractionHUDIcon:Show()
   InteractionHUDLabel:Show()
   InteractionHUDCluster:Show()
+  UpdateInteractionHUDVisual(0)
 end
 
 CM.RefreshInteractionHUD = RefreshInteractionHUD
