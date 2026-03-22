@@ -319,7 +319,7 @@ function CM.RegisterCrosshairEditMode()
       name = "Crosshair Appearance",
       kind = ST.Dropdown,
       default = "Default",
-      values = BuildCrosshairAppearanceDropdownValues,
+      values = BuildCrosshairAppearanceDropdownValues(),
       get = function()
         return CM.DB.global.crosshairAppearance and CM.DB.global.crosshairAppearance.Name or "Default"
       end,
