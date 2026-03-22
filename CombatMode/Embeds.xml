@@ -2,6 +2,7 @@
 ..\FrameXML\UI.xsd">
     <!-- LIBS -->
     <Script file="Libs\LibStub\LibStub.lua"/>
+    <Include file="Libs\LibEditMode\embed.xml"/>
     <Include file="Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml"/>
     <Include file="Libs\AceAddon-3.0\AceAddon-3.0.xml"/>
     <Include file="Libs\AceEvent-3.0\AceEvent-3.0.xml"/>
@@ -9,16 +10,29 @@
     <Include file="Libs\AceConsole-3.0\AceConsole-3.0.xml"/>
     <Include file="Libs\AceGUI-3.0\AceGUI-3.0.xml"/>
     <Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml"/>
-    <!-- MODULES -->
-	<Script file="Core.lua"/>
-	<Script file="Constants.lua"/>
-	<Script file="HealingRadial.lua"/>
-	<Script file="Config.lua"/>
+    <!-- FEATURES (Core must load before Constants.lua — Constants uses GetAddon("CombatMode").) -->
+    <Script file="Features\Core.lua"/>
+    <Script file="Features\Constants.lua"/>
+    <Script file="Features\ClickCasting.lua"/>
+    <Script file="Features\Pulse.lua"/>
+    <Script file="Features\Reticle.lua"/>
+    <Script file="UI\CrosshairEditMode.lua"/>
+    <Script file="Features\CursorUnlock.lua"/>
+    <Script file="Features\HealingRadial.lua"/>
+    <!-- CONFIG: AceConfig — OptionsShared first, Config.lua last -->
+    <Script file="Config\OptionsShared.lua"/>
+    <Script file="Config\AboutOptions.lua"/>
+    <Script file="Config\MouseLookOptions.lua"/>
+    <Script file="Config\ReticleTargetingOptions.lua"/>
+    <Script file="Config\ClickCastingOptions.lua"/>
+    <Script file="Config\HealingRadialOptions.lua"/>
+    <Script file="Config\AdvancedOptions.lua"/>
+    <Script file="Config\Config.lua"/>
     <!-- FRAME -->
-	<Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
-		<Scripts>
-			<OnUpdate function="CombatMode_OnUpdate"/>
-			<OnEvent function="CombatMode_OnEvent"/>
-		</Scripts>
-	</Frame>
+    <Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
+        <Scripts>
+            <OnUpdate function="CombatMode_OnUpdate"/>
+            <OnEvent function="CombatMode_OnEvent"/>
+        </Scripts>
+    </Frame>
 </Ui>

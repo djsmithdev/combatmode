@@ -1,5 +1,16 @@
 ---------------------------------------------------------------------------------------
---                               CONSTANT DATA & ASSETS                              --
+--  Features/Constants.lua — CONSTANTS — static tables, defaults, and asset paths
+---------------------------------------------------------------------------------------
+--  Single source of truth for CVar preset maps, default SavedVariables, event lists,
+--  binding/macro strings, crosshair assets and reaction colors, frame watch lists,
+--  and other data that Config / Core / feature modules read but do not mutate at
+--  load time (except building derived tables like CrosshairTextureObj).
+--
+--  Architecture:
+--    • Loaded immediately after Features/Core.lua registers the addon; attaches
+--      CM.Constants and references CM.METADATA for user-facing strings (popup, chat prefix).
+--    • No Ace hooks or frames; safe for any module to require-style read from.
+--    • DatabaseDefaults mirrors what AceDB uses; keep in sync with Config options.
 ---------------------------------------------------------------------------------------
 -- IMPORTS
 local _G = _G
@@ -246,6 +257,12 @@ CM.Constants.CrosshairReactionColors = {
   mounted = {1, 1, 1, 0}, -- transparent
   focus = {1, 0, 1, 1} -- purple
 }
+
+-- LibEditMode selection is sized to CombatModeCrosshairFrame; keep a minimum hit area for grabbing in Edit Mode.
+CM.Constants.CrosshairEditModeMinHitSize = 128
+
+-- Edit Mode shows GetSystemName() as plain text. CM.METADATA["TITLE"] comes from the TOC and includes |T|t / |A|a markup for the addon list.
+CM.Constants.EditModeSystemDisplayName = "Combat Mode"
 
 ---------------------------------------------------------------------------------------
 --                                   FRAME WATCHING                                  --
@@ -664,6 +681,7 @@ local DefaultBindings = {
   }
 }
 
+
 CM.Constants.DatabaseDefaults = {
   global = {
     frameWatching = true,
@@ -687,6 +705,7 @@ CM.Constants.DatabaseDefaults = {
     crosshairSize = 64,
     crosshairOpacity = 1.0,
     crosshairY = 100,
+    crosshairLayoutPositions = {},
     silenceAlerts = false,
     debugMode = false,
     bindings = DefaultBindings,

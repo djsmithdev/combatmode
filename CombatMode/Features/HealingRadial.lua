@@ -1,8 +1,17 @@
 ---------------------------------------------------------------------------------------
---                              HEALING RADIAL MODULE                                --
+--  Features/HealingRadial.lua — HEALING RADIAL — party menu, casts, mouselook
 ---------------------------------------------------------------------------------------
--- A radial menu for quick party member targeting and spell casting, designed for healers.
--- Shows party members as slices around screen center. Click slices to cast (works in combat).
+--  Optional healer UX: radial slices for roster units, spell/item assignment per
+--  slice, secure buttons for in-combat casts, capture layer + mouselook override keys
+--  while open, and hooks from Core (OnMouselookChanged, combat events, action bar
+--  refresh) to stay consistent with free look and the crosshair.
+--
+--  Architecture:
+--    • Exposed as CM.HealingRadial (table of functions); Core calls Initialize from
+--      BootstrapFeatureModules and notifies OnMouselookChanged / DismissOnLoad.
+--    • Internal state machine (show/hide, keybind vs mouse open) avoids re-entrancy
+--      with Core.LockFreeLook / UnlockFreeLook.
+--    • Configuration lives under CM.DB.global.healingRadial; AceConfig UI in Config/HealingRadialOptions.lua.
 
 -- IMPORTS
 local _G = _G
@@ -127,14 +136,39 @@ local ALL_OVERRIDE_KEYS = {
 ---------------------------------------------------------------------------------------
 --                                UTILITY FUNCTIONS                                  --
 ---------------------------------------------------------------------------------------
--- Calculate angle and distance from screen center to cursor position
+local function GetCrosshairAnchorOffsetForUIParent()
+  local xf = _G.CombatModeCrosshairFrame
+  if xf and xf.GetCenter then
+    local cx, cy = xf:GetCenter()
+    local ux, uy = UIParent:GetCenter()
+    if cx and cy and ux and uy then
+      return cx - ux, cy - uy
+    end
+  end
+  return 0, CM.DB.global and CM.DB.global.crosshairY or 50
+end
+
+local function GetCrosshairCenterScreenXY()
+  local xf = _G.CombatModeCrosshairFrame
+  if xf and xf.GetCenter then
+    local cx, cy = xf:GetCenter()
+    if cx and cy then
+      return cx, cy
+    end
+  end
+  if not CM.DB.global then
+    return UIParent:GetWidth() / 2, UIParent:GetHeight() / 2
+  end
+  return UIParent:GetWidth() / 2, UIParent:GetHeight() / 2 + (CM.DB.global.crosshairY or 50)
+end
+
+-- Calculate angle and distance from crosshair center to cursor position
 local function GetMouseAngleAndDistanceFromCenter()
   local cursorX, cursorY = GetCursorPosition()
   local scale = UIParent:GetEffectiveScale()
   cursorX, cursorY = cursorX / scale, cursorY / scale
 
-  local centerX = UIParent:GetWidth() / 2
-  local centerY = UIParent:GetHeight() / 2 + (CM.DB.global.crosshairY or 50)
+  local centerX, centerY = GetCrosshairCenterScreenXY()
 
   local dx = cursorX - centerX
   local dy = cursorY - centerY
@@ -622,9 +656,9 @@ function HR.UpdateMainFramePosition()
   -- SetPoint on mainFrame is protected during combat (secure descendants), so only
   -- update out of combat. In combat, the position is already set from last Show().
   if not InCombatLockdown() then
-    local crosshairY = CM.DB.global and CM.DB.global.crosshairY or 50
+    local ox, oy = GetCrosshairAnchorOffsetForUIParent()
     RadialState.mainFrame:ClearAllPoints()
-    RadialState.mainFrame:SetPoint("CENTER", UIParent, "CENTER", 0, crosshairY)
+    RadialState.mainFrame:SetPoint("CENTER", UIParent, "CENTER", ox, oy)
   end
 end
 
@@ -791,7 +825,8 @@ local function CreateMainFrame()
   local mainFrame = CreateFrame("Frame", "CombatModeHealingRadialFrame", UIParent)
   mainFrame:SetFrameStrata("DIALOG")
   mainFrame:SetSize(400, 400)
-  mainFrame:SetPoint("CENTER", UIParent, "CENTER", 0, CM.DB.global.crosshairY or 50)
+  local ox, oy = GetCrosshairAnchorOffsetForUIParent()
+  mainFrame:SetPoint("CENTER", UIParent, "CENTER", ox, oy)
   mainFrame:SetAlpha(0)
   mainFrame:EnableMouse(false)
   mainFrame:Show()
