@@ -24,6 +24,7 @@ local InCombatLockdown = _G.InCombatLockdown
 local pcall = _G.pcall
 local strtrim = _G.strtrim
 local ClearOverrideBindings = _G.ClearOverrideBindings
+local SetOverrideBinding = _G.SetOverrideBinding
 local SetOverrideBindingClick = _G.SetOverrideBindingClick
 local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 local string = _G.string
@@ -316,6 +317,42 @@ local function IsSlotMacro(bindingValue)
   return getOk and atype == "macro"
 end
 
+--- Spell id on the resolved action bar button for this binding, or nil if not a spell (e.g. macro, empty).
+--- Mirrors resolution inside BuildClickCastMacroText so behavior stays aligned.
+local function GetSpellIdForActionBarBinding(bindingName)
+  local clickFrame = ResolveActionButtonFrame(bindingName)
+  if not clickFrame then
+    return nil
+  end
+  local buttonNum = bindingName:match("^ACTIONBUTTON(%d+)$")
+  local useConditionalClick = buttonNum ~= nil
+
+  if useConditionalClick and buttonNum then
+    local slotNum = tonumber(buttonNum)
+    if slotNum and slotNum >= 1 and slotNum <= 12 then
+      local getOk, atype = pcall(GetActionInfo, slotNum)
+      if getOk and atype == "macro" then
+        return nil
+      end
+    end
+  end
+
+  local ok, actionFrame = pcall(function() return _G[clickFrame] end)
+  if not ok or not actionFrame then
+    return nil
+  end
+  local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action") or actionFrame.action
+  local action = rawAction and tonumber(rawAction)
+  if not action or action <= 0 then
+    return nil
+  end
+  local getOk, atype, id = pcall(GetActionInfo, action)
+  if not getOk or atype ~= "spell" or not id or type(id) ~= "number" or id <= 0 then
+    return nil
+  end
+  return id
+end
+
 -- House Editor (housing) is active; do not override action bar keys so housing bindings (e.g. R to return item) work.
 local function IsHouseEditorActive()
   if not _G.C_HouseEditor or not _G.C_HouseEditor.IsHouseEditorActive then return false end
@@ -345,11 +382,24 @@ function CM.ApplyGroundCastKeyOverrides()
         -- mounted and ActionButton when not. In-combat dismount cannot refresh, so key may stay on override bar until out of combat.
         SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, realFrame, "LeftButton")
       else
-        local frame = SlotFramesByBindingName[bindingName]
-        local macroText = BuildClickCastMacroText(bindingName)
-        if frame and macroText then
-          SetClickCastFrameMacro(frame, macroText)
-          SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, frame:GetName(), "LeftButton")
+        -- Excluded-from-reticle: no targeting pre-line needed, but CombatModeSlot* + macrotext is still a macro
+        -- path (breaks Press and Hold). SetOverrideBindingClick on the bar button simulates a mouse click and
+        -- often casts on release only. Dispatch the native binding name instead so keyboard + Press and Hold work.
+        local spellId = GetSpellIdForActionBarBinding(bindingName)
+        if
+          realFrame
+          and spellId
+          and IsExcludedFromTargetingSpell(spellId)
+          and not IsCastAtCursorSpell(spellId)
+        then
+          SetOverrideBinding(GroundCastKeyOverrideOwner, false, key, bindingName)
+        else
+          local frame = SlotFramesByBindingName[bindingName]
+          local macroText = BuildClickCastMacroText(bindingName)
+          if frame and macroText then
+            SetClickCastFrameMacro(frame, macroText)
+            SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, frame:GetName(), "LeftButton")
+          end
         end
       end
     end

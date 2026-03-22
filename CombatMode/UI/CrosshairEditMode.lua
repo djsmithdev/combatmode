@@ -234,8 +234,10 @@ function CM.RegisterCrosshairEditMode()
 
   crosshairEditModeRegistered = true
 
-  local _, _, yDefault = CM.GetCrosshairPositionForLayout(LibEditMode:GetActiveLayoutName())
-  local defaultPos = { point = "CENTER", x = 0, y = yDefault }
+  -- LibEditMode stores this as frameDefaults; reset position uses it, so it must be the
+  -- addon default Y from Constants — not GetCrosshairPositionForLayout() (saved DB).
+  local defaultY = CM.Constants.DatabaseDefaults.global.crosshairY
+  local defaultPos = { point = "CENTER", x = 0, y = defaultY }
 
   LibEditMode:AddFrame(frame, function(_, layoutNameCb)
     if not CM.DB.global.crosshairLayoutPositions then
