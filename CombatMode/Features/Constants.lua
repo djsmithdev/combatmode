@@ -49,8 +49,8 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["SoftTargetNameplateEnemy"] = 0, -- Always show nameplates  for soft target enemy.
   -- SoftTarget Icon
   ["SoftTargetIconEnemy"] = 0,
-  ["SoftTargetIconInteract"] = 1,
-  ["SoftTargetIconGameObject"] = 1,
+  ["SoftTargetIconInteract"] = 1, -- We need this to be enabled for the interaction HUD to work properly.
+  ["SoftTargetIconGameObject"] = 1, -- We need this to be enabled for the interaction HUD to work properly.
   -- cursor centering
   ["CursorFreelookCentering"] = 0, -- !BUG: needs to be set to 0 initially because Blizzard broke something in 10.2, otherwise it wll cause the camera to jolt the equivalent vector to the centered cursor position from where your cursor was before locking.
   ["CursorStickyCentering"] = 1 -- !BUG: we can't use it due to the issue described above. Fore more info, see: https://github.com/Stanzilla/WoWUIBugs/issues/504
