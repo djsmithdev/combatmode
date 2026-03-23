@@ -22,7 +22,7 @@ Use this project map and conventions for all changes.
 - `Features/Core.lua`: owns addon lifecycle (`OnInitialize`/`OnEnable`), centralized event dispatch, free-look state transitions, and cross-feature coordination points.
 - `Constants/ConstantsNamespace.lua`: initializes the `CM.Constants` namespace only.
 - `Constants/Constants*.lua`: define immutable/static tables (defaults, CVars, event groups, assets, watchlists, radial metadata); no runtime side effects beyond table population.
-- `Features/Reticle.lua`: owns crosshair visuals, interaction HUD reaction updates, and reticle-targeting behavior tied to relevant CVars.
+- `Features/Reticle.lua`: owns crosshair visuals, interaction HUD reaction updates, and reticle-targeting behavior tied to relevant CVars. Crosshair reaction and cursor centering follow `CM.IsCrosshairEnabled()`; reticle-targeting options/CVars remain separate.
 - `Features/ClickCasting.lua`: owns override binding/macro synthesis for mouse buttons and modified clicks; refreshes when bars/bindings change.
 - `Features/CursorUnlock.lua`: owns unlock predicates (frame visibility, mounts, pet battle, custom expression) and wildcard frame tracking.
 - `Features/Pulse.lua`: owns visual cursor pulse presentation after unlock/free-look transitions.

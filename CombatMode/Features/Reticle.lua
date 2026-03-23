@@ -9,7 +9,7 @@
 --  Architecture:
 --    • Core drives CreateCrosshair from BootstrapFeatureModules; RegisterCrosshairEditMode
 --      runs from the same path after UI/CrosshairEditMode.lua loads. OnUpdate calls
---      CM.UpdateCrosshairReaction when reticle targeting is enabled.
+--      CM.UpdateCrosshairReaction when the crosshair is enabled.
 --    • Cursor Y sync uses AdjustCenteredCursorYPos → CursorCenteredYPos when the crosshair
 --      is enabled (Edit Mode); SetCursorFreelookCentering lives in Core.
 --    • CM.ApplyCrosshairAppearanceToWidget / CM.CreateCrosshairScaleAnimation are exposed
@@ -676,8 +676,8 @@ local function GetUnitReactionType(unitID)
 end
 
 local function IsEnemyOnlyReticleInCombat()
-  return CM.DB and CM.DB.char and CM.DB.char.reticleTargetingEnemyOnly and
-      InCombatLockdown()
+  return CM.DB and CM.DB.char and CM.DB.char.reticleTargeting and
+      CM.DB.char.reticleTargetingEnemyOnly and InCombatLockdown()
 end
 
 local function GetUnitUnderCursor()
@@ -720,8 +720,7 @@ local function GetUnitUnderCursor()
 end
 
 function CM.UpdateCrosshairReaction()
-  if not CM.DB.char.reticleTargeting then return end
-  if not CM.DB.global.crosshair or CM.HideCrosshairWhileMounted() then
+  if not CM.IsCrosshairEnabled() or CM.HideCrosshairWhileMounted() then
     return
   end
 
