@@ -207,7 +207,7 @@ CM.Config.MouseLookOptions = {
         return CM.DB.global.hideTooltip
       end,
       disabled = function()
-        return CM.DB.global.crosshair ~= true
+        return not CM.IsCrosshairEnabled()
       end
     },
     spacing2 = Spacing("full", 7.1),

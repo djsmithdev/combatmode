@@ -312,7 +312,7 @@ function CM.RegisterCrosshairEditMode()
         CM.DB.global.crosshairMounted = value
       end,
       disabled = function()
-        return CM.DB.global.crosshair ~= true
+        return not CM.IsCrosshairEnabled()
       end
     },
     {
@@ -328,7 +328,7 @@ function CM.RegisterCrosshairEditMode()
         CM.CreateCrosshair()
       end,
       disabled = function()
-        return CM.DB.global.crosshair ~= true
+        return not CM.IsCrosshairEnabled()
       end
     },
     {
@@ -346,7 +346,7 @@ function CM.RegisterCrosshairEditMode()
         CM.CreateCrosshair()
       end,
       disabled = function()
-        return CM.DB.global.crosshair ~= true
+        return not CM.IsCrosshairEnabled()
       end
     },
     {
@@ -367,7 +367,7 @@ function CM.RegisterCrosshairEditMode()
         CM.CreateCrosshair()
       end,
       disabled = function()
-        return CM.DB.global.crosshair ~= true
+        return not CM.IsCrosshairEnabled()
       end
     },
     {
@@ -385,7 +385,7 @@ function CM.RegisterCrosshairEditMode()
         end
       end,
       disabled = function()
-        return CM.DB.global.crosshair ~= true
+        return not CM.IsCrosshairEnabled()
       end
     }
   })

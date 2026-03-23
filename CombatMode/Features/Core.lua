@@ -115,6 +115,24 @@ function CM.GetBindingsLocation()
   return CM.DB.char.useGlobalBindings and "global" or "char"
 end
 
+-- Locale-appropriate font file from a Blizzard FontObject (ru/zh/etc.); avoids Latin-only Friz for unit names.
+local FALLBACK_UI_FONT_PATH = "Fonts\\FRIZQT__.TTF"
+
+function CM.SetFontStringFromTemplate(fontString, pixelSize, templateFontObject)
+  if not fontString or not pixelSize then
+    return
+  end
+  local template = templateFontObject or _G.GameFontNormalSmall
+  local path, _h, flags
+  if template and template.GetFont then
+    path, _h, flags = template:GetFont()
+  end
+  if type(path) ~= "string" or path == "" then
+    path = FALLBACK_UI_FONT_PATH
+  end
+  fontString:SetFont(path, pixelSize, flags)
+end
+
 function CM.SetCursorFreelookCentering(shouldCenter)
   -- Reticle targeting drives crosshair-aligned cursor (CursorFreelookCentering + CursorCenteredYPos).
   local useCrosshairCursor = shouldCenter and CM.DB.char.reticleTargeting

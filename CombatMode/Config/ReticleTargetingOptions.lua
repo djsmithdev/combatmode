@@ -119,7 +119,7 @@ CM.Config.ReticleTargetingOptions = {
         return CM.DB.char.stickyCrosshair
       end,
       disabled = function()
-        return CM.DynamicCam or CM.DB.global.crosshair ~= true
+        return CM.DynamicCam or not CM.IsCrosshairEnabled()
       end
     },
     spacing11 = Spacing("full", 5.5),

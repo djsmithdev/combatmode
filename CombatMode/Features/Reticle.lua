@@ -37,6 +37,7 @@ local SetUnitCursorTexture = _G.SetUnitCursorTexture
 local strfind = _G.string.find
 local math = _G.math
 local unpack = _G.unpack
+local issecretvalue = _G.issecretvalue
 
 local ON_RETAIL_CLIENT = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
 
@@ -96,6 +97,16 @@ function CM.HideCrosshairWhileMounted()
   return CM.DB.global.crosshairMounted and IsMounted()
 end
 
+-- SavedVariables may store 1/0; LibEditMode uses `not not value` for checkboxes. Use this
+-- anywhere UI enablement must match "crosshair on" (not strict `== true`).
+function CM.IsCrosshairEnabled()
+  local c = CM.DB and CM.DB.global and CM.DB.global.crosshair
+  if c == nil then
+    return CM.Constants.DatabaseDefaults.global.crosshair
+  end
+  return not not c
+end
+
 ---------------------------------------------------------------------------------------
 --                                   INTERACTION HUD                                 --
 ---------------------------------------------------------------------------------------
@@ -104,6 +115,12 @@ local InteractionHUDShadow
 local InteractionHUDIcon
 local InteractionHUDLabel
 local interactionHUDNameRetry = 0
+-- 12.0.0+: UnitName etc. may return secret strings; FontString widths/heights can be secret — no compares with literals.
+local ihInteractionHUDSecretIdentity = false
+
+local function IsSecretValue(v)
+  return v ~= nil and issecretvalue and issecretvalue(v)
+end
 local ihRangeBlend -- 0 = out of range, 1 = in range (lerped)
 local ihSnapRangeBlend = true -- snap on next HUD show after hide
 local ihClusterFade = 0 -- parent alpha (fade in / fade out)
@@ -132,19 +149,34 @@ end
 
 local function GetInteractionHUDUnitName()
   local name = UnitName("softinteract")
-  if name and name ~= "" then
-    return name
+  if name then
+    if IsSecretValue(name) then
+      return name
+    end
+    if name ~= "" then
+      return name
+    end
   end
   if UnitNameUnmodified then
     name = UnitNameUnmodified("softinteract")
-    if name and name ~= "" then
-      return name
+    if name then
+      if IsSecretValue(name) then
+        return name
+      end
+      if name ~= "" then
+        return name
+      end
     end
   end
   if GetUnitName then
     name = GetUnitName("softinteract", false)
-    if name and name ~= "" then
-      return name
+    if name then
+      if IsSecretValue(name) then
+        return name
+      end
+      if name ~= "" then
+        return name
+      end
     end
   end
 end
@@ -162,6 +194,7 @@ local IH_CURSOR_UNABLE = {
 }
 
 local function HideInteractionHUD()
+  ihInteractionHUDSecretIdentity = false
   ihSnapRangeBlend = true
   if not InteractionHUDCluster then
     return
@@ -180,6 +213,9 @@ local function LayoutInteractionHUDShadow()
     return
   end
   local cw = InteractionHUDCluster:GetWidth()
+  if IsSecretValue(cw) then
+    return
+  end
   if not cw or cw < 1 then
     return
   end
@@ -194,9 +230,14 @@ local function LayoutInteractionHUDChildren(sw)
   if not InteractionHUDCluster or not InteractionHUDIcon or not InteractionHUDLabel then
     return
   end
-  local lw = InteractionHUDLabel:GetWidth()
-  if not lw or lw < 1 then
-    lw = sw
+  local lw = sw
+  if not ihInteractionHUDSecretIdentity then
+    local measured = InteractionHUDLabel:GetWidth()
+    if measured and not IsSecretValue(measured) then
+      if measured >= 1 then
+        lw = measured
+      end
+    end
   end
   InteractionHUDIcon:ClearAllPoints()
   InteractionHUDIcon:SetPoint("CENTER", InteractionHUDCluster, "LEFT", IH_ICON / 2, 1)
@@ -209,9 +250,29 @@ local function ResizeInteractionHUDCluster()
   if not InteractionHUDCluster or not InteractionHUDLabel then
     return
   end
+  -- Secret identity: fixed width, no string/width measurements (avoids secret number compares); drop shadow hidden.
+  if ihInteractionHUDSecretIdentity then
+    InteractionHUDLabel:SetWidth(IH_LABEL_MAX_W)
+    InteractionHUDLabel:SetWordWrap(true)
+    local sw = IH_LABEL_MAX_W
+    local sh = IH_FONT
+    local w = IH_ICON + IH_GAP + sw + IH_TEXT_PAD
+    local h = math.max(IH_ICON, sh)
+    InteractionHUDCluster:SetSize(w, h)
+    LayoutInteractionHUDChildren(sw)
+    if InteractionHUDShadow then
+      InteractionHUDShadow:Hide()
+    end
+    return
+  end
   InteractionHUDLabel:SetWidth(0)
   local sw = InteractionHUDLabel.GetUnboundedStringWidth and InteractionHUDLabel:GetUnboundedStringWidth()
     or InteractionHUDLabel:GetStringWidth()
+  if IsSecretValue(sw) then
+    ihInteractionHUDSecretIdentity = true
+    ResizeInteractionHUDCluster()
+    return
+  end
   if not sw or sw < 1 then
     sw = 1
   end
@@ -223,11 +284,13 @@ local function ResizeInteractionHUDCluster()
     InteractionHUDLabel:SetWordWrap(false)
   end
   local sh = InteractionHUDLabel:GetHeight()
-  if not sh or sh < 1 then
-    sh = InteractionHUDLabel:GetStringHeight()
-  end
-  if not sh or sh < 1 then
+  if IsSecretValue(sh) then
     sh = IH_FONT
+  elseif not sh or sh < 1 then
+    sh = InteractionHUDLabel:GetStringHeight()
+    if IsSecretValue(sh) or not sh or sh < 1 then
+      sh = IH_FONT
+    end
   end
   local w = IH_ICON + IH_GAP + sw + IH_TEXT_PAD
   local h = math.max(IH_ICON, sh)
@@ -249,12 +312,12 @@ local function ApplyInteractionHUDLayout()
   ResizeInteractionHUDCluster()
 end
 
--- FRIZQT + drop shadow only; visuals updated in UpdateInteractionHUDVisual.
+-- Localized UI font + drop shadow; visuals updated in UpdateInteractionHUDVisual.
 local function ApplyInteractionHUDLabelFont()
   if not InteractionHUDLabel then
     return
   end
-  InteractionHUDLabel:SetFont("Fonts\\FRIZQT__.TTF", IH_FONT, nil)
+  CM.SetFontStringFromTemplate(InteractionHUDLabel, IH_FONT, _G.GameFontNormalSmall)
   InteractionHUDLabel:SetShadowColor(0, 0, 0, 1)
   InteractionHUDLabel:SetShadowOffset(1, -1)
 end
@@ -396,7 +459,19 @@ local function RefreshInteractionHUD()
     return
   end
   local name = GetInteractionHUDUnitName()
-  if not name or name == "" then
+  local hasName = false
+  if name ~= nil then
+    if IsSecretValue(name) then
+      hasName = true
+      ihInteractionHUDSecretIdentity = true
+    else
+      ihInteractionHUDSecretIdentity = false
+      hasName = (name ~= "")
+    end
+  else
+    ihInteractionHUDSecretIdentity = false
+  end
+  if not hasName then
     if UnitIsGameObject("softinteract") and interactionHUDNameRetry < 1 then
       interactionHUDNameRetry = interactionHUDNameRetry + 1
       local C_Timer = _G.C_Timer
@@ -418,7 +493,9 @@ local function RefreshInteractionHUD()
     C_Timer.After(0, ResizeInteractionHUDCluster)
   end
   ihClusterFadeTarget = 1
-  InteractionHUDShadow:Show()
+  if not ihInteractionHUDSecretIdentity and InteractionHUDShadow then
+    InteractionHUDShadow:Show()
+  end
   InteractionHUDIcon:Show()
   InteractionHUDLabel:Show()
   InteractionHUDCluster:Show()

@@ -46,6 +46,30 @@ local table = _G.table
 local math = _G.math
 local UIParent = _G.UIParent
 local RAID_CLASS_COLORS = _G.RAID_CLASS_COLORS
+local utf8 = _G.utf8
+
+-- Shorten display names by UTF-8 character count (byte :sub breaks Cyrillic/CJK).
+local function TruncateUtf8Name(str, maxChars, keepChars, ellipsis)
+  ellipsis = ellipsis or "..."
+  if not str or str == "" then
+    return str
+  end
+  if utf8 and utf8.len and utf8.offset then
+    local n = utf8.len(str)
+    if n and n <= maxChars then
+      return str
+    end
+    local pos = utf8.offset(str, keepChars + 1)
+    if pos then
+      return str:sub(1, pos - 1) .. ellipsis
+    end
+    return str
+  end
+  if #str > maxChars then
+    return str:sub(1, keepChars) .. ellipsis
+  end
+  return str
+end
 
 -- Colors used with EvaluateColorFromBoolean to extract tainted boolean values.
 -- EvaluateColorFromBoolean(bool, trueColor, falseColor) returns a ColorMixin
@@ -1014,16 +1038,13 @@ local function UpdateSliceVisual(sliceIndex)
   end
 
   -- Update name (class-coloured; show "You" for the player; font/size with drop shadow; always shown)
-  local fontPath = "Fonts\\FRIZQT__.TTF"
   local fontSize = config.nameFontSize or 12
-  -- Always use drop shadow (no outline)
-  slice.nameText:SetFont(fontPath, fontSize, nil)
+  -- Always use drop shadow (no outline); locale-safe font (same as GameFontNormalSmall resolution)
+  CM.SetFontStringFromTemplate(slice.nameText, fontSize, _G.GameFontNormalSmall)
   slice.nameText:SetShadowColor(0, 0, 0, 1)
   slice.nameText:SetShadowOffset(1, -1)
   local displayName = (memberData.unitId == "player") and "You" or (memberData.name or "Unknown")
-  if #displayName > 10 then
-    displayName = displayName:sub(1, 9) .. "..."
-  end
+  displayName = TruncateUtf8Name(displayName, 10, 9, "...")
   local color = (memberData.class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[memberData.class])
     and RAID_CLASS_COLORS[memberData.class]
     or { r = 1, g = 1, b = 1 }
