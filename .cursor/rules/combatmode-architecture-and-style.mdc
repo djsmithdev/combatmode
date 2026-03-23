@@ -1,0 +1,46 @@
+---
+description: CombatMode architecture and coding conventions
+alwaysApply: true
+---
+
+# CombatMode Architecture and Style
+
+Use this project map and conventions for all changes.
+
+## Runtime structure
+
+- `CombatMode.toc`: addon metadata, `SavedVariables: CombatModeDB`, load order entrypoint.
+- `Embeds.xml`: loads Lua files and owns the root frame scripts (`OnEvent`, `OnUpdate` bridge).
+- `Features/*.lua`: runtime systems and gameplay behavior.
+- `Config/*.lua`: AceConfig option builders and category assembly.
+- `UI/CrosshairEditMode.lua`: Edit Mode integration for crosshair controls.
+- `Bindings.xml`: keybinding declarations and binding click targets.
+
+## Module responsibilities
+
+- `Features/Core.lua`: addon lifecycle, global event/update orchestration, mouselook driver.
+- `Features/Constants.lua`: defaults, static tables, event groups, paths.
+- `Features/Reticle.lua`: reticle/crosshair behavior and action-targeting CVars.
+- `Features/ClickCasting.lua`: click-cast override macros and modifiers.
+- `Features/CursorUnlock.lua`: auto mouselook unlock logic (UI/Lua conditions).
+- `Features/Pulse.lua`: post-unlock cursor pulse effect.
+- `Features/HealingRadial.lua`: healing radial menu, targeting/casting flow.
+- `Config/Config.lua`: assembles all option groups into Blizzard/Ace settings.
+- `Config/*Options.lua`: feature-specific settings panels.
+
+## Required coding conventions
+
+- Keep event wiring centralized via constants and core dispatch; avoid ad-hoc event frames.
+- Prefer extending existing `CM` feature APIs over introducing new global state.
+- Respect combat lockdown and secure action patterns (`SecureActionButtonTemplate`, macro attributes).
+- Use existing DB scopes consistently:
+  - account-wide in `CM.DB.global`
+  - character-specific in `CM.DB.char`
+- Put new user-facing settings in `Config/*Options.lua` and wire through `Config/Config.lua`.
+- Preserve slash command and keybinding behavior unless change is explicitly requested.
+
+## Change expectations
+
+- Follow current file header purpose comments as source of truth for module intent.
+- Keep edits minimal and local to the owning module.
+- Call out behavior changes that affect mouselook, targeting CVars, or binding overrides.

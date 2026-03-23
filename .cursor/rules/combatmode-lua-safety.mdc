@@ -1,0 +1,41 @@
+---
+description: Lua style and WoW runtime safety guardrails
+alwaysApply: true
+---
+
+# CombatMode Lua Safety
+
+Apply these guardrails for all Lua changes in this addon.
+
+## Combat lockdown and secure flow
+
+- Never perform protected/forbidden UI actions in combat unless the API is explicitly combat-safe.
+- Guard protected paths with `InCombatLockdown()` and defer changes until safe when needed.
+- Keep secure action setup deterministic; avoid dynamic attribute churn during combat.
+- Prefer existing secure patterns already used by the addon (`SecureActionButtonTemplate`, macrotext attributes, override bindings).
+
+## Taint-avoidance practices
+
+- Do not replace Blizzard globals/hooks unless required; prefer safe hooks and local wrappers.
+- Avoid leaking temporary globals; keep new helpers/functions `local` unless they must be exported.
+- Minimize frame script churn in hot paths (`OnUpdate`, high-frequency events).
+- Keep binding and frame ownership clear to avoid hidden cross-module side effects.
+
+## CVar and state hygiene
+
+- Read and write CVars through the module that owns targeting/reticle behavior.
+- Only change CVars that are part of explicit feature behavior; avoid unrelated CVar writes.
+- When changing runtime state (mouselook, targeting, overrides), keep enable/disable symmetry and cleanup paths.
+
+## Defensive Lua style
+
+- Validate inputs from events/settings before acting (nil/type checks on external data).
+- Use early returns for invalid state to keep flow clear and reduce taint-prone branching.
+- Reuse existing constants/default tables rather than duplicating magic strings/numbers.
+- Keep per-frame work small; avoid expensive table churn in frequently-called code.
+
+## Config and persistence safety
+
+- New settings must have sane defaults and a clear DB scope (`global` vs `char`).
+- Keep option handlers side-effect aware: UI toggles should map directly to a feature apply/refresh function.
+- Avoid hidden migrations in random modules; keep data-shape transitions explicit and centralized.

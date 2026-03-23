@@ -1,0 +1,15 @@
+---
+description: Pre-merge checklist for CombatMode feature changes
+alwaysApply: true
+---
+
+# CombatMode Change Checklist
+
+Before finalizing code changes, run this checklist.
+
+- API checks: verify changed WoW API usage with MCP (`lookup_api`, `list_deprecated`, `get_event`, `get_enum`).
+- Module ownership: keep edits in the feature/config module that owns behavior.
+- Combat safety: guard protected paths and avoid insecure changes in combat.
+- State symmetry: for mouselook/CVars/bindings, ensure enable/apply has matching disable/cleanup.
+- Config wiring: new setting has defaults, correct DB scope, and options UI integration.
+- Regression pass: cover slash commands, keybind flows, and mainline runtime path for touched feature.

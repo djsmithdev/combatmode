@@ -1,0 +1,30 @@
+---
+description: Use WoW API MCP tools first for addon API intelligence
+alwaysApply: true
+---
+
+# WoW MCP First
+
+For this addon workspace, prefer the `wow-api` MCP tools as the primary source for WoW API facts.
+
+- For API/function questions, call `lookup_api` first.
+- For discovery/search, call `search_api` before web search.
+- For deprecations and replacements, call `list_deprecated`.
+- For frame event arguments, call `get_event`.
+- For enum constants/values, call `get_enum`.
+- For namespace exploration (`C_*`), call `get_namespace`.
+- For widget methods (`Frame`, `Button`, etc.), call `get_widget_methods`.
+
+## Reliability order
+
+1. WoW MCP tools
+2. Existing project code
+3. External docs/web references
+
+If WoW MCP is unavailable, clearly say so and then fall back to other sources.
+
+## Output expectations
+
+- Include exact signatures/parameter names/types when available.
+- Call out deprecations and recommended replacements explicitly.
+- Prefer Mainline-compatible guidance unless asked otherwise.

@@ -48,7 +48,17 @@
     "WOW_PROJECT_MAINLINE",
     "ChatEdit_InsertLink",
     "ChatFrameUtil",
-    "RAID_CLASS_COLORS"
+    "RAID_CLASS_COLORS",
+    "MinimalSliderWithSteppersMixin",
+    "CreateMinimalSliderFormatter",
+    "SettingsTooltip",
+    "DefaultTooltipMixin",
+    "SOUNDKIT",
+    "GenerateClosure",
+    "EditModeSystemSettingsDialog",
+    "RESET_TO_DEFAULT",
+    "EditModeManagerFrame",
+    "HUD_EDIT_MODE_RESET_POSITION"
   ],
   "Lua.diagnostics.disable": [
     "undefined-field",
@@ -67,7 +77,6 @@
     "utf8": "disable"
   },
   "Lua.workspace.library": [
-    "~\\.vscode\\extensions\\ketho.wow-api-0.22.3\\Annotations\\Core"
-  ],
-  "Lua.type.weakUnionCheck": true
+    "c:\\Users\\sampc\\.cursor\\extensions\\ketho.wow-api-0.22.3\\Annotations\\Core"
+  ]
 }

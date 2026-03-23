@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img width="512" height="128" src="./cmtitle.svg">
+  <img width="512" height="128" src="media/cmtitle.svg">
 </p>
 
 <p align="center">
@@ -8,7 +8,7 @@ Introducing <strong>Combat Mode</strong> – an AddOn designed to bring a more d
 </center>
 
 <p align="center">
-  <img src="./previewGif.gif">
+  <img src="media/previewGif.gif">
 </p>
 
 <p align="center">
@@ -24,29 +24,29 @@ Experience <em>World of Warcraft</em> like never before with <strong>Combat Mode
 
 <br />
 
-## <img width="20" height="20" src="./cmlogo.svg"> FEATURES
+## <img width="20" height="20" src="media/cmlogo.svg"> FEATURES
 - <strong>[Free Look Camera](https://en.wikipedia.org/wiki/Free_look)</strong> - Rotate the player character's view with the camera without having to perpetually hold right click.
 - <strong>Reticle Targeting</strong> - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of @mouseover and @cursor macro decorators in combination with the crosshairs.
 - <strong>Mouse Click Casting</strong> - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them.
 - <strong>Cursor Unlock</strong> - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.
 - <strong>Healing Radial</strong> - Radial menu for quickly targeting and casting helpful spells at party members.
 <p align="center">
-  <img src="./previewGif2.gif">
+  <img src="media/previewGif2.gif">
 </p>
 
 <br />
 
-## <img width="20" height="20" src="./cmlogo.svg"> DOWNLOAD
+## <img width="20" height="20" src="media/cmlogo.svg"> DOWNLOAD
 
 Grab it on [**CurseForge**](https://www.curseforge.com/wow/addons/combat-mode).
 
 <br />
 
-## <img width="20" height="20" src="./cmlogo.svg"> INSTRUCTIONS
+## <img width="20" height="20" src="media/cmlogo.svg"> INSTRUCTIONS
 
 After installing the AddOn, you'll be greeted by this message upon your first login on each character:
 
-![previewMsg](./previewMsg.png)
+![previewMsg](media/previewMsg.png)
 
 1. Click OK to proceed or go to Game Menu (ESC) > Options > AddOns > Combat Mode.
 2. In the options panel, you'll be able to configure the addon to your liking.
@@ -55,23 +55,23 @@ After installing the AddOn, you'll be greeted by this message upon your first lo
 
 <br />
 
-## <img width="20" height="20" src="./cmlogo.svg"> PREVIEW
+## <img width="20" height="20" src="media/cmlogo.svg"> PREVIEW
 
-![preview1](./preview1.jpg)
+![preview1](media/preview1.jpg)
 
-![preview2](./preview2.jpg)
+![preview2](media/preview2.jpg)
 
-![preview3](./preview3.jpg)
+![preview3](media/preview3.jpg)
 
 <br />
 
-## <img width="20" height="20" src="./cmlogo.svg"> SUPPORT
+## <img width="20" height="20" src="media/cmlogo.svg"> SUPPORT
 
 You can report bugs, request features and provide feedback over on our [**Discord**](https://www.discord.gg/5mwBSmz).
 
 <br />
 
-## <img width="20" height="20" src="./cmlogo.svg"> CONTRIBUTING
+## <img width="20" height="20" src="media/cmlogo.svg"> CONTRIBUTING
 
 You can submit a PR with your contributions to [**Combat Mode's repository on GitHub**](https://github.com/djsmithdev/combatmode).
 

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "wow-api": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "wow-api-mcp"],
+      "env": {
+        "WOW_API_EXT_PATH": "C:/Users/sampc/.cursor/extensions/ketho.wow-api-0.22.3"
+      }
+    }
+  }
+}

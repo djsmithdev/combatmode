@@ -1,0 +1,16 @@
+---
+description: Follow release checklist when preparing addon updates
+alwaysApply: true
+---
+
+# CombatMode Release Flow
+
+When asked to prepare a release, ship an update, or finalize a version:
+
+- Use `RELEASE.md` as the canonical release procedure.
+- Use `TESTING.md` for the smoke/regression pass.
+- Verify WoW API compatibility with MCP tools before finalizing notes.
+- Call out any user-impacting changes (bindings, CVars, settings migration) clearly.
+- Ensure version/interface metadata changes are explicitly included in the change summary.
+
+If the request is not release-related, apply normal architecture/safety/checklist rules.
