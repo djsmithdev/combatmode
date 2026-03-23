@@ -1,13 +1,21 @@
 {
   "editor.formatOnSave": true,
   "[lua]": {
-    "editor.defaultFormatter": "yinfei.luahelper"
+    "editor.defaultFormatter": "sumneko.lua"
   },
-  "luahelper.format.indent_width": 2,
-  "luahelper.format.continuation_indent_width": 2,
-  "luahelper.format.chop_down_table": true,
   "Lua.runtime.version": "Lua 5.1",
   "Lua.diagnostics.globals": [
+    "_G",
+    "print",
+    "pairs",
+    "ipairs",
+    "type",
+    "tostring",
+    "tonumber",
+    "string",
+    "table",
+    "math",
+    "pcall",
     "ReloadUI",
     "DEFAULT_CHAT_FRAME",
     "SELECTED_CHAT_FRAME",
@@ -58,7 +66,13 @@
     "EditModeSystemSettingsDialog",
     "RESET_TO_DEFAULT",
     "EditModeManagerFrame",
-    "HUD_EDIT_MODE_RESET_POSITION"
+    "HUD_EDIT_MODE_RESET_POSITION",
+    "CreateUnsecuredObjectPool",
+    "DISABLED_FONT_COLOR",
+    "WHITE_FONT_COLOR",
+    "CreateColor",
+    "EventRegistry",
+    "CopyTable"
   ],
   "Lua.diagnostics.disable": [
     "undefined-field",
@@ -77,6 +91,10 @@
     "utf8": "disable"
   },
   "Lua.workspace.library": [
-    "c:\\Users\\sampc\\.cursor\\extensions\\ketho.wow-api-0.22.3\\Annotations\\Core"
-  ]
+    "${env:USERPROFILE}\\.cursor\\extensions\\ketho.wow-api-0.22.3\\Annotations\\Core",
+    "${env:USERPROFILE}\\.vscode\\extensions\\ketho.wow-api-0.22.3\\Annotations\\Core"
+  ],
+  "Lua.workspace.checkThirdParty": false,
+  "Lua.diagnostics.libraryFiles": "Disable",
+  "Lua.type.weakUnionCheck": true
 }

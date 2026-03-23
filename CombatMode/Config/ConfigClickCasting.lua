@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Config/ClickCastingOptions.lua — Click casting (base and modifier overrides)
+--  Config/ConfigClickCasting.lua — Click casting (base and modifier overrides)
 ---------------------------------------------------------------------------------------
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
@@ -19,16 +19,15 @@ CM.Config.ClickCastingOptions = {
     globalKeybind = {
       type = "toggle",
       name = "Use Account-Wide Click Bindings |cff3B73FF©|r",
-      desc = "|cff3B73FF© Character-based option|r\n\nUse your account-wide shared Combat Mode keybinds on this character.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      desc =
+      "|cff3B73FF© Character-based option|r\n\nUse your account-wide shared Combat Mode keybinds on this character.\n\n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
       order = 3,
       set = function(_, value)
         CM.DB.char.useGlobalBindings = value
         CM.OverrideDefaultButtons()
       end,
-      get = function()
-        return CM.DB.char.useGlobalBindings
-      end
+      get = function() return CM.DB.char.useGlobalBindings end
     },
     spacing = Spacing("full", 4),
     unmodifiedGroup = GetButtonOverrideGroup(nil, 5),

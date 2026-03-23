@@ -252,7 +252,7 @@ function CM.RegisterCrosshairEditMode()
         if UIErrorsFrame and UIErrorsFrame.AddMessage then
           UIErrorsFrame:AddMessage(
             CM.METADATA["TITLE"] ..
-              ": Crosshair stays centered horizontally; drag vertically to adjust height.",
+            ": Crosshair stays centered horizontally; drag vertically to adjust height.",
             1,
             1,
             0,
@@ -261,7 +261,8 @@ function CM.RegisterCrosshairEditMode()
         end
       end
     end
-    local verticalY = (cx and cy and ux and uy) and (cy - uy) or (CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY)
+    local verticalY = (cx and cy and ux and uy) and (cy - uy) or
+        (CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY)
     CM.DB.global.crosshairLayoutPositions[layoutNameCb] = { point = "CENTER", x = 0, y = verticalY }
     CM.DB.global.crosshairY = verticalY
     CM.CreateCrosshair()
@@ -374,7 +375,8 @@ function CM.RegisterCrosshairEditMode()
       name = "Show Interaction HUD",
       kind = ST.Checkbox,
       default = true,
-      desc = "Display a HUD for interactable NPCs or objects to the right of the crosshair.\nKeybind |cffffd700Interact - |cff00FFFFReticle Target|r under |cffE52B50Mouse Look|r to interact with the target when in range.",
+      desc =
+      "Display a HUD for interactable NPCs or objects to the right of the crosshair.\nKeybind |cffffd700Interact - |cff00FFFFReticle Target|r under |cffE52B50Mouse Look|r to interact with the target when in range.",
       get = function()
         return CM.DB.global.interactionHUD
       end,
@@ -420,7 +422,8 @@ function CM.RegisterCrosshairEditMode()
       CM.DB.global.crosshairLayoutPositions = {}
     end
     if sourceLayoutName and CM.DB.global.crosshairLayoutPositions[sourceLayoutName] then
-      CM.DB.global.crosshairLayoutPositions[newLayoutName] = _G.CopyTable(CM.DB.global.crosshairLayoutPositions[sourceLayoutName])
+      CM.DB.global.crosshairLayoutPositions[newLayoutName] = _G.CopyTable(CM.DB.global.crosshairLayoutPositions
+        [sourceLayoutName])
     end
   end)
 

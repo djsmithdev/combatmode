@@ -5,7 +5,7 @@
 
 <p align="center">
 Introducing <strong>Combat Mode</strong> – an AddOn designed to bring a more dynamic action combat experience to <em>World of Warcraft</em> by implementing Free Look, Reticle Targeting, casting with mouse clicks, and more!
-</center>
+</p>
 
 <p align="center">
   <img src="media/previewGif.gif">
@@ -13,13 +13,13 @@ Introducing <strong>Combat Mode</strong> – an AddOn designed to bring a more d
 
 <p align="center">
 With a full suite of carefully programmed changes inspired by <ins>Guild Wars 2's Action Camera</ins> - <strong>all aimed at breathing some much-needed life into WoW's tab-targeting combat</strong> - Combat Mode introduces features like <ins>Free Look</ins>, allowing you to change your character’s facing direction by moving the mouse without needing to perpetually hold right-click. When enabled - either through a <em>toggle</em> or <em>press & hold</em> key bind - the cursor is locked to the center of the screen and transformed into a <ins>reticle capable of target selection</ins>, even supporting the use of <em>@cursor</em> or <em>@mouseover</em> macros.
-</center>
+</p>
 <p align="center">
 Combat Mode takes it further by allowing you to <ins>cast spells with mouse clicks</ins>, a mechanic inspired by third-person action games. For convenience, the AddOn will <ins>automatically deactivate Free Look while interacting with a range of interface panels</ins>, reactivating it once closed.
-</center>
+</p>
 <p align="center">
 Experience <em>World of Warcraft</em> like never before with <strong>Combat Mode</strong>!
-</center>
+</p>
 
 
 <br />
@@ -55,16 +55,6 @@ After installing the AddOn, you'll be greeted by this message upon your first lo
 
 <br />
 
-## <img width="20" height="20" src="media/cmlogo.svg"> PREVIEW
-
-![preview1](media/preview1.jpg)
-
-![preview2](media/preview2.jpg)
-
-![preview3](media/preview3.jpg)
-
-<br />
-
 ## <img width="20" height="20" src="media/cmlogo.svg"> SUPPORT
 
 You can report bugs, request features and provide feedback over on our [**Discord**](https://www.discord.gg/5mwBSmz).
@@ -74,5 +64,13 @@ You can report bugs, request features and provide feedback over on our [**Discor
 ## <img width="20" height="20" src="media/cmlogo.svg"> CONTRIBUTING
 
 You can submit a PR with your contributions to [**Combat Mode's repository on GitHub**](https://github.com/djsmithdev/combatmode).
+
+### Developer quickstart
+
+1. Clone and install the addon into your Retail `Interface/AddOns` folder for local testing.
+2. Review module ownership and load order in [STRUCTURE.md](STRUCTURE.md).
+3. Run a focused manual pass from [TESTING.md](TESTING.md) for your changed features.
+4. Validate release/API compatibility checks from [RELEASE.md](RELEASE.md).
+5. Open a PR and complete the repo checklist in `.github/PULL_REQUEST_TEMPLATE.md`.
 
 <br />

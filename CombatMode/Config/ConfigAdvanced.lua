@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  CONFIG/AdvancedOptions.lua — Advanced panel (custom cursor-unlock Lua condition)
+--  Config/ConfigAdvanced.lua — Advanced panel (custom cursor-unlock Lua condition)
 ---------------------------------------------------------------------------------------
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
@@ -42,7 +42,8 @@ CM.Config.AdvancedOptions = {
           args = {
             crosshairNote = {
               type = "description",
-              name = "|cff909090Knowing the basics of |cff69ccf0Lua|r and the |cffffd700WoW API|r is essential for using custom conditions.|r \n\n|cffFF5050Combat Mode's authors are not responsible for custom code issues and are not obligated to provide users any support for it.|r",
+              name =
+              "|cff909090Knowing the basics of |cff69ccf0Lua|r and the |cffffd700WoW API|r is essential for using custom conditions.|r \n\n|cffFF5050Combat Mode's authors are not responsible for custom code issues and are not obligated to provide users any support for it.|r",
               order = 1
             },
             wowpediaApi = {
@@ -52,7 +53,8 @@ CM.Config.AdvancedOptions = {
               width = 2.2,
               order = 3,
               get = function()
-                return "warcraft.wiki.gg/wiki/World_of_Warcraft_API"
+                return
+                "warcraft.wiki.gg/wiki/World_of_Warcraft_API"
               end
             }
           }

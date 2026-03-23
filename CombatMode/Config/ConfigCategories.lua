@@ -1,12 +1,12 @@
 ---------------------------------------------------------------------------------------
---  Config/Config.lua — option category assembly for AceConfig / Blizzard options
+--  Config/ConfigCategories.lua — option category assembly for AceConfig / Blizzard options
 ---------------------------------------------------------------------------------------
---  Shared UI builders live in Config/OptionsShared.lua. Each submenu is defined in
---  Config/*Options.lua (About, MouseLook, ReticleTargeting, ClickCasting, HealingRadial,
+--  Shared UI builders live in Config/ConfigShared.lua. Each submenu is defined in
+--  Config/Config*.lua (About, MouseLook, ReticleTargeting, ClickCasting, HealingRadial,
 --  Advanced). This file only wires CM.Config.OptionCategories for Core:OnInitialize
 --  (AceConfig + AddToBlizOptions).
 --
---  Load order (Embeds.xml): Config/*Options.lua before this file; OptionsShared.lua first.
+--  Load order (Embeds.xml): Config*.lua before this file; ConfigShared.lua first.
 ---------------------------------------------------------------------------------------
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")

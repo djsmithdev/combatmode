@@ -7,6 +7,7 @@ Use this checklist for feature work and regressions.
 - Use Retail client with addon enabled and fresh `/reload`.
 - Confirm `CombatModeDB` loads and settings panel opens (`/cm`).
 - If testing bindings, verify keybinds are set as expected.
+- For API-sensitive changes, verify WoW API/event signatures via MCP tools first (or manual fallback in `RELEASE.md`).
 
 ## Core and mouselook
 
@@ -49,3 +50,4 @@ Use this checklist for feature work and regressions.
 - Slash commands: `/cm`, `/combatmode`, `/undocm`.
 - Keybinds still function after reload and after disabling/re-enabling addon.
 - No Lua errors in normal use paths for edited features.
+- If keybind writes were changed, verify in-combat changes defer and apply automatically after leaving combat.

@@ -10,9 +10,14 @@ Use this checklist when preparing a release build.
 
 ## 2) API and compatibility checks
 
-- Validate new/changed WoW API calls via MCP (`lookup_api`).
-- Check for deprecated APIs and replacements (`list_deprecated`).
-- Confirm updated enums/events where relevant (`get_enum`, `get_event`).
+- MCP-first (preferred):
+  - Validate new/changed WoW API calls (`lookup_api`).
+  - Check deprecated APIs and replacements (`list_deprecated`).
+  - Confirm enums/events where relevant (`get_enum`, `get_event`).
+- Manual fallback (no MCP available):
+  - Verify each changed API/event on [warcraft.wiki.gg API docs](https://warcraft.wiki.gg/wiki/World_of_Warcraft_API).
+  - Confirm events used in `CM.Constants.BLIZZARD_EVENTS` have correct payload expectations for handlers.
+  - Manually review protected-action APIs (`SetBinding`, `SetOverrideBinding*`, `SetMouselookOverrideBinding`, CVar writes) for combat guards/deferred handling.
 - Prefer Mainline-safe behavior unless explicitly shipping cross-version logic.
 
 ## 3) Load order and packaging sanity
@@ -30,6 +35,7 @@ Use this checklist when preparing a release build.
   - healing radial open/cast flow
   - slash commands and keybind sanity
 - Confirm no combat-lockdown errors and no new Lua errors.
+- If MCP was unavailable during implementation, run an additional manual API spot-check for each changed WoW API call before tagging release.
 
 ## 5) Settings and persistence
 

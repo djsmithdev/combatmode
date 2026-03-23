@@ -72,7 +72,8 @@ end
 ---------------------------------------------------------------------------------------
 -- Outer frame: registered with LibEditMode; sized to at least CrosshairEditModeMinHitSize for a larger Edit Mode click target.
 -- Inner frame: actual crosshair art, reaction scale animation, and lock-in (container stays fixed size).
-local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
+local CrosshairFrame =
+    CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
 local CrosshairVisualFrame = CreateFrame("Frame", nil, CrosshairFrame)
 local CrosshairTexture = CrosshairVisualFrame:CreateTexture(nil, "OVERLAY")
 local STARTING_SCALE = 1
@@ -101,9 +102,7 @@ end
 -- anywhere UI enablement must match "crosshair on" (not strict `== true`).
 function CM.IsCrosshairEnabled()
   local c = CM.DB and CM.DB.global and CM.DB.global.crosshair
-  if c == nil then
-    return CM.Constants.DatabaseDefaults.global.crosshair
-  end
+  if c == nil then return CM.Constants.DatabaseDefaults.global.crosshair end
   return not not c
 end
 
@@ -121,135 +120,102 @@ local ihInteractionHUDSecretIdentity = false
 local function IsSecretValue(v)
   return v ~= nil and issecretvalue and issecretvalue(v)
 end
-local ihRangeBlend -- 0 = out of range, 1 = in range (lerped)
+local ihRangeBlend            -- 0 = out of range, 1 = in range (lerped)
 local ihSnapRangeBlend = true -- snap on next HUD show after hide
-local ihClusterFade = 0 -- parent alpha (fade in / fade out)
+local ihClusterFade = 0       -- parent alpha (fade in / fade out)
 local ihClusterFadeTarget = 0 -- 0 = hidden, 1 = visible
 
 local IH_GAP = 7
 local IH_LABEL_MAX_W = 280
 local IH_TEXT_PAD = 4 -- shadow bleed past glyphs
 local IH_ICON = 22
-local IH_FONT = 13 -- matches healing radial slice name size
+local IH_FONT = 13    -- matches healing radial slice name size
 local IH_NAME_GOLD = { 1, 204 / 255, 0 }
 local IH_NAME_GREY = { 0.62, 0.62, 0.62 }
 local IH_SHADOW_ATLAS = "PetJournal-BattleSlot-Shadow"
 local IH_SHADOW_ALPHA = 0.7 -- × crosshair opacity only (not dimmed when out of range)
-local IH_OFFSET_X = 24 -- px right of crosshair center (LEFT anchor)
-local IH_DIM_MIN = 0.5 -- GetInteractionHUDCursorDim when unable
-local IH_DIM_MAX = 0.9 -- when able
+local IH_OFFSET_X = 24      -- px right of crosshair center (LEFT anchor)
+local IH_DIM_MIN = 0.5      -- GetInteractionHUDCursorDim when unable
+local IH_DIM_MAX = 0.9      -- when able
 local IH_RANGE_LERP_SPEED = 14
 local IH_CLUSTER_FADE_SPEED = 16
 
 local function HasInteractionHUDTarget()
-  return UnitGUID("softinteract") ~= nil
-    or UnitExists("softinteract")
-    or UnitIsGameObject("softinteract")
+  return UnitGUID("softinteract") ~= nil or UnitExists("softinteract") or
+      UnitIsGameObject("softinteract")
 end
 
 local function GetInteractionHUDUnitName()
   local name = UnitName("softinteract")
   if name then
-    if IsSecretValue(name) then
-      return name
-    end
-    if name ~= "" then
-      return name
-    end
+    if IsSecretValue(name) then return name end
+    if name ~= "" then return name end
   end
   if UnitNameUnmodified then
     name = UnitNameUnmodified("softinteract")
     if name then
-      if IsSecretValue(name) then
-        return name
-      end
-      if name ~= "" then
-        return name
-      end
+      if IsSecretValue(name) then return name end
+      if name ~= "" then return name end
     end
   end
   if GetUnitName then
     name = GetUnitName("softinteract", false)
     if name then
-      if IsSecretValue(name) then
-        return name
-      end
-      if name ~= "" then
-        return name
-      end
+      if IsSecretValue(name) then return name end
+      if name ~= "" then return name end
     end
   end
 end
 
--- Texture file IDs / paths for "unable" interact cursor (dim + grey name).
-local IH_CURSOR_UNABLE = {
-  ["4675695"] = true,
-  ["4675705"] = true,
-  ["4675693"] = true,
-  ["4675702"] = true,
-  ["4675694"] = true,
-  ["4675720"] = true,
-  ["4675725"] = true,
-  ["4675677"] = true
-}
+local IH_CURSOR_UNABLE = (CM.Constants and
+  CM.Constants.InteractionHUDUnableCursor) or {}
 
 local function HideInteractionHUD()
   ihInteractionHUDSecretIdentity = false
   ihSnapRangeBlend = true
-  if not InteractionHUDCluster then
-    return
-  end
+  if not InteractionHUDCluster then return end
   ihClusterFadeTarget = 0
-  if not InteractionHUDCluster:IsShown() then
-    return
-  end
-  if ihClusterFade <= 0.001 then
-    InteractionHUDCluster:Hide()
-  end
+  if not InteractionHUDCluster:IsShown() then return end
+  if ihClusterFade <= 0.001 then InteractionHUDCluster:Hide() end
 end
 
 local function LayoutInteractionHUDShadow()
-  if not InteractionHUDShadow or not InteractionHUDCluster then
-    return
-  end
+  if not InteractionHUDShadow or not InteractionHUDCluster then return end
   local cw = InteractionHUDCluster:GetWidth()
-  if IsSecretValue(cw) then
-    return
-  end
-  if not cw or cw < 1 then
-    return
-  end
+  if IsSecretValue(cw) then return end
+  if not cw or cw < 1 then return end
   InteractionHUDShadow:ClearAllPoints()
   local padL, padT, padR, padB = 88, 22, 48, 14
   local shiftX, shiftY = 22, -3
-  InteractionHUDShadow:SetPoint("TOPLEFT", InteractionHUDCluster, "TOPLEFT", -padL + shiftX, padT + shiftY)
-  InteractionHUDShadow:SetPoint("BOTTOMRIGHT", InteractionHUDCluster, "BOTTOMRIGHT", padR + shiftX, -padB + shiftY)
+  InteractionHUDShadow:SetPoint("TOPLEFT", InteractionHUDCluster, "TOPLEFT",
+    -padL + shiftX, padT + shiftY)
+  InteractionHUDShadow:SetPoint("BOTTOMRIGHT", InteractionHUDCluster,
+    "BOTTOMRIGHT", padR + shiftX, -padB + shiftY)
 end
 
 local function LayoutInteractionHUDChildren(sw)
-  if not InteractionHUDCluster or not InteractionHUDIcon or not InteractionHUDLabel then
+  if not InteractionHUDCluster or not InteractionHUDIcon or
+      not InteractionHUDLabel then
     return
   end
   local lw = sw
   if not ihInteractionHUDSecretIdentity then
     local measured = InteractionHUDLabel:GetWidth()
     if measured and not IsSecretValue(measured) then
-      if measured >= 1 then
-        lw = measured
-      end
+      if measured >= 1 then lw = measured end
     end
   end
   InteractionHUDIcon:ClearAllPoints()
-  InteractionHUDIcon:SetPoint("CENTER", InteractionHUDCluster, "LEFT", IH_ICON / 2, 1)
+  InteractionHUDIcon:SetPoint("CENTER", InteractionHUDCluster, "LEFT",
+    IH_ICON / 2, 1)
   InteractionHUDLabel:ClearAllPoints()
   InteractionHUDLabel:SetJustifyH("LEFT")
-  InteractionHUDLabel:SetPoint("CENTER", InteractionHUDIcon, "CENTER", IH_ICON / 2 + IH_GAP + lw / 2, 0)
+  InteractionHUDLabel:SetPoint("CENTER", InteractionHUDIcon, "CENTER",
+    IH_ICON / 2 + IH_GAP + lw / 2, 0)
 end
 
 local function ResizeInteractionHUDCluster()
-  if not InteractionHUDCluster or not InteractionHUDLabel then
-    return
-  end
+  if not InteractionHUDCluster or not InteractionHUDLabel then return end
   -- Secret identity: fixed width, no string/width measurements (avoids secret number compares); drop shadow hidden.
   if ihInteractionHUDSecretIdentity then
     InteractionHUDLabel:SetWidth(IH_LABEL_MAX_W)
@@ -260,22 +226,19 @@ local function ResizeInteractionHUDCluster()
     local h = math.max(IH_ICON, sh)
     InteractionHUDCluster:SetSize(w, h)
     LayoutInteractionHUDChildren(sw)
-    if InteractionHUDShadow then
-      InteractionHUDShadow:Hide()
-    end
+    if InteractionHUDShadow then InteractionHUDShadow:Hide() end
     return
   end
   InteractionHUDLabel:SetWidth(0)
-  local sw = InteractionHUDLabel.GetUnboundedStringWidth and InteractionHUDLabel:GetUnboundedStringWidth()
-    or InteractionHUDLabel:GetStringWidth()
+  local sw = InteractionHUDLabel.GetUnboundedStringWidth and
+      InteractionHUDLabel:GetUnboundedStringWidth() or
+      InteractionHUDLabel:GetStringWidth()
   if IsSecretValue(sw) then
     ihInteractionHUDSecretIdentity = true
     ResizeInteractionHUDCluster()
     return
   end
-  if not sw or sw < 1 then
-    sw = 1
-  end
+  if not sw or sw < 1 then sw = 1 end
   if sw > IH_LABEL_MAX_W then
     InteractionHUDLabel:SetWidth(IH_LABEL_MAX_W)
     InteractionHUDLabel:SetWordWrap(true)
@@ -288,9 +251,7 @@ local function ResizeInteractionHUDCluster()
     sh = IH_FONT
   elseif not sh or sh < 1 then
     sh = InteractionHUDLabel:GetStringHeight()
-    if IsSecretValue(sh) or not sh or sh < 1 then
-      sh = IH_FONT
-    end
+    if IsSecretValue(sh) or not sh or sh < 1 then sh = IH_FONT end
   end
   local w = IH_ICON + IH_GAP + sw + IH_TEXT_PAD
   local h = math.max(IH_ICON, sh)
@@ -300,12 +261,11 @@ local function ResizeInteractionHUDCluster()
 end
 
 local function ApplyInteractionHUDLayout()
-  if not InteractionHUDCluster then
-    return
-  end
+  if not InteractionHUDCluster then return end
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
   local UserConfig = CM.DB and CM.DB.global or {}
-  local crosshairSize = UserConfig.crosshairSize or DefaultConfig.crosshairSize
+  local crosshairSize = UserConfig.crosshairSize or
+      DefaultConfig.crosshairSize
   local x = (crosshairSize / 2) + IH_OFFSET_X
   InteractionHUDCluster:ClearAllPoints()
   InteractionHUDCluster:SetPoint("LEFT", CrosshairFrame, "CENTER", x, 0)
@@ -314,44 +274,40 @@ end
 
 -- Localized UI font + drop shadow; visuals updated in UpdateInteractionHUDVisual.
 local function ApplyInteractionHUDLabelFont()
-  if not InteractionHUDLabel then
-    return
-  end
-  CM.SetFontStringFromTemplate(InteractionHUDLabel, IH_FONT, _G.GameFontNormalSmall)
+  if not InteractionHUDLabel then return end
+  CM.SetFontStringFromTemplate(InteractionHUDLabel, IH_FONT,
+    _G.GameFontNormalSmall)
   InteractionHUDLabel:SetShadowColor(0, 0, 0, 1)
   InteractionHUDLabel:SetShadowOffset(1, -1)
 end
 
 -- SetUnitCursorTexture("softinteract") → file id/path; dim when "unable" art.
 local function GetInteractionHUDCursorDim()
-  if not InteractionHUDIcon then
-    return 0.9, true
-  end
+  if not InteractionHUDIcon then return 0.9, true end
   if not SetUnitCursorTexture(InteractionHUDIcon, "softinteract") then
     InteractionHUDIcon:SetAtlas("mechagon-projects")
   end
   local filePath = InteractionHUDIcon:GetTextureFilePath()
-  if type(filePath) ~= "string" or (filePath and strfind(filePath, "FileData")) then
+  if type(filePath) ~= "string" or
+      (filePath and strfind(filePath, "FileData")) then
     filePath = tostring(InteractionHUDIcon:GetTextureFileID())
   end
-  if not filePath then
-    return 0.9, true
-  end
-  if IH_CURSOR_UNABLE[filePath] or (type(filePath) == "string" and strfind(filePath, "Unable")) then
+  if not filePath then return 0.9, true end
+  if IH_CURSOR_UNABLE[filePath] or
+      (type(filePath) == "string" and strfind(filePath, "Unable")) then
     return 0.5, false
   end
   return 0.9, true
 end
 
 local function UpdateInteractionHUDVisual(elapsed)
-  if not InteractionHUDCluster then
-    return
-  end
+  if not InteractionHUDCluster then return end
   local dt = (elapsed and elapsed > 0) and elapsed or (1 / 60)
 
   if math.abs(ihClusterFade - ihClusterFadeTarget) > 0.001 then
     local step = math.min(1, dt * IH_CLUSTER_FADE_SPEED)
-    ihClusterFade = ihClusterFade + (ihClusterFadeTarget - ihClusterFade) * step
+    ihClusterFade = ihClusterFade + (ihClusterFadeTarget - ihClusterFade) *
+        step
     if math.abs(ihClusterFade - ihClusterFadeTarget) < 0.01 then
       ihClusterFade = ihClusterFadeTarget
     end
@@ -365,15 +321,12 @@ local function UpdateInteractionHUDVisual(elapsed)
     return
   end
 
-  if not InteractionHUDCluster:IsShown() then
-    return
-  end
+  if not InteractionHUDCluster:IsShown() then return end
   -- Fading out: do not call SetUnitCursorTexture — softinteract may already be cleared (fallback gear).
-  if ihClusterFadeTarget == 0 then
-    return
-  end
+  if ihClusterFadeTarget == 0 then return end
   local g = CM.DB and CM.DB.global
-  if not g or g.interactionHUD ~= true or not g.crosshair or not InteractionHUDIcon or not InteractionHUDLabel then
+  if not g or g.interactionHUD ~= true or not g.crosshair or
+      not InteractionHUDIcon or not InteractionHUDLabel then
     return
   end
   local _, inRange = GetInteractionHUDCursorDim()
@@ -390,7 +343,8 @@ local function UpdateInteractionHUDVisual(elapsed)
   end
   local dim = IH_DIM_MIN + (IH_DIM_MAX - IH_DIM_MIN) * ihRangeBlend
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
-  local crosshairOpacity = g.crosshairOpacity or DefaultConfig.crosshairOpacity
+  local crosshairOpacity = g.crosshairOpacity or
+      DefaultConfig.crosshairOpacity
   local contentAlpha = dim * crosshairOpacity
   local t = ihRangeBlend
   local r = IH_NAME_GREY[1] + (IH_NAME_GOLD[1] - IH_NAME_GREY[1]) * t
@@ -403,15 +357,15 @@ local function UpdateInteractionHUDVisual(elapsed)
 end
 
 local function EnsureInteractionHUD()
-  if InteractionHUDCluster then
-    return
-  end
-  InteractionHUDCluster = CreateFrame("Frame", "CombatModeInteractionHUD", CrosshairFrame)
+  if InteractionHUDCluster then return end
+  InteractionHUDCluster = CreateFrame("Frame", "CombatModeInteractionHUD",
+    CrosshairFrame)
   InteractionHUDCluster:SetFrameStrata(CrosshairFrame:GetFrameStrata())
   InteractionHUDCluster:SetFrameLevel(CrosshairFrame:GetFrameLevel() + 1)
   InteractionHUDCluster:Hide()
 
-  InteractionHUDShadow = InteractionHUDCluster:CreateTexture(nil, "BACKGROUND")
+  InteractionHUDShadow =
+      InteractionHUDCluster:CreateTexture(nil, "BACKGROUND")
   InteractionHUDShadow:SetAtlas(IH_SHADOW_ATLAS)
   InteractionHUDShadow:SetBlendMode("BLEND")
   InteractionHUDShadow:SetVertexColor(0, 0, 0, 1)
@@ -422,7 +376,8 @@ local function EnsureInteractionHUD()
   InteractionHUDIcon:SetTexCoord(0, 1, 0, 1)
   InteractionHUDIcon:Hide()
 
-  InteractionHUDLabel = InteractionHUDCluster:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+  InteractionHUDLabel = InteractionHUDCluster:CreateFontString(nil, "OVERLAY",
+    "GameFontNormalSmall")
   InteractionHUDLabel:SetJustifyH("LEFT")
   InteractionHUDLabel:Hide()
 
@@ -505,34 +460,24 @@ end
 CM.RefreshInteractionHUD = RefreshInteractionHUD
 
 local function AdjustCenteredCursorYPos()
-  if not (CM.DB and CM.DB.char and CM.DB.char.reticleTargeting) then
-    return
-  end
+  if not (CM.DB and CM.DB.char and CM.DB.char.reticleTargeting) then return end
   local _, cy = CrosshairFrame:GetCenter()
   local h = UIParent:GetHeight()
-  if not (cy and h and h > 0) then
-    return
-  end
+  if not (cy and h and h > 0) then return end
   local normalized = cy / h
   normalized = math.max(0.01, math.min(0.99, normalized))
   SetCVar("CursorCenteredYPos", normalized)
 end
 
 local function GetActiveLayoutNameSafe()
-  if not ON_RETAIL_CLIENT then
-    return nil
-  end
+  if not ON_RETAIL_CLIENT then return nil end
   local LEM = LibStub("LibEditMode", true)
-  if not LEM then
-    return nil
-  end
+  if not LEM then return nil end
   return LEM:GetActiveLayoutName()
 end
 
 function CM.GetCrosshairPositionForLayout(layoutName)
-  if not CM.DB or not CM.DB.global then
-    return "CENTER", 0, 0
-  end
+  if not CM.DB or not CM.DB.global then return "CENTER", 0, 0 end
   local g = CM.DB.global
   local tbl = g.crosshairLayoutPositions
   local defY = g.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY
@@ -548,10 +493,9 @@ local function SyncCrosshairYFromFrame()
   end
   local cx, cy = CrosshairFrame:GetCenter()
   local ux, uy = UIParent:GetCenter()
-  if cx and cy and ux and uy then
-    CM.DB.global.crosshairY = cy - uy
-  end
-  return CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY
+  if cx and cy and ux and uy then CM.DB.global.crosshairY = cy - uy end
+  return CM.DB.global.crosshairY or
+      CM.Constants.DatabaseDefaults.global.crosshairY
 end
 
 local function ApplyCrosshairVertical(y)
@@ -560,9 +504,7 @@ local function ApplyCrosshairVertical(y)
 end
 
 function CM.ApplyCrosshairPositionForLayout(layoutName)
-  if not CM.DB or not CM.DB.global then
-    return
-  end
+  if not CM.DB or not CM.DB.global then return end
   local _, _, y = CM.GetCrosshairPositionForLayout(layoutName)
   ApplyCrosshairVertical(y)
   SyncCrosshairYFromFrame()
@@ -570,41 +512,42 @@ function CM.ApplyCrosshairPositionForLayout(layoutName)
 end
 
 function CM.SyncCrosshairLayoutPositionFromAce()
-  if not CM.DB or not CM.DB.global then
-    return
-  end
+  if not CM.DB or not CM.DB.global then return end
   local LEM = LibStub("LibEditMode", true)
-  if not LEM or not ON_RETAIL_CLIENT then
-    return
-  end
+  if not LEM or not ON_RETAIL_CLIENT then return end
   local name = LEM:GetActiveLayoutName()
-  if not name then
-    return
-  end
+  if not name then return end
   if not CM.DB.global.crosshairLayoutPositions then
     CM.DB.global.crosshairLayoutPositions = {}
   end
-  local y = CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY
-  CM.DB.global.crosshairLayoutPositions[name] = { point = "CENTER", x = 0, y = y }
+  local y = CM.DB.global.crosshairY or
+      CM.Constants.DatabaseDefaults.global.crosshairY
+  CM.DB.global.crosshairLayoutPositions[name] = {
+    point = "CENTER",
+    x = 0,
+    y = y
+  }
 end
 
 --- Apply crosshair texture, color, and scale animation to a frame (live reticle or edit preview).
 --- @param verticalOffset number Y offset from parent center (world crosshair uses saved crosshairY; preview uses 0).
 --- @param previewMode boolean If true, always show the texture for non-mounted states (no mouselook check).
-local function ApplyCrosshairAppearanceToWidget(targetFrame, targetTexture, animGroup, state, verticalOffset, previewMode)
+local function ApplyCrosshairAppearanceToWidget(targetFrame, targetTexture,
+                                                animGroup, state,
+                                                verticalOffset, previewMode)
   local CrosshairAppearance = CM.DB.global.crosshairAppearance
-  if not CrosshairAppearance then
-    return
-  end
+  if not CrosshairAppearance then return end
   local r, g, b, a = unpack(CM.Constants.CrosshairReactionColors[state])
-  local textureToUse = state == "base" and CrosshairAppearance.Base or CrosshairAppearance.Active
+  local textureToUse = state == "base" and CrosshairAppearance.Base or
+      CrosshairAppearance.Active
   local reverseAnimation = state == "base" and true or false
   local parent = targetFrame:GetParent()
 
   animGroup:SetScript("OnFinished", function()
     if state ~= "base" then
       targetFrame:SetScale(ENDING_SCALE)
-      targetFrame:SetPoint("CENTER", parent, "CENTER", 0, verticalOffset / ENDING_SCALE)
+      targetFrame:SetPoint("CENTER", parent, "CENTER", 0,
+        verticalOffset / ENDING_SCALE)
     end
   end)
 
@@ -626,7 +569,8 @@ CM.ApplyCrosshairAppearanceToWidget = ApplyCrosshairAppearanceToWidget
 
 local function SetCrosshairAppearance(state)
   -- Visual is centered in CrosshairFrame; screen Y offset is on the container, so local offset is 0.
-  ApplyCrosshairAppearanceToWidget(CrosshairVisualFrame, CrosshairTexture, CrosshairAnimation, state, 0, false)
+  ApplyCrosshairAppearanceToWidget(CrosshairVisualFrame, CrosshairTexture,
+    CrosshairAnimation, state, 0, false)
 end
 
 function CM.DisplayCrosshair(shouldShow)
@@ -634,7 +578,8 @@ function CM.DisplayCrosshair(shouldShow)
     CrosshairTexture:Show()
     local DefaultConfig = CM.Constants.DatabaseDefaults.global
     local UserConfig = CM.DB.global or {}
-    local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
+    local crosshairOpacity = UserConfig.crosshairOpacity or
+        DefaultConfig.crosshairOpacity
     CrosshairFrame:SetAlpha(1)
     CrosshairVisualFrame:SetAlpha(crosshairOpacity)
   else
@@ -646,8 +591,10 @@ end
 function CM.CreateCrosshair()
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
   local UserConfig = CM.DB.global or {}
-  local crosshairSize = UserConfig.crosshairSize or DefaultConfig.crosshairSize
-  local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
+  local crosshairSize = UserConfig.crosshairSize or
+      DefaultConfig.crosshairSize
+  local crosshairOpacity = UserConfig.crosshairOpacity or
+      DefaultConfig.crosshairOpacity
   local minHit = CM.Constants.CrosshairEditModeMinHitSize or 128
   local hitSize = math.max(crosshairSize, minHit)
 
@@ -666,11 +613,14 @@ function CM.CreateCrosshair()
   RefreshInteractionHUD()
 end
 
-local DebugCrosshairFrame = CreateFrame("Frame", "CombatModeDebugCrosshairFrame", UIParent)
+local DebugCrosshairFrame = CreateFrame("Frame",
+  "CombatModeDebugCrosshairFrame",
+  UIParent)
 DebugCrosshairFrame:SetFrameStrata("DIALOG")
 DebugCrosshairFrame:SetFrameLevel(0)
 local DebugCrosshairTexture = DebugCrosshairFrame:CreateTexture(nil, "OVERLAY")
-DebugCrosshairTexture:SetTexture("Interface\\AddOns\\CombatMode\\assets\\crosshairX.blp")
+DebugCrosshairTexture:SetTexture(
+  "Interface\\AddOns\\CombatMode\\assets\\crosshairX.blp")
 DebugCrosshairTexture:SetAllPoints(DebugCrosshairFrame)
 DebugCrosshairTexture:SetBlendMode("BLEND")
 DebugCrosshairTexture:SetVertexColor(0, 1, 0, 1)
@@ -687,8 +637,13 @@ DebugCrosshairUpdater:SetScript("OnUpdate", function()
     local x, y = GetCursorPosition()
     local scale = UIParent:GetEffectiveScale()
     DebugCrosshairFrame:ClearAllPoints()
-    DebugCrosshairFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x / scale, y / scale)
-    local size = (CM.DB.global.crosshairSize) or (CM.Constants.DatabaseDefaults and CM.Constants.DatabaseDefaults.global and CM.Constants.DatabaseDefaults.global.crosshairSize) or 64
+    DebugCrosshairFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT",
+      x / scale, y / scale)
+    local size = (CM.DB.global.crosshairSize) or
+        (CM.Constants.DatabaseDefaults and
+          CM.Constants.DatabaseDefaults.global and
+          CM.Constants.DatabaseDefaults.global.crosshairSize) or
+        64
     DebugCrosshairFrame:SetSize(size, size)
     DebugCrosshairFrame:Show()
   else
@@ -699,20 +654,12 @@ end)
 local lastKnownAppearanceState = nil
 
 local function GetUnitReactionType(unitID)
-  if not unitID then
-    return "base"
-  end
-  if not UnitExists(unitID) or not UnitGUID(unitID) then
-    return "base"
-  end
+  if not unitID then return "base" end
+  if not UnitExists(unitID) or not UnitGUID(unitID) then return "base" end
   local isTargetObject = UnitIsGameObject(unitID)
-  if isTargetObject then
-    return "object"
-  end
+  if isTargetObject then return "object" end
   local reaction = UnitReaction("player", unitID)
-  if not reaction then
-    return "base"
-  end
+  if not reaction then return "base" end
   if UnitIsPlayer(unitID) then
     if UnitCanAttack("player", unitID) then
       return "hostile"
@@ -729,47 +676,51 @@ local function GetUnitReactionType(unitID)
 end
 
 local function IsEnemyOnlyReticleInCombat()
-  return CM.DB and CM.DB.char and CM.DB.char.reticleTargetingEnemyOnly and InCombatLockdown()
+  return CM.DB and CM.DB.char and CM.DB.char.reticleTargetingEnemyOnly and
+      InCombatLockdown()
 end
 
 local function GetUnitUnderCursor()
   local isTargetObject = UnitIsGameObject("softinteract")
-  if isTargetObject then
-    return "softinteract", "object"
-  end
+  if isTargetObject then return "softinteract", "object" end
   if UnitExists("mouseover") and UnitGUID("mouseover") then
     local reactionType = GetUnitReactionType("mouseover")
     local enemyOnlyInCombat = IsEnemyOnlyReticleInCombat()
 
     if not enemyOnlyInCombat or reactionType == "hostile" then
-      CM.DebugPrintThrottled("reticleTarget", "Found mouseover unit (reaction: " .. reactionType .. ")")
+      CM.DebugPrintThrottled("reticleTarget",
+        "Found mouseover unit (reaction: " ..
+        reactionType .. ")")
       return "mouseover", reactionType
     end
 
-    local isFriendlyMouseover = reactionType == "friendly_player" or reactionType == "friendly_npc"
+    local isFriendlyMouseover = reactionType == "friendly_player" or
+        reactionType == "friendly_npc"
     if isFriendlyMouseover then
       local fallbackUnitID = "softenemy"
       if UnitExists(fallbackUnitID) and UnitGUID(fallbackUnitID) then
         local fallbackReactionType = GetUnitReactionType(fallbackUnitID)
         if fallbackReactionType == "hostile" then
-          CM.DebugPrintThrottled("reticleTarget", "Mouseover friendly; fallback hostile unit: " .. fallbackUnitID)
+          CM.DebugPrintThrottled("reticleTarget",
+            "Mouseover friendly; fallback hostile unit: " ..
+            fallbackUnitID)
           return fallbackUnitID, fallbackReactionType
         end
       end
     end
 
-    CM.DebugPrintThrottled("reticleTarget", "Mouseover non-hostile in enemy-only combat mode; setting base appearance")
+    CM.DebugPrintThrottled("reticleTarget",
+      "Mouseover non-hostile in enemy-only combat mode; setting base appearance")
     return nil, nil
   end
 
-  CM.DebugPrintThrottled("reticleTarget", "No unit under cursor, setting base appearance")
+  CM.DebugPrintThrottled("reticleTarget",
+    "No unit under cursor, setting base appearance")
   return nil, nil
 end
 
 function CM.UpdateCrosshairReaction()
-  if not CM.DB.char.reticleTargeting then
-    return
-  end
+  if not CM.DB.char.reticleTargeting then return end
   if not CM.DB.global.crosshair or CM.HideCrosshairWhileMounted() then
     return
   end
@@ -803,9 +754,7 @@ local LOCK_IN_TARGET_SCALE = 1.0
 local LOCK_IN_TARGET_ALPHA = 1.0
 
 local function UpdateCrosshairLockIn(_, elapsed)
-  if LOCK_IN_TOTAL_ELAPSED == -1 then
-    return
-  end
+  if LOCK_IN_TOTAL_ELAPSED == -1 then return end
 
   LOCK_IN_TOTAL_ELAPSED = LOCK_IN_TOTAL_ELAPSED + elapsed
 
@@ -822,11 +771,15 @@ local function UpdateCrosshairLockIn(_, elapsed)
   progress = math.max(0, math.min(1, progress))
   local easedProgress = 1 - (1 - progress) * (1 - progress)
 
-  local currentScale = LOCK_IN_STARTING_SCALE + (LOCK_IN_TARGET_SCALE - LOCK_IN_STARTING_SCALE) * easedProgress
+  local currentScale = LOCK_IN_STARTING_SCALE +
+      (LOCK_IN_TARGET_SCALE - LOCK_IN_STARTING_SCALE) *
+      easedProgress
   currentScale = math.max(0.01, currentScale)
   CrosshairVisualFrame:SetScale(currentScale)
 
-  local currentAlpha = LOCK_IN_STARTING_ALPHA + (LOCK_IN_TARGET_ALPHA - LOCK_IN_STARTING_ALPHA) * easedProgress
+  local currentAlpha = LOCK_IN_STARTING_ALPHA +
+      (LOCK_IN_TARGET_ALPHA - LOCK_IN_STARTING_ALPHA) *
+      easedProgress
   CrosshairVisualFrame:SetAlpha(currentAlpha)
 end
 
@@ -838,7 +791,8 @@ function CM.ShowCrosshairLockIn()
   CrosshairTexture:Show()
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
   local UserConfig = CM.DB.global or {}
-  local configuredOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
+  local configuredOpacity = UserConfig.crosshairOpacity or
+      DefaultConfig.crosshairOpacity
 
   local currentScale = CrosshairVisualFrame:GetScale()
   LOCK_IN_STARTING_SCALE = currentScale * 1.3
@@ -893,9 +847,7 @@ function CM.OnCrosshairUncategorizedEvent()
   if CM.HideCrosshairWhileMounted() then
     SetCrosshairAppearance("mounted")
     lastKnownAppearanceState = "mounted"
-    if IsMouselooking() then
-      CM.DisplayCrosshair(false)
-    end
+    if IsMouselooking() then CM.DisplayCrosshair(false) end
   else
     lastKnownAppearanceState = nil
     CM.UpdateCrosshairReaction()
@@ -918,6 +870,4 @@ function CM.OnCrosshairFocusLockEvent(event)
   end
 end
 
-function CM.HideCrosshairFrame()
-  CrosshairFrame:Hide()
-end
+function CM.HideCrosshairFrame() CrosshairFrame:Hide() end

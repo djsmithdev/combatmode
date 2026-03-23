@@ -39,11 +39,11 @@ local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- Click-cast macro wrapper: binding value (e.g. ACTIONBUTTON1) -> pre-line + /click frameName.
 local CLICKCAST_BARS = {
-  { bind = "ACTIONBUTTON", frame = "ActionButton", count = 12 },
-  { bind = "MULTIACTIONBAR1BUTTON", frame = "MultiBarBottomLeftButton", count = 12 },
+  { bind = "ACTIONBUTTON",          frame = "ActionButton",              count = 12 },
+  { bind = "MULTIACTIONBAR1BUTTON", frame = "MultiBarBottomLeftButton",  count = 12 },
   { bind = "MULTIACTIONBAR2BUTTON", frame = "MultiBarBottomRightButton", count = 12 },
-  { bind = "MULTIACTIONBAR3BUTTON", frame = "MultiBarRightButton", count = 12 },
-  { bind = "MULTIACTIONBAR4BUTTON", frame = "MultiBarLeftButton", count = 12 },
+  { bind = "MULTIACTIONBAR3BUTTON", frame = "MultiBarRightButton",       count = 12 },
+  { bind = "MULTIACTIONBAR4BUTTON", frame = "MultiBarLeftButton",        count = 12 },
 }
 local BindingToClickFrame = {}
 for _, bar in ipairs(CLICKCAST_BARS) do
@@ -119,8 +119,10 @@ local function ResolveActionButtonFrame(bindingValue)
   return BindingToClickFrame[bindingValue]
 end
 
-local CLICKCAST_PRE_LINE_ANY = "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,exists] mouseover" -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
-local CLICKCAST_PRE_LINE_ENEMY = "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
+local CLICKCAST_PRE_LINE_ANY =
+"/target [@focus,exists,nodead] focus; [nomounted,@mouseover,exists] mouseover"                             -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
+local CLICKCAST_PRE_LINE_ENEMY =
+"/target [@focus,exists,nodead] focus; [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
 
 -- Returns true if spellId is in the user's "Cast @Cursor Spells" list (comma-separated names in options).
 local function IsCastAtCursorSpell(spellId)
@@ -177,7 +179,8 @@ local function GetClickCastPreLine()
   return CLICKCAST_PRE_LINE_ANY
 end
 
-local CLICKCAST_KEYS = { "BUTTON1", "BUTTON2", "SHIFT-BUTTON1", "SHIFT-BUTTON2", "CTRL-BUTTON1", "CTRL-BUTTON2", "ALT-BUTTON1", "ALT-BUTTON2" }
+local CLICKCAST_KEYS = { "BUTTON1", "BUTTON2", "SHIFT-BUTTON1", "SHIFT-BUTTON2", "CTRL-BUTTON1", "CTRL-BUTTON2",
+  "ALT-BUTTON1", "ALT-BUTTON2" }
 local ClickCastFramesByKey = {}
 for i, key in ipairs(CLICKCAST_KEYS) do
   local f = CreateFrame("Button", "CombatModeClickCast" .. i, UIParent, "SecureActionButtonTemplate")
@@ -188,7 +191,8 @@ end
 
 -- Secure action button for toggle focus target
 local ToggleFocusTargetOverrideOwner = CreateFrame("Frame", nil, UIParent)
-local ToggleFocusTargetButton = CreateFrame("Button", "CombatModeToggleFocusTarget", ToggleFocusTargetOverrideOwner, "SecureActionButtonTemplate")
+local ToggleFocusTargetButton = CreateFrame("Button", "CombatModeToggleFocusTarget", ToggleFocusTargetOverrideOwner,
+  "SecureActionButtonTemplate")
 ToggleFocusTargetButton:SetAttribute("type", "macro")
 -- macrotext set by UpdateToggleFocusTargetMacroText() based on reticleTargetingEnemyOnly
 ToggleFocusTargetButton:RegisterForClicks("AnyUp", "AnyDown")
@@ -197,8 +201,10 @@ local function UpdateToggleFocusTargetMacroText()
   if not ToggleFocusTargetButton then return end
   local char_config = CM.DB.char
   local macros_const = CM.Constants.Macros
-  local macroFocusCrosshair = char_config.reticleTargetingEnemyOnly and macros_const.CM_ToggleFocusEnemy or macros_const.CM_ToggleFocusAny
-  local macroText = char_config.focusCurrentTargetNotCrosshair and macros_const.CM_ToggleFocusTarget or macroFocusCrosshair
+  local macroFocusCrosshair = char_config.reticleTargetingEnemyOnly and macros_const.CM_ToggleFocusEnemy or
+      macros_const.CM_ToggleFocusAny
+  local macroText = char_config.focusCurrentTargetNotCrosshair and macros_const.CM_ToggleFocusTarget or
+      macroFocusCrosshair
   ToggleFocusTargetButton:SetAttribute("macrotext", macroText)
 end
 
@@ -215,15 +221,16 @@ local function BuildClickCastMacroText(bindingValue)
 
   -- Check if this is a special action bar button (don't inject preline for special bar abilities)
   local isSpecialBarButton = clickFrame:match("^OverrideActionBarButton") or
-                             clickFrame:match("^BonusActionButton") or
-                             clickFrame:match("^TempShapeshiftActionButton")
+      clickFrame:match("^BonusActionButton") or
+      clickFrame:match("^TempShapeshiftActionButton")
 
   local castLine
   if useConditionalClick then
     -- Use conditional macro to check for override bar at runtime
     -- (works when exiting vehicle in combat; we can't refresh bindings then)
     -- For bonus/shapeshift bars, bindings are refreshed via events when out of combat
-    castLine = "/click [overridebar][possessbar][shapeshift][vehicleui] OverrideActionBarButton" .. buttonNum .. "; ActionButton" .. buttonNum
+    castLine = "/click [overridebar][possessbar][shapeshift][vehicleui] OverrideActionBarButton" ..
+        buttonNum .. "; ActionButton" .. buttonNum
   else
     castLine = "/click " .. clickFrame
   end
@@ -387,10 +394,10 @@ function CM.ApplyGroundCastKeyOverrides()
         -- often casts on release only. Dispatch the native binding name instead so keyboard + Press and Hold work.
         local spellId = GetSpellIdForActionBarBinding(bindingName)
         if
-          realFrame
-          and spellId
-          and IsExcludedFromTargetingSpell(spellId)
-          and not IsCastAtCursorSpell(spellId)
+            realFrame
+            and spellId
+            and IsExcludedFromTargetingSpell(spellId)
+            and not IsCastAtCursorSpell(spellId)
         then
           SetOverrideBinding(GroundCastKeyOverrideOwner, false, key, bindingName)
         else

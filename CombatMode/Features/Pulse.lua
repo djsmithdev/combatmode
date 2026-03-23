@@ -9,7 +9,6 @@
 --    • CM.InitializeCursorPulse() from Core bootstrap; CM.ShowCursorPulse() called
 --      from Core only (no Ace events in this file).
 --    • Self-contained frame + OnUpdate; does not touch bindings or CVars.
-
 local _G = _G
 local LibStub = _G.LibStub
 local CreateFrame = _G.CreateFrame
@@ -35,9 +34,7 @@ function CM.InitializeCursorPulse()
 end
 
 local function UpdatePulse(_, elapsed)
-  if PULSE_TOTAL_ELAPSED == -1 then
-    return
-  end
+  if PULSE_TOTAL_ELAPSED == -1 then return end
 
   PULSE_TOTAL_ELAPSED = PULSE_TOTAL_ELAPSED + elapsed
   if PULSE_TOTAL_ELAPSED > PULSE_DURATION then
@@ -57,7 +54,9 @@ local function UpdatePulse(_, elapsed)
 
   local cursorX, cursorY = GetCursorPosition()
   local scale = UIParent:GetEffectiveScale()
-  PulseFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", (cursorX / scale) - size / 2, (cursorY / scale) - size / 2)
+  PulseFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT",
+    (cursorX / scale) - size / 2,
+    (cursorY / scale) - size / 2)
 end
 
 function CM.ShowCursorPulse()

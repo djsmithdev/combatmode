@@ -11,6 +11,7 @@ Use this project map and conventions for all changes.
 
 - `CombatMode.toc`: addon metadata, `SavedVariables: CombatModeDB`, load order entrypoint.
 - `Embeds.xml`: loads Lua files and owns the root frame scripts (`OnEvent`, `OnUpdate` bridge).
+- `Constants/*.lua`: constants and static tables (`CM.Constants`).
 - `Features/*.lua`: runtime systems and gameplay behavior.
 - `Config/*.lua`: AceConfig option builders and category assembly.
 - `UI/CrosshairEditMode.lua`: Edit Mode integration for crosshair controls.
@@ -18,15 +19,19 @@ Use this project map and conventions for all changes.
 
 ## Module responsibilities
 
-- `Features/Core.lua`: addon lifecycle, global event/update orchestration, mouselook driver.
-- `Features/Constants.lua`: defaults, static tables, event groups, paths.
-- `Features/Reticle.lua`: reticle/crosshair behavior and action-targeting CVars.
-- `Features/ClickCasting.lua`: click-cast override macros and modifiers.
-- `Features/CursorUnlock.lua`: auto mouselook unlock logic (UI/Lua conditions).
-- `Features/Pulse.lua`: post-unlock cursor pulse effect.
-- `Features/HealingRadial.lua`: healing radial menu, targeting/casting flow.
-- `Config/Config.lua`: assembles all option groups into Blizzard/Ace settings.
-- `Config/*Options.lua`: feature-specific settings panels.
+- `Features/Core.lua`: owns addon lifecycle (`OnInitialize`/`OnEnable`), centralized event dispatch, free-look state transitions, and cross-feature coordination points.
+- `Constants/ConstantsNamespace.lua`: initializes the `CM.Constants` namespace only.
+- `Constants/Constants*.lua`: define immutable/static tables (defaults, CVars, event groups, assets, watchlists, radial metadata); no runtime side effects beyond table population.
+- `Features/Reticle.lua`: owns crosshair visuals, interaction HUD reaction updates, and reticle-targeting behavior tied to relevant CVars.
+- `Features/ClickCasting.lua`: owns override binding/macro synthesis for mouse buttons and modified clicks; refreshes when bars/bindings change.
+- `Features/CursorUnlock.lua`: owns unlock predicates (frame visibility, mounts, pet battle, custom expression) and wildcard frame tracking.
+- `Features/Pulse.lua`: owns visual cursor pulse presentation after unlock/free-look transitions.
+- `Features/HealingRadial.lua`: owns radial frame lifecycle, selection tracking, secure cast attributes, and group/role slice updates.
+- `UI/CrosshairEditMode.lua`: owns Edit Mode registration, option controls, and persisted layout integration for the crosshair UI.
+- `Config/ConfigNamespace.lua`: initializes the `CM.Config` namespace only.
+- `Config/ConfigShared.lua`: shared AceConfig builders/helpers used by all config category modules.
+- `Config/Config*.lua` (feature files): define option tables, read/write DB values, and call existing feature APIs (no duplicated feature logic).
+- `Config/ConfigCategories.lua`: assembles category roots and registration metadata consumed by Core during options setup.
 
 ## Required coding conventions
 
@@ -36,7 +41,7 @@ Use this project map and conventions for all changes.
 - Use existing DB scopes consistently:
   - account-wide in `CM.DB.global`
   - character-specific in `CM.DB.char`
-- Put new user-facing settings in `Config/*Options.lua` and wire through `Config/Config.lua`.
+- Put new user-facing settings in `Config/Config*.lua` and wire through `Config/ConfigCategories.lua`.
 - Preserve slash command and keybinding behavior unless change is explicitly requested.
 
 ## Change expectations

@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Config/AboutOptions.lua — About panel (reset, debug, metadata, links)
+--  Config/ConfigAbout.lua — About panel (reset, debug, metadata, links)
 ---------------------------------------------------------------------------------------
 local _G = _G
 local AceAddon = _G.LibStub("AceAddon-3.0")
@@ -20,12 +20,10 @@ CM.Config.AboutOptions = {
       name = "Default",
       desc = "Resets Combat Mode's settings to their default values.",
       confirmText = CM.METADATA["TITLE"] ..
-        "\n\n|cffcfcfcfResetting Combat Mode's options to their default will force a |cffE52B50UI Reload|r.|r \n\n|cffffd700Proceed?|r",
+          "\n\n|cffcfcfcfResetting Combat Mode's options to their default will force a |cffE52B50UI Reload|r.|r \n\n|cffffd700Proceed?|r",
       confirm = true,
       width = 0.7,
-      func = function()
-        CM:OnResetDB()
-      end,
+      func = function() CM:OnResetDB() end,
       order = 0
     },
     spacing = Spacing(1.6, 0.1),
@@ -37,9 +35,7 @@ CM.Config.AboutOptions = {
       set = function(_, value)
         CM.DB.global.silenceAlerts = value
       end,
-      get = function()
-        return CM.DB.global.silenceAlerts
-      end,
+      get = function() return CM.DB.global.silenceAlerts end,
       order = 0.2
     },
     debugModeToggle = {
@@ -47,12 +43,8 @@ CM.Config.AboutOptions = {
       name = "Debug Mode",
       desc = "Enables the printing of state logs in the chat window to assist with development.",
       width = 0.7,
-      set = function(_, value)
-        CM.DB.global.debugMode = value
-      end,
-      get = function()
-        return CM.DB.global.debugMode
-      end,
+      set = function(_, value) CM.DB.global.debugMode = value end,
+      get = function() return CM.DB.global.debugMode end,
       order = 0.3
     },
     ---------------------------------------------------------------------------------------
@@ -67,12 +59,7 @@ CM.Config.AboutOptions = {
       image = CM.Constants.Logo,
       imageWidth = 64,
       imageHeight = 64,
-      imageCoords = {
-        0,
-        1,
-        0,
-        1
-      },
+      imageCoords = { 0, 1, 0, 1 },
       order = 1.2
     },
     aboutDescription = {
@@ -94,22 +81,26 @@ CM.Config.AboutOptions = {
     },
     featuresList = {
       type = "description",
-      name = "|cff909090• |cffE52B50Mouse Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of |cffcfcfcf@mouseover|r and |cffcfcfcf@cursor|r macro decorators in combination with the |cff00FFFFCrosshair|r. \n• |cffB47EDEMouse Click Casting|r - When Mouse Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cffffd700Cursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc. \n• |cff00FF7FHealing Radial|r - Radial menu for quickly casting helpful spells at party members.\n\n",
+      name =
+      "|cff909090• |cffE52B50Mouse Look Camera|r - Rotate the player character's view with the camera without having to perpetually hold right click. \n• |cff00FFFFReticle Targeting|r - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of |cffcfcfcf@mouseover|r and |cffcfcfcf@cursor|r macro decorators in combination with the |cff00FFFFCrosshair|r. \n• |cffB47EDEMouse Click Casting|r - When Mouse Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them. \n• |cffffd700Cursor Unlock|r - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc. \n• |cff00FF7FHealing Radial|r - Radial menu for quickly casting helpful spells at party members.\n\n",
       order = 3
     },
     versionNumber = {
       type = "description",
-      name = "|cffffffffVersion:|r " .. "|cff00ff00" .. CM.METADATA["VERSION"] .. "|r\n\n",
+      name = "|cffffffffVersion:|r " .. "|cff00ff00" ..
+          CM.METADATA["VERSION"] .. "|r\n\n",
       order = 3.2
     },
     authorsList = {
       type = "description",
-      name = "|cffffffffAuthors:|r " .. "|cffcfcfcf" .. CM.METADATA["AUTHOR"] .. "|r\n",
+      name = "|cffffffffAuthors:|r " .. "|cffcfcfcf" ..
+          CM.METADATA["AUTHOR"] .. "|r\n",
       order = 3.3
     },
     contributorsList = {
       type = "description",
-      name = "|cffffffffContributors:|r " .. "|cffcfcfcf" .. CM.METADATA["X-CONTRIBUTORS"] .. "|r\n\n",
+      name = "|cffffffffContributors:|r " .. "|cffcfcfcf" ..
+          CM.METADATA["X-CONTRIBUTORS"] .. "|r\n\n",
       order = 3.4
     },
     curse = {
@@ -118,9 +109,7 @@ CM.Config.AboutOptions = {
       type = "input",
       width = 2,
       order = 4,
-      get = function()
-        return CM.METADATA["X-CURSE"]
-      end
+      get = function() return CM.METADATA["X-CURSE"] end
     },
     spacing4 = Spacing(0.4, 4.1),
     discord = {
@@ -129,9 +118,7 @@ CM.Config.AboutOptions = {
       type = "input",
       width = 1.1,
       order = 5,
-      get = function()
-        return CM.METADATA["X-DISCORD"]
-      end
+      get = function() return CM.METADATA["X-DISCORD"] end
     },
     spacing5 = Spacing("full", 5.1)
   }

@@ -34,7 +34,7 @@ See `STRUCTURE.md` for load-order details.
 - Preserve centralized event wiring and core dispatch patterns.
 - Respect combat lockdown and secure frame constraints.
 - Avoid introducing globals unless explicitly required.
-- Put user-facing settings into `Config/*Options.lua` and wire in `Config/Config.lua`.
+- Put user-facing settings into `Config/Config*.lua` and wire in `Config/ConfigCategories.lua`.
 - Keep DB scope intentional (`CM.DB.global` vs `CM.DB.char`).
 
 ## Before finishing a change

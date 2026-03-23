@@ -10,24 +10,34 @@
     <Include file="Libs\AceConsole-3.0\AceConsole-3.0.xml"/>
     <Include file="Libs\AceGUI-3.0\AceGUI-3.0.xml"/>
     <Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml"/>
-    <!-- FEATURES (Core must load before Constants.lua — Constants uses GetAddon("CombatMode").) -->
+    <!-- CORE -->
     <Script file="Features\Core.lua"/>
-    <Script file="Features\Constants.lua"/>
+    <!-- CONSTANTS (must load before feature consumers) -->
+    <Script file="Constants\ConstantsNamespace.lua"/>
+    <Script file="Constants\ConstantsCVars.lua"/>
+    <Script file="Constants\ConstantsAssets.lua"/>
+    <Script file="Constants\ConstantsGameplay.lua"/>
+    <Script file="Constants\ConstantsDatabaseDefaults.lua"/>
+    <Script file="Constants\ConstantsHealingRadial.lua"/>
+    <Script file="Constants\ConstantsFrameWatch.lua"/>
+    <Script file="Constants\ConstantsReticle.lua"/>
+    <!-- FEATURES -->
     <Script file="Features\ClickCasting.lua"/>
     <Script file="Features\Pulse.lua"/>
     <Script file="Features\Reticle.lua"/>
     <Script file="UI\CrosshairEditMode.lua"/>
     <Script file="Features\CursorUnlock.lua"/>
     <Script file="Features\HealingRadial.lua"/>
-    <!-- CONFIG: AceConfig — OptionsShared first, Config.lua last -->
-    <Script file="Config\OptionsShared.lua"/>
-    <Script file="Config\AboutOptions.lua"/>
-    <Script file="Config\MouseLookOptions.lua"/>
-    <Script file="Config\ReticleTargetingOptions.lua"/>
-    <Script file="Config\ClickCastingOptions.lua"/>
-    <Script file="Config\HealingRadialOptions.lua"/>
-    <Script file="Config\AdvancedOptions.lua"/>
-    <Script file="Config\Config.lua"/>
+    <!-- CONFIG: AceConfig — ConfigNamespace/ConfigShared first, ConfigCategories last -->
+    <Script file="Config\ConfigNamespace.lua"/>
+    <Script file="Config\ConfigShared.lua"/>
+    <Script file="Config\ConfigAbout.lua"/>
+    <Script file="Config\ConfigMouseLook.lua"/>
+    <Script file="Config\ConfigReticleTargeting.lua"/>
+    <Script file="Config\ConfigClickCasting.lua"/>
+    <Script file="Config\ConfigHealingRadial.lua"/>
+    <Script file="Config\ConfigAdvanced.lua"/>
+    <Script file="Config\ConfigCategories.lua"/>
     <!-- FRAME -->
     <Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
         <Scripts>
