@@ -1,7 +1,13 @@
-local MINOR = 13
-local lib, minor = LibStub('LibEditMode')
-if minor > MINOR then
-	return
+local _, ns = ...
+local lib
+if ns.LibEditMode then
+	lib = ns.LibEditMode
+else
+	local MINOR, prevMinor = 15
+	lib, prevMinor = LibStub('LibEditMode')
+	if prevMinor > MINOR then
+		return
+	end
 end
 
 local function showTooltip(self)
@@ -18,7 +24,7 @@ local sliderMixin = {}
 function sliderMixin:Setup(data)
 	self.setting = data
 	self.Label:SetText(data.name)
-	self:SetEnabled(not data.disabled)
+	self:Refresh()
 
 	self.initInProgress = true
 	self.formatters = {}
@@ -30,9 +36,26 @@ function sliderMixin:Setup(data)
 	self.initInProgress = false
 end
 
+function sliderMixin:Refresh()
+	local data = self.setting
+	if type(data.disabled) == 'function' then
+		self:SetEnabled(not data.disabled(lib:GetActiveLayoutName()))
+	else
+		self:SetEnabled(not data.disabled)
+	end
+
+	if type(data.hidden) == 'function' then
+		self:SetShown(not data.hidden(lib:GetActiveLayoutName()))
+	else
+		self:SetShown(not data.hidden)
+	end
+end
+
 function sliderMixin:OnSliderValueChanged(value)
 	if not self.initInProgress then
 		self.setting.set(lib:GetActiveLayoutName(), value, false)
+
+		self:GetParent():GetParent():RefreshWidgets()
 	end
 end
 
