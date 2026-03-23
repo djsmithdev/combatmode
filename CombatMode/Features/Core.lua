@@ -126,8 +126,8 @@ function CM.SetFontStringFromTemplate(fontString, pixelSize, templateFontObject)
 end
 
 function CM.SetCursorFreelookCentering(shouldCenter)
-  -- Reticle targeting drives crosshair-aligned cursor (CursorFreelookCentering + CursorCenteredYPos).
-  local useCrosshairCursor = shouldCenter and CM.DB.char.reticleTargeting
+  -- Edit Mode crosshair drives aligned cursor (CursorFreelookCentering + CursorCenteredYPos in Reticle).
+  local useCrosshairCursor = shouldCenter and CM.IsCrosshairEnabled()
   if useCrosshairCursor then
     SetCVar("CursorFreelookCentering", 1)
     CM.DebugPrint("Locking cursor to crosshair position.")

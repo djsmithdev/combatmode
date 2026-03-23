@@ -10,8 +10,8 @@
 --    • Core drives CreateCrosshair from BootstrapFeatureModules; RegisterCrosshairEditMode
 --      runs from the same path after UI/CrosshairEditMode.lua loads. OnUpdate calls
 --      CM.UpdateCrosshairReaction when reticle targeting is enabled.
---    • Cursor Y sync uses AdjustCenteredCursorYPos → CursorCenteredYPos when reticle
---      targeting is on; SetCursorFreelookCentering lives in Core.
+--    • Cursor Y sync uses AdjustCenteredCursorYPos → CursorCenteredYPos when the crosshair
+--      is enabled (Edit Mode); SetCursorFreelookCentering lives in Core.
 --    • CM.ApplyCrosshairAppearanceToWidget / CM.CreateCrosshairScaleAnimation are exposed
 --      for the Edit Mode preview; EditModeSystemDisplayName (Constants) avoids TOC |T|t in labels.
 ---------------------------------------------------------------------------------------
@@ -460,7 +460,7 @@ end
 CM.RefreshInteractionHUD = RefreshInteractionHUD
 
 local function AdjustCenteredCursorYPos()
-  if not (CM.DB and CM.DB.char and CM.DB.char.reticleTargeting) then return end
+  if not CM.IsCrosshairEnabled() then return end
   local _, cy = CrosshairFrame:GetCenter()
   local h = UIParent:GetHeight()
   if not (cy and h and h > 0) then return end
@@ -784,7 +784,7 @@ local function UpdateCrosshairLockIn(_, elapsed)
 end
 
 function CM.ShowCrosshairLockIn()
-  if not CM.DB.global.crosshair or not CM.DB.char.reticleTargeting then
+  if not CM.IsCrosshairEnabled() then
     return
   end
 
