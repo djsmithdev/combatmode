@@ -6,7 +6,7 @@ Load order is defined in [`Embeds.xml`](Embeds.xml) (included from [`CombatMode.
 
 | Folder | Role |
 |--------|------|
-| **Libs/** | Embedded libraries (LibStub, Ace3, LibEditMode, …). |
+| **Libs/** | Embedded libraries (LibStub, Ace3, LibEditMode, …); treat as vendored code per `.cursor/rules/combatmode-vendored-libs.mdc`. |
 | **Features/** | Runtime modules: AceAddon shell, data, crosshair, click overrides, pulse, cursor unlock, healing radial. |
 | **Config/** | AceConfig option tables (`*Options.lua`), shared UI helpers (`OptionsShared.lua`), and assembly (`Config.lua` → `CM.Config.OptionCategories`). |
 | **UI/** | Non–AceConfig client UI (e.g. LibEditMode crosshair registration and preview). |

@@ -1,0 +1,29 @@
+---
+description: Guardrails for embedded third-party libraries in CombatMode/Libs
+globs: CombatMode/Libs/**
+alwaysApply: false
+---
+
+# Vendored Libraries Policy (Libs)
+
+`CombatMode/Libs/**` contains embedded third-party code (Ace3, LibEditMode, LibStub, CallbackHandler).
+
+## Default behavior
+
+- Treat files in `Libs/` as vendor code; do not refactor, format, or rewrite proactively.
+- Do not apply project-specific architecture/style transformations to `Libs/`.
+- Keep edits in addon-owned code (`Features/`, `Config/`, `UI/`) whenever possible.
+
+## If a library issue is encountered
+
+- Prefer upgrading/re-vendoring from the upstream source over patching vendor files.
+- If a temporary patch is unavoidable:
+  - Keep the patch minimal and localized.
+  - Add a short comment explaining why it exists and what upstream/version it targets.
+  - Record a follow-up task to remove the patch after upstream update.
+
+## Load-order and integration safety
+
+- Preserve dependency load order in `Embeds.xml`.
+- Avoid introducing additional embedded libraries unless the feature requires them.
+- For LibEditMode, follow documented embedding/loading patterns and avoid custom bootstrapping changes unless explicitly requested.

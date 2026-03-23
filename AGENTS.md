@@ -8,6 +8,15 @@ This file defines how AI agents should work in this addon workspace.
 2. Follow architecture docs and in-file header purpose comments.
 3. Fall back to external docs only when MCP/tooling cannot answer.
 
+## Rule map
+
+- `.cursor/rules/wow-mcp-first.mdc`: WoW API source-of-truth workflow and output expectations.
+- `.cursor/rules/combatmode-architecture-and-style.mdc`: module ownership and coding conventions.
+- `.cursor/rules/combatmode-lua-safety.mdc`: combat lockdown, secure flow, taint, and state hygiene guardrails.
+- `.cursor/rules/combatmode-change-checklist.mdc`: pre-finish validation checklist for feature changes.
+- `.cursor/rules/combatmode-release-flow.mdc`: release-only checklist and process.
+- `.cursor/rules/combatmode-vendored-libs.mdc`: policy for `CombatMode/Libs/**` vendored third-party code.
+
 ## Project map
 
 - `CombatMode.toc`: metadata, SavedVariables, top-level include.
