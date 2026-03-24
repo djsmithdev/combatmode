@@ -1,0 +1,11 @@
+std = "lua51"
+exclude = ["CombatMode/Libs/**"]
+
+[rules]
+undefined_variable = "deny"   # keep strict
+unused_variable = "warn"
+
+# style-heavy rules (phase-in later)
+global_usage = "allow"
+multiple_statements = "allow"
+if_same_then_else = "warn"

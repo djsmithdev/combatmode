@@ -73,4 +73,14 @@ You can submit a PR with your contributions to [**Combat Mode's repository on Gi
 4. Validate release/API compatibility checks from [RELEASE.md](RELEASE.md).
 5. Open a PR and complete the repo checklist in `.github/PULL_REQUEST_TEMPLATE.md`.
 
+### Code Style & Linting
+
+- Install [StyLua](https://github.com/JohnnyMorganz/StyLua) and [Selene](https://github.com/Kampfkarren/selene).
+- Format check: `stylua --check CombatMode`
+- Lint check: `selene --config selene.toml CombatMode`
+- Install pre-commit hooks (recommended):
+  - `pip install pre-commit`
+  - `pre-commit install`
+  - `pre-commit run --all-files`
+
 <br />

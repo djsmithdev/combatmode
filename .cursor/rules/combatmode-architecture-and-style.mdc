@@ -53,6 +53,7 @@ Use this project map and conventions for all changes.
   - character-specific in `CM.DB.char`
 - Put new user-facing settings in `Config/Config*.lua` and wire through `Config/ConfigCategories.lua`.
 - Preserve slash command and keybinding behavior unless change is explicitly requested.
+- Lua changes must satisfy formatter/linter checks: `stylua --check CombatMode` and `selene --config selene.toml CombatMode`.
 
 ## Change expectations
 

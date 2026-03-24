@@ -43,3 +43,4 @@ See `STRUCTURE.md` for load-order details.
 - Confirm no combat-unsafe paths were introduced.
 - Validate enable/disable symmetry for runtime state (mouselook/CVars/bindings).
 - Ensure docs/rule updates if architecture or workflow changed.
+- Ensure changed Lua files pass `stylua --check CombatMode` and `selene --config selene.toml CombatMode`.
