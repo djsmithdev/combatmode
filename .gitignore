@@ -1,2 +1,5 @@
 dist/
 CombatMode/.git
+
+# Claude Code local settings (machine-specific; do not commit)
+.claude/settings.local.json

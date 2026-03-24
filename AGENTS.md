@@ -2,6 +2,8 @@
 
 This file defines how AI agents should work in this addon workspace.
 
+**Claude Code / multi-tool entry:** read **`CLAUDE.md`** first; it `@`-includes **`.context/project.md`**, **`.context/api.md`**, and **`.context/patterns.md`**. Cursor-specific rules live in **`.cursor/rules/*.mdc`**; this file remains the canonical playbook for rule map, project map, and finish checklist.
+
 ## Primary references
 
 1. Use WoW API MCP tools first (`lookup_api`, `search_api`, `list_deprecated`, `get_event`, `get_enum`).
