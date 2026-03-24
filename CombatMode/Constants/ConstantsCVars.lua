@@ -64,7 +64,7 @@ CM.Constants.ActionCameraCVarValues = {
 }
 
 -- CVARS FOR STICKY CROSSHAIR
-CM.Constants.TagetFocusCVarValues = {
+CM.Constants.TargetFocusCVarValues = {
   ["test_cameraTargetFocusEnemyEnable"] = 1,
   ["test_cameraTargetFocusEnemyStrengthYaw"] = 0.7, -- horizontal strength
   ["test_cameraTargetFocusEnemyStrengthPitch"] = 0.2, -- vertical strength
@@ -96,7 +96,7 @@ CM.Constants.BlizzardActionCameraCVarValues = {
   ["CameraReduceUnexpectedMovement"] = 1,
 }
 
-CM.Constants.BlizzardTagetFocusCVarValues = {
+CM.Constants.BlizzardTargetFocusCVarValues = {
   ["test_cameraTargetFocusEnemyEnable"] = 0,
   ["test_cameraTargetFocusEnemyStrengthYaw"] = 0.4,
   ["test_cameraTargetFocusEnemyStrengthPitch"] = 0.5,
