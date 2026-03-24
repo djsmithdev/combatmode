@@ -25,6 +25,8 @@ Use this checklist when preparing a release build.
 - Confirm `CombatMode/Embeds.xml` load order still matches module dependencies.
 - Ensure new files are included in `CombatMode/Embeds.xml` and/or `CombatMode/CombatMode.toc` as needed.
 - Verify no accidental dev-only artifacts are referenced.
+- GitHub source archives (`Source code (zip/tar.gz)`) include the full repository and are not addon-ready packaging.
+- Confirm the published release includes the workflow-generated asset `CombatMode-<tag>.zip` and use that as the distributable.
 
 ## 4) Functional smoke test
 
