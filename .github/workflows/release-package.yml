@@ -15,16 +15,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Packager reads manual-changelog from CHANGELOG.md; use the published release notes.
+      # Packager reads manual-changelog from CHANGELOG.md. Read release body from
+      # GITHUB_EVENT_PATH so lines starting with "#" are not lost (YAML env would
+      # treat them as comments).
       - name: Write CHANGELOG.md from release body
-        env:
-          RELEASE_BODY: ${{ github.event.release.body }}
         run: |
-          if [ -n "${RELEASE_BODY}" ]; then
-            echo "$RELEASE_BODY" > CHANGELOG.md
-          else
-            echo "See the GitHub release page for notes." > CHANGELOG.md
-          fi
+          python3 << 'PY'
+          import json
+          import os
+
+          path = os.environ["GITHUB_EVENT_PATH"]
+          with open(path, encoding="utf-8") as f:
+              event = json.load(f)
+          body = (event.get("release") or {}).get("body") or ""
+          body = body.strip()
+          if not body:
+              body = "See the GitHub release page for notes."
+          with open("CHANGELOG.md", "w", encoding="utf-8") as out:
+              out.write(body)
+              if not body.endswith("\n"):
+                  out.write("\n")
+          PY
 
       - name: Package and publish addon
         uses: BigWigsMods/packager@v2

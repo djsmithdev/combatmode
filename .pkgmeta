@@ -1,12 +1,19 @@
-package-as: CombatMode
+# See BigWigsMods/packager release.sh: package-as must match the path to the addon TOC
+# without the .toc extension (CombatMode/CombatMode -> CombatMode/CombatMode.toc).
+package-as: CombatMode/CombatMode
 changelog-title: CombatMode
 manual-changelog: CHANGELOG.md
+# After staging, move the package tree so the zip root is a single CombatMode/ folder
+# (avoids CombatMode/CombatMode/CombatMode/... nesting).
+move-folders:
+  CombatMode/CombatMode: CombatMode
 ignore:
   - .cursor
   - .github
   - .vscode
   - scripts
   - media
+  - dist
   - agent-transcripts
   - AGENTS.md
   - CONTRIBUTING.md
@@ -18,3 +25,5 @@ ignore:
   - stylua.toml
   - .styluaignore
   - .pre-commit-config.yaml
+  - .gitignore
+  - .pkgmeta

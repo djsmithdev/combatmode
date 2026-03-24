@@ -17,8 +17,8 @@ Use this checklist when preparing a release build.
 - Required repository variable:
   - `CURSEFORGE_PROJECT_ID`: numeric CurseForge project ID.
 - Wago upload is intentionally not configured yet.
-- Root `.pkgmeta` configures `package-as`, ignored dev files, and `manual-changelog` (generated from the GitHub release description during the workflow).
-- Write the user-facing release notes in the GitHub release body before publishing; that text is written to `CHANGELOG.md` for the packaged addon zip.
+- Root `.pkgmeta` configures `package-as` (path to `CombatMode/CombatMode.toc`), `move-folders` (flat `CombatMode/` zip root), ignored dev files, and `manual-changelog`.
+- Write the user-facing release notes in the GitHub release body before publishing; the workflow writes that text to `CHANGELOG.md` for the packaged zip (read from `GITHUB_EVENT_PATH` so Markdown headings like `# Title` are preserved).
 
 ## 2) API and compatibility checks
 
