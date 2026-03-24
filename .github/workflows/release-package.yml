@@ -15,10 +15,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Packager reads manual-changelog from CHANGELOG.md. Read release body from
+      # Packager reads manual-changelog relative to -t topdir. Read release body from
       # GITHUB_EVENT_PATH so lines starting with "#" are not lost (YAML env would
       # treat them as comments).
-      - name: Write CHANGELOG.md from release body
+      - name: Write CombatMode/CHANGELOG.md from release body
         run: |
           python3 << 'PY'
           import json
@@ -31,11 +31,17 @@ jobs:
           body = body.strip()
           if not body:
               body = "See the GitHub release page for notes."
-          with open("CHANGELOG.md", "w", encoding="utf-8") as out:
+          os.makedirs("CombatMode", exist_ok=True)
+          with open("CombatMode/CHANGELOG.md", "w", encoding="utf-8") as out:
               out.write(body)
               if not body.endswith("\n"):
                   out.write("\n")
           PY
+
+      # release.sh requires a git checkout under topdir (-t). Symlink the repo .git
+      # into CombatMode/ so packaging uses only the addon tree with correct zip layout.
+      - name: Link CombatMode to repository git metadata
+        run: ln -sfn ../.git CombatMode/.git
 
       - name: Package and publish addon
         uses: BigWigsMods/packager@v2
@@ -43,4 +49,4 @@ jobs:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: -g retail -p "${{ vars.CURSEFORGE_PROJECT_ID }}" -n "CombatMode-{project-version}"
+          args: -g retail -p "${{ vars.CURSEFORGE_PROJECT_ID }}" -n "CombatMode-{project-version}" -t CombatMode -m .pkgmeta

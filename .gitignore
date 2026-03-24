@@ -1,1 +1,3 @@
 dist/
+# CI/local: packager -t CombatMode uses a symlink to the repo .git
+CombatMode/.git
