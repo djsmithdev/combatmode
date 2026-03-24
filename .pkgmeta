@@ -1,4 +1,4 @@
-# Used with workflow -t CombatMode -m .pkgmeta: paths below are relative to CombatMode/.
+# With -t CombatMode, paths in ignore are relative to CombatMode/ (see BigWigsMods/packager).
 package-as: CombatMode
 changelog-title: CombatMode
 manual-changelog: CHANGELOG.md

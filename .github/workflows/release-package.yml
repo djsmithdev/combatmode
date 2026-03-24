@@ -16,8 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       # Packager reads manual-changelog relative to -t topdir. Read release body from
-      # GITHUB_EVENT_PATH so lines starting with "#" are not lost (YAML env would
-      # treat them as comments).
+      # GITHUB_EVENT_PATH so lines starting with "#" are not lost.
       - name: Write CombatMode/CHANGELOG.md from release body
         run: |
           python3 << 'PY'
@@ -38,15 +37,19 @@ jobs:
                   out.write("\n")
           PY
 
-      # release.sh requires a git checkout under topdir (-t). Symlink the repo .git
-      # into CombatMode/ so packaging uses only the addon tree with correct zip layout.
-      - name: Link CombatMode to repository git metadata
+      # release.sh requires -d "$topdir/.git" (directory); a gitdir *file* fails that check — use symlink.
+      - name: Point CombatMode at repository git
         run: ln -sfn ../.git CombatMode/.git
 
+      # Without GIT_WORK_TREE/GIT_DIR, git -C CombatMode treats addon files as untracked and the
+      # packager adds them all to ignore (only CHANGELOG is spared) — zip ends up changelog-only.
+      # BetterBags avoids this by keeping the addon at repo root; we pin the work tree to the checkout.
       - name: Package and publish addon
         uses: BigWigsMods/packager@v2
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+          GIT_WORK_TREE: ${{ github.workspace }}
+          GIT_DIR: ${{ github.workspace }}/.git
         with:
           args: -g retail -p "${{ vars.CURSEFORGE_PROJECT_ID }}" -n "CombatMode-{project-version}" -t CombatMode -m .pkgmeta
