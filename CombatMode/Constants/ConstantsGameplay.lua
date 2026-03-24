@@ -2,7 +2,8 @@
 --  Constants/ConstantsGameplay.lua — constants module: gameplay tables
 ---------------------------------------------------------------------------------------
 local _G = _G
-local AceAddon = _G.LibStub("AceAddon-3.0")
+local LibStub = _G.LibStub
+local AceAddon = LibStub("AceAddon-3.0")
 local CM = AceAddon:GetAddon("CombatMode")
 
 CM.Constants.Macros = {

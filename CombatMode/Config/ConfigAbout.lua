@@ -2,7 +2,8 @@
 --  Config/ConfigAbout.lua — About panel (reset, debug, metadata, links)
 ---------------------------------------------------------------------------------------
 local _G = _G
-local AceAddon = _G.LibStub("AceAddon-3.0")
+local LibStub = _G.LibStub
+local AceAddon = LibStub("AceAddon-3.0")
 local CM = AceAddon:GetAddon("CombatMode")
 local U = CM.Config.OptionsUI
 local Spacing, Header = U.Spacing, U.Header

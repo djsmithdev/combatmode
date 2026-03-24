@@ -20,10 +20,10 @@
 local _G = _G
 local LibStub = _G.LibStub
 local AceAddon = LibStub("AceAddon-3.0")
-local AceDB = _G.LibStub("AceDB-3.0")
-local AceConfig = _G.LibStub("AceConfig-3.0")
-local AceConfigDialog = _G.LibStub("AceConfigDialog-3.0")
-local AceConfigCmd = _G.LibStub("AceConfigCmd-3.0")
+local AceDB = LibStub("AceDB-3.0")
+local AceConfig = LibStub("AceConfig-3.0")
+local AceConfigDialog = LibStub("AceConfigDialog-3.0")
+local AceConfigCmd = LibStub("AceConfigCmd-3.0")
 
 -- CACHING GLOBAL VARIABLES
 -- Slightly better performance than doing a global lookup every time

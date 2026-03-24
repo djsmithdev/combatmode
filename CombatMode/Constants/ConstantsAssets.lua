@@ -2,9 +2,11 @@
 --  Constants/ConstantsAssets.lua — constants module: assets/messages/visuals
 ---------------------------------------------------------------------------------------
 local _G = _G
-local AceAddon = _G.LibStub("AceAddon-3.0")
-local ipairs = _G.ipairs
+local LibStub = _G.LibStub
+local AceAddon = LibStub("AceAddon-3.0")
 local CM = AceAddon:GetAddon("CombatMode")
+
+local ipairs = _G.ipairs
 
 CM.Constants.PopupMsg = CM.METADATA["TITLE"] ..
     "\n\n|cffffd700Thank you for trying out Combat Mode!|r \n\n|cffcfcfcfUpon closing this, an |cffB47EDEoptions panel|r will open where you'll be able to configure the addon to your liking.|r\n\n|cff909090To |cffFF5050undo all changes|r made by Combat Mode, type the following command in chat:|r\n|cff00FFFF/undocm|r"

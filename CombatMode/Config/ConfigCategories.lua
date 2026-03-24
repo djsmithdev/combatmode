@@ -9,7 +9,8 @@
 --  Load order (Embeds.xml): Config*.lua before this file; ConfigShared.lua first.
 ---------------------------------------------------------------------------------------
 local _G = _G
-local AceAddon = _G.LibStub("AceAddon-3.0")
+local LibStub = _G.LibStub
+local AceAddon = LibStub("AceAddon-3.0")
 local CM = AceAddon:GetAddon("CombatMode")
 
 CM.Config.OptionCategories = {

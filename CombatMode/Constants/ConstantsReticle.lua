@@ -3,7 +3,8 @@
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
+local AceAddon = LibStub("AceAddon-3.0")
+local CM = AceAddon:GetAddon("CombatMode")
 
 -- Texture file IDs / paths for "unable" interact cursor (dim + grey name).
 CM.Constants.InteractionHUDUnableCursor = {
