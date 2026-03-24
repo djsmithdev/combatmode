@@ -1,1 +1,21 @@
 package-as: CombatMode/CombatMode
+changelog-title: CombatMode
+move-folders:
+  CombatMode: .
+ignore:
+  - .cursor
+  - .github
+  - .vscode
+  - scripts
+  - media
+  - agent-transcripts
+  - AGENTS.md
+  - CONTRIBUTING.md
+  - README.md
+  - RELEASE.md
+  - STRUCTURE.md
+  - TESTING.md
+  - selene.toml
+  - stylua.toml
+  - .styluaignore
+  - .pre-commit-config.yaml
