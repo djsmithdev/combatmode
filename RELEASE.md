@@ -7,6 +7,17 @@ Use this checklist when preparing a release build.
 - Update addon version in `CombatMode/CombatMode.toc` (and any mirrored version fields).
 - Verify `## Interface` targets current Retail build.
 - Confirm addon title/notes/author metadata are accurate.
+- Confirm `CombatMode/CombatMode.toc` addon folder/name metadata still matches `CombatMode` packaging expectations.
+
+## Release automation setup (WoW Packager)
+
+- GitHub release packaging and publishing is handled by `.github/workflows/release-package.yml` using `BigWigsMods/packager@v2`.
+- Required repository secret:
+  - `CF_API_KEY`: CurseForge API token used for upload.
+- Required repository variable:
+  - `CURSEFORGE_PROJECT_ID`: numeric CurseForge project ID.
+- Wago upload is intentionally not configured yet.
+- `.pkgmeta` is currently not required for this repo; add one only when you need advanced packager directives (externals/move-folders/custom changelog behavior).
 
 ## 2) API and compatibility checks
 
@@ -51,6 +62,13 @@ Use this checklist when preparing a release build.
 - Summarize user-visible changes first (features/fixes/behavior changes).
 - Note any keybind, CVar, or migration-impacting changes explicitly.
 - Include known limitations or follow-up items if any.
+
+## 7) Post-release verification (CurseForge-first flow)
+
+- Publish a GitHub release tag (draft/prerelease is fine for validation).
+- Confirm the `Release Package` workflow run succeeds in GitHub Actions.
+- Confirm the GitHub release has the workflow-generated package asset attached.
+- Confirm a new file appears on CurseForge for `CURSEFORGE_PROJECT_ID` with the expected version/tag.
 
 ## Suggested changelog format
 

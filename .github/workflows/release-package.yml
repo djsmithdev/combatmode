@@ -15,13 +15,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build CombatMode release zip
-        run: |
-          ZIP_NAME="CombatMode-${{ github.event.release.tag_name }}.zip"
-          zip -r "$ZIP_NAME" CombatMode
-          echo "ZIP_NAME=$ZIP_NAME" >> "$GITHUB_ENV"
-
-      - name: Upload release asset
-        uses: softprops/action-gh-release@v2
+      - name: Package and publish addon
+        uses: BigWigsMods/packager@v2
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: ${{ env.ZIP_NAME }}
+          args: -g retail -p "${{ vars.CURSEFORGE_PROJECT_ID }}"
