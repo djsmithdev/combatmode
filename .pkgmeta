@@ -1,7 +1,6 @@
-package-as: CombatMode/CombatMode
+package-as: CombatMode
 changelog-title: CombatMode
-move-folders:
-  CombatMode: .
+manual-changelog: CHANGELOG.md
 ignore:
   - .cursor
   - .github

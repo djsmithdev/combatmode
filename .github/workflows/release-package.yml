@@ -15,10 +15,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Packager reads manual-changelog from CHANGELOG.md; use the published release notes.
+      - name: Write CHANGELOG.md from release body
+        env:
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          if [ -n "${RELEASE_BODY}" ]; then
+            echo "$RELEASE_BODY" > CHANGELOG.md
+          else
+            echo "See the GitHub release page for notes." > CHANGELOG.md
+          fi
+
       - name: Package and publish addon
         uses: BigWigsMods/packager@v2
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: -g retail -p "${{ vars.CURSEFORGE_PROJECT_ID }}"
+          args: -g retail -p "${{ vars.CURSEFORGE_PROJECT_ID }}" -n "CombatMode-{project-version}"

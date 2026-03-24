@@ -17,7 +17,8 @@ Use this checklist when preparing a release build.
 - Required repository variable:
   - `CURSEFORGE_PROJECT_ID`: numeric CurseForge project ID.
 - Wago upload is intentionally not configured yet.
-- `.pkgmeta` is currently not required for this repo; add one only when you need advanced packager directives (externals/move-folders/custom changelog behavior).
+- Root `.pkgmeta` configures `package-as`, ignored dev files, and `manual-changelog` (generated from the GitHub release description during the workflow).
+- Write the user-facing release notes in the GitHub release body before publishing; that text is written to `CHANGELOG.md` for the packaged addon zip.
 
 ## 2) API and compatibility checks
 
@@ -37,7 +38,7 @@ Use this checklist when preparing a release build.
 - Ensure new files are included in `CombatMode/Embeds.xml` and/or `CombatMode/CombatMode.toc` as needed.
 - Verify no accidental dev-only artifacts are referenced.
 - GitHub source archives (`Source code (zip/tar.gz)`) include the full repository and are not addon-ready packaging.
-- Confirm the published release includes the workflow-generated asset `CombatMode-<tag>.zip` and use that as the distributable.
+- Confirm the published release includes the workflow-generated asset `CombatMode-<version>.zip` (for example `CombatMode-3.1.6.zip`) and use that as the distributable.
 
 ## 4) Functional smoke test
 
