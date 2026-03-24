@@ -44,7 +44,7 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
   for wildcardFrameName, frameNames in pairs(frameNameGroups) do
     if CursorUnlockFrameVisible(frameNames) then
       if wildcardFrameName == "OPieRT" then
-        if CM.DB.global.crosshair then
+        if CM.IsCrosshairEnabled() then
           CM.DisplayCrosshair(false)
         end
         CM.SetCursorFreelookCentering(false)

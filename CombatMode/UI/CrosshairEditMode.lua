@@ -382,6 +382,9 @@ function CM.RegisterCrosshairEditMode()
       end,
       set = function(_, value)
         CM.DB.global.interactionHUD = value
+        if value and CM.IsCrosshairEnabled() and not CM.DB.char.reticleTargeting then
+          CM.ConfigInteractionHUDSoftTarget()
+        end
         if CM.RefreshInteractionHUD then
           CM.RefreshInteractionHUD()
         end
@@ -401,7 +404,7 @@ function CM.RegisterCrosshairEditMode()
   end)
 
   LEM:RegisterCallback("enter", function()
-    if CM.DB.global.crosshair then
+    if CM.IsCrosshairEnabled() then
       CM.DisplayCrosshair(true)
     end
   end)
@@ -410,7 +413,7 @@ function CM.RegisterCrosshairEditMode()
     CM.HideCrosshairEditPreview()
     if CM.HideCrosshairWhileMounted() then
       CM.DisplayCrosshair(false)
-    elseif CM.DB.global.crosshair then
+    elseif CM.IsCrosshairEnabled() then
       CM.DisplayCrosshair(IsMouselooking())
     else
       CM.DisplayCrosshair(false)

@@ -37,6 +37,17 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["CursorStickyCentering"] = 1     -- !BUG: we can't use it due to the issue described above. Fore more info, see: https://github.com/Stanzilla/WoWUIBugs/issues/504
 }
 
+-- Minimal SoftTarget CVars so the Interaction HUD (softinteract) works when Reticle Targeting
+-- is off; full stack remains CM.ConfigReticleTargeting("combatmode").
+CM.Constants.InteractionHUDSoftTargetCVarValues = {
+  ["interactKeyWarningTutorial"] = 1,
+  ["SoftTargetInteract"] = 3,
+  ["SoftTargetInteractArc"] = 1,
+  ["SoftTargetInteractRange"] = 15,
+  ["SoftTargetIconInteract"] = 1,
+  ["SoftTargetIconGameObject"] = 1
+}
+
 -- CVARS FOR ACTION CAMERA
 -- https://warcraft.wiki.gg/wiki/CVar_ActionCam
 CM.Constants.ActionCameraCVarValues = {

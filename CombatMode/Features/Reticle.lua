@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------
 --  Features/Reticle.lua — RETICLE — action-targeting CVars, crosshair UI
 ---------------------------------------------------------------------------------------
---  Applies ConfigReticleTargeting / soft-target friend toggles, draws the on-screen
+--  Applies ConfigReticleTargeting / ConfigInteractionHUDSoftTarget (minimal SoftTarget when
+--  crosshair + Interaction HUD, reticle off) / soft-target friend toggles, draws the on-screen
 --  crosshair (container + inner visual for reaction scale animation and lock-in),
 --  and tracks mouseover/soft-target state for appearance. LibEditMode registration,
 --  Edit Mode settings, and the crosshair preview panel live in UI/CrosshairEditMode.lua.
@@ -67,6 +68,16 @@ function CM.HandleSoftTargetFriend(enabled)
   end
 end
 
+--- SoftTarget subset for Interaction HUD when Reticle Targeting is disabled (full preset is ConfigReticleTargeting).
+function CM.ConfigInteractionHUDSoftTarget()
+  local t = CM.Constants and CM.Constants.InteractionHUDSoftTargetCVarValues
+  if not t then return end
+  for name, value in pairs(t) do
+    SetCVar(name, value)
+  end
+  CM.DebugPrint("Interaction HUD SoftTarget CVars applied")
+end
+
 ---------------------------------------------------------------------------------------
 --                           CROSSHAIR FRAME & ANIMATION                             --
 ---------------------------------------------------------------------------------------
@@ -106,6 +117,13 @@ function CM.IsCrosshairEnabled()
   return not not c
 end
 
+-- SavedVariables may store 1/0; match "Show Interaction HUD" in Edit Mode / DatabaseDefaults.
+function CM.IsInteractionHUDEnabled()
+  local v = CM.DB and CM.DB.global and CM.DB.global.interactionHUD
+  if v == nil then return CM.Constants.DatabaseDefaults.global.interactionHUD end
+  return not not v
+end
+
 ---------------------------------------------------------------------------------------
 --                                   INTERACTION HUD                                 --
 ---------------------------------------------------------------------------------------
@@ -130,8 +148,8 @@ local IH_LABEL_MAX_W = 280
 local IH_TEXT_PAD = 4 -- shadow bleed past glyphs
 local IH_ICON = 22
 local IH_FONT = 13    -- matches healing radial slice name size
-local IH_NAME_GOLD = { 1, 204 / 255, 0 }
-local IH_NAME_GREY = { 0.62, 0.62, 0.62 }
+local IH_NAME_COLOR = { 1, 204 / 255, 0 }
+local IH_NAME_OPACITY = 0.8
 local IH_SHADOW_ATLAS = "PetJournal-BattleSlot-Shadow"
 local IH_SHADOW_ALPHA = 0.7 -- × crosshair opacity only (not dimmed when out of range)
 local IH_OFFSET_X = 24      -- px right of crosshair center (LEFT anchor)
@@ -325,7 +343,7 @@ local function UpdateInteractionHUDVisual(elapsed)
   -- Fading out: do not call SetUnitCursorTexture — softinteract may already be cleared (fallback gear).
   if ihClusterFadeTarget == 0 then return end
   local g = CM.DB and CM.DB.global
-  if not g or g.interactionHUD ~= true or not g.crosshair or
+  if not g or g.interactionHUD ~= true or not CM.IsCrosshairEnabled() or
       not InteractionHUDIcon or not InteractionHUDLabel then
     return
   end
@@ -345,15 +363,13 @@ local function UpdateInteractionHUDVisual(elapsed)
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
   local crosshairOpacity = g.crosshairOpacity or
       DefaultConfig.crosshairOpacity
-  local contentAlpha = dim * crosshairOpacity
-  local t = ihRangeBlend
-  local r = IH_NAME_GREY[1] + (IH_NAME_GOLD[1] - IH_NAME_GREY[1]) * t
-  local gg = IH_NAME_GREY[2] + (IH_NAME_GOLD[2] - IH_NAME_GREY[2]) * t
-  local b = IH_NAME_GREY[3] + (IH_NAME_GOLD[3] - IH_NAME_GREY[3]) * t
-  InteractionHUDLabel:SetTextColor(r, gg, b, 1)
+  -- Range dimming applies to the icon only; name stays white (scaled by crosshair opacity).
+  local iconAlpha = dim * crosshairOpacity
+  InteractionHUDLabel:SetTextColor(IH_NAME_COLOR[1], IH_NAME_COLOR[2],
+    IH_NAME_COLOR[3], 1)
   InteractionHUDShadow:SetAlpha(crosshairOpacity * IH_SHADOW_ALPHA)
-  InteractionHUDIcon:SetAlpha(contentAlpha)
-  InteractionHUDLabel:SetAlpha(contentAlpha)
+  InteractionHUDIcon:SetAlpha(iconAlpha)
+  InteractionHUDLabel:SetAlpha(crosshairOpacity * IH_NAME_OPACITY)
 end
 
 local function EnsureInteractionHUD()
@@ -399,7 +415,7 @@ local function RefreshInteractionHUD()
     HideInteractionHUD()
     return
   end
-  if not g.crosshair or CM.HideCrosshairWhileMounted() then
+  if not CM.IsCrosshairEnabled() or CM.HideCrosshairWhileMounted() then
     HideInteractionHUD()
     return
   end
@@ -824,7 +840,7 @@ end)
 --              CORE HOOKS (REMATCH / EVENTS / DISABLE)                              --
 ---------------------------------------------------------------------------------------
 function CM.OnRematchCrosshair()
-  if CM.DB.global.crosshair then
+  if CM.IsCrosshairEnabled() then
     LOCK_IN_TOTAL_ELAPSED = -1
     CM.CreateCrosshair()
     if CM.HideCrosshairWhileMounted() then
@@ -837,7 +853,7 @@ function CM.OnRematchCrosshair()
       CM.ConfigStickyCrosshair("combatmode")
     end
     CM.DisplayCrosshair(IsMouselooking())
-  elseif CM.DB.global.crosshair == false then
+  else
     CM.DisplayCrosshair(false)
   end
 end
@@ -851,7 +867,7 @@ function CM.OnCrosshairUncategorizedEvent()
     lastKnownAppearanceState = nil
     CM.UpdateCrosshairReaction()
     if IsMouselooking() then
-      if CM.DB.global.crosshair then
+      if CM.IsCrosshairEnabled() then
         CM.DisplayCrosshair(true)
       else
         CM.DisplayCrosshair(false)

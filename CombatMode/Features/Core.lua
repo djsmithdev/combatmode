@@ -398,7 +398,7 @@ end
 ---------------------------------------------------------------------------------------
 -- Helper function to handle UI state changes when toggling free look
 local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
-  if CM.DB.global.crosshair then CM.DisplayCrosshair(isLocking) end
+  if CM.IsCrosshairEnabled() then CM.DisplayCrosshair(isLocking) end
 
   if CM.DB.global.hideTooltip then HideTooltip(isLocking) end
 
@@ -409,7 +409,7 @@ local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
     end
   end
 
-  if CM.DB.global.crosshair and CM.DB.char.stickyCrosshair then
+  if CM.IsCrosshairEnabled() and CM.DB.char.stickyCrosshair then
     CM.ConfigStickyCrosshair(isLocking and "combatmode" or "blizzard")
   end
 end
@@ -494,6 +494,8 @@ local function Rematch()
     if not CM.DB.char.reticleTargetingEnemyOnly then
       CM.HandleSoftTargetFriend(true)
     end
+  elseif CM.IsCrosshairEnabled() and CM.IsInteractionHUDEnabled() then
+    CM.ConfigInteractionHUDSoftTarget()
   end
 
   CM.OnRematchCrosshair()

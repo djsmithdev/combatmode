@@ -1352,7 +1352,7 @@ function HR.Show(buttonKey)
   end
 
   -- Hide crosshair while radial is visible
-  if CM.DB.global.crosshair then CM.DisplayCrosshair(false) end
+  if CM.IsCrosshairEnabled() then CM.DisplayCrosshair(false) end
 
   CM.DebugPrint("Healing Radial: Shown for " .. buttonKey)
 
@@ -1432,7 +1432,7 @@ function HR.Hide()
   -- Guard with isTogglingMouselook so OnMouselookChanged doesn't re-enter
   if RadialState.wasMouselooking then
     -- Restore crosshair before starting mouselook (needed for lock-in animation)
-    if CM.DB.global.crosshair then CM.DisplayCrosshair(true) end
+    if CM.IsCrosshairEnabled() then CM.DisplayCrosshair(true) end
     -- LockFreeLook handles MouselookStart, UI state, animations, and notifies
     -- radial via OnMouselookChanged — guard prevents re-entry
     RadialState.isTogglingMouselook = true
@@ -1441,7 +1441,7 @@ function HR.Hide()
     RadialState.isTogglingMouselook = false
   else
     -- Restore crosshair even if mouselook wasn't active
-    if CM.DB.global.crosshair then CM.DisplayCrosshair(true) end
+    if CM.IsCrosshairEnabled() then CM.DisplayCrosshair(true) end
   end
 
   CM.DebugPrint("Healing Radial: Hidden (combat=" ..
@@ -1531,7 +1531,7 @@ function HR.ShowFromKeybind()
   end
 
   -- Hide crosshair while radial is visible
-  if CM.DB.global.crosshair then CM.DisplayCrosshair(false) end
+  if CM.IsCrosshairEnabled() then CM.DisplayCrosshair(false) end
 
   CM.DebugPrint("Healing Radial: Shown via keybind (combat=" ..
     tostring(InCombatLockdown()) .. ", wasML=" ..
