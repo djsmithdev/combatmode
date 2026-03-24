@@ -8,7 +8,10 @@ local CM = AceAddon:GetAddon("CombatMode")
 local U = CM.Config.OptionsUI
 local Spacing, Header, Description = U.Spacing, U.Header, U.Description
 
+-- WoW API
 local ReloadUI = _G.ReloadUI
+
+-- Lua stdlib
 local strtrim = _G.strtrim
 
 CM.Config.ReticleTargetingOptions = {

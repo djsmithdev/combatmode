@@ -35,6 +35,16 @@ Use this project map and conventions for all changes.
 
 ## Required coding conventions
 
+- **Lua global localization header convention**
+  - Keep global aliases per-file; do not create a shared/global alias module (for example, no `CM.API` globals table).
+  - Header order:
+    1. `_G`, `LibStub`, addon handle (`CM`)
+    2. WoW API globals
+    3. Lua stdlib aliases (`pairs`, `ipairs`, `type`, `pcall`, `math`, etc.)
+    4. module-local constants
+  - Localize only symbols used in that file.
+  - Remove unused aliases when touching a file.
+  - Prefer function alias style (`local strfind = _G.string.find`) unless many members from the table are used.
 - Keep event wiring centralized via constants and core dispatch; avoid ad-hoc event frames.
 - Prefer extending existing `CM` feature APIs over introducing new global state.
 - Respect combat lockdown and secure action patterns (`SecureActionButtonTemplate`, macro attributes).

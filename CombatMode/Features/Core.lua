@@ -16,7 +16,6 @@
 --    • Shared CVar helpers here (ApplyCVarConfig, camera, sticky, shoulder, speed)
 --      are used by Config and by Reticle (reticle targeting lives in Reticle.lua).
 ---------------------------------------------------------------------------------------
--- IMPORTS
 local _G = _G
 local LibStub = _G.LibStub
 local AceAddon = LibStub("AceAddon-3.0")
@@ -25,8 +24,7 @@ local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local AceConfigCmd = LibStub("AceConfigCmd-3.0")
 
--- CACHING GLOBAL VARIABLES
--- Slightly better performance than doing a global lookup every time
+-- WoW API
 local CreateMacro = _G.CreateMacro
 local DisableAddOn = _G.C_AddOns.DisableAddOn
 local GetAddOnMetadata = _G.C_AddOns.GetAddOnMetadata
@@ -54,6 +52,8 @@ local StaticPopupDialogs = _G.StaticPopupDialogs
 local StaticPopup_Show = _G.StaticPopup_Show
 local UIParent = _G.UIParent
 local C_Timer = _G.C_Timer
+
+-- Lua stdlib
 local ipairs = _G.ipairs
 local type = _G.type
 local pcall = _G.pcall

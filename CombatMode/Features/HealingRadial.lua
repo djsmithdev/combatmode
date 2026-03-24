@@ -12,19 +12,26 @@
 --    • Internal state machine (show/hide, keybind vs mouse open) avoids re-entrancy
 --      with Core.LockFreeLook / UnlockFreeLook.
 --    • Configuration lives under CM.DB.global.healingRadial; AceConfig UI in Config/ConfigHealingRadial.lua.
--- IMPORTS
+---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
 local AceAddon = LibStub("AceAddon-3.0")
+local CM = AceAddon:GetAddon("CombatMode")
 
--- CACHING GLOBAL VARIABLES
+-- WoW API
 local CreateFrame = _G.CreateFrame
+local CreateColor = _G.CreateColor
+local debugstack = _G.debugstack
+local EvaluateColorFromBoolean = _G.C_CurveUtil and _G.C_CurveUtil.EvaluateColorFromBoolean
 local GetActionInfo = _G.GetActionInfo
 local GetCursorPosition = _G.GetCursorPosition
+local GetItemInfo = _G.C_Item.GetItemInfo
 local GetMacroBody = _G.GetMacroBody
 local GetSpellName = _G.C_Spell.GetSpellName
-local GetItemInfo = _G.C_Item.GetItemInfo
 local InCombatLockdown = _G.InCombatLockdown
+local RAID_CLASS_COLORS = _G.RAID_CLASS_COLORS
+local SetCVar = _G.C_CVar.SetCVar
+local UIParent = _G.UIParent
 local UnitClass = _G.UnitClass
 local UnitExists = _G.UnitExists
 local UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned
@@ -33,20 +40,15 @@ local UnitHealthMax = _G.UnitHealthMax
 local UnitInRange = _G.UnitInRange
 local UnitIsUnit = _G.UnitIsUnit
 local UnitName = _G.UnitName
-local EvaluateColorFromBoolean = _G.C_CurveUtil and
-    _G.C_CurveUtil.EvaluateColorFromBoolean
-local CreateColor = _G.CreateColor
-local SetCVar = _G.C_CVar.SetCVar
-local unpack = _G.unpack
-local debugstack = _G.debugstack
-local tostring = _G.tostring
-local pairs = _G.pairs
+
+-- Lua stdlib
 local ipairs = _G.ipairs
+local math = _G.math
+local pairs = _G.pairs
 local select = _G.select
 local table = _G.table
-local math = _G.math
-local UIParent = _G.UIParent
-local RAID_CLASS_COLORS = _G.RAID_CLASS_COLORS
+local tostring = _G.tostring
+local unpack = _G.unpack
 local utf8 = _G.utf8
 
 -- Shorten display names by UTF-8 character count (byte :sub breaks Cyrillic/CJK).
@@ -70,9 +72,6 @@ end
 -- We use alpha=1.0 for "reachable" and alpha=0.4 for "unreachable".
 local COLOR_REACHABLE = CreateColor(1, 1, 1, 1.0)
 local COLOR_UNREACHABLE = CreateColor(1, 1, 1, 0.4)
-
--- RETRIEVING ADDON TABLE
-local CM = AceAddon:GetAddon("CombatMode")
 
 -- Module namespace
 CM.HealingRadial = {}

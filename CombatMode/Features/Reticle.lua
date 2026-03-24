@@ -18,12 +18,17 @@
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
+local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
+
+-- WoW API
 local CreateFrame = _G.CreateFrame
 local GetCursorPosition = _G.GetCursorPosition
+local GetUnitName = _G.GetUnitName
 local InCombatLockdown = _G.InCombatLockdown
 local IsMounted = _G.IsMounted
 local IsMouselooking = _G.IsMouselooking
 local SetCVar = _G.C_CVar.SetCVar
+local SetUnitCursorTexture = _G.SetUnitCursorTexture
 local UIParent = _G.UIParent
 local UnitCanAttack = _G.UnitCanAttack
 local UnitExists = _G.UnitExists
@@ -33,16 +38,14 @@ local UnitIsPlayer = _G.UnitIsPlayer
 local UnitReaction = _G.UnitReaction
 local UnitName = _G.UnitName
 local UnitNameUnmodified = _G.UnitNameUnmodified
-local GetUnitName = _G.GetUnitName
-local SetUnitCursorTexture = _G.SetUnitCursorTexture
-local strfind = _G.string.find
-local math = _G.math
-local unpack = _G.unpack
+
+-- Lua stdlib
 local issecretvalue = _G.issecretvalue
+local math = _G.math
+local strfind = _G.string.find
+local unpack = _G.unpack
 
 local ON_RETAIL_CLIENT = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
-
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 ---------------------------------------------------------------------------------------
 --                        RETICLE TARGETING (ACTION TARGETING CVARS)                 --

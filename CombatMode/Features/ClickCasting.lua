@@ -15,27 +15,30 @@
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
+local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
+
+-- WoW API
 local CreateFrame = _G.CreateFrame
 local C_ActionBar = _G.C_ActionBar
 local C_Spell = _G.C_Spell
+local ClearOverrideBindings = _G.ClearOverrideBindings
 local GetActionInfo = _G.GetActionInfo
 local GetBindingKey = _G.GetBindingKey
 local InCombatLockdown = _G.InCombatLockdown
-local pcall = _G.pcall
-local strtrim = _G.strtrim
-local ClearOverrideBindings = _G.ClearOverrideBindings
+local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 local SetOverrideBinding = _G.SetOverrideBinding
 local SetOverrideBindingClick = _G.SetOverrideBindingClick
-local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
+local UIParent = _G.UIParent
+
+-- Lua stdlib
+local ipairs = _G.ipairs
+local pairs = _G.pairs
+local pcall = _G.pcall
+local strtrim = _G.strtrim
 local string = _G.string
 local tonumber = _G.tonumber
 local tostring = _G.tostring
 local type = _G.type
-local ipairs = _G.ipairs
-local pairs = _G.pairs
-local UIParent = _G.UIParent
-
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- Click-cast macro wrapper: binding value (e.g. ACTIONBUTTON1) -> pre-line + /click frameName.
 local CLICKCAST_BARS = {

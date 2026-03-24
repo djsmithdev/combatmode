@@ -6,20 +6,23 @@
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
+local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
+
+-- WoW API
+local C_Timer = _G.C_Timer
 local CreateFrame = _G.CreateFrame
 local GetTime = _G.GetTime
 local IsMouselooking = _G.IsMouselooking
 local UIParent = _G.UIParent
 local UIErrorsFrame = _G.UIErrorsFrame
-local C_Timer = _G.C_Timer
 local hooksecurefunc = _G.hooksecurefunc
+
+-- Lua stdlib
 local math = _G.math
 local pairs = _G.pairs
 local table = _G.table
 
 local ON_RETAIL_CLIENT = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
-
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 ---------------------------------------------------------------------------------------
 --              EDIT MODE: CROSSHAIR PREVIEW (LIBEDITMODE SELECTION)                 --

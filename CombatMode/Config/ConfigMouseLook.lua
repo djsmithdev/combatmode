@@ -8,6 +8,7 @@ local CM = AceAddon:GetAddon("CombatMode")
 local U = CM.Config.OptionsUI
 local Spacing, Header, Description = U.Spacing, U.Header, U.Description
 
+-- WoW API
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local ReloadUI = _G.ReloadUI
