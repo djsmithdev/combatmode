@@ -15,13 +15,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build CombatMode release zip
+      # manual-changelog path is relative to -t; use GITHUB_EVENT_PATH so "#" in the body is not lost.
+      - name: Write CombatMode/CHANGELOG.md from release body
         run: |
-          ZIP_NAME="CombatMode-${{ github.event.release.tag_name }}.zip"
-          zip -r "$ZIP_NAME" CombatMode
-          echo "ZIP_NAME=$ZIP_NAME" >> "$GITHUB_ENV"
+          python3 << 'PY'
+          import json
+          import os
 
-      - name: Upload release asset
-        uses: softprops/action-gh-release@v2
+          path = os.environ["GITHUB_EVENT_PATH"]
+          with open(path, encoding="utf-8") as f:
+              event = json.load(f)
+          body = (event.get("release") or {}).get("body") or ""
+          body = body.strip()
+          if not body:
+              body = "See the GitHub release page for notes."
+          os.makedirs("CombatMode", exist_ok=True)
+          with open("CombatMode/CHANGELOG.md", "w", encoding="utf-8") as out:
+              out.write(body)
+              if not body.endswith("\n"):
+                  out.write("\n")
+          PY
+
+      # release.sh requires a directory at $topdir/.git when using -t.
+      - name: Point CombatMode at repository git
+        run: ln -sfn ../.git CombatMode/.git
+
+      - name: Package and publish addon
+        uses: BigWigsMods/packager@v2
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+          GIT_WORK_TREE: ${{ github.workspace }}
+          GIT_DIR: ${{ github.workspace }}/.git
         with:
-          files: ${{ env.ZIP_NAME }}
+          args: -g retail -p "${{ vars.CURSEFORGE_PROJECT_ID }}" -n "CombatMode-{project-version}" -t CombatMode -m .pkgmeta

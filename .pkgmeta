@@ -1,0 +1,24 @@
+# ignore paths are relative to the -t topdir (CombatMode/).
+package-as: CombatMode
+changelog-title: CombatMode
+manual-changelog: CHANGELOG.md
+ignore:
+  - .cursor
+  - .github
+  - .vscode
+  - scripts
+  - media
+  - dist
+  - agent-transcripts
+  - AGENTS.md
+  - CONTRIBUTING.md
+  - README.md
+  - RELEASE.md
+  - STRUCTURE.md
+  - TESTING.md
+  - selene.toml
+  - stylua.toml
+  - .styluaignore
+  - .pre-commit-config.yaml
+  - .gitignore
+  - .pkgmeta

@@ -7,6 +7,18 @@ Use this checklist when preparing a release build.
 - Update addon version in `CombatMode/CombatMode.toc` (and any mirrored version fields).
 - Verify `## Interface` targets current Retail build.
 - Confirm addon title/notes/author metadata are accurate.
+- Confirm `CombatMode/CombatMode.toc` addon folder/name metadata still matches `CombatMode` packaging expectations.
+
+## Release automation setup (WoW Packager)
+
+- GitHub release packaging and publishing is handled by `.github/workflows/release-package.yml` using `BigWigsMods/packager@v2`.
+- Required repository secret:
+  - `CF_API_KEY`: CurseForge API token used for upload.
+- Required repository variable:
+  - `CURSEFORGE_PROJECT_ID`: numeric CurseForge project ID.
+- Wago upload is intentionally not configured yet.
+- Root `.pkgmeta` sets `package-as`, `ignore`, and `manual-changelog` (packager uses `-t CombatMode -m .pkgmeta`).
+- Write release notes in the GitHub release body before publishing; the workflow writes them to `CombatMode/CHANGELOG.md` for the zip (via `GITHUB_EVENT_PATH` so `#` headings are preserved).
 
 ## 2) API and compatibility checks
 
@@ -26,7 +38,7 @@ Use this checklist when preparing a release build.
 - Ensure new files are included in `CombatMode/Embeds.xml` and/or `CombatMode/CombatMode.toc` as needed.
 - Verify no accidental dev-only artifacts are referenced.
 - GitHub source archives (`Source code (zip/tar.gz)`) include the full repository and are not addon-ready packaging.
-- Confirm the published release includes the workflow-generated asset `CombatMode-<tag>.zip` and use that as the distributable.
+- Confirm the published release includes the workflow-generated asset `CombatMode-<version>.zip` (for example `CombatMode-3.1.6.zip`) and use that as the distributable.
 
 ## 4) Functional smoke test
 
@@ -51,6 +63,13 @@ Use this checklist when preparing a release build.
 - Summarize user-visible changes first (features/fixes/behavior changes).
 - Note any keybind, CVar, or migration-impacting changes explicitly.
 - Include known limitations or follow-up items if any.
+
+## 7) Post-release verification (CurseForge-first flow)
+
+- Publish a GitHub release tag (draft/prerelease is fine for validation).
+- Confirm the `Release Package` workflow run succeeds in GitHub Actions.
+- Confirm the GitHub release has the workflow-generated package asset attached.
+- Confirm a new file appears on CurseForge for `CURSEFORGE_PROJECT_ID` with the expected version/tag.
 
 ## Suggested changelog format
 
