@@ -41,8 +41,7 @@ local IsMouselooking = _G.IsMouselooking
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
 local OpenToCategory = _G.Settings.OpenToCategory
-local OpenSettingsPanel = _G.C_SettingsUtil and
-    _G.C_SettingsUtil.OpenSettingsPanel
+local OpenSettingsPanel = _G.C_SettingsUtil and _G.C_SettingsUtil.OpenSettingsPanel
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
@@ -75,8 +74,13 @@ local eventCategoryMap = {}
 local function FetchDataFromTOC()
   local dataReturned = {}
   local keysToFetch = {
-    "Version", "Title", "Notes", "Author", "X-Discord", "X-Curse",
-    "X-Contributors"
+    "Version",
+    "Title",
+    "Notes",
+    "Author",
+    "X-Discord",
+    "X-Curse",
+    "X-Contributors",
   }
 
   for _, key in ipairs(keysToFetch) do
@@ -89,19 +93,24 @@ end
 CM.METADATA = FetchDataFromTOC()
 
 function CM.DebugPrint(statement)
-  if not (CM.DB and CM.DB.global and CM.DB.global.debugMode) then return end
-  print(CM.Constants.BasePrintMsg .. "|cff909090: " .. tostring(statement) ..
-    "|r")
+  if not (CM.DB and CM.DB.global and CM.DB.global.debugMode) then
+    return
+  end
+  print(CM.Constants.BasePrintMsg .. "|cff909090: " .. tostring(statement) .. "|r")
 end
 
 local debugThrottleLastAt = {}
 --- Throttle repeated debug lines per logical channel (seconds). Requires debug mode on.
 function CM.DebugPrintThrottled(key, msg, intervalSec)
-  if not (CM.DB and CM.DB.global and CM.DB.global.debugMode) then return end
+  if not (CM.DB and CM.DB.global and CM.DB.global.debugMode) then
+    return
+  end
   intervalSec = intervalSec or 3
   local now = GetTime()
   local last = debugThrottleLastAt[key] or 0
-  if now - last <= intervalSec then return end
+  if now - last <= intervalSec then
+    return
+  end
   debugThrottleLastAt[key] = now
   CM.DebugPrint(msg)
 end
@@ -115,13 +124,17 @@ end
 local FALLBACK_UI_FONT_PATH = "Fonts\\FRIZQT__.TTF"
 
 function CM.SetFontStringFromTemplate(fontString, pixelSize, templateFontObject)
-  if not fontString or not pixelSize then return end
+  if not fontString or not pixelSize then
+    return
+  end
   local template = templateFontObject or _G.GameFontNormalSmall
   local path, _h, flags
   if template and template.GetFont then
     path, _h, flags = template:GetFont()
   end
-  if type(path) ~= "string" or path == "" then path = FALLBACK_UI_FONT_PATH end
+  if type(path) ~= "string" or path == "" then
+    path = FALLBACK_UI_FONT_PATH
+  end
   fontString:SetFont(path, pixelSize, flags)
 end
 
@@ -138,22 +151,34 @@ function CM.SetCursorFreelookCentering(shouldCenter)
 end
 
 function CM.TryApplyBindingChange(context, applyFn)
-  if type(applyFn) ~= "function" then return false end
+  if type(applyFn) ~= "function" then
+    return false
+  end
 
   if InCombatLockdown() then
     deferredBindingQueue[#deferredBindingQueue + 1] = {
       context = context or "binding change",
-      applyFn = applyFn
+      applyFn = applyFn,
     }
-    print(CM.Constants.BasePrintMsg .. "|cff909090: deferred " ..
-      (context or "binding change") .. " until combat ends.|r")
+    print(
+      CM.Constants.BasePrintMsg
+        .. "|cff909090: deferred "
+        .. (context or "binding change")
+        .. " until combat ends.|r"
+    )
     return false
   end
 
   local ok, err = pcall(applyFn)
   if not ok then
-    print(CM.Constants.BasePrintMsg .. "|cff909090: failed to apply " ..
-      (context or "binding change") .. ": " .. tostring(err) .. "|r")
+    print(
+      CM.Constants.BasePrintMsg
+        .. "|cff909090: failed to apply "
+        .. (context or "binding change")
+        .. ": "
+        .. tostring(err)
+        .. "|r"
+    )
     return false
   end
 
@@ -161,8 +186,12 @@ function CM.TryApplyBindingChange(context, applyFn)
 end
 
 function CM.FlushDeferredBindingChanges()
-  if InCombatLockdown() then return end
-  if #deferredBindingQueue == 0 then return end
+  if InCombatLockdown() then
+    return
+  end
+  if #deferredBindingQueue == 0 then
+    return
+  end
 
   local pending = deferredBindingQueue
   deferredBindingQueue = {}
@@ -171,27 +200,23 @@ function CM.FlushDeferredBindingChanges()
     CM.TryApplyBindingChange(change.context, change.applyFn)
   end
 
-  print(CM.Constants.BasePrintMsg ..
-    "|cff909090: applied deferred binding updates.|r")
+  print(CM.Constants.BasePrintMsg .. "|cff909090: applied deferred binding updates.|r")
 end
 
 local function OpenConfigPanel()
   if InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg ..
-      "|cff909090: Cannot open settings while in combat.|r")
+    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open settings while in combat.|r")
     return
   end
 
   -- Dismiss healing radial if active (opening config panel should close radial)
-  if CM.HealingRadial and CM.HealingRadial.IsActive and
-      CM.HealingRadial.IsActive() then
+  if CM.HealingRadial and CM.HealingRadial.IsActive and CM.HealingRadial.IsActive() then
     CM.HealingRadial.Hide()
   end
 
   -- Use the new API if available (Patch 12.0.0+)
   if OpenSettingsPanel then
-    local categoryID =
-        AceConfigDialog.BlizOptionsIDMap[CM.METADATA["TITLE"]]
+    local categoryID = AceConfigDialog.BlizOptionsIDMap[CM.METADATA["TITLE"]]
     OpenSettingsPanel(categoryID)
   else
     -- Fallback to old API for older clients
@@ -201,8 +226,7 @@ end
 
 local function UndoCMChanges()
   if InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg ..
-      "|cff909090: Cannot run this cmd while in combat.|r")
+    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot run this cmd while in combat.|r")
     return
   end
   CM:ResetCVarsToDefault()
@@ -211,7 +235,9 @@ local function UndoCMChanges()
 end
 
 local function DisplayPopup()
-  if CM.DB.char.seenWarning then return end
+  if CM.DB.char.seenWarning then
+    return
+  end
 
   local function OnClosePopup()
     CM.DB.char.seenWarning = true
@@ -224,13 +250,15 @@ local function DisplayPopup()
     OnButton1 = OnClosePopup,
     OnHide = OnClosePopup,
     timeout = 0,
-    whileDead = true
+    whileDead = true,
   }
 
   StaticPopup_Show("CombatMode Warning")
 end
 
-function CM.MacroExists(name) return GetMacroInfo(name) ~= nil end
+function CM.MacroExists(name)
+  return GetMacroInfo(name) ~= nil
+end
 
 local function CreateTargetMacros()
   local function createMacroIfNotExists(macroName, icon, macroText)
@@ -258,24 +286,31 @@ local function HideTooltip(shouldHide)
 
   if not isTooltipHooked then
     GameTooltip:HookScript("OnShow", function(self)
-      if tooltipHidden then self:Hide() end
+      if tooltipHidden then
+        self:Hide()
+      end
     end)
     isTooltipHooked = true
   end
   -- Hide it immediately in case there's a tooltip still fading while mouse locking
-  if tooltipHidden and GameTooltip:IsShown() then GameTooltip:Hide() end
+  if tooltipHidden and GameTooltip:IsShown() then
+    GameTooltip:Hide()
+  end
 end
 
 --[[
   Checking if DynamicCam is loaded so we can relinquish control of a few camera features
   as DynamicCam allows fine-grained control of Mouselook Speed & Target Focus
-]] --
+]]
+--
 local function IsDCLoaded()
   local DC = AceAddon:GetAddon("DynamicCam", true)
   CM.DynamicCam = DC ~= nil and true or false
   if CM.DynamicCam and not CM.DB.global.silenceAlerts then
-    print(CM.Constants.BasePrintMsg ..
-      "|cff909090: |cffE52B50DynamicCam detected!|r Handing over control of |cffE37527• Camera Features|r.|r")
+    print(
+      CM.Constants.BasePrintMsg
+        .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over control of |cffE37527• Camera Features|r.|r"
+    )
   end
 end
 
@@ -283,10 +318,8 @@ end
 --                              CVAR HANDLING FUNCTIONS                              --
 ---------------------------------------------------------------------------------------
 function CM.ApplyCVarConfig(info)
-  local CVarType, CMValues, BlizzValues, FeatureName = info.CVarType,
-      info.CMValues,
-      info.BlizzValues,
-      info.FeatureName
+  local CVarType, CMValues, BlizzValues, FeatureName =
+    info.CVarType, info.CMValues, info.BlizzValues, info.FeatureName
   local CVarsToLoad
 
   if CVarType == "combatmode" then
@@ -296,56 +329,68 @@ function CM.ApplyCVarConfig(info)
     CVarsToLoad = BlizzValues
     CM.DebugPrint(FeatureName .. " CVars RESET")
   else
-    CM.DebugPrint("Invalid CVarType in CM.ApplyCVarConfig for " ..
-      FeatureName .. ": " .. tostring(CVarType))
+    CM.DebugPrint(
+      "Invalid CVarType in CM.ApplyCVarConfig for " .. FeatureName .. ": " .. tostring(CVarType)
+    )
     return
   end
 
-  for name, value in pairs(CVarsToLoad) do SetCVar(name, value) end
+  for name, value in pairs(CVarsToLoad) do
+    SetCVar(name, value)
+  end
 end
 
 function CM.ConfigActionCamera(CVarType)
-  if CM.DynamicCam then return end
+  if CM.DynamicCam then
+    return
+  end
 
   local info = {
     CVarType = CVarType,
     CMValues = CM.Constants.ActionCameraCVarValues,
     BlizzValues = CM.Constants.BlizzardActionCameraCVarValues,
-    FeatureName = "Action Camera"
+    FeatureName = "Action Camera",
   }
 
   CM.ApplyCVarConfig(info)
-  if CVarType == "combatmode" then CM.SetShoulderOffset() end
+  if CVarType == "combatmode" then
+    CM.SetShoulderOffset()
+  end
   -- Disable the Action Cam warning message.
   UIParent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
 end
 
 function CM.ConfigStickyCrosshair(CVarType)
-  if CM.DynamicCam then return end
+  if CM.DynamicCam then
+    return
+  end
 
   local info = {
     CVarType = CVarType,
     CMValues = CM.Constants.TargetFocusCVarValues,
     BlizzValues = CM.Constants.BlizzardTargetFocusCVarValues,
-    FeatureName = "Sticky Crosshair"
+    FeatureName = "Sticky Crosshair",
   }
 
   CM.ApplyCVarConfig(info)
 end
 
 function CM.SetMouseLookSpeed()
-  if CM.DynamicCam then return end
+  if CM.DynamicCam then
+    return
+  end
 
   local XSpeed = CM.DB.global.mouseLookSpeed
   local YSpeed = CM.DB.global.mouseLookSpeed / 2 -- Blizz wants pitch speed as 1/2 of yaw speed
   SetCVar("cameraYawMoveSpeed", XSpeed)
   SetCVar("cameraPitchMoveSpeed", YSpeed)
-  CM.DebugPrint("Setting Camera Turn Speed X to " .. XSpeed .. " and Y to " ..
-    YSpeed)
+  CM.DebugPrint("Setting Camera Turn Speed X to " .. XSpeed .. " and Y to " .. YSpeed)
 end
 
 function CM.SetShoulderOffset()
-  if CM.DynamicCam then return end
+  if CM.DynamicCam then
+    return
+  end
 
   local offset = CM.DB.char.shoulderOffset
   SetCVar("test_cameraOverShoulder", offset)
@@ -358,28 +403,35 @@ function CM:ResetCVarsToDefault()
   self.ConfigStickyCrosshair("blizzard")
   self.HandleSoftTargetFriend(false)
 
-  print(CM.Constants.BasePrintMsg ..
-    "|cff909090: all changes have been reverted.|r")
+  print(CM.Constants.BasePrintMsg .. "|cff909090: all changes have been reverted.|r")
 end
 
 local function IsHealingRadialActive()
-  return CM.HealingRadial and CM.HealingRadial.IsActive and
-      CM.HealingRadial.IsActive()
+  return CM.HealingRadial and CM.HealingRadial.IsActive and CM.HealingRadial.IsActive()
 end
 
 local function ShouldFreeLookBeOff()
-  return CM.IsCustomConditionTrue() or
-      (FreeLookOverride or SpellIsTargeting() or InCinematic() or
-        IsInCinematicScene() or CM.IsUnlockFrameVisible() or
-        CM.IsVendorMountOut() or CM.IsInPetBattle() or
-        CM.IsFeignDeathActive() or IsHealingRadialActive())
+  return CM.IsCustomConditionTrue()
+    or (
+      FreeLookOverride
+      or SpellIsTargeting()
+      or InCinematic()
+      or IsInCinematicScene()
+      or CM.IsUnlockFrameVisible()
+      or CM.IsVendorMountOut()
+      or CM.IsInPetBattle()
+      or CM.IsFeignDeathActive()
+      or IsHealingRadialActive()
+    )
 end
 
 -- Unbinding MOVEANDSTEER to avoid potential bug when toggling free look with the same key
 local function UnbindMoveAndSteer()
   CM.TryApplyBindingChange("MOVEANDSTEER unbind", function()
     local key = GetBindingKey("MOVEANDSTEER")
-    if key then SetBinding(key, "Combat Mode - Mouse Look") end
+    if key then
+      SetBinding(key, "Combat Mode - Mouse Look")
+    end
     SaveBindings(GetCurrentBindingSet())
   end)
 end
@@ -388,8 +440,7 @@ end
 local function RenameBindableActions()
   for _, bindingAction in pairs(CM.Constants.ActionsToProcess) do
     local bindingUiName = _G["BINDING_NAME_" .. bindingAction]
-    CM.Constants.OverrideActions[bindingAction] = bindingUiName or
-        bindingAction
+    CM.Constants.OverrideActions[bindingAction] = bindingUiName or bindingAction
   end
 end
 
@@ -398,9 +449,13 @@ end
 ---------------------------------------------------------------------------------------
 -- Helper function to handle UI state changes when toggling free look
 local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
-  if CM.IsCrosshairEnabled() then CM.DisplayCrosshair(isLocking) end
+  if CM.IsCrosshairEnabled() then
+    CM.DisplayCrosshair(isLocking)
+  end
 
-  if CM.DB.global.hideTooltip then HideTooltip(isLocking) end
+  if CM.DB.global.hideTooltip then
+    HideTooltip(isLocking)
+  end
 
   -- Only reset Action Camera settings on permanent unlocks (user-initiated), not temporary ones (UI panels)
   if CM.DB.global.actionCamera and CM.DB.global.actionCamMouselookDisable then
@@ -449,11 +504,15 @@ local function RunUnlockFreeLookDeferredUI(isPermanentUnlock)
 end
 
 function CM.UnlockFreeLook()
-  if not IsMouselooking() then return end
+  if not IsMouselooking() then
+    return
+  end
   RunUnlockFreeLookDeferredUI(false)
   MouselookStop()
 
-  if CM.DB.global.pulseCursor then CM.ShowCursorPulse() end
+  if CM.DB.global.pulseCursor then
+    CM.ShowCursorPulse()
+  end
 
   if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
     CM.HealingRadial.OnMouselookChanged(false)
@@ -462,11 +521,15 @@ function CM.UnlockFreeLook()
 end
 
 local function UnlockFreeLookPermanent()
-  if not IsMouselooking() then return end
+  if not IsMouselooking() then
+    return
+  end
   RunUnlockFreeLookDeferredUI(true)
   MouselookStop()
 
-  if CM.DB.global.pulseCursor then CM.ShowCursorPulse() end
+  if CM.DB.global.pulseCursor then
+    CM.ShowCursorPulse()
+  end
 
   if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
     CM.HealingRadial.OnMouselookChanged(false)
@@ -486,7 +549,9 @@ local function Rematch()
   IsDCLoaded()
   CM.SetMouseLookSpeed()
 
-  if CM.DB.global.actionCamera then CM.ConfigActionCamera("combatmode") end
+  if CM.DB.global.actionCamera then
+    CM.ConfigActionCamera("combatmode")
+  end
 
   if CM.DB.char.reticleTargeting then
     CM.ConfigReticleTargeting("combatmode")
@@ -513,20 +578,25 @@ end
 Handle events based on their category.
 You need to first register the event in the CM.Constants.BLIZZARD_EVENTS table before using it here.
 Checks which category in the table the event that's been fired belongs to, and then calls the appropriate function.
-]] --
+]]
+--
 local function HandleEventByCategory(category, event)
   local eventHandlers = {
-    UNLOCK_EVENTS = function() CM.UnlockFreeLook() end,
-    LOCK_EVENTS = function() CM.LockFreeLook() end,
-    REMATCH_EVENTS = function() Rematch() end,
+    UNLOCK_EVENTS = function()
+      CM.UnlockFreeLook()
+    end,
+    LOCK_EVENTS = function()
+      CM.LockFreeLook()
+    end,
+    REMATCH_EVENTS = function()
+      Rematch()
+    end,
     FRIENDLY_TARGETING_EVENTS = function()
       -- Handle combat start/end for healing radial
       if CM.HealingRadial then
-        if event == "PLAYER_REGEN_DISABLED" and
-            CM.HealingRadial.OnCombatStart then
+        if event == "PLAYER_REGEN_DISABLED" and CM.HealingRadial.OnCombatStart then
           CM.HealingRadial.OnCombatStart()
-        elseif event == "PLAYER_REGEN_ENABLED" and
-            CM.HealingRadial.OnCombatEnd then
+        elseif event == "PLAYER_REGEN_ENABLED" and CM.HealingRadial.OnCombatEnd then
           CM.HealingRadial.OnCombatEnd()
         end
       end
@@ -540,8 +610,7 @@ local function HandleEventByCategory(category, event)
     REFRESH_BINDINGS_EVENTS = function()
       if C_Timer and C_Timer.After then
         C_Timer.After(0.1, function()
-          CM.DebugPrint(
-            "Action Bar state changed, refreshing binding macros")
+          CM.DebugPrint("Action Bar state changed, refreshing binding macros")
           CM.RefreshClickCastMacros()
         end)
       else
@@ -550,9 +619,10 @@ local function HandleEventByCategory(category, event)
       end
 
       -- Healing Radial: update slice targets and spell attributes when roster or action bar changes
-      if not CM.HealingRadial then return end
-      if event == "GROUP_ROSTER_UPDATE" and
-          CM.HealingRadial.OnGroupRosterUpdate then
+      if not CM.HealingRadial then
+        return
+      end
+      if event == "GROUP_ROSTER_UPDATE" and CM.HealingRadial.OnGroupRosterUpdate then
         CM.HealingRadial.OnGroupRosterUpdate()
       elseif CM.HealingRadial.OnActionBarChanged then
         CM.HealingRadial.OnActionBarChanged()
@@ -560,11 +630,12 @@ local function HandleEventByCategory(category, event)
     end,
     FOCUS_LOCK_EVENTS = function()
       CM.OnCrosshairFocusLockEvent(event)
-    end
-
+    end,
   }
 
-  if eventHandlers[category] then eventHandlers[category]() end
+  if eventHandlers[category] then
+    eventHandlers[category]()
+  end
 end
 
 local function BuildEventCategoryMap()
@@ -580,7 +651,9 @@ end
 -- FIRES WHEN ONE OF OUR REGISTERED EVENTS HAPPEN IN GAME
 function _G.CombatMode_OnEvent(event)
   local categories = eventCategoryMap[event]
-  if not categories then return end
+  if not categories then
+    return
+  end
   for _, category in ipairs(categories) do
     HandleEventByCategory(category, event)
   end
@@ -592,7 +665,8 @@ end
 --[[
 The game engine will call the OnUpdate function once each frame.
 This is (in most cases) extremely excessive, hence why we're adding a throttle.
-]] --
+]]
+--
 local ON_UPDATE_INTERVAL = 0.15
 local TIME_SINCE_LAST_UPDATE = 0
 function _G.CombatMode_OnUpdate(_, elapsed)
@@ -600,17 +674,21 @@ function _G.CombatMode_OnUpdate(_, elapsed)
   TIME_SINCE_LAST_UPDATE = TIME_SINCE_LAST_UPDATE + elapsed
 
   -- As the frame watching doesn't need to perform a visibility check every frame, we're adding a stagger
-  if (TIME_SINCE_LAST_UPDATE >= ON_UPDATE_INTERVAL) then
+  if TIME_SINCE_LAST_UPDATE >= ON_UPDATE_INTERVAL then
     TIME_SINCE_LAST_UPDATE = 0
 
-    if IsDefaultMouseActionBeingUsed() then return end
+    if IsDefaultMouseActionBeingUsed() then
+      return
+    end
 
     if ShouldFreeLookBeOff() then
       CM.UnlockFreeLook()
       return
     end
 
-    if not IsMouselooking() then CM.LockFreeLook() end
+    if not IsMouselooking() then
+      CM.LockFreeLook()
+    end
 
     CM.UpdateCrosshairReaction()
   end
@@ -628,8 +706,7 @@ end
 -- holding longer than 0.3s re-locks on release (hold).
 function _G.CombatMode_CursorModeKey(keystate)
   if IsDefaultMouseActionBeingUsed() then
-    CM.DebugPrint(
-      "Cannot toggle Free Look while holding down your left or right click.")
+    CM.DebugPrint("Cannot toggle Free Look while holding down your left or right click.")
     return
   end
 
@@ -653,8 +730,9 @@ function _G.CombatMode_CursorModeKey(keystate)
     -- Ignore spurious key-ups from MouselookStop (within 0.3s)
     local elapsed = GetTime() - CursorModeShowTime
     if elapsed < 0.3 then
-      CM.DebugPrint("Cursor Mode: Ignoring spurious key-up (elapsed=" ..
-        string.format("%.3f", elapsed) .. "s)")
+      CM.DebugPrint(
+        "Cursor Mode: Ignoring spurious key-up (elapsed=" .. string.format("%.3f", elapsed) .. "s)"
+      )
       return
     end
     -- Hold release: re-lock mouselook
@@ -664,10 +742,13 @@ function _G.CombatMode_CursorModeKey(keystate)
 end
 
 function _G.CombatMode_HealingRadialKey(keystate)
-  if not CM.HealingRadial then return end
+  if not CM.HealingRadial then
+    return
+  end
   local HR = CM.HealingRadial
-  CM.DebugPrint("HealingRadialKey: keystate=" .. tostring(keystate) ..
-    " isActive=" .. tostring(HR.IsActive()))
+  CM.DebugPrint(
+    "HealingRadialKey: keystate=" .. tostring(keystate) .. " isActive=" .. tostring(HR.IsActive())
+  )
   if keystate == "down" then
     if HR.IsActive() then
       -- Already open (tap-to-toggle: second press closes)
@@ -704,7 +785,8 @@ end
 --[[
 Do init tasks here, like loading the Saved Variables,
 or setting up slash commands.
-]] --
+]]
+--
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Constants.DatabaseDefaults, true)
 
@@ -728,14 +810,15 @@ end
 function CM:OnResetDB()
   CM.DebugPrint("Reseting Combat Mode settings.")
   self.DB:ResetDB("Default")
-  ReloadUI();
+  ReloadUI()
 end
 
 --[[
 Do more initialization here, that really enables the use of your addon.
 Register Events, Hook functions, Create Frames, Get information from
 the game that wasn't available in OnInitialize
-]] --
+]]
+--
 local function BootstrapFeatureModules()
   RenameBindableActions()
   CM.OverrideDefaultButtons()
@@ -763,8 +846,10 @@ function CM:OnEnable()
 
   -- Greeting message that is printed to chat on initial load
   if not CM.DB.global.silenceAlerts then
-    print(CM.Constants.BasePrintMsg ..
-      "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r")
+    print(
+      CM.Constants.BasePrintMsg
+        .. "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r"
+    )
   end
 
   DisplayPopup()
@@ -774,7 +859,8 @@ end
 Unhook, Unregister Events, Hide frames that you created.
 You would probably only use an OnDisable if you want to
 build a "standby" mode, or be able to toggle modules on/off.
-]] --
+]]
+--
 function CM:OnDisable()
   CM.HideCrosshairFrame()
   self:ResetCVarsToDefault()

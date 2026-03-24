@@ -42,11 +42,11 @@ local type = _G.type
 
 -- Click-cast macro wrapper: binding value (e.g. ACTIONBUTTON1) -> pre-line + /click frameName.
 local CLICKCAST_BARS = {
-  { bind = "ACTIONBUTTON",          frame = "ActionButton",              count = 12 },
-  { bind = "MULTIACTIONBAR1BUTTON", frame = "MultiBarBottomLeftButton",  count = 12 },
+  { bind = "ACTIONBUTTON", frame = "ActionButton", count = 12 },
+  { bind = "MULTIACTIONBAR1BUTTON", frame = "MultiBarBottomLeftButton", count = 12 },
   { bind = "MULTIACTIONBAR2BUTTON", frame = "MultiBarBottomRightButton", count = 12 },
-  { bind = "MULTIACTIONBAR3BUTTON", frame = "MultiBarRightButton",       count = 12 },
-  { bind = "MULTIACTIONBAR4BUTTON", frame = "MultiBarLeftButton",        count = 12 },
+  { bind = "MULTIACTIONBAR3BUTTON", frame = "MultiBarRightButton", count = 12 },
+  { bind = "MULTIACTIONBAR4BUTTON", frame = "MultiBarLeftButton", count = 12 },
 }
 local BindingToClickFrame = {}
 for _, bar in ipairs(CLICKCAST_BARS) do
@@ -107,10 +107,13 @@ local function ResolveActionButtonFrame(bindingValue)
   local activeBarType = GetActiveActionBarType()
   if activeBarType then
     local frameName = activeBarType .. buttonNum
-    local ok, actionFrame = pcall(function() return _G[frameName] end)
+    local ok, actionFrame = pcall(function()
+      return _G[frameName]
+    end)
     if ok and actionFrame then
       -- Check if the frame has an action assigned
-      local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action") or actionFrame.action
+      local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action")
+        or actionFrame.action
       local action = rawAction and tonumber(rawAction)
       if action and action > 0 then
         return frameName
@@ -123,39 +126,55 @@ local function ResolveActionButtonFrame(bindingValue)
 end
 
 local CLICKCAST_PRE_LINE_ANY =
-"/target [@focus,exists,nodead] focus; [nomounted,@mouseover,exists] mouseover"                             -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
+  "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,exists] mouseover" -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
 local CLICKCAST_PRE_LINE_ENEMY =
-"/target [@focus,exists,nodead] focus; [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
+  "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
 
 -- Returns true if spellId is in the user's "Cast @Cursor Spells" list (comma-separated names in options).
 local function IsCastAtCursorSpell(spellId)
-  if not spellId or spellId <= 0 then return false end
+  if not spellId or spellId <= 0 then
+    return false
+  end
   local list = CM.DB.char.castAtCursorSpells
-  if not list or list == "" then return false end
+  if not list or list == "" then
+    return false
+  end
   local set = {}
   for name in string.gmatch(list, "[^,]+") do
     local n = strtrim(name):lower()
-    if n ~= "" then set[n] = true end
+    if n ~= "" then
+      set[n] = true
+    end
   end
   local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellId)
   local spellName = spellInfo and spellInfo.name
-  if not spellName or spellName == "" then return false end
+  if not spellName or spellName == "" then
+    return false
+  end
   return set[spellName:lower()] == true
 end
 
 -- Returns true if spellId is in the user's "Exclude from targeting" blacklist (no pre-line applied).
 local function IsExcludedFromTargetingSpell(spellId)
-  if not spellId or spellId <= 0 then return false end
+  if not spellId or spellId <= 0 then
+    return false
+  end
   local list = CM.DB.char.excludeFromTargetingSpells
-  if not list or list == "" then return false end
+  if not list or list == "" then
+    return false
+  end
   local set = {}
   for name in string.gmatch(list, "[^,]+") do
     local n = strtrim(name):lower()
-    if n ~= "" then set[n] = true end
+    if n ~= "" then
+      set[n] = true
+    end
   end
   local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellId)
   local spellName = spellInfo and spellInfo.name
-  if not spellName or spellName == "" then return false end
+  if not spellName or spellName == "" then
+    return false
+  end
   return set[spellName:lower()] == true
 end
 
@@ -170,23 +189,41 @@ end
 local GroundCastKeyOverrideOwner = CreateFrame("Frame", nil, UIParent)
 local SlotFramesByBindingName = {}
 for idx, bindingName in ipairs(OrderedBindingNames) do
-  local f = CreateFrame("Button", "CombatModeSlot" .. idx, GroundCastKeyOverrideOwner, "SecureActionButtonTemplate")
+  local f = CreateFrame(
+    "Button",
+    "CombatModeSlot" .. idx,
+    GroundCastKeyOverrideOwner,
+    "SecureActionButtonTemplate"
+  )
   f:SetAttribute("type", "macro")
   f:RegisterForClicks("AnyUp", "AnyDown")
   SlotFramesByBindingName[bindingName] = f
 end
 
 local function GetClickCastPreLine()
-  if not CM.DB.char.reticleTargeting then return nil end
-  if CM.DB.char.reticleTargetingEnemyOnly then return CLICKCAST_PRE_LINE_ENEMY end
+  if not CM.DB.char.reticleTargeting then
+    return nil
+  end
+  if CM.DB.char.reticleTargetingEnemyOnly then
+    return CLICKCAST_PRE_LINE_ENEMY
+  end
   return CLICKCAST_PRE_LINE_ANY
 end
 
-local CLICKCAST_KEYS = { "BUTTON1", "BUTTON2", "SHIFT-BUTTON1", "SHIFT-BUTTON2", "CTRL-BUTTON1", "CTRL-BUTTON2",
-  "ALT-BUTTON1", "ALT-BUTTON2" }
+local CLICKCAST_KEYS = {
+  "BUTTON1",
+  "BUTTON2",
+  "SHIFT-BUTTON1",
+  "SHIFT-BUTTON2",
+  "CTRL-BUTTON1",
+  "CTRL-BUTTON2",
+  "ALT-BUTTON1",
+  "ALT-BUTTON2",
+}
 local ClickCastFramesByKey = {}
 for i, key in ipairs(CLICKCAST_KEYS) do
-  local f = CreateFrame("Button", "CombatModeClickCast" .. i, UIParent, "SecureActionButtonTemplate")
+  local f =
+    CreateFrame("Button", "CombatModeClickCast" .. i, UIParent, "SecureActionButtonTemplate")
   f:SetAttribute("type", "macro")
   f:RegisterForClicks("AnyUp", "AnyDown")
   ClickCastFramesByKey[key] = f
@@ -194,46 +231,59 @@ end
 
 -- Secure action button for toggle focus target
 local ToggleFocusTargetOverrideOwner = CreateFrame("Frame", nil, UIParent)
-local ToggleFocusTargetButton = CreateFrame("Button", "CombatModeToggleFocusTarget", ToggleFocusTargetOverrideOwner,
-  "SecureActionButtonTemplate")
+local ToggleFocusTargetButton = CreateFrame(
+  "Button",
+  "CombatModeToggleFocusTarget",
+  ToggleFocusTargetOverrideOwner,
+  "SecureActionButtonTemplate"
+)
 ToggleFocusTargetButton:SetAttribute("type", "macro")
 -- macrotext set by UpdateToggleFocusTargetMacroText() based on reticleTargetingEnemyOnly
 ToggleFocusTargetButton:RegisterForClicks("AnyUp", "AnyDown")
 
 local function UpdateToggleFocusTargetMacroText()
-  if not ToggleFocusTargetButton then return end
+  if not ToggleFocusTargetButton then
+    return
+  end
   local char_config = CM.DB.char
   local macros_const = CM.Constants.Macros
-  local macroFocusCrosshair = char_config.reticleTargetingEnemyOnly and macros_const.CM_ToggleFocusEnemy or
-      macros_const.CM_ToggleFocusAny
-  local macroText = char_config.focusCurrentTargetNotCrosshair and macros_const.CM_ToggleFocusTarget or
-      macroFocusCrosshair
+  local macroFocusCrosshair = char_config.reticleTargetingEnemyOnly
+      and macros_const.CM_ToggleFocusEnemy
+    or macros_const.CM_ToggleFocusAny
+  local macroText = char_config.focusCurrentTargetNotCrosshair and macros_const.CM_ToggleFocusTarget
+    or macroFocusCrosshair
   ToggleFocusTargetButton:SetAttribute("macrotext", macroText)
 end
 
 local function BuildClickCastMacroText(bindingValue)
   -- When reticle targeting is off, no macro wrapping (no pre-line, no castAtCursor, no excludeFromTargeting).
-  if not CM.DB.char.reticleTargeting then return nil end
+  if not CM.DB.char.reticleTargeting then
+    return nil
+  end
   -- For ACTIONBUTTON bindings, use a conditional /click so action bar type is resolved
   -- at macro run time (works when action bars change in combat; we can't refresh bindings then).
   local buttonNum = bindingValue:match("^ACTIONBUTTON(%d+)$")
   local useConditionalClick = buttonNum ~= nil
 
   local clickFrame = ResolveActionButtonFrame(bindingValue)
-  if not clickFrame then return nil end
+  if not clickFrame then
+    return nil
+  end
 
   -- Check if this is a special action bar button (don't inject preline for special bar abilities)
-  local isSpecialBarButton = clickFrame:match("^OverrideActionBarButton") or
-      clickFrame:match("^BonusActionButton") or
-      clickFrame:match("^TempShapeshiftActionButton")
+  local isSpecialBarButton = clickFrame:match("^OverrideActionBarButton")
+    or clickFrame:match("^BonusActionButton")
+    or clickFrame:match("^TempShapeshiftActionButton")
 
   local castLine
   if useConditionalClick then
     -- Use conditional macro to check for override bar at runtime
     -- (works when exiting vehicle in combat; we can't refresh bindings then)
     -- For bonus/shapeshift bars, bindings are refreshed via events when out of combat
-    castLine = "/click [overridebar][possessbar][shapeshift][vehicleui] OverrideActionBarButton" ..
-        buttonNum .. "; ActionButton" .. buttonNum
+    castLine = "/click [overridebar][possessbar][shapeshift][vehicleui] OverrideActionBarButton"
+      .. buttonNum
+      .. "; ActionButton"
+      .. buttonNum
   else
     castLine = "/click " .. clickFrame
   end
@@ -252,9 +302,12 @@ local function BuildClickCastMacroText(bindingValue)
     end
   end
 
-  local ok, actionFrame = pcall(function() return _G[clickFrame] end)
+  local ok, actionFrame = pcall(function()
+    return _G[clickFrame]
+  end)
   if ok and actionFrame then
-    local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action") or actionFrame.action
+    local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action")
+      or actionFrame.action
     local action = rawAction and tonumber(rawAction)
     if action and action > 0 then
       local getOk, atype, id = pcall(GetActionInfo, action)
@@ -268,7 +321,13 @@ local function BuildClickCastMacroText(bindingValue)
           return castLine
         end
         -- Ground-targeted spell from whitelist: use /cast [@cursor] only (no pre-line).
-        if atype == "spell" and id and type(id) == "number" and id > 0 and IsCastAtCursorSpell(id) then
+        if
+          atype == "spell"
+          and id
+          and type(id) == "number"
+          and id > 0
+          and IsCastAtCursorSpell(id)
+        then
           local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(id)
           local spellName = spellInfo and spellInfo.name
           if spellName and spellName ~= "" then
@@ -277,7 +336,13 @@ local function BuildClickCastMacroText(bindingValue)
           return "/cast [@cursor] spell:" .. id
         end
         -- Spell in blacklist (e.g. self-cast defensives): don't apply targeting pre-line.
-        if atype == "spell" and id and type(id) == "number" and id > 0 and IsExcludedFromTargetingSpell(id) then
+        if
+          atype == "spell"
+          and id
+          and type(id) == "number"
+          and id > 0
+          and IsExcludedFromTargetingSpell(id)
+        then
           return castLine
         end
       end
@@ -317,12 +382,21 @@ local function IsSlotMacro(bindingValue)
 
   -- For non-ACTIONBUTTON bindings, use resolved frame and check its action
   local frameToCheck = ResolveActionButtonFrame(bindingValue)
-  if not frameToCheck then return false end
-  local ok, actionFrame = pcall(function() return _G[frameToCheck] end)
-  if not ok or not actionFrame then return false end
-  local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action") or actionFrame.action
+  if not frameToCheck then
+    return false
+  end
+  local ok, actionFrame = pcall(function()
+    return _G[frameToCheck]
+  end)
+  if not ok or not actionFrame then
+    return false
+  end
+  local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action")
+    or actionFrame.action
   local action = rawAction and tonumber(rawAction)
-  if not action or action <= 0 then return false end
+  if not action or action <= 0 then
+    return false
+  end
   local getOk, atype = pcall(GetActionInfo, action)
   return getOk and atype == "macro"
 end
@@ -347,11 +421,14 @@ local function GetSpellIdForActionBarBinding(bindingName)
     end
   end
 
-  local ok, actionFrame = pcall(function() return _G[clickFrame] end)
+  local ok, actionFrame = pcall(function()
+    return _G[clickFrame]
+  end)
   if not ok or not actionFrame then
     return nil
   end
-  local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action") or actionFrame.action
+  local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action")
+    or actionFrame.action
   local action = rawAction and tonumber(rawAction)
   if not action or action <= 0 then
     return nil
@@ -365,7 +442,9 @@ end
 
 -- House Editor (housing) is active; do not override action bar keys so housing bindings (e.g. R to return item) work.
 local function IsHouseEditorActive()
-  if not _G.C_HouseEditor or not _G.C_HouseEditor.IsHouseEditorActive then return false end
+  if not _G.C_HouseEditor or not _G.C_HouseEditor.IsHouseEditorActive then
+    return false
+  end
   local ok, active = pcall(_G.C_HouseEditor.IsHouseEditorActive)
   return ok and active
 end
@@ -373,14 +452,22 @@ end
 -- Override keyboard keys (Q, E, etc.) to click our slot frame so the same macro logic runs (pre-line + /click or /cast [@cursor] for ground spells). No per-spell macros.
 -- When macroInjectionClickCastOnly is true, skip keyboard overrides so only the 8 click-cast mouse bindings get the injection.
 function CM.ApplyGroundCastKeyOverrides()
-  if InCombatLockdown() then return end
+  if InCombatLockdown() then
+    return
+  end
   ClearOverrideBindings(GroundCastKeyOverrideOwner)
   -- When reticle targeting is off, no macro injection on keybinds at all.
-  if not CM.DB.char.reticleTargeting then return end
+  if not CM.DB.char.reticleTargeting then
+    return
+  end
   -- When macroInjectionClickCastOnly is on, only click-cast bindings get injection; skip keyboard overrides.
-  if CM.DB.char.macroInjectionClickCastOnly then return end
+  if CM.DB.char.macroInjectionClickCastOnly then
+    return
+  end
   -- When House Editor (housing) is active, do not override action bar keys so housing bindings (e.g. R to return item to box) work.
-  if IsHouseEditorActive() then return end
+  if IsHouseEditorActive() then
+    return
+  end
   for _, bindingName in ipairs(OrderedBindingNames) do
     local key = GetBindingKey(bindingName)
     if key then
@@ -397,10 +484,10 @@ function CM.ApplyGroundCastKeyOverrides()
         -- often casts on release only. Dispatch the native binding name instead so keyboard + Press and Hold work.
         local spellId = GetSpellIdForActionBarBinding(bindingName)
         if
-            realFrame
-            and spellId
-            and IsExcludedFromTargetingSpell(spellId)
-            and not IsCastAtCursorSpell(spellId)
+          realFrame
+          and spellId
+          and IsExcludedFromTargetingSpell(spellId)
+          and not IsCastAtCursorSpell(spellId)
         then
           SetOverrideBinding(GroundCastKeyOverrideOwner, false, key, bindingName)
         else
@@ -408,7 +495,13 @@ function CM.ApplyGroundCastKeyOverrides()
           local macroText = BuildClickCastMacroText(bindingName)
           if frame and macroText then
             SetClickCastFrameMacro(frame, macroText)
-            SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, frame:GetName(), "LeftButton")
+            SetOverrideBindingClick(
+              GroundCastKeyOverrideOwner,
+              false,
+              key,
+              frame:GetName(),
+              "LeftButton"
+            )
           end
         end
       end
@@ -417,7 +510,9 @@ function CM.ApplyGroundCastKeyOverrides()
 end
 
 function CM.RefreshClickCastMacros()
-  if InCombatLockdown() then return end
+  if InCombatLockdown() then
+    return
+  end
   -- Re-apply all bindings so macro slots get "click real button" and spell slots get our frame.
   -- This refreshes both keyboard bindings (via ApplyGroundCastKeyOverrides) and mouse button bindings (via OverrideDefaultButtons)
   CM.OverrideDefaultButtons()
@@ -429,7 +524,9 @@ local function ClickCastMouseButton(key)
 end
 
 function CM.SetNewBinding(buttonSettings)
-  if not buttonSettings.enabled then return end
+  if not buttonSettings.enabled then
+    return
+  end
 
   local key, value = buttonSettings.key, buttonSettings.value
   local valueToUse
@@ -481,12 +578,20 @@ end
 
 -- Apply override binding for toggle focus target
 function CM.ApplyToggleFocusTargetBinding()
-  if InCombatLockdown() then return end
+  if InCombatLockdown() then
+    return
+  end
   UpdateToggleFocusTargetMacroText()
   local key = GetBindingKey("Combat Mode - Toggle Focus Target")
   if key then
     ClearOverrideBindings(ToggleFocusTargetOverrideOwner)
-    SetOverrideBindingClick(ToggleFocusTargetOverrideOwner, false, key, ToggleFocusTargetButton:GetName(), "LeftButton")
+    SetOverrideBindingClick(
+      ToggleFocusTargetOverrideOwner,
+      false,
+      key,
+      ToggleFocusTargetButton:GetName(),
+      "LeftButton"
+    )
     CM.DebugPrint("Toggle Focus Target binding applied to " .. tostring(key))
   end
 end

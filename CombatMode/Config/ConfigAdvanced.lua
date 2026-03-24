@@ -32,7 +32,7 @@ CM.Config.AdvancedOptions = {
           end,
           get = function()
             return CM.DB.global.customCondition
-          end
+          end,
         },
         spacing5 = Spacing("full", 2),
         devnote = {
@@ -43,9 +43,8 @@ CM.Config.AdvancedOptions = {
           args = {
             crosshairNote = {
               type = "description",
-              name =
-              "|cff909090Knowing the basics of |cff69ccf0Lua|r and the |cffffd700WoW API|r is essential for using custom conditions.|r \n\n|cffFF5050Combat Mode's authors are not responsible for custom code issues and are not obligated to provide users any support for it.|r",
-              order = 1
+              name = "|cff909090Knowing the basics of |cff69ccf0Lua|r and the |cffffd700WoW API|r is essential for using custom conditions.|r \n\n|cffFF5050Combat Mode's authors are not responsible for custom code issues and are not obligated to provide users any support for it.|r",
+              order = 1,
             },
             wowpediaApi = {
               name = "You can find the documentation for the WoW API here:",
@@ -54,13 +53,12 @@ CM.Config.AdvancedOptions = {
               width = 2.2,
               order = 3,
               get = function()
-                return
-                "warcraft.wiki.gg/wiki/World_of_Warcraft_API"
-              end
-            }
-          }
-        }
-      }
-    }
-  }
+                return "warcraft.wiki.gg/wiki/World_of_Warcraft_API"
+              end,
+            },
+          },
+        },
+      },
+    },
+  },
 }

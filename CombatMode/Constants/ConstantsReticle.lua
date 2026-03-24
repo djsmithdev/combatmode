@@ -15,5 +15,5 @@ CM.Constants.InteractionHUDUnableCursor = {
   ["4675694"] = true,
   ["4675720"] = true,
   ["4675725"] = true,
-  ["4675677"] = true
+  ["4675677"] = true,
 }

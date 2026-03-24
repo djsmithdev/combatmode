@@ -11,59 +11,62 @@ local DefaultBindings = {
     enabled = true,
     key = "BUTTON1",
     value = "ACTIONBUTTON1",
-    macroName = ""
+    macroName = "",
   },
   button2 = {
     enabled = true,
     key = "BUTTON2",
     value = "ACTIONBUTTON2",
-    macroName = ""
+    macroName = "",
   },
   shiftbutton1 = {
     enabled = true,
     key = "SHIFT-BUTTON1",
     value = "ACTIONBUTTON3",
-    macroName = ""
+    macroName = "",
   },
   shiftbutton2 = {
     enabled = true,
     key = "SHIFT-BUTTON2",
     value = "ACTIONBUTTON4",
-    macroName = ""
+    macroName = "",
   },
   ctrlbutton1 = {
     enabled = true,
     key = "CTRL-BUTTON1",
     value = "ACTIONBUTTON5",
-    macroName = ""
+    macroName = "",
   },
   ctrlbutton2 = {
     enabled = true,
     key = "CTRL-BUTTON2",
     value = "ACTIONBUTTON6",
-    macroName = ""
+    macroName = "",
   },
   altbutton1 = {
     enabled = true,
     key = "ALT-BUTTON1",
     value = "FOCUSTARGET",
-    macroName = ""
+    macroName = "",
   },
   altbutton2 = {
     enabled = true,
     key = "ALT-BUTTON2",
     value = "CLEARFOCUS",
-    macroName = ""
+    macroName = "",
   },
-  toggle = { key = "Combat Mode - Mouse Look", value = "BUTTON3" }
+  toggle = { key = "Combat Mode - Mouse Look", value = "BUTTON3" },
 }
 
 CM.Constants.DatabaseDefaults = {
   global = {
     frameWatching = true,
     watchlist = {
-      "PawnUIFrame", "SortedPrimaryFrame", "WeakAurasOptions",
-      "DUIQuestFrame", "Narci_Vignette"
+      "PawnUIFrame",
+      "SortedPrimaryFrame",
+      "WeakAurasOptions",
+      "DUIQuestFrame",
+      "Narci_Vignette",
     },
     actionCamera = false,
     actionCamMouselookDisable = false,
@@ -95,8 +98,8 @@ CM.Constants.DatabaseDefaults = {
       damagedColor = { 1, 1, 0, 1 },
       criticalColor = { 1, 0, 0, 1 },
       fadeInDuration = 0.08,
-      fadeOutDuration = 0.05
-    }
+      fadeOutDuration = 0.05,
+    },
   },
   char = {
     useGlobalBindings = false,
@@ -108,6 +111,6 @@ CM.Constants.DatabaseDefaults = {
     castAtCursorSpells = "Heroic Leap, Shift, Sigil of Flame, Infernal Strike, Blizzard",
     excludeFromTargetingSpells = "Shield Wall, Ice Block, Divine Shield, Blur",
     stickyCrosshair = false,
-    bindings = DefaultBindings
-  }
+    bindings = DefaultBindings,
+  },
 }

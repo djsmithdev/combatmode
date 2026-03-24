@@ -41,7 +41,7 @@ local PREVIEW_STATE_ORDER = {
   "friendly_player",
   "friendly_npc",
   "object",
-  "focus"
+  "focus",
 }
 local PREVIEW_CYCLE_INTERVAL = 2
 
@@ -52,7 +52,7 @@ local function GetCrosshairEditPreviewStateTitle(state)
     friendly_player = "Friendly (player)",
     friendly_npc = "Friendly (NPC)",
     object = "Interactable",
-    focus = "Target Lock"
+    focus = "Target Lock",
   }
   return titles[state] or state
 end
@@ -92,7 +92,7 @@ local function EnsureCrosshairEditPreviewPanel()
     tile = true,
     tileSize = 32,
     edgeSize = 32,
-    insets = { left = 11, right = 12, top = 12, bottom = 11 }
+    insets = { left = 11, right = 12, top = 12, bottom = 11 },
   })
   panel:SetBackdropColor(0, 0, 0, 0.92)
   panel:SetBackdropBorderColor(0.5, 0.5, 0.5, 1)
@@ -254,8 +254,8 @@ function CM.RegisterCrosshairEditMode()
         crosshairHorizontalDragHintLast = now
         if UIErrorsFrame and UIErrorsFrame.AddMessage then
           UIErrorsFrame:AddMessage(
-            CM.METADATA["TITLE"] ..
-            ": Crosshair stays centered horizontally; drag vertically to adjust height.",
+            CM.METADATA["TITLE"]
+              .. ": Crosshair stays centered horizontally; drag vertically to adjust height.",
             1,
             1,
             0,
@@ -264,8 +264,8 @@ function CM.RegisterCrosshairEditMode()
         end
       end
     end
-    local verticalY = (cx and cy and ux and uy) and (cy - uy) or
-        (CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY)
+    local verticalY = (cx and cy and ux and uy) and (cy - uy)
+      or (CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY)
     CM.DB.global.crosshairLayoutPositions[layoutNameCb] = { point = "CENTER", x = 0, y = verticalY }
     CM.DB.global.crosshairY = verticalY
     CM.CreateCrosshair()
@@ -303,7 +303,7 @@ function CM.RegisterCrosshairEditMode()
           CM.DisplayCrosshair(false)
         end
         CM.CreateCrosshair()
-      end
+      end,
     },
     {
       name = "Hide Crosshair While Mounted",
@@ -317,7 +317,7 @@ function CM.RegisterCrosshairEditMode()
       end,
       disabled = function()
         return not CM.IsCrosshairEnabled()
-      end
+      end,
     },
     {
       name = "Crosshair Appearance",
@@ -325,7 +325,8 @@ function CM.RegisterCrosshairEditMode()
       default = "Default",
       values = BuildCrosshairAppearanceDropdownValues(),
       get = function()
-        return CM.DB.global.crosshairAppearance and CM.DB.global.crosshairAppearance.Name or "Default"
+        return CM.DB.global.crosshairAppearance and CM.DB.global.crosshairAppearance.Name
+          or "Default"
       end,
       set = function(_, value)
         CM.DB.global.crosshairAppearance = CM.Constants.CrosshairTextureObj[value]
@@ -333,7 +334,7 @@ function CM.RegisterCrosshairEditMode()
       end,
       disabled = function()
         return not CM.IsCrosshairEnabled()
-      end
+      end,
     },
     {
       name = "Crosshair Size",
@@ -351,7 +352,7 @@ function CM.RegisterCrosshairEditMode()
       end,
       disabled = function()
         return not CM.IsCrosshairEnabled()
-      end
+      end,
     },
     {
       name = "Crosshair Opacity",
@@ -372,14 +373,13 @@ function CM.RegisterCrosshairEditMode()
       end,
       disabled = function()
         return not CM.IsCrosshairEnabled()
-      end
+      end,
     },
     {
       name = "Show Interaction HUD",
       kind = ST.Checkbox,
       default = true,
-      desc =
-      "Display a HUD for interactable NPCs or objects to the right of the crosshair.\nKeybind |cffffd700Interact - |cff00FFFFReticle Target|r under |cffE52B50Mouse Look|r to interact with the target when in range.",
+      desc = "Display a HUD for interactable NPCs or objects to the right of the crosshair.\nKeybind |cffffd700Interact - |cff00FFFFReticle Target|r under |cffE52B50Mouse Look|r to interact with the target when in range.",
       get = function()
         return CM.DB.global.interactionHUD
       end,
@@ -394,8 +394,8 @@ function CM.RegisterCrosshairEditMode()
       end,
       disabled = function()
         return not CM.IsCrosshairEnabled()
-      end
-    }
+      end,
+    },
   })
 
   LEM:RegisterCallback("layout", function(layoutName)
@@ -414,9 +414,7 @@ function CM.RegisterCrosshairEditMode()
 
   LEM:RegisterCallback("exit", function()
     CM.HideCrosshairEditPreview()
-    if CM.HideCrosshairWhileMounted() then
-      CM.DisplayCrosshair(false)
-    elseif CM.IsCrosshairEnabled() then
+    if not CM.HideCrosshairWhileMounted() and CM.IsCrosshairEnabled() then
       CM.DisplayCrosshair(IsMouselooking())
     else
       CM.DisplayCrosshair(false)
@@ -428,8 +426,8 @@ function CM.RegisterCrosshairEditMode()
       CM.DB.global.crosshairLayoutPositions = {}
     end
     if sourceLayoutName and CM.DB.global.crosshairLayoutPositions[sourceLayoutName] then
-      CM.DB.global.crosshairLayoutPositions[newLayoutName] = _G.CopyTable(CM.DB.global.crosshairLayoutPositions
-        [sourceLayoutName])
+      CM.DB.global.crosshairLayoutPositions[newLayoutName] =
+        _G.CopyTable(CM.DB.global.crosshairLayoutPositions[sourceLayoutName])
     end
   end)
 

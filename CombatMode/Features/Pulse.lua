@@ -36,7 +36,9 @@ function CM.InitializeCursorPulse()
 end
 
 local function UpdatePulse(_, elapsed)
-  if PULSE_TOTAL_ELAPSED == -1 then return end
+  if PULSE_TOTAL_ELAPSED == -1 then
+    return
+  end
 
   PULSE_TOTAL_ELAPSED = PULSE_TOTAL_ELAPSED + elapsed
   if PULSE_TOTAL_ELAPSED > PULSE_DURATION then
@@ -56,9 +58,13 @@ local function UpdatePulse(_, elapsed)
 
   local cursorX, cursorY = GetCursorPosition()
   local scale = UIParent:GetEffectiveScale()
-  PulseFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT",
+  PulseFrame:SetPoint(
+    "BOTTOMLEFT",
+    UIParent,
+    "BOTTOMLEFT",
     (cursorX / scale) - size / 2,
-    (cursorY / scale) - size / 2)
+    (cursorY / scale) - size / 2
+  )
 end
 
 function CM.ShowCursorPulse()

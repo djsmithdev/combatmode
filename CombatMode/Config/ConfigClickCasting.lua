@@ -20,20 +20,21 @@ CM.Config.ClickCastingOptions = {
     globalKeybind = {
       type = "toggle",
       name = "Use Account-Wide Click Bindings |cff3B73FF©|r",
-      desc =
-      "|cff3B73FF© Character-based option|r\n\nUse your account-wide shared Combat Mode keybinds on this character.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      desc = "|cff3B73FF© Character-based option|r\n\nUse your account-wide shared Combat Mode keybinds on this character.\n\n|cffffd700Default:|r |cffE52B50Off|r",
       width = "full",
       order = 3,
       set = function(_, value)
         CM.DB.char.useGlobalBindings = value
         CM.OverrideDefaultButtons()
       end,
-      get = function() return CM.DB.char.useGlobalBindings end
+      get = function()
+        return CM.DB.char.useGlobalBindings
+      end,
     },
     spacing = Spacing("full", 4),
     unmodifiedGroup = GetButtonOverrideGroup(nil, 5),
     shiftGroup = GetButtonOverrideGroup("shift", 6),
     ctrlGroup = GetButtonOverrideGroup("ctrl", 7),
-    altGroup = GetButtonOverrideGroup("alt", 8)
-  }
+    altGroup = GetButtonOverrideGroup("alt", 8),
+  },
 }

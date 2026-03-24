@@ -17,26 +17,26 @@ CM.Config.OptionCategories = {
   {
     id = "CombatMode_FreeLook",
     name = "|cffE52B50 • Mouse Look|r",
-    table = CM.Config.MouseLookOptions
+    table = CM.Config.MouseLookOptions,
   },
   {
     id = "CombatMode_ReticleTargeting",
     name = "|cff00FFFF • Reticle Targeting|r",
-    table = CM.Config.ReticleTargetingOptions
+    table = CM.Config.ReticleTargetingOptions,
   },
   {
     id = "CombatMode_ClickCasting",
     name = "|cffB47EDC • Click Casting|r",
-    table = CM.Config.ClickCastingOptions
+    table = CM.Config.ClickCastingOptions,
   },
   {
     id = "CombatMode_HealingRadial",
     name = "|cff00FF7F • Healing Radial|r",
-    table = CM.Config.HealingRadialOptions
+    table = CM.Config.HealingRadialOptions,
   },
   {
     id = "CombatMode_Advanced",
     name = "|cffffffff • Advanced|r",
-    table = CM.Config.AdvancedOptions
-  }
+    table = CM.Config.AdvancedOptions,
+  },
 }

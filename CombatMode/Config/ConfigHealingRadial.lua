@@ -25,13 +25,12 @@ CM.Config.HealingRadialOptions = {
     enabled = {
       type = "toggle",
       name = "Enable |cff00FF7FHealing Radial|r",
-      desc =
-      "Enables a radial menu for quickly casting helpful spells at party members. While |cffE52B50Mouse Look|r is active and you're in a party, hold a mouse button to display the radial, flick toward your target, and release to cast.\n\n|cffffd700Default:|r |cffE52B50Off|r",
+      desc = "Enables a radial menu for quickly casting helpful spells at party members. While |cffE52B50Mouse Look|r is active and you're in a party, hold a mouse button to display the radial, flick toward your target, and release to cast.\n\n|cffffd700Default:|r |cffE52B50Off|r",
       width = 2.3,
       order = 3,
       confirm = true,
-      confirmText = CM.METADATA["TITLE"] ..
-          "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to the |cff00FF7FHealing Radial|r.|r \n\n|cffffd700Proceed?|r",
+      confirmText = CM.METADATA["TITLE"]
+        .. "\n\n|cffcfcfcfA |cffE52B50UI Reload|r is required when making changes to the |cff00FF7FHealing Radial|r.|r \n\n|cffffd700Proceed?|r",
       set = function(_, value)
         CM.DB.global.healingRadial.enabled = value
         -- Reload required: frame is only created in HR.Initialize() when enabled is true
@@ -39,20 +38,20 @@ CM.Config.HealingRadialOptions = {
       end,
       get = function()
         return CM.DB.global.healingRadial.enabled
-      end
+      end,
     },
     keybind = {
       type = "keybinding",
       name = "|cffffd700Toggle / Hold - Radial|r",
-      desc =
-      "Tap to toggle the |cff00FF7FHealing Radial|r menu |cff00FF7FOn|r or |cffE52B50Off|r.\n\nHold to temporarily display it — releasing closes it.",
+      desc = "Tap to toggle the |cff00FF7FHealing Radial|r menu |cff00FF7FOn|r or |cffE52B50Off|r.\n\nHold to temporarily display it — releasing closes it.",
       width = 1.25,
       order = 4,
       set = function(_, key)
         CM.TryApplyBindingChange("healing radial keybinding", function()
-          local oldKey =
-              (GetBindingKey("Combat Mode - Healing Radial"))
-          if oldKey then SetBinding(oldKey) end
+          local oldKey = (GetBindingKey("Combat Mode - Healing Radial"))
+          if oldKey then
+            SetBinding(oldKey)
+          end
           SetBinding(key, "Combat Mode - Healing Radial")
           SaveBindings(GetCurrentBindingSet())
         end)
@@ -62,7 +61,7 @@ CM.Config.HealingRadialOptions = {
       end,
       disabled = function()
         return not CM.DB.global.healingRadial.enabled
-      end
+      end,
     },
     visualGroup = {
       type = "group",
@@ -81,8 +80,7 @@ CM.Config.HealingRadialOptions = {
           order = 1,
           set = function(_, value)
             CM.DB.global.healingRadial.sliceRadius = value
-            if CM.HealingRadial and
-                CM.HealingRadial.UpdateSlicePositionsAndSizes then
+            if CM.HealingRadial and CM.HealingRadial.UpdateSlicePositionsAndSizes then
               CM.HealingRadial.UpdateSlicePositionsAndSizes()
             end
           end,
@@ -91,14 +89,13 @@ CM.Config.HealingRadialOptions = {
           end,
           disabled = function()
             return not CM.DB.global.healingRadial.enabled
-          end
+          end,
         },
         spacing = Spacing(0.15, 1.1),
         sliceSize = {
           type = "range",
           name = "Slice Scale",
-          desc =
-          "Scale factor for slice elements (role icon, name, health bar). Hover increases by 10%.\n\n|cffffd700Default:|r |cff00FF7F1.0|r (100%)",
+          desc = "Scale factor for slice elements (role icon, name, health bar). Hover increases by 10%.\n\n|cffffd700Default:|r |cff00FF7F1.0|r (100%)",
           min = 0.5,
           max = 1.5,
           step = 0.1,
@@ -106,8 +103,7 @@ CM.Config.HealingRadialOptions = {
           order = 2,
           set = function(_, value)
             CM.DB.global.healingRadial.sliceSize = value
-            if CM.HealingRadial and
-                CM.HealingRadial.UpdateSlicePositionsAndSizes then
+            if CM.HealingRadial and CM.HealingRadial.UpdateSlicePositionsAndSizes then
               CM.HealingRadial.UpdateSlicePositionsAndSizes()
             end
           end,
@@ -116,7 +112,7 @@ CM.Config.HealingRadialOptions = {
           end,
           disabled = function()
             return not CM.DB.global.healingRadial.enabled
-          end
+          end,
         },
         spacing2 = Spacing("full", 2.1),
         nameFontSize = {
@@ -136,7 +132,7 @@ CM.Config.HealingRadialOptions = {
           end,
           disabled = function()
             return not CM.DB.global.healingRadial.enabled
-          end
+          end,
         },
         spacing3 = Spacing(0.15, 3.1),
         roleIconSize = {
@@ -156,7 +152,7 @@ CM.Config.HealingRadialOptions = {
           end,
           disabled = function()
             return not CM.DB.global.healingRadial.enabled
-          end
+          end,
         },
         spacing4 = Spacing("full", 4.1),
         showHealthBars = {
@@ -173,7 +169,7 @@ CM.Config.HealingRadialOptions = {
           end,
           disabled = function()
             return not CM.DB.global.healingRadial.enabled
-          end
+          end,
         },
         showBackground = {
           type = "toggle",
@@ -189,9 +185,9 @@ CM.Config.HealingRadialOptions = {
           end,
           disabled = function()
             return not CM.DB.global.healingRadial.enabled
-          end
-        }
-      }
+          end,
+        },
+      },
     },
     spacing3 = Spacing("full", 5.1),
     layoutInfo = {
@@ -202,11 +198,10 @@ CM.Config.HealingRadialOptions = {
       args = {
         layoutNote = {
           type = "description",
-          name =
-          "|cff909090Party members are automatically positioned by role:|r\n\n|cffcfcfcf• |cff00d1ffTank|r at 12 o'clock (top)\n• |cff00ff00Healer|r at 7 o'clock (bottom-left)\n• |cffff6060DPS|r fill remaining positions\n\nYour character is included in the radial at your role's position.|r",
-          order = 1
-        }
-      }
+          name = "|cff909090Party members are automatically positioned by role:|r\n\n|cffcfcfcf• |cff00d1ffTank|r at 12 o'clock (top)\n• |cff00ff00Healer|r at 7 o'clock (bottom-left)\n• |cffff6060DPS|r fill remaining positions\n\nYour character is included in the radial at your role's position.|r",
+          order = 1,
+        },
+      },
     },
     devnote = {
       type = "group",
@@ -216,11 +211,10 @@ CM.Config.HealingRadialOptions = {
       args = {
         note = {
           type = "description",
-          name =
-          "|cff909090The |cff00FF7FHealing Radial|r uses the same spell assignments as |cffB47EDCClick Casting|r. Configure which spells are bound to each mouse button in the Click Casting tab.|r\n\n|cffFF5050Note:|r Party assignments can only be updated outside of combat due to WoW API restrictions.",
-          order = 1
-        }
-      }
-    }
-  }
+          name = "|cff909090The |cff00FF7FHealing Radial|r uses the same spell assignments as |cffB47EDCClick Casting|r. Configure which spells are bound to each mouse button in the Click Casting tab.|r\n\n|cffFF5050Note:|r Party assignments can only be updated outside of combat due to WoW API restrictions.",
+          order = 1,
+        },
+      },
+    },
+  },
 }

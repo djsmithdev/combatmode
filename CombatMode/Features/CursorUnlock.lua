@@ -32,13 +32,14 @@ local ON_RETAIL_CLIENT = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
 
 local function CursorUnlockFrameVisible(frameArr)
   local allowFrameWatching = CM.DB.global.frameWatching
-  if not allowFrameWatching then return false end
+  if not allowFrameWatching then
+    return false
+  end
 
   for _, frameName in pairs(frameArr) do
     local curFrame = _G[frameName]
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
-      CM.DebugPrintThrottled("cursorUnlock", frameName ..
-        " is visible, preventing re-locking.")
+      CM.DebugPrintThrottled("cursorUnlock", frameName .. " is visible, preventing re-locking.")
       return true
     end
   end
@@ -59,16 +60,19 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
 end
 
 function CM.IsUnlockFrameVisible()
-  local isGenericPanelOpen = (GetUIPanel("left") or GetUIPanel("right") or
-    GetUIPanel("center")) and true or false
-  return CursorUnlockFrameVisible(CM.Constants.FramesToCheck) or
-      CursorUnlockFrameVisible(CM.DB.global.watchlist) or
-      CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck) or
-      isGenericPanelOpen
+  local isGenericPanelOpen = (GetUIPanel("left") or GetUIPanel("right") or GetUIPanel("center"))
+      and true
+    or false
+  return CursorUnlockFrameVisible(CM.Constants.FramesToCheck)
+    or CursorUnlockFrameVisible(CM.DB.global.watchlist)
+    or CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck)
+    or isGenericPanelOpen
 end
 
 function CM.IsCustomConditionTrue()
-  if not CM.DB.global.customCondition then return false end
+  if not CM.DB.global.customCondition then
+    return false
+  end
 
   local func, err = loadstring(CM.DB.global.customCondition)
 
@@ -88,23 +92,31 @@ function CM.IsCustomConditionTrue()
 end
 
 function CM.IsVendorMountOut()
-  if not CM.DB.global.mountCheck then return false end
+  if not CM.DB.global.mountCheck then
+    return false
+  end
 
   local function checkMount(mount)
     return GetPlayerAuraBySpellID(mount) ~= nil
   end
 
   for _, mount in ipairs(CM.Constants.MountsToCheck) do
-    if checkMount(mount) then return true end
+    if checkMount(mount) then
+      return true
+    end
   end
 
   return false
 end
 
-function CM.IsFeignDeathActive() return GetPlayerAuraBySpellID(5384) ~= nil end
+function CM.IsFeignDeathActive()
+  return GetPlayerAuraBySpellID(5384) ~= nil
+end
 
 function CM.IsInPetBattle()
-  if ON_RETAIL_CLIENT then return _G.C_PetBattles.IsInBattle() end
+  if ON_RETAIL_CLIENT then
+    return _G.C_PetBattles.IsInBattle()
+  end
   return false
 end
 
@@ -114,14 +126,12 @@ function CM.InitializeWildcardFrameTracking(frameArr)
   for _, frameNameToFind in pairs(frameArr) do
     CM.Constants.WildcardFramesToCheck[frameNameToFind] = {}
     local frameGroup = CM.Constants.WildcardFramesToCheck[frameNameToFind]
-    local staticCandidates = CM.Constants.WildcardFrameCandidates and
-        CM.Constants.WildcardFrameCandidates[frameNameToFind]
+    local staticCandidates = CM.Constants.WildcardFrameCandidates
+      and CM.Constants.WildcardFrameCandidates[frameNameToFind]
     if staticCandidates then
       for _, candidateFrame in ipairs(staticCandidates) do
         if _G[candidateFrame] then
-          CM.DebugPrint(
-            "Matched " .. frameNameToFind .. " to frame " ..
-            candidateFrame)
+          CM.DebugPrint("Matched " .. frameNameToFind .. " to frame " .. candidateFrame)
           tinsert(frameGroup, candidateFrame)
         end
       end
@@ -130,9 +140,7 @@ function CM.InitializeWildcardFrameTracking(frameArr)
       -- Fallback scan keeps compatibility for addons that generate runtime frame IDs.
       for frameName in pairs(_G) do
         if string.match(frameName, frameNameToFind) then
-          CM.DebugPrint(
-            "Matched " .. frameNameToFind .. " to frame " ..
-            frameName)
+          CM.DebugPrint("Matched " .. frameNameToFind .. " to frame " .. frameName)
           tinsert(frameGroup, frameName)
         end
       end

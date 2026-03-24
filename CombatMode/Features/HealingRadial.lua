@@ -54,15 +54,23 @@ local utf8 = _G.utf8
 -- Shorten display names by UTF-8 character count (byte :sub breaks Cyrillic/CJK).
 local function TruncateUtf8Name(str, maxChars, keepChars, ellipsis)
   ellipsis = ellipsis or "..."
-  if not str or str == "" then return str end
-  if utf8 and utf8.len and utf8.offset then
-    local n = utf8.len(str)
-    if n and n <= maxChars then return str end
-    local pos = utf8.offset(str, keepChars + 1)
-    if pos then return str:sub(1, pos - 1) .. ellipsis end
+  if not str or str == "" then
     return str
   end
-  if #str > maxChars then return str:sub(1, keepChars) .. ellipsis end
+  if utf8 and utf8.len and utf8.offset then
+    local n = utf8.len(str)
+    if n and n <= maxChars then
+      return str
+    end
+    local pos = utf8.offset(str, keepChars + 1)
+    if pos then
+      return str:sub(1, pos - 1) .. ellipsis
+    end
+    return str
+  end
+  if #str > maxChars then
+    return str:sub(1, keepChars) .. ellipsis
+  end
   return str
 end
 
@@ -92,7 +100,7 @@ local RadialState = {
   isTogglingMouselook = false, -- Guard: true while Show/Hide is calling UnlockFreeLook/LockFreeLook
   triggerButtons = {},
   sliceRefreshElapsed = 0,
-  sliceRefreshInterval = 0.08
+  sliceRefreshInterval = 0.08,
 }
 
 ---------------------------------------------------------------------------------------
@@ -114,14 +122,14 @@ local RadialState = {
 -- Maps DB binding key to the SecureActionButton attribute prefix/suffix.
 -- Slot is resolved dynamically from the user's configured binding value.
 local BINDING_KEY_TO_ATTR = {
-  { dbKey = "button1",      prefix = "",       suffix = "1" }, -- Left click
-  { dbKey = "button2",      prefix = "",       suffix = "2" }, -- Right click
+  { dbKey = "button1", prefix = "", suffix = "1" }, -- Left click
+  { dbKey = "button2", prefix = "", suffix = "2" }, -- Right click
   { dbKey = "shiftbutton1", prefix = "shift-", suffix = "1" }, -- Shift+Left
   { dbKey = "shiftbutton2", prefix = "shift-", suffix = "2" }, -- Shift+Right
-  { dbKey = "ctrlbutton1",  prefix = "ctrl-",  suffix = "1" }, -- Ctrl+Left
-  { dbKey = "ctrlbutton2",  prefix = "ctrl-",  suffix = "2" }, -- Ctrl+Right
-  { dbKey = "altbutton1",   prefix = "alt-",   suffix = "1" }, -- Alt+Left
-  { dbKey = "altbutton2",   prefix = "alt-",   suffix = "2" }  -- Alt+Right
+  { dbKey = "ctrlbutton1", prefix = "ctrl-", suffix = "1" }, -- Ctrl+Left
+  { dbKey = "ctrlbutton2", prefix = "ctrl-", suffix = "2" }, -- Ctrl+Right
+  { dbKey = "altbutton1", prefix = "alt-", suffix = "1" }, -- Alt+Left
+  { dbKey = "altbutton2", prefix = "alt-", suffix = "2" }, -- Alt+Right
 }
 
 -- Build the button→slot map from the user's current binding settings.
@@ -134,13 +142,15 @@ local function BuildButtonAttrMap()
     local slot = nil
     if binding and binding.enabled and binding.value then
       local num = binding.value:match("^ACTIONBUTTON(%d+)$")
-      if num then slot = tonumber(num) end
+      if num then
+        slot = tonumber(num)
+      end
     end
     map[#map + 1] = {
       prefix = entry.prefix,
       suffix = entry.suffix,
       slot = slot,
-      isSpellBinding = (slot ~= nil)
+      isSpellBinding = (slot ~= nil),
     }
   end
   return map
@@ -148,8 +158,14 @@ end
 
 -- All mouselook override binding keys
 local ALL_OVERRIDE_KEYS = {
-  "BUTTON1", "BUTTON2", "SHIFT-BUTTON1", "SHIFT-BUTTON2", "CTRL-BUTTON1",
-  "CTRL-BUTTON2", "ALT-BUTTON1", "ALT-BUTTON2"
+  "BUTTON1",
+  "BUTTON2",
+  "SHIFT-BUTTON1",
+  "SHIFT-BUTTON2",
+  "CTRL-BUTTON1",
+  "CTRL-BUTTON2",
+  "ALT-BUTTON1",
+  "ALT-BUTTON2",
 }
 
 ---------------------------------------------------------------------------------------
@@ -160,7 +176,9 @@ local function GetCrosshairAnchorOffsetForUIParent()
   if xf and xf.GetCenter then
     local cx, cy = xf:GetCenter()
     local ux, uy = UIParent:GetCenter()
-    if cx and cy and ux and uy then return cx - ux, cy - uy end
+    if cx and cy and ux and uy then
+      return cx - ux, cy - uy
+    end
   end
   return 0, CM.DB.global and CM.DB.global.crosshairY or 50
 end
@@ -169,13 +187,14 @@ local function GetCrosshairCenterScreenXY()
   local xf = _G.CombatModeCrosshairFrame
   if xf and xf.GetCenter then
     local cx, cy = xf:GetCenter()
-    if cx and cy then return cx, cy end
+    if cx and cy then
+      return cx, cy
+    end
   end
   if not CM.DB.global then
     return UIParent:GetWidth() / 2, UIParent:GetHeight() / 2
   end
-  return UIParent:GetWidth() / 2,
-      UIParent:GetHeight() / 2 + (CM.DB.global.crosshairY or 50)
+  return UIParent:GetWidth() / 2, UIParent:GetHeight() / 2 + (CM.DB.global.crosshairY or 50)
 end
 
 -- Calculate angle and distance from crosshair center to cursor position
@@ -194,7 +213,9 @@ local function GetMouseAngleAndDistanceFromCenter()
 
   -- Convert to degrees (0 = right, counter-clockwise positive)
   local angle = math.deg(math.atan2(dy, dx))
-  if angle < 0 then angle = angle + 360 end
+  if angle < 0 then
+    angle = angle + 360
+  end
 
   return angle, distance
 end
@@ -224,7 +245,9 @@ local function GetSliceFromAngle(angle)
     local arcStart = (centerAngle - halfArc) % 360
     local arcEnd = (centerAngle + halfArc) % 360
 
-    if IsAngleInArc(angle, arcStart, arcEnd) then return i end
+    if IsAngleInArc(angle, arcStart, arcEnd) then
+      return i
+    end
   end
 
   return nil
@@ -248,7 +271,7 @@ local function RefreshPartyData()
     unitId = "player",
     name = UnitName("player"),
     role = selfRole,
-    class = select(2, UnitClass("player"))
+    class = select(2, UnitClass("player")),
   })
 
   -- Add party members
@@ -256,12 +279,14 @@ local function RefreshPartyData()
     local unitId = "party" .. i
     if UnitExists(unitId) then
       local role = UnitGroupRolesAssigned(unitId)
-      if role == "NONE" then role = "DAMAGER" end
+      if role == "NONE" then
+        role = "DAMAGER"
+      end
       table.insert(members, {
         unitId = unitId,
         name = UnitName(unitId),
         role = role,
-        class = select(2, UnitClass(unitId))
+        class = select(2, UnitClass(unitId)),
       })
     end
   end
@@ -330,8 +355,7 @@ local function RefreshPartyData()
     table.insert(RadialState.partyData, member)
   end
 
-  CM.DebugPrint("Healing Radial: Refreshed party data, " ..
-    #RadialState.partyData .. " members")
+  CM.DebugPrint("Healing Radial: Refreshed party data, " .. #RadialState.partyData .. " members")
 end
 
 -- Update slice frame unit attributes (only safe out of combat)
@@ -345,15 +369,26 @@ local function UpdateSecureButtonTargets()
   -- Clear all slices first
   for i = 1, 5 do
     local slice = RadialState.sliceFrames[i]
-    if slice then slice:SetAttribute("unit", nil) end
+    if slice then
+      slice:SetAttribute("unit", nil)
+    end
   end
 
   -- Assign units to slice frames based on party data
   for _, member in ipairs(RadialState.partyData) do
     local slice = RadialState.sliceFrames[member.sliceIndex]
-    if slice then slice:SetAttribute("unit", member.unitId) end
-    CM.DebugPrint("Healing Radial: Slice " .. member.sliceIndex .. " = " ..
-      member.unitId .. " (" .. member.name .. ")")
+    if slice then
+      slice:SetAttribute("unit", member.unitId)
+    end
+    CM.DebugPrint(
+      "Healing Radial: Slice "
+        .. member.sliceIndex
+        .. " = "
+        .. member.unitId
+        .. " ("
+        .. member.name
+        .. ")"
+    )
   end
 
   RadialState.pendingUpdate = false
@@ -369,7 +404,9 @@ end
 -- We try multiple resolution strategies in priority order.
 local function ResolveActionSlot(buttonIndex)
   local frame = _G["ActionButton" .. buttonIndex]
-  if not frame then return buttonIndex end
+  if not frame then
+    return buttonIndex
+  end
 
   -- 1. Try .action field (set by CalculateAction on Blizzard action button mixin)
   if frame.action and type(frame.action) == "number" and frame.action > 0 then
@@ -404,11 +441,15 @@ local function BuildMacrotext(slot, unitId)
   -- When the vehicle/override bar is shown, skip spell resolution entirely.
   -- Vehicle abilities cast on party members can cause unintended effects (e.g. dismount).
   local overrideBar = _G.OverrideActionBar
-  if overrideBar and overrideBar:IsShown() then return nil end
+  if overrideBar and overrideBar:IsShown() then
+    return nil
+  end
 
   local effectiveSlot = ResolveActionSlot(slot)
   local actionType, actionId = GetActionInfo(effectiveSlot)
-  if not actionType then return nil end
+  if not actionType then
+    return nil
+  end
 
   if actionType == "spell" then
     local spellName = GetSpellName(actionId)
@@ -453,29 +494,47 @@ local function UpdateSliceActionAttributes()
 
   for i = 1, 5 do
     local slice = RadialState.sliceFrames[i]
-    if not slice then break end
+    if not slice then
+      break
+    end
 
     local unitId = slice:GetAttribute("unit")
 
     for _, mapping in ipairs(buttonAttrMap) do
       local p = mapping.prefix -- "" or "shift-" or "ctrl-" or "alt-"
       local s = mapping.suffix -- "1" (left) or "2" (right)
-      local macrotext = mapping.slot and
-          BuildMacrotext(mapping.slot, unitId) or nil
+      local macrotext = mapping.slot and BuildMacrotext(mapping.slot, unitId) or nil
 
       if macrotext then
         slice:SetAttribute(p .. "type" .. s, "macro")
         slice:SetAttribute(p .. "macrotext" .. s, macrotext)
-        CM.DebugPrint("  Slice " .. i .. " (" .. tostring(unitId) ..
-          "): " .. p .. "type" .. s .. "=macro -> " ..
-          macrotext)
+        CM.DebugPrint(
+          "  Slice "
+            .. i
+            .. " ("
+            .. tostring(unitId)
+            .. "): "
+            .. p
+            .. "type"
+            .. s
+            .. "=macro -> "
+            .. macrotext
+        )
       elseif not mapping.isSpellBinding then
         -- Non-ACTIONBUTTON binding (FOCUSTARGET, CLEARFOCUS, etc.): target the party member
         slice:SetAttribute(p .. "type" .. s, "target")
         slice:SetAttribute(p .. "macrotext" .. s, nil)
-        CM.DebugPrint("  Slice " .. i .. " (" .. tostring(unitId) ..
-          "): " .. p .. "type" .. s ..
-          "=target (non-spell binding)")
+        CM.DebugPrint(
+          "  Slice "
+            .. i
+            .. " ("
+            .. tostring(unitId)
+            .. "): "
+            .. p
+            .. "type"
+            .. s
+            .. "=target (non-spell binding)"
+        )
       else
         -- ACTIONBUTTON binding but empty slot: clear action so clicking does nothing
         slice:SetAttribute(p .. "type" .. s, nil)
@@ -493,7 +552,7 @@ end
 -- Inner anchor point (edge toward radial center) so scaling grows outward from center
 -- and top/bottom slices don't displace asymmetrically. Returns anchor, offsetX, offsetY.
 -- Uses fixed base size for positioning (sliceSize is now a scale factor, not pixel size)
-local BASE_SLICE_SIZE = 80   -- Fixed base size for slice frame
+local BASE_SLICE_SIZE = 80 -- Fixed base size for slice frame
 local CENTER_FIXED_SIZE = 64 -- Fixed size for dead-center elements (not tied to crosshair size)
 local function GetSliceInnerAnchor(angleDeg, radius)
   local a = math.rad(angleDeg)
@@ -527,8 +586,12 @@ local function CreateSliceFrame(sliceIndex)
   local anchor, offsetX, offsetY = GetSliceInnerAnchor(angle, radius)
 
   -- Parent to mainFrame so slices inherit position and alpha from the radial center.
-  local slice = CreateFrame("Button", "CMHealRadialSlice" .. sliceIndex,
-    radialCenter, "SecureActionButtonTemplate")
+  local slice = CreateFrame(
+    "Button",
+    "CMHealRadialSlice" .. sliceIndex,
+    radialCenter,
+    "SecureActionButtonTemplate"
+  )
   slice:SetFrameStrata("DIALOG")
   slice:SetSize(BASE_SLICE_SIZE, BASE_SLICE_SIZE)
   slice:SetPoint(anchor, radialCenter, "CENTER", offsetX, offsetY)
@@ -596,8 +659,7 @@ local function CreateSliceFrame(sliceIndex)
   slice.roleIconCheckmark:Hide()
 
   -- Name text (below role icon so it doesn't overlap when icon size increases)
-  slice.nameText = inner:CreateFontString(nil, "OVERLAY",
-    "GameFontNormalSmall")
+  slice.nameText = inner:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
   slice.nameText:SetPoint("TOP", slice.roleIcon, "BOTTOM", 0, -2)
   slice.nameText:SetTextColor(1, 1, 1, 1)
 
@@ -611,13 +673,17 @@ local function CreateSliceFrame(sliceIndex)
   -- Spell casting uses type="macro" with macrotext="/cast [@unit] Spell"
   -- set by UpdateSliceActionAttributes(), triggered by hardware mouse clicks.
   slice:HookScript("PostClick", function(self, btn, down)
-    CM.DebugPrint("Healing Radial: PostClick slice " .. self.sliceIndex ..
-      " btn=" .. tostring(btn) .. " unit=" ..
-      tostring(self:GetAttribute("unit")))
+    CM.DebugPrint(
+      "Healing Radial: PostClick slice "
+        .. self.sliceIndex
+        .. " btn="
+        .. tostring(btn)
+        .. " unit="
+        .. tostring(self:GetAttribute("unit"))
+    )
     -- Close radial on non-left/right clicks (e.g. Mouse4/Mouse5 tap-to-toggle)
     if down and btn ~= "LeftButton" and btn ~= "RightButton" then
-      CM.DebugPrint("Healing Radial: Slice received " .. tostring(btn) ..
-        ", closing radial")
+      CM.DebugPrint("Healing Radial: Slice received " .. tostring(btn) .. ", closing radial")
       HR.Hide()
     end
   end)
@@ -653,7 +719,9 @@ local function SetSliceMouseEnabled(enabled)
   end
   for i = 1, 5 do
     local slice = RadialState.sliceFrames[i]
-    if slice then slice:EnableMouse(enabled) end
+    if slice then
+      slice:EnableMouse(enabled)
+    end
   end
   if RadialState.closeButton then
     RadialState.closeButton:EnableMouse(enabled)
@@ -662,7 +730,9 @@ end
 
 -- Update main frame vertical position when crosshair Y changes (no reload needed)
 function HR.UpdateMainFramePosition()
-  if not RadialState.mainFrame then return end
+  if not RadialState.mainFrame then
+    return
+  end
   -- SetPoint on mainFrame is protected during combat (secure descendants), so only
   -- update out of combat. In combat, the position is already set from last Show().
   if not InCombatLockdown() then
@@ -675,10 +745,14 @@ end
 -- Update slice positions and sizes when config changes (sliceRadius or sliceSize)
 -- SetPoint is protected on secure frames during combat, so we queue updates if needed
 function HR.UpdateSlicePositionsAndSizes()
-  if not RadialState.sliceFrames or not RadialState.mainFrame then return end
+  if not RadialState.sliceFrames or not RadialState.mainFrame then
+    return
+  end
 
   local config = CM.DB.global.healingRadial
-  if not config then return end
+  if not config then
+    return
+  end
 
   local radius = config.sliceRadius or 120
   local sliceScale = config.sliceSize or 1.0 -- sliceSize is now a scale factor
@@ -689,15 +763,13 @@ function HR.UpdateSlicePositionsAndSizes()
       local sliceData = CM.Constants.HealingRadialSlices[i]
       if sliceData then
         local angle = sliceData.angle
-        local anchor, offsetX, offsetY =
-            GetSliceInnerAnchor(angle, radius)
+        local anchor, offsetX, offsetY = GetSliceInnerAnchor(angle, radius)
 
         -- SetScale, ClearAllPoints, SetPoint are all protected on secure frames in combat
         if not InCombatLockdown() then
           slice:SetScale(sliceScale)
           slice:ClearAllPoints()
-          slice:SetPoint(anchor, RadialState.mainFrame, "CENTER",
-            offsetX, offsetY)
+          slice:SetPoint(anchor, RadialState.mainFrame, "CENTER", offsetX, offsetY)
         else
           RadialState.pendingUpdate = true
         end
@@ -712,22 +784,28 @@ end
 -- Spell casting is handled by the modified attributes on the slice frames.
 local function CreateMouseOverrideButtons()
   local buttonKeys = {
-    "BUTTON1", "BUTTON2", "SHIFT-BUTTON1", "SHIFT-BUTTON2", "CTRL-BUTTON1",
-    "CTRL-BUTTON2", "ALT-BUTTON1", "ALT-BUTTON2"
+    "BUTTON1",
+    "BUTTON2",
+    "SHIFT-BUTTON1",
+    "SHIFT-BUTTON2",
+    "CTRL-BUTTON1",
+    "CTRL-BUTTON2",
+    "ALT-BUTTON1",
+    "ALT-BUTTON2",
   }
 
   RadialState.triggerButtons = {}
 
   for _, key in ipairs(buttonKeys) do
-    local triggerBtn = CreateFrame("Button", "CMHealRadialTrigger_" ..
-      key:gsub("-", "_"), UIParent)
+    local triggerBtn = CreateFrame("Button", "CMHealRadialTrigger_" .. key:gsub("-", "_"), UIParent)
     triggerBtn:SetSize(1, 1)
     triggerBtn:SetPoint("CENTER", UIParent, "BOTTOMLEFT", -100, -100)
     triggerBtn.buttonKey = key
     triggerBtn:RegisterForClicks("AnyDown")
 
-    triggerBtn:SetScript("OnClick",
-      function(self) HR.Show(self.buttonKey) end)
+    triggerBtn:SetScript("OnClick", function(self)
+      HR.Show(self.buttonKey)
+    end)
 
     RadialState.triggerButtons[key] = triggerBtn
   end
@@ -735,16 +813,16 @@ end
 
 -- Set up the mouselook override bindings for healing radial
 function HR.SetupMouselookBindings()
-  if not RadialState.triggerButtons then return end
+  if not RadialState.triggerButtons then
+    return
+  end
 
   local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 
   for key, triggerBtn in pairs(RadialState.triggerButtons) do
     -- Bind the mouse button to click the trigger button (shows radial)
-    SetMouselookOverrideBinding(key, "CLICK " .. triggerBtn:GetName() ..
-      ":LeftButton")
-    CM.DebugPrint("Healing Radial: Bound " .. key .. " to " ..
-      triggerBtn:GetName())
+    SetMouselookOverrideBinding(key, "CLICK " .. triggerBtn:GetName() .. ":LeftButton")
+    CM.DebugPrint("Healing Radial: Bound " .. key .. " to " .. triggerBtn:GetName())
   end
 end
 
@@ -763,27 +841,31 @@ end
 function HR.OnMouselookChanged(isMouselooking)
   -- Dismiss radial if mouselook activates while radial is open
   -- This prevents the radial from staying open when user toggles mouselook via regular keybind
-  CM.DebugPrint("Healing Radial: OnMouselookChanged(" ..
-    tostring(isMouselooking) .. ") active=" ..
-    tostring(RadialState.isActive) .. " btn=" ..
-    tostring(RadialState.currentButton) .. " toggling=" ..
-    tostring(RadialState.isTogglingMouselook))
+  CM.DebugPrint(
+    "Healing Radial: OnMouselookChanged("
+      .. tostring(isMouselooking)
+      .. ") active="
+      .. tostring(RadialState.isActive)
+      .. " btn="
+      .. tostring(RadialState.currentButton)
+      .. " toggling="
+      .. tostring(RadialState.isTogglingMouselook)
+  )
 
   -- Skip if the radial itself is toggling mouselook (Show calling UnlockFreeLook,
   -- or Hide calling LockFreeLook). Without this guard, Show() sets isActive=true
   -- then calls UnlockFreeLook() which fires OnMouselookChanged(false), which sees
   -- isActive + currentButton and immediately calls Hide() — closing the radial
   -- before it ever displays.
-  if RadialState.isTogglingMouselook then return end
+  if RadialState.isTogglingMouselook then
+    return
+  end
 
   if RadialState.isActive then
-    if isMouselooking then
-      -- Mouselook activated externally - dismiss radial
-      HR.Hide()
-    elseif RadialState.currentButton then
-      -- Mouselook deactivated externally and radial was opened via mouse button - hide it
-      -- Don't auto-hide when opened via keybind (currentButton == nil) since
-      -- the keybind handler manages the lifecycle.
+    -- Hide when mouselook is reactivated externally, or when it was opened via mouse
+    -- button and mouselook is dropped externally. For keybind-opened radial
+    -- (currentButton == nil), lifecycle is managed by the keybind handler.
+    if isMouselooking or RadialState.currentButton then
       HR.Hide()
     end
   end
@@ -792,7 +874,9 @@ end
 -- Clear radial state after loading screen / zone change so IsHealingRadialActive() is false
 -- and crosshair visibility can sync correctly. Does not re-engage mouselook or touch crosshair.
 function HR.DismissOnLoad()
-  if not RadialState.isActive then return end
+  if not RadialState.isActive then
+    return
+  end
   if RadialState.mainFrame then
     RadialState.mainFrame:SetScript("OnUpdate", nil)
     RadialState.mainFrame:SetAlpha(0)
@@ -808,7 +892,9 @@ end
 -- When enabling/disabling, the config setter forces ReloadUI() so the frame is created
 -- or not in HR.Initialize(); this is only for any other callers that need to dismiss the radial.
 function HR.SetCaptureActive(active)
-  if not active and RadialState.isActive then HR.Hide() end
+  if not active and RadialState.isActive then
+    HR.Hide()
+  end
   if active then
     CM.DebugPrint("Healing Radial: Activated")
   else
@@ -828,8 +914,7 @@ local function CreateMainFrame()
   -- In combat, EnableMouse is protected, so we accept that invisible slices at
   -- screen center may intercept clicks. This is acceptable because during combat
   -- the user is typically in mouselook mode (no visible cursor to click with).
-  local mainFrame = CreateFrame("Frame", "CombatModeHealingRadialFrame",
-    UIParent)
+  local mainFrame = CreateFrame("Frame", "CombatModeHealingRadialFrame", UIParent)
   mainFrame:SetFrameStrata("DIALOG")
   mainFrame:SetSize(400, 400)
   local ox, oy = GetCrosshairAnchorOffsetForUIParent()
@@ -844,8 +929,7 @@ local function CreateMainFrame()
   local frameSize = 400
   wheelBG:SetSize(frameSize * 1.3, frameSize * 1.3)
   wheelBG:SetPoint("CENTER", mainFrame, "CENTER", 0, 0)
-  wheelBG:SetShown(CM.DB.global.healingRadial and
-    CM.DB.global.healingRadial.showBackground)
+  wheelBG:SetShown(CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground)
   RadialState.wheelBG = wheelBG
 
   RadialState.mainFrame = mainFrame
@@ -875,14 +959,12 @@ local function CreateMainFrame()
   -- Static close icon (Radial_Wheel_Icon_Close from interface/radialwheel/uiradialwheel), always visible
   local centerIconClose = arrowFrame:CreateTexture(nil, "ARTWORK")
   centerIconClose:SetAtlas("Radial_Wheel_Icon_Close")
-  centerIconClose:SetSize(centerSize * centerBGScale * 0.5,
-    centerSize * centerBGScale * 0.5) -- half of BG size
+  centerIconClose:SetSize(centerSize * centerBGScale * 0.5, centerSize * centerBGScale * 0.5) -- half of BG size
   centerIconClose:SetPoint("CENTER", arrowFrame, "CENTER", 0, 0)
   -- Select-close state (Radial_Wheel_Select_Close), shown when cursor over dead center instead of rotating arrow
   local centerSelectClose = arrowFrame:CreateTexture(nil, "ARTWORK")
   centerSelectClose:SetAtlas("Radial_Wheel_Select_Close")
-  centerSelectClose:SetSize(centerSize * centerBGScale * 1.15,
-    centerSize * centerBGScale * 1.15) -- slightly larger than BG
+  centerSelectClose:SetSize(centerSize * centerBGScale * 1.15, centerSize * centerBGScale * 1.15) -- slightly larger than BG
   centerSelectClose:SetPoint("CENTER", arrowFrame, "CENTER", 0, 0)
   centerSelectClose:Hide()
   -- Rotating pointer (Ping_OVMarker_Pointer_Assist from interface/radialwheel/uiradialwheel, 75x75)
@@ -911,11 +993,11 @@ local function CreateMainFrame()
   local ARROW_LOCK_IN_DURATION = 0.25
   local ARROW_UNLOCK_DURATION = 0.2
   arrowFrame:SetScript("OnUpdate", function(self, elapsed)
-    if self.arrowLockInElapsed == -1 then return end
+    if self.arrowLockInElapsed == -1 then
+      return
+    end
 
-    local duration =
-        self.arrowLockInIsUnlocking and ARROW_UNLOCK_DURATION or
-        ARROW_LOCK_IN_DURATION
+    local duration = self.arrowLockInIsUnlocking and ARROW_UNLOCK_DURATION or ARROW_LOCK_IN_DURATION
     self.arrowLockInElapsed = self.arrowLockInElapsed + elapsed
 
     if self.arrowLockInElapsed > duration then
@@ -941,16 +1023,12 @@ local function CreateMainFrame()
     local progress = self.arrowLockInElapsed / duration
     local easedProgress = 1 - (1 - progress) * (1 - progress)
 
-    local currentScale = self.arrowLockInStartingScale +
-        (self.arrowLockInTargetScale -
-          self.arrowLockInStartingScale) *
-        easedProgress
+    local currentScale = self.arrowLockInStartingScale
+      + (self.arrowLockInTargetScale - self.arrowLockInStartingScale) * easedProgress
     self:SetScale(currentScale)
 
-    local currentAlpha = self.arrowLockInStartingAlpha +
-        (self.arrowLockInTargetAlpha -
-          self.arrowLockInStartingAlpha) *
-        easedProgress
+    local currentAlpha = self.arrowLockInStartingAlpha
+      + (self.arrowLockInTargetAlpha - self.arrowLockInStartingAlpha) * easedProgress
     self:SetAlpha(currentAlpha)
   end)
 
@@ -966,7 +1044,7 @@ local function CreateMainFrame()
   closeBtn:SetFrameStrata("DIALOG")
   closeBtn:SetFrameLevel(arrowFrame:GetFrameLevel() + 10) -- Above slices so it catches clicks first
   closeBtn:RegisterForClicks("AnyDown")
-  closeBtn:EnableMouse(false)                             -- Toggled by SetSliceMouseEnabled alongside slices
+  closeBtn:EnableMouse(false) -- Toggled by SetSliceMouseEnabled alongside slices
   closeBtn:SetScript("OnClick", function(_, button)
     if button == "LeftButton" or button == "RightButton" then
       CM.LockFreeLook()
@@ -979,7 +1057,9 @@ local function CreateMainFrame()
   RadialState.closeButton = closeBtn
 
   -- Create slice frames (parented to mainFrame so they inherit alpha/position).
-  for i = 1, 5 do CreateSliceFrame(i) end
+  for i = 1, 5 do
+    CreateSliceFrame(i)
+  end
 end
 
 ---------------------------------------------------------------------------------------
@@ -1021,9 +1101,7 @@ local function UpdateSliceVisual(sliceIndex)
       slice.innerFrame:SetAlpha(1.0)
     else
       local inRange = UnitInRange(memberData.unitId)
-      local rangeColor = EvaluateColorFromBoolean(inRange,
-        COLOR_REACHABLE,
-        COLOR_UNREACHABLE)
+      local rangeColor = EvaluateColorFromBoolean(inRange, COLOR_REACHABLE, COLOR_UNREACHABLE)
       slice.innerFrame:SetAlpha(rangeColor.a)
     end
   end
@@ -1031,17 +1109,14 @@ local function UpdateSliceVisual(sliceIndex)
   -- Update name (class-coloured; show "You" for the player; font/size with drop shadow; always shown)
   local fontSize = config.nameFontSize or 12
   -- Always use drop shadow (no outline); locale-safe font (same as GameFontNormalSmall resolution)
-  CM.SetFontStringFromTemplate(slice.nameText, fontSize,
-    _G.GameFontNormalSmall)
+  CM.SetFontStringFromTemplate(slice.nameText, fontSize, _G.GameFontNormalSmall)
   slice.nameText:SetShadowColor(0, 0, 0, 1)
   slice.nameText:SetShadowOffset(1, -1)
-  local displayName = (memberData.unitId == "player") and "You" or
-      (memberData.name or "Unknown")
+  local displayName = (memberData.unitId == "player") and "You" or (memberData.name or "Unknown")
   displayName = TruncateUtf8Name(displayName, 10, 9, "...")
-  local color = (memberData.class and RAID_CLASS_COLORS and
-        RAID_CLASS_COLORS[memberData.class]) and
-      RAID_CLASS_COLORS[memberData.class] or
-      { r = 1, g = 1, b = 1 }
+  local color = (memberData.class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[memberData.class])
+      and RAID_CLASS_COLORS[memberData.class]
+    or { r = 1, g = 1, b = 1 }
   slice.nameText:SetTextColor(color.r, color.g, color.b, 1)
   slice.nameText:SetText(displayName)
   slice.nameText:Show()
@@ -1090,7 +1165,9 @@ local function UpdateSliceVisual(sliceIndex)
 
   -- Update role icon (always shown)
   slice.roleIcon:SetSize(size, size)
-  if slice.roleIconBorder then slice.roleIconBorder:SetSize(size, size) end
+  if slice.roleIconBorder then
+    slice.roleIconBorder:SetSize(size, size)
+  end
   if slice.roleIconCheckmark then
     local checkSize = size * 0.7 -- smaller so it sits inside the role icon
     slice.roleIconCheckmark:SetSize(checkSize, checkSize)
@@ -1098,7 +1175,7 @@ local function UpdateSliceVisual(sliceIndex)
   local roleAtlas = {
     TANK = "UI-LFG-RoleIcon-Tank",
     HEALER = "UI-LFG-RoleIcon-Healer",
-    DAMAGER = "UI-LFG-RoleIcon-DPS"
+    DAMAGER = "UI-LFG-RoleIcon-DPS",
   }
   if roleAtlas[memberData.role] then
     slice.roleIcon:SetAtlas(roleAtlas[memberData.role])
@@ -1115,11 +1192,17 @@ local function UpdateSliceVisual(sliceIndex)
   else
     slice.roleIcon:Hide()
     slice.roleIconBG:Hide() -- Hide background when role icon is hidden
-    if slice.roleIconCheckmark then slice.roleIconCheckmark:Hide() end
+    if slice.roleIconCheckmark then
+      slice.roleIconCheckmark:Hide()
+    end
   end
 end
 
-local function UpdateAllSlices() for i = 1, 5 do UpdateSliceVisual(i) end end
+local function UpdateAllSlices()
+  for i = 1, 5 do
+    UpdateSliceVisual(i)
+  end
+end
 HR.UpdateAllSlices = UpdateAllSlices
 
 -- Accessible via HR so closures created before this point can call it
@@ -1157,7 +1240,9 @@ end
 ---------------------------------------------------------------------------------------
 -- Check if the triggering mouse button is still held down
 local function IsMouseButtonStillDown(buttonKey)
-  if not buttonKey then return false end
+  if not buttonKey then
+    return false
+  end
 
   -- Determine which base button we're checking
   local isButton1 = buttonKey:find("BUTTON1")
@@ -1175,7 +1260,9 @@ local function IsMouseButtonStillDown(buttonKey)
 end
 
 local function TrackMousePosition(_, elapsed)
-  if not RadialState.isActive then return end
+  if not RadialState.isActive then
+    return
+  end
 
   -- Check button release to close the radial (only when opened via mouse button, not keybind)
   if RadialState.currentButton then
@@ -1183,8 +1270,8 @@ local function TrackMousePosition(_, elapsed)
     if elapsed_since_show > 0.2 then
       if not IsMouseButtonStillDown(RadialState.currentButton) then
         CM.DebugPrint(
-          "Healing Radial: Button released, closing (combat=" ..
-          tostring(InCombatLockdown()) .. ")")
+          "Healing Radial: Button released, closing (combat=" .. tostring(InCombatLockdown()) .. ")"
+        )
         HR.ExecuteAndHide()
         return
       end
@@ -1200,8 +1287,7 @@ local function TrackMousePosition(_, elapsed)
   local angle, distance = GetMouseAngleAndDistanceFromCenter()
   local CENTER_DEAD_ZONE = 30
   local sliceIndex = nil
-  if distance > CENTER_DEAD_ZONE and distance <=
-      (RadialState.maxSelectDistance or 160) then
+  if distance > CENTER_DEAD_ZONE and distance <= (RadialState.maxSelectDistance or 160) then
     sliceIndex = GetSliceFromAngle(angle)
   end
   if sliceIndex ~= RadialState.selectedSlice then
@@ -1231,10 +1317,8 @@ local function TrackMousePosition(_, elapsed)
       if overDeadCenter then
         arrowAlpha = 1.0
       else
-        local selectedSlice = sliceIndex and
-            RadialState.sliceFrames[sliceIndex]
-        local unitId = selectedSlice and
-            selectedSlice:GetAttribute("unit")
+        local selectedSlice = sliceIndex and RadialState.sliceFrames[sliceIndex]
+        local unitId = selectedSlice and selectedSlice:GetAttribute("unit")
         arrowAlpha = (unitId and unitId ~= "") and 1.0 or 0.5
       end
       arrowFrame:SetAlpha(arrowAlpha)
@@ -1248,27 +1332,22 @@ local function TrackMousePosition(_, elapsed)
   local SLICE_SCALE_DURATION = 0.1
   for i = 1, 5 do
     local slice = RadialState.sliceFrames[i]
-    if slice and slice.innerFrame and slice.scaleElapsed and
-        slice.scaleElapsed >= 0 then
+    if slice and slice.innerFrame and slice.scaleElapsed and slice.scaleElapsed >= 0 then
       slice.scaleElapsed = slice.scaleElapsed + elapsed
       if slice.scaleElapsed >= SLICE_SCALE_DURATION then
         slice.scaleElapsed = -1
         slice.innerFrame:SetScale(slice.targetScale)
       else
         local progress = slice.scaleElapsed / SLICE_SCALE_DURATION
-        local scale = slice.scaleStart +
-            (slice.targetScale - slice.scaleStart) *
-            progress
+        local scale = slice.scaleStart + (slice.targetScale - slice.scaleStart) * progress
         slice.innerFrame:SetScale(scale)
       end
     end
   end
 
   -- Update expensive slice/unit status at a short cadence instead of every frame.
-  RadialState.sliceRefreshElapsed = (RadialState.sliceRefreshElapsed or 0) +
-      elapsed
-  if RadialState.sliceRefreshElapsed >=
-      (RadialState.sliceRefreshInterval or 0.08) then
+  RadialState.sliceRefreshElapsed = (RadialState.sliceRefreshElapsed or 0) + elapsed
+  if RadialState.sliceRefreshElapsed >= (RadialState.sliceRefreshInterval or 0.08) then
     RadialState.sliceRefreshElapsed = 0
     UpdateAllSlices()
   end
@@ -1278,10 +1357,14 @@ function HR.Show(buttonKey)
   if not CM.DB.global.healingRadial or not CM.DB.global.healingRadial.enabled then
     return false
   end
-  if not RadialState.mainFrame then return false end
+  if not RadialState.mainFrame then
+    return false
+  end
 
   -- Only allow activation when mouselook is active
-  if not _G.IsMouselooking() then return false end
+  if not _G.IsMouselooking() then
+    return false
+  end
 
   -- Store state
   RadialState.isActive = true
@@ -1290,8 +1373,7 @@ function HR.Show(buttonKey)
   RadialState.showTime = _G.GetTime()
   -- Cache max selection distance for TrackMousePosition (avoids DB access in combat)
   local hrConfig = CM.DB.global.healingRadial
-  RadialState.maxSelectDistance =
-      ((hrConfig and hrConfig.sliceRadius) or 120) + BASE_SLICE_SIZE / 2
+  RadialState.maxSelectDistance = ((hrConfig and hrConfig.sliceRadius) or 120) + BASE_SLICE_SIZE / 2
 
   -- Stop mouselook so cursor is free for slice selection
   -- Use UnlockFreeLook() instead of direct MouselookStop() to ensure proper state management
@@ -1322,9 +1404,9 @@ function HR.Show(buttonKey)
   -- Show mainFrame + children via alpha (combat-safe). SetAlpha propagates
   -- to child frames (slices inherit parent alpha).
   if RadialState.wheelBG then
-    RadialState.wheelBG:SetShown(CM.DB.global.healingRadial and
-      CM.DB.global.healingRadial
-      .showBackground)
+    RadialState.wheelBG:SetShown(
+      CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground
+    )
   end
   RadialState.mainFrame:SetAlpha(1)
 
@@ -1352,7 +1434,9 @@ function HR.Show(buttonKey)
   end
 
   -- Hide crosshair while radial is visible
-  if CM.IsCrosshairEnabled() then CM.DisplayCrosshair(false) end
+  if CM.IsCrosshairEnabled() then
+    CM.DisplayCrosshair(false)
+  end
 
   CM.DebugPrint("Healing Radial: Shown for " .. buttonKey)
 
@@ -1365,11 +1449,12 @@ end
 --   SecureActionButtonTemplate resolves the modifier+button combo and fires the macro
 -- This function is called from TrackMousePosition when the mouse button is released.
 function HR.ExecuteAndHide()
-  if not RadialState.isActive then return end
+  if not RadialState.isActive then
+    return
+  end
 
   if RadialState.selectedSlice then
-    CM.DebugPrint("Healing Radial: Closing (slice " ..
-      RadialState.selectedSlice .. " was hovered)")
+    CM.DebugPrint("Healing Radial: Closing (slice " .. RadialState.selectedSlice .. " was hovered)")
   else
     CM.DebugPrint("Healing Radial: Closing (no slice selected)")
   end
@@ -1378,7 +1463,9 @@ function HR.ExecuteAndHide()
 end
 
 function HR.Hide()
-  if not RadialState.isActive then return end
+  if not RadialState.isActive then
+    return
+  end
   if not RadialState.mainFrame then
     RadialState.isActive = false
     RadialState.selectedSlice = nil
@@ -1386,8 +1473,7 @@ function HR.Hide()
     RadialState.boundKey = nil
     return
   end
-  CM.DebugPrint("Healing Radial: HR.Hide called from: " ..
-    (debugstack(2, 1, 0) or "unknown"))
+  CM.DebugPrint("Healing Radial: HR.Hide called from: " .. (debugstack(2, 1, 0) or "unknown"))
 
   -- Stop mouse tracking
   RadialState.mainFrame:SetScript("OnUpdate", nil)
@@ -1432,7 +1518,9 @@ function HR.Hide()
   -- Guard with isTogglingMouselook so OnMouselookChanged doesn't re-enter
   if RadialState.wasMouselooking then
     -- Restore crosshair before starting mouselook (needed for lock-in animation)
-    if CM.IsCrosshairEnabled() then CM.DisplayCrosshair(true) end
+    if CM.IsCrosshairEnabled() then
+      CM.DisplayCrosshair(true)
+    end
     -- LockFreeLook handles MouselookStart, UI state, animations, and notifies
     -- radial via OnMouselookChanged — guard prevents re-entry
     RadialState.isTogglingMouselook = true
@@ -1441,11 +1529,12 @@ function HR.Hide()
     RadialState.isTogglingMouselook = false
   else
     -- Restore crosshair even if mouselook wasn't active
-    if CM.IsCrosshairEnabled() then CM.DisplayCrosshair(true) end
+    if CM.IsCrosshairEnabled() then
+      CM.DisplayCrosshair(true)
+    end
   end
 
-  CM.DebugPrint("Healing Radial: Hidden (combat=" ..
-    tostring(InCombatLockdown()) .. ")")
+  CM.DebugPrint("Healing Radial: Hidden (combat=" .. tostring(InCombatLockdown()) .. ")")
 end
 
 -- Open radial via keybind (targeting on hover, casting via mouse clicks on slices)
@@ -1453,10 +1542,14 @@ function HR.ShowFromKeybind()
   if not CM.DB.global.healingRadial or not CM.DB.global.healingRadial.enabled then
     return false
   end
-  if not RadialState.mainFrame then return false end
+  if not RadialState.mainFrame then
+    return false
+  end
 
   -- Only allow activation when mouselook is active
-  if not _G.IsMouselooking() then return false end
+  if not _G.IsMouselooking() then
+    return false
+  end
 
   -- Find which key is bound so we can poll for release in TrackMousePosition
   local boundKey = _G.GetBindingKey("Combat Mode - Healing Radial")
@@ -1470,8 +1563,7 @@ function HR.ShowFromKeybind()
   RadialState.showTime = _G.GetTime()
   -- Cache max selection distance for TrackMousePosition (avoids DB access in combat)
   local hrConfig = CM.DB.global.healingRadial
-  RadialState.maxSelectDistance =
-      ((hrConfig and hrConfig.sliceRadius) or 120) + BASE_SLICE_SIZE / 2
+  RadialState.maxSelectDistance = ((hrConfig and hrConfig.sliceRadius) or 120) + BASE_SLICE_SIZE / 2
 
   -- Stop mouselook so cursor is free for slice selection.
   -- NOTE: MouselookStop causes spurious key-up events for held keys. The
@@ -1501,9 +1593,9 @@ function HR.ShowFromKeybind()
 
   -- Show mainFrame + children via alpha (combat-safe). SetAlpha propagates to child slices.
   if RadialState.wheelBG then
-    RadialState.wheelBG:SetShown(CM.DB.global.healingRadial and
-      CM.DB.global.healingRadial
-      .showBackground)
+    RadialState.wheelBG:SetShown(
+      CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground
+    )
   end
   RadialState.mainFrame:SetAlpha(1)
 
@@ -1531,25 +1623,33 @@ function HR.ShowFromKeybind()
   end
 
   -- Hide crosshair while radial is visible
-  if CM.IsCrosshairEnabled() then CM.DisplayCrosshair(false) end
+  if CM.IsCrosshairEnabled() then
+    CM.DisplayCrosshair(false)
+  end
 
-  CM.DebugPrint("Healing Radial: Shown via keybind (combat=" ..
-    tostring(InCombatLockdown()) .. ", wasML=" ..
-    tostring(RadialState.wasMouselooking) .. ")")
+  CM.DebugPrint(
+    "Healing Radial: Shown via keybind (combat="
+      .. tostring(InCombatLockdown())
+      .. ", wasML="
+      .. tostring(RadialState.wasMouselooking)
+      .. ")"
+  )
   return true
 end
 
 -- Close radial opened via keybind
 function HR.HideFromKeybind()
   if not RadialState.isActive then
-    CM.DebugPrint(
-      "Healing Radial: HideFromKeybind called but radial not active")
+    CM.DebugPrint("Healing Radial: HideFromKeybind called but radial not active")
     return
   end
   local elapsed = _G.GetTime() - (RadialState.showTime or 0)
-  CM.DebugPrint("Healing Radial: HideFromKeybind elapsed=" ..
-    string.format("%.3f", elapsed) .. "s combat=" ..
-    tostring(InCombatLockdown()))
+  CM.DebugPrint(
+    "Healing Radial: HideFromKeybind elapsed="
+      .. string.format("%.3f", elapsed)
+      .. "s combat="
+      .. tostring(InCombatLockdown())
+  )
   -- Tap vs hold detection: if key-up arrives quickly (< 0.3s), treat as a tap —
   -- keep the radial open so the user can select a slice with the mouse. A second
   -- key-down (handled in CombatMode_HealingRadialKey) will close it.
@@ -1561,7 +1661,9 @@ function HR.HideFromKeybind()
   HR.Hide()
 end
 
-function HR.IsActive() return RadialState.isActive end
+function HR.IsActive()
+  return RadialState.isActive
+end
 
 function HR.IsEnabled()
   return CM.DB.global.healingRadial and CM.DB.global.healingRadial.enabled
@@ -1577,13 +1679,17 @@ function HR.OnGroupRosterUpdate()
   -- party member is assigned to each slice (changes with roster)
   UpdateSliceActionAttributes()
 
-  if RadialState.isActive then UpdateAllSlices() end
+  if RadialState.isActive then
+    UpdateAllSlices()
+  end
 end
 
 -- Called when combat starts (PLAYER_REGEN_DISABLED).
 -- Pre-enable mouse on slices so they're ready to receive clicks if the radial
 -- opens during combat (EnableMouse is protected during InCombatLockdown).
-function HR.OnCombatStart() SetSliceMouseEnabled(true) end
+function HR.OnCombatStart()
+  SetSliceMouseEnabled(true)
+end
 
 function HR.OnCombatEnd()
   -- Apply any pending updates that were blocked during combat
@@ -1597,16 +1703,22 @@ function HR.OnCombatEnd()
 
   -- If radial is not active, disable mouse on slices so invisible slices
   -- don't intercept clicks now that we're out of combat
-  if not RadialState.isActive then SetSliceMouseEnabled(false) end
+  if not RadialState.isActive then
+    SetSliceMouseEnabled(false)
+  end
 end
 
 -- Called when action bar content changes (ACTIONBAR_SLOT_CHANGED).
 -- Refreshes the modified attributes so slices cast the correct spells.
-function HR.OnActionBarChanged() UpdateSliceActionAttributes() end
+function HR.OnActionBarChanged()
+  UpdateSliceActionAttributes()
+end
 
 -- Called when the user changes a mouse button binding in the Config panel.
 -- Rebuilds the slot map from the updated binding settings.
-function HR.OnBindingChanged() UpdateSliceActionAttributes() end
+function HR.OnBindingChanged()
+  UpdateSliceActionAttributes()
+end
 
 ---------------------------------------------------------------------------------------
 --                              INITIALIZATION                                       --
@@ -1614,8 +1726,7 @@ function HR.OnBindingChanged() UpdateSliceActionAttributes() end
 function HR.Initialize()
   -- Ensure defaults exist
   if not CM.DB.global.healingRadial then
-    CM.DB.global.healingRadial = CM.Constants.DatabaseDefaults.global
-        .healingRadial
+    CM.DB.global.healingRadial = CM.Constants.DatabaseDefaults.global.healingRadial
   end
 
   -- Only create the frame and overlay when healing radial is enabled (avoids drawing anything when disabled)
@@ -1631,4 +1742,6 @@ function HR.Initialize()
 end
 
 -- Expose state for Core.lua integration
-function HR.GetState() return RadialState end
+function HR.GetState()
+  return RadialState
+end
