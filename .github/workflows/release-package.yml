@@ -21,4 +21,4 @@ jobs:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: -t CombatMode -g retail -p "${{ vars.CURSEFORGE_PROJECT_ID }}"
+          args: -g retail -p "${{ vars.CURSEFORGE_PROJECT_ID }}"

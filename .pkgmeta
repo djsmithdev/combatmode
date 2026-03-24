@@ -1,0 +1,3 @@
+package-as: CombatMode
+move-folders:
+  CombatMode: .
