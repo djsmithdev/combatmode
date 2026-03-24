@@ -19,6 +19,14 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install StyLua and Selene
+        run: |
+          cargo install --locked stylua
+          cargo install --locked selene
+
       - name: Install pre-commit
         run: pip install pre-commit
 
