@@ -4,7 +4,7 @@ Use this checklist when preparing a release build.
 
 ## 1) Version and metadata
 
-- Update addon version in `CombatMode.toc` (and any mirrored version fields).
+- Update addon version in `CombatMode/CombatMode.toc` (and any mirrored version fields).
 - Verify `## Interface` targets current Retail build.
 - Confirm addon title/notes/author metadata are accurate.
 
@@ -22,8 +22,8 @@ Use this checklist when preparing a release build.
 
 ## 3) Load order and packaging sanity
 
-- Confirm `Embeds.xml` load order still matches module dependencies.
-- Ensure new files are included in `Embeds.xml` and/or `CombatMode.toc` as needed.
+- Confirm `CombatMode/Embeds.xml` load order still matches module dependencies.
+- Ensure new files are included in `CombatMode/Embeds.xml` and/or `CombatMode/CombatMode.toc` as needed.
 - Verify no accidental dev-only artifacts are referenced.
 
 ## 4) Functional smoke test
@@ -36,6 +36,7 @@ Use this checklist when preparing a release build.
   - slash commands and keybind sanity
 - Confirm no combat-lockdown errors and no new Lua errors.
 - If MCP was unavailable during implementation, run an additional manual API spot-check for each changed WoW API call before tagging release.
+- Run full lint/format gate for release prep: `pre-commit run --all-files`.
 
 ## 5) Settings and persistence
 

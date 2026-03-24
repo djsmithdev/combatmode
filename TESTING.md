@@ -51,3 +51,6 @@ Use this checklist for feature work and regressions.
 - Keybinds still function after reload and after disabling/re-enabling addon.
 - No Lua errors in normal use paths for edited features.
 - If keybind writes were changed, verify in-combat changes defer and apply automatically after leaving combat.
+- For contributor lint/format checks, use helper by default: `pwsh ./scripts/lint-changed.ps1`.
+- Equivalent direct gate: `pre-commit run --files <changed files>`.
+- Reserve full-repo gate for release prep: `pre-commit run --all-files`.

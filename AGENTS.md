@@ -7,6 +7,7 @@ This file defines how AI agents should work in this addon workspace.
 1. Use WoW API MCP tools first (`lookup_api`, `search_api`, `list_deprecated`, `get_event`, `get_enum`).
 2. Follow architecture docs and in-file header purpose comments.
 3. Fall back to external docs only when MCP/tooling cannot answer.
+4. Follow contributor workflow defaults from `CONTRIBUTING.md`.
 
 ## Rule map
 
@@ -19,12 +20,12 @@ This file defines how AI agents should work in this addon workspace.
 
 ## Project map
 
-- `CombatMode.toc`: metadata, SavedVariables, top-level include.
-- `Embeds.xml`: load order and root frame script wiring.
-- `Features/`: runtime behavior modules.
-- `Config/`: AceConfig option builders and options assembly.
-- `UI/`: non-Ace UI integrations (Edit Mode crosshair).
-- `Bindings.xml`: keybind declarations.
+- `CombatMode/CombatMode.toc`: metadata, SavedVariables, top-level include.
+- `CombatMode/Embeds.xml`: load order and root frame script wiring.
+- `CombatMode/Features/`: runtime behavior modules.
+- `CombatMode/Config/`: AceConfig option builders and options assembly.
+- `CombatMode/UI/`: non-Ace UI integrations (Edit Mode crosshair).
+- `CombatMode/Bindings.xml`: keybind declarations.
 
 See `STRUCTURE.md` for load-order details.
 
@@ -43,4 +44,6 @@ See `STRUCTURE.md` for load-order details.
 - Confirm no combat-unsafe paths were introduced.
 - Validate enable/disable symmetry for runtime state (mouselook/CVars/bindings).
 - Ensure docs/rule updates if architecture or workflow changed.
-- Ensure changed Lua files pass `stylua --check CombatMode` and `selene --config selene.toml CombatMode`.
+- Run lint/format via pre-commit on changed files: `pre-commit run --files <changed lua files>`.
+- Use direct tool commands only for targeted debugging (`stylua --check ...`, `selene --config selene.toml ...`).
+- Run repo-wide formatting/lint only for release prep or explicit maintainer request: `pre-commit run --all-files`.

@@ -72,15 +72,19 @@ You can submit a PR with your contributions to [**Combat Mode's repository on Gi
 3. Run a focused manual pass from [TESTING.md](TESTING.md) for your changed features.
 4. Validate release/API compatibility checks from [RELEASE.md](RELEASE.md).
 5. Open a PR and complete the repo checklist in `.github/PULL_REQUEST_TEMPLATE.md`.
+6. Follow [CONTRIBUTING.md](CONTRIBUTING.md) for contributor workflow and PR minimum checks.
 
 ### Code Style & Linting
 
 - Install [StyLua](https://github.com/JohnnyMorganz/StyLua) and [Selene](https://github.com/Kampfkarren/selene).
-- Format check: `stylua --check CombatMode`
-- Lint check: `selene --config selene.toml CombatMode`
+- Script index helper: `pwsh ./scripts/help.ps1`
+- Setup sanity helper: `pwsh ./scripts/dev-check.ps1`
+- Default changed-files helper: `pwsh ./scripts/lint-changed.ps1`
+- Default local gate (changed files): `pre-commit run --files <changed files>`
+- Tool-specific debug checks: `stylua --check <paths>`, `selene --config selene.toml <paths>`
 - Install pre-commit hooks (recommended):
   - `pip install pre-commit`
   - `pre-commit install`
-  - `pre-commit run --all-files`
+  - Release prep / full sweep only: `pre-commit run --all-files`
 
 <br />

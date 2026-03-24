@@ -13,3 +13,6 @@ Before finalizing code changes, run this checklist.
 - State symmetry: for mouselook/CVars/bindings, ensure enable/apply has matching disable/cleanup.
 - Config wiring: new setting has defaults, correct DB scope, and options UI integration.
 - Regression pass: cover slash commands, keybind flows, and mainline runtime path for touched feature.
+- Lint/format pass (changed files): run `pre-commit run --files <changed lua files>`.
+- Tool-specific debug checks when needed: `stylua --check <paths>` and `selene --config selene.toml <paths>`.
+- Run repo-wide formatting/lint only for release prep or explicit maintainer request: `pre-commit run --all-files`.

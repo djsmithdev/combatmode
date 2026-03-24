@@ -9,13 +9,13 @@ Use this project map and conventions for all changes.
 
 ## Runtime structure
 
-- `CombatMode.toc`: addon metadata, `SavedVariables: CombatModeDB`, load order entrypoint.
-- `Embeds.xml`: loads Lua files and owns the root frame scripts (`OnEvent`, `OnUpdate` bridge).
-- `Constants/*.lua`: constants and static tables (`CM.Constants`).
-- `Features/*.lua`: runtime systems and gameplay behavior.
-- `Config/*.lua`: AceConfig option builders and category assembly.
-- `UI/CrosshairEditMode.lua`: Edit Mode integration for crosshair controls.
-- `Bindings.xml`: keybinding declarations and binding click targets.
+- `CombatMode/CombatMode.toc`: addon metadata, `SavedVariables: CombatModeDB`, load order entrypoint.
+- `CombatMode/Embeds.xml`: loads Lua files and owns the root frame scripts (`OnEvent`, `OnUpdate` bridge).
+- `CombatMode/Constants/*.lua`: constants and static tables (`CM.Constants`).
+- `CombatMode/Features/*.lua`: runtime systems and gameplay behavior.
+- `CombatMode/Config/*.lua`: AceConfig option builders and category assembly.
+- `CombatMode/UI/CrosshairEditMode.lua`: Edit Mode integration for crosshair controls.
+- `CombatMode/Bindings.xml`: keybinding declarations and binding click targets.
 
 ## Module responsibilities
 
@@ -53,7 +53,9 @@ Use this project map and conventions for all changes.
   - character-specific in `CM.DB.char`
 - Put new user-facing settings in `Config/Config*.lua` and wire through `Config/ConfigCategories.lua`.
 - Preserve slash command and keybinding behavior unless change is explicitly requested.
-- Lua changes must satisfy formatter/linter checks: `stylua --check CombatMode` and `selene --config selene.toml CombatMode`.
+- Lua validation default is changed-files pre-commit: `pre-commit run --files <changed files>`.
+- Use direct formatter/linter commands only for targeted debugging.
+- Run repo-wide gate only for release prep or explicit maintainer request: `pre-commit run --all-files`.
 
 ## Change expectations
 
