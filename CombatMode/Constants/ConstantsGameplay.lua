@@ -56,6 +56,7 @@ CM.Constants.BLIZZARD_EVENTS = {
     "PLAYER_LOSES_VEHICLE_DATA", -- Player exited a vehicle
     "UNIT_ENTERED_VEHICLE", -- Player entered a vehicle (alternative)
     "UNIT_EXITED_VEHICLE", -- Player exited a vehicle (alternative)
+    "CVAR_UPDATE", -- ActionButtonUseKeyDown etc.; click-cast macro LeftButton phase must stay in sync
   },
   -- Events for focus lock detection
   FOCUS_LOCK_EVENTS = {

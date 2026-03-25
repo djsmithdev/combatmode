@@ -68,6 +68,35 @@ local CursorModeShowTime = 0 -- GetTime() when cursor was unlocked via keybind (
 local deferredBindingQueue = {}
 local eventCategoryMap = {}
 
+-- Coalesce REFRESH_BINDINGS_EVENTS: one RefreshClickCastMacros after bursts.
+local clickCastRefreshGen = 0
+local clickCastRefreshReason = "bar" -- "cvar" | "bar"
+
+local function DebugPrintClickCastRefreshReason()
+  if clickCastRefreshReason == "cvar" then
+    CM.DebugPrint("ActionButtonUseKeyDown changed, refreshing binding macros")
+  else
+    CM.DebugPrint("Action Bar state changed, refreshing binding macros")
+  end
+end
+
+local function ScheduleClickCastBindingRefresh()
+  if not C_Timer or not C_Timer.After then
+    DebugPrintClickCastRefreshReason()
+    CM.RefreshClickCastMacros()
+    return
+  end
+  clickCastRefreshGen = clickCastRefreshGen + 1
+  local myGen = clickCastRefreshGen
+  C_Timer.After(0.1, function()
+    if myGen ~= clickCastRefreshGen then
+      return
+    end
+    DebugPrintClickCastRefreshReason()
+    CM.RefreshClickCastMacros()
+  end)
+end
+
 ---------------------------------------------------------------------------------------
 --                                 UTILITY FUNCTIONS                                 --
 ---------------------------------------------------------------------------------------
@@ -580,7 +609,8 @@ You need to first register the event in the CM.Constants.BLIZZARD_EVENTS table b
 Checks which category in the table the event that's been fired belongs to, and then calls the appropriate function.
 ]]
 --
-local function HandleEventByCategory(category, event)
+local function HandleEventByCategory(category, event, ...)
+  local cvarName = select(1, ...)
   local eventHandlers = {
     UNLOCK_EVENTS = function()
       CM.UnlockFreeLook()
@@ -608,14 +638,21 @@ local function HandleEventByCategory(category, event)
       CM.OnCrosshairUncategorizedEvent()
     end,
     REFRESH_BINDINGS_EVENTS = function()
-      if C_Timer and C_Timer.After then
-        C_Timer.After(0.1, function()
-          CM.DebugPrint("Action Bar state changed, refreshing binding macros")
-          CM.RefreshClickCastMacros()
-        end)
+      if event == "CVAR_UPDATE" then
+        if cvarName ~= "ActionButtonUseKeyDown" then
+          return
+        end
+      end
+
+      if event == "CVAR_UPDATE" then
+        clickCastRefreshReason = "cvar"
       else
-        -- Fallback: refresh immediately if C_Timer not available
-        CM.RefreshClickCastMacros()
+        clickCastRefreshReason = "bar"
+      end
+      ScheduleClickCastBindingRefresh()
+
+      if event == "CVAR_UPDATE" then
+        return
       end
 
       -- Healing Radial: update slice targets and spell attributes when roster or action bar changes
@@ -649,13 +686,13 @@ local function BuildEventCategoryMap()
 end
 
 -- FIRES WHEN ONE OF OUR REGISTERED EVENTS HAPPEN IN GAME
-function _G.CombatMode_OnEvent(event)
+function _G.CombatMode_OnEvent(event, ...)
   local categories = eventCategoryMap[event]
   if not categories then
     return
   end
   for _, category in ipairs(categories) do
-    HandleEventByCategory(category, event)
+    HandleEventByCategory(category, event, ...)
   end
 end
 

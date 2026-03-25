@@ -4,11 +4,12 @@
 --  Builds secure macro proxy buttons and SetMouselookOverrideBinding wiring so
 --  action-bar and click-cast inputs run pre-lines (reticle /target selection) and
 --  optional [@cursor] casts for whitelisted ground spells. Keyboard slot overrides
---  duplicate that path when macroInjectionClickCastOnly is off.
+--  duplicate that path when macroInjectionClickCastOnly is off (priority overrides). Mouselook uses
+--  LeftButton on proxy buttons.
 --
 --  Architecture:
 --    • Core enables via BootstrapFeatureModules (OverrideDefaultButtons, ApplyGroundCastKeyOverrides,
---      ApplyToggleFocusTargetBinding) and REFRESH_BINDINGS_EVENTS → RefreshClickCastMacros.
+--      ApplyToggleFocusTargetBinding) and REFRESH_BINDINGS_EVENTS (coalesced in Core.lua) → RefreshClickCastMacros.
 --    • All injection paths honor CM.DB.char.reticleTargeting; GetBindingsLocation()
 --      selects char vs global binding storage.
 --    • Toggle-focus macro text is updated here; binding name is Combat Mode specific.
@@ -20,6 +21,7 @@ local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 -- WoW API
 local CreateFrame = _G.CreateFrame
 local C_ActionBar = _G.C_ActionBar
+local C_CVar = _G.C_CVar
 local C_Spell = _G.C_Spell
 local ClearOverrideBindings = _G.ClearOverrideBindings
 local GetActionInfo = _G.GetActionInfo
@@ -36,6 +38,7 @@ local pairs = _G.pairs
 local pcall = _G.pcall
 local strtrim = _G.strtrim
 local string = _G.string
+local select = _G.select
 local tonumber = _G.tonumber
 local tostring = _G.tostring
 local type = _G.type
@@ -125,6 +128,168 @@ local function ResolveActionButtonFrame(bindingValue)
   return BindingToClickFrame[bindingValue]
 end
 
+-- Primary action bar slot index (1–12): frame names used by common bar replacement addons for bar 1.
+-- First match that exists and is shown wins; then first that exists; else caller uses ActionButtonN.
+local PRIMARY_BAR_FRAME_CANDIDATES = {
+  function(i)
+    return "ElvUI_Bar1Button" .. i
+  end,
+  function(i)
+    return "BT4Button" .. i
+  end,
+}
+
+local function FindPrimaryBarButtonFrame(index)
+  local n = tonumber(index)
+  if not n or n < 1 or n > 12 then
+    return nil
+  end
+  for _, makeName in ipairs(PRIMARY_BAR_FRAME_CANDIDATES) do
+    local name = makeName(n)
+    local f = _G[name]
+    if f then
+      local ok, shown = pcall(function()
+        return f.IsShown and f:IsShown()
+      end)
+      if ok and shown then
+        return name
+      end
+    end
+  end
+  for _, makeName in ipairs(PRIMARY_BAR_FRAME_CANDIDATES) do
+    local name = makeName(n)
+    if _G[name] then
+      return name
+    end
+  end
+  return nil
+end
+
+-- Some action bar addons require matching the /click "down" arg to ActionButtonUseKeyDown so secure clicks fire.
+local function GetActionButtonUseKeyDownMacroSuffix()
+  local v = C_CVar and C_CVar.GetCVar and C_CVar.GetCVar("ActionButtonUseKeyDown")
+  if v == "1" then
+    return "1"
+  end
+  return "0"
+end
+
+local function IsAddonActionButtonFrame(frameName)
+  if not frameName or frameName == "" then
+    return false
+  end
+  return frameName:match("^BT4Button") ~= nil or frameName:match("^ElvUI_Bar") ~= nil
+end
+
+-- Some clients/setups ignore `/click ActionButtonN LeftButton 0|1` (down arg) on Blizzard bars, causing the
+-- macro to do nothing. For addon action buttons (Bartender/ElvUI), the down arg matters to match
+-- ActionButtonUseKeyDown. So we only append it for known addon button frames.
+local function FormatClickLine(frameName, mouseButton)
+  local btn = mouseButton or "LeftButton"
+  if IsAddonActionButtonFrame(frameName) then
+    local kd = GetActionButtonUseKeyDownMacroSuffix()
+    return "/click " .. frameName .. " " .. btn .. " " .. kd
+  end
+  return "/click " .. frameName .. " " .. btn
+end
+
+local function ShouldInjectTargetingForSpell(spellId)
+  if not spellId or type(spellId) ~= "number" or spellId <= 0 then
+    return false
+  end
+  -- Only inject targeting logic for actual combat spells (helpful/harmful).
+  -- Use C_Spell helpers (spellId-based). If unavailable, fall back to injecting for spells
+  -- unless explicitly excluded elsewhere.
+  if C_Spell and C_Spell.IsSpellHelpful and C_Spell.IsSpellHarmful then
+    local okHelp, isHelp = pcall(C_Spell.IsSpellHelpful, spellId)
+    local okHarm, isHarm = pcall(C_Spell.IsSpellHarmful, spellId)
+    return (okHelp and isHelp) or (okHarm and isHarm) or false
+  end
+  return true
+end
+
+local function IsSpecialLogicalBarFrameName(frameName)
+  if not frameName then
+    return false
+  end
+  return frameName:match("^OverrideActionBarButton")
+    or frameName:match("^BonusActionButton")
+    or frameName:match("^TempShapeshiftActionButton")
+end
+
+-- MULTIACTIONBAR* → addon globals: Bartender uses non-sequential bar ids (BINDING_MAPPINGS in Bartender4
+-- ActionBars.lua); button index is (barId-1)*12+slot (ActionBar.lua LAB CreateButton).
+local BT4_BINDING_PREFIX_TO_BAR_ID = {
+  MULTIACTIONBAR1BUTTON = 6,
+  MULTIACTIONBAR2BUTTON = 5,
+  MULTIACTIONBAR3BUTTON = 3,
+  MULTIACTIONBAR4BUTTON = 4,
+  MULTIACTIONBAR5BUTTON = 13,
+  MULTIACTIONBAR6BUTTON = 14,
+  MULTIACTIONBAR7BUTTON = 15,
+}
+-- ElvUI bar index per binding prefix (Bar1 = main; 2–5 = common extra bars; layout may vary).
+local ELVUI_BINDING_PREFIX_TO_BAR = {
+  MULTIACTIONBAR1BUTTON = 2,
+  MULTIACTIONBAR2BUTTON = 3,
+  MULTIACTIONBAR3BUTTON = 4,
+  MULTIACTIONBAR4BUTTON = 5,
+  MULTIACTIONBAR5BUTTON = 6,
+  MULTIACTIONBAR6BUTTON = 7,
+  MULTIACTIONBAR7BUTTON = 8,
+}
+
+local function ResolveAddonMultiBarButtonFrame(bindingValue)
+  local prefix, slotStr = bindingValue:match("^(MULTIACTIONBAR%d+BUTTON)(%d+)$")
+  if not prefix or not slotStr then
+    return nil
+  end
+  local btnIdx = tonumber(slotStr)
+  if not btnIdx or btnIdx < 1 or btnIdx > 12 then
+    return nil
+  end
+
+  local bt4BarId = BT4_BINDING_PREFIX_TO_BAR_ID[prefix]
+  if bt4BarId then
+    local bt4Name = "BT4Button" .. ((bt4BarId - 1) * 12 + btnIdx)
+    if _G[bt4Name] then
+      return bt4Name
+    end
+  end
+
+  local elvBar = ELVUI_BINDING_PREFIX_TO_BAR[prefix]
+  if elvBar then
+    local elvName = "ElvUI_Bar" .. elvBar .. "Button" .. btnIdx
+    if _G[elvName] then
+      return elvName
+    end
+  end
+
+  return nil
+end
+
+-- Frame to read action from and /click for macros: addon replacement bar when present, else Blizzard.
+local function GetEffectiveBarButtonFrameName(bindingValue)
+  local base = ResolveActionButtonFrame(bindingValue)
+  if not base then
+    return nil
+  end
+
+  local actionBtnNum = bindingValue:match("^ACTIONBUTTON(%d+)$")
+  if actionBtnNum then
+    if not IsSpecialLogicalBarFrameName(base) then
+      return FindPrimaryBarButtonFrame(actionBtnNum) or base
+    end
+    return base
+  end
+
+  if bindingValue:match("^MULTIACTIONBAR%d+BUTTON%d+$") then
+    return ResolveAddonMultiBarButtonFrame(bindingValue) or base
+  end
+
+  return base
+end
+
 local CLICKCAST_PRE_LINE_ANY =
   "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,exists] mouseover" -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
 local CLICKCAST_PRE_LINE_ENEMY =
@@ -188,6 +353,7 @@ end
 
 local GroundCastKeyOverrideOwner = CreateFrame("Frame", nil, UIParent)
 local SlotFramesByBindingName = {}
+
 for idx, bindingName in ipairs(OrderedBindingNames) do
   local f = CreateFrame(
     "Button",
@@ -269,6 +435,7 @@ local function BuildClickCastMacroText(bindingValue)
   if not clickFrame then
     return nil
   end
+  local effectiveFrame = GetEffectiveBarButtonFrameName(bindingValue) or clickFrame
 
   -- Check if this is a special action bar button (don't inject preline for special bar abilities)
   local isSpecialBarButton = clickFrame:match("^OverrideActionBarButton")
@@ -280,12 +447,26 @@ local function BuildClickCastMacroText(bindingValue)
     -- Use conditional macro to check for override bar at runtime
     -- (works when exiting vehicle in combat; we can't refresh bindings then)
     -- For bonus/shapeshift bars, bindings are refreshed via events when out of combat
-    castLine = "/click [overridebar][possessbar][shapeshift][vehicleui] OverrideActionBarButton"
-      .. buttonNum
-      .. "; ActionButton"
-      .. buttonNum
+    local regularFrame = FindPrimaryBarButtonFrame(buttonNum) or ("ActionButton" .. buttonNum)
+    CM.DebugPrint(
+      "BuildClickCastMacroText: ACTIONBUTTON" .. buttonNum .. " regularFrame=" .. regularFrame
+    )
+    local overrideFrame = "OverrideActionBarButton" .. buttonNum
+    local overrideClick = IsAddonActionButtonFrame(overrideFrame)
+        and (overrideFrame .. " LeftButton " .. GetActionButtonUseKeyDownMacroSuffix())
+      or (overrideFrame .. " LeftButton")
+    local regularClick = IsAddonActionButtonFrame(regularFrame)
+        and (regularFrame .. " LeftButton " .. GetActionButtonUseKeyDownMacroSuffix())
+      or (regularFrame .. " LeftButton")
+    castLine = "/click [overridebar][possessbar][shapeshift][vehicleui] "
+      .. overrideClick
+      .. "; "
+      .. regularClick
   else
-    castLine = "/click " .. clickFrame
+    CM.DebugPrint(
+      "BuildClickCastMacroText: " .. bindingValue .. " effectiveFrame=" .. effectiveFrame
+    )
+    castLine = FormatClickLine(effectiveFrame, "LeftButton")
   end
 
   -- For ACTIONBUTTON bindings, check slot directly (same as IsSlotMacro) to avoid stale action attributes after dismounting
@@ -303,7 +484,7 @@ local function BuildClickCastMacroText(bindingValue)
   end
 
   local ok, actionFrame = pcall(function()
-    return _G[clickFrame]
+    return _G[effectiveFrame]
   end)
   if ok and actionFrame then
     local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action")
@@ -316,8 +497,16 @@ local function BuildClickCastMacroText(bindingValue)
         if atype == "macro" then
           return castLine
         end
+        -- Only wrap targeting logic for spells; items/mounts/etc. should just click normally.
+        if atype ~= "spell" then
+          return castLine
+        end
         -- Special action bar abilities (override, bonus, shapeshift): don't inject pre-line, just click the button directly
         if isSpecialBarButton then
+          return castLine
+        end
+        -- Non-combat spells (e.g. mounts) shouldn't get the targeting pre-line.
+        if not ShouldInjectTargetingForSpell(id) then
           return castLine
         end
         -- Ground-targeted spell from whitelist: use /cast [@cursor] only (no pre-line).
@@ -380,8 +569,8 @@ local function IsSlotMacro(bindingValue)
     end
   end
 
-  -- For non-ACTIONBUTTON bindings, use resolved frame and check its action
-  local frameToCheck = ResolveActionButtonFrame(bindingValue)
+  -- For non-ACTIONBUTTON bindings, use effective (addon) frame and check its action
+  local frameToCheck = GetEffectiveBarButtonFrameName(bindingValue)
   if not frameToCheck then
     return false
   end
@@ -404,7 +593,7 @@ end
 --- Spell id on the resolved action bar button for this binding, or nil if not a spell (e.g. macro, empty).
 --- Mirrors resolution inside BuildClickCastMacroText so behavior stays aligned.
 local function GetSpellIdForActionBarBinding(bindingName)
-  local clickFrame = ResolveActionButtonFrame(bindingName)
+  local clickFrame = GetEffectiveBarButtonFrameName(bindingName)
   if not clickFrame then
     return nil
   end
@@ -449,6 +638,32 @@ local function IsHouseEditorActive()
   return ok and active
 end
 
+local function IsMouseBindingKey(key)
+  if not key or key == "" then
+    return false
+  end
+  return key:match("BUTTON%d+") ~= nil or key:match("MOUSEWHEEL") ~= nil
+end
+
+-- Ground keyboard path: override keys to click a frame.
+-- Use LeftButton clicks; this is the most reliable click type across Blizzard bars and our proxy buttons.
+-- Priority overrides so ReassignBindings does not replace Combat Mode last.
+local GROUND_CAST_KEY_PRIORITY = true
+
+local function ApplyGroundCastKeyboardBinding(key, frameName)
+  if not key or not frameName or frameName == "" then
+    return
+  end
+  -- Prefer the binding-command form (CLICK frame:button). This is the same mechanism click-cast uses
+  -- (SetMouselookOverrideBinding to "CLICK …") and reliably triggers SecureActionButtonTemplate actions.
+  SetOverrideBinding(
+    GroundCastKeyOverrideOwner,
+    GROUND_CAST_KEY_PRIORITY,
+    key,
+    "CLICK " .. frameName .. ":LeftButton"
+  )
+end
+
 -- Override keyboard keys (Q, E, etc.) to click our slot frame so the same macro logic runs (pre-line + /click or /cast [@cursor] for ground spells). No per-spell macros.
 -- When macroInjectionClickCastOnly is true, skip keyboard overrides so only the 8 click-cast mouse bindings get the injection.
 function CM.ApplyGroundCastKeyOverrides()
@@ -468,40 +683,40 @@ function CM.ApplyGroundCastKeyOverrides()
   if IsHouseEditorActive() then
     return
   end
+
   for _, bindingName in ipairs(OrderedBindingNames) do
-    local key = GetBindingKey(bindingName)
-    if key then
-      local realFrame = ResolveActionButtonFrame(bindingName)
-      if realFrame and IsSlotMacro(bindingName) then
-        -- Slot is a macro: bind key to click the real action bar button directly (same as click-cast path).
-        -- Using an intermediate frame with a /click macro breaks in default UI (key doesn't fire the macro).
-        -- We refresh on UPDATE_OVERRIDE_ACTIONBAR etc., so the key will click OverrideActionBarButton when
-        -- mounted and ActionButton when not. In-combat dismount cannot refresh, so key may stay on override bar until out of combat.
-        SetOverrideBindingClick(GroundCastKeyOverrideOwner, false, key, realFrame, "LeftButton")
-      else
-        -- Excluded-from-reticle: no targeting pre-line needed, but CombatModeSlot* + macrotext is still a macro
-        -- path (breaks Press and Hold). SetOverrideBindingClick on the bar button simulates a mouse click and
-        -- often casts on release only. Dispatch the native binding name instead so keyboard + Press and Hold work.
-        local spellId = GetSpellIdForActionBarBinding(bindingName)
-        if
-          realFrame
-          and spellId
-          and IsExcludedFromTargetingSpell(spellId)
-          and not IsCastAtCursorSpell(spellId)
-        then
-          SetOverrideBinding(GroundCastKeyOverrideOwner, false, key, bindingName)
+    local key1 = GetBindingKey(bindingName)
+    local key2 = select(2, GetBindingKey(bindingName))
+    local keys = { key1, key2 }
+
+    for _, key in ipairs(keys) do
+      -- Never override mouse-button bindings here; click-cast already owns mouse buttons.
+      if key and not IsMouseBindingKey(key) then
+        local realFrame = GetEffectiveBarButtonFrameName(bindingName)
+        if realFrame and IsSlotMacro(bindingName) then
+          -- Slot is a macro: do not inject. Prefer the native binding name so the macro runs as written.
+          SetOverrideBinding(GroundCastKeyOverrideOwner, GROUND_CAST_KEY_PRIORITY, key, bindingName)
         else
-          local frame = SlotFramesByBindingName[bindingName]
-          local macroText = BuildClickCastMacroText(bindingName)
-          if frame and macroText then
-            SetClickCastFrameMacro(frame, macroText)
-            SetOverrideBindingClick(
+          local spellId = GetSpellIdForActionBarBinding(bindingName)
+          if
+            realFrame
+            and spellId
+            and IsExcludedFromTargetingSpell(spellId)
+            and not IsCastAtCursorSpell(spellId)
+          then
+            SetOverrideBinding(
               GroundCastKeyOverrideOwner,
-              false,
+              GROUND_CAST_KEY_PRIORITY,
               key,
-              frame:GetName(),
-              "LeftButton"
+              bindingName
             )
+          else
+            local frame = SlotFramesByBindingName[bindingName]
+            local macroText = BuildClickCastMacroText(bindingName)
+            if frame and macroText then
+              SetClickCastFrameMacro(frame, macroText)
+              ApplyGroundCastKeyboardBinding(key, frame:GetName())
+            end
           end
         end
       end
@@ -545,7 +760,7 @@ function CM.SetNewBinding(buttonSettings)
     if not CM.DB.char.reticleTargeting then
       valueToUse = value
     else
-      local realFrame = ResolveActionButtonFrame(value)
+      local realFrame = GetEffectiveBarButtonFrameName(value)
       if realFrame and IsSlotMacro(value) then
         -- Slot is a macro: bind key to click the real action bar button so the macro runs as written.
         valueToUse = "CLICK " .. realFrame .. ":" .. ClickCastMouseButton(key)
