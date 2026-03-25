@@ -22,6 +22,7 @@
     <Script file="Constants\ConstantsFrameWatch.lua"/>
     <Script file="Constants\ConstantsReticle.lua"/>
     <!-- FEATURES -->
+    <Script file="Features\AddonActionBarResolver.lua"/>
     <Script file="Features\ClickCasting.lua"/>
     <Script file="Features\Pulse.lua"/>
     <Script file="Features\Reticle.lua"/>
