@@ -228,16 +228,119 @@ local BT4_BINDING_PREFIX_TO_BAR_ID = {
   MULTIACTIONBAR6BUTTON = 14,
   MULTIACTIONBAR7BUTTON = 15,
 }
--- ElvUI bar index per binding prefix (Bar1 = main; 2–5 = common extra bars; layout may vary).
-local ELVUI_BINDING_PREFIX_TO_BAR = {
-  MULTIACTIONBAR1BUTTON = 2,
-  MULTIACTIONBAR2BUTTON = 3,
-  MULTIACTIONBAR3BUTTON = 4,
-  MULTIACTIONBAR4BUTTON = 5,
-  MULTIACTIONBAR5BUTTON = 6,
-  MULTIACTIONBAR6BUTTON = 7,
-  MULTIACTIONBAR7BUTTON = 8,
-}
+-- Per-action caches for addon button resolution (invalidated each RefreshClickCastMacros).
+local elvActionToButtonCache = {}
+local bt4ActionToButtonCache = {}
+local BT4_DYNAMIC_SCAN_MAX = 240
+
+local function ClearAddonButtonCaches()
+  for k in pairs(elvActionToButtonCache) do
+    elvActionToButtonCache[k] = nil
+  end
+  for k in pairs(bt4ActionToButtonCache) do
+    bt4ActionToButtonCache[k] = nil
+  end
+end
+
+local function GetButtonActionId(frameName)
+  if not frameName or frameName == "" then
+    return nil
+  end
+  local f = _G[frameName]
+  if not f then
+    return nil
+  end
+  local raw = f.GetAttribute and f:GetAttribute("action") or f.action
+  local n = raw and tonumber(raw)
+  if n and n > 0 then
+    return n
+  end
+  return nil
+end
+
+-- Scan ElvUI_Bar1..12 × Button1..12 for a button whose action slot matches actionId.
+-- Prefer shown frames; prefer matching slot index (binding slot) when multiple match.
+local function FindElvUIButtonByAction(actionId, btnIdx)
+  local preferredShown
+  local anyShown
+  local preferredHidden
+  local any
+  for bar = 1, 12 do
+    for slot = 1, 12 do
+      local name = "ElvUI_Bar" .. bar .. "Button" .. slot
+      local f = _G[name]
+      if f then
+        local aid = GetButtonActionId(name)
+        if aid == actionId then
+          any = any or name
+          local ok, shown = pcall(function()
+            return f:IsShown()
+          end)
+          shown = ok and shown
+          if shown then
+            anyShown = anyShown or name
+            if slot == btnIdx then
+              preferredShown = name
+            end
+          elseif slot == btnIdx then
+            preferredHidden = name
+          end
+        end
+      end
+    end
+  end
+  if preferredShown then
+    return preferredShown
+  end
+  if anyShown then
+    return anyShown
+  end
+  if preferredHidden then
+    return preferredHidden
+  end
+  return any
+end
+
+-- Scan BT4Button1..N for matching action id (slot within 12-bar row used as tie-breaker).
+local function FindBT4ButtonByAction(actionId, btnIdx)
+  local preferredShown
+  local anyShown
+  local preferredHidden
+  local any
+  for i = 1, BT4_DYNAMIC_SCAN_MAX do
+    local name = "BT4Button" .. i
+    local f = _G[name]
+    if f then
+      local aid = GetButtonActionId(name)
+      if aid == actionId then
+        any = any or name
+        local slot = ((i - 1) % 12) + 1
+        local ok, shown = pcall(function()
+          return f:IsShown()
+        end)
+        shown = ok and shown
+        if shown then
+          anyShown = anyShown or name
+          if slot == btnIdx then
+            preferredShown = name
+          end
+        elseif slot == btnIdx then
+          preferredHidden = name
+        end
+      end
+    end
+  end
+  if preferredShown then
+    return preferredShown
+  end
+  if anyShown then
+    return anyShown
+  end
+  if preferredHidden then
+    return preferredHidden
+  end
+  return any
+end
 
 local function ResolveAddonMultiBarButtonFrame(bindingValue)
   local prefix, slotStr = bindingValue:match("^(MULTIACTIONBAR%d+BUTTON)(%d+)$")
@@ -249,19 +352,46 @@ local function ResolveAddonMultiBarButtonFrame(bindingValue)
     return nil
   end
 
-  local bt4BarId = BT4_BINDING_PREFIX_TO_BAR_ID[prefix]
-  if bt4BarId then
-    local bt4Name = "BT4Button" .. ((bt4BarId - 1) * 12 + btnIdx)
-    if _G[bt4Name] then
-      return bt4Name
+  local base = ResolveActionButtonFrame(bindingValue)
+  if not base then
+    return nil
+  end
+  local actionId = GetButtonActionId(base)
+  if not actionId then
+    return nil
+  end
+
+  -- ElvUI: resolve by matching Blizzard action slot id (robust to non-standard bar layouts).
+  if _G["ElvUI_Bar1Button1"] then
+    local cached = elvActionToButtonCache[actionId]
+    if cached then
+      return cached
+    end
+    local elvName = FindElvUIButtonByAction(actionId, btnIdx)
+    if elvName then
+      elvActionToButtonCache[actionId] = elvName
+      return elvName
     end
   end
 
-  local elvBar = ELVUI_BINDING_PREFIX_TO_BAR[prefix]
-  if elvBar then
-    local elvName = "ElvUI_Bar" .. elvBar .. "Button" .. btnIdx
-    if _G[elvName] then
-      return elvName
+  -- Bartender: BT4_BINDING_PREFIX_TO_BAR_ID fast path, validated by action id; else full scan.
+  if _G["BT4Button1"] then
+    local cached = bt4ActionToButtonCache[actionId]
+    if cached then
+      return cached
+    end
+    local bt4BarId = BT4_BINDING_PREFIX_TO_BAR_ID[prefix]
+    if bt4BarId then
+      local bt4Fast = "BT4Button" .. ((bt4BarId - 1) * 12 + btnIdx)
+      if _G[bt4Fast] and GetButtonActionId(bt4Fast) == actionId then
+        bt4ActionToButtonCache[actionId] = bt4Fast
+        return bt4Fast
+      end
+    end
+    local bt4Name = FindBT4ButtonByAction(actionId, btnIdx)
+    if bt4Name then
+      bt4ActionToButtonCache[actionId] = bt4Name
+      return bt4Name
     end
   end
 
@@ -351,16 +481,13 @@ for _, bar in ipairs(CLICKCAST_BARS) do
   end
 end
 
+-- Owner frame only for ClearOverrideBindings / SetOverrideBinding*; proxy buttons live on UIParent
+-- like CombatModeClickCast* so secure macro execution matches the working mouselook path.
 local GroundCastKeyOverrideOwner = CreateFrame("Frame", nil, UIParent)
 local SlotFramesByBindingName = {}
 
 for idx, bindingName in ipairs(OrderedBindingNames) do
-  local f = CreateFrame(
-    "Button",
-    "CombatModeSlot" .. idx,
-    GroundCastKeyOverrideOwner,
-    "SecureActionButtonTemplate"
-  )
+  local f = CreateFrame("Button", "CombatModeSlot" .. idx, UIParent, "SecureActionButtonTemplate")
   f:SetAttribute("type", "macro")
   f:RegisterForClicks("AnyUp", "AnyDown")
   SlotFramesByBindingName[bindingName] = f
@@ -654,13 +781,13 @@ local function ApplyGroundCastKeyboardBinding(key, frameName)
   if not key or not frameName or frameName == "" then
     return
   end
-  -- Prefer the binding-command form (CLICK frame:button). This is the same mechanism click-cast uses
-  -- (SetMouselookOverrideBinding to "CLICK …") and reliably triggers SecureActionButtonTemplate actions.
-  SetOverrideBinding(
+  -- Match ApplyToggleFocusTargetBinding: SetOverrideBindingClick drives SecureActionButtonTemplate reliably.
+  SetOverrideBindingClick(
     GroundCastKeyOverrideOwner,
     GROUND_CAST_KEY_PRIORITY,
     key,
-    "CLICK " .. frameName .. ":LeftButton"
+    frameName,
+    "LeftButton"
   )
 end
 
@@ -728,6 +855,7 @@ function CM.RefreshClickCastMacros()
   if InCombatLockdown() then
     return
   end
+  ClearAddonButtonCaches()
   -- Re-apply all bindings so macro slots get "click real button" and spell slots get our frame.
   -- This refreshes both keyboard bindings (via ApplyGroundCastKeyOverrides) and mouse button bindings (via OverrideDefaultButtons)
   CM.OverrideDefaultButtons()
