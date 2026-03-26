@@ -26,6 +26,7 @@
     <Script file="Features\TargetingMacroBuilder.lua"/>
     <Script file="Features\BindingOverrides.lua"/>
     <Script file="Features\Animations.lua"/>
+    <Script file="Features\InteractionHUD.lua"/>
     <Script file="Features\Reticle.lua"/>
     <Script file="UI\CrosshairEditMode.lua"/>
     <Script file="Features\CursorUnlock.lua"/>
