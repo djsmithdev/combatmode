@@ -15,44 +15,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # manual-changelog path is relative to -t; use GITHUB_EVENT_PATH so "#" in the body is not lost.
-      - name: Prepend release body into CombatMode/CHANGELOG.md
-        run: |
-          python3 << 'PY'
-          import json
-          import os
-
-          path = os.environ["GITHUB_EVENT_PATH"]
-          with open(path, encoding="utf-8") as f:
-              event = json.load(f)
-
-          release = event.get("release") or {}
-          tag = (release.get("tag_name") or "").strip()
-          body = (release.get("body") or "").strip()
-          if not body:
-              body = "See the GitHub release page for notes."
-
-          # Normalize to include a heading if the release body doesn't start with one.
-          if tag and not body.startswith("#"):
-              body = f"## {tag}\n{body}"
-
-          if not body.endswith("\n"):
-              body += "\n"
-          body += "\n"
-
-          os.makedirs("CombatMode", exist_ok=True)
-          existing = ""
-          try:
-              with open("CombatMode/CHANGELOG.md", "r", encoding="utf-8") as f:
-                  existing = f.read()
-          except FileNotFoundError:
-              existing = ""
-
-          with open("CombatMode/CHANGELOG.md", "w", encoding="utf-8") as out:
-              out.write(body)
-              out.write(existing)
-          PY
-
       # release.sh requires a directory at $topdir/.git when using -t.
       - name: Point CombatMode at repository git
         run: ln -sfn ../.git CombatMode/.git
