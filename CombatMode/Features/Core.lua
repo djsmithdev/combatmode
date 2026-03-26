@@ -9,7 +9,7 @@
 --
 --  Architecture:
 --    • Loaded early (Features/Core.lua); defines _G.CM and CM.METADATA from the TOC.
---    • Calls into feature modules: Reticle, ClickCasting, Pulse, CursorUnlock,
+--    • Calls into feature modules: Reticle, ClickCasting, Animations, CursorUnlock,
 --      HealingRadial (Initialize / mouselook notifications / dismiss-on-load).
 --    • Exposes globals for XML: CombatMode_OnEvent, CombatMode_OnUpdate, keybind
 --      handlers (CombatMode_CursorModeKey, CombatMode_HealingRadialKey).

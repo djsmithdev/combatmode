@@ -25,7 +25,7 @@ Use this project map and conventions for all changes.
 - `Features/Reticle.lua`: owns crosshair visuals, interaction HUD reaction updates, and reticle-targeting behavior tied to relevant CVars. Crosshair reaction and cursor centering follow `CM.IsCrosshairEnabled()`; reticle-targeting options/CVars remain separate.
 - `Features/BindingOverrides.lua`: owns override binding/macro synthesis for mouse buttons and modified clicks; refreshes when bars/bindings change.
 - `Features/CursorUnlock.lua`: owns unlock predicates (frame visibility, mounts, pet battle, custom expression) and wildcard frame tracking.
-- `Features/Pulse.lua`: owns visual cursor pulse presentation after unlock/free-look transitions.
+- `Features/Animations.lua`: owns user-facing animations (cursor pulse after unlock/free-look transitions; crosshair reaction/lock-in presentation).
 - `Features/HealingRadial.lua`: owns radial frame lifecycle, selection tracking, secure cast attributes, and group/role slice updates.
 - `UI/CrosshairEditMode.lua`: owns Edit Mode registration, option controls, and persisted layout integration for the crosshair UI.
 - `Config/ConfigNamespace.lua`: initializes the `CM.Config` namespace only.

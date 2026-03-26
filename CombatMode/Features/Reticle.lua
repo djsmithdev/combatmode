@@ -43,7 +43,6 @@ local UnitNameUnmodified = _G.UnitNameUnmodified
 local issecretvalue = _G.issecretvalue
 local math = _G.math
 local strfind = _G.string.find
-local unpack = _G.unpack
 
 local ON_RETAIL_CLIENT = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
 
@@ -91,23 +90,8 @@ end
 local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
 local CrosshairVisualFrame = CreateFrame("Frame", nil, CrosshairFrame)
 local CrosshairTexture = CrosshairVisualFrame:CreateTexture(nil, "OVERLAY")
-local STARTING_SCALE = 1
-local ENDING_SCALE = 0.9
-local SCALE_DURATION = 0.15
-
-local function CreateCrosshairScaleAnimation(animGroup)
-  local scaleAnim = animGroup:CreateAnimation("Scale")
-  scaleAnim:SetDuration(SCALE_DURATION)
-  scaleAnim:SetScaleFrom(STARTING_SCALE, STARTING_SCALE)
-  scaleAnim:SetScaleTo(ENDING_SCALE, ENDING_SCALE)
-  scaleAnim:SetSmoothProgress(SCALE_DURATION)
-  scaleAnim:SetSmoothing("IN_OUT")
-end
-
-CM.CreateCrosshairScaleAnimation = CreateCrosshairScaleAnimation
-
 local CrosshairAnimation = CrosshairVisualFrame:CreateAnimationGroup()
-CreateCrosshairScaleAnimation(CrosshairAnimation)
+CM.CreateCrosshairScaleAnimation(CrosshairAnimation)
 
 function CM.HideCrosshairWhileMounted()
   return CM.DB.global.crosshairMounted and IsMounted()
@@ -629,50 +613,9 @@ function CM.SyncCrosshairLayoutPositionFromAce()
   }
 end
 
---- Apply crosshair texture, color, and scale animation to a frame (live reticle or edit preview).
---- @param verticalOffset number Y offset from parent center (world crosshair uses saved crosshairY; preview uses 0).
---- @param previewMode boolean If true, always show the texture for non-mounted states (no mouselook check).
-local function ApplyCrosshairAppearanceToWidget(
-  targetFrame,
-  targetTexture,
-  animGroup,
-  state,
-  verticalOffset,
-  previewMode
-)
-  local CrosshairAppearance = CM.DB.global.crosshairAppearance
-  if not CrosshairAppearance then
-    return
-  end
-  local r, g, b, a = unpack(CM.Constants.CrosshairReactionColors[state])
-  local textureToUse = state == "base" and CrosshairAppearance.Base or CrosshairAppearance.Active
-  local reverseAnimation = state == "base" and true or false
-  local parent = targetFrame:GetParent()
-
-  animGroup:SetScript("OnFinished", function()
-    if state ~= "base" then
-      targetFrame:SetScale(ENDING_SCALE)
-      targetFrame:SetPoint("CENTER", parent, "CENTER", 0, verticalOffset / ENDING_SCALE)
-    end
-  end)
-
-  targetTexture:SetTexture(textureToUse)
-  targetTexture:SetVertexColor(r, g, b, a)
-  if previewMode or (state ~= "mounted" and IsMouselooking()) then
-    targetTexture:Show()
-  end
-  animGroup:Play(reverseAnimation)
-  if state == "base" then
-    targetFrame:SetScale(STARTING_SCALE)
-    targetFrame:SetPoint("CENTER", parent, "CENTER", 0, verticalOffset)
-  end
-end
-
-CM.ApplyCrosshairAppearanceToWidget = ApplyCrosshairAppearanceToWidget
-
 local function SetCrosshairAppearance(state)
   -- Visual is centered in CrosshairFrame; screen Y offset is on the container, so local offset is 0.
-  ApplyCrosshairAppearanceToWidget(
+  CM.ApplyCrosshairAppearanceToWidget(
     CrosshairVisualFrame,
     CrosshairTexture,
     CrosshairAnimation,
@@ -711,6 +654,13 @@ function CM.CreateCrosshair()
   CrosshairVisualFrame:SetSize(crosshairSize, crosshairSize)
   CrosshairVisualFrame:SetPoint("CENTER", CrosshairFrame, "CENTER", 0, 0)
   CrosshairVisualFrame:SetAlpha(crosshairOpacity)
+
+  CM.InitCrosshairAnimations({
+    outerFrame = CrosshairFrame,
+    visualFrame = CrosshairVisualFrame,
+    texture = CrosshairTexture,
+    onLockInComplete = AdjustCenteredCursorYPos,
+  })
 
   CM.ApplyCrosshairPositionForLayout(GetActiveLayoutNameSafe())
   SetCrosshairAppearance("base")
@@ -860,66 +810,6 @@ end
 ---------------------------------------------------------------------------------------
 --                            CROSSHAIR LOCK-IN ANIMATION                             --
 ---------------------------------------------------------------------------------------
-local LOCK_IN_DURATION = 0.25
-local LOCK_IN_STARTING_SCALE = 1.3
-local LOCK_IN_STARTING_ALPHA = 0.0
-local LOCK_IN_TOTAL_ELAPSED = -1
-local LOCK_IN_TARGET_SCALE = 1.0
-local LOCK_IN_TARGET_ALPHA = 1.0
-
-local function UpdateCrosshairLockIn(_, elapsed)
-  if LOCK_IN_TOTAL_ELAPSED == -1 then
-    return
-  end
-
-  LOCK_IN_TOTAL_ELAPSED = LOCK_IN_TOTAL_ELAPSED + elapsed
-
-  if LOCK_IN_TOTAL_ELAPSED >= LOCK_IN_DURATION then
-    LOCK_IN_TOTAL_ELAPSED = -1
-    CrosshairVisualFrame:SetScale(LOCK_IN_TARGET_SCALE)
-    CrosshairVisualFrame:SetAlpha(LOCK_IN_TARGET_ALPHA)
-    CrosshairVisualFrame:SetPoint("CENTER", CrosshairFrame, "CENTER", 0, 0)
-    AdjustCenteredCursorYPos()
-    return
-  end
-
-  local progress = LOCK_IN_TOTAL_ELAPSED / LOCK_IN_DURATION
-  progress = math.max(0, math.min(1, progress))
-  local easedProgress = 1 - (1 - progress) * (1 - progress)
-
-  local currentScale = LOCK_IN_STARTING_SCALE
-    + (LOCK_IN_TARGET_SCALE - LOCK_IN_STARTING_SCALE) * easedProgress
-  currentScale = math.max(0.01, currentScale)
-  CrosshairVisualFrame:SetScale(currentScale)
-
-  local currentAlpha = LOCK_IN_STARTING_ALPHA
-    + (LOCK_IN_TARGET_ALPHA - LOCK_IN_STARTING_ALPHA) * easedProgress
-  CrosshairVisualFrame:SetAlpha(currentAlpha)
-end
-
-function CM.ShowCrosshairLockIn()
-  if not CM.IsCrosshairEnabled() then
-    return
-  end
-
-  CrosshairTexture:Show()
-  local DefaultConfig = CM.Constants.DatabaseDefaults.global
-  local UserConfig = CM.DB.global or {}
-  local configuredOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
-
-  local currentScale = CrosshairVisualFrame:GetScale()
-  LOCK_IN_STARTING_SCALE = currentScale * 1.3
-  LOCK_IN_STARTING_ALPHA = 0.0
-  LOCK_IN_TARGET_SCALE = 1.0
-  LOCK_IN_TARGET_ALPHA = configuredOpacity
-
-  CrosshairVisualFrame:SetPoint("CENTER", CrosshairFrame, "CENTER", 0, 0)
-  CrosshairVisualFrame:SetScale(LOCK_IN_STARTING_SCALE)
-  CrosshairVisualFrame:SetAlpha(LOCK_IN_STARTING_ALPHA)
-
-  LOCK_IN_TOTAL_ELAPSED = 0
-end
-
 CrosshairFrame:SetScript("OnEvent", function(_, event, _, newTarget)
   if event == "PLAYER_SOFT_INTERACT_CHANGED" then
     if newTarget then
@@ -930,16 +820,13 @@ CrosshairFrame:SetScript("OnEvent", function(_, event, _, newTarget)
   end
 end)
 CrosshairFrame:RegisterEvent("PLAYER_SOFT_INTERACT_CHANGED")
-CrosshairFrame:SetScript("OnUpdate", function(self, elapsed)
-  UpdateCrosshairLockIn(self, elapsed)
-end)
 
 ---------------------------------------------------------------------------------------
 --              CORE HOOKS (REMATCH / EVENTS / DISABLE)                              --
 ---------------------------------------------------------------------------------------
 function CM.OnRematchCrosshair()
   if CM.IsCrosshairEnabled() then
-    LOCK_IN_TOTAL_ELAPSED = -1
+    CM.CancelCrosshairLockIn()
     CM.CreateCrosshair()
     if CM.HideCrosshairWhileMounted() then
       SetCrosshairAppearance("mounted")
