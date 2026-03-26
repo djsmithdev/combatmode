@@ -157,9 +157,9 @@ function CM.SetFontStringFromTemplate(fontString, pixelSize, templateFontObject)
     return
   end
   local template = templateFontObject or _G.GameFontNormalSmall
-  local path, _h, flags
+  local path, flags
   if template and template.GetFont then
-    path, _h, flags = template:GetFont()
+    path, _, flags = template:GetFont()
   end
   if type(path) ~= "string" or path == "" then
     path = FALLBACK_UI_FONT_PATH

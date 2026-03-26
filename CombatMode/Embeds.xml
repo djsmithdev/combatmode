@@ -23,7 +23,8 @@
     <Script file="Constants\ConstantsReticle.lua"/>
     <!-- FEATURES -->
     <Script file="Features\AddonActionBarResolver.lua"/>
-    <Script file="Features\ClickCasting.lua"/>
+    <Script file="Features\TargetingMacroBuilder.lua"/>
+    <Script file="Features\BindingOverrides.lua"/>
     <Script file="Features\Pulse.lua"/>
     <Script file="Features\Reticle.lua"/>
     <Script file="UI\CrosshairEditMode.lua"/>
