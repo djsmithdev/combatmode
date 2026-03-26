@@ -68,6 +68,10 @@
     "duplicate-set-field",
     "inject-field"
   ],
+  "Lua.diagnostics.severity": {
+    "unused-local": "Warning",
+    "unused-function": "Warning"
+  },
   "Lua.runtime.builtin": {
     "basic": "disable",
     "debug": "disable",

@@ -27,7 +27,7 @@ Use this checklist for feature work and regressions.
 - Validate modifier variants (Shift/Ctrl/Alt) map to expected spells/macros.
 - Verify behavior remains stable in combat (no insecure action taint/errors).
 
-## Cursor unlock and pulse
+## Cursor unlock and cursor pulse
 
 - Trigger configured unlock conditions (UI panels/custom Lua if applicable).
 - Confirm mouselook unlocks when expected and relocks when expected.

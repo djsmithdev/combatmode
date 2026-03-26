@@ -4,8 +4,10 @@
 --  Applies ConfigReticleTargeting / ConfigInteractionHUDSoftTarget (minimal SoftTarget when
 --  crosshair + Interaction HUD, reticle off) / soft-target friend toggles, draws the on-screen
 --  crosshair (container + inner visual for reaction scale animation and lock-in),
---  and tracks mouseover/soft-target state for appearance. LibEditMode registration,
---  Edit Mode settings, and the crosshair preview panel live in UI/CrosshairEditMode.lua.
+--  and tracks mouseover/soft-target state for appearance.
+--
+--  Note: Interaction HUD presentation is implemented in Features/InteractionHUD.lua.
+--  Crosshair animation helpers live in Features/Animations.lua.
 --
 --  Architecture:
 --    • Core drives CreateCrosshair from BootstrapFeatureModules; RegisterCrosshairEditMode
@@ -14,7 +16,10 @@
 --    • Cursor Y sync uses AdjustCenteredCursorYPos → CursorCenteredYPos when the crosshair
 --      is enabled (Edit Mode); SetCursorFreelookCentering lives in Core.
 --    • CM.ApplyCrosshairAppearanceToWidget / CM.CreateCrosshairScaleAnimation are exposed
---      for the Edit Mode preview; EditModeSystemDisplayName (Constants) avoids TOC |T|t in labels.
+--      for the Edit Mode preview (implemented in Features/Animations.lua).
+--    • Interaction HUD widget lifecycle is owned by Features/InteractionHUD.lua and is
+--      registered against the crosshair frame via CM.InitInteractionHUD.
+--    • EditModeSystemDisplayName (Constants) avoids TOC |T|t in labels.
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub

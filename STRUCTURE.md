@@ -9,7 +9,7 @@ from [`CombatMode/CombatMode.toc`](CombatMode/CombatMode.toc)).
 |--------|------|
 | **CombatMode/Libs/** | Embedded libraries (LibStub, Ace3, LibEditMode, …); treat as vendored code per `.cursor/rules/combatmode-vendored-libs.mdc`. |
 | **CombatMode/Constants/** | Static tables and constants consumed by runtime modules (frame watch tables, radial data, reticle data, etc.). |
-| **CombatMode/Features/** | Runtime behavior modules: AceAddon shell, crosshair, click overrides, pulse, cursor unlock, healing radial. |
+| **CombatMode/Features/** | Runtime behavior modules: AceAddon shell, crosshair/reticle targeting, click overrides, cursor unlock, healing radial, plus supporting modules (animations, interaction HUD, macro builders, addon bar resolvers). |
 | **CombatMode/Config/** | AceConfig option tables (`Config*.lua`), shared UI helpers (`ConfigShared.lua`), and assembly (`ConfigCategories.lua` → `CM.Config.OptionCategories`). |
 | **CombatMode/UI/** | Non-AceConfig client UI (e.g. LibEditMode crosshair registration and preview). |
 | **CombatMode/assets/** | Art and title textures referenced by the TOC and UI. |
