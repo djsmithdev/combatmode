@@ -23,7 +23,6 @@ local IsMouseButtonDown = _G.IsMouseButtonDown
 local IsMouselooking = _G.IsMouselooking
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
-local SetCVar = _G.C_CVar.SetCVar
 local SpellIsTargeting = _G.SpellIsTargeting
 
 -- Lua stdlib
@@ -102,10 +101,10 @@ function CM.SetCursorFreelookCentering(shouldCenter)
   -- Edit Mode crosshair drives aligned cursor (CursorFreelookCentering + CursorCenteredYPos in Crosshair).
   local useCrosshairCursor = shouldCenter and CM.IsCrosshairEnabled()
   if useCrosshairCursor then
-    SetCVar("CursorFreelookCentering", 1)
+    CM.SetCursorFreelookCenteringCVar(true)
     CM.DebugPrint("Locking cursor to crosshair position.")
   else
-    SetCVar("CursorFreelookCentering", 0)
+    CM.SetCursorFreelookCenteringCVar(false)
     CM.DebugPrint("Freeing cursor from crosshair position.")
   end
 end

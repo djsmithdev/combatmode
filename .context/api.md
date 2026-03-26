@@ -12,10 +12,16 @@ See `.cursor/rules/wow-mcp-first.mdc` for the full reliability order.
 
 ## Fallback
 
-If MCP is unavailable or incomplete:
+Only use the web if MCP is unavailable, incomplete, or you need narrative/bug-context that isn’t captured by signatures/events.
+
+Preferred web sources:
 
 - [World of Warcraft API (wiki.gg)](https://warcraft.wiki.gg/wiki/World_of_Warcraft_API)
 - [Widget API (wiki.gg)](https://warcraft.wiki.gg/wiki/Widget_API)
+
+Secondary / last resort (only if wiki.gg lacks the detail you need):
+
+- [World of Warcraft API (Wowpedia)](https://wowpedia.fandom.com/wiki/World_of_Warcraft_API)
 
 ## Lua
 

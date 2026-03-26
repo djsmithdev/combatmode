@@ -1,0 +1,25 @@
+---
+description: Keep architecture docs + module headers updated with refactors
+alwaysApply: true
+---
+
+# Docs + headers must track architecture changes
+
+When you **move responsibilities**, **rename/delete modules**, or **change load order**, you must update the repo’s architecture docs and the touched module headers in the same change set.
+
+## Required updates when architecture changes
+
+- **Load order**: update `CombatMode/Embeds.xml` (and ensure new modules load before their consumers).
+- **Module map**: update `.cursor/rules/combatmode-architecture-and-style.mdc`.
+- **Developer docs**: update `STRUCTURE.md` and `AGENTS.md` if the module graph or responsibilities changed.
+- **Agent context**: update `.context/patterns.md` (and `.context/api.md` if workflow guidance changed).
+- **File headers**: for any edited/added `CombatMode/**.lua`, keep the top-of-file header accurate:
+  - current file path/name
+  - what the module owns (and what it explicitly does not)
+  - related modules for shared responsibilities
+
+## Keep behavior stable by default
+
+- Prefer **API-preserving moves**: keep existing `CM.*` function names and global handlers unless explicitly requested.
+- If behavior changes are intended, call them out and update docs accordingly.
+

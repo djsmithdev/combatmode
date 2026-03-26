@@ -19,7 +19,12 @@ from [`CombatMode/CombatMode.toc`](CombatMode/CombatMode.toc)).
 1. **CombatMode/Libs** — dependency order preserved in `CombatMode/Embeds.xml`.
 2. **CombatMode/Core/Runtime.lua** — must run first so `AceAddon:NewAddon("CombatMode")` exists.
 3. **CombatMode/Constants/** — constants/data modules initialize `CM.Constants` and must load before feature consumers.
-4. **CombatMode/Core/** — remaining runtime scripts, including **Core/FreeLookController.lua** for mouselook state transitions, then **CombatMode/UI/CrosshairEditMode.lua** after **CombatMode/Core/Crosshair.lua** (Edit Mode uses `CM` APIs).
+4. **CombatMode/Core/** — remaining runtime scripts. Runtime “submodules” loaded immediately after constants:
+   - **Core/RuntimeEventRouter.lua** (event routing + `_G.CombatMode_OnEvent`)
+   - **Core/RuntimeCVarManager.lua** (all CVar-writing helpers)
+   - **Core/RuntimeBindingQueue.lua** (combat-safe deferred binding updates)
+   - **Core/RuntimeBootstrap.lua** (startup sequence)
+   Then feature modules, including **Core/FreeLookController.lua** for mouselook transitions, and **CombatMode/UI/CrosshairEditMode.lua** after **CombatMode/Core/Crosshair.lua** (Edit Mode uses `CM` APIs).
 5. **CombatMode/Config/** — `ConfigShared.lua` first (defines `CM.Config.OptionsUI`), then each `Config*.lua`, then **ConfigCategories.lua** (wires `CM.Config.OptionCategories`).
 6. **Frame** — `CombatModeFrame` XML in `CombatMode/Embeds.xml`; scripts call globals defined in **CombatMode/Core/Runtime.lua**.
 

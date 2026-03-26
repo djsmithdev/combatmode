@@ -25,7 +25,11 @@ This file defines how AI agents should work in this addon workspace.
 - `CombatMode/CombatMode.toc`: metadata, SavedVariables, top-level include.
 - `CombatMode/Embeds.xml`: load order and root frame script wiring.
 - `CombatMode/Core/`: runtime behavior modules.
-  - `Core/Runtime.lua`: lifecycle + event orchestration.
+  - `Core/Runtime.lua`: lifecycle + cross-feature orchestration + global `CombatMode_OnUpdate`.
+  - `Core/RuntimeEventRouter.lua`: centralized event dispatch + global `CombatMode_OnEvent`.
+  - `Core/RuntimeCVarManager.lua`: all CVar-writing helpers and reset-to-default.
+  - `Core/RuntimeBindingQueue.lua`: combat-safe deferred binding updates.
+  - `Core/RuntimeBootstrap.lua`: startup sequence (`CM.BootstrapFeatureModules`).
   - `Core/FreeLookController.lua`: mouselook/free-look state machine and cursor mode keybind flow.
 - `CombatMode/Config/`: AceConfig option builders and options assembly.
 - `CombatMode/UI/`: non-Ace UI integrations (Edit Mode crosshair).

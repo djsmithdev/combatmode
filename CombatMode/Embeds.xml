@@ -21,11 +21,14 @@
     <Script file="Constants\ConstantsHealingRadial.lua"/>
     <Script file="Constants\ConstantsFrameWatch.lua"/>
     <Script file="Constants\ConstantsReticle.lua"/>
+    <Script file="Core\RuntimeEventRouter.lua"/>
+    <Script file="Core\RuntimeCVarManager.lua"/>
+    <Script file="Core\RuntimeBindingQueue.lua"/>
+    <Script file="Core\RuntimeBootstrap.lua"/>
     <!-- CORE MODULES -->
     <Script file="Core\AddonActionBarResolver.lua"/>
     <Script file="Core\TargetingMacroBuilder.lua"/>
     <Script file="Core\BindingOverrides.lua"/>
-    <Script file="Core\ReticleTargetingCVars.lua"/>
     <Script file="Core\FreeLookController.lua"/>
     <Script file="Core\Animations.lua"/>
     <Script file="Core\InteractionHUD.lua"/>

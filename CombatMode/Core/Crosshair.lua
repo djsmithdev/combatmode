@@ -6,7 +6,7 @@
 --  and exposes helpers used by the Edit Mode preview panel.
 --
 --  Related modules:
---    • Core/ReticleTargetingCVars.lua: reticle-targeting + Interaction HUD SoftTarget CVar presets.
+--    • Core/RuntimeCVarManager.lua: reticle-targeting + Interaction HUD SoftTarget CVar presets.
 --    • Core/InteractionHUD.lua: Interaction HUD widget presentation/lifecycle.
 --    • Core/Animations.lua: crosshair animation helpers used by Edit Mode preview and lock-in.
 --
@@ -32,7 +32,6 @@ local GetCursorPosition = _G.GetCursorPosition
 local InCombatLockdown = _G.InCombatLockdown
 local IsMounted = _G.IsMounted
 local IsMouselooking = _G.IsMouselooking
-local SetCVar = _G.C_CVar.SetCVar
 local UIParent = _G.UIParent
 local UnitCanAttack = _G.UnitCanAttack
 local UnitExists = _G.UnitExists
@@ -88,8 +87,7 @@ local function AdjustCenteredCursorYPos()
     return
   end
   local normalized = cy / h
-  normalized = math.max(0.01, math.min(0.99, normalized))
-  SetCVar("CursorCenteredYPos", normalized)
+  CM.SetCursorCenteredYPos(normalized)
 end
 
 local function GetActiveLayoutNameSafe()

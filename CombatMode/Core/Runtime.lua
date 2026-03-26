@@ -12,8 +12,8 @@
 --      Animations, AutoCursorUnlock, HealingRadial.
 --    • Exposes globals for XML: CombatMode_OnEvent, CombatMode_OnUpdate, keybind
 --      handlers (CombatMode_CursorModeKey, CombatMode_HealingRadialKey).
---    • Shared CVar helpers here (ApplyCVarConfig, camera, sticky, shoulder, speed)
---      are used by Config and by Crosshair/ReticleTargetingCVars.
+--    • Shared CVar helpers live in Core/RuntimeCVarManager.lua and are used by Config
+--      and by Crosshair/Interaction HUD flows.
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
@@ -24,11 +24,8 @@ local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local AceConfigCmd = LibStub("AceConfigCmd-3.0")
 
 -- WoW API
-local CreateMacro = _G.CreateMacro
 local DisableAddOn = _G.C_AddOns.DisableAddOn
 local GetAddOnMetadata = _G.C_AddOns.GetAddOnMetadata
-local GetBindingKey = _G.GetBindingKey
-local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local GetMacroInfo = _G.GetMacroInfo
 local GetTime = _G.GetTime
 local InCombatLockdown = _G.InCombatLockdown
@@ -36,54 +33,16 @@ local IsMouselooking = _G.IsMouselooking
 local OpenToCategory = _G.Settings.OpenToCategory
 local OpenSettingsPanel = _G.C_SettingsUtil and _G.C_SettingsUtil.OpenSettingsPanel
 local ReloadUI = _G.ReloadUI
-local SaveBindings = _G.SaveBindings
-local SetBinding = _G.SetBinding
-local SetCVar = _G.C_CVar.SetCVar
 local StaticPopupDialogs = _G.StaticPopupDialogs
 local StaticPopup_Show = _G.StaticPopup_Show
-local UIParent = _G.UIParent
-local C_Timer = _G.C_Timer
 
 -- Lua stdlib
 local ipairs = _G.ipairs
 local type = _G.type
-local pcall = _G.pcall
 
 -- INSTANTIATING ADDON & ENCAPSULATING NAMESPACE
 local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 _G["CM"] = CM
-
-local deferredBindingQueue = {}
-local eventCategoryMap = {}
-
--- Coalesce REFRESH_BINDINGS_EVENTS: one RefreshClickCastMacros after bursts.
-local clickCastRefreshGen = 0
-local clickCastRefreshReason = "bar" -- "cvar" | "bar"
-
-local function DebugPrintClickCastRefreshReason()
-  if clickCastRefreshReason == "cvar" then
-    CM.DebugPrint("ActionButtonUseKeyDown changed, refreshing binding macros")
-  else
-    CM.DebugPrint("Action Bar state changed, refreshing binding macros")
-  end
-end
-
-local function ScheduleClickCastBindingRefresh()
-  if not C_Timer or not C_Timer.After then
-    DebugPrintClickCastRefreshReason()
-    CM.RefreshClickCastMacros()
-    return
-  end
-  clickCastRefreshGen = clickCastRefreshGen + 1
-  local myGen = clickCastRefreshGen
-  C_Timer.After(0.1, function()
-    if myGen ~= clickCastRefreshGen then
-      return
-    end
-    DebugPrintClickCastRefreshReason()
-    CM.RefreshClickCastMacros()
-  end)
-end
 
 ---------------------------------------------------------------------------------------
 --                                 UTILITY FUNCTIONS                                 --
@@ -155,59 +114,6 @@ function CM.SetFontStringFromTemplate(fontString, pixelSize, templateFontObject)
   fontString:SetFont(path, pixelSize, flags)
 end
 
-function CM.TryApplyBindingChange(context, applyFn)
-  if type(applyFn) ~= "function" then
-    return false
-  end
-
-  if InCombatLockdown() then
-    deferredBindingQueue[#deferredBindingQueue + 1] = {
-      context = context or "binding change",
-      applyFn = applyFn,
-    }
-    print(
-      CM.Constants.BasePrintMsg
-        .. "|cff909090: deferred "
-        .. (context or "binding change")
-        .. " until combat ends.|r"
-    )
-    return false
-  end
-
-  local ok, err = pcall(applyFn)
-  if not ok then
-    print(
-      CM.Constants.BasePrintMsg
-        .. "|cff909090: failed to apply "
-        .. (context or "binding change")
-        .. ": "
-        .. tostring(err)
-        .. "|r"
-    )
-    return false
-  end
-
-  return true
-end
-
-function CM.FlushDeferredBindingChanges()
-  if InCombatLockdown() then
-    return
-  end
-  if #deferredBindingQueue == 0 then
-    return
-  end
-
-  local pending = deferredBindingQueue
-  deferredBindingQueue = {}
-
-  for _, change in ipairs(pending) do
-    CM.TryApplyBindingChange(change.context, change.applyFn)
-  end
-
-  print(CM.Constants.BasePrintMsg .. "|cff909090: applied deferred binding updates.|r")
-end
-
 local function OpenConfigPanel()
   if InCombatLockdown() then
     print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open settings while in combat.|r")
@@ -265,20 +171,6 @@ function CM.MacroExists(name)
   return GetMacroInfo(name) ~= nil
 end
 
-local function CreateTargetMacros()
-  local function createMacroIfNotExists(macroName, icon, macroText)
-    if not CM.MacroExists(macroName) then
-      CreateMacro(macroName, icon, macroText, false)
-    end
-  end
-
-  local macroIcon = "ability_hisek_aim"
-
-  for macroName, macroText in pairs(CM.Constants.Macros) do
-    createMacroIfNotExists(macroName, macroIcon, macroText)
-  end
-end
-
 --[[
   Checking if DynamicCam is loaded so we can relinquish control of a few camera features
   as DynamicCam allows fine-grained control of Mouselook Speed & Target Focus
@@ -292,117 +184,6 @@ local function IsDCLoaded()
       CM.Constants.BasePrintMsg
         .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over control of |cffE37527• Camera Features|r.|r"
     )
-  end
-end
-
----------------------------------------------------------------------------------------
---                              CVAR HANDLING FUNCTIONS                              --
----------------------------------------------------------------------------------------
-function CM.ApplyCVarConfig(info)
-  local CVarType, CMValues, BlizzValues, FeatureName =
-    info.CVarType, info.CMValues, info.BlizzValues, info.FeatureName
-  local CVarsToLoad
-
-  if CVarType == "combatmode" then
-    CVarsToLoad = CMValues
-    CM.DebugPrint(FeatureName .. " CVars LOADED")
-  elseif CVarType == "blizzard" then
-    CVarsToLoad = BlizzValues
-    CM.DebugPrint(FeatureName .. " CVars RESET")
-  else
-    CM.DebugPrint(
-      "Invalid CVarType in CM.ApplyCVarConfig for " .. FeatureName .. ": " .. tostring(CVarType)
-    )
-    return
-  end
-
-  for name, value in pairs(CVarsToLoad) do
-    SetCVar(name, value)
-  end
-end
-
-function CM.ConfigActionCamera(CVarType)
-  if CM.DynamicCam then
-    return
-  end
-
-  local info = {
-    CVarType = CVarType,
-    CMValues = CM.Constants.ActionCameraCVarValues,
-    BlizzValues = CM.Constants.BlizzardActionCameraCVarValues,
-    FeatureName = "Action Camera",
-  }
-
-  CM.ApplyCVarConfig(info)
-  if CVarType == "combatmode" then
-    CM.SetShoulderOffset()
-  end
-  -- Disable the Action Cam warning message.
-  UIParent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
-end
-
-function CM.ConfigStickyCrosshair(CVarType)
-  if CM.DynamicCam then
-    return
-  end
-
-  local info = {
-    CVarType = CVarType,
-    CMValues = CM.Constants.TargetFocusCVarValues,
-    BlizzValues = CM.Constants.BlizzardTargetFocusCVarValues,
-    FeatureName = "Sticky Crosshair",
-  }
-
-  CM.ApplyCVarConfig(info)
-end
-
-function CM.SetMouseLookSpeed()
-  if CM.DynamicCam then
-    return
-  end
-
-  local XSpeed = CM.DB.global.mouseLookSpeed
-  local YSpeed = CM.DB.global.mouseLookSpeed / 2 -- Blizz wants pitch speed as 1/2 of yaw speed
-  SetCVar("cameraYawMoveSpeed", XSpeed)
-  SetCVar("cameraPitchMoveSpeed", YSpeed)
-  CM.DebugPrint("Setting Camera Turn Speed X to " .. XSpeed .. " and Y to " .. YSpeed)
-end
-
-function CM.SetShoulderOffset()
-  if CM.DynamicCam then
-    return
-  end
-
-  local offset = CM.DB.char.shoulderOffset
-  SetCVar("test_cameraOverShoulder", offset)
-  CM.DebugPrint("Setting Shoulder Offset to " .. offset)
-end
-
-function CM:ResetCVarsToDefault()
-  self.ConfigReticleTargeting("blizzard")
-  self.ConfigActionCamera("blizzard")
-  self.ConfigStickyCrosshair("blizzard")
-  self.HandleSoftTargetFriend(false)
-
-  print(CM.Constants.BasePrintMsg .. "|cff909090: all changes have been reverted.|r")
-end
-
--- Unbinding MOVEANDSTEER to avoid potential bug when toggling free look with the same key
-local function UnbindMoveAndSteer()
-  CM.TryApplyBindingChange("MOVEANDSTEER unbind", function()
-    local key = GetBindingKey("MOVEANDSTEER")
-    if key then
-      SetBinding(key, "Combat Mode - Mouse Look")
-    end
-    SaveBindings(GetCurrentBindingSet())
-  end)
-end
-
--- Matches the bindable actions values defined in Constants.ActionsToProcess with more readable names for the UI
-local function RenameBindableActions()
-  for _, bindingAction in pairs(CM.Constants.ActionsToProcess) do
-    local bindingUiName = _G["BINDING_NAME_" .. bindingAction]
-    CM.Constants.OverrideActions[bindingAction] = bindingUiName or bindingAction
   end
 end
 
@@ -439,98 +220,7 @@ local function Rematch()
   CM.LockFreeLook()
 end
 
---[[
-Handle events based on their category.
-You need to first register the event in the CM.Constants.BLIZZARD_EVENTS table before using it here.
-Checks which category in the table the event that's been fired belongs to, and then calls the appropriate function.
-]]
---
-local function HandleEventByCategory(category, event, ...)
-  local cvarName = select(1, ...)
-  local eventHandlers = {
-    UNLOCK_EVENTS = function()
-      CM.UnlockFreeLook()
-    end,
-    LOCK_EVENTS = function()
-      CM.LockFreeLook()
-    end,
-    REMATCH_EVENTS = function()
-      Rematch()
-    end,
-    FRIENDLY_TARGETING_EVENTS = function()
-      -- Handle combat start/end for healing radial
-      if CM.HealingRadial then
-        if event == "PLAYER_REGEN_DISABLED" and CM.HealingRadial.OnCombatStart then
-          CM.HealingRadial.OnCombatStart()
-        elseif event == "PLAYER_REGEN_ENABLED" and CM.HealingRadial.OnCombatEnd then
-          CM.HealingRadial.OnCombatEnd()
-        end
-      end
-      if event == "PLAYER_REGEN_ENABLED" then
-        CM.FlushDeferredBindingChanges()
-      end
-    end,
-    UNCATEGORIZED_EVENTS = function()
-      CM.OnCrosshairUncategorizedEvent()
-    end,
-    REFRESH_BINDINGS_EVENTS = function()
-      if event == "CVAR_UPDATE" then
-        if cvarName ~= "ActionButtonUseKeyDown" then
-          return
-        end
-      end
-
-      if event == "CVAR_UPDATE" then
-        clickCastRefreshReason = "cvar"
-      else
-        clickCastRefreshReason = "bar"
-      end
-      ScheduleClickCastBindingRefresh()
-
-      if event == "CVAR_UPDATE" then
-        return
-      end
-
-      -- Healing Radial: update slice targets and spell attributes when roster or action bar changes
-      if not CM.HealingRadial then
-        return
-      end
-      if event == "GROUP_ROSTER_UPDATE" and CM.HealingRadial.OnGroupRosterUpdate then
-        CM.HealingRadial.OnGroupRosterUpdate()
-      elseif CM.HealingRadial.OnActionBarChanged then
-        CM.HealingRadial.OnActionBarChanged()
-      end
-    end,
-    FOCUS_LOCK_EVENTS = function()
-      CM.OnCrosshairFocusLockEvent(event)
-    end,
-  }
-
-  if eventHandlers[category] then
-    eventHandlers[category]()
-  end
-end
-
-local function BuildEventCategoryMap()
-  eventCategoryMap = {}
-  for category, registeredEvents in pairs(CM.Constants.BLIZZARD_EVENTS) do
-    for _, event in ipairs(registeredEvents) do
-      eventCategoryMap[event] = eventCategoryMap[event] or {}
-      eventCategoryMap[event][#eventCategoryMap[event] + 1] = category
-    end
-  end
-end
-
--- FIRES WHEN ONE OF OUR REGISTERED EVENTS HAPPEN IN GAME
-function _G.CombatMode_OnEvent(event, ...)
-  local categories = eventCategoryMap[event]
-  if not categories then
-    return
-  end
-  for _, category in ipairs(categories) do
-    HandleEventByCategory(category, event, ...)
-  end
-end
+CM.RuntimeRematch = Rematch
 
 ---------------------------------------------------------------------------------------
 --                                   GAME STATE LOOP                                 --
@@ -650,28 +340,12 @@ Register Events, Hook functions, Create Frames, Get information from
 the game that wasn't available in OnInitialize
 ]]
 --
-local function BootstrapFeatureModules()
-  RenameBindableActions()
-  CM.OverrideDefaultButtons()
-  CM.ApplyGroundCastKeyOverrides()
-  UnbindMoveAndSteer()
-  CM.InitializeWildcardFrameTracking(CM.Constants.WildcardFramesToMatch)
-  CM.CreateCrosshair()
-  CM.RegisterCrosshairEditMode()
-  CM.InitializeCursorPulse()
-  CreateTargetMacros()
-  CM.ApplyToggleFocusTargetBinding()
-  if CM.HealingRadial and CM.HealingRadial.Initialize then
-    CM.HealingRadial.Initialize()
-  end
-end
-
 function CM:OnEnable()
-  BootstrapFeatureModules()
-  BuildEventCategoryMap()
+  CM.BootstrapFeatureModules()
+  CM.BuildEventCategoryMap()
 
   -- Registering Blizzard Events from Constants.lua
-  for eventName in pairs(eventCategoryMap) do
+  for eventName in pairs(CM.GetEventCategoryMap()) do
     self:RegisterEvent(eventName, _G.CombatMode_OnEvent)
   end
 

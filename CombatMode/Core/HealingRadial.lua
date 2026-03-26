@@ -30,7 +30,6 @@ local GetMacroBody = _G.GetMacroBody
 local GetSpellName = _G.C_Spell.GetSpellName
 local InCombatLockdown = _G.InCombatLockdown
 local RAID_CLASS_COLORS = _G.RAID_CLASS_COLORS
-local SetCVar = _G.C_CVar.SetCVar
 local UIParent = _G.UIParent
 local UnitClass = _G.UnitClass
 local UnitExists = _G.UnitExists
@@ -1524,7 +1523,7 @@ function HR.Hide()
     -- LockFreeLook handles MouselookStart, UI state, animations, and notifies
     -- radial via OnMouselookChanged — guard prevents re-entry
     RadialState.isTogglingMouselook = true
-    SetCVar("CursorFreelookCentering", 0)
+    CM.SetCursorFreelookCenteringCVar(false)
     CM.LockFreeLook()
     RadialState.isTogglingMouselook = false
   else

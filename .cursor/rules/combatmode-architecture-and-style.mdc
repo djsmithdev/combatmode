@@ -19,12 +19,15 @@ Use this project map and conventions for all changes.
 
 ## Module responsibilities
 
-- `Core/Runtime.lua`: owns addon lifecycle (`OnInitialize`/`OnEnable`), centralized event dispatch, and cross-feature coordination points.
+- `Core/Runtime.lua`: owns addon lifecycle (`OnInitialize`/`OnEnable`/`OnDisable`), cross-feature coordination points, and global `CombatMode_OnUpdate`.
+- `Core/RuntimeEventRouter.lua`: owns centralized event category dispatch and `_G.CombatMode_OnEvent`; builds/owns `eventCategoryMap`.
+- `Core/RuntimeCVarManager.lua`: owns all addon-owned **CVar writes** (centralized `CM.SetCVar*` helpers) and the feature-level CVar helpers (reticle targeting presets, Interaction HUD soft-target subset, action camera, sticky crosshair, shoulder offset, mouselook speed) and reset-to-default.
+- `Core/RuntimeBindingQueue.lua`: owns combat-safe deferred binding write queue (`CM.TryApplyBindingChange`, `CM.FlushDeferredBindingChanges`).
+- `Core/RuntimeBootstrap.lua`: owns startup wiring (`CM.BootstrapFeatureModules`) that initializes Core systems in the same sequence as Runtime enable.
 - `Core/FreeLookController.lua`: owns free-look/mouselook state transitions, cursor-mode keybind behavior, and UI side effects tied to lock/unlock flow.
 - `Constants/ConstantsNamespace.lua`: initializes the `CM.Constants` namespace only.
 - `Constants/Constants*.lua`: define immutable/static tables (defaults, CVars, event groups, assets, watchlists, radial metadata); no runtime side effects beyond table population.
 - `Core/Crosshair.lua`: owns crosshair visuals and reaction logic. Crosshair reaction and cursor centering follow `CM.IsCrosshairEnabled()`.
-- `Core/ReticleTargetingCVars.lua`: owns reticle-targeting CVar presets (and Interaction HUD SoftTarget fallback preset).
 - `Core/BindingOverrides.lua`: owns override binding/macro synthesis for mouse buttons and modified clicks; refreshes when bars/bindings change.
 - `Core/AddonActionBarResolver.lua`: owns third-party action bar button resolution by action-slot id (ElvUI/Bartender4).
 - `Core/TargetingMacroBuilder.lua`: owns reticle-targeting macro text construction (pre-line, /click wrapper, @cursor handling).
