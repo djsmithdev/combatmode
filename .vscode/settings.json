@@ -86,6 +86,9 @@
   "Lua.workspace.library": [
     "c:\\Users\\sampc\\.cursor\\extensions\\ketho.wow-api-0.22.3\\Annotations\\Core"
   ],
+  "Lua.workspace.ignoreDir": [
+    "CombatMode/Libs"
+  ],
   "Lua.workspace.checkThirdParty": false,
   "Lua.diagnostics.libraryFiles": "Disable",
   "Lua.type.weakUnionCheck": true
