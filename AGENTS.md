@@ -25,6 +25,8 @@ This file defines how AI agents should work in this addon workspace.
 - `CombatMode/CombatMode.toc`: metadata, SavedVariables, top-level include.
 - `CombatMode/Embeds.xml`: load order and root frame script wiring.
 - `CombatMode/Core/`: runtime behavior modules.
+  - `Core/Runtime.lua`: lifecycle + event orchestration.
+  - `Core/FreeLookController.lua`: mouselook/free-look state machine and cursor mode keybind flow.
 - `CombatMode/Config/`: AceConfig option builders and options assembly.
 - `CombatMode/UI/`: non-Ace UI integrations (Edit Mode crosshair).
 - `CombatMode/Bindings.xml`: keybind declarations.

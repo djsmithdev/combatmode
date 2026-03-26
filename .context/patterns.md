@@ -12,7 +12,7 @@ Suggested buckets (map to existing rules):
 
 ## CombatMode-specific reminders
 
-- **Mouselook / free-look / CVars:** owned by reticle and core coordination; keep changes symmetric on enable/disable.
+- **Mouselook / free-look / CVars:** free-look state machine lives in `Core/FreeLookController.lua`; targeting/crosshair CVars are coordinated by runtime and reticle-targeting modules. Keep enable/disable paths symmetric.
 - **Override bindings / secure buttons:** follow existing `SecureActionButtonTemplate` and `Core/BindingOverrides.lua` patterns.
 - **Vendored libs:** do not rewrite `CombatMode/Libs/**`; see `.cursor/rules/combatmode-vendored-libs.mdc`.
 

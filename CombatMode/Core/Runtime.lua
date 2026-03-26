@@ -2,15 +2,14 @@
 --  Core/Runtime.lua — RUNTIME — addon shell, lifecycle, free look, global drivers
 ---------------------------------------------------------------------------------------
 --  Instantiates the AceAddon "CombatMode" object, SavedVariables (AceDB), slash
---  commands, and Blizzard options registration. Owns the mouselook "free look" state
---  machine (lock/unlock, cursor centering CVars, tooltip/action-cam/sticky hooks),
+--  commands, and Blizzard options registration. Coordinates runtime modules,
 --  Rematch on layout/reload, and the throttled global OnUpdate loop that enforces
---  free look and refreshes crosshair reactions.
+--  free look via Core/FreeLookController.lua and refreshes crosshair reactions.
 --
 --  Architecture:
 --    • Loaded early (Core/Runtime.lua); defines _G.CM and CM.METADATA from the TOC.
---    • Calls into runtime modules: Crosshair, ClickCasting, Animations, AutoCursorUnlock,
---      HealingRadial (Initialize / mouselook notifications / dismiss-on-load).
+--    • Calls into runtime modules: FreeLookController, Crosshair, ClickCasting,
+--      Animations, AutoCursorUnlock, HealingRadial.
 --    • Exposes globals for XML: CombatMode_OnEvent, CombatMode_OnUpdate, keybind
 --      handlers (CombatMode_CursorModeKey, CombatMode_HealingRadialKey).
 --    • Shared CVar helpers here (ApplyCVarConfig, camera, sticky, shoulder, speed)
@@ -28,25 +27,18 @@ local AceConfigCmd = LibStub("AceConfigCmd-3.0")
 local CreateMacro = _G.CreateMacro
 local DisableAddOn = _G.C_AddOns.DisableAddOn
 local GetAddOnMetadata = _G.C_AddOns.GetAddOnMetadata
-local GameTooltip = _G.GameTooltip
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local GetMacroInfo = _G.GetMacroInfo
 local GetTime = _G.GetTime
-local InCinematic = _G.InCinematic
-local IsInCinematicScene = _G.IsInCinematicScene
 local InCombatLockdown = _G.InCombatLockdown
-local IsMouseButtonDown = _G.IsMouseButtonDown
 local IsMouselooking = _G.IsMouselooking
-local MouselookStart = _G.MouselookStart
-local MouselookStop = _G.MouselookStop
 local OpenToCategory = _G.Settings.OpenToCategory
 local OpenSettingsPanel = _G.C_SettingsUtil and _G.C_SettingsUtil.OpenSettingsPanel
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
 local SetCVar = _G.C_CVar.SetCVar
-local SpellIsTargeting = _G.SpellIsTargeting
 local StaticPopupDialogs = _G.StaticPopupDialogs
 local StaticPopup_Show = _G.StaticPopup_Show
 local UIParent = _G.UIParent
@@ -61,10 +53,6 @@ local pcall = _G.pcall
 local CM = AceAddon:NewAddon("CombatMode", "AceConsole-3.0", "AceEvent-3.0")
 _G["CM"] = CM
 
--- INITIAL STATE VARIABLES
--- Changes when Free Look state is modified through user input ("Toggle / Hold" keybind and "/cm" cmd)
-local FreeLookOverride = false
-local CursorModeShowTime = 0 -- GetTime() when cursor was unlocked via keybind (for spurious key-up filter)
 local deferredBindingQueue = {}
 local eventCategoryMap = {}
 
@@ -165,18 +153,6 @@ function CM.SetFontStringFromTemplate(fontString, pixelSize, templateFontObject)
     path = FALLBACK_UI_FONT_PATH
   end
   fontString:SetFont(path, pixelSize, flags)
-end
-
-function CM.SetCursorFreelookCentering(shouldCenter)
-  -- Edit Mode crosshair drives aligned cursor (CursorFreelookCentering + CursorCenteredYPos in Reticle).
-  local useCrosshairCursor = shouldCenter and CM.IsCrosshairEnabled()
-  if useCrosshairCursor then
-    SetCVar("CursorFreelookCentering", 1)
-    CM.DebugPrint("Locking cursor to crosshair position.")
-  else
-    SetCVar("CursorFreelookCentering", 0)
-    CM.DebugPrint("Freeing cursor from crosshair position.")
-  end
 end
 
 function CM.TryApplyBindingChange(context, applyFn)
@@ -303,30 +279,6 @@ local function CreateTargetMacros()
   end
 end
 
--- This prevents the auto running bug.
-local function IsDefaultMouseActionBeingUsed()
-  return IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
-end
-
-local tooltipHidden = false
-local isTooltipHooked = false
-local function HideTooltip(shouldHide)
-  tooltipHidden = shouldHide
-
-  if not isTooltipHooked then
-    GameTooltip:HookScript("OnShow", function(self)
-      if tooltipHidden then
-        self:Hide()
-      end
-    end)
-    isTooltipHooked = true
-  end
-  -- Hide it immediately in case there's a tooltip still fading while mouse locking
-  if tooltipHidden and GameTooltip:IsShown() then
-    GameTooltip:Hide()
-  end
-end
-
 --[[
   Checking if DynamicCam is loaded so we can relinquish control of a few camera features
   as DynamicCam allows fine-grained control of Mouselook Speed & Target Focus
@@ -435,25 +387,6 @@ function CM:ResetCVarsToDefault()
   print(CM.Constants.BasePrintMsg .. "|cff909090: all changes have been reverted.|r")
 end
 
-local function IsHealingRadialActive()
-  return CM.HealingRadial and CM.HealingRadial.IsActive and CM.HealingRadial.IsActive()
-end
-
-local function ShouldFreeLookBeOff()
-  return CM.IsCustomConditionTrue()
-    or (
-      FreeLookOverride
-      or SpellIsTargeting()
-      or InCinematic()
-      or IsInCinematicScene()
-      or CM.IsUnlockFrameVisible()
-      or CM.IsVendorMountOut()
-      or CM.IsInPetBattle()
-      or CM.IsFeignDeathActive()
-      or IsHealingRadialActive()
-    )
-end
-
 -- Unbinding MOVEANDSTEER to avoid potential bug when toggling free look with the same key
 local function UnbindMoveAndSteer()
   CM.TryApplyBindingChange("MOVEANDSTEER unbind", function()
@@ -472,103 +405,6 @@ local function RenameBindableActions()
     CM.Constants.OverrideActions[bindingAction] = bindingUiName or bindingAction
   end
 end
-
----------------------------------------------------------------------------------------
---                             FREE LOOK STATE FUNCTIONS                             --
----------------------------------------------------------------------------------------
--- Helper function to handle UI state changes when toggling free look
-local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
-  if CM.IsCrosshairEnabled() then
-    CM.DisplayCrosshair(isLocking)
-  end
-
-  if CM.DB.global.hideTooltip then
-    HideTooltip(isLocking)
-  end
-
-  -- Only reset Action Camera settings on permanent unlocks (user-initiated), not temporary ones (UI panels)
-  if CM.DB.global.actionCamera and CM.DB.global.actionCamMouselookDisable then
-    if isLocking or (not isLocking and isPermanentUnlock) then
-      CM.ConfigActionCamera(isLocking and "combatmode" or "blizzard")
-    end
-  end
-
-  if CM.IsCrosshairEnabled() and CM.DB.char.stickyCrosshair then
-    CM.ConfigStickyCrosshair(isLocking and "combatmode" or "blizzard")
-  end
-end
-
-function CM.LockFreeLook()
-  if not IsMouselooking() then
-    MouselookStart()
-    -- Defer UI state changes to avoid taint during protected mouselook initialization
-    if C_Timer and C_Timer.After then
-      C_Timer.After(0, function()
-        CM.SetCursorFreelookCentering(true)
-        HandleFreeLookUIState(true, false)
-      end)
-    else
-      CM.SetCursorFreelookCentering(true)
-      HandleFreeLookUIState(true, false)
-    end
-    CM.ShowCrosshairLockIn()
-    -- Notify Healing Radial of mouselook state change
-    if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
-      CM.HealingRadial.OnMouselookChanged(true)
-    end
-    CM.DebugPrint("Free Look Enabled")
-  end
-end
-
-local function RunUnlockFreeLookDeferredUI(isPermanentUnlock)
-  if C_Timer and C_Timer.After then
-    C_Timer.After(0, function()
-      CM.SetCursorFreelookCentering(false)
-      HandleFreeLookUIState(false, isPermanentUnlock)
-    end)
-  else
-    CM.SetCursorFreelookCentering(false)
-    HandleFreeLookUIState(false, isPermanentUnlock)
-  end
-end
-
-function CM.UnlockFreeLook()
-  if not IsMouselooking() then
-    return
-  end
-  RunUnlockFreeLookDeferredUI(false)
-  MouselookStop()
-
-  if CM.DB.global.pulseCursor then
-    CM.ShowCursorPulse()
-  end
-
-  if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
-    CM.HealingRadial.OnMouselookChanged(false)
-  end
-  CM.DebugPrint("Free Look Disabled")
-end
-
-local function UnlockFreeLookPermanent()
-  if not IsMouselooking() then
-    return
-  end
-  RunUnlockFreeLookDeferredUI(true)
-  MouselookStop()
-
-  if CM.DB.global.pulseCursor then
-    CM.ShowCursorPulse()
-  end
-
-  if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
-    CM.HealingRadial.OnMouselookChanged(false)
-  end
-  CM.DebugPrint("Free Look Disabled (Permanent)")
-end
-
--- NOTE: ToggleFreeLook() was removed. Its logic is now inlined in
--- CombatMode_CursorModeKey() which handles both tap-to-toggle and hold-to-unlock
--- via a single runOnUp="true" keybind with spurious key-up filtering.
 
 ---------------------------------------------------------------------------------------
 --                                   EVENT HANDLING                                  --
@@ -714,11 +550,11 @@ function _G.CombatMode_OnUpdate(_, elapsed)
   if TIME_SINCE_LAST_UPDATE >= ON_UPDATE_INTERVAL then
     TIME_SINCE_LAST_UPDATE = 0
 
-    if IsDefaultMouseActionBeingUsed() then
+    if CM.IsDefaultMouseActionBeingUsed() then
       return
     end
 
-    if ShouldFreeLookBeOff() then
+    if CM.ShouldFreeLookBeOff() then
       CM.UnlockFreeLook()
       return
     end
@@ -735,48 +571,6 @@ end
 --                            KEYBIND FUNCTIONS & COMMANDS                           --
 ---------------------------------------------------------------------------------------
 -- FUNCTIONS CALLED FROM BINDINGS.XML
-
--- Unified cursor mode keybind: tap to toggle, hold to temporarily unlock.
--- Uses the same spurious key-up filter as the Healing Radial keybind.
--- MouselookStop() fires spurious key-up events for held keys, so we ignore
--- key-ups within 0.3s of unlocking. A quick tap leaves the cursor free (toggle);
--- holding longer than 0.3s re-locks on release (hold).
-function _G.CombatMode_CursorModeKey(keystate)
-  if IsDefaultMouseActionBeingUsed() then
-    CM.DebugPrint("Cannot toggle Free Look while holding down your left or right click.")
-    return
-  end
-
-  if keystate == "down" then
-    if not IsMouselooking() and FreeLookOverride then
-      -- Already unlocked via previous tap — re-lock (toggle off)
-      CM.LockFreeLook()
-      FreeLookOverride = false
-      CursorModeShowTime = 0 -- No spurious filter needed for lock
-    elseif IsMouselooking() then
-      -- Currently mouselooking — unlock cursor
-      CursorModeShowTime = GetTime()
-      UnlockFreeLookPermanent()
-      FreeLookOverride = true
-    end
-  elseif keystate == "up" then
-    if not FreeLookOverride then
-      -- Already re-locked on key-down (toggle-off case), nothing to do
-      return
-    end
-    -- Ignore spurious key-ups from MouselookStop (within 0.3s)
-    local elapsed = GetTime() - CursorModeShowTime
-    if elapsed < 0.3 then
-      CM.DebugPrint(
-        "Cursor Mode: Ignoring spurious key-up (elapsed=" .. string.format("%.3f", elapsed) .. "s)"
-      )
-      return
-    end
-    -- Hold release: re-lock mouselook
-    CM.LockFreeLook()
-    FreeLookOverride = false
-  end
-end
 
 function _G.CombatMode_HealingRadialKey(keystate)
   if not CM.HealingRadial then

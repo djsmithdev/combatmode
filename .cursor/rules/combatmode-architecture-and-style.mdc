@@ -19,7 +19,8 @@ Use this project map and conventions for all changes.
 
 ## Module responsibilities
 
-- `Core/Runtime.lua`: owns addon lifecycle (`OnInitialize`/`OnEnable`), centralized event dispatch, free-look state transitions, and cross-feature coordination points.
+- `Core/Runtime.lua`: owns addon lifecycle (`OnInitialize`/`OnEnable`), centralized event dispatch, and cross-feature coordination points.
+- `Core/FreeLookController.lua`: owns free-look/mouselook state transitions, cursor-mode keybind behavior, and UI side effects tied to lock/unlock flow.
 - `Constants/ConstantsNamespace.lua`: initializes the `CM.Constants` namespace only.
 - `Constants/Constants*.lua`: define immutable/static tables (defaults, CVars, event groups, assets, watchlists, radial metadata); no runtime side effects beyond table population.
 - `Core/Crosshair.lua`: owns crosshair visuals and reaction logic. Crosshair reaction and cursor centering follow `CM.IsCrosshairEnabled()`.
