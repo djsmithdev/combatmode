@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Features/HealingRadial.lua — HEALING RADIAL — party menu, casts, mouselook
+--  Core/HealingRadial.lua — HEALING RADIAL — party menu, casts, mouselook
 ---------------------------------------------------------------------------------------
 --  Optional healer UX: radial slices for roster units, spell/item assignment per
 --  slice, secure buttons for in-combat casts, capture layer + mouselook override keys

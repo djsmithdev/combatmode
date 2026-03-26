@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Features/InteractionHUD.lua — INTERACTION HUD — soft-interact icon + label UI
+--  Core/InteractionHUD.lua — INTERACTION HUD — soft-interact icon + label UI
 ---------------------------------------------------------------------------------------
 --  Owns the Interaction HUD widget displayed near the crosshair when a soft-interact
 --  target is present. Includes:
@@ -8,7 +8,7 @@
 --    • Fade-in/out and range-based dimming (OnUpdate)
 --    • Soft-interact change event handling
 --
---  The crosshair frame is owned by Reticle and is registered via CM.InitInteractionHUD.
+--  The crosshair frame is owned by Core/Crosshair.lua and is registered via CM.InitInteractionHUD.
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
@@ -34,9 +34,6 @@ local type = _G.type
 local crosshairFrame
 local crosshairTexture
 
----------------------------------------------------------------------------------------
---                                   INTERACTION HUD                                 --
----------------------------------------------------------------------------------------
 local InteractionHUDCluster
 local InteractionHUDShadow
 local InteractionHUDIcon

@@ -11,7 +11,7 @@
     <Include file="Libs\AceGUI-3.0\AceGUI-3.0.xml"/>
     <Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml"/>
     <!-- CORE -->
-    <Script file="Features\Core.lua"/>
+    <Script file="Core\Runtime.lua"/>
     <!-- CONSTANTS (must load before feature consumers) -->
     <Script file="Constants\ConstantsNamespace.lua"/>
     <Script file="Constants\ConstantsCVars.lua"/>
@@ -21,16 +21,17 @@
     <Script file="Constants\ConstantsHealingRadial.lua"/>
     <Script file="Constants\ConstantsFrameWatch.lua"/>
     <Script file="Constants\ConstantsReticle.lua"/>
-    <!-- FEATURES -->
-    <Script file="Features\AddonActionBarResolver.lua"/>
-    <Script file="Features\TargetingMacroBuilder.lua"/>
-    <Script file="Features\BindingOverrides.lua"/>
-    <Script file="Features\Animations.lua"/>
-    <Script file="Features\InteractionHUD.lua"/>
-    <Script file="Features\Reticle.lua"/>
+    <!-- CORE MODULES -->
+    <Script file="Core\AddonActionBarResolver.lua"/>
+    <Script file="Core\TargetingMacroBuilder.lua"/>
+    <Script file="Core\BindingOverrides.lua"/>
+    <Script file="Core\ReticleTargetingCVars.lua"/>
+    <Script file="Core\Animations.lua"/>
+    <Script file="Core\InteractionHUD.lua"/>
+    <Script file="Core\Crosshair.lua"/>
     <Script file="UI\CrosshairEditMode.lua"/>
-    <Script file="Features\CursorUnlock.lua"/>
-    <Script file="Features\HealingRadial.lua"/>
+    <Script file="Core\AutoCursorUnlock.lua"/>
+    <Script file="Core\HealingRadial.lua"/>
     <!-- CONFIG: AceConfig — ConfigNamespace/ConfigShared first, ConfigCategories last -->
     <Script file="Config\ConfigNamespace.lua"/>
     <Script file="Config\ConfigShared.lua"/>

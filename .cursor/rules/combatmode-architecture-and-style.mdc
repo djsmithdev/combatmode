@@ -12,24 +12,25 @@ Use this project map and conventions for all changes.
 - `CombatMode/CombatMode.toc`: addon metadata, `SavedVariables: CombatModeDB`, load order entrypoint.
 - `CombatMode/Embeds.xml`: loads Lua files and owns the root frame scripts (`OnEvent`, `OnUpdate` bridge).
 - `CombatMode/Constants/*.lua`: constants and static tables (`CM.Constants`).
-- `CombatMode/Features/*.lua`: runtime systems and gameplay behavior.
+- `CombatMode/Core/*.lua`: runtime systems and gameplay behavior.
 - `CombatMode/Config/*.lua`: AceConfig option builders and category assembly.
 - `CombatMode/UI/CrosshairEditMode.lua`: Edit Mode integration for crosshair controls.
 - `CombatMode/Bindings.xml`: keybinding declarations and binding click targets.
 
 ## Module responsibilities
 
-- `Features/Core.lua`: owns addon lifecycle (`OnInitialize`/`OnEnable`), centralized event dispatch, free-look state transitions, and cross-feature coordination points.
+- `Core/Runtime.lua`: owns addon lifecycle (`OnInitialize`/`OnEnable`), centralized event dispatch, free-look state transitions, and cross-feature coordination points.
 - `Constants/ConstantsNamespace.lua`: initializes the `CM.Constants` namespace only.
 - `Constants/Constants*.lua`: define immutable/static tables (defaults, CVars, event groups, assets, watchlists, radial metadata); no runtime side effects beyond table population.
-- `Features/Reticle.lua`: owns crosshair visuals and reticle-targeting behavior tied to relevant CVars. Crosshair reaction and cursor centering follow `CM.IsCrosshairEnabled()`; reticle-targeting options/CVars remain separate.
-- `Features/BindingOverrides.lua`: owns override binding/macro synthesis for mouse buttons and modified clicks; refreshes when bars/bindings change.
-- `Features/AddonActionBarResolver.lua`: owns third-party action bar button resolution by action-slot id (ElvUI/Bartender4).
-- `Features/TargetingMacroBuilder.lua`: owns reticle-targeting macro text construction (pre-line, /click wrapper, @cursor handling).
-- `Features/CursorUnlock.lua`: owns unlock predicates (frame visibility, mounts, pet battle, custom expression) and wildcard frame tracking.
-- `Features/Animations.lua`: owns user-facing animations (cursor pulse after unlock/free-look transitions; crosshair reaction/lock-in presentation).
-- `Features/InteractionHUD.lua`: owns the Interaction HUD widget lifecycle, fade/range `OnUpdate`, and soft-interact event handling.
-- `Features/HealingRadial.lua`: owns radial frame lifecycle, selection tracking, secure cast attributes, and group/role slice updates.
+- `Core/Crosshair.lua`: owns crosshair visuals and reaction logic. Crosshair reaction and cursor centering follow `CM.IsCrosshairEnabled()`.
+- `Core/ReticleTargetingCVars.lua`: owns reticle-targeting CVar presets (and Interaction HUD SoftTarget fallback preset).
+- `Core/BindingOverrides.lua`: owns override binding/macro synthesis for mouse buttons and modified clicks; refreshes when bars/bindings change.
+- `Core/AddonActionBarResolver.lua`: owns third-party action bar button resolution by action-slot id (ElvUI/Bartender4).
+- `Core/TargetingMacroBuilder.lua`: owns reticle-targeting macro text construction (pre-line, /click wrapper, @cursor handling).
+- `Core/AutoCursorUnlock.lua`: owns unlock predicates (frame visibility, mounts, pet battle, custom expression) and wildcard frame tracking.
+- `Core/Animations.lua`: owns user-facing animations (cursor pulse after unlock/free-look transitions; crosshair reaction/lock-in presentation).
+- `Core/InteractionHUD.lua`: owns the Interaction HUD widget lifecycle, fade/range `OnUpdate`, and soft-interact event handling.
+- `Core/HealingRadial.lua`: owns radial frame lifecycle, selection tracking, secure cast attributes, and group/role slice updates.
 - `UI/CrosshairEditMode.lua`: owns Edit Mode registration, option controls, and persisted layout integration for the crosshair UI.
 - `Config/ConfigNamespace.lua`: initializes the `CM.Config` namespace only.
 - `Config/ConfigShared.lua`: shared AceConfig builders/helpers used by all config category modules.

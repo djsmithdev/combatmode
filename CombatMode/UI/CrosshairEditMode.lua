@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------
 --  UI/CrosshairEditMode.lua — LibEditMode crosshair, settings dialog, preview panel
 ---------------------------------------------------------------------------------------
---  Loaded after Features/Reticle.lua (Embeds.xml). Uses CM.CreateCrosshair and CM.HideCrosshairWhileMounted
+--  Loaded after Core/Crosshair.lua (Embeds.xml). Uses CM.CreateCrosshair and CM.HideCrosshairWhileMounted
 --  from Reticle; uses CM.CreateCrosshairScaleAnimation and CM.ApplyCrosshairAppearanceToWidget from Animations.
 ---------------------------------------------------------------------------------------
 local _G = _G

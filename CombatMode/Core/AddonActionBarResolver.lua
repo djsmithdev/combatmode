@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Features/AddonActionBarResolver.lua — Third-party action bar resolver
+--  Core/AddonActionBarResolver.lua — Third-party action bar resolver
 ---------------------------------------------------------------------------------------
 -- Resolves multiactionbar bindings (MULTIACTIONBAR*BUTTONn) to the correct
 -- third-party addon button frame by matching the underlying Blizzard action-slot id.

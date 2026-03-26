@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Features/BindingOverrides.lua — CLICK CASTING — overrides, macros, ground @cursor
+--  Core/BindingOverrides.lua — CLICK CASTING — overrides, macros, ground @cursor
 ---------------------------------------------------------------------------------------
 --  Builds secure macro proxy buttons and SetMouselookOverrideBinding wiring so
 --  action-bar and click-cast inputs run pre-lines (reticle /target selection) and

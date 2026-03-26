@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Features/TargetingMacroBuilder.lua — reticle targeting macro text
+--  Core/TargetingMacroBuilder.lua — reticle targeting macro text
 ---------------------------------------------------------------------------------------
 -- Builds click-cast macro text for reticle targeting (pre-line + /click + @cursor
 -- and special-bar / ground-target handling).

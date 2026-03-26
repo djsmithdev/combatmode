@@ -12,7 +12,7 @@ alwaysApply: false
 
 - Treat files in `Libs/` as vendor code; do not refactor, format, or rewrite proactively.
 - Do not apply project-specific architecture/style transformations to `Libs/`.
-- Keep edits in addon-owned code (`Features/`, `Config/`, `UI/`) whenever possible.
+- Keep edits in addon-owned code (`Core/`, `Config/`, `UI/`) whenever possible.
 
 ## If a library issue is encountered
 

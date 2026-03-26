@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Features/Core.lua — CORE — addon shell, lifecycle, free look, global drivers
+--  Core/Runtime.lua — RUNTIME — addon shell, lifecycle, free look, global drivers
 ---------------------------------------------------------------------------------------
 --  Instantiates the AceAddon "CombatMode" object, SavedVariables (AceDB), slash
 --  commands, and Blizzard options registration. Owns the mouselook "free look" state
@@ -8,13 +8,13 @@
 --  free look and refreshes crosshair reactions.
 --
 --  Architecture:
---    • Loaded early (Features/Core.lua); defines _G.CM and CM.METADATA from the TOC.
---    • Calls into feature modules: Reticle, ClickCasting, Animations, CursorUnlock,
+--    • Loaded early (Core/Runtime.lua); defines _G.CM and CM.METADATA from the TOC.
+--    • Calls into runtime modules: Crosshair, ClickCasting, Animations, AutoCursorUnlock,
 --      HealingRadial (Initialize / mouselook notifications / dismiss-on-load).
 --    • Exposes globals for XML: CombatMode_OnEvent, CombatMode_OnUpdate, keybind
 --      handlers (CombatMode_CursorModeKey, CombatMode_HealingRadialKey).
 --    • Shared CVar helpers here (ApplyCVarConfig, camera, sticky, shoulder, speed)
---      are used by Config and by Reticle (reticle targeting lives in Reticle.lua).
+--      are used by Config and by Crosshair/ReticleTargetingCVars.
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub

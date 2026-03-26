@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Features/Animations.lua — USER-FACING ANIMATIONS — cursor pulse, crosshair motion
+--  Core/Animations.lua — USER-FACING ANIMATIONS — cursor pulse, crosshair motion
 ---------------------------------------------------------------------------------------
 --  Consolidates short, purely visual animations that are triggered by other systems:
 --    • Cursor pulse: brief atlas pulse at the cursor after unlocking mouselook.

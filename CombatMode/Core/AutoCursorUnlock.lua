@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Features/CursorUnlock.lua — CURSOR UNLOCK — auto-drop mouselook (panels, Lua)
+--  Core/AutoCursorUnlock.lua — CURSOR UNLOCK — auto-drop mouselook (panels, Lua)
 ---------------------------------------------------------------------------------------
 --  Supplies CM.IsUnlockFrameVisible (static + wildcard frame name matching),
 --  vendor/mount/pet-battle/feign checks, and CM.IsCustomConditionTrue for optional
@@ -7,7 +7,7 @@
 --  cinematics, healing radial, etc., so the global OnUpdate can call UnlockFreeLook.
 --
 --  Architecture:
---    • CM.InitializeWildcardFrameTracking called once from Core bootstrap; uses
+--    • CM.InitializeWildcardFrameTracking called once from Runtime bootstrap; uses
 --      Constants.WildcardFramesToMatch / FramesToCheck.
 --    • Read-only queries from Core; no direct mouselook Start/Stop here.
 --    • Retail-only LibEditMode usage where applicable (layout sync hooks).

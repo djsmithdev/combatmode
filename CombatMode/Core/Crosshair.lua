@@ -1,23 +1,24 @@
 ---------------------------------------------------------------------------------------
---  Features/Reticle.lua — RETICLE — action-targeting CVars, crosshair UI
+--  Core/Crosshair.lua — CROSSHAIR — crosshair UI, cursor centering, reaction state
 ---------------------------------------------------------------------------------------
---  Applies ConfigReticleTargeting / ConfigInteractionHUDSoftTarget (minimal SoftTarget when
---  crosshair + Interaction HUD, reticle off) / soft-target friend toggles, draws the on-screen
---  crosshair (container + inner visual for reaction scale animation and lock-in),
---  and tracks mouseover/soft-target state for appearance.
+--  Draws the on-screen crosshair (container + inner visual), tracks mouseover/soft-target
+--  state for appearance, syncs cursor centering (CursorCenteredYPos) for Edit Mode layouts,
+--  and exposes helpers used by the Edit Mode preview panel.
 --
---  Note: Interaction HUD presentation is implemented in Features/InteractionHUD.lua.
---  Crosshair animation helpers live in Features/Animations.lua.
+--  Related modules:
+--    • Core/ReticleTargetingCVars.lua: reticle-targeting + Interaction HUD SoftTarget CVar presets.
+--    • Core/InteractionHUD.lua: Interaction HUD widget presentation/lifecycle.
+--    • Core/Animations.lua: crosshair animation helpers used by Edit Mode preview and lock-in.
 --
 --  Architecture:
---    • Core drives CreateCrosshair from BootstrapFeatureModules; RegisterCrosshairEditMode
+--    • Runtime drives CreateCrosshair from BootstrapFeatureModules; RegisterCrosshairEditMode
 --      runs from the same path after UI/CrosshairEditMode.lua loads. OnUpdate calls
 --      CM.UpdateCrosshairReaction when the crosshair is enabled.
 --    • Cursor Y sync uses AdjustCenteredCursorYPos → CursorCenteredYPos when the crosshair
---      is enabled (Edit Mode); SetCursorFreelookCentering lives in Core.
+--      is enabled (Edit Mode); SetCursorFreelookCentering lives in Runtime.
 --    • CM.ApplyCrosshairAppearanceToWidget / CM.CreateCrosshairScaleAnimation are exposed
---      for the Edit Mode preview (implemented in Features/Animations.lua).
---    • Interaction HUD widget lifecycle is owned by Features/InteractionHUD.lua and is
+--      for the Edit Mode preview (implemented in Core/Animations.lua).
+--    • Interaction HUD widget lifecycle is owned by Core/InteractionHUD.lua and is
 --      registered against the crosshair frame via CM.InitInteractionHUD.
 --    • EditModeSystemDisplayName (Constants) avoids TOC |T|t in labels.
 ---------------------------------------------------------------------------------------
@@ -45,45 +46,6 @@ local math = _G.math
 
 local ON_RETAIL_CLIENT = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
 
----------------------------------------------------------------------------------------
---                        RETICLE TARGETING (ACTION TARGETING CVARS)                 --
----------------------------------------------------------------------------------------
-function CM.ConfigReticleTargeting(CVarType)
-  local info = {
-    CVarType = CVarType,
-    CMValues = CM.Constants.ReticleTargetingCVarValues,
-    BlizzValues = CM.Constants.BlizzardReticleTargetingCVarValues,
-    FeatureName = "Reticle Targeting",
-  }
-
-  CM.ApplyCVarConfig(info)
-end
-
-function CM.HandleSoftTargetFriend(enabled)
-  if enabled then
-    SetCVar("SoftTargetFriend", 3)
-    CM.DebugPrint("Enabling Friendly Targeting out of combat")
-  else
-    SetCVar("SoftTargetFriend", 0)
-    CM.DebugPrint("Disabling Friendly Targeting in combat")
-  end
-end
-
---- SoftTarget subset for Interaction HUD when Reticle Targeting is disabled (full preset is ConfigReticleTargeting).
-function CM.ConfigInteractionHUDSoftTarget()
-  local t = CM.Constants and CM.Constants.InteractionHUDSoftTargetCVarValues
-  if not t then
-    return
-  end
-  for name, value in pairs(t) do
-    SetCVar(name, value)
-  end
-  CM.DebugPrint("Interaction HUD SoftTarget CVars applied")
-end
-
----------------------------------------------------------------------------------------
---                           CROSSHAIR FRAME & ANIMATION                             --
----------------------------------------------------------------------------------------
 -- Outer frame: registered with LibEditMode; sized to at least CrosshairEditModeMinHitSize for a larger Edit Mode click target.
 -- Inner frame: actual crosshair art, reaction scale animation, and lock-in (container stays fixed size).
 local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
@@ -116,9 +78,6 @@ function CM.IsInteractionHUDEnabled()
   return not not v
 end
 
----------------------------------------------------------------------------------------
---                                   INTERACTION HUD                                 --
----------------------------------------------------------------------------------------
 local function AdjustCenteredCursorYPos()
   if not CM.IsCrosshairEnabled() then
     return
@@ -401,9 +360,6 @@ function CM.UpdateCrosshairReaction()
   end
 end
 
----------------------------------------------------------------------------------------
---                            CROSSHAIR LOCK-IN ANIMATION                             --
----------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------
 --              CORE HOOKS (REMATCH / EVENTS / DISABLE)                              --
 ---------------------------------------------------------------------------------------
