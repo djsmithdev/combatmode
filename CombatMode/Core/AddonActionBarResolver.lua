@@ -50,6 +50,24 @@ local function GetButtonActionId(frameName)
   return nil
 end
 
+-- For Blizzard multiactionbar bindings 1–4, compute the canonical action-slot id directly
+-- from the binding prefix and button index. This avoids relying on `MultiBar*ButtonN`
+-- frames whose `action` attribute can be ambiguous under action bar replacement addons.
+local MULTIACTIONBAR_PREFIX_TO_ACTION_BASE = {
+  MULTIACTIONBAR3BUTTON = 25, -- MultiBarRightButton1..12
+  MULTIACTIONBAR4BUTTON = 37, -- MultiBarLeftButton1..12
+  MULTIACTIONBAR2BUTTON = 49, -- MultiBarBottomRightButton1..12
+  MULTIACTIONBAR1BUTTON = 61, -- MultiBarBottomLeftButton1..12
+}
+
+local function ComputeMultiActionBarActionId(prefix, btnIdx)
+  local base = MULTIACTIONBAR_PREFIX_TO_ACTION_BASE[prefix]
+  if not base or not btnIdx or btnIdx < 1 or btnIdx > 12 then
+    return nil
+  end
+  return base + (btnIdx - 1)
+end
+
 -- Scan ElvUI_Bar1..12 × Button1..12 for a button whose action slot matches actionId.
 -- Prefer shown frames; tie-break by slot index (btnIdx) when multiple match.
 local function FindButtonByAction(actionId, btnIdx, enumerateCandidates)
@@ -141,13 +159,16 @@ function CM.ResolveAddonMultiBarButtonFrameByBase(prefix, btnIdx, baseFrameName)
     return nil
   end
 
+  -- Bartender safety: for MULTIACTIONBAR1–4 we can compute the canonical action-slot id
+  -- without relying on `MultiBar*ButtonN`'s `action` attribute.
+  local expectedActionId = ComputeMultiActionBarActionId(prefix, btnIdx)
   local actionId = GetButtonActionId(baseFrameName)
-  if not actionId then
-    return nil
-  end
 
   -- ElvUI: resolve by matching Blizzard action slot id.
   if _G["ElvUI_Bar1Button1"] then
+    if not actionId then
+      return nil
+    end
     local cached = elvActionToButtonCache[actionId]
     if cached then
       return cached
@@ -162,7 +183,15 @@ function CM.ResolveAddonMultiBarButtonFrameByBase(prefix, btnIdx, baseFrameName)
 
   -- Bartender: BT4_BINDING_PREFIX_TO_BAR_ID fast path, validated by action id; else full scan.
   if _G["BT4Button1"] then
-    local cached = bt4ActionToButtonCache[actionId]
+    -- Under Bartender, Blizzard multibar frames can report action ids that collide with bar 1.
+    -- For MULTIACTIONBAR1–4, prefer the canonical action-slot id computed from prefix+slot.
+    local want = expectedActionId or actionId
+    if not want then
+      return nil
+    end
+    local bt4Key = want
+
+    local cached = bt4ActionToButtonCache[bt4Key]
     if cached then
       return cached
     end
@@ -170,15 +199,15 @@ function CM.ResolveAddonMultiBarButtonFrameByBase(prefix, btnIdx, baseFrameName)
     local bt4BarId = BT4_BINDING_PREFIX_TO_BAR_ID[prefix]
     if bt4BarId then
       local bt4Fast = "BT4Button" .. ((bt4BarId - 1) * 12 + btnIdx)
-      if _G[bt4Fast] and GetButtonActionId(bt4Fast) == actionId then
-        bt4ActionToButtonCache[actionId] = bt4Fast
+      if _G[bt4Fast] and GetButtonActionId(bt4Fast) == want then
+        bt4ActionToButtonCache[bt4Key] = bt4Fast
         return bt4Fast
       end
     end
 
-    local bt4Name = FindBT4ButtonByAction(actionId, btnIdx)
+    local bt4Name = FindBT4ButtonByAction(want, btnIdx)
     if bt4Name then
-      bt4ActionToButtonCache[actionId] = bt4Name
+      bt4ActionToButtonCache[bt4Key] = bt4Name
       return bt4Name
     end
   end
