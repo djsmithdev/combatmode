@@ -341,6 +341,8 @@ the game that wasn't available in OnInitialize
 ]]
 --
 function CM:OnEnable()
+  CM.ApplyThirdPartyActionBarPolicy()
+
   CM.BootstrapFeatureModules()
   CM.BuildEventCategoryMap()
 

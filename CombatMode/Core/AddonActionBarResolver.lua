@@ -4,16 +4,23 @@
 -- Resolves multiactionbar bindings (MULTIACTIONBAR*BUTTONn) to the correct
 -- third-party addon button frame by matching the underlying Blizzard action-slot id.
 --
--- This avoids relying on static addon bar-number assumptions when users use
--- non-standard bar layouts (ElvUI / Bartender4).
+-- Support policy:
+--   • Keep resolver scope focused on supported action bar addons only.
+--   • Keyboard override injection is gated by macroInjectionClickCastOnly when
+--     third-party bars are detected; this resolver remains the click-cast path.
+--   • Supported addons here: ElvUI and Bartender4. Unknown addons fall back to
+--     Blizzard frame resolution in higher-level callers.
 local _G = _G
 local LibStub = _G.LibStub
 local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- Lua stdlib
+local ipairs = _G.ipairs
 local tonumber = _G.tonumber
 local pairs = _G.pairs
 local pcall = _G.pcall
+local tostring = _G.tostring
+local cAddOns = _G.C_AddOns
 
 -- Bartender uses non-sequential bar ids (see Bartender4 ActionBars.lua).
 -- Kept as a fast-path only; final selection is validated by action id.
@@ -33,6 +40,47 @@ local BT4_DYNAMIC_SCAN_MAX = 240
 -- Per-refresh caches: addon action-id -> resolved button frame name.
 local elvActionToButtonCache = {}
 local bt4ActionToButtonCache = {}
+
+local IsAddOnLoadedLegacy = _G.IsAddOnLoaded
+local THIRD_PARTY_ACTION_BAR_ADDONS = {
+  "Bartender4",
+  "Dominos",
+  "ElvUI",
+}
+
+local function IsAddonLoadedByName(addonName)
+  if cAddOns and cAddOns.IsAddOnLoaded then
+    return cAddOns.IsAddOnLoaded(addonName) == true
+  end
+  if IsAddOnLoadedLegacy then
+    return IsAddOnLoadedLegacy(addonName) == true
+  end
+  return false
+end
+
+local function DetectThirdPartyActionBars()
+  for _, addonName in ipairs(THIRD_PARTY_ACTION_BAR_ADDONS) do
+    if IsAddonLoadedByName(addonName) then
+      return true, addonName
+    end
+  end
+  return false, nil
+end
+
+-- Public policy helper: if supported third-party bars are detected, force
+-- click-cast-only macro injection and expose a runtime flag used by Config UI.
+function CM.ApplyThirdPartyActionBarPolicy()
+  local hasThirdPartyBars, detectedBarAddon = DetectThirdPartyActionBars()
+  CM.ThirdPartyActionBarsActive = hasThirdPartyBars
+  if hasThirdPartyBars and CM.DB and CM.DB.char then
+    CM.DB.char.macroInjectionClickCastOnly = true
+    CM.DebugPrint(
+      "Third-party action bar detected ("
+        .. tostring(detectedBarAddon)
+        .. "); forcing macroInjectionClickCastOnly=true."
+    )
+  end
+end
 
 local function GetButtonActionId(frameName)
   if not frameName or frameName == "" then

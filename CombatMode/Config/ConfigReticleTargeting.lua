@@ -81,7 +81,7 @@ CM.Config.ReticleTargetingOptions = {
         return CM.DB.char.macroInjectionClickCastOnly
       end,
       disabled = function()
-        return not CM.DB.char.reticleTargeting
+        return not CM.DB.char.reticleTargeting or CM.ThirdPartyActionBarsActive == true
       end,
     },
     spacing1 = Spacing(0.25, 5.1),
