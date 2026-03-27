@@ -1,7 +1,11 @@
-## 3.1.10 CHANGELOG
-- Added explicit third-party action bar policy: when Bartender4, Dominos, or ElvUI is detected, CM forces `macroInjectionClickCastOnly=true` and locks that toggle, while Blizzard default bars keep full reticle targeting macro injection behavior.
+## 3.2.0 CHANGELOG
+- Added Reticle Targeting CVar editor that allows the user to customize the values of the CVars Combat Mode utilizes for Reticle Targeting.
+- Added Targeting macro prelines editor that allows the user to customize the macro prelines injected into every action when Reticle Targeting is enabled.
 
 ---
+### 3.1.10 CHANGELOG
+- Added explicit third-party action bar policy: when Bartender4, Dominos, or ElvUI is detected, CM forces `macroInjectionClickCastOnly=true` and locks that toggle, while Blizzard default bars keep full reticle targeting macro injection behavior.
+
 ### 3.1.9 CHANGELOG
 - Major refactor of action bar binding override code. ***[Technical gibberish ahead]*** Now CM computes the canonical action-slot id directly from the binding prefix and button index. This 
 avoids relying on `MultiBar*ButtonN` frames whose `action` attribute can be ambiguous under action bar replacement addons like Bartender4, Dominos, ElvUI, etc.
