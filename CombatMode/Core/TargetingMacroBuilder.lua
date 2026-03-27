@@ -412,11 +412,18 @@ function CM.BuildClickCastMacroText(bindingValue)
         if isSpecialBarButton then
           return castLine
         end
-        -- Non-combat spells (e.g. mounts) shouldn't get the targeting pre-line.
-        if not ShouldInjectTargetingForSpell(id) then
+        -- Spell in blacklist (e.g. self-cast defensives): don't apply targeting pre-line.
+        if
+          atype == "spell"
+          and id
+          and type(id) == "number"
+          and id > 0
+          and CM.IsExcludedFromTargetingSpell(id)
+        then
           return castLine
         end
         -- Ground-targeted spell from whitelist: use /cast [@cursor] only (no pre-line).
+        -- Must run before ShouldInjectTargetingForSpell: many ground spells are neither helpful nor harmful per C_Spell API.
         if
           atype == "spell"
           and id
@@ -431,14 +438,8 @@ function CM.BuildClickCastMacroText(bindingValue)
           end
           return "/cast [@cursor] spell:" .. id
         end
-        -- Spell in blacklist (e.g. self-cast defensives): don't apply targeting pre-line.
-        if
-          atype == "spell"
-          and id
-          and type(id) == "number"
-          and id > 0
-          and CM.IsExcludedFromTargetingSpell(id)
-        then
+        -- Non-combat spells (e.g. mounts) shouldn't get the targeting pre-line.
+        if not ShouldInjectTargetingForSpell(id) then
           return castLine
         end
       end
