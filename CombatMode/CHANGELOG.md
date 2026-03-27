@@ -1,8 +1,12 @@
-## 3.2.0 CHANGELOG
+## 3.2.1 CHANGELOG
+- Fixed issue preventing Cast @cursor Whitelist from properly working.
+
+---
+
+### 3.2.0 CHANGELOG
 - Added Reticle Targeting CVar editor that allows the user to customize the values of the CVars Combat Mode utilizes for Reticle Targeting.
 - Added Targeting macro prelines editor that allows the user to customize the macro prelines injected into every action when Reticle Targeting is enabled.
 
----
 ### 3.1.10 CHANGELOG
 - Added explicit third-party action bar policy: when Bartender4, Dominos, or ElvUI is detected, CM forces `macroInjectionClickCastOnly=true` and locks that toggle, while Blizzard default bars keep full reticle targeting macro injection behavior.
 
