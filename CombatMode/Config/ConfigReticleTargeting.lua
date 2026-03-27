@@ -126,28 +126,6 @@ CM.Config.ReticleTargetingOptions = {
         return CM.DynamicCam or not CM.IsCrosshairEnabled()
       end,
     },
-    spacing11 = Spacing("full", 5.41),
-    editReticleTargetingCVars = {
-      type = "execute",
-      name = "Edit Reticle Targeting CVars",
-      desc = "Open the Reticle Targeting CVar editor.",
-      width = 1.75,
-      order = 5.42,
-      func = function()
-        CM.OpenReticleTargetingCVarEditor()
-      end,
-    },
-    spacing12 = Spacing(0.25, 5.43),
-    editTargetingMacroPrelines = {
-      type = "execute",
-      name = "Edit Targeting Macro Prelines",
-      desc = "Open the Targeting Macro Prelines editor.",
-      width = 1.75,
-      order = 5.44,
-      func = function()
-        -- PLACEHOLDER
-      end,
-    },
     spacing13 = Spacing("full", 5.5),
     excludeFromTargetingSpells = {
       name = "Spells to |cffE52B50exclude|r from |cff00FFFFReticle Targeting|r:",
@@ -188,6 +166,30 @@ CM.Config.ReticleTargetingOptions = {
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting
+      end,
+    },
+    spacing11 = Spacing("full", 8),
+    header2 = Header("custom", 9),
+    spacing14 = Spacing("full", 9.1),
+    editReticleTargetingCVars = {
+      type = "execute",
+      name = "Edit Reticle Targeting CVars",
+      desc = "Open the Reticle Targeting CVar editor.",
+      width = 1.75,
+      order = 10,
+      func = function()
+        CM.OpenReticleTargetingCVarEditor()
+      end,
+    },
+    spacing12 = Spacing(0.25, 11),
+    editTargetingMacroPrelines = {
+      type = "execute",
+      name = "Edit Targeting Macro Prelines",
+      desc = "Open the Targeting Macro Prelines editor.",
+      width = 1.75,
+      order = 12,
+      func = function()
+        CM.OpenTargetingMacroPrelinesEditor()
       end,
     },
   },

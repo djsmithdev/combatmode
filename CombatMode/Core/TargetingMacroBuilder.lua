@@ -249,6 +249,10 @@ local CLICKCAST_PRE_LINE_ANY =
 local CLICKCAST_PRE_LINE_ENEMY =
   "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
 
+-- Export defaults so the AceConfig editor can show a starting point even when no override exists.
+CM.TargetingMacroPrelinesDefaults = CM.TargetingMacroPrelinesDefaults
+  or { any = CLICKCAST_PRE_LINE_ANY, enemy = CLICKCAST_PRE_LINE_ENEMY }
+
 -- Returns true if spellId is in the user's "Cast @Cursor Spells" list (comma-separated names in options).
 function CM.IsCastAtCursorSpell(spellId)
   if not spellId or spellId <= 0 then
@@ -301,10 +305,23 @@ local function GetClickCastPreLine()
   if not CM.DB.char.reticleTargeting then
     return nil
   end
-  if CM.DB.char.reticleTargetingEnemyOnly then
-    return CLICKCAST_PRE_LINE_ENEMY
+
+  local function GetOverride(key)
+    local v = CM.DB and CM.DB.global and CM.DB.global[key]
+    if type(v) ~= "string" then
+      return nil
+    end
+    v = strtrim(v)
+    if v == "" then
+      return nil
+    end
+    return v
   end
-  return CLICKCAST_PRE_LINE_ANY
+
+  if CM.DB.char.reticleTargetingEnemyOnly then
+    return GetOverride("targetingMacroPrelineEnemyOverride") or CLICKCAST_PRE_LINE_ENEMY
+  end
+  return GetOverride("targetingMacroPrelineAnyOverride") or CLICKCAST_PRE_LINE_ANY
 end
 
 function CM.BuildClickCastMacroText(bindingValue)

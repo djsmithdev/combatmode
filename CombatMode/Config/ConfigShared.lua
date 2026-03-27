@@ -47,6 +47,11 @@ local function Header(option, order)
       name = "|cffffffffADVANCED|r",
       order = order,
     },
+    custom = {
+      type = "header",
+      name = "|cffE52B50CUSTOM SETTINGS|r",
+      order = order,
+    },
   }
   return headers[option]
 end
@@ -68,6 +73,12 @@ local function Description(option, order)
     reticle = {
       type = "description",
       name = "\nEnable Combat Mode to transform the default tab-targeting combat into an action-oriented experience, where the |cff00FFFFCrosshair|r dictates target acquisition.\n\n",
+      fontSize = "medium",
+      order = order,
+    },
+    prelines = {
+      type = "description",
+      name = "\nEdit the targeting |cffB47EDEMacro|r preline inserted before actions when |cff00FFFFReticle Targeting|r is enabled.\n\n",
       fontSize = "medium",
       order = order,
     },

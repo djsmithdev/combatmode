@@ -574,6 +574,25 @@ function CM.OpenReticleTargetingCVarEditor()
 
   Editor.frame:Show()
   Editor.frame:Raise()
+
+  -- Anchor the editor to the left of the Settings panel (when possible).
+  do
+    local frame = Editor.frame
+    local anchor = _G.SettingsPanel or _G.InterfaceOptionsFrame
+    local ui = _G.UIParent
+    if frame and anchor and anchor.GetLeft and anchor.GetTop then
+      local desiredLeft = (anchor:GetLeft() or 0) - frame:GetWidth() - 12
+      local desiredTop = (anchor:GetTop() or 0) - 18
+
+      if ui and ui.GetWidth then
+        local minLeft = 12
+        desiredLeft = math.max(desiredLeft, minLeft)
+      end
+
+      frame:ClearAllPoints()
+      frame:SetPoint("TOPLEFT", ui, "BOTTOMLEFT", desiredLeft, desiredTop)
+    end
+  end
 end
 
 -- Trace only C_CVar.SetCVar: hooking global SetCVar as well would run second and overwrite attribution with a worse stack.
