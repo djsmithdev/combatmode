@@ -126,7 +126,29 @@ CM.Config.ReticleTargetingOptions = {
         return CM.DynamicCam or not CM.IsCrosshairEnabled()
       end,
     },
-    spacing11 = Spacing("full", 5.5),
+    spacing11 = Spacing("full", 5.41),
+    editReticleTargetingCVars = {
+      type = "execute",
+      name = "Edit Reticle Targeting CVars",
+      desc = "Open the Reticle Targeting CVar editor.",
+      width = 1.75,
+      order = 5.42,
+      func = function()
+        CM.OpenReticleTargetingCVarEditor()
+      end,
+    },
+    spacing12 = Spacing(0.25, 5.43),
+    editTargetingMacroPrelines = {
+      type = "execute",
+      name = "Edit Targeting Macro Prelines",
+      desc = "Open the Targeting Macro Prelines editor.",
+      width = 1.75,
+      order = 5.44,
+      func = function()
+        -- PLACEHOLDER
+      end,
+    },
+    spacing13 = Spacing("full", 5.5),
     excludeFromTargetingSpells = {
       name = "Spells to |cffE52B50exclude|r from |cff00FFFFReticle Targeting|r:",
       desc = "Spells that you |cffE52B50DON'T|r want the |cffB47EDEtargeting macro conditionals|r applied to, thus not being able to select the crosshair unit.\n\n|cff909090Ex: Shield Wall, Ice Block, Divine Shield.|r\n\n|cffffd700Separate names with commas.|r\n|cffffd700Names are case insensitive.|r",

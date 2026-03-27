@@ -85,6 +85,7 @@ CM.Constants.DatabaseDefaults = {
     crosshairLayoutPositions = {},
     silenceAlerts = false,
     debugMode = false,
+    reticleTargetingCVarOverrides = {},
     bindings = DefaultBindings,
     healingRadial = {
       enabled = false,

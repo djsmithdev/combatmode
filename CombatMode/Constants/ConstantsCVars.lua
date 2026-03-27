@@ -38,6 +38,17 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["CursorStickyCentering"] = 1, -- !BUG: we can't use it due to the issue described above. Fore more info, see: https://github.com/Stanzilla/WoWUIBugs/issues/504
 }
 
+-- Not shown in the Reticle CVar editor; saved overrides for these keys are ignored and pruned.
+CM.Constants.ReticleTargetingCVarEditorExcluded = {
+  ["CursorStickyCentering"] = true,
+  ["CursorFreelookCentering"] = true,
+  ["enableMouseoverCast"] = true,
+  ["deselectOnClick"] = true,
+  ["interactKeyWarningTutorial"] = true,
+  ["SoftTargetIconGameObject"] = true,
+  ["SoftTargetIconInteract"] = true,
+}
+
 -- Minimal SoftTarget CVars so the Interaction HUD (softinteract) works when Reticle Targeting
 -- is off; full stack remains CM.ConfigReticleTargeting("combatmode").
 CM.Constants.InteractionHUDSoftTargetCVarValues = {

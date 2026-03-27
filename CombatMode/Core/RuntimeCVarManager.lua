@@ -18,6 +18,43 @@ local pairs = _G.pairs
 local type = _G.type
 local tostring = _G.tostring
 
+function CM.GetReticleTargetingCVarOverrides()
+  local globalDB = CM.DB and CM.DB.global
+  if not globalDB then
+    return {}
+  end
+  if type(globalDB.reticleTargetingCVarOverrides) ~= "table" then
+    globalDB.reticleTargetingCVarOverrides = {}
+  end
+  local t = globalDB.reticleTargetingCVarOverrides
+  local excluded = CM.Constants.ReticleTargetingCVarEditorExcluded
+  if type(excluded) == "table" then
+    for cvar in pairs(excluded) do
+      if t[cvar] ~= nil then
+        t[cvar] = nil
+      end
+    end
+  end
+  return t
+end
+
+function CM.GetEffectiveReticleTargetingCVarValues()
+  local resolved = {}
+  local defaults = CM.Constants.ReticleTargetingCVarValues
+  local overrides = CM.GetReticleTargetingCVarOverrides()
+
+  for cvar, value in pairs(defaults) do
+    local override = overrides[cvar]
+    if override ~= nil then
+      resolved[cvar] = override
+    else
+      resolved[cvar] = value
+    end
+  end
+
+  return resolved
+end
+
 function CM.SetCVar(name, value)
   SetCVar(name, value)
 end
@@ -67,7 +104,7 @@ end
 function CM.ConfigReticleTargeting(CVarType)
   local info = {
     CVarType = CVarType,
-    CMValues = CM.Constants.ReticleTargetingCVarValues,
+    CMValues = CM.GetEffectiveReticleTargetingCVarValues(),
     BlizzValues = CM.Constants.BlizzardReticleTargetingCVarValues,
     FeatureName = "Reticle Targeting",
   }

@@ -41,6 +41,8 @@
     <Script file="Config\ConfigShared.lua"/>
     <Script file="Config\ConfigAbout.lua"/>
     <Script file="Config\ConfigMouseLook.lua"/>
+    <Script file="Config\ReticleCVarEditorData.lua"/>
+    <Script file="Config\ReticleCVarEditorPanel.lua"/>
     <Script file="Config\ConfigReticleTargeting.lua"/>
     <Script file="Config\ConfigClickCasting.lua"/>
     <Script file="Config\ConfigHealingRadial.lua"/>
