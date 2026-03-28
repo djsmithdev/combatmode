@@ -20,3 +20,4 @@
 - [ ] New settings/defaults use intentional DB scope (`global` vs `char`).
 - [ ] Any load-order-sensitive files were added to `Embeds.xml`.
 - [ ] Changelog updated (if user-visible changes): `CombatMode/CHANGELOG.md`
+- [ ] If `CHANGELOG.md` changed: `scripts/sync-changelog-to-lua.ps1` run so `CombatMode/Config/ConfigChangelogData.lua` matches the in-game viewer

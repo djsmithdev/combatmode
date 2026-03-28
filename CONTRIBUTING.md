@@ -36,3 +36,4 @@ Use full sweep only for release prep or explicit maintainer request:
 - Changed-files pre-commit checks pass.
 - Feature behavior verified with focused testing (`TESTING.md`).
 - Any process/rule/documentation updates included when workflow/architecture changed.
+- If you change **`CombatMode/CHANGELOG.md`**, run **`scripts/sync-changelog-to-lua.ps1`** so **`CombatMode/Config/ConfigChangelogData.lua`** matches the in-game changelog (or note in the PR if intentionally deferred).

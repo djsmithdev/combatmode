@@ -1,3 +1,7 @@
+# scripts/sync-changelog-to-lua.ps1
+# Overwrites CombatMode/Config/ConfigChangelogData.lua (CM.Config.ChangelogText) from CombatMode/CHANGELOG.md.
+# WoW cannot read .md at runtime; the Lua string is what ConfigChangelogPanel.lua displays.
+# VS Code: task "Sync CHANGELOG.md to ConfigChangelogData.lua".
 param(
     [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot)
 )

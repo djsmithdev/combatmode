@@ -2,7 +2,9 @@
 --  Core/TargetingMacroBuilder.lua — reticle targeting macro text
 ---------------------------------------------------------------------------------------
 -- Builds click-cast macro text for reticle targeting (pre-line + /click + @cursor
--- and special-bar / ground-target handling).
+-- and special-bar / ground-target handling). Account-wide pre-line overrides live in
+-- CM.DB.global (targetingMacroPrelineAnyOverride, targetingMacroPrelineEnemyOverride);
+-- defaults for the editor are exposed as CM.TargetingMacroPrelinesDefaults.
 --
 -- Secure frame creation + SetOverrideBinding plumbing stays in BindingOverrides.lua.
 local _G = _G

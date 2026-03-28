@@ -1,5 +1,11 @@
 ---------------------------------------------------------------------------------------
---  Config/ReticleCVarEditorData.lua — Reticle Targeting CVar editor data helpers
+--  Config/ReticleCVarEditorData.lua — Reticle Targeting CVar editor data layer
+---------------------------------------------------------------------------------------
+--  Row list, description fallbacks, canonical/exclusion helpers (editor + runtime
+--  pruning must agree with CM.Constants.ReticleTargetingCVarEditorExcluded).
+--  Override table: CM.DB.global.reticleTargetingCVarOverrides; reads/writes go through
+--  CM.GetReticleTargetingCVarOverrides; SetOverride / clear-all guarded in combat.
+--  Related: ReticleCVarEditorPanel.lua, RuntimeCVarManager.lua, ConstantsCVars.lua.
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub

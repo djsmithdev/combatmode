@@ -2,8 +2,9 @@
 --  Config/ConfigShared.lua — shared AceConfig builders (spacing, headers, groups)
 ---------------------------------------------------------------------------------------
 --  Loaded after ConfigNamespace.lua and before other Config/Config*.lua + ConfigCategories.lua.
---  Exposes CM.Config.OptionsUI for
---  category files to avoid duplicating layout helpers and GetButtonOverrideGroup.
+--  Exposes CM.Config.OptionsUI for category files to avoid duplicating layout helpers
+--  and GetButtonOverrideGroup. Header/Description key "prelines" is used by
+--  Config/TargetingMacroPrelinesEditor.lua (AceConfigDialog preline editor).
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub

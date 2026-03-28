@@ -12,6 +12,8 @@ Before finalizing code changes, run this checklist.
 - Combat safety: guard protected paths and avoid insecure changes in combat.
 - State symmetry: for mouselook/CVars/bindings, ensure enable/apply has matching disable/cleanup.
 - Config wiring: new setting has defaults, correct DB scope, and options UI integration.
+- Standalone config dialogs (`ReticleCVarEditorData.lua` / `ReticleCVarEditorPanel.lua`, `TargetingMacroPrelinesEditor.lua`): register in `Embeds.xml` before the `Config*.lua` category that calls `CM.Open*`; keep `CM.Open*` combat-guarded where frames are created; if changing reticle CVar presets or exclusions, update `ConstantsCVars.lua`, `ReticleCVarEditorData.lua`, and `RuntimeCVarManager.lua` together so effective values and the editor stay aligned.
+- Changelog: if **`CombatMode/CHANGELOG.md`** changes, run **`scripts/sync-changelog-to-lua.ps1`** so **`Config/ConfigChangelogData.lua`** matches the in-game viewer; keep **`ConfigChangelogData.lua` + `ConfigChangelogPanel.lua`** before **`ConfigAbout.lua`** in **`Embeds.xml`**.
 - Regression pass: cover slash commands, keybind flows, and mainline runtime path for touched feature.
 - Lint/format pass (changed files): run `pre-commit run --files <changed lua files>`.
 - Tool-specific debug checks when needed: `stylua --check <paths>` and `selene --config selene.toml <paths>`.

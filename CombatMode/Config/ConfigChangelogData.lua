@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------
---  Config/ConfigChangelogData.lua - changelog body for in-game viewer
---  Regenerate from CHANGELOG.md:  scripts\sync-changelog-to-lua.ps1
+--  Config/ConfigChangelogData.lua — CM.Config.ChangelogText for ConfigChangelogPanel.lua
+---------------------------------------------------------------------------------------
+--  WoW cannot load CHANGELOG.md at runtime; this file is the shipped body string.
+--  Regenerate from CombatMode/CHANGELOG.md: scripts/sync-changelog-to-lua.ps1 (VS Code sync task).
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub

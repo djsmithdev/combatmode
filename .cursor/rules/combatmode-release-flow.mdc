@@ -12,5 +12,6 @@ When asked to prepare a release, ship an update, or finalize a version:
 - Verify WoW API compatibility with MCP tools before finalizing notes.
 - Call out any user-impacting changes (bindings, CVars, settings migration) clearly.
 - Ensure version/interface metadata changes are explicitly included in the change summary.
+- After editing **`CombatMode/CHANGELOG.md`**, run **`scripts/sync-changelog-to-lua.ps1`** (or VS Code task **Sync CHANGELOG.md to ConfigChangelogData.lua**) so **`CombatMode/Config/ConfigChangelogData.lua`** matches the in-game changelog viewer.
 
 If the request is not release-related, apply normal architecture/safety/checklist rules.

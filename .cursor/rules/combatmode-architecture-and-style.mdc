@@ -19,9 +19,9 @@ Use this project map and conventions for all changes.
 
 ## Module responsibilities
 
-- `Core/Runtime.lua`: owns addon lifecycle (`OnInitialize`/`OnEnable`/`OnDisable`), cross-feature coordination points, and global `CombatMode_OnUpdate`.
+- `Core/Runtime.lua`: owns addon lifecycle (`OnInitialize`/`OnEnable`/`OnDisable`), cross-feature coordination points, global `CombatMode_OnUpdate`, first-login welcome `StaticPopup`, and deferred in-game changelog open (`ScheduleChangelogIfNewVersion` → `CM.Config.MaybeShowChangelogOnNewVersion`) when `CM.DB.global.lastSeenChangelogVersion` ≠ `CM.METADATA["VERSION"]`.
 - `Core/RuntimeEventRouter.lua`: owns centralized event category dispatch and `_G.CombatMode_OnEvent`; builds/owns `eventCategoryMap`.
-- `Core/RuntimeCVarManager.lua`: owns all addon-owned **CVar writes** (centralized `CM.SetCVar*` helpers) and the feature-level CVar helpers (reticle targeting presets, Interaction HUD soft-target subset, action camera, sticky crosshair, shoulder offset, mouselook speed) and reset-to-default.
+- `Core/RuntimeCVarManager.lua`: owns all addon-owned **CVar writes** (centralized `CM.SetCVar*` helpers) and the feature-level CVar helpers (reticle targeting presets merged with `CM.DB.global.reticleTargetingCVarOverrides` via `CM.GetEffectiveReticleTargetingCVarValues`, Interaction HUD soft-target subset, action camera, sticky crosshair, shoulder offset, mouselook speed) and reset-to-default.
 - `Core/RuntimeBindingQueue.lua`: owns combat-safe deferred binding write queue (`CM.TryApplyBindingChange`, `CM.FlushDeferredBindingChanges`).
 - `Core/RuntimeBootstrap.lua`: owns startup wiring (`CM.BootstrapFeatureModules`) that initializes Core systems in the same sequence as Runtime enable.
 - `Core/FreeLookController.lua`: owns free-look/mouselook state transitions, cursor-mode keybind behavior, and UI side effects tied to lock/unlock flow.
@@ -30,14 +30,19 @@ Use this project map and conventions for all changes.
 - `Core/Crosshair.lua`: owns crosshair visuals and reaction logic. Crosshair reaction and cursor centering follow `CM.IsCrosshairEnabled()`.
 - `Core/BindingOverrides.lua`: owns override binding/macro synthesis for mouse buttons and modified clicks; refreshes when bars/bindings change.
 - `Core/AddonActionBarResolver.lua`: owns third-party action bar button resolution by action-slot id (ElvUI/Bartender4).
-- `Core/TargetingMacroBuilder.lua`: owns reticle-targeting macro text construction (pre-line, /click wrapper, @cursor handling).
+- `Core/TargetingMacroBuilder.lua`: owns reticle-targeting macro text construction (pre-line, /click wrapper, @cursor handling). Exports `CM.TargetingMacroPrelinesDefaults`; honors account-wide `CM.DB.global.targetingMacroPrelineAnyOverride` / `targetingMacroPrelineEnemyOverride` when set.
 - `Core/AutoCursorUnlock.lua`: owns unlock predicates (frame visibility, mounts, pet battle, custom expression) and wildcard frame tracking.
 - `Core/Animations.lua`: owns user-facing animations (cursor pulse after unlock/free-look transitions; crosshair reaction/lock-in presentation).
 - `Core/InteractionHUD.lua`: owns the Interaction HUD widget lifecycle, fade/range `OnUpdate`, and soft-interact event handling.
 - `Core/HealingRadial.lua`: owns radial frame lifecycle, selection tracking, secure cast attributes, and group/role slice updates.
 - `UI/CrosshairEditMode.lua`: owns Edit Mode registration, option controls, and persisted layout integration for the crosshair UI.
 - `Config/ConfigNamespace.lua`: initializes the `CM.Config` namespace only.
-- `Config/ConfigShared.lua`: shared AceConfig builders/helpers used by all config category modules.
+- `Config/ConfigShared.lua`: shared AceConfig builders/helpers used by all config category modules (includes `Header`/`Description` key `prelines` for the preline editor).
+- `Config/ReticleCVarEditorData.lua`: reticle CVar editor row data and override persistence helpers.
+- `Config/ReticleCVarEditorPanel.lua`: custom Reticle Targeting CVar editor UI; `CM.OpenReticleTargetingCVarEditor()`.
+- `Config/TargetingMacroPrelinesEditor.lua`: `AceConfigDialog` for editing click-cast preline overrides; `CM.OpenTargetingMacroPrelinesEditor()`; opened from `ConfigReticleTargeting.lua`.
+- `Config/ConfigChangelogData.lua`: holds `CM.Config.ChangelogText` (markdown string for the in-game viewer); keep in sync with `CombatMode/CHANGELOG.md` via `scripts/sync-changelog-to-lua.ps1`.
+- `Config/ConfigChangelogPanel.lua`: changelog popup UI (`SimpleHTML` + `ScrollFrame`); `CM.Config.ShowChangelog`, `CM.Config.MaybeShowChangelogOnNewVersion`; sets `CM.DB.global.lastSeenChangelogVersion` when shown. Called from `ConfigAbout.lua` and scheduled in `Core/Runtime.lua` on login after version changes.
 - `Config/Config*.lua` (feature files): define option tables, read/write DB values, and call existing feature APIs (no duplicated feature logic).
 - `Config/ConfigCategories.lua`: assembles category roots and registration metadata consumed by Core during options setup.
 

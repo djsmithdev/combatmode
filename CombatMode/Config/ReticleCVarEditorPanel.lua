@@ -1,6 +1,11 @@
 ---------------------------------------------------------------------------------------
 --  Config/ReticleCVarEditorPanel.lua — Reticle Targeting CVar editor panel
 ---------------------------------------------------------------------------------------
+--  Custom frame (not AceConfigDialog). CM.OpenReticleTargetingCVarEditor; opened from
+--  ConfigReticleTargeting.lua; anchors left of SettingsPanel / InterfaceOptionsFrame.
+--  Uses CM.ReticleCVarEditorData; debounced RequestRefresh; CVAR_UPDATE + SetCVar hook
+--  for live values and external-change attribution.
+---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
 local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")

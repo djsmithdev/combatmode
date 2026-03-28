@@ -19,6 +19,7 @@ Use this checklist when preparing a release build.
 - Wago upload is intentionally not configured yet.
 - Root `.pkgmeta` sets `package-as`, `ignore`, and `manual-changelog` (packager uses `-t CombatMode -m .pkgmeta`).
 - Maintain `CombatMode/CHANGELOG.md` manually and commit it **before** tagging/publishing a release; the packager includes it in the zip via `.pkgmeta` (`manual-changelog: CHANGELOG.md` under `-t CombatMode`).
+- Regenerate the in-game viewer copy by running **`scripts/sync-changelog-to-lua.ps1`** (or VS Code task **Sync CHANGELOG.md to ConfigChangelogData.lua**) so **`CombatMode/Config/ConfigChangelogData.lua`** (`CM.Config.ChangelogText`) stays aligned with `CHANGELOG.md`.
 
 ## 2) API and compatibility checks
 

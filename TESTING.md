@@ -6,6 +6,7 @@ Use this checklist for feature work and regressions.
 
 - Use Retail client with addon enabled and fresh `/reload`.
 - Confirm `CombatModeDB` loads and settings panel opens (`/cm`).
+- **Changelog viewer:** open About → **View Changelog**; confirm markdown renders (headings, bullets, links). After a version bump, confirm auto-popup once per version (`lastSeenChangelogVersion` in saved vars). If `CHANGELOG.md` was edited, confirm **`scripts/sync-changelog-to-lua.ps1`** was run so in-game text matches.
 - If testing bindings, verify keybinds are set as expected.
 - For API-sensitive changes, verify WoW API/event signatures via MCP tools first (or manual fallback in `RELEASE.md`).
 
@@ -20,6 +21,7 @@ Use this checklist for feature work and regressions.
 - Enable/disable reticle-related settings and confirm visual/state updates.
 - Confirm targeted CVars change only when feature requires it.
 - Disable feature and ensure CVars/state restore path behaves correctly.
+- Open **Reticle Targeting CVar editor** from Reticle options: filter/sort, double-click edit, reset overrides; reload and confirm `reticleTargetingCVarOverrides` persistence; verify excluded CVars do not appear and external `SetCVar` updates refresh the list where hooked.
 
 ## Click casting
 

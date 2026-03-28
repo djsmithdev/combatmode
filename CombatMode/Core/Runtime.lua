@@ -5,6 +5,8 @@
 --  commands, and Blizzard options registration. Coordinates runtime modules,
 --  Rematch on layout/reload, and the throttled global OnUpdate loop that enforces
 --  free look via Core/FreeLookController.lua and refreshes crosshair reactions.
+--  First-login welcome StaticPopup; ScheduleChangelogIfNewVersion →
+--  CM.Config.MaybeShowChangelogOnNewVersion (ConfigChangelogPanel.lua) when addon version changes.
 --
 --  Architecture:
 --    • Loaded early (Core/Runtime.lua); defines _G.CM and CM.METADATA from the TOC.

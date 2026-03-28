@@ -1,6 +1,12 @@
 ---------------------------------------------------------------------------------------
 --  Config/TargetingMacroPrelinesEditor.lua — Targeting macro prelines editor (AceConfig)
 ---------------------------------------------------------------------------------------
+--  Standalone AceConfigDialog (APP_NAME CombatMode_TargetingMacroPrelines). Opened from
+--  ConfigReticleTargeting.lua via CM.OpenTargetingMacroPrelinesEditor. Persists
+--  CM.DB.global.targetingMacroPrelineAnyOverride / targetingMacroPrelineEnemyOverride;
+--  Core/TargetingMacroBuilder.lua applies them. Uses ConfigShared Description/Spacing
+--  (Header key prelines). Load after ConfigShared + TargetingMacroBuilder (Embeds.xml).
+---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
 local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")

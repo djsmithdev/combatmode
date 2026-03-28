@@ -1,5 +1,11 @@
 ---------------------------------------------------------------------------------------
---  Config/ConfigChangelogPanel.lua — scrollable changelog window (About tab)
+--  Config/ConfigChangelogPanel.lua — in-game changelog window (About + post-update)
+---------------------------------------------------------------------------------------
+--  Owns: markdown subset → SimpleHTML, ScrollFrame + scrollbar, CM.Config.ShowChangelog /
+--  CM.Config.MaybeShowChangelogOnNewVersion, CM.DB.global.lastSeenChangelogVersion when shown.
+--  Data: CM.Config.ChangelogText from ConfigChangelogData.lua (sync from CHANGELOG.md via
+--  scripts/sync-changelog-to-lua.ps1). Callers: ConfigAbout.lua (View Changelog), Core/Runtime.lua
+--  (ScheduleChangelogIfNewVersion on login / after welcome popup).
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub

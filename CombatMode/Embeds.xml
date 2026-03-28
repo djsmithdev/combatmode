@@ -36,7 +36,7 @@
     <Script file="UI\CrosshairEditMode.lua"/>
     <Script file="Core\AutoCursorUnlock.lua"/>
     <Script file="Core\HealingRadial.lua"/>
-    <!-- CONFIG: AceConfig — ConfigNamespace/ConfigShared first, ConfigCategories last -->
+    <!-- CONFIG: AceConfig — ConfigNamespace/ConfigShared first; ConfigChangelogData + ConfigChangelogPanel before ConfigAbout; ReticleCVar* + TargetingMacroPrelinesEditor before ConfigReticleTargeting; ConfigCategories last -->
     <Script file="Config\ConfigNamespace.lua"/>
     <Script file="Config\ConfigShared.lua"/>
     <Script file="Config\ConfigChangelogData.lua"/>

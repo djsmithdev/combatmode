@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------
 --  Constants/ConstantsCVars.lua — constants module: cvar presets/defaults
 ---------------------------------------------------------------------------------------
+--  ReticleTargetingCVarValues + ReticleTargetingCVarEditorExcluded (editor/runtime).
+---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
 local AceAddon = LibStub("AceAddon-3.0")

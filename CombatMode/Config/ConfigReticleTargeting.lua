@@ -1,5 +1,8 @@
 ---------------------------------------------------------------------------------------
---  Config/ConfigReticleTargeting.lua — Reticle targeting (CVars, spells)
+--  Config/ConfigReticleTargeting.lua — Reticle targeting (CVars, spells, editors)
+---------------------------------------------------------------------------------------
+--  Opens Reticle CVar editor (CM.OpenReticleTargetingCVarEditor) and preline editor
+--  (CM.OpenTargetingMacroPrelinesEditor) from execute buttons.
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub

@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Config/ConfigAbout.lua — About panel (reset, debug, metadata, links)
+--  Config/ConfigAbout.lua — About panel (reset, debug, metadata, links, View Changelog)
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
