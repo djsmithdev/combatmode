@@ -1,3 +1,14 @@
+---------------------------------------------------------------------------------------
+--  Config/ConfigChangelogData.lua - changelog body for in-game viewer
+--  Regenerate from CHANGELOG.md:  scripts\sync-changelog-to-lua.ps1
+---------------------------------------------------------------------------------------
+local _G = _G
+local LibStub = _G.LibStub
+local AceAddon = LibStub("AceAddon-3.0")
+local CM = AceAddon:GetAddon("CombatMode")
+
+CM.Config = CM.Config or {}
+CM.Config.ChangelogText = [[
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -108,3 +119,4 @@ Together, these updates allow using the Crosshair and Interaction HUD independen
 ### Fixed
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
+]]

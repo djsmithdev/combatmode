@@ -24,6 +24,7 @@ local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local AceConfigCmd = LibStub("AceConfigCmd-3.0")
 
 -- WoW API
+local C_Timer = _G.C_Timer
 local DisableAddOn = _G.C_AddOns.DisableAddOn
 local GetAddOnMetadata = _G.C_AddOns.GetAddOnMetadata
 local GetMacroInfo = _G.GetMacroInfo
@@ -145,6 +146,14 @@ local function UndoCMChanges()
   ReloadUI()
 end
 
+local function ScheduleChangelogIfNewVersion()
+  C_Timer.After(0.5, function()
+    if CM.Config and CM.Config.MaybeShowChangelogOnNewVersion then
+      CM.Config.MaybeShowChangelogOnNewVersion()
+    end
+  end)
+end
+
 local function DisplayPopup()
   if CM.DB.char.seenWarning then
     return
@@ -153,6 +162,7 @@ local function DisplayPopup()
   local function OnClosePopup()
     CM.DB.char.seenWarning = true
     OpenConfigPanel()
+    ScheduleChangelogIfNewVersion()
   end
 
   StaticPopupDialogs["CombatMode Warning"] = {
@@ -360,6 +370,10 @@ function CM:OnEnable()
   end
 
   DisplayPopup()
+
+  if CM.DB.char.seenWarning then
+    ScheduleChangelogIfNewVersion()
+  end
 end
 
 --[[

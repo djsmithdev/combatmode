@@ -98,6 +98,17 @@ CM.Config.AboutOptions = {
       name = "|cffffffffVersion:|r " .. "|cff00ff00" .. CM.METADATA["VERSION"] .. "|r\n\n",
       order = 3.2,
     },
+    changelogButton = {
+      type = "execute",
+      name = "CHANGELOG",
+      desc = "Opens the changelog in a scrollable window.",
+      width = 0.7,
+      func = function()
+        CM.Config.ShowChangelog()
+      end,
+      order = 3.22,
+    },
+    spacing333 = Spacing("full", 3.23),
     authorsList = {
       type = "description",
       name = "|cffffffffAuthors:|r " .. "|cffcfcfcf" .. CM.METADATA["AUTHOR"] .. "|r\n",

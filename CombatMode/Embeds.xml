@@ -39,6 +39,8 @@
     <!-- CONFIG: AceConfig — ConfigNamespace/ConfigShared first, ConfigCategories last -->
     <Script file="Config\ConfigNamespace.lua"/>
     <Script file="Config\ConfigShared.lua"/>
+    <Script file="Config\ConfigChangelogData.lua"/>
+    <Script file="Config\ConfigChangelogPanel.lua"/>
     <Script file="Config\ConfigAbout.lua"/>
     <Script file="Config\ConfigMouseLook.lua"/>
     <Script file="Config\ReticleCVarEditorData.lua"/>

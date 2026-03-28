@@ -173,6 +173,7 @@ CM.Constants.FramesToCheck = {
   "Baganator_CategoryViewBackpackViewFramegw2_ui",
   "Baganator_CategoryViewBackpackViewFrame",
   "CombatModeReticleCVarEditor",
+  "CombatModeChangelogFrame",
 }
 
 -- Default wildcard patterns and known candidates by prefix.

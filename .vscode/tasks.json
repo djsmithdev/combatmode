@@ -2,6 +2,20 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Sync CHANGELOG.md to ConfigChangelogData.lua",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\sync-changelog-to-lua.ps1"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
       "label": "Package CombatMode Zip",
       "type": "shell",
       "command": "powershell",
