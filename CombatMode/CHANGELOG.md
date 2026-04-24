@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 This log follows Keep a Changelog (https://keepachangelog.com/en/1.1.0/) and Semantic Versioning (https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2026-04-24
+
+### Added
+
+- Combat Assist Spell icon suggestion on the Crosshair: shows the next recommended spell icon near the crosshair (Retail Assisted Combat highlight).
+- Edit Mode controls for the assisted highlight widget: enable/disable, size, position (X/Y), keybind display, and keybind anchor (top/bottom/left/right).
+
 ## [3.2.2] - 2026-03-28
 
 ### Added

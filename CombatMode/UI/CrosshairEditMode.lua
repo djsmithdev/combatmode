@@ -396,6 +396,144 @@ function CM.RegisterCrosshairEditMode()
         return not CM.IsCrosshairEnabled()
       end,
     },
+    {
+      name = "Show Combat Assist Spell",
+      kind = ST.Checkbox,
+      default = true,
+      desc = "Show the Blizzard Assisted Combat suggested spell icon near the crosshair (in combat).",
+      get = function()
+        return CM.DB.global.assistedHighlightEnabled
+      end,
+      set = function(_, value)
+        CM.DB.global.assistedHighlightEnabled = value
+        if CM.ApplyCrosshairAssistedHighlightOptions then
+          CM.ApplyCrosshairAssistedHighlightOptions()
+        end
+        if CM.UpdateCrosshairAssistedHighlight then
+          CM.UpdateCrosshairAssistedHighlight()
+        end
+      end,
+      disabled = function()
+        return not CM.IsCrosshairEnabled()
+      end,
+    },
+    {
+      name = "Combat Assist Icon Size",
+      kind = ST.Slider,
+      default = 32,
+      minValue = 28,
+      maxValue = 52,
+      valueStep = 1,
+      get = function()
+        return CM.DB.global.assistedHighlightSize
+      end,
+      set = function(_, value)
+        CM.DB.global.assistedHighlightSize = value
+        if CM.ApplyCrosshairAssistedHighlightOptions then
+          CM.ApplyCrosshairAssistedHighlightOptions()
+        end
+        if CM.UpdateCrosshairAssistedHighlight then
+          CM.UpdateCrosshairAssistedHighlight()
+        end
+      end,
+      disabled = function()
+        return not CM.IsCrosshairEnabled() or not CM.DB.global.assistedHighlightEnabled
+      end,
+    },
+    {
+      name = "Combat Assist X Offset",
+      kind = ST.Slider,
+      default = 80,
+      minValue = -200,
+      maxValue = 200,
+      valueStep = 1,
+      get = function()
+        return CM.DB.global.assistedHighlightOffsetX
+      end,
+      set = function(_, value)
+        CM.DB.global.assistedHighlightOffsetX = value
+        if CM.ApplyCrosshairAssistedHighlightOptions then
+          CM.ApplyCrosshairAssistedHighlightOptions()
+        end
+        if CM.UpdateCrosshairAssistedHighlight then
+          CM.UpdateCrosshairAssistedHighlight()
+        end
+      end,
+      disabled = function()
+        return not CM.IsCrosshairEnabled() or not CM.DB.global.assistedHighlightEnabled
+      end,
+    },
+    {
+      name = "Combat Assist Y Offset",
+      kind = ST.Slider,
+      default = 40,
+      minValue = -200,
+      maxValue = 200,
+      valueStep = 1,
+      get = function()
+        return CM.DB.global.assistedHighlightOffsetY
+      end,
+      set = function(_, value)
+        CM.DB.global.assistedHighlightOffsetY = value
+        if CM.ApplyCrosshairAssistedHighlightOptions then
+          CM.ApplyCrosshairAssistedHighlightOptions()
+        end
+        if CM.UpdateCrosshairAssistedHighlight then
+          CM.UpdateCrosshairAssistedHighlight()
+        end
+      end,
+      disabled = function()
+        return not CM.IsCrosshairEnabled() or not CM.DB.global.assistedHighlightEnabled
+      end,
+    },
+    {
+      name = "Show Combat Assist Keybind",
+      kind = ST.Checkbox,
+      default = true,
+      get = function()
+        return CM.DB.global.assistedHighlightShowKeybind
+      end,
+      set = function(_, value)
+        CM.DB.global.assistedHighlightShowKeybind = value
+        if CM.ApplyCrosshairAssistedHighlightOptions then
+          CM.ApplyCrosshairAssistedHighlightOptions()
+        end
+        if CM.UpdateCrosshairAssistedHighlight then
+          CM.UpdateCrosshairAssistedHighlight()
+        end
+      end,
+      disabled = function()
+        return not CM.IsCrosshairEnabled() or not CM.DB.global.assistedHighlightEnabled
+      end,
+    },
+    {
+      name = "Combat Assist Keybind Anchor",
+      kind = ST.Dropdown,
+      default = "RIGHT",
+      values = {
+        { text = "Right", value = "RIGHT" },
+        { text = "Left", value = "LEFT" },
+        { text = "Top", value = "TOP" },
+        { text = "Bottom", value = "BOTTOM" },
+      },
+      get = function()
+        return CM.DB.global.assistedHighlightKeybindAnchor
+      end,
+      set = function(_, value)
+        CM.DB.global.assistedHighlightKeybindAnchor = value
+        if CM.ApplyCrosshairAssistedHighlightOptions then
+          CM.ApplyCrosshairAssistedHighlightOptions()
+        end
+        if CM.UpdateCrosshairAssistedHighlight then
+          CM.UpdateCrosshairAssistedHighlight()
+        end
+      end,
+      disabled = function()
+        return not CM.IsCrosshairEnabled()
+          or not CM.DB.global.assistedHighlightEnabled
+          or not CM.DB.global.assistedHighlightShowKeybind
+      end,
+    },
   })
 
   LEM:RegisterCallback("layout", function(layoutName)
@@ -407,17 +545,25 @@ function CM.RegisterCrosshairEditMode()
   end)
 
   LEM:RegisterCallback("enter", function()
+    CM.IsCrosshairEditModeActive = true
     if CM.IsCrosshairEnabled() then
       CM.DisplayCrosshair(true)
+    end
+    if CM.UpdateCrosshairAssistedHighlight then
+      CM.UpdateCrosshairAssistedHighlight()
     end
   end)
 
   LEM:RegisterCallback("exit", function()
+    CM.IsCrosshairEditModeActive = false
     CM.HideCrosshairEditPreview()
     if not CM.HideCrosshairWhileMounted() and CM.IsCrosshairEnabled() then
       CM.DisplayCrosshair(IsMouselooking())
     else
       CM.DisplayCrosshair(false)
+    end
+    if CM.UpdateCrosshairAssistedHighlight then
+      CM.UpdateCrosshairAssistedHighlight()
     end
   end)
 

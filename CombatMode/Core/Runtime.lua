@@ -266,6 +266,9 @@ function _G.CombatMode_OnUpdate(_, elapsed)
     end
 
     CM.UpdateCrosshairReaction()
+    if CM.UpdateCrosshairAssistedHighlight then
+      CM.UpdateCrosshairAssistedHighlight()
+    end
   end
 end
 

@@ -1,5 +1,5 @@
 ## Interface: 120005, 120001, 120000
-## Version: 3.2.2
+## Version: 3.3.0
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
 ## Notes: Combat Mode transforms the standard tab-targeting combat into a more engaging and dynamic action-oriented experience.

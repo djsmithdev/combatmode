@@ -32,6 +32,7 @@
     <Script file="Core\FreeLookController.lua"/>
     <Script file="Core\Animations.lua"/>
     <Script file="Core\InteractionHUD.lua"/>
+    <Script file="Core\AssistedHighlight.lua"/>
     <Script file="Core\Crosshair.lua"/>
     <Script file="UI\CrosshairEditMode.lua"/>
     <Script file="Core\AutoCursorUnlock.lua"/>

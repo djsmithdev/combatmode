@@ -53,6 +53,9 @@ local CrosshairTexture = CrosshairVisualFrame:CreateTexture(nil, "OVERLAY")
 local CrosshairAnimation = CrosshairVisualFrame:CreateAnimationGroup()
 CM.CreateCrosshairScaleAnimation(CrosshairAnimation)
 CM.InitInteractionHUD({ crosshairFrame = CrosshairFrame, crosshairTexture = CrosshairTexture })
+if CM.InitAssistedHighlight then
+  CM.InitAssistedHighlight({ crosshairFrame = CrosshairFrame, crosshairTexture = CrosshairTexture })
+end
 
 function CM.HideCrosshairWhileMounted()
   return CM.DB.global.crosshairMounted and IsMounted()
@@ -187,6 +190,10 @@ function CM.DisplayCrosshair(shouldShow)
   else
     CrosshairTexture:Hide()
   end
+  -- Keep assisted highlight in sync even when Runtime returns early (e.g. cursor mode / UI panels).
+  if CM.UpdateCrosshairAssistedHighlight then
+    CM.UpdateCrosshairAssistedHighlight()
+  end
   CM.RefreshInteractionHUD()
 end
 
@@ -215,6 +222,8 @@ function CM.CreateCrosshair()
 
   CM.ApplyCrosshairPositionForLayout(GetActiveLayoutNameSafe())
   SetCrosshairAppearance("base")
+  CM.ApplyCrosshairAssistedHighlightOptions()
+  CM.UpdateCrosshairAssistedHighlight()
   CM.RefreshCrosshairEditPreview()
   CM.ApplyInteractionHUDLayout()
   CM.RefreshInteractionHUD()

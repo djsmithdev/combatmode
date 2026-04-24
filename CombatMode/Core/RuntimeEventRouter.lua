@@ -99,6 +99,10 @@ local function HandleEventByCategory(category, event, ...)
       if event == "CVAR_UPDATE" then
         return
       end
+
+      if CM.InvalidateAssistedHighlightKeybindCache then
+        CM.InvalidateAssistedHighlightKeybindCache()
+      end
       -- Healing Radial: update slice targets and spell attributes when roster or action bar changes
       if not CM.HealingRadial then
         return
