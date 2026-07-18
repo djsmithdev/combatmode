@@ -15,6 +15,12 @@ All notable changes to this project will be documented in this file.
 
 This log follows Keep a Changelog (https://keepachangelog.com/en/1.1.0/) and Semantic Versioning (https://semver.org/spec/v2.0.0.html).
 
+## [3.3.1] - 2026-07-18
+
+### Changed
+
+- Improved cursor unlock performance by caching compiled custom conditions and checking open Blizzard UI panels before scanning watched frames.
+
 ## [3.3.0] - 2026-04-24
 
 ### Added

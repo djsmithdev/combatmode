@@ -36,13 +36,15 @@ local function CursorUnlockFrameVisible(frameArr)
     return false
   end
 
-  for _, frameName in pairs(frameArr) do
+  for _, frameName in ipairs(frameArr) do
     local curFrame = _G[frameName]
     if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
       CM.DebugPrintThrottled("cursorUnlock", frameName .. " is visible, preventing re-locking.")
       return true
     end
   end
+
+  return false
 end
 
 local function CursorUnlockFrameGroupVisible(frameNameGroups)
@@ -57,34 +59,52 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
       return true
     end
   end
+
+  return false
 end
 
 function CM.IsUnlockFrameVisible()
-  local isGenericPanelOpen = (GetUIPanel("left") or GetUIPanel("right") or GetUIPanel("center"))
-      and true
-    or false
+  if GetUIPanel("left") or GetUIPanel("right") or GetUIPanel("center") then
+    return true
+  end
+
   return CursorUnlockFrameVisible(CM.Constants.FramesToCheck)
     or CursorUnlockFrameVisible(CM.DB.global.watchlist)
     or CursorUnlockFrameGroupVisible(CM.Constants.WildcardFramesToCheck)
-    or isGenericPanelOpen
 end
 
+-- Cache compiled custom-condition Lua; OnUpdate calls this often and empty/default
+-- strings must not recompile every tick.
+local cachedCustomConditionSource
+local cachedCustomConditionFunc
+
 function CM.IsCustomConditionTrue()
-  if not CM.DB.global.customCondition then
+  local source = CM.DB.global.customCondition
+  if not source or source == "" then
+    cachedCustomConditionSource = source
+    cachedCustomConditionFunc = nil
     return false
   end
 
-  local func, err = loadstring(CM.DB.global.customCondition)
+  if source ~= cachedCustomConditionSource then
+    cachedCustomConditionSource = source
+    local func, err = loadstring(source)
+    if not func then
+      CM.DebugPrint("Invalid custom condition " .. tostring(err))
+      cachedCustomConditionFunc = nil
+      return false
+    end
+    cachedCustomConditionFunc = func
+  end
 
-  if not func then
-    CM.DebugPrint("Invalid custom condition " .. err)
+  if not cachedCustomConditionFunc then
     return false
   end
 
-  local success, result = pcall(func)
+  local success, result = pcall(cachedCustomConditionFunc)
 
   if not success then
-    CM.DebugPrint("Error executing custom condition: " .. result)
+    CM.DebugPrint("Error executing custom condition: " .. tostring(result))
     return false
   end
 
