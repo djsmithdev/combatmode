@@ -7,6 +7,8 @@
 --    • Secret-string-safe name handling (Retail 12.x)
 --    • Fade-in/out and range-based dimming (OnUpdate)
 --    • Soft-interact change event handling
+--    • Sample icon + label while CM.IsCrosshairPreviewActive() (Crosshair options tab),
+--      so the HUD is visible without a soft-interact target
 --
 --  The crosshair frame is owned by Core/Crosshair.lua and is registered via CM.InitInteractionHUD.
 ---------------------------------------------------------------------------------------
@@ -106,6 +108,14 @@ local function GetInteractionHUDUnitName()
 end
 
 local IH_CURSOR_UNABLE = (CM.Constants and CM.Constants.InteractionHUDUnableCursor) or {}
+
+-- Options tab preview: render sample content with no soft-interact target.
+local IH_PREVIEW_ATLAS = "mechagon-projects"
+local IH_PREVIEW_NAME = "Interactable"
+
+local function IsInteractionHUDPreviewActive()
+  return CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive()
+end
 
 local function HideInteractionHUD()
   ihInteractionHUDSecretIdentity = false
@@ -318,7 +328,12 @@ local function UpdateInteractionHUDVisual(elapsed)
   then
     return
   end
-  local _, inRange = GetInteractionHUDCursorDim()
+  -- Preview keeps the placeholder art: SetUnitCursorTexture would clear it without a target.
+  local inRange = true
+  if not IsInteractionHUDPreviewActive() then
+    local _, cursorInRange = GetInteractionHUDCursorDim()
+    inRange = cursorInRange
+  end
   local target = inRange and 1 or 0
   if ihRangeBlend == nil or ihSnapRangeBlend then
     ihRangeBlend = target
@@ -388,6 +403,22 @@ local function RefreshInteractionHUD()
   end
   if not CM.IsCrosshairEnabled() or CM.HideCrosshairWhileMounted() then
     HideInteractionHUD()
+    return
+  end
+  -- Preview (options tab): sample icon + name, no soft-interact target needed.
+  if IsInteractionHUDPreviewActive() and InteractionHUDCluster then
+    interactionHUDNameRetry = 0
+    ihInteractionHUDSecretIdentity = false
+    ApplyInteractionHUDLabelFont()
+    InteractionHUDIcon:SetAtlas(IH_PREVIEW_ATLAS)
+    InteractionHUDLabel:SetText(IH_PREVIEW_NAME)
+    ResizeInteractionHUDCluster()
+    ihClusterFadeTarget = 1
+    InteractionHUDShadow:Show()
+    InteractionHUDIcon:Show()
+    InteractionHUDLabel:Show()
+    InteractionHUDCluster:Show()
+    UpdateInteractionHUDVisual(0)
     return
   end
   if not (crosshairTexture and crosshairTexture.IsShown and crosshairTexture:IsShown()) then

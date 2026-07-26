@@ -8,8 +8,9 @@ local CM = AceAddon:GetAddon("CombatMode")
 
 local ipairs = _G.ipairs
 
-CM.Constants.PopupMsg = CM.METADATA["TITLE"]
-  .. "\n\n|cffffd700Thank you for trying out Combat Mode!|r \n\n|cffcfcfcfUpon closing this, an |cffB47EDEoptions panel|r will open where you'll be able to configure the addon to your liking.|r\n\n|cff909090To |cffFF5050undo all changes|r made by Combat Mode, type the following command in chat:|r\n|cff00FFFF/undocm|r"
+-- Body only: the welcome modal (CM.UI.ShowWelcome) draws the logo + wordmark header itself.
+CM.Constants.PopupMsg =
+  "Thank you for trying out Combat Mode!\nUpon closing this, an options panel will open where you'll be able to configure the addon to your liking.\nTo undo all changes made by Combat Mode, type the following command in chat:\n/undocm"
 
 CM.Constants.BasePrintMsg = CM.METADATA["TITLE"]
   .. " |cff00ff00v."
@@ -69,6 +70,3 @@ CM.Constants.CrosshairReactionColors = {
   mounted = { 1, 1, 1, 0 }, -- transparent
   focus = { 1, 0, 1, 1 }, -- purple
 }
-
-CM.Constants.CrosshairEditModeMinHitSize = 128
-CM.Constants.EditModeSystemDisplayName = "Combat Mode"

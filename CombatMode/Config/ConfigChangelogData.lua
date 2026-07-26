@@ -15,6 +15,16 @@ All notable changes to this project will be documented in this file.
 
 This log follows Keep a Changelog (https://keepachangelog.com/en/1.1.0/) and Semantic Versioning (https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-07-25
+
+### Changed
+
+- Rebuilt the settings interface as a standalone, movable Combat Mode window with a modern sidebar layout. Open it with |cff69ccf0/cm|r or |cff69ccf0/combatmode|r (the same as before).
+- Combat Mode no longer appears under Escape -> Options -> AddOns; all settings now live in the dedicated window.
+- Combat Mode's Crosshair can no longer be edited through Edit Mode; all settings were moved to a dedicated window under the new config panel;
+- Healing Radial has been renamed to Party Radial and you can now see a live preview as you modify it.
+- Action Camera options have been moved to a dedicated section named Action Camera.
+
 ## [3.3.1] - 2026-07-18
 
 ### Changed

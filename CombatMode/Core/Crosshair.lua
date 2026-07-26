@@ -2,25 +2,26 @@
 --  Core/Crosshair.lua — CROSSHAIR — crosshair UI, cursor centering, reaction state
 ---------------------------------------------------------------------------------------
 --  Draws the on-screen crosshair (container + inner visual), tracks mouseover/soft-target
---  state for appearance, syncs cursor centering (CursorCenteredYPos) for Edit Mode layouts,
---  and exposes helpers used by the Edit Mode preview panel.
+--  state for appearance, and syncs cursor centering (CursorCenteredYPos) to the crosshair
+--  vertical position from CM.DB.global.crosshairY.
 --
 --  Related modules:
 --    • Core/RuntimeCVarManager.lua: reticle-targeting + Interaction HUD SoftTarget CVar presets.
 --    • Core/InteractionHUD.lua: Interaction HUD widget presentation/lifecycle.
---    • Core/Animations.lua: crosshair animation helpers used by Edit Mode preview and lock-in.
+--    • Core/Animations.lua: crosshair animation helpers used by previews and lock-in.
+--    • UI/Options/Tabs/TabCrosshair.lua: user-facing crosshair settings; toggles the live
+--      preview via CM.SetCrosshairOptionsPreview so the reticle, Interaction HUD, and
+--      Combat Assist icon render with mouselook off (CM.IsCrosshairPreviewActive).
 --
 --  Architecture:
---    • Runtime drives CreateCrosshair from BootstrapFeatureModules; RegisterCrosshairEditMode
---      runs from the same path after UI/CrosshairEditMode.lua loads. OnUpdate calls
+--    • Runtime drives CreateCrosshair from BootstrapFeatureModules. OnUpdate calls
 --      CM.UpdateCrosshairReaction when the crosshair is enabled.
 --    • Cursor Y sync uses AdjustCenteredCursorYPos → CursorCenteredYPos when the crosshair
---      is enabled (Edit Mode); SetCursorFreelookCentering lives in Runtime.
+--      is enabled; SetCursorFreelookCentering lives in Runtime.
 --    • CM.ApplyCrosshairAppearanceToWidget / CM.CreateCrosshairScaleAnimation are exposed
---      for the Edit Mode preview (implemented in Core/Animations.lua).
+--      for previews (implemented in Core/Animations.lua).
 --    • Interaction HUD widget lifecycle is owned by Core/InteractionHUD.lua and is
 --      registered against the crosshair frame via CM.InitInteractionHUD.
---    • EditModeSystemDisplayName (Constants) avoids TOC |T|t in labels.
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
@@ -40,13 +41,7 @@ local UnitIsGameObject = _G.UnitIsGameObject
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitReaction = _G.UnitReaction
 
--- Lua stdlib
-local math = _G.math
-
-local ON_RETAIL_CLIENT = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
-
--- Outer frame: registered with LibEditMode; sized to at least CrosshairEditModeMinHitSize for a larger Edit Mode click target.
--- Inner frame: actual crosshair art, reaction scale animation, and lock-in (container stays fixed size).
+-- Outer frame: positioning container. Inner frame: crosshair art, reaction scale, lock-in.
 local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
 local CrosshairVisualFrame = CreateFrame("Frame", nil, CrosshairFrame)
 local CrosshairTexture = CrosshairVisualFrame:CreateTexture(nil, "OVERLAY")
@@ -61,8 +56,8 @@ function CM.HideCrosshairWhileMounted()
   return CM.DB.global.crosshairMounted and IsMounted()
 end
 
--- SavedVariables may store 1/0; LibEditMode uses `not not value` for checkboxes. Use this
--- anywhere UI enablement must match "crosshair on" (not strict `== true`).
+-- SavedVariables may store 1/0; use this anywhere UI enablement must match "crosshair on"
+-- (not strict `== true`).
 function CM.IsCrosshairEnabled()
   local c = CM.DB and CM.DB.global and CM.DB.global.crosshair
   if c == nil then
@@ -71,13 +66,21 @@ function CM.IsCrosshairEnabled()
   return not not c
 end
 
--- SavedVariables may store 1/0; match "Show Interaction HUD" in Edit Mode / DatabaseDefaults.
+-- SavedVariables may store 1/0; match "Show Interaction HUD" / DatabaseDefaults.
 function CM.IsInteractionHUDEnabled()
   local v = CM.DB and CM.DB.global and CM.DB.global.interactionHUD
   if v == nil then
     return CM.Constants.DatabaseDefaults.global.interactionHUD
   end
   return not not v
+end
+
+CM.IsCrosshairOptionsPreviewActive = false
+
+-- True while the Crosshair options tab is open and forcing the reticle (and HUD /
+-- Combat Assist companions) to render with mouselook off.
+function CM.IsCrosshairPreviewActive()
+  return CM.IsCrosshairOptionsPreviewActive and true or false
 end
 
 local function AdjustCenteredCursorYPos()
@@ -93,38 +96,9 @@ local function AdjustCenteredCursorYPos()
   CM.SetCursorCenteredYPos(normalized)
 end
 
-local function GetActiveLayoutNameSafe()
-  if not ON_RETAIL_CLIENT then
-    return nil
-  end
-  local LEM = LibStub("LibEditMode", true)
-  if not LEM then
-    return nil
-  end
-  return LEM:GetActiveLayoutName()
-end
-
-function CM.GetCrosshairPositionForLayout(layoutName)
-  if not CM.DB or not CM.DB.global then
-    return "CENTER", 0, 0
-  end
-  local g = CM.DB.global
-  local tbl = g.crosshairLayoutPositions
-  local defY = g.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY
-  if layoutName and tbl and tbl[layoutName] and tbl[layoutName].y ~= nil then
-    return "CENTER", 0, tbl[layoutName].y
-  end
-  return "CENTER", 0, defY
-end
-
-local function SyncCrosshairYFromFrame()
+local function GetCrosshairY()
   if not CM.DB or not CM.DB.global then
     return CM.Constants.DatabaseDefaults.global.crosshairY
-  end
-  local cx, cy = CrosshairFrame:GetCenter()
-  local ux, uy = UIParent:GetCenter()
-  if cx and cy and ux and uy then
-    CM.DB.global.crosshairY = cy - uy
   end
   return CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY
 end
@@ -134,52 +108,36 @@ local function ApplyCrosshairVertical(y)
   CrosshairFrame:SetPoint("CENTER", UIParent, "CENTER", 0, y)
 end
 
-function CM.ApplyCrosshairPositionForLayout(layoutName)
-  if not CM.DB or not CM.DB.global then
-    return
-  end
-  local _, _, y = CM.GetCrosshairPositionForLayout(layoutName)
-  ApplyCrosshairVertical(y)
-  SyncCrosshairYFromFrame()
+function CM.ApplyCrosshairPosition()
+  ApplyCrosshairVertical(GetCrosshairY())
   AdjustCenteredCursorYPos()
-end
-
-function CM.SyncCrosshairLayoutPositionFromAce()
-  if not CM.DB or not CM.DB.global then
-    return
-  end
-  local LEM = LibStub("LibEditMode", true)
-  if not LEM or not ON_RETAIL_CLIENT then
-    return
-  end
-  local name = LEM:GetActiveLayoutName()
-  if not name then
-    return
-  end
-  if not CM.DB.global.crosshairLayoutPositions then
-    CM.DB.global.crosshairLayoutPositions = {}
-  end
-  local y = CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY
-  CM.DB.global.crosshairLayoutPositions[name] = {
-    point = "CENTER",
-    x = 0,
-    y = y,
-  }
 end
 
 local function SetCrosshairAppearance(state)
   -- Visual is centered in CrosshairFrame; screen Y offset is on the container, so local offset is 0.
+  -- Preview mode bypasses the IsMouselooking() gate so the reticle stays visible while the
+  -- Crosshair options tab is open.
   CM.ApplyCrosshairAppearanceToWidget(
     CrosshairVisualFrame,
     CrosshairTexture,
     CrosshairAnimation,
     state,
     0,
-    false
+    CM.IsCrosshairPreviewActive()
   )
 end
 
 function CM.DisplayCrosshair(shouldShow)
+  -- While previewing, ignore hide requests from the free-look/unlock paths so tweaking
+  -- options with the cursor free still shows the reticle.
+  if
+    not shouldShow
+    and CM.IsCrosshairPreviewActive()
+    and CM.IsCrosshairEnabled()
+    and not CM.HideCrosshairWhileMounted()
+  then
+    shouldShow = true
+  end
   if shouldShow then
     CrosshairTexture:Show()
     local DefaultConfig = CM.Constants.DatabaseDefaults.global
@@ -202,12 +160,10 @@ function CM.CreateCrosshair()
   local UserConfig = CM.DB.global or {}
   local crosshairSize = UserConfig.crosshairSize or DefaultConfig.crosshairSize
   local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
-  local minHit = CM.Constants.CrosshairEditModeMinHitSize or 128
-  local hitSize = math.max(crosshairSize, minHit)
 
   CrosshairTexture:SetAllPoints(CrosshairVisualFrame)
   CrosshairTexture:SetBlendMode("BLEND")
-  CrosshairFrame:SetSize(hitSize, hitSize)
+  CrosshairFrame:SetSize(crosshairSize, crosshairSize)
   CrosshairFrame:SetAlpha(1)
   CrosshairVisualFrame:SetSize(crosshairSize, crosshairSize)
   CrosshairVisualFrame:SetPoint("CENTER", CrosshairFrame, "CENTER", 0, 0)
@@ -220,11 +176,10 @@ function CM.CreateCrosshair()
     onLockInComplete = AdjustCenteredCursorYPos,
   })
 
-  CM.ApplyCrosshairPositionForLayout(GetActiveLayoutNameSafe())
+  CM.ApplyCrosshairPosition()
   SetCrosshairAppearance("base")
   CM.ApplyCrosshairAssistedHighlightOptions()
   CM.UpdateCrosshairAssistedHighlight()
-  CM.RefreshCrosshairEditPreview()
   CM.ApplyInteractionHUDLayout()
   CM.RefreshInteractionHUD()
 end
@@ -415,6 +370,34 @@ function CM.OnCrosshairFocusLockEvent(event)
       CM.ShowCrosshairLockIn()
     end
     CM.UpdateCrosshairReaction()
+  end
+end
+
+--- Enables/disables the options-window live preview: forces the crosshair, Interaction
+--- HUD, and Combat Assist icon to render with mouselook off so the Crosshair tab shows
+--- changes on the real reticle. Disabling restores the normal mouselook-driven state.
+function CM.SetCrosshairOptionsPreview(enabled)
+  enabled = enabled and true or false
+  if CM.IsCrosshairOptionsPreviewActive == enabled then
+    return
+  end
+  CM.IsCrosshairOptionsPreviewActive = enabled
+
+  if enabled then
+    lastKnownAppearanceState = nil
+    CM.CreateCrosshair()
+    if CM.IsCrosshairEnabled() and not CM.HideCrosshairWhileMounted() then
+      CM.DisplayCrosshair(true)
+    end
+    return
+  end
+
+  CM.CancelCrosshairLockIn()
+  lastKnownAppearanceState = nil
+  if CM.IsCrosshairEnabled() and not CM.HideCrosshairWhileMounted() then
+    CM.DisplayCrosshair(IsMouselooking())
+  else
+    CM.DisplayCrosshair(false)
   end
 end
 

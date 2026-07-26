@@ -2,14 +2,11 @@
 ..\FrameXML\UI.xsd">
     <!-- LIBS -->
     <Script file="Libs\LibStub\LibStub.lua"/>
-    <Include file="Libs\LibEditMode\embed.xml"/>
     <Include file="Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml"/>
     <Include file="Libs\AceAddon-3.0\AceAddon-3.0.xml"/>
     <Include file="Libs\AceEvent-3.0\AceEvent-3.0.xml"/>
     <Include file="Libs\AceDB-3.0\AceDB-3.0.xml"/>
     <Include file="Libs\AceConsole-3.0\AceConsole-3.0.xml"/>
-    <Include file="Libs\AceGUI-3.0\AceGUI-3.0.xml"/>
-    <Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml"/>
     <!-- CORE -->
     <Script file="Core\Runtime.lua"/>
     <!-- CONSTANTS (must load before feature consumers) -->
@@ -34,24 +31,28 @@
     <Script file="Core\InteractionHUD.lua"/>
     <Script file="Core\AssistedHighlight.lua"/>
     <Script file="Core\Crosshair.lua"/>
-    <Script file="UI\CrosshairEditMode.lua"/>
     <Script file="Core\AutoCursorUnlock.lua"/>
     <Script file="Core\HealingRadial.lua"/>
-    <!-- CONFIG: AceConfig — ConfigNamespace/ConfigShared first; ConfigChangelogData + ConfigChangelogPanel before ConfigAbout; ReticleCVar* + TargetingMacroPrelinesEditor before ConfigReticleTargeting; ConfigCategories last -->
+    <!-- OPTIONS UI: custom standalone window (replaces AceConfig). Draw + Widgets before
+         OptionsPanel (defines AddTab/CreateWindow); Tabs register after OptionsPanel. -->
+    <Script file="UI\Options\Draw.lua"/>
+    <Script file="UI\Options\Widgets.lua"/>
+    <Script file="UI\Options\OptionsPanel.lua"/>
+    <Script file="UI\Options\Tabs\TabGeneral.lua"/>
+    <Script file="UI\Options\Tabs\TabCrosshair.lua"/>
+    <Script file="UI\Options\Tabs\TabReticleTargeting.lua"/>
+    <Script file="UI\Options\Tabs\TabClickCasting.lua"/>
+    <Script file="UI\Options\Tabs\TabAutoCursorUnlock.lua"/>
+    <Script file="UI\Options\Tabs\TabCamera.lua"/>
+    <Script file="UI\Options\Tabs\TabHealingRadial.lua"/>
+    <!-- CONFIG: changelog data/panel + standalone editors. ConfigNamespace first
+         (defines CM.Config); editors load after the OPTIONS UI toolkit they consume. -->
     <Script file="Config\ConfigNamespace.lua"/>
-    <Script file="Config\ConfigShared.lua"/>
     <Script file="Config\ConfigChangelogData.lua"/>
     <Script file="Config\ConfigChangelogPanel.lua"/>
-    <Script file="Config\ConfigAbout.lua"/>
-    <Script file="Config\ConfigMouseLook.lua"/>
     <Script file="Config\ReticleCVarEditorData.lua"/>
     <Script file="Config\ReticleCVarEditorPanel.lua"/>
     <Script file="Config\TargetingMacroPrelinesEditor.lua"/>
-    <Script file="Config\ConfigReticleTargeting.lua"/>
-    <Script file="Config\ConfigClickCasting.lua"/>
-    <Script file="Config\ConfigHealingRadial.lua"/>
-    <Script file="Config\ConfigAdvanced.lua"/>
-    <Script file="Config\ConfigCategories.lua"/>
     <!-- FRAME -->
     <Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
         <Scripts>

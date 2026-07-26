@@ -92,7 +92,6 @@ CM.Constants.DatabaseDefaults = {
     assistedHighlightShowKeybind = true,
     assistedHighlightKeybindAnchor = "RIGHT",
     crosshairY = 100,
-    crosshairLayoutPositions = {},
     silenceAlerts = false,
     debugMode = false,
     reticleTargetingCVarOverrides = {},

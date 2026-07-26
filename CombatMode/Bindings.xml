@@ -4,7 +4,7 @@
 			CombatMode_CursorModeKey(keystate)
 		end
 	</Binding>
-	<Binding name="Combat Mode - Healing Radial" description="Hold to open Healing Radial for party targeting" header="Healing Radial" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t" runOnUp="true">
+	<Binding name="Combat Mode - Healing Radial" description="Hold to open Party Radial for party targeting" header="Party Radial" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t" runOnUp="true">
 		if keystate == "down" or keystate == "up" then
 			CombatMode_HealingRadialKey(keystate)
 		end

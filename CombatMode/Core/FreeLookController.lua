@@ -98,7 +98,8 @@ local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
 end
 
 function CM.SetCursorFreelookCentering(shouldCenter)
-  -- Edit Mode crosshair drives aligned cursor (CursorFreelookCentering + CursorCenteredYPos in Crosshair).
+  -- When enabled, freelook centers the cursor on the crosshair (CursorFreelookCentering +
+  -- CursorCenteredYPos applied in Crosshair).
   local useCrosshairCursor = shouldCenter and CM.IsCrosshairEnabled()
   if useCrosshairCursor then
     CM.SetCursorFreelookCenteringCVar(true)

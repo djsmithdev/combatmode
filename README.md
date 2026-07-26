@@ -29,7 +29,7 @@ Experience <em>World of Warcraft</em> like never before with <strong>Combat Mode
 - <strong>Reticle Targeting</strong> - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of @mouseover and @cursor macro decorators in combination with the crosshairs. Settings include a Reticle Targeting CVar editor and an optional editor for the click-cast targeting macro preline (advanced).
 - <strong>Mouse Click Casting</strong> - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them.
 - <strong>Cursor Unlock</strong> - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.
-- <strong>Healing Radial</strong> - Radial menu for quickly targeting and casting helpful spells at party members.
+- <strong>Party Radial</strong> - Radial menu for quickly targeting and casting helpful spells at party members.
 - <strong>In-game changelog</strong> - View release notes from the About panel; optional popup after updating to a new addon version.
 <p align="center">
   <img src="media/previewGif2.gif">

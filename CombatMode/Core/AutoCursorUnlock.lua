@@ -10,7 +10,6 @@
 --    • CM.InitializeWildcardFrameTracking called once from Runtime bootstrap; uses
 --      Constants.WildcardFramesToMatch / FramesToCheck.
 --    • Read-only queries from Core; no direct mouselook Start/Stop here.
---    • Retail-only LibEditMode usage where applicable (layout sync hooks).
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub

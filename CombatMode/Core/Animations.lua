@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------
 --  Consolidates short, purely visual animations that are triggered by other systems:
 --    • Cursor pulse: brief atlas pulse at the cursor after unlocking mouselook.
---    • Crosshair reaction: scale animation and appearance application (shared with Edit Mode preview).
+--    • Crosshair reaction: scale animation and appearance application (shared with options preview).
 --    • Crosshair lock-in: short scale/alpha tween when acquiring focus target.
 --
 --  Animation targets (frames/textures) are registered by their owning feature modules.

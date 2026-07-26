@@ -52,13 +52,8 @@
     "DefaultTooltipMixin",
     "SOUNDKIT",
     "GenerateClosure",
-    "EditModeSystemSettingsDialog",
     "RESET_TO_DEFAULT",
     "EditModeManagerFrame",
-    "HUD_EDIT_MODE_RESET_POSITION",
-    "CreateUnsecuredObjectPool",
-    "DISABLED_FONT_COLOR",
-    "WHITE_FONT_COLOR",
     "CreateColor",
     "EventRegistry",
     "CopyTable"

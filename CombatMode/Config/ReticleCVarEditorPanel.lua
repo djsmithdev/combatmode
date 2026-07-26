@@ -1,10 +1,12 @@
 ---------------------------------------------------------------------------------------
 --  Config/ReticleCVarEditorPanel.lua — Reticle Targeting CVar editor panel
 ---------------------------------------------------------------------------------------
---  Custom frame (not AceConfigDialog). CM.OpenReticleTargetingCVarEditor; opened from
---  ConfigReticleTargeting.lua; anchors left of SettingsPanel / InterfaceOptionsFrame.
---  Uses CM.ReticleCVarEditorData; debounced RequestRefresh; CVAR_UPDATE + SetCVar hook
---  for live values and external-change attribution.
+--  Custom CM.UI window (UI.CreateBareWindow + custom thumb scrollbar/vertical slider, no
+--  Blizzard frame templates). CM.OpenReticleTargetingCVarEditor; opened from the Reticle
+--  Targeting options tab; anchors to the right of the CombatMode options window when
+--  open (same pattern as TargetingMacroPrelinesEditor). Uses CM.ReticleCVarEditorData;
+--  debounced RequestRefresh; CVAR_UPDATE + SetCVar hook for live values and
+--  external-change attribution.
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
@@ -23,6 +25,13 @@ local strfind = _G.strfind
 local strlower = _G.strlower
 local strupper = _G.strupper
 local tonumber = _G.tonumber
+
+local UI = CM.UI
+local C = UI.Colors
+
+--- Accent-yellow wrap for the two in-list highlights (out-of-sync values, filter matches);
+--- the minimal theme keeps a single accent instead of per-meaning colors.
+local HIGHLIGHT = "|cffffcd3c"
 
 local Data = CM.ReticleCVarEditorData
 local Editor = CM.ReticleCVarEditor or {}
@@ -114,8 +123,9 @@ local function NormalizeSortText(str)
 end
 
 local function BuildListFrame(parent, width, height)
-  local frame = CreateFrame("Frame", nil, parent, "InsetFrameTemplate")
+  local frame = CreateFrame("Frame", nil, parent)
   frame:SetSize(width, height)
+  UI.StyleRounded(frame, C.inputBg, C.cardBorder, UI.Radius.card)
   frame:SetFrameStrata(parent:GetFrameStrata())
   frame:SetFrameLevel(parent:GetFrameLevel() + 2)
   frame.itemHeight = 18
@@ -145,6 +155,8 @@ local function BuildListFrame(parent, width, height)
     local fs = button:GetFontString()
     fs:SetAllPoints()
     fs:SetJustifyH(col[3])
+    UI.SetFontSize(fs, UI.Fonts.base, "GameFontHighlightSmallLeft")
+    fs:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
     button:SetScript("OnClick", function()
       if frame.sortColumn == index then
         frame.sortAscending = not frame.sortAscending
@@ -159,9 +171,9 @@ local function BuildListFrame(parent, width, height)
   end
   frame.headerButtons = headerButtons
 
-  local scrollbar = CreateFrame("Slider", nil, frame, "UIPanelScrollBarTemplate")
-  scrollbar:SetPoint("TOPRIGHT", 0, -18)
-  scrollbar:SetPoint("BOTTOMRIGHT", 0, 16)
+  local scrollbar = UI.CreateVerticalSlider(frame)
+  scrollbar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -5, -6)
+  scrollbar:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -5, 6)
   scrollbar:SetMinMaxValues(0, 0)
   scrollbar:SetValueStep(1)
   frame.scrollbar = scrollbar
@@ -198,17 +210,6 @@ local function BuildListFrame(parent, width, height)
           onEnter(row)
         end
       end
-    end
-
-    if frame.value <= 0 then
-      scrollbar.ScrollUpButton:Disable()
-    else
-      scrollbar.ScrollUpButton:Enable()
-    end
-    if frame.value >= frame.maxValue then
-      scrollbar.ScrollDownButton:Disable()
-    else
-      scrollbar.ScrollDownButton:Enable()
     end
   end
 
@@ -248,6 +249,10 @@ local function BuildListFrame(parent, width, height)
 
   frame:EnableMouseWheel(true)
   frame:SetScript("OnMouseWheel", function(self, delta)
+    if self.scrollbar.cmScrollBy then
+      self.scrollbar:cmScrollBy(-delta, false)
+      return
+    end
     if delta > 0 then
       self.value = math.max(0, self.value - 1)
     else
@@ -257,16 +262,6 @@ local function BuildListFrame(parent, width, height)
     self:UpdateRows()
   end)
 
-  scrollbar.ScrollUpButton:SetScript("OnClick", function()
-    frame.value = math.max(0, frame.value - 1)
-    scrollbar:SetValue(frame.value)
-    frame:UpdateRows()
-  end)
-  scrollbar.ScrollDownButton:SetScript("OnClick", function()
-    frame.value = math.min(frame.maxValue, frame.value + 1)
-    scrollbar:SetValue(frame.value)
-    frame:UpdateRows()
-  end)
   scrollbar:SetScript("OnValueChanged", function(_, value)
     frame.value = math.floor(value)
     frame:UpdateRows()
@@ -294,7 +289,7 @@ local function BuildListFrame(parent, width, height)
     row.cols = {}
     local xOffset = 0
     for colIndex, col in ipairs(cols) do
-      local fs = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmallLeft")
+      local fs = UI.CreateFontString(row, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmallLeft")
       fs:SetPoint("LEFT", xOffset, 0)
       fs:SetWidth(col[2])
       fs:SetWordWrap(false)
@@ -397,7 +392,7 @@ local function BuildDisplayRows(filterText)
     local valueText = row.currentValue
     local isOutOfSync = LiveCVarDiffersFromCombatModePreset(row.currentValue, row.defaultValue)
     if isOutOfSync then
-      valueText = "|cffff0000" .. row.currentValue .. "|r"
+      valueText = HIGHLIGHT .. row.currentValue .. "|r"
     end
 
     local include = true
@@ -407,9 +402,9 @@ local function BuildDisplayRows(filterText)
 
     if include then
       if pattern then
-        cvarText = cvarText:gsub(pattern, "|cffff0000%1|r")
-        descText = descText:gsub(pattern, "|cffff0000%1|r")
-        valueText = valueText:gsub(pattern, "|cffff0000%1|r")
+        cvarText = cvarText:gsub(pattern, HIGHLIGHT .. "%1|r")
+        descText = descText:gsub(pattern, HIGHLIGHT .. "%1|r")
+        valueText = valueText:gsub(pattern, HIGHLIGHT .. "%1|r")
       end
       local key = row.cvar
       listItems[#listItems + 1] = {
@@ -468,38 +463,32 @@ end
 
 function CM.OpenReticleTargetingCVarEditor()
   if not Editor.frame then
-    local frame = CreateFrame(
-      "Frame",
+    local frame = UI.CreateBareWindow(
       "CombatModeReticleCVarEditor",
-      _G.UIParent,
-      "BasicFrameTemplateWithInset"
+      CM.METADATA["TITLE"] .. " - Reticle Targeting CVar Editor",
+      735,
+      400
     )
-    frame:SetSize(735, 400)
-    frame:SetPoint("CENTER")
-    frame:SetFrameStrata("DIALOG")
-    frame:SetMovable(true)
-    frame:EnableMouse(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", frame.StartMoving)
-    frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
     frame:Hide()
 
-    frame.TitleText:SetText(CM.METADATA["TITLE"] .. " - Reticle Targeting CVar Editor")
-
-    local subtitle = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-    subtitle:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -40)
+    local subtitle = UI.CreateFontString(frame, "ARTWORK", UI.Fonts.base, "GameFontHighlight")
+    subtitle:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -44)
     subtitle:SetPoint("RIGHT", frame, "RIGHT", -40, 0)
     subtitle:SetJustifyH("LEFT")
     subtitle:SetText(
       "Double-click a row to edit. Overrides are account-wide and replace CombatMode defaults."
     )
+    subtitle:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
 
-    local filterBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
-    filterBox:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 2, -12)
-    filterBox:SetPoint("RIGHT", frame, "RIGHT", -44, 0)
-    filterBox:SetHeight(20)
+    local filterBox = CreateFrame("EditBox", nil, frame)
+    filterBox:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 0, -12)
+    filterBox:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
+    filterBox:SetHeight(24)
     filterBox:SetAutoFocus(false)
+    filterBox:SetFontObject("ChatFontNormal")
+    filterBox:SetTextInsets(8, 8, 0, 0)
     filterBox:SetMaxLetters(120)
+    UI.StyleRounded(filterBox, C.inputBg, C.cardBorder, UI.Radius.control)
     filterBox:SetScript("OnEscapePressed", function(self)
       self:ClearFocus()
     end)
@@ -511,21 +500,27 @@ function CM.OpenReticleTargetingCVarEditor()
     end)
 
     local listFrame = BuildListFrame(frame, 700, 300)
-    listFrame:SetPoint("TOP", filterBox, "BOTTOM", 0, -26)
-    listFrame:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 42)
+    listFrame:SetPoint("TOP", filterBox, "BOTTOM", 0, -28)
+    listFrame:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 46)
 
-    local resetButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-    resetButton:SetSize(260, 24)
-    resetButton:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -20, 12)
+    local resetControl = UI.MakeButton(frame, {
+      label = "Reset All to CombatMode Defaults",
+      pixelWidth = 260,
+      func = function()
+        if Data.ClearAllOverrides() then
+          Editor.Refresh()
+        end
+      end,
+    })
+    local resetRow = resetControl.frame
+    resetRow:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -20, 12)
+    resetRow:SetSize(260, resetControl.height or 24)
     -- List uses frame level parent+2; without this, the list steals clicks on most of the button.
-    resetButton:SetFrameStrata(frame:GetFrameStrata())
-    resetButton:SetFrameLevel(listFrame:GetFrameLevel() + 20)
-    resetButton:SetText("Reset All to CombatMode Defaults")
-    resetButton:SetScript("OnClick", function()
-      if Data.ClearAllOverrides() then
-        Editor.Refresh()
-      end
-    end)
+    local clickLevel = listFrame:GetFrameLevel() + 20
+    resetRow:SetFrameLevel(clickLevel)
+    if resetControl.button then
+      resetControl.button:SetFrameLevel(clickLevel + 1)
+    end
 
     local blocker = CreateFrame("Frame", nil, listFrame)
     blocker:SetAllPoints()
@@ -537,14 +532,16 @@ function CM.OpenReticleTargetingCVarEditor()
     blocker:SetScript("OnMouseWheel", function() end)
     local blackout = blocker:CreateTexture(nil, "BACKGROUND")
     blackout:SetAllPoints()
-    blackout:SetColorTexture(0, 0, 0, 0.2)
+    blackout:SetColorTexture(0, 0, 0, 0.35)
     blocker:Hide()
 
-    local inlineInput = CreateFrame("EditBox", nil, blocker, "InputBoxTemplate")
-    inlineInput:SetSize(60, 18)
+    local inlineInput = CreateFrame("EditBox", nil, blocker)
+    inlineInput:SetSize(60, 20)
     inlineInput:SetAutoFocus(false)
+    inlineInput:SetFontObject("ChatFontNormal")
     inlineInput:SetJustifyH("RIGHT")
     inlineInput:SetTextInsets(5, 8, 0, 0)
+    UI.StyleRounded(inlineInput, C.inputBg, C.accent, UI.Radius.control)
     inlineInput:Hide()
     inlineInput:SetScript("OnEscapePressed", function(self)
       self:ClearFocus()
@@ -580,22 +577,16 @@ function CM.OpenReticleTargetingCVarEditor()
   Editor.frame:Show()
   Editor.frame:Raise()
 
-  -- Anchor the editor to the left of the Settings panel (when possible).
+  -- Anchor to the right of the main options window when it is open (same as the
+  -- Targeting Macro Prelines editor).
   do
     local frame = Editor.frame
-    local anchor = _G.SettingsPanel or _G.InterfaceOptionsFrame
-    local ui = _G.UIParent
-    if frame and anchor and anchor.GetLeft and anchor.GetTop then
-      local desiredLeft = (anchor:GetLeft() or 0) - frame:GetWidth() - 12
-      local desiredTop = (anchor:GetTop() or 0) - 18
-
-      if ui and ui.GetWidth then
-        local minLeft = 12
-        desiredLeft = math.max(desiredLeft, minLeft)
-      end
-
-      frame:ClearAllPoints()
-      frame:SetPoint("TOPLEFT", ui, "BOTTOMLEFT", desiredLeft, desiredTop)
+    local anchor = CM.GetOptionsFrame and CM.GetOptionsFrame()
+    frame:ClearAllPoints()
+    if anchor and anchor:IsShown() then
+      frame:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 12, 0)
+    else
+      frame:SetPoint("CENTER")
     end
   end
 end

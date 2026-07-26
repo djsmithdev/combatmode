@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Vendored Libraries Policy (Libs)
 
-`CombatMode/Libs/**` contains embedded third-party code (Ace3, LibEditMode, LibStub, CallbackHandler).
+`CombatMode/Libs/**` contains embedded third-party code (Ace3, LibStub, CallbackHandler).
 
 ## Default behavior
 
@@ -26,4 +26,3 @@ alwaysApply: false
 
 - Preserve dependency load order in `Embeds.xml`.
 - Avoid introducing additional embedded libraries unless the feature requires them.
-- For LibEditMode, follow documented embedding/loading patterns and avoid custom bootstrapping changes unless explicitly requested.

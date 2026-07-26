@@ -1,12 +1,14 @@
 ---------------------------------------------------------------------------------------
 --  Core/Runtime.lua — RUNTIME — addon shell, lifecycle, free look, global drivers
 ---------------------------------------------------------------------------------------
---  Instantiates the AceAddon "CombatMode" object, SavedVariables (AceDB), slash
---  commands, and Blizzard options registration. Coordinates runtime modules,
+--  Instantiates the AceAddon "CombatMode" object, SavedVariables (AceDB), and slash
+--  commands. Options live in the standalone window (UI/Options/*; CM.OpenOptions).
+--  Coordinates runtime modules,
 --  Rematch on layout/reload, and the throttled global OnUpdate loop that enforces
 --  free look via Core/FreeLookController.lua and refreshes crosshair reactions.
---  First-login welcome StaticPopup; ScheduleChangelogIfNewVersion →
---  CM.Config.MaybeShowChangelogOnNewVersion (ConfigChangelogPanel.lua) when addon version changes.
+--  First-login welcome modal (CM.UI.ShowWelcome, deferred past load-end UI reset);
+--  ScheduleChangelogIfNewVersion → CM.Config.MaybeShowChangelogOnNewVersion
+--  (ConfigChangelogPanel.lua) when addon version changes (or always in Debug Mode).
 --
 --  Architecture:
 --    • Loaded early (Core/Runtime.lua); defines _G.CM and CM.METADATA from the TOC.
@@ -21,9 +23,6 @@ local _G = _G
 local LibStub = _G.LibStub
 local AceAddon = LibStub("AceAddon-3.0")
 local AceDB = LibStub("AceDB-3.0")
-local AceConfig = LibStub("AceConfig-3.0")
-local AceConfigDialog = LibStub("AceConfigDialog-3.0")
-local AceConfigCmd = LibStub("AceConfigCmd-3.0")
 
 -- WoW API
 local C_Timer = _G.C_Timer
@@ -33,11 +32,7 @@ local GetMacroInfo = _G.GetMacroInfo
 local GetTime = _G.GetTime
 local InCombatLockdown = _G.InCombatLockdown
 local IsMouselooking = _G.IsMouselooking
-local OpenToCategory = _G.Settings.OpenToCategory
-local OpenSettingsPanel = _G.C_SettingsUtil and _G.C_SettingsUtil.OpenSettingsPanel
 local ReloadUI = _G.ReloadUI
-local StaticPopupDialogs = _G.StaticPopupDialogs
-local StaticPopup_Show = _G.StaticPopup_Show
 
 -- Lua stdlib
 local ipairs = _G.ipairs
@@ -118,23 +113,10 @@ function CM.SetFontStringFromTemplate(fontString, pixelSize, templateFontObject)
 end
 
 local function OpenConfigPanel()
-  if InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open settings while in combat.|r")
-    return
-  end
-
-  -- Dismiss healing radial if active (opening config panel should close radial)
-  if CM.HealingRadial and CM.HealingRadial.IsActive and CM.HealingRadial.IsActive() then
-    CM.HealingRadial.Hide()
-  end
-
-  -- Use the new API if available (Patch 12.0.0+)
-  if OpenSettingsPanel then
-    local categoryID = AceConfigDialog.BlizOptionsIDMap[CM.METADATA["TITLE"]]
-    OpenSettingsPanel(categoryID)
-  else
-    -- Fallback to old API for older clients
-    OpenToCategory(CM.METADATA["TITLE"])
+  -- Standalone options window (UI/Options/OptionsPanel.lua). Combat guard and healing
+  -- radial dismiss are handled inside CM.OpenOptions.
+  if CM.OpenOptions then
+    CM.OpenOptions()
   end
 end
 
@@ -157,26 +139,34 @@ local function ScheduleChangelogIfNewVersion()
 end
 
 local function DisplayPopup()
-  if CM.DB.char.seenWarning then
-    return
+  -- Debug Mode re-plays the first-install welcome on every reload so the themed
+  -- welcome modal can be verified without wiping SavedVariables.
+  local debugMode = CM.DB.global and CM.DB.global.debugMode
+  if (CM.DB.char.seenWarning and not debugMode) or not (CM.UI and CM.UI.ShowWelcome) then
+    return false
   end
 
-  local function OnClosePopup()
-    CM.DB.char.seenWarning = true
-    OpenConfigPanel()
-    ScheduleChangelogIfNewVersion()
-  end
-
-  StaticPopupDialogs["CombatMode Warning"] = {
-    text = CM.Constants.PopupMsg,
-    button1 = "Ok",
-    OnButton1 = OnClosePopup,
-    OnHide = OnClosePopup,
-    timeout = 0,
-    whileDead = true,
-  }
-
-  StaticPopup_Show("CombatMode Warning")
+  -- Defer past Blizzard's load-end CloseSpecialWindows / UI reset. Showing a modal
+  -- synchronously in OnEnable gets torn down immediately (OnHide → opens options +
+  -- changelog), which is why the welcome appeared "missing" while the changelog still
+  -- showed.
+  CM.DebugPrint("Scheduling first-install welcome modal")
+  C_Timer.After(0.75, function()
+    if not (CM.UI and CM.UI.ShowWelcome) then
+      return
+    end
+    if CM.DB.char.seenWarning and not (CM.DB.global and CM.DB.global.debugMode) then
+      ScheduleChangelogIfNewVersion()
+      return
+    end
+    CM.DebugPrint("Showing first-install welcome modal")
+    CM.UI.ShowWelcome(CM.Constants.PopupMsg, function()
+      CM.DB.char.seenWarning = true
+      OpenConfigPanel()
+      ScheduleChangelogIfNewVersion()
+    end)
+  end)
+  return true
 end
 
 function CM.MacroExists(name)
@@ -194,7 +184,7 @@ local function IsDCLoaded()
   if CM.DynamicCam and not CM.DB.global.silenceAlerts then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over control of |cffE37527• Camera Features|r.|r"
+        .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over control of |cffE37527• Action Camera|r.|r"
     )
   end
 end
@@ -297,22 +287,14 @@ function _G.CombatMode_HealingRadialKey(keystate)
   end
 end
 
--- CREATING /CM CHAT COMMAND
-function CM:OpenConfigCMD(input)
-  if not input or input:trim() == "" then
-    OpenConfigPanel()
-  else
-    AceConfigCmd.HandleCommand(self, "mychat", CM.METADATA["TITLE"], input)
-  end
+-- CREATING /CM CHAT COMMAND — opens the standalone options window.
+function CM:OpenConfigCMD()
+  OpenConfigPanel()
 end
 
--- /CMRESET CHAT COMMAND
-function CM:RunUndoCMD(input)
-  if not input or input:trim() == "" then
-    UndoCMChanges()
-  else
-    AceConfigCmd.HandleCommand(self, "mychat", CM.METADATA["TITLE"], input)
-  end
+-- /UNDOCM CHAT COMMAND — resets CVars, disables the addon, reloads.
+function CM:RunUndoCMD()
+  UndoCMChanges()
 end
 
 ---------------------------------------------------------------------------------------
@@ -325,18 +307,6 @@ or setting up slash commands.
 --
 function CM:OnInitialize()
   self.DB = AceDB:New("CombatModeDB", CM.Constants.DatabaseDefaults, true)
-
-  local parentTable = CM.METADATA["TITLE"]
-
-  -- REGISTERING SETTINGS TREE
-  -- main category
-  AceConfig:RegisterOptionsTable(parentTable, CM.Config.AboutOptions)
-  AceConfigDialog:AddToBlizOptions(parentTable)
-  -- subcategories
-  for _, option in ipairs(CM.Config.OptionCategories) do
-    AceConfig:RegisterOptionsTable(option.id, option.table)
-    AceConfigDialog:AddToBlizOptions(option.id, option.name, parentTable)
-  end
 
   self:RegisterChatCommand("cm", "OpenConfigCMD")
   self:RegisterChatCommand("combatmode", "OpenConfigCMD")
@@ -374,9 +344,9 @@ function CM:OnEnable()
     )
   end
 
-  DisplayPopup()
-
-  if CM.DB.char.seenWarning then
+  -- Welcome modal owns the post-dismiss changelog schedule. Only open the changelog
+  -- from here when the welcome was skipped (already seen, and not Debug Mode).
+  if not DisplayPopup() then
     ScheduleChangelogIfNewVersion()
   end
 end

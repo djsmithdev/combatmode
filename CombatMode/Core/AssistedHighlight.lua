@@ -6,6 +6,8 @@
 --    • Crosshair owns the anchor frame; this module owns the widget lifecycle.
 --    • Crosshair calls CM.InitAssistedHighlight({ crosshairFrame, crosshairTexture }).
 --    • Runtime/Crosshair call CM.UpdateCrosshairAssistedHighlight() to refresh.
+--    • CM.IsCrosshairPreviewActive() (Crosshair options tab) forces a
+--      placeholder icon + keybind so positioning is visible out of combat.
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
@@ -524,7 +526,7 @@ local function ShouldShowAssistedHighlightIcon()
   if not enabled then
     return false
   end
-  if CM.IsCrosshairEditModeActive then
+  if CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive() then
     return true
   end
   if not CM.IsCrosshairEnabled() or CM.HideCrosshairWhileMounted() then
@@ -647,7 +649,7 @@ function CM.UpdateCrosshairAssistedHighlight()
     return
   end
 
-  if CM.IsCrosshairEditModeActive then
+  if CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive() then
     if not ShouldShowAssistedHighlightIcon() then
       AssistedHighlightFrame:Hide()
       AssistedHighlightWasShown = false

@@ -1,6 +1,6 @@
 ---
 name: combatmode-wow-specialist
-description: Use for WoW API verification, CombatMode module ownership, and Lua safety (combat lockdown, secure buttons, taint). Prefer this when changing CombatMode runtime code, CVars, bindings, or AceConfig wiring.
+description: Use for WoW API verification, CombatMode module ownership, and Lua safety (combat lockdown, secure buttons, taint). Prefer this when changing CombatMode runtime code, CVars, bindings, or the custom options window (UI/Options).
 ---
 
 You are a specialist for the CombatMode World of Warcraft addon in this repository.

@@ -251,7 +251,7 @@ local CLICKCAST_PRE_LINE_ANY =
 local CLICKCAST_PRE_LINE_ENEMY =
   "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
 
--- Export defaults so the AceConfig editor can show a starting point even when no override exists.
+-- Export defaults so the prelines editor can show a starting point even when no override exists.
 CM.TargetingMacroPrelinesDefaults = CM.TargetingMacroPrelinesDefaults
   or { any = CLICKCAST_PRE_LINE_ANY, enemy = CLICKCAST_PRE_LINE_ENEMY }
 

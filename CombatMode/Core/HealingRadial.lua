@@ -11,7 +11,9 @@
 --      BootstrapFeatureModules and notifies OnMouselookChanged / DismissOnLoad.
 --    • Internal state machine (show/hide, keybind vs mouse open) avoids re-entrancy
 --      with Core.LockFreeLook / UnlockFreeLook.
---    • Configuration lives under CM.DB.global.healingRadial; AceConfig UI in Config/ConfigHealingRadial.lua.
+--    • Configuration lives under CM.DB.global.healingRadial; options UI in UI/Options/Tabs/TabHealingRadial.lua.
+--    • Options live preview (SetOptionsPreview) shows the radial without freelook churn
+--      or isActive; empty slots use placeholders so Visual Settings update on-screen.
 ---------------------------------------------------------------------------------------
 local _G = _G
 local LibStub = _G.LibStub
@@ -92,6 +94,8 @@ local RadialState = {
   currentButton = nil,
   selectedSlice = nil,
   partyData = {},
+  previewPartyData = nil, -- options-tab visual roster (real units + placeholders)
+  optionsPreviewActive = false,
   sliceFrames = {},
   mainFrame = nil,
   pendingUpdate = false,
@@ -100,6 +104,12 @@ local RadialState = {
   triggerButtons = {},
   sliceRefreshElapsed = 0,
   sliceRefreshInterval = 0.08,
+}
+
+local PREVIEW_DPS_VARIANTS = {
+  { name = "Mage", class = "MAGE" },
+  { name = "Rogue", class = "ROGUE" },
+  { name = "Hunter", class = "HUNTER" },
 }
 
 ---------------------------------------------------------------------------------------
@@ -355,6 +365,61 @@ local function RefreshPartyData()
   end
 
   CM.DebugPrint("Healing Radial: Refreshed party data, " .. #RadialState.partyData .. " members")
+end
+
+-- Options-tab roster: real party members where present, role-labeled placeholders
+-- for empty slices so Visual Settings preview a full 5-man layout.
+local function BuildPreviewPartyData()
+  RefreshPartyData()
+  local preview = {}
+  local occupied = {}
+  for _, member in ipairs(RadialState.partyData) do
+    occupied[member.sliceIndex] = true
+    table.insert(preview, {
+      unitId = member.unitId,
+      name = member.name,
+      role = member.role,
+      class = member.class,
+      sliceIndex = member.sliceIndex,
+      isPreview = false,
+    })
+  end
+
+  local dpsIndex = 1
+  for i = 1, 5 do
+    if not occupied[i] then
+      local sliceMeta = CM.Constants.HealingRadialSlices[i]
+      local role = (sliceMeta and sliceMeta.defaultRole) or "DAMAGER"
+      local name, class
+      if role == "TANK" then
+        name, class = "Tank", "WARRIOR"
+      elseif role == "HEALER" then
+        name, class = "Healer", "PRIEST"
+      else
+        local variant = PREVIEW_DPS_VARIANTS[dpsIndex] or PREVIEW_DPS_VARIANTS[1]
+        dpsIndex = dpsIndex + 1
+        name, class = variant.name, variant.class
+      end
+      table.insert(preview, {
+        unitId = "preview" .. i,
+        name = name,
+        role = role,
+        class = class,
+        sliceIndex = i,
+        isPreview = true,
+        previewHealthPct = 0.45 + (i * 0.1),
+      })
+    end
+  end
+
+  RadialState.previewPartyData = preview
+end
+
+local function GetVisualPartyData()
+  if RadialState.optionsPreviewActive and RadialState.previewPartyData then
+    return RadialState.previewPartyData
+  end
+  return RadialState.partyData
 end
 
 -- Update slice frame unit attributes (only safe out of combat)
@@ -873,6 +938,9 @@ end
 -- Clear radial state after loading screen / zone change so IsHealingRadialActive() is false
 -- and crosshair visibility can sync correctly. Does not re-engage mouselook or touch crosshair.
 function HR.DismissOnLoad()
+  if RadialState.optionsPreviewActive then
+    HR.SetOptionsPreview(false)
+  end
   if not RadialState.isActive then
     return
   end
@@ -1070,14 +1138,15 @@ local function UpdateSliceVisual(sliceIndex)
 
   -- Find member assigned to this slice
   local memberData = nil
-  for _, member in ipairs(RadialState.partyData) do
+  for _, member in ipairs(GetVisualPartyData()) do
     if member.sliceIndex == sliceIndex then
       memberData = member
       break
     end
   end
 
-  if not memberData or not UnitExists(memberData.unitId) then
+  local isPlaceholder = memberData and memberData.isPreview
+  if not memberData or (not isPlaceholder and not UnitExists(memberData.unitId)) then
     -- Use alpha only (not Hide/Show or EnableMouse) to avoid protected frame errors in combat
     slice:SetAlpha(0)
     return
@@ -1096,7 +1165,7 @@ local function UpdateSliceVisual(sliceIndex)
   -- without triggering taint errors. We encode reachable=alpha 1.0, unreachable=alpha 0.4
   -- in the colors, then apply the .a field via SetAlpha (which accepts secret numbers).
   if slice.innerFrame and EvaluateColorFromBoolean then
-    if memberData.unitId == "player" then
+    if isPlaceholder or memberData.unitId == "player" then
       slice.innerFrame:SetAlpha(1.0)
     else
       local inRange = UnitInRange(memberData.unitId)
@@ -1111,7 +1180,8 @@ local function UpdateSliceVisual(sliceIndex)
   CM.SetFontStringFromTemplate(slice.nameText, fontSize, _G.GameFontNormalSmall)
   slice.nameText:SetShadowColor(0, 0, 0, 1)
   slice.nameText:SetShadowOffset(1, -1)
-  local displayName = (memberData.unitId == "player") and "You" or (memberData.name or "Unknown")
+  local displayName = (not isPlaceholder and memberData.unitId == "player") and "You"
+    or (memberData.name or "Unknown")
   displayName = TruncateUtf8Name(displayName, 10, 9, "...")
   local color = (memberData.class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[memberData.class])
       and RAID_CLASS_COLORS[memberData.class]
@@ -1125,20 +1195,32 @@ local function UpdateSliceVisual(sliceIndex)
 
   -- Update health bar (using StatusBar to handle secret values from 12.0.0)
   if config.showHealthBars then
-    local health = UnitHealth(memberData.unitId)
-    local maxHealth = UnitHealthMax(memberData.unitId)
+    local health, maxHealth, pct
+    if isPlaceholder then
+      maxHealth = 100
+      pct = memberData.previewHealthPct or 0.75
+      health = maxHealth * pct
+      slice.healthFill:SetMinMaxValues(0, maxHealth)
+      slice.healthFill:SetValue(health)
+    else
+      health = UnitHealth(memberData.unitId)
+      maxHealth = UnitHealthMax(memberData.unitId)
 
-    slice.healthFill:SetMinMaxValues(0, maxHealth)
-    slice.healthFill:SetValue(health)
+      slice.healthFill:SetMinMaxValues(0, maxHealth)
+      slice.healthFill:SetValue(health)
 
-    -- Color and percent text via pcall to safely handle secret values
-    local ok, pct = pcall(function()
-      local h = UnitHealth(memberData.unitId)
-      local m = UnitHealthMax(memberData.unitId)
-      return m > 0 and (h / m) or 1
-    end)
+      -- Color and percent text via pcall to safely handle secret values
+      local ok, computedPct = pcall(function()
+        local h = UnitHealth(memberData.unitId)
+        local m = UnitHealthMax(memberData.unitId)
+        return m > 0 and (h / m) or 1
+      end)
+      if ok then
+        pct = computedPct
+      end
+    end
 
-    if ok and pct then
+    if pct then
       if pct > 0.5 then
         slice.healthFill:SetStatusBarColor(unpack(config.healthyColor))
       elseif pct > 0.25 then
@@ -1182,7 +1264,7 @@ local function UpdateSliceVisual(sliceIndex)
     slice.roleIconBG:Show() -- Show background when role icon is shown
     -- Show checkmark when this slice's unit is the current target
     if slice.roleIconCheckmark then
-      if UnitIsUnit(memberData.unitId, "target") then
+      if not isPlaceholder and UnitIsUnit(memberData.unitId, "target") then
         slice.roleIconCheckmark:Show()
       else
         slice.roleIconCheckmark:Hide()
@@ -1203,6 +1285,104 @@ local function UpdateAllSlices()
   end
 end
 HR.UpdateAllSlices = UpdateAllSlices
+
+local function PreviewOnUpdate(_, elapsed)
+  RadialState.sliceRefreshElapsed = (RadialState.sliceRefreshElapsed or 0) + elapsed
+  if RadialState.sliceRefreshElapsed >= (RadialState.sliceRefreshInterval or 0.08) then
+    RadialState.sliceRefreshElapsed = 0
+    UpdateAllSlices()
+  end
+end
+
+local function StopOptionsPreviewVisuals()
+  if RadialState.mainFrame then
+    RadialState.mainFrame:SetScript("OnUpdate", nil)
+    RadialState.mainFrame:SetAlpha(0)
+  end
+  for i = 1, 5 do
+    local slice = RadialState.sliceFrames[i]
+    if slice then
+      slice:SetAlpha(0)
+      slice.targetScale = 1.0
+      slice.scaleStart = 1.0
+      slice.scaleElapsed = -1
+      if slice.innerFrame then
+        slice.innerFrame:SetScale(1.0)
+        slice.innerFrame:SetAlpha(1.0)
+      end
+    end
+  end
+  SetSliceMouseEnabled(false)
+end
+
+local function StartOptionsPreviewVisuals()
+  if not RadialState.mainFrame then
+    return
+  end
+  BuildPreviewPartyData()
+  HR.UpdateMainFramePosition()
+  HR.UpdateSlicePositionsAndSizes()
+  if RadialState.wheelBG then
+    RadialState.wheelBG:SetShown(
+      CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground
+    )
+  end
+  RadialState.sliceRefreshElapsed = 0
+  UpdateAllSlices()
+  -- Layout-only: do not steal clicks or cast while tweaking settings.
+  SetSliceMouseEnabled(false)
+  RadialState.mainFrame:SetAlpha(1)
+  RadialState.mainFrame:SetScript("OnUpdate", PreviewOnUpdate)
+end
+
+--- Re-applies Visual Settings to frames (radius/scale always; font/icon/health/bg
+--- when the radial is open or options preview is active).
+function HR.ApplyVisualConfig()
+  if not RadialState.mainFrame then
+    return
+  end
+  HR.UpdateSlicePositionsAndSizes()
+  if RadialState.wheelBG then
+    RadialState.wheelBG:SetShown(
+      CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground
+    )
+  end
+  if RadialState.isActive or RadialState.optionsPreviewActive then
+    UpdateAllSlices()
+  end
+end
+
+function HR.IsOptionsPreviewActive()
+  return RadialState.optionsPreviewActive
+end
+
+--- Forces the Party Radial on-screen for the options tab without freelook unlock,
+--- mouse capture, or marking IsActive(). Empty roster slots use placeholders.
+function HR.SetOptionsPreview(enabled)
+  enabled = enabled and true or false
+  if RadialState.optionsPreviewActive == enabled then
+    return
+  end
+
+  if enabled then
+    if InCombatLockdown() or not HR.IsEnabled() or not RadialState.mainFrame then
+      return
+    end
+    -- Gameplay radial must not stay "active" under a layout preview.
+    if RadialState.isActive then
+      HR.Hide()
+    end
+    RadialState.optionsPreviewActive = true
+    StartOptionsPreviewVisuals()
+    return
+  end
+
+  RadialState.optionsPreviewActive = false
+  RadialState.previewPartyData = nil
+  StopOptionsPreviewVisuals()
+  -- Restore secure-button roster without placeholders.
+  RefreshPartyData()
+end
 
 -- Accessible via HR so closures created before this point can call it
 function HR.HighlightSlice(sliceIndex)
@@ -1363,6 +1543,10 @@ function HR.Show(buttonKey)
   -- Only allow activation when mouselook is active
   if not _G.IsMouselooking() then
     return false
+  end
+
+  if RadialState.optionsPreviewActive then
+    HR.SetOptionsPreview(false)
   end
 
   -- Store state
@@ -1550,6 +1734,10 @@ function HR.ShowFromKeybind()
     return false
   end
 
+  if RadialState.optionsPreviewActive then
+    HR.SetOptionsPreview(false)
+  end
+
   -- Find which key is bound so we can poll for release in TrackMousePosition
   local boundKey = _G.GetBindingKey("Combat Mode - Healing Radial")
 
@@ -1678,7 +1866,10 @@ function HR.OnGroupRosterUpdate()
   -- party member is assigned to each slice (changes with roster)
   UpdateSliceActionAttributes()
 
-  if RadialState.isActive then
+  if RadialState.optionsPreviewActive then
+    BuildPreviewPartyData()
+    UpdateAllSlices()
+  elseif RadialState.isActive then
     UpdateAllSlices()
   end
 end
@@ -1687,6 +1878,10 @@ end
 -- Pre-enable mouse on slices so they're ready to receive clicks if the radial
 -- opens during combat (EnableMouse is protected during InCombatLockdown).
 function HR.OnCombatStart()
+  if RadialState.optionsPreviewActive then
+    -- Keep the preview flag; hide visuals until combat ends (protected SetPoint/SetScale).
+    StopOptionsPreviewVisuals()
+  end
   SetSliceMouseEnabled(true)
 end
 
@@ -1704,6 +1899,10 @@ function HR.OnCombatEnd()
   -- don't intercept clicks now that we're out of combat
   if not RadialState.isActive then
     SetSliceMouseEnabled(false)
+  end
+
+  if RadialState.optionsPreviewActive and not RadialState.isActive then
+    StartOptionsPreviewVisuals()
   end
 end
 
