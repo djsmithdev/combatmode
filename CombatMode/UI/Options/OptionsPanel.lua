@@ -36,7 +36,7 @@ UI.Options = UI.Options or {}
 local Options = UI.Options
 Options.tabDefs = Options.tabDefs or {}
 
-local WINDOW_W, WINDOW_H = 740, 600
+local WINDOW_W, WINDOW_H = 740, 560
 local SIDEBAR_W = 176
 local CONTENT_PAD = 14
 
@@ -537,7 +537,7 @@ local function BuildSidebarFooter()
 
   fctx:Toggle({
     label = "Silence Alerts",
-    desc = "Stops the printing of alert messages in the chat window after a reload.",
+    desc = "Hide Combat Mode chat alerts after reload.",
     descBelow = true,
     get = function()
       return CM.DB.global.silenceAlerts
@@ -548,7 +548,7 @@ local function BuildSidebarFooter()
   })
   fctx:Toggle({
     label = "Debug Mode",
-    desc = "Enables the printing of state logs in the chat window.",
+    desc = "Print Combat Mode debug logs to chat.",
     descBelow = true,
     get = function()
       return CM.DB.global.debugMode

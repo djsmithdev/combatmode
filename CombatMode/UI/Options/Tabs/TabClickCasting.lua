@@ -81,7 +81,7 @@ end
 local function AddSlot(layout, slot, label, modifier, iconAtlas)
   layout:Toggle({
     label = label,
-    desc = "Enable this override while in Mouse Look mode.",
+    desc = "Override this click during Mouse Look.",
     iconAtlas = iconAtlas,
     iconFitText = true,
     iconSize = 24,
@@ -120,7 +120,7 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas)
   })
   layout:TextInput({
     label = "Macro Name",
-    desc = "Name of the Macro to bind to this action.",
+    desc = "Macro to run for this click.",
     get = function()
       return Binding(slot).macroName
     end,
@@ -154,9 +154,9 @@ local function BuildGroupPanel(parent, width, modifier)
   elseif modifier == "alt" then
     prefix = "Alt + "
   end
-  AddSlot(layout, Slot(modifier, 1), prefix .. "Left Click Action", modifier, "NPE_LeftClick")
+  AddSlot(layout, Slot(modifier, 1), prefix .. "Left Click", modifier, "NPE_LeftClick")
   layout:Gap(8)
-  AddSlot(layout, Slot(modifier, 2), prefix .. "Right Click Action", modifier, "NPE_RightClick")
+  AddSlot(layout, Slot(modifier, 2), prefix .. "Right Click", modifier, "NPE_RightClick")
   layout:Finish()
   panel:SetHeight(-layout.y + 8)
   return panel
@@ -234,12 +234,10 @@ UI.Options.AddTab({
   build = function(ctx)
     BuildActionValues()
     ctx:Header("CLICK CASTING")
-    ctx:Description(
-      "Configure Left and Right click actions while Mouse Look is active. Use the segments below to switch modifier groups."
-    )
+    ctx:Description("Assign actions to left and right clicks during Mouse Look.")
     ctx:Toggle({
-      label = "Use Account-Wide Click Bindings",
-      desc = "Use your account-wide shared Combat Mode keybinds on this character.",
+      label = "Account-Wide Binds",
+      desc = "Share Click Casting binds across all characters.",
       get = function()
         return CM.DB.char.useGlobalBindings
       end,

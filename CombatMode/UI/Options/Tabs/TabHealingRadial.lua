@@ -51,12 +51,12 @@ UI.Options.AddTab({
   build = function(ctx)
     ctx:Header("PARTY RADIAL")
     ctx:Description(
-      "Configure the radial menu for quickly casting helpful spells at party members. In gameplay, hold a Click Casting action (or the dedicated keybind) during Mouse Look to open it, flick toward your target, and release to cast."
+      "Hold a Click Casting action or the Party Radial keybind during Mouse Look, aim at a slice, and release to cast."
     )
 
     ctx:Toggle({
       label = "Enable Party Radial",
-      desc = "Enables a radial menu for quickly casting helpful spells at party members.",
+      desc = "Radial menu for quickly casting spells at party members.",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = RadialEnabled,
@@ -66,8 +66,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Keybind({
-      label = "Toggle / Hold - Radial",
-      desc = "Tap to toggle the Party Radial menu. Hold to temporarily display it — releasing closes it.",
+      label = "Keybind",
+      desc = "Tap to toggle. Hold to show temporarily.",
       get = function()
         return (GetBindingKey("Combat Mode - Healing Radial"))
       end,
@@ -87,8 +87,8 @@ UI.Options.AddTab({
     })
 
     ctx:Slider({
-      label = "Radial Size",
-      desc = "Distance from center to each party member slice.",
+      label = "Size",
+      desc = "Distance from center to each slice.",
       min = 100,
       max = 200,
       step = 10,
@@ -103,7 +103,7 @@ UI.Options.AddTab({
     })
     ctx:Slider({
       label = "Slice Scale",
-      desc = "Scale factor for slice elements (role icon, name, health bar).",
+      desc = "Scale of icons, names, and health bars.",
       min = 0.5,
       max = 1.5,
       step = 0.1,
@@ -117,8 +117,8 @@ UI.Options.AddTab({
       disabled = RadialDisabled,
     })
     ctx:Slider({
-      label = "Name Font Size",
-      desc = "Size of party member names on each slice.",
+      label = "Name Size",
+      desc = "Party member name size.",
       min = 8,
       max = 24,
       step = 1,
@@ -133,7 +133,7 @@ UI.Options.AddTab({
     })
     ctx:Slider({
       label = "Role Icon Size",
-      desc = "Size of the role icons (tank, healer, DPS) on each slice.",
+      desc = "Role icon size.",
       min = 16,
       max = 96,
       step = 16,
@@ -147,8 +147,8 @@ UI.Options.AddTab({
       disabled = RadialDisabled,
     })
     ctx:Toggle({
-      label = "Show Health Bars",
-      desc = "Display health bars on each party member slice.",
+      label = "Health Bars",
+      desc = "Show health bars on each slice.",
       get = function()
         return CM.DB.global.healingRadial.showHealthBars
       end,
@@ -159,8 +159,8 @@ UI.Options.AddTab({
       disabled = RadialDisabled,
     })
     ctx:Toggle({
-      label = "Show Radial Background",
-      desc = "Display a background behind the Healing Radial.",
+      label = "Background",
+      desc = "Show a background behind the radial.",
       get = function()
         return CM.DB.global.healingRadial.showBackground
       end,

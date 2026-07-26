@@ -29,7 +29,7 @@ UI.Options.AddTab({
 
     ctx:Toggle({
       label = "Enable Reticle Targeting",
-      desc = "Transforms the default tab-targeting combat into an action-oriented experience, where the Crosshair dictates target acquisition.",
+      desc = "Aim the crosshair at units to pick targets instead of tab-targeting.",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = function()
@@ -46,8 +46,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Only Allow Reticle To Target Enemies",
-      desc = "Only allow Reticle Targeting to select hostile units, ignoring friendly NPCs and Players.",
+      label = "Enemies Only",
+      desc = "Only target hostile units, ignoring friendly NPCs and Players.",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = function()
@@ -62,8 +62,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Limit Reticle Targeting To Click Casting Actions",
-      desc = "Reticle unit targeting and ground-targeted macro injection apply only to Click Casting bindings.",
+      label = "Click Casting Only",
+      desc = "Apply reticle targeting logic only to Click Casting binds.",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = function()
@@ -79,8 +79,8 @@ UI.Options.AddTab({
     })
     ctx:Gap()
     ctx:TextInput({
-      label = "Spells to exclude from Reticle Targeting",
-      desc = "Spells you DON'T want the targeting macro conditionals from Reticle Targeting applied to.",
+      label = "Excluded Spells",
+      desc = "Spells to skip the reticle targeting logic, even if assigned to Click Casting binds.",
       multiline = 4,
       get = function()
         return CM.DB.char.excludeFromTargetingSpells or ""
@@ -96,8 +96,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:TextInput({
-      label = "Ground-targeted spells cast at the Reticle",
-      desc = "Ground-targeted abilities cast with @cursor directly at the crosshair without placing the green circle.",
+      label = "Cast at Crosshair",
+      desc = "Ground spells to automatically cast at the crosshair location.",
       multiline = 4,
       get = function()
         return CM.DB.char.castAtCursorSpells or ""
@@ -114,7 +114,7 @@ UI.Options.AddTab({
     })
 
     ctx:Gap()
-    ctx:Header("CUSTOM SETTINGS")
+    ctx:Header("ADVANCED")
     ctx:Description(
       "Modify Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines. Be cautious: editing these values could break Reticle Targeting and Target Lock."
     )

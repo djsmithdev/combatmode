@@ -60,7 +60,7 @@ UI.Options.AddTab({
 
     ctx:Toggle({
       label = "Show Crosshair",
-      desc = "Shows the crosshair while Mouse Look is active.",
+      desc = "Show the crosshair during Mouse Look.",
       get = function()
         return CM.DB.global.crosshair
       end,
@@ -71,8 +71,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Hide Crosshair While Mounted",
-      desc = "Hides the crosshair while mounted.",
+      label = "Hide While Mounted",
+      desc = "Hide the crosshair while mounted.",
       get = function()
         return CM.DB.global.crosshairMounted
       end,
@@ -82,8 +82,8 @@ UI.Options.AddTab({
       disabled = CrosshairOff,
     })
     ctx:Dropdown({
-      label = "Crosshair Appearance",
-      desc = "Texture used for the crosshair.",
+      label = "Appearance",
+      desc = "Crosshair texture.",
       values = CM.Constants.CrosshairAppearanceSelectValues,
       order = appearanceOrder,
       get = function()
@@ -97,8 +97,8 @@ UI.Options.AddTab({
       disabled = CrosshairOff,
     })
     ctx:Slider({
-      label = "Crosshair Size",
-      desc = "Pixel size of the crosshair graphic.",
+      label = "Size",
+      desc = "Crosshair size.",
       min = 16,
       max = 128,
       step = 16,
@@ -112,8 +112,8 @@ UI.Options.AddTab({
       disabled = CrosshairOff,
     })
     ctx:Slider({
-      label = "Crosshair Opacity",
-      desc = "Transparency of the crosshair.",
+      label = "Opacity",
+      desc = "Crosshair transparency.",
       min = 0.1,
       max = 1,
       step = 0.1,
@@ -127,8 +127,8 @@ UI.Options.AddTab({
       disabled = CrosshairOff,
     })
     ctx:Slider({
-      label = "Crosshair Vertical Position",
-      desc = "Moves the crosshair up or down from screen center.",
+      label = "Vertical Position",
+      desc = "Move the crosshair up or down from screen center.",
       min = -400,
       max = 400,
       step = 1,
@@ -147,7 +147,7 @@ UI.Options.AddTab({
     ctx:Header("INTERACTION HUD")
     ctx:Toggle({
       label = "Show Interaction HUD",
-      desc = "Display a HUD for interactable NPCs or objects to the right of the crosshair. Bind Interact - Reticle Target under General to interact when in range.",
+      desc = "Show a prompt next to the crosshair for nearby interactables. Bind Interact under General to use it.",
       get = function()
         return CM.DB.global.interactionHUD
       end,
@@ -166,8 +166,8 @@ UI.Options.AddTab({
     ctx:Gap()
     ctx:Header("COMBAT ASSIST")
     ctx:Toggle({
-      label = "Show Combat Assist Spell",
-      desc = "Show the Blizzard Assisted Combat suggested spell icon near the crosshair (in combat).",
+      label = "Show Combat Assist",
+      desc = "Show Blizzard's next-spell suggestion next to the crosshair.",
       get = function()
         return CM.DB.global.assistedHighlightEnabled
       end,
@@ -178,8 +178,8 @@ UI.Options.AddTab({
       disabled = CrosshairOff,
     })
     ctx:Slider({
-      label = "Combat Assist Icon Size",
-      desc = "Size of the Assisted Combat spell icon.",
+      label = "Icon Size",
+      desc = "Assist icon size.",
       min = 28,
       max = 52,
       step = 1,
@@ -193,8 +193,8 @@ UI.Options.AddTab({
       disabled = AssistOff,
     })
     ctx:Slider({
-      label = "Combat Assist X Offset",
-      desc = "Horizontal offset of the Assisted Combat icon from the crosshair.",
+      label = "X Offset",
+      desc = "Horizontal offset from the crosshair.",
       min = -200,
       max = 200,
       step = 1,
@@ -208,8 +208,8 @@ UI.Options.AddTab({
       disabled = AssistOff,
     })
     ctx:Slider({
-      label = "Combat Assist Y Offset",
-      desc = "Vertical offset of the Assisted Combat icon from the crosshair.",
+      label = "Y Offset",
+      desc = "Vertical offset from the crosshair.",
       min = -200,
       max = 200,
       step = 1,
@@ -223,8 +223,8 @@ UI.Options.AddTab({
       disabled = AssistOff,
     })
     ctx:Toggle({
-      label = "Show Combat Assist Keybind",
-      desc = "Shows the keybind text next to the Assisted Combat icon.",
+      label = "Show Keybind",
+      desc = "Show the keybind next to the assist icon.",
       get = function()
         return CM.DB.global.assistedHighlightShowKeybind
       end,
@@ -235,8 +235,8 @@ UI.Options.AddTab({
       disabled = AssistOff,
     })
     ctx:Dropdown({
-      label = "Combat Assist Keybind Anchor",
-      desc = "Which side of the Assisted Combat icon shows the keybind text.",
+      label = "Keybind Position",
+      desc = "Where the keybind text appears.",
       values = {
         RIGHT = "Right",
         LEFT = "Left",

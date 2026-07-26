@@ -30,8 +30,8 @@ UI.Options.AddTab({
     layout.y = 0
 
     layout:Toggle({
-      label = "Load Combat Mode's Action Camera Preset",
-      desc = "Configures Blizzard's Action Camera to a curated preset.",
+      label = "Enable Preset",
+      desc = "Apply Combat Mode's Action Camera preset.",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = function()
@@ -51,8 +51,8 @@ UI.Options.AddTab({
       end,
     })
     layout:Toggle({
-      label = "Disable Action Camera with Mouse Look",
-      desc = "Disable Action Camera features when toggling Mouse Look off.",
+      label = "Off with Mouse Look Off",
+      desc = "Turn Action Camera off when Mouse Look is off.",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = function()
@@ -68,7 +68,7 @@ UI.Options.AddTab({
     })
     layout:Toggle({
       label = "Sticky Targeting",
-      desc = "Makes Reticle Targeting stick to enemies slightly, making it harder to untarget them by accident.",
+      desc = "Soft-stick to enemies so they're harder to lose by accident.",
       get = function()
         return CM.DB.char.stickyCrosshair
       end,
@@ -85,8 +85,8 @@ UI.Options.AddTab({
       end,
     })
     layout:Slider({
-      label = "Camera Over Shoulder Offset",
-      desc = "Horizontally offsets the camera while the Action Camera Preset is enabled.",
+      label = "Shoulder Offset",
+      desc = "Horizontal camera offset with the Action Camera preset.",
       min = -2,
       max = 2,
       step = 0.1,
@@ -102,8 +102,8 @@ UI.Options.AddTab({
       end,
     })
     layout:Slider({
-      label = "Mouse Look Camera Turn Speed",
-      desc = "Adjusts the speed at which you turn the camera while Mouse Look mode is active.",
+      label = "Turn Speed",
+      desc = "Camera turn speed during Mouse Look.",
       min = 10,
       max = 180,
       step = 10,

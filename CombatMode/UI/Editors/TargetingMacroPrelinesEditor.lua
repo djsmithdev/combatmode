@@ -49,11 +49,11 @@ local function Build()
   )
 
   ctx:Description(
-    "Edit the targeting Macro preline inserted before actions when Reticle Targeting is enabled. The active field depends on Only Allow Reticle To Target Enemies."
+    "Edit the targeting macro preline inserted before actions when Reticle Targeting is on. Which field is active depends on Enemies Only."
   )
 
   ctx:TextInput({
-    label = "Preline (Any unit) — used when 'Only Allow Reticle To Target Enemies' is OFF",
+    label = "Any Unit — used when Enemies Only is OFF",
     multiline = 4,
     get = function()
       return CM.DB.global.targetingMacroPrelineAnyOverride or defaults.any or ""
@@ -64,10 +64,10 @@ local function Build()
     disabled = function()
       return EnemyOnly()
     end,
-    watermarkWhenDisabled = "Inactive — Only Allow Reticle To Target Enemies is ON",
+    watermarkWhenDisabled = "Inactive — Enemies Only is ON",
   })
   ctx:TextInput({
-    label = "Preline (Enemies only) — used when 'Only Allow Reticle To Target Enemies' is ON",
+    label = "Enemies Only — used when Enemies Only is ON",
     multiline = 4,
     get = function()
       return CM.DB.global.targetingMacroPrelineEnemyOverride or defaults.enemy or ""
@@ -78,7 +78,7 @@ local function Build()
     disabled = function()
       return not EnemyOnly()
     end,
-    watermarkWhenDisabled = "Inactive — Only Allow Reticle To Target Enemies is OFF",
+    watermarkWhenDisabled = "Inactive — Enemies Only is OFF",
   })
 
   ctx:Gap()

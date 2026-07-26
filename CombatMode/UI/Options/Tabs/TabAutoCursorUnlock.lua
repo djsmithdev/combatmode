@@ -22,7 +22,7 @@ UI.Options.AddTab({
     ctx:Header("AUTO UNLOCK")
     ctx:Toggle({
       label = "Enable Auto Unlock",
-      desc = "Automatically disables Mouse Look and releases the cursor when certain interface panels are opened.",
+      desc = "Release the cursor when UI panels open.",
       get = function()
         return CM.DB.global.frameWatching
       end,
@@ -31,8 +31,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Unlock While On Vendor Mount",
-      desc = "Keeps the cursor unlocked while a vendor mount is being used.",
+      label = "Vendor Mounts",
+      desc = "Keep the cursor unlocked on vendor mounts.",
       get = function()
         return CM.DB.global.mountCheck
       end,
@@ -41,8 +41,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:TextInput({
-      label = "Frame Watchlist",
-      desc = "Expand the list of Blizzard panels or AddOn frames that trigger a Cursor Unlock.\nUse /fstack to check frame names.",
+      label = "Extra Frames",
+      desc = "Extra frame names that trigger an auto unlock.\nUse /fstack to find names.",
       multiline = 4,
       get = function()
         return tconcat(CM.DB.global.watchlist or {}, ", ")
@@ -61,7 +61,7 @@ UI.Options.AddTab({
     ctx:Gap()
     ctx:TextInput({
       label = "Custom Condition",
-      desc = "Create your own custom condition that forces a Cursor Unlock by entering Lua that evaluates to True if the cursor should be freed, False otherwise.",
+      desc = "Lua that returns true to unlock the cursor.",
       placeholder = "local isStill = GetUnitSpeed('player') == 0\nlocal onMount = IsMounted()\nreturn not onMount and isStill",
       multiline = 4,
       get = function()
