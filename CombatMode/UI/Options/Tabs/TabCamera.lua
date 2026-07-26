@@ -51,7 +51,7 @@ UI.Options.AddTab({
       end,
     })
     layout:Toggle({
-      label = "Off with Mouse Look Off",
+      label = "Disable with Mouse Look",
       desc = "Turn Action Camera off when Mouse Look is off.",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
@@ -68,7 +68,7 @@ UI.Options.AddTab({
     })
     layout:Toggle({
       label = "Sticky Targeting",
-      desc = "Soft-stick to enemies so they're harder to lose by accident.",
+      desc = "Reticle slightly sticks to enemies so they're harder to lose by accident.",
       get = function()
         return CM.DB.char.stickyCrosshair
       end,

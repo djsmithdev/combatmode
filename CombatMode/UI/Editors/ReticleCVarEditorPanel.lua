@@ -28,10 +28,6 @@ local tonumber = _G.tonumber
 local UI = CM.UI
 local C = UI.Colors
 
---- Accent-yellow wrap for the two in-list highlights (out-of-sync values, filter matches);
---- the minimal theme keeps a single accent instead of per-meaning colors.
-local HIGHLIGHT = C.accentMarkup or "|cff9e8c58"
-
 local Data = CM.ReticleCVarEditorData
 local Editor = CM.ReticleCVarEditor or {}
 CM.ReticleCVarEditor = Editor
@@ -391,7 +387,7 @@ local function BuildDisplayRows(filterText)
     local valueText = row.currentValue
     local isOutOfSync = LiveCVarDiffersFromCombatModePreset(row.currentValue, row.defaultValue)
     if isOutOfSync then
-      valueText = HIGHLIGHT .. row.currentValue .. "|r"
+      valueText = UI.AccentWrap(row.currentValue)
     end
 
     local include = true
@@ -401,9 +397,10 @@ local function BuildDisplayRows(filterText)
 
     if include then
       if pattern then
-        cvarText = cvarText:gsub(pattern, HIGHLIGHT .. "%1|r")
-        descText = descText:gsub(pattern, HIGHLIGHT .. "%1|r")
-        valueText = valueText:gsub(pattern, HIGHLIGHT .. "%1|r")
+        local mark = UI.AccentMarkup()
+        cvarText = cvarText:gsub(pattern, mark .. "%1|r")
+        descText = descText:gsub(pattern, mark .. "%1|r")
+        valueText = valueText:gsub(pattern, mark .. "%1|r")
       end
       local key = row.cvar
       listItems[#listItems + 1] = {

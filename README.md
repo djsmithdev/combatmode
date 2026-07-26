@@ -49,7 +49,7 @@ After installing the AddOn, you'll be greeted by this message upon your first lo
 
 ![previewMsg](media/previewMsg.png)
 
-1. Click OK to proceed or go to Game Menu (ESC) > Options > AddOns > Combat Mode.
+1. Click Okay to proceed or go to Game Menu (ESC) > Options > AddOns > Combat Mode.
 2. In the options panel, you'll be able to configure the addon to your liking.
 
 <strong>Please, take your time reading what each option does, their tooltips and dev notes. They answer the majority of the most commonly asked questions.</strong>

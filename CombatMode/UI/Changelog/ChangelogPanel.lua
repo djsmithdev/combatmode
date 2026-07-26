@@ -24,9 +24,7 @@ local changelogFrame
 --  Markdown (subset) → SimpleHTML (warcraft.wiki.gg/wiki/UIOBJECT_SimpleHTML)
 ---------------------------------------------------------------------------------------
 -- Single |cff…|r wrap per heading line; nested pipes inside SimpleHTML break parsing.
--- Minimal theme: version headings take the accent yellow, subsections stay neutral grey.
-local VERSION_DATE_HEADING_COLOR = (CM.UI and CM.UI.Colors and CM.UI.Colors.accentMarkup)
-  or "|cff9e8c58"
+-- Version headings use UI.AccentMarkup() (theme accent from Draw.lua); subsections stay grey.
 local H3_SUBSECTION_COLORS = {
   added = "|cffb4b4b4",
   changed = "|cffb4b4b4",
@@ -105,7 +103,7 @@ local function ChangelogMarkdownToSimpleHtml(md)
       PushBlock(out, "h1", ProcessInline(t:match("^#%s+(.+)$") or ""))
     elseif t:match("^##%s+") and not t:match("^###") then
       local h2Text = ProcessInline(t:match("^##%s+(.+)$") or "")
-      PushBlock(out, "h2", VERSION_DATE_HEADING_COLOR .. h2Text .. "|r")
+      PushBlock(out, "h2", UI.AccentWrap(h2Text))
     elseif t:match("^###%s+") then
       local innerRaw = t:match("^###%s+(.+)$") or ""
       local h3Text = ProcessInline(innerRaw)

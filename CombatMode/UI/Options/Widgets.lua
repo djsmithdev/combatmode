@@ -628,7 +628,8 @@ function UI.MakeToggle(parent, opts)
 
   local track = CreateFrame("Frame", nil, row)
   track:SetSize(TOGGLE_TRACK_W, TOGGLE_TRACK_H)
-  UI.StylePill(track, C.trackOff, C.cardBorder)
+  -- Full stadium pill: corner radius = half track height (StylePill uses control radius 3).
+  UI.StyleRounded(track, C.trackOff, C.cardBorder, TOGGLE_TRACK_H / 2)
 
   local knob = UI.CreateCircle(track, "OVERLAY", C.white)
   knob:SetSize(TOGGLE_KNOB, TOGGLE_KNOB)

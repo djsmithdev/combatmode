@@ -36,6 +36,8 @@
     <Script file="UI\Options\Draw.lua"/>
     <Script file="UI\Options\Widgets.lua"/>
     <Script file="UI\Options\OptionsPanel.lua"/>
+    <!-- Blizzard AddOns panel bridge (Open Options → CM.OpenOptions); after OptionsPanel. -->
+    <Script file="UI\Options\BlizzardSettingsBridge.lua"/>
     <Script file="UI\Options\Tabs\TabGeneral.lua"/>
     <Script file="UI\Options\Tabs\TabCrosshair.lua"/>
     <Script file="UI\Options\Tabs\TabReticleTargeting.lua"/>

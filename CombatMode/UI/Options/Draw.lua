@@ -30,6 +30,7 @@ local tinsert = _G.table.insert
 local ipairs = _G.ipairs
 local type = _G.type
 local gsub = _G.string.gsub
+local format = _G.string.format
 local abs = _G.math.abs
 local floor = _G.math.floor
 local max = _G.math.max
@@ -45,13 +46,20 @@ local UI = CM.UI
 ---------------------------------------------------------------------------------------
 -- Minimal monochrome theme: one warm-yellow accent (section titles, selected tab, and
 -- toggle "on" states) over a neutral grey ramp. Deliberately no blue tint and no
--- per-feature hues.
+-- per-feature hues. accentMarkup is derived from accent RGB — edit accent only.
+local function RgbToCffMarkup(r, g, b)
+  return format(
+    "|cff%02x%02x%02x",
+    floor(r * 255 + 0.5),
+    floor(g * 255 + 0.5),
+    floor(b * 255 + 0.5)
+  )
+end
+
 UI.Colors = {
   -- Single accent (section headers + selected tab + toggle on). Muted gold so it
   -- sits quieter against the dark chrome without losing warm yellow identity.
   accent = { 0.620, 0.549, 0.345 }, -- 9E8C58
-  -- |cff markup for inline highlights (must stay in sync with accent RGB above).
-  accentMarkup = "|cff9e8c58",
 
   -- Neutral text ramp.
   white = { 1.000, 1.000, 1.000 },
@@ -71,6 +79,18 @@ UI.Colors = {
   tabActive = { 1, 1, 1, 0.08 },
   disabled = { 0.450, 0.450, 0.450, 1.0 },
 }
+UI.Colors.accentMarkup =
+  RgbToCffMarkup(UI.Colors.accent[1], UI.Colors.accent[2], UI.Colors.accent[3])
+
+--- Live |cff… prefix for the theme accent (filter highlights, changelog headings, etc.).
+function UI.AccentMarkup()
+  return UI.Colors.accentMarkup
+end
+
+--- Wraps text in the theme accent |cff…|r markup.
+function UI.AccentWrap(text)
+  return UI.Colors.accentMarkup .. (text or "") .. "|r"
+end
 
 -- Fixed type scale: `base` for option rows, `nav` for the left sidebar tabs,
 -- `header` for section titles, `desc` for muted under-option helpers.
