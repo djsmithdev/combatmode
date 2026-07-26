@@ -1,9 +1,10 @@
 ---------------------------------------------------------------------------------------
---  Constants/ConstantsDatabaseDefaults.lua — constants module: db defaults
+--  Constants/DatabaseDefaults.lua — CONSTANTS — CombatModeDB defaults (global + char)
 ---------------------------------------------------------------------------------------
+--  Owns CM.Constants.DatabaseDefaults merged by Core/Runtime/Runtime.lua (InitDatabase).
 --  Includes global targetingMacroPrelineAnyOverride / targetingMacroPrelineEnemyOverride
---  (nil = use built-in prelines; edited via UI/Editors/TargetingMacroPrelinesEditor.lua)
---  and reticleTargetingCVarOverrides (Reticle CVar editor; merged in RuntimeCVarManager).
+--  (nil = built-in prelines; edited via UI/Editors/TargetingMacroPrelinesEditor.lua) and
+--  reticleTargetingCVarOverrides (Reticle CVar editor; merged in Core/Runtime/CVarManager.lua).
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 

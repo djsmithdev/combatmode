@@ -1,5 +1,9 @@
 ---------------------------------------------------------------------------------------
---  Constants/ConstantsAssets.lua — constants module: assets/messages/visuals
+--  Constants/Assets.lua — CONSTANTS — assets, welcome message, crosshair textures
+---------------------------------------------------------------------------------------
+--  Owns CM.Constants.PopupMsg (first-install welcome body), BasePrintMsg, Logo/Title
+--  texture paths, PulseAtlas, and CrosshairTextureObj / CrosshairReaction* tables used
+--  by Core/Crosshair and the Crosshair options tab.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

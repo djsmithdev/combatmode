@@ -1,8 +1,9 @@
 ---------------------------------------------------------------------------------------
---  Core/RuntimeBootstrap.lua — runtime startup/bootstrap helpers
+--  Core/Runtime/Bootstrap.lua — RUNTIME — startup/bootstrap helpers
 ---------------------------------------------------------------------------------------
 --  Owns module bootstrap helpers invoked by Runtime: bind-name preparation, binding
---  safety setup, target macro initialization, and feature startup sequencing.
+--  safety setup, target macro initialization, and feature startup sequencing
+--  (CM.BootstrapFeatureModules) in the same order as Runtime enable.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

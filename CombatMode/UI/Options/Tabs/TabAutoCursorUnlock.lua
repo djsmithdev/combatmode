@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------
 --  Registers the "Auto Unlock" tab: frame watching, vendor-mount unlock, the
 --  frame watchlist, and the custom Lua unlock condition. Feature behavior lives in
---  Core/AutoCursorUnlock.lua; this tab only wires get/set/disabled to CM.DB.
+--  Core/FreeLook/AutoCursorUnlock.lua; this tab only wires get/set/disabled to CM.DB.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -41,7 +41,7 @@ UI.Options.AddTab({
       end,
     })
     ctx:TextInput({
-      label = "Frame Watchlist (comma separated, case sensitive)",
+      label = "Frame Watchlist",
       desc = "Expand the list of Blizzard panels or AddOn frames that trigger a Cursor Unlock.\nUse /fstack to check frame names.",
       multiline = 4,
       get = function()

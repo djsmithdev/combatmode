@@ -1,5 +1,8 @@
 ---------------------------------------------------------------------------------------
---  Constants/ConstantsReticle.lua — constants module: reticle
+--  Constants/Reticle.lua — CONSTANTS — Interaction HUD unable-cursor texture ids
+---------------------------------------------------------------------------------------
+--  Owns CM.Constants.InteractionHUDUnableCursor (texture file IDs / paths that dim the
+--  Interaction HUD icon). Consumed by Core/Crosshair/InteractionHUD.lua.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 

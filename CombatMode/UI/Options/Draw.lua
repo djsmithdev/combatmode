@@ -50,6 +50,8 @@ UI.Colors = {
   -- Single accent (section headers + selected tab + toggle on). Muted gold so it
   -- sits quieter against the dark chrome without losing warm yellow identity.
   accent = { 0.620, 0.549, 0.345 }, -- 9E8C58
+  -- |cff markup for inline highlights (must stay in sync with accent RGB above).
+  accentMarkup = "|cff9e8c58",
 
   -- Neutral text ramp.
   white = { 1.000, 1.000, 1.000 },
@@ -305,6 +307,22 @@ function UI.SetFontSize(fs, pixelSize, template)
     CM.SetFontStringFromTemplate(fs, pixelSize or UI.Fonts.base, _G[template or "GameFontNormal"])
   end
   return fs
+end
+
+--- Sizes an EditBox to the options type scale (defaults to UI.Fonts.base). ChatFontNormal
+--- is larger than option-row text; use this for every config / editor input field.
+function UI.SetEditBoxFont(edit, pixelSize, template)
+  if not edit or not edit.SetFont then
+    return edit
+  end
+  local fontObj = _G[template or "GameFontHighlightSmall"] or _G.GameFontHighlightSmall
+  local path, _, flags = fontObj:GetFont()
+  if path then
+    edit:SetFont(path, pixelSize or UI.Fonts.base, flags or "")
+  else
+    edit:SetFontObject(fontObj)
+  end
+  return edit
 end
 
 ---------------------------------------------------------------------------------------

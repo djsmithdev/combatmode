@@ -5,7 +5,7 @@
 --  (UI/Options/*). Opened from the Reticle Targeting tab via
 --  CM.OpenTargetingMacroPrelinesEditor. Persists account-wide overrides
 --  CM.DB.global.targetingMacroPrelineAnyOverride / targetingMacroPrelineEnemyOverride;
---  Core/TargetingMacroBuilder.lua applies them. Combat-guarded on open.
+--  Core/ClickCasting/TargetingMacroBuilder.lua applies them. Combat-guarded on open.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -53,7 +53,7 @@ local function Build()
   )
 
   ctx:TextInput({
-    label = "Preline (Any unit) — used when 'Only Target Enemies' is OFF",
+    label = "Preline (Any unit) — used when 'Only Allow Reticle To Target Enemies' is OFF",
     multiline = 4,
     get = function()
       return CM.DB.global.targetingMacroPrelineAnyOverride or defaults.any or ""
@@ -64,9 +64,10 @@ local function Build()
     disabled = function()
       return EnemyOnly()
     end,
+    watermarkWhenDisabled = "Inactive — Only Allow Reticle To Target Enemies is ON",
   })
   ctx:TextInput({
-    label = "Preline (Enemies only) — used when 'Only Target Enemies' is ON",
+    label = "Preline (Enemies only) — used when 'Only Allow Reticle To Target Enemies' is ON",
     multiline = 4,
     get = function()
       return CM.DB.global.targetingMacroPrelineEnemyOverride or defaults.enemy or ""
@@ -77,6 +78,7 @@ local function Build()
     disabled = function()
       return not EnemyOnly()
     end,
+    watermarkWhenDisabled = "Inactive — Only Allow Reticle To Target Enemies is OFF",
   })
 
   ctx:Gap()

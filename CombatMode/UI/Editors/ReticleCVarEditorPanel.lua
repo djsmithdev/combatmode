@@ -30,7 +30,7 @@ local C = UI.Colors
 
 --- Accent-yellow wrap for the two in-list highlights (out-of-sync values, filter matches);
 --- the minimal theme keeps a single accent instead of per-meaning colors.
-local HIGHLIGHT = "|cffffcd3c"
+local HIGHLIGHT = C.accentMarkup or "|cff9e8c58"
 
 local Data = CM.ReticleCVarEditorData
 local Editor = CM.ReticleCVarEditor or {}
@@ -484,7 +484,8 @@ function CM.OpenReticleTargetingCVarEditor()
     filterBox:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
     filterBox:SetHeight(24)
     filterBox:SetAutoFocus(false)
-    filterBox:SetFontObject("ChatFontNormal")
+    UI.SetEditBoxFont(filterBox)
+    filterBox:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
     filterBox:SetTextInsets(8, 8, 0, 0)
     filterBox:SetMaxLetters(120)
     UI.StyleRounded(filterBox, C.inputBg, C.cardBorder, UI.Radius.control)
@@ -537,7 +538,8 @@ function CM.OpenReticleTargetingCVarEditor()
     local inlineInput = CreateFrame("EditBox", nil, blocker)
     inlineInput:SetSize(60, 20)
     inlineInput:SetAutoFocus(false)
-    inlineInput:SetFontObject("ChatFontNormal")
+    UI.SetEditBoxFont(inlineInput)
+    inlineInput:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
     inlineInput:SetJustifyH("RIGHT")
     inlineInput:SetTextInsets(5, 8, 0, 0)
     UI.StyleRounded(inlineInput, C.inputBg, C.accent, UI.Radius.control)

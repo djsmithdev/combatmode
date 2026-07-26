@@ -1,15 +1,16 @@
 ---------------------------------------------------------------------------------------
---  Core/AutoCursorUnlock.lua — CURSOR UNLOCK — auto-drop mouselook (panels, Lua)
+--  Core/FreeLook/AutoCursorUnlock.lua — FREE LOOK — auto-drop mouselook (panels, Lua)
 ---------------------------------------------------------------------------------------
 --  Supplies CM.IsUnlockFrameVisible (static + wildcard frame name matching),
 --  vendor/mount/pet-battle/feign checks, and CM.IsCustomConditionTrue for optional
---  user Lua. Core.ShouldFreeLookBeOff() combines these with spell targeting,
+--  user Lua. FreeLookController.ShouldFreeLookBeOff() combines these with spell targeting,
 --  cinematics, healing radial, etc., so the global OnUpdate can call UnlockFreeLook.
 --
 --  Architecture:
 --    • CM.InitializeWildcardFrameTracking called once from Runtime bootstrap; uses
---      Constants.WildcardFramesToMatch / FramesToCheck.
---    • Read-only queries from Core; no direct mouselook Start/Stop here.
+--      Constants/FrameWatch.lua (WildcardFramesToMatch / FramesToCheck).
+--    • Read-only queries from FreeLook; no direct mouselook Start/Stop here (except
+--      the OPie branch frees CursorFreelookCentering + hides the crosshair).
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

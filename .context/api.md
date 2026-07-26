@@ -29,4 +29,4 @@ World of Warcraft uses **Lua 5.1** semantics for addon code. Reference: [Lua 5.1
 
 ## In-repo truth
 
-Prefer reading the owning **`CombatMode/Core/*.lua`**, **`UI/*.lua`**, or **`Constants/*.lua`** module over guessing how CombatMode wires an API.
+Prefer reading the owning **`CombatMode/Core/**/*.lua`**, **`UI/**/*.lua`**, or **`Constants/*.lua`** module over guessing how CombatMode wires an API.

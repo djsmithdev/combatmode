@@ -1,14 +1,15 @@
 ---------------------------------------------------------------------------------------
---  Core/Crosshair.lua — CROSSHAIR — crosshair UI, cursor centering, reaction state
+--  Core/Crosshair/Crosshair.lua — CROSSHAIR — crosshair UI, cursor centering, reaction state
 ---------------------------------------------------------------------------------------
 --  Draws the on-screen crosshair (container + inner visual), tracks mouseover/soft-target
 --  state for appearance, and syncs cursor centering (CursorCenteredYPos) to the crosshair
 --  vertical position from CM.DB.global.crosshairY.
 --
 --  Related modules:
---    • Core/RuntimeCVarManager.lua: reticle-targeting + Interaction HUD SoftTarget CVar presets.
---    • Core/InteractionHUD.lua: Interaction HUD widget presentation/lifecycle.
---    • Core/Animations.lua: crosshair animation helpers used by previews and lock-in.
+--    • Core/Runtime/CVarManager.lua: reticle-targeting + Interaction HUD SoftTarget CVar presets.
+--    • Core/Crosshair/InteractionHUD.lua: Interaction HUD widget presentation/lifecycle.
+--    • Core/Crosshair/AssistedHighlight.lua: Assisted Combat suggestion icon + keybind.
+--    • Core/Crosshair/Animations.lua: crosshair animation helpers used by previews and lock-in.
 --    • UI/Options/Tabs/TabCrosshair.lua: user-facing crosshair settings; toggles the live
 --      preview via CM.SetCrosshairOptionsPreview so the reticle, Interaction HUD, and
 --      Combat Assist icon render with mouselook off (CM.IsCrosshairPreviewActive).
@@ -17,10 +18,11 @@
 --    • Runtime drives CreateCrosshair from BootstrapFeatureModules. OnUpdate calls
 --      CM.UpdateCrosshairReaction when the crosshair is enabled.
 --    • Cursor Y sync uses AdjustCenteredCursorYPos → CursorCenteredYPos when the crosshair
---      is enabled; SetCursorFreelookCentering lives in Runtime.
+--      is enabled; SetCursorFreelookCentering lives in FreeLookController /
+--      Runtime/CVarManager.
 --    • CM.ApplyCrosshairAppearanceToWidget / CM.CreateCrosshairScaleAnimation are exposed
---      for previews (implemented in Core/Animations.lua).
---    • Interaction HUD widget lifecycle is owned by Core/InteractionHUD.lua and is
+--      for previews (implemented in Core/Crosshair/Animations.lua).
+--    • Interaction HUD widget lifecycle is owned by Core/Crosshair/InteractionHUD.lua and is
 --      registered against the crosshair frame via CM.InitInteractionHUD.
 ---------------------------------------------------------------------------------------
 local _, CM = ...

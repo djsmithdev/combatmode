@@ -1,17 +1,19 @@
 ---------------------------------------------------------------------------------------
---  Core/HealingRadial.lua — HEALING RADIAL — party menu, casts, mouselook
+--  Core/HealingRadial/HealingRadial.lua — HEALING RADIAL — party menu, casts, mouselook
 ---------------------------------------------------------------------------------------
 --  Optional healer UX: radial slices for roster units, spell/item assignment per
 --  slice, secure buttons for in-combat casts, capture layer + mouselook override keys
---  while open, and hooks from Core (OnMouselookChanged, combat events, action bar
---  refresh) to stay consistent with free look and the crosshair.
+--  while open, and hooks from Runtime/FreeLook (OnMouselookChanged, combat events,
+--  action bar refresh) to stay consistent with free look and the crosshair.
 --
 --  Architecture:
---    • Exposed as CM.HealingRadial (table of functions); Core calls Initialize from
---      BootstrapFeatureModules and notifies OnMouselookChanged / DismissOnLoad.
+--    • Exposed as CM.HealingRadial (table of functions); Runtime bootstrap calls
+--      Initialize from BootstrapFeatureModules and notifies OnMouselookChanged /
+--      DismissOnLoad.
 --    • Internal state machine (show/hide, keybind vs mouse open) avoids re-entrancy
---      with Core.LockFreeLook / UnlockFreeLook.
---    • Configuration lives under CM.DB.global.healingRadial; options UI in UI/Options/Tabs/TabHealingRadial.lua.
+--      with FreeLookController.LockFreeLook / UnlockFreeLook.
+--    • Configuration lives under CM.DB.global.healingRadial; slice metadata in
+--      Constants/HealingRadial.lua; options UI in UI/Options/Tabs/TabHealingRadial.lua.
 --    • Options live preview (SetOptionsPreview) shows the radial without freelook churn
 --      or isActive; empty slots use placeholders so Visual Settings update on-screen.
 ---------------------------------------------------------------------------------------

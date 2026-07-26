@@ -1,8 +1,9 @@
 ---------------------------------------------------------------------------------------
---  Core/RuntimeBindingQueue.lua — deferred binding queue (combat-safe apply)
+--  Core/Runtime/BindingQueue.lua — RUNTIME — deferred binding queue (combat-safe apply)
 ---------------------------------------------------------------------------------------
 --  Owns deferred binding writes used while in combat lockdown and exposes shared
---  CM helpers used by config modules and runtime bootstrap.
+--  CM helpers (TryApplyBindingChange, FlushDeferredBindingChanges) used by Click Casting
+--  and Runtime bootstrap / PLAYER_REGEN_ENABLED.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

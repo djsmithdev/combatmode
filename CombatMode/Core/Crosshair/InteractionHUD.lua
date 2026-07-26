@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Core/InteractionHUD.lua — INTERACTION HUD — soft-interact icon + label UI
+--  Core/Crosshair/InteractionHUD.lua — CROSSHAIR — soft-interact icon + label UI
 ---------------------------------------------------------------------------------------
 --  Owns the Interaction HUD widget displayed near the crosshair when a soft-interact
 --  target is present. Includes:
@@ -10,7 +10,8 @@
 --    • Sample icon + label while CM.IsCrosshairPreviewActive() (Crosshair options tab),
 --      so the HUD is visible without a soft-interact target
 --
---  The crosshair frame is owned by Core/Crosshair.lua and is registered via CM.InitInteractionHUD.
+--  The crosshair frame is owned by Core/Crosshair/Crosshair.lua and is registered via
+--  CM.InitInteractionHUD. Unable-cursor ids live in Constants/Reticle.lua.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

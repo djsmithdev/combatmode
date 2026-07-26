@@ -1,5 +1,8 @@
 ---------------------------------------------------------------------------------------
---  Constants/ConstantsFrameWatch.lua — constants module: frame watch/mounts
+--  Constants/FrameWatch.lua — CONSTANTS — auto-unlock frames, wildcards, vendor mounts
+---------------------------------------------------------------------------------------
+--  Owns FramesToCheck, WildcardFramesToMatch / WildcardFramesToCheck (incl. OPieRT), and
+--  vendor-mount lists used by Core/FreeLook/AutoCursorUnlock.lua.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 

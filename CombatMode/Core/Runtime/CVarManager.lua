@@ -1,10 +1,11 @@
 ---------------------------------------------------------------------------------------
---  Core/RuntimeCVarManager.lua — runtime CVar apply/reset helpers
+--  Core/Runtime/CVarManager.lua — RUNTIME — CVar apply/reset helpers
 ---------------------------------------------------------------------------------------
 --  Owns generic CVar loading and runtime camera/sticky-crosshair helpers used by
---  Runtime rematch and config options. Reticle targeting: CM.GetReticleTargetingCVarOverrides
+--  Runtime rematch and options. Reticle targeting: CM.GetReticleTargetingCVarOverrides
 --  (prune excluded keys), CM.GetEffectiveReticleTargetingCVarValues (presets +
---  CM.DB.global.reticleTargetingCVarOverrides).
+--  CM.DB.global.reticleTargetingCVarOverrides). Presets/exclusions live in Constants/CVars.lua;
+--  the Reticle CVar editor is UI/Editors/ReticleCVarEditor*.lua.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

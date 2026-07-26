@@ -5,7 +5,7 @@
 --  pruning must agree with CM.Constants.ReticleTargetingCVarEditorExcluded).
 --  Override table: CM.DB.global.reticleTargetingCVarOverrides; reads/writes go through
 --  CM.GetReticleTargetingCVarOverrides; SetOverride / clear-all guarded in combat.
---  Related: ReticleCVarEditorPanel.lua, RuntimeCVarManager.lua, ConstantsCVars.lua.
+--  Related: ReticleCVarEditorPanel.lua, Core/Runtime/CVarManager.lua, Constants/CVars.lua.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

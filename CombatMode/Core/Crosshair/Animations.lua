@@ -1,12 +1,15 @@
 ---------------------------------------------------------------------------------------
---  Core/Animations.lua — USER-FACING ANIMATIONS — cursor pulse, crosshair motion
+--  Core/Crosshair/Animations.lua — CROSSHAIR — cursor pulse + crosshair motion helpers
 ---------------------------------------------------------------------------------------
---  Consolidates short, purely visual animations that are triggered by other systems:
+--  Owns short, purely visual animations triggered by other systems:
 --    • Cursor pulse: brief atlas pulse at the cursor after unlocking mouselook.
---    • Crosshair reaction: scale animation and appearance application (shared with options preview).
+--    • Crosshair reaction: scale animation and appearance application (shared with
+--      options preview via CM.ApplyCrosshairAppearanceToWidget /
+--      CM.CreateCrosshairScaleAnimation).
 --    • Crosshair lock-in: short scale/alpha tween when acquiring focus target.
 --
---  Animation targets (frames/textures) are registered by their owning feature modules.
+--  Animation targets (frames/textures) are registered by their owning feature modules
+--  (Core/Crosshair/Crosshair.lua, FreeLook unlock path). No mouselook or CVar writes.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

@@ -1,15 +1,17 @@
 ---------------------------------------------------------------------------------------
---  Core/AddonActionBarResolver.lua — Third-party action bar resolver
+--  Core/ClickCasting/AddonActionBarResolver.lua — CLICK CASTING — third-party action bar resolver
 ---------------------------------------------------------------------------------------
--- Resolves multiactionbar bindings (MULTIACTIONBAR*BUTTONn) to the correct
--- third-party addon button frame by matching the underlying Blizzard action-slot id.
+--  Resolves multiactionbar bindings (MULTIACTIONBAR*BUTTONn) to the correct
+--  third-party addon button frame by matching the underlying Blizzard action-slot id.
 --
--- Support policy:
---   • Keep resolver scope focused on supported action bar addons only.
---   • Keyboard override injection is gated by macroInjectionClickCastOnly when
---     third-party bars are detected; this resolver remains the click-cast path.
---   • Supported addons here: ElvUI and Bartender4. Unknown addons fall back to
---     Blizzard frame resolution in higher-level callers.
+--  Support policy:
+--    • Keep resolver scope focused on supported action bar addons only.
+--    • Keyboard override injection is gated by macroInjectionClickCastOnly when
+--      third-party bars are detected; this resolver remains the click-cast path.
+--    • Supported addons here: ElvUI and Bartender4. Unknown addons fall back to
+--      Blizzard frame resolution in higher-level callers
+--      (Core/ClickCasting/BindingOverrides.lua).
+---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
 

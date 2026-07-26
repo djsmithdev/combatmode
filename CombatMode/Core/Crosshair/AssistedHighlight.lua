@@ -1,8 +1,8 @@
 ---------------------------------------------------------------------------------------
---  Core/AssistedHighlight.lua — ASSISTED HIGHLIGHT — suggested spell icon + keybind
+--  Core/Crosshair/AssistedHighlight.lua — CROSSHAIR — Assisted Combat suggestion icon + keybind
 ---------------------------------------------------------------------------------------
 --  Shows the Blizzard Assisted Combat "next cast" suggestion anchored to Combat Mode's
---  crosshair. Mirrors Core/InteractionHUD.lua architecture:
+--  crosshair. Mirrors Core/Crosshair/InteractionHUD.lua architecture:
 --    • Crosshair owns the anchor frame; this module owns the widget lifecycle.
 --    • Crosshair calls CM.InitAssistedHighlight({ crosshairFrame, crosshairTexture }).
 --    • Runtime/Crosshair call CM.UpdateCrosshairAssistedHighlight() to refresh.
@@ -49,7 +49,7 @@ local function EnsureAssistedHighlight()
     return
   end
 
-  -- Per-module lock-in animation driver (mirrors Core/Animations.lua crosshair lock-in style).
+  -- Per-module lock-in animation driver (mirrors Core/Crosshair/Animations.lua crosshair lock-in style).
   AssistedHighlightLockInDriver = CreateFrame("Frame", nil, crosshairFrame)
   AssistedHighlightLockInDriver:Hide()
 

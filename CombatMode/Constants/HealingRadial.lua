@@ -1,5 +1,8 @@
 ---------------------------------------------------------------------------------------
---  Constants/ConstantsHealingRadial.lua — constants module: healing radial
+--  Constants/HealingRadial.lua — CONSTANTS — party radial slice metadata
+---------------------------------------------------------------------------------------
+--  Owns CM.Constants.HealingRadialSlices (default role + angle per 5-man slot). Consumed
+--  by Core/HealingRadial/HealingRadial.lua and the Party Radial options tab.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 

@@ -1,5 +1,9 @@
 ---------------------------------------------------------------------------------------
---  Constants/ConstantsGameplay.lua — constants module: gameplay tables
+--  Constants/Gameplay.lua — CONSTANTS — macros, Blizzard event groups, action lists
+---------------------------------------------------------------------------------------
+--  Owns CM.Constants.Macros, BLIZZARD_EVENTS (UNLOCK/LOCK/REMATCH/… categories consumed
+--  by Core/Runtime/EventRouter.lua), ActionsToProcess, and related static gameplay
+--  tables. No runtime side effects beyond table population.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 

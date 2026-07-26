@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Core/BindingOverrides.lua — CLICK CASTING — overrides, macros, ground @cursor
+--  Core/ClickCasting/BindingOverrides.lua — CLICK CASTING — overrides, macros, ground @cursor
 ---------------------------------------------------------------------------------------
 --  Builds secure macro proxy buttons and SetMouselookOverrideBinding wiring so
 --  action-bar and click-cast inputs run pre-lines (reticle /target selection) and
@@ -8,8 +8,12 @@
 --  LeftButton on proxy buttons.
 --
 --  Architecture:
---    • Core enables via BootstrapFeatureModules (OverrideDefaultButtons, ApplyGroundCastKeyOverrides,
---      ApplyToggleFocusTargetBinding) and REFRESH_BINDINGS_EVENTS (coalesced in Core.lua) → RefreshClickCastMacros.
+--    • Core/Runtime/Bootstrap.lua enables via BootstrapFeatureModules
+--      (OverrideDefaultButtons, ApplyGroundCastKeyOverrides, ApplyToggleFocusTargetBinding)
+--      and REFRESH_BINDINGS_EVENTS (coalesced in Core/Runtime/EventRouter.lua) →
+--      RefreshClickCastMacros.
+--    • Macro text construction: Core/ClickCasting/TargetingMacroBuilder.lua.
+--    • Third-party bar buttons: Core/ClickCasting/AddonActionBarResolver.lua.
 --    • All injection paths honor CM.DB.char.reticleTargeting; GetBindingsLocation()
 --      selects char vs global binding storage.
 --    • Toggle-focus macro text is updated here; binding name is Combat Mode specific.

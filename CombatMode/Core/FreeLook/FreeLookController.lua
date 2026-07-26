@@ -1,15 +1,18 @@
 ---------------------------------------------------------------------------------------
---  Core/FreeLookController.lua — FREE LOOK — mouselook state machine + cursor keybind
+--  Core/FreeLook/FreeLookController.lua — FREE LOOK — mouselook state machine + cursor keybind
 ---------------------------------------------------------------------------------------
 --  Owns free-look/mouselook transition behavior:
 --    • lock/unlock transitions and UI side effects
 --    • temporary/permanent unlock handling
 --    • cursor-mode keybind tap/hold logic with spurious key-up filtering
---    • free-look gating checks consumed by Runtime OnUpdate
+--    • free-look gating checks consumed by Core/Runtime/Runtime.lua OnUpdate
 --    • OPie close rematch (CM.NotifyOpieUnlockFrameVisible) — OPie MouselookStops itself
 --      and AutoCursorUnlock frees CursorFreelookCentering; on close we must bounce
 --      mouselook with centering forced to 0 before Start (same pattern as HealingRadial)
 --
+--  Related: Core/FreeLook/AutoCursorUnlock.lua (unlock predicates),
+--  Core/Runtime/CVarManager.lua (CursorFreelookCentering writes),
+--  Core/HealingRadial/HealingRadial.lua (OnMouselookChanged).
 --  Runtime remains the coordinator and calls exported CM helpers from this module.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -138,7 +141,7 @@ local function RunUnlockFreeLookDeferredUI(isPermanentUnlock)
 end
 
 -- Force CursorFreelookCentering to 0, then MouselookStart, then deferred set to 1.
--- Required by the 10.2 Blizzard quirk (see ConstantsCVars): starting mouselook while
+-- Required by the 10.2 Blizzard quirk (see Constants/CVars.lua): starting mouselook while
 -- the CVar is already 1 (or writing 1 mid-look) can leave the cursor visible.
 local function StartFreeLookFresh()
   CM.SetCursorFreelookCenteringCVar(false)

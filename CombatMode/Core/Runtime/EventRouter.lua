@@ -1,10 +1,10 @@
 ---------------------------------------------------------------------------------------
---  Core/RuntimeEventRouter.lua — event map build + category dispatch
+--  Core/Runtime/EventRouter.lua — RUNTIME — event map build + category dispatch
 ---------------------------------------------------------------------------------------
 --  Owns Runtime event category map and global XML event handler wiring while keeping
 --  public/global names stable. CombatModeFrame OnEvent is (self, event, ...);
 --  CombatMode_OnEvent accepts that Blizzard shape (and a legacy AceEvent (event, ...)
---  call for safety).
+--  call for safety). Event groups come from Constants/Gameplay.lua (BLIZZARD_EVENTS).
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

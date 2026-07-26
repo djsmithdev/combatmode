@@ -146,9 +146,17 @@ local function BuildGroupPanel(parent, width, modifier)
   panel:SetWidth(width)
   local layout = UI.NewLayout(panel, width)
   layout.y = 0
-  AddSlot(layout, Slot(modifier, 1), "Left Click Action", modifier, "NPE_LeftClick")
+  local prefix = ""
+  if modifier == "shift" then
+    prefix = "Shift + "
+  elseif modifier == "ctrl" then
+    prefix = "Ctrl + "
+  elseif modifier == "alt" then
+    prefix = "Alt + "
+  end
+  AddSlot(layout, Slot(modifier, 1), prefix .. "Left Click Action", modifier, "NPE_LeftClick")
   layout:Gap(8)
-  AddSlot(layout, Slot(modifier, 2), "Right Click Action", modifier, "NPE_RightClick")
+  AddSlot(layout, Slot(modifier, 2), prefix .. "Right Click Action", modifier, "NPE_RightClick")
   layout:Finish()
   panel:SetHeight(-layout.y + 8)
   return panel

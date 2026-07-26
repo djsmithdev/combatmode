@@ -362,6 +362,9 @@ local function ActivateTab()
 end
 
 local function DeactivateTab()
+  if UI.Options.CancelKeybindCapture then
+    UI.Options.CancelKeybindCapture()
+  end
   if not tabActivated then
     return
   end

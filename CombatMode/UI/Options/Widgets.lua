@@ -28,6 +28,7 @@ local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
+local GetCurrentKeyBoardFocus = _G.GetCurrentKeyBoardFocus
 local UIParent = _G.UIParent
 
 -- Lua stdlib
@@ -1089,7 +1090,8 @@ function UI.MakeDropdown(parent, opts)
     local filter = CreateFrame("EditBox", nil, menu)
     filter:SetAutoFocus(false)
     filter:SetHeight(22)
-    filter:SetFontObject("GameFontHighlightSmall")
+    UI.SetEditBoxFont(filter)
+    filter:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
     filter:SetTextInsets(8, 8, 0, 0)
     UI.StyleRounded(filter, C.inputBg, C.cardBorder, UI.Radius.control)
     filter:SetScript("OnTextChanged", function(self)
@@ -1208,6 +1210,10 @@ end
 --   • Middle / Button4 / Button5 bind via OnMouseDown as BUTTON3/BUTTON4/BUTTON5.
 --   • Mouse wheel and gamepad buttons are also capturable while listening.
 --   • ESC clears the binding; lone modifier keys are ignored.
+--
+-- Keyboard capture uses a shared high-strata sink frame (not the pill button):
+--   • SetPropagateKeyboardInput must be called inside OnKeyDown per key (Mainline).
+--   • EditBox focus / UISpecialFrames otherwise steal ESC intermittently.
 local IGNORE_KEYS = {
   BUTTON1 = true,
   BUTTON2 = true,
@@ -1226,6 +1232,70 @@ local MOUSE_BUTTON_KEYS = {
   Button5 = "BUTTON5",
 }
 
+local keybindCaptureFrame
+local keybindCaptureOnKey
+local keybindCaptureStopPrevious
+
+local function GetKeybindCaptureFrame()
+  if keybindCaptureFrame then
+    return keybindCaptureFrame
+  end
+  local frame = CreateFrame("Frame", nil, UIParent)
+  frame:Hide()
+  frame:SetFrameStrata("TOOLTIP")
+  frame:SetFrameLevel(10000)
+  frame:EnableMouse(false)
+  frame:EnableKeyboard(true)
+  if frame.EnableGamePadButton then
+    frame:EnableGamePadButton(true)
+  end
+  frame:SetScript("OnKeyDown", function(self, key)
+    -- Must be called from inside OnKeyDown or ESC propagates to TOGGLEGAMEMENU /
+    -- UISpecialFrames and EditBoxes instead of clearing the bind.
+    if self.SetPropagateKeyboardInput then
+      self:SetPropagateKeyboardInput(false)
+    end
+    if keybindCaptureOnKey then
+      keybindCaptureOnKey(key)
+    end
+  end)
+  frame:SetScript("OnGamePadButtonDown", function(_, key)
+    if keybindCaptureOnKey then
+      keybindCaptureOnKey(key)
+    end
+  end)
+  keybindCaptureFrame = frame
+  return frame
+end
+
+local function ReleaseKeybindCapture(ownerStop)
+  if keybindCaptureStopPrevious and keybindCaptureStopPrevious ~= ownerStop then
+    local previous = keybindCaptureStopPrevious
+    keybindCaptureStopPrevious = nil
+    keybindCaptureOnKey = nil
+    previous()
+  end
+  keybindCaptureOnKey = nil
+  keybindCaptureStopPrevious = nil
+  if keybindCaptureFrame then
+    keybindCaptureFrame:Hide()
+  end
+end
+
+--- Cancels any in-progress keybind capture (e.g. options window closed mid-listen).
+function Options.CancelKeybindCapture()
+  if not keybindCaptureStopPrevious then
+    return
+  end
+  local stop = keybindCaptureStopPrevious
+  keybindCaptureStopPrevious = nil
+  keybindCaptureOnKey = nil
+  if keybindCaptureFrame then
+    keybindCaptureFrame:Hide()
+  end
+  stop()
+end
+
 function UI.MakeKeybind(parent, opts)
   local row = CreateFrame("Frame", nil, parent)
   row:SetHeight(ROW_H)
@@ -1236,11 +1306,7 @@ function UI.MakeKeybind(parent, opts)
   UI.StylePill(button, C.trackOff, C.cardBorder)
   button:EnableMouse(true)
   button:RegisterForClicks("AnyDown")
-  button:EnableKeyboard(false)
   button:EnableMouseWheel(false)
-  if button.EnableGamePadButton then
-    button:EnableGamePadButton(false)
-  end
 
   local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
   text:SetPoint("CENTER")
@@ -1256,26 +1322,32 @@ function UI.MakeKeybind(parent, opts)
   local listening = false
   local NOT_BOUND = _G.NOT_BOUND or "Not Bound"
 
-  local function setListening(active)
-    listening = active
-    button:EnableKeyboard(active)
-    button:EnableMouseWheel(active)
-    if button.EnableGamePadButton then
-      button:EnableGamePadButton(active)
-    end
-    -- Consume keystrokes while capturing so they don't fall through to the game.
-    if active and button.SetPropagateKeyboardInput then
-      button:SetPropagateKeyboardInput(false)
-    end
-  end
-
   local function stopListening()
-    setListening(false)
+    if not listening then
+      return
+    end
+    listening = false
+    button:EnableMouseWheel(false)
+    if keybindCaptureStopPrevious == stopListening then
+      keybindCaptureOnKey = nil
+      keybindCaptureStopPrevious = nil
+      if keybindCaptureFrame then
+        keybindCaptureFrame:Hide()
+      end
+    end
     control.Refresh()
   end
 
   local function applyKey(key)
-    setListening(false)
+    listening = false
+    button:EnableMouseWheel(false)
+    if keybindCaptureStopPrevious == stopListening then
+      keybindCaptureOnKey = nil
+      keybindCaptureStopPrevious = nil
+      if keybindCaptureFrame then
+        keybindCaptureFrame:Hide()
+      end
+    end
     if opts.set then
       opts.set(key)
     end
@@ -1306,6 +1378,24 @@ function UI.MakeKeybind(parent, opts)
     applyKey(keyPressed)
   end
 
+  local function startListening()
+    -- Only one keybind may listen; cancel any previous row without writing a bind.
+    if keybindCaptureStopPrevious and keybindCaptureStopPrevious ~= stopListening then
+      ReleaseKeybindCapture(stopListening)
+    end
+    local focused = GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus()
+    if focused and focused.ClearFocus then
+      focused:ClearFocus()
+    end
+    listening = true
+    button:EnableMouseWheel(true)
+    keybindCaptureOnKey = captureKey
+    keybindCaptureStopPrevious = stopListening
+    GetKeybindCaptureFrame():Show()
+    text:SetText("> Press key (ESC clears) <")
+    text:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+  end
+
   button:SetScript("OnClick", function(_, mouseButton)
     if IsDisabled(opts) then
       return
@@ -1319,13 +1409,7 @@ function UI.MakeKeybind(parent, opts)
       stopListening()
       return
     end
-    setListening(true)
-    text:SetText("> Press key (ESC clears) <")
-    text:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
-  end)
-
-  button:SetScript("OnKeyDown", function(_, key)
-    captureKey(key)
+    startListening()
   end)
 
   button:SetScript("OnMouseDown", function(_, mouseButton)
@@ -1338,10 +1422,6 @@ function UI.MakeKeybind(parent, opts)
 
   button:SetScript("OnMouseWheel", function(_, direction)
     captureKey(direction >= 0 and "MOUSEWHEELUP" or "MOUSEWHEELDOWN")
-  end)
-
-  button:SetScript("OnGamePadButtonDown", function(_, key)
-    captureKey(key)
   end)
 
   function control.Refresh()
@@ -1392,8 +1472,8 @@ function UI.MakeTextInput(parent, opts)
     bar:SetPoint("TOPRIGHT", box, "TOPRIGHT", -4, -6)
     bar:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -4, 6)
     edit = mlEdit
-    edit:SetFontObject("ChatFontNormal")
-    edit:SetTextColor(C.text[1], C.text[2], C.text[3])
+    UI.SetEditBoxFont(edit)
+    edit:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
     edit:SetScript("OnEscapePressed", edit.ClearFocus)
     -- Clicking the chrome around the edit (padding / rounded fill) also focuses it.
     box:EnableMouse(true)
@@ -1406,8 +1486,8 @@ function UI.MakeTextInput(parent, opts)
     edit = CreateFrame("EditBox", nil, box)
     edit:SetAutoFocus(false)
     edit:EnableMouse(true)
-    edit:SetFontObject("ChatFontNormal")
-    edit:SetTextColor(C.text[1], C.text[2], C.text[3])
+    UI.SetEditBoxFont(edit)
+    edit:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
     edit:SetPoint("TOPLEFT", box, "TOPLEFT", 8, -4)
     edit:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -8, 4)
     edit:SetScript("OnEscapePressed", edit.ClearFocus)
@@ -1490,6 +1570,19 @@ function UI.MakeTextInput(parent, opts)
     box:SetAlpha(a)
     SetDescAlpha(control, a)
     ClearHoverIfDisabled(row, disabled)
+    if control.watermark then
+      if disabled then
+        control.watermark:Show()
+      else
+        control.watermark:Hide()
+      end
+    end
+  end
+
+  -- Optional DynamicCam-style stamp over the whole row while this field is inactive
+  -- (e.g. preline editor: only one of the two fields is active at a time).
+  if opts.watermarkWhenDisabled and opts.watermarkWhenDisabled ~= "" then
+    control.watermark = UI.CreateWatermark(row, opts.watermarkWhenDisabled, UI.Fonts.nav)
   end
 
   -- Box chrome must accept mouse so hover fires over padding; edit covers the inner area.

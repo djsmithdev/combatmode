@@ -1,26 +1,25 @@
 ---------------------------------------------------------------------------------------
---  Core/Runtime.lua — RUNTIME — addon shell, lifecycle, free look, global drivers
+--  Core/Runtime/Runtime.lua — RUNTIME — addon shell, lifecycle, free look, global drivers
 ---------------------------------------------------------------------------------------
 --  Instantiates the Combat Mode AddOn namespace (`CM` via `...`), SavedVariables
 --  (CombatModeDB), and slash commands. Options live in the standalone window
 --  (UI/Options/*; CM.OpenOptions). Coordinates runtime modules, Rematch on layout/reload,
 --  and the throttled global OnUpdate loop that enforces free look via
---  Core/FreeLookController.lua and refreshes crosshair reactions. First-login welcome
---  modal (CM.UI.ShowWelcome, deferred past load-end UI reset);
+--  Core/FreeLook/FreeLookController.lua and refreshes crosshair reactions. First-login
+--  welcome modal (CM.UI.ShowWelcome, deferred past load-end UI reset);
 --  ScheduleChangelogIfNewVersion → CM.Config.MaybeShowChangelogOnNewVersion
 --  (UI/Changelog/ChangelogPanel.lua) when addon version changes (or always in Debug Mode).
 --
 --  Architecture:
---    • Loaded early (Core/Runtime.lua); receives the shared AddOn namespace table and
---      sets CM.METADATA from the TOC. Other modules use `local _, CM = ...`.
+--    • Loaded early (Core/Runtime/Runtime.lua); receives the shared AddOn namespace table
+--      and sets CM.METADATA from the TOC. Other modules use `local _, CM = ...`.
 --    • Optional `_G.CM = CM` alias for debug / external scripts (primary handle is `...`).
 --    • Lifecycle: ADDON_LOADED → InitDatabase + slash; PLAYER_LOGIN → enable/bootstrap.
---    • Calls into runtime modules: FreeLookController, Crosshair, ClickCasting,
---      Animations, AutoCursorUnlock, HealingRadial.
+--    • Calls into feature modules: FreeLook, Crosshair, ClickCasting, HealingRadial.
 --    • Exposes globals for XML: CombatMode_OnEvent, CombatMode_OnUpdate, keybind
 --      handlers (CombatMode_CursorModeKey, CombatMode_HealingRadialKey).
---    • Shared CVar helpers live in Core/RuntimeCVarManager.lua and are used by editors
---      and by Crosshair/Interaction HUD flows.
+--    • Shared CVar helpers live in Core/Runtime/CVarManager.lua and are used by editors
+--      and by Crosshair / Interaction HUD flows.
 ---------------------------------------------------------------------------------------
 local addonName, CM = ...
 local _G = _G

@@ -6,7 +6,7 @@
 --  CM.Config.MaybeShowChangelogOnNewVersion, CM.DB.global.lastSeenChangelogVersion when shown.
 --  Data: CM.Config.ChangelogText from ChangelogData.lua (sync from CHANGELOG.md via
 --  scripts/sync-changelog-to-lua.ps1). Callers: OptionsPanel sidebar footer (View Changelog),
---  Core/Runtime.lua (ScheduleChangelogIfNewVersion on login / after welcome popup).
+--  Core/Runtime/Runtime.lua (ScheduleChangelogIfNewVersion on login / after welcome popup).
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -25,7 +25,8 @@ local changelogFrame
 ---------------------------------------------------------------------------------------
 -- Single |cff…|r wrap per heading line; nested pipes inside SimpleHTML break parsing.
 -- Minimal theme: version headings take the accent yellow, subsections stay neutral grey.
-local VERSION_DATE_HEADING_COLOR = "|cffffcd3c"
+local VERSION_DATE_HEADING_COLOR = (CM.UI and CM.UI.Colors and CM.UI.Colors.accentMarkup)
+  or "|cff9e8c58"
 local H3_SUBSECTION_COLORS = {
   added = "|cffb4b4b4",
   changed = "|cffb4b4b4",

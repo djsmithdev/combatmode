@@ -1,7 +1,10 @@
 ---------------------------------------------------------------------------------------
---  Constants/ConstantsCVars.lua — constants module: cvar presets/defaults
+--  Constants/CVars.lua — CONSTANTS — CVar presets / editor exclusions
 ---------------------------------------------------------------------------------------
---  ReticleTargetingCVarValues + ReticleTargetingCVarEditorExcluded (editor/runtime).
+--  Owns ReticleTargetingCVarValues (CombatMode reticle defaults), Blizzard reset
+--  tables, Action Camera / Sticky Crosshair / Interaction HUD SoftTarget subsets, and
+--  ReticleTargetingCVarEditorExcluded (keys hidden from the editor and pruned from
+--  saved overrides). Consumed by Core/Runtime/CVarManager.lua and UI/Editors/*.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 
