@@ -6,12 +6,14 @@
 --    • temporary/permanent unlock handling
 --    • cursor-mode keybind tap/hold logic with spurious key-up filtering
 --    • free-look gating checks consumed by Runtime OnUpdate
+--    • OPie close rematch (CM.NotifyOpieUnlockFrameVisible) — OPie MouselookStops itself
+--      and AutoCursorUnlock frees CursorFreelookCentering; on close we must bounce
+--      mouselook with centering forced to 0 before Start (same pattern as HealingRadial)
 --
 --  Runtime remains the coordinator and calls exported CM helpers from this module.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local C_Timer = _G.C_Timer
@@ -31,6 +33,7 @@ local string = _G.string
 -- INITIAL STATE VARIABLES
 local FreeLookOverride = false -- Changes when Free Look state is modified through user input ("Toggle / Hold" keybind and "/cm" cmd)
 local CursorModeShowTime = 0 -- GetTime() when cursor was unlocked via keybind (for spurious key-up filter)
+local opieUnlockSeen = false -- Latched while an OPie ring was reported visible
 
 -- This prevents the auto running bug.
 function CM.IsDefaultMouseActionBeingUsed()
@@ -110,25 +113,15 @@ function CM.SetCursorFreelookCentering(shouldCenter)
   end
 end
 
-function CM.LockFreeLook()
-  if not IsMouselooking() then
-    MouselookStart()
-    -- Defer UI state changes to avoid taint during protected mouselook initialization
-    if C_Timer and C_Timer.After then
-      C_Timer.After(0, function()
-        CM.SetCursorFreelookCentering(true)
-        HandleFreeLookUIState(true, false)
-      end)
-    else
+local function RunLockFreeLookDeferredUI()
+  if C_Timer and C_Timer.After then
+    C_Timer.After(0, function()
       CM.SetCursorFreelookCentering(true)
       HandleFreeLookUIState(true, false)
-    end
-    CM.ShowCrosshairLockIn()
-    -- Notify Healing Radial of mouselook state change
-    if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
-      CM.HealingRadial.OnMouselookChanged(true)
-    end
-    CM.DebugPrint("Free Look Enabled")
+    end)
+  else
+    CM.SetCursorFreelookCentering(true)
+    HandleFreeLookUIState(true, false)
   end
 end
 
@@ -142,6 +135,27 @@ local function RunUnlockFreeLookDeferredUI(isPermanentUnlock)
     CM.SetCursorFreelookCentering(false)
     HandleFreeLookUIState(false, isPermanentUnlock)
   end
+end
+
+-- Force CursorFreelookCentering to 0, then MouselookStart, then deferred set to 1.
+-- Required by the 10.2 Blizzard quirk (see ConstantsCVars): starting mouselook while
+-- the CVar is already 1 (or writing 1 mid-look) can leave the cursor visible.
+local function StartFreeLookFresh()
+  CM.SetCursorFreelookCenteringCVar(false)
+  MouselookStart()
+  RunLockFreeLookDeferredUI()
+  CM.ShowCrosshairLockIn()
+  if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
+    CM.HealingRadial.OnMouselookChanged(true)
+  end
+  CM.DebugPrint("Free Look Enabled")
+end
+
+function CM.LockFreeLook()
+  if IsMouselooking() then
+    return
+  end
+  StartFreeLookFresh()
 end
 
 function CM.UnlockFreeLook()
@@ -176,6 +190,27 @@ local function UnlockFreeLookPermanent()
     CM.HealingRadial.OnMouselookChanged(false)
   end
   CM.DebugPrint("Free Look Disabled (Permanent)")
+end
+
+-- Called from AutoCursorUnlock while an OPie ring frame is visible.
+function CM.NotifyOpieUnlockFrameVisible()
+  opieUnlockSeen = true
+end
+
+-- After freelook should be on again: if an OPie ring had forced centering off (and may
+-- have rematched mouselook itself), bounce so StartFreeLookFresh can apply centering.
+function CM.RematchFreeLookAfterOpieIfNeeded()
+  if not opieUnlockSeen then
+    return false
+  end
+  opieUnlockSeen = false
+
+  CM.DebugPrint("OPie ring closed — bouncing free-look rematch.")
+  if IsMouselooking() then
+    MouselookStop()
+  end
+  StartFreeLookFresh()
+  return true
 end
 
 -- Unified cursor mode keybind: tap to toggle, hold to temporarily unlock.

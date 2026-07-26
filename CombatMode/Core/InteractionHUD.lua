@@ -12,9 +12,8 @@
 --
 --  The crosshair frame is owned by Core/Crosshair.lua and is registered via CM.InitInteractionHUD.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local CreateFrame = _G.CreateFrame

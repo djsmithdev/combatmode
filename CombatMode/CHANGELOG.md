@@ -13,6 +13,12 @@ This log follows Keep a Changelog (https://keepachangelog.com/en/1.1.0/) and Sem
 - Combat Mode's Crosshair can no longer be edited through Edit Mode; all settings were moved to a dedicated window under the new config panel;
 - Healing Radial has been renamed to Party Radial and you can now see a live preview as you modify it.
 - Action Camera options have been moved to a dedicated section named Action Camera.
+- Removed the Ace3 / LibStub library stack in favour of our own internal solutions; settings still use the same SavedVariables (`CombatModeDB`) and slash commands.
+
+### Fixed
+
+- Fixed issue where toggling OPie rings in quick sucession could cause the cursor to be stuck and visible while mouse look is active.
+- Fixed issue where a reload could cause the cursor to be visible while in the mouse look state post loading screen.
 
 ## [3.3.1] - 2026-07-18
 

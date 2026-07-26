@@ -13,14 +13,14 @@
 --
 --  Tabs may declare onSelect/onDeselect for transient side effects; they fire in pairs on
 --  tab switches and on window show/hide. Tab content crossfades on switch. The window
---  always opens docked to the left edge (Options.DockWindowLeft) so the center of the
---  screen stays clear for live previews.
+--  always opens docked left-of-center (Options.DockWindowLeft) so the crosshair and
+--  party radial stay clear for live previews.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
+local C_Timer = _G.C_Timer
 local CreateFrame = _G.CreateFrame
 local InCombatLockdown = _G.InCombatLockdown
 local UIParent = _G.UIParent
@@ -36,7 +36,7 @@ UI.Options = UI.Options or {}
 local Options = UI.Options
 Options.tabDefs = Options.tabDefs or {}
 
-local WINDOW_W, WINDOW_H = 740, 580
+local WINDOW_W, WINDOW_H = 740, 600
 local SIDEBAR_W = 176
 local CONTENT_PAD = 14
 
@@ -61,15 +61,27 @@ local function FadeAlpha(frameObj, toAlpha, gen, onDone)
   end)
 end
 
---- Parks the window against the left edge so the center of the screen stays clear for
---- live UI (crosshair preview, etc.). Called on every OpenOptions; drag is still allowed
---- during the session but the next open re-docks left (position is not persisted).
+--- Parks the window left of screen center so the crosshair and party radial stay clear
+--- for live options previews. On wide displays it sits farther in from the left edge;
+--- on narrower ones it clamps to a small left inset. Called on every OpenOptions; drag is
+--- still allowed during the session but the next open re-docks (position is not persisted).
 function Options.DockWindowLeft()
   if not frame then
     return
   end
+  local parent = _G.UIParent
+  local parentW = parent:GetWidth() or 0
+  local panelW = frame:GetWidth() or WINDOW_W
+  local leftPad = 24
+  -- Party radial outer reach is ~sliceRadius(120)+half slice; keep a little air past that.
+  local clearFromCenter = 280
+  local maxRight = (parentW * 0.5) - clearFromCenter
+  local x = maxRight - panelW
+  if x < leftPad then
+    x = leftPad
+  end
   frame:ClearAllPoints()
-  frame:SetPoint("LEFT", _G.UIParent, "LEFT", 24, 0)
+  frame:SetPoint("LEFT", parent, "LEFT", x, 0)
 end
 
 --- Tab registration entry point for UI/Options/Tabs/*.lua.
@@ -84,6 +96,9 @@ end
 ---------------------------------------------------------------------------------------
 --                              VERTICAL LAYOUT MANAGER                              --
 ---------------------------------------------------------------------------------------
+-- Gap between consecutive placed controls (options, headers, cards, buttons).
+local ITEM_GAP = 12
+
 local function NewLayout(content, width)
   local ctx = { content = content, width = width, y = -8 }
 
@@ -91,7 +106,7 @@ local function NewLayout(content, width)
     childFrame:ClearAllPoints()
     childFrame:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, self.y)
     childFrame:SetWidth(self.width)
-    self.y = self.y - height - 6
+    self.y = self.y - height - ITEM_GAP
   end
 
   function ctx:Place(control)
@@ -141,7 +156,7 @@ local function NewLayout(content, width)
         control.frame:SetWidth(o.pixelWidth or 200)
         control.frame:SetHeight(control.height)
       end
-      self.y = self.y - control.height - 6
+      self.y = self.y - control.height - ITEM_GAP
     end
     return control
   end
@@ -214,7 +229,14 @@ local function NewLayout(content, width)
   end
 
   function ctx:Finish()
-    self.content:SetHeight(-self.y + 8)
+    -- PlaceFrame always subtracts ITEM_GAP after the last control; drop that trailing
+    -- gap so content height matches the visible widgets (avoids a phantom scrollbar and
+    -- empty space under the final row).
+    local height = -self.y - ITEM_GAP
+    if height < 1 then
+      height = 1
+    end
+    self.content:SetHeight(height)
   end
 
   return ctx
@@ -254,40 +276,73 @@ function UI.CreateBareWindow(globalName, titleText, width, height)
   return win
 end
 
---- Builds a standalone rounded, movable window (title bar + close X + scroll content)
+--- Builds a standalone rounded, movable window (title bar + close X + content)
 --- and returns (window, ctx). Used by editors that are not tabs of the main panel.
-function UI.CreateWindow(globalName, titleText, width, height)
+--- opts.noScroll = true → plain content frame (no window scrollbar); size with
+--- UI.SizeWindowToContent after ctx:Finish(). Default is a scroll pane.
+function UI.CreateWindow(globalName, titleText, width, height, opts)
+  opts = opts or {}
   local win = UI.CreateBareWindow(globalName, titleText, width, height)
 
-  local scroll, content = UI.CreateScrollFrame(win)
-  scroll:SetPoint("TOPLEFT", win, "TOPLEFT", 14, -44)
-  scroll:SetPoint("BOTTOMRIGHT", win, "BOTTOMRIGHT", -22, 14)
-  scroll.cmScrollBar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 6, 0)
-  scroll.cmScrollBar:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", 6, 0)
+  local contentWidth
+  local content
+  local scroll
 
-  local contentWidth = width - 22 - CONTENT_PAD
-  content:SetSize(contentWidth, 10)
+  if opts.noScroll then
+    -- Fixed layout: content is a normal frame, not a ScrollFrame child.
+    contentWidth = width - 28
+    content = CreateFrame("Frame", nil, win)
+    content:SetPoint("TOPLEFT", win, "TOPLEFT", 14, -44)
+    content:SetWidth(contentWidth)
+    content:SetHeight(10)
+  else
+    scroll, content = UI.CreateScrollFrame(win)
+    scroll:SetPoint("TOPLEFT", win, "TOPLEFT", 14, -44)
+    scroll:SetPoint("BOTTOMRIGHT", win, "BOTTOMRIGHT", -22, 14)
+    scroll.cmScrollBar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 6, 0)
+    scroll.cmScrollBar:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", 6, 0)
+
+    contentWidth = width - 22 - CONTENT_PAD
+    content:SetSize(contentWidth, 10)
+
+    win:EnableMouseWheel(true)
+    win:SetScript("OnMouseWheel", function(_, delta)
+      if scroll.cmScrollTo then
+        local current = scroll.cmGetTargetScroll and scroll.cmGetTargetScroll()
+          or scroll:GetVerticalScroll()
+        scroll.cmScrollTo(current - delta * 72, false)
+      end
+    end)
+    win:HookScript("OnShow", function()
+      if scroll.cmUpdate then
+        scroll.cmUpdate()
+      end
+    end)
+  end
 
   local ctx = NewLayout(content, contentWidth)
   win.ctx = ctx
   win.content = content
   win.scroll = scroll
-  -- Forward wheel from window chrome (padding / title) into the eased scroll pane.
-  win:EnableMouseWheel(true)
-  win:SetScript("OnMouseWheel", function(_, delta)
-    if scroll.cmScrollTo then
-      local current = scroll.cmGetTargetScroll and scroll.cmGetTargetScroll()
-        or scroll:GetVerticalScroll()
-      scroll.cmScrollTo(current - delta * 72, false)
-    end
-  end)
-  win:HookScript("OnShow", function()
-    if scroll.cmUpdate then
-      scroll.cmUpdate()
-    end
-  end)
+  win.cmNoScroll = opts.noScroll and true or nil
   return win, ctx
 end
+
+--- Sizes a CreateWindow shell to its laid-out content height (call after ctx:Finish()).
+--- Chrome matches CreateWindow anchors: TOP -44 / BOTTOM +14.
+function UI.SizeWindowToContent(win)
+  if not win or not win.content then
+    return
+  end
+  local contentH = win.content:GetHeight() or 0
+  win:SetHeight(contentH + 44 + 14)
+  if win.scroll and win.scroll.cmUpdate then
+    win.scroll.cmUpdate()
+  end
+end
+
+-- Back-compat alias used by the first fit pass.
+UI.SizeWindowToScrollContent = UI.SizeWindowToContent
 
 ---------------------------------------------------------------------------------------
 --                                  SHELL BUILDERS                                   --
@@ -414,6 +469,10 @@ local function SelectTab(tab)
   FadeAlpha(tab.scroll, 1, gen)
   if tab.bar and tab.bar:IsShown() then
     FadeAlpha(tab.bar, 1, gen)
+  elseif tab.bar then
+    -- cmUpdate may have hidden the bar (track/range not ready yet). Keep alpha at 1 so a
+    -- later OnSizeChanged/OnScrollRangeChanged Show() is actually visible.
+    tab.bar:SetAlpha(1)
   end
 end
 
@@ -423,7 +482,7 @@ local function BuildSidebarButton(def, index)
   button:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -56 - (index - 1) * 32)
   UI.StyleRounded(button, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, UI.Radius.control)
 
-  local label = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontNormal")
+  local label = UI.CreateFontString(button, "OVERLAY", UI.Fonts.nav, "GameFontNormal")
   label:SetPoint("LEFT", button, "LEFT", 10, 0)
   label:SetText(UI.StripColors(def.label) or "")
   button.label = label
@@ -475,7 +534,7 @@ local function BuildSidebarFooter()
 
   fctx:Toggle({
     label = "Silence Alerts",
-    desc = "Stops Combat Mode from printing alert messages in the chat window after loading screens.",
+    desc = "Stops the printing of alert messages in the chat window after a reload.",
     descBelow = true,
     get = function()
       return CM.DB.global.silenceAlerts
@@ -486,7 +545,7 @@ local function BuildSidebarFooter()
   })
   fctx:Toggle({
     label = "Debug Mode",
-    desc = "Enables the printing of state logs in the chat window to assist with development.",
+    desc = "Enables the printing of state logs in the chat window.",
     descBelow = true,
     get = function()
       return CM.DB.global.debugMode
@@ -507,7 +566,7 @@ local function BuildSidebarFooter()
     label = "Reset to Defaults",
     width = "full",
     confirm = true,
-    confirmText = "Resetting Combat Mode's options to their default will force a UI Reload.\nProceed?",
+    confirmText = "A UI Reload is required when making this change. Proceed?",
     func = function()
       CM:OnResetDB()
     end,
@@ -523,11 +582,27 @@ local function BuildSidebarFooter()
   sep:SetPoint("BOTTOMRIGHT", footer, "TOPRIGHT", 0, 10)
 end
 
+local function RefreshActiveTabScroll()
+  if not activeTab or not activeTab.scroll then
+    return
+  end
+  if activeTab.scroll.cmUpdate then
+    activeTab.scroll.cmUpdate()
+  end
+  if activeTab.bar and activeTab.bar:IsShown() then
+    activeTab.bar:SetAlpha(1)
+  end
+end
+
 local function BuildShell()
   frame = CreateFrame("Frame", "CombatModeOptionsFrame", UIParent, "BackdropTemplate")
   frame:SetSize(WINDOW_W, WINDOW_H)
   frame:SetFrameStrata("HIGH")
   frame:SetToplevel(true)
+  -- Stay hidden until OpenOptions. Frames default to shown; if SelectTab runs while
+  -- shown it crossfades the scrollbar to alpha 0, and a premature cmUpdate can leave
+  -- the bar permanently invisible until the next tab switch.
+  frame:Hide()
   UI.StyleRounded(frame, C.windowBg, C.windowBorder, UI.Radius.window)
   Options.DockWindowLeft()
 
@@ -556,7 +631,14 @@ local function BuildShell()
   UI.EnableDrag(frame, titleBar, false)
   UI.EnableEscClose(frame, "CombatModeOptionsFrame")
 
-  frame:HookScript("OnShow", ActivateTab)
+  frame:HookScript("OnShow", function()
+    ActivateTab()
+    RefreshActiveTabScroll()
+    -- Layout heights settle after Show; refresh once more so the thumb/bar appear.
+    if C_Timer and C_Timer.After then
+      C_Timer.After(0, RefreshActiveTabScroll)
+    end
+  end)
   frame:HookScript("OnHide", DeactivateTab)
 
   local closeX = UI.CreateCloseButton(frame)

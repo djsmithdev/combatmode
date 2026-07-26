@@ -7,9 +7,8 @@
 --  APIs unchanged (CM.SetNewBinding, CM.ResetBindingOverride, CM.OverrideDefaultButtons,
 --  HealingRadial.OnBindingChanged).
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
@@ -79,10 +78,13 @@ local function OnBindingChanged()
   end
 end
 
-local function AddSlot(layout, slot, label, modifier)
+local function AddSlot(layout, slot, label, modifier, iconAtlas)
   layout:Toggle({
     label = label,
-    desc = "Enable this Click Casting override while in Mouse Look mode.",
+    desc = "Enable this override while in Mouse Look mode.",
+    iconAtlas = iconAtlas,
+    iconFitText = true,
+    iconSize = 24,
     get = function()
       return Binding(slot).enabled
     end,
@@ -118,7 +120,7 @@ local function AddSlot(layout, slot, label, modifier)
   })
   layout:TextInput({
     label = "Macro Name",
-    desc = "Enter the name of the Macro to bind to this Click Casting action.",
+    desc = "Name of the Macro to bind to this action.",
     get = function()
       return Binding(slot).macroName
     end,
@@ -144,9 +146,9 @@ local function BuildGroupPanel(parent, width, modifier)
   panel:SetWidth(width)
   local layout = UI.NewLayout(panel, width)
   layout.y = 0
-  AddSlot(layout, Slot(modifier, 1), "|A:NPE_LeftClick:24:24|a Left Click Action", modifier)
+  AddSlot(layout, Slot(modifier, 1), "Left Click Action", modifier, "NPE_LeftClick")
   layout:Gap(8)
-  AddSlot(layout, Slot(modifier, 2), "|A:NPE_RightClick:24:24|a Right Click Action", modifier)
+  AddSlot(layout, Slot(modifier, 2), "Right Click Action", modifier, "NPE_RightClick")
   layout:Finish()
   panel:SetHeight(-layout.y + 8)
   return panel
@@ -225,7 +227,7 @@ UI.Options.AddTab({
     BuildActionValues()
     ctx:Header("CLICK CASTING")
     ctx:Description(
-      "Select which actions fire on Left and Right click (and modified presses) while Mouse Look is active. Use the segments below to switch modifier groups."
+      "Configure Left and Right click actions while Mouse Look is active. Use the segments below to switch modifier groups."
     )
     ctx:Toggle({
       label = "Use Account-Wide Click Bindings",
@@ -317,9 +319,19 @@ UI.Options.AddTab({
 
     local bar = BuildSegmentBar(segmentHost, contentW, MODIFIER_GROUPS, ShowGroup)
     bar:SetPoint("TOPLEFT", segmentHost, "TOPLEFT", 0, 0)
-    panelHost:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", 0, -10)
 
-    segmentHost:SetHeight(bar:GetHeight() + 10 + hostH)
+    -- Hairline under the segment bar so the modifier tabs read separately from the
+    -- Left/Right click options below (same treatment as the sidebar footer divider).
+    local sepGap = 8
+    local sep = segmentHost:CreateTexture(nil, "ARTWORK")
+    sep:SetColorTexture(1, 1, 1, 0.06)
+    sep:SetHeight(1)
+    sep:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", 0, -sepGap)
+    sep:SetPoint("TOPRIGHT", bar, "BOTTOMRIGHT", 0, -sepGap)
+
+    panelHost:SetPoint("TOPLEFT", sep, "BOTTOMLEFT", 0, -sepGap)
+
+    segmentHost:SetHeight(bar:GetHeight() + sepGap + 1 + sepGap + hostH)
     ctx:PlaceFrame(segmentHost, segmentHost:GetHeight())
   end,
 })

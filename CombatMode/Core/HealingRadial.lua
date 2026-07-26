@@ -15,10 +15,8 @@
 --    • Options live preview (SetOptionsPreview) shows the radial without freelook churn
 --      or isActive; empty slots use placeholders so Visual Settings update on-screen.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local AceAddon = LibStub("AceAddon-3.0")
-local CM = AceAddon:GetAddon("CombatMode")
 
 -- WoW API
 local CreateFrame = _G.CreateFrame

@@ -5,9 +5,8 @@
 --  frame watchlist, and the custom Lua unlock condition. Feature behavior lives in
 --  Core/AutoCursorUnlock.lua; this tab only wires get/set/disabled to CM.DB.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- Lua stdlib
 local gmatch = _G.string.gmatch
@@ -21,12 +20,9 @@ UI.Options.AddTab({
   label = "Auto Unlock",
   build = function(ctx)
     ctx:Header("AUTO UNLOCK")
-    ctx:Description(
-      "Select whether Mouse Look should be automatically disabled when specific frames are visible, re-enabling once they're closed."
-    )
     ctx:Toggle({
       label = "Enable Auto Unlock",
-      desc = "Automatically disables Mouse Look and releases the cursor when specific frames are visible (Bag, Map, Quest, etc).",
+      desc = "Automatically disables Mouse Look and releases the cursor when certain interface panels are opened.",
       get = function()
         return CM.DB.global.frameWatching
       end,

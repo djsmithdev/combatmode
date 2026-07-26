@@ -1,10 +1,7 @@
 ---------------------------------------------------------------------------------------
 --  Constants/ConstantsGameplay.lua — constants module: gameplay tables
 ---------------------------------------------------------------------------------------
-local _G = _G
-local LibStub = _G.LibStub
-local AceAddon = LibStub("AceAddon-3.0")
-local CM = AceAddon:GetAddon("CombatMode")
+local _, CM = ...
 
 CM.Constants.Macros = {
   CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",

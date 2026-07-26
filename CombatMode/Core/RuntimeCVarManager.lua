@@ -6,9 +6,8 @@
 --  (prune excluded keys), CM.GetEffectiveReticleTargetingCVarValues (presets +
 --  CM.DB.global.reticleTargetingCVarOverrides).
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local SetCVar = _G.C_CVar.SetCVar

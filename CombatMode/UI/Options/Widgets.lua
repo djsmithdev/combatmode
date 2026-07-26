@@ -7,13 +7,14 @@
 --  header, and wrapped description. Every value control exposes :Refresh()
 --  (re-pulls get()/disabled()) and auto-registers with CM.UI.Options for the central
 --  SyncControls pass. Confirmation dialogs route through UI.Confirm / UI.Notify
---  (CombatModeConfirmDialog). The first-install greeting uses a dedicated
---  UI.ShowWelcome modal (CombatModeWelcomeDialog) that is not registered in
---  UISpecialFrames, so Blizzard's load-end CloseSpecialWindows cannot dismiss it.
+--  (CombatModeConfirmDialog; body text is stripped of color markup). The first-install
+--  greeting uses a dedicated UI.ShowWelcome modal (CombatModeWelcomeDialog) that keeps
+--  inline |cff| colors for slash-command hints and is not registered in UISpecialFrames,
+--  so Blizzard's load-end CloseSpecialWindows cannot dismiss it.
 --
 --  All text renders at the fixed UI.Fonts.base size with inline color markup stripped
 --  (UI.StripColors); UI.MakeHeader is the sole exception (larger + accent yellow), and
---  toggles use green when on / grey when off with a short knob/track ease on change.
+--  toggles use accent yellow when on / grey when off with a short knob/track ease on change.
 --  Option rows follow a WaypointUI-style 60/40 split: title + muted helper text
 --  (`opts.desc`) stack tightly in the left column, and the interactive control sits in
 --  the right column (vertically centered).
@@ -22,9 +23,8 @@
 --  controls call the get/set/disabled closures supplied by the tab builders, which in
 --  turn call existing CM.* feature APIs and CM.DB fields.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
@@ -74,27 +74,30 @@ local function IsDisabled(opts)
   return type(opts.disabled) == "function" and opts.disabled() or opts.disabled == true
 end
 
---- Full-row hover highlight (mirrors the left sidebar tab hover): a subtle background band
---- shown while the cursor is anywhere over the row or its interactive control(s). Extra
---- args are inner mouse-enabled controls (button/slider/editbox); omit when the row itself
---- is the hit target. Disabled options never show the highlight. MouseIsOver guards prevent
---- flicker when moving between row and child. The highlight sits on the BACKGROUND layer
---- so it never covers the label or the control.
+--- Full-row hover highlight (mirrors the left sidebar tab hover): a subtle rounded
+--- background band shown while the cursor is anywhere over the row or its interactive
+--- control(s). Extra args are inner mouse-enabled controls (button/slider/editbox); omit
+--- when the row itself is the hit target. Disabled options never show the highlight.
+--- MouseIsOver guards prevent flicker when moving between row and child. The highlight
+--- is painted as BACKGROUND textures on the row so it never covers the label or control.
 local function AddRowHover(row, opts, ...)
-  local hl = row:CreateTexture(nil, "BACKGROUND")
-  hl:SetPoint("TOPLEFT", row, "TOPLEFT", -4, 2)
-  hl:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", 4, -2)
-  hl:SetColorTexture(C.tabHover[1], C.tabHover[2], C.tabHover[3], C.tabHover[4])
-  hl:Hide()
+  local bounds = CreateFrame("Frame", nil, row)
+  -- Keep the wash inside the scroll child. Extending left of the row causes the
+  -- ScrollFrame clipping boundary to cut off the left corner masks.
+  bounds:SetPoint("TOPLEFT", row, "TOPLEFT", 0, 2)
+  bounds:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", 0, -2)
+  bounds:EnableMouse(false)
+
+  local hl = UI.CreateRoundedHover(row, bounds, C.tabHover, UI.Radius.control)
 
   local hots = { ... }
 
   local function show()
     if opts and IsDisabled(opts) then
-      hl:Hide()
+      hl.Hide()
       return
     end
-    hl:Show()
+    hl.Show()
   end
   local function hide()
     if row:IsMouseOver() then
@@ -106,12 +109,12 @@ local function AddRowHover(row, opts, ...)
         return
       end
     end
-    hl:Hide()
+    hl.Hide()
   end
 
   -- Refresh() calls this when a control flips to disabled while the cursor is still over it.
   row.cmClearHover = function()
-    hl:Hide()
+    hl.Hide()
   end
 
   row:EnableMouse(true)
@@ -132,10 +135,31 @@ end
 local CONFIRM_W = 400
 local CONFIRM_PAD = 18
 local CONFIRM_HEADER_H = 24
+local CONFIRM_TITLE_W = 95
+local CONFIRM_TITLE_H = 22
 local CONFIRM_BTN_W = 116
 local CONFIRM_BTN_H = 24
 local confirmDialog
 local welcomeDialog
+
+--- Logo + wordmark row, horizontally centered under the dialog top edge.
+local function AttachBrandedHeader(dialog)
+  local header = CreateFrame("Frame", nil, dialog)
+  header:SetSize(CONFIRM_HEADER_H + 8 + CONFIRM_TITLE_W, CONFIRM_HEADER_H)
+  header:SetPoint("TOP", dialog, "TOP", 0, -CONFIRM_PAD)
+
+  local logo = header:CreateTexture(nil, "ARTWORK")
+  logo:SetTexture(CM.Constants.Logo)
+  logo:SetSize(CONFIRM_HEADER_H, CONFIRM_HEADER_H)
+  logo:SetPoint("LEFT", header, "LEFT", 0, 0)
+
+  local titleArt = header:CreateTexture(nil, "ARTWORK")
+  titleArt:SetTexture(CM.Constants.Title)
+  titleArt:SetSize(CONFIRM_TITLE_W, CONFIRM_TITLE_H)
+  titleArt:SetPoint("LEFT", logo, "RIGHT", 8, 0)
+
+  return header
+end
 
 --- Neutral pill button matching UI.MakeButton, minus the layout row wrapper.
 local function CreateDialogButton(parent, label)
@@ -184,21 +208,14 @@ local function BuildConfirmDialog()
   dialog:Hide()
 
   -- Branded header mirroring the main options window title bar (logo + wordmark art).
-  local logo = dialog:CreateTexture(nil, "ARTWORK")
-  logo:SetTexture(CM.Constants.Logo)
-  logo:SetSize(CONFIRM_HEADER_H, CONFIRM_HEADER_H)
-  logo:SetPoint("TOPLEFT", dialog, "TOPLEFT", CONFIRM_PAD, -CONFIRM_PAD)
-
-  local titleArt = dialog:CreateTexture(nil, "ARTWORK")
-  titleArt:SetTexture(CM.Constants.Title)
-  titleArt:SetSize(95, 22)
-  titleArt:SetPoint("LEFT", logo, "RIGHT", 8, 0)
+  local header = AttachBrandedHeader(dialog)
 
   local message = UI.CreateFontString(dialog, "OVERLAY", UI.Fonts.base, "GameFontHighlight")
-  message:SetPoint("TOPLEFT", logo, "BOTTOMLEFT", 0, -12)
+  message:SetPoint("TOP", header, "BOTTOM", 0, -12)
   message:SetWidth(CONFIRM_W - (2 * CONFIRM_PAD))
-  message:SetJustifyH("LEFT")
+  message:SetJustifyH("CENTER")
   message:SetJustifyV("TOP")
+  message:SetWordWrap(true)
   message:SetTextColor(C.text[1], C.text[2], C.text[3])
 
   local accept = CreateDialogButton(dialog, _G.YES or "Yes")
@@ -323,20 +340,12 @@ local function BuildWelcomeDialog()
   dialog:EnableMouse(true)
   dialog:Hide()
 
-  local logo = dialog:CreateTexture(nil, "ARTWORK")
-  logo:SetTexture(CM.Constants.Logo)
-  logo:SetSize(CONFIRM_HEADER_H, CONFIRM_HEADER_H)
-  logo:SetPoint("TOPLEFT", dialog, "TOPLEFT", CONFIRM_PAD, -CONFIRM_PAD)
-
-  local titleArt = dialog:CreateTexture(nil, "ARTWORK")
-  titleArt:SetTexture(CM.Constants.Title)
-  titleArt:SetSize(95, 22)
-  titleArt:SetPoint("LEFT", logo, "RIGHT", 8, 0)
+  local header = AttachBrandedHeader(dialog)
 
   local message = UI.CreateFontString(dialog, "OVERLAY", UI.Fonts.base, "GameFontHighlight")
-  message:SetPoint("TOPLEFT", logo, "BOTTOMLEFT", 0, -12)
+  message:SetPoint("TOP", header, "BOTTOM", 0, -12)
   message:SetWidth(WELCOME_W - (2 * CONFIRM_PAD))
-  message:SetJustifyH("LEFT")
+  message:SetJustifyH("CENTER")
   message:SetJustifyV("TOP")
   message:SetWordWrap(true)
   message:SetTextColor(C.text[1], C.text[2], C.text[3])
@@ -375,11 +384,12 @@ local function BuildWelcomeDialog()
 end
 
 --- First-install welcome modal. Call after the loading screen settles (Runtime defers).
+--- Keeps inline |cff| color markup so slash-command hints can stay blue/red.
 function UI.ShowWelcome(text, onClose)
   welcomeDialog = welcomeDialog or BuildWelcomeDialog()
   local dialog = welcomeDialog
 
-  dialog.message:SetText(UI.StripColors(text) or "")
+  dialog.message:SetText(text or "")
   dialog.onClose = onClose
 
   local msgH = dialog.message:GetStringHeight() or 40
@@ -402,14 +412,17 @@ end
 --- are vertically centered against each other within the row. `opts.labelInset` is
 --- accepted for back-compat but ignored.
 local TEXT_FRAC = 0.58
+local ROW_PAD_X = 10
 local ROW_PAD_Y = 4
 local TEXT_GAP = 1
 local DESC_BELOW_GAP = 6
 local CONTROL_GAP = 20
+local ICON_GAP = 6
+local DEFAULT_ICON_SIZE = 20
 
 local function AddRowLabel(row, text)
   local label = UI.CreateFontString(row, "OVERLAY", UI.Fonts.base, "GameFontHighlight")
-  label:SetPoint("TOPLEFT", row, "TOPLEFT", 4, -ROW_PAD_Y)
+  label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X, -ROW_PAD_Y)
   label:SetJustifyH("LEFT")
   label:SetJustifyV("TOP")
   label:SetWordWrap(true)
@@ -423,11 +436,25 @@ end
 --- 60/40 split (title+helper left, control right, vertically centered). When
 --- `opts.descBelow` is set, the title shares a top band with the control and the helper
 --- spans the full row width underneath (used by the narrow sidebar footer).
+--- `opts.iconAtlas` / `opts.iconSize` place a texture left of the title.
+--- When `opts.iconFitText` is set, the icon grows to the title+helper block height and
+--- is vertically centered against that whole column (Click Casting mouse icons).
 --- `control.widgetH` / `control.widgetFill` / `control.textFrac` behave as elsewhere
 --- (multiline inputs use textFrac 0.40 so the box gets ~60%).
 local function AttachOptionText(control, row, opts, widgetH)
   control.widgetH = widgetH or ROW_H
   control.descBelow = opts.descBelow and true or nil
+  control.iconFitText = opts.iconFitText and true or nil
+
+  if opts.iconAtlas then
+    local iconSize = opts.iconSize or DEFAULT_ICON_SIZE
+    local icon = row:CreateTexture(nil, "ARTWORK")
+    icon:SetAtlas(opts.iconAtlas)
+    icon:SetSize(iconSize, iconSize)
+    control.icon = icon
+    control.iconSize = iconSize
+  end
+
   local raw = opts.desc
   if type(raw) == "function" then
     raw = raw()
@@ -450,51 +477,83 @@ local function AttachOptionText(control, row, opts, widgetH)
     end
 
     local widget = control.widget
+    local icon = control.icon
+    local iconSize = icon and (control.iconSize or DEFAULT_ICON_SIZE) or 0
+    local iconLead = icon and (iconSize + ICON_GAP) or 0
     local h
 
     if control.descBelow then
       -- Top band: title left + control right; helper full-width below.
-      local labelW = max(width - 4 - CONTROL_GAP - 40 - 4, 40)
+      local labelW = max(width - (2 * ROW_PAD_X) - iconLead - CONTROL_GAP - 40, 40)
       row.label:SetWidth(labelW)
       local labelH = row.label:GetStringHeight()
-      local bandH = max(labelH, control.widgetH)
+      local bandH = max(labelH, control.widgetH, iconSize)
       local labelTop = ROW_PAD_Y + floor((bandH - labelH) / 2)
       local widgetTop = ROW_PAD_Y + floor((bandH - control.widgetH) / 2)
+      local iconTop = ROW_PAD_Y + floor((bandH - iconSize) / 2)
 
+      if icon then
+        icon:ClearAllPoints()
+        icon:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X, -iconTop)
+      end
       row.label:ClearAllPoints()
-      row.label:SetPoint("TOPLEFT", row, "TOPLEFT", 4, -labelTop)
+      row.label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X + iconLead, -labelTop)
       if widget then
         widget:ClearAllPoints()
-        widget:SetPoint("TOPRIGHT", row, "TOPRIGHT", -4, -widgetTop)
+        widget:SetPoint("TOPRIGHT", row, "TOPRIGHT", -ROW_PAD_X, -widgetTop)
       end
 
       h = ROW_PAD_Y + bandH
       if control.desc then
         control.desc:ClearAllPoints()
-        control.desc:SetWidth(width - 8)
-        control.desc:SetPoint("TOPLEFT", row, "TOPLEFT", 4, -(h + DESC_BELOW_GAP))
+        control.desc:SetWidth(width - (2 * ROW_PAD_X))
+        control.desc:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X, -(h + DESC_BELOW_GAP))
         h = h + DESC_BELOW_GAP + control.desc:GetStringHeight()
       end
       h = h + ROW_PAD_Y
     else
       local textFrac = control.textFrac or TEXT_FRAC
-      local textW = max(floor(width * textFrac) - 4, 40)
-      row.label:SetWidth(textW)
-      local textH = row.label:GetStringHeight()
-      if control.desc then
-        control.desc:SetWidth(textW)
-        textH = textH + TEXT_GAP + control.desc:GetStringHeight()
+
+      local function MeasureText(lead)
+        local textW = max(floor(width * textFrac) - ROW_PAD_X - lead, 40)
+        row.label:SetWidth(textW)
+        local labelH = row.label:GetStringHeight()
+        local textH = labelH
+        if control.desc then
+          control.desc:SetWidth(textW)
+          textH = labelH + TEXT_GAP + control.desc:GetStringHeight()
+        end
+        return textW, labelH, textH
       end
-      local contentH = max(textH, control.widgetH)
+
+      local textW, _, textH = MeasureText(iconLead)
+
+      -- Grow the icon to the title+helper block so it reads flush with both lines.
+      if icon and control.iconFitText then
+        iconSize = max(control.iconSize or DEFAULT_ICON_SIZE, floor(textH + 0.5))
+        icon:SetSize(iconSize, iconSize)
+        iconLead = iconSize + ICON_GAP
+        textW, _, textH = MeasureText(iconLead)
+        iconSize = max(iconSize, floor(textH + 0.5))
+        icon:SetSize(iconSize, iconSize)
+        iconLead = iconSize + ICON_GAP
+      end
+
+      local contentH = max(textH, control.widgetH, iconSize)
       h = contentH + (2 * ROW_PAD_Y)
 
       -- Center the shorter column against the taller one so title/helper and control
-      -- share a vertical midpoint within the row.
+      -- share a vertical midpoint. Icon centers on the full title+helper block.
       local textTop = ROW_PAD_Y + floor((contentH - textH) / 2)
       local widgetTop = ROW_PAD_Y + floor((contentH - control.widgetH) / 2)
+      local iconTop = textTop + floor((textH - iconSize) / 2)
 
+      if icon then
+        icon:ClearAllPoints()
+        icon:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X, -iconTop)
+      end
       row.label:ClearAllPoints()
-      row.label:SetPoint("TOPLEFT", row, "TOPLEFT", 4, -textTop)
+      row.label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X + iconLead, -textTop)
       if control.desc then
         control.desc:ClearAllPoints()
         control.desc:SetPoint("TOPLEFT", row.label, "BOTTOMLEFT", 0, -TEXT_GAP)
@@ -502,9 +561,15 @@ local function AttachOptionText(control, row, opts, widgetH)
 
       if widget then
         widget:ClearAllPoints()
-        widget:SetPoint("TOPRIGHT", row, "TOPRIGHT", -4, -widgetTop)
+        widget:SetPoint("TOPRIGHT", row, "TOPRIGHT", -ROW_PAD_X, -widgetTop)
         if control.widgetFill then
-          widget:SetPoint("TOPLEFT", row, "TOPLEFT", textW + CONTROL_GAP, -widgetTop)
+          widget:SetPoint(
+            "TOPLEFT",
+            row,
+            "TOPLEFT",
+            ROW_PAD_X + textW + iconLead + CONTROL_GAP,
+            -widgetTop
+          )
         end
       end
     end
@@ -516,6 +581,9 @@ local function AttachOptionText(control, row, opts, widgetH)
 
   -- Provisional until the layout pass assigns width.
   local provisional = control.widgetH + (2 * ROW_PAD_Y)
+  if control.icon then
+    provisional = max(provisional, control.iconSize + (2 * ROW_PAD_Y))
+  end
   if control.desc then
     provisional = provisional + (control.descBelow and (DESC_BELOW_GAP + 28) or 14)
   end
@@ -526,6 +594,9 @@ end
 local function SetDescAlpha(control, a)
   if control.desc then
     control.desc:SetAlpha(a)
+  end
+  if control.icon then
+    control.icon:SetAlpha(a)
   end
 end
 
@@ -571,15 +642,15 @@ function UI.MakeToggle(parent, opts)
     knob:ClearAllPoints()
     knob:SetPoint("LEFT", track, "LEFT", x, 0)
     track:cmSetFill(
-      Lerp(C.trackOff[1], C.green[1], t),
-      Lerp(C.trackOff[2], C.green[2], t),
-      Lerp(C.trackOff[3], C.green[3], t),
+      Lerp(C.trackOff[1], C.accent[1], t),
+      Lerp(C.trackOff[2], C.accent[2], t),
+      Lerp(C.trackOff[3], C.accent[3], t),
       1
     )
     track:cmSetBorder(
-      Lerp(C.cardBorder[1], C.green[1] * 0.75, t),
-      Lerp(C.cardBorder[2], C.green[2] * 0.75, t),
-      Lerp(C.cardBorder[3], C.green[3] * 0.75, t),
+      Lerp(C.cardBorder[1], C.accent[1] * 0.75, t),
+      Lerp(C.cardBorder[2], C.accent[2] * 0.75, t),
+      Lerp(C.cardBorder[3], C.accent[3] * 0.75, t),
       1
     )
     knob:SetColorTexture(0.95, 0.95, 0.95, 1)

@@ -1,10 +1,7 @@
 ---------------------------------------------------------------------------------------
 --  Constants/ConstantsHealingRadial.lua — constants module: healing radial
 ---------------------------------------------------------------------------------------
-local _G = _G
-local LibStub = _G.LibStub
-local AceAddon = LibStub("AceAddon-3.0")
-local CM = AceAddon:GetAddon("CombatMode")
+local _, CM = ...
 
 -- Slice positions for 5-man content (angles in degrees, 0 = right, 90 = up)
 -- Each slice covers 72 degrees (360/5)

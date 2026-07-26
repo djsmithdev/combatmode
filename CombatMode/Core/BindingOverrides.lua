@@ -14,9 +14,8 @@
 --      selects char vs global binding storage.
 --    • Toggle-focus macro text is updated here; binding name is Combat Mode specific.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local CreateFrame = _G.CreateFrame

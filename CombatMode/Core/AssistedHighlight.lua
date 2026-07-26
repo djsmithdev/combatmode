@@ -9,9 +9,8 @@
 --    • CM.IsCrosshairPreviewActive() (Crosshair options tab) forces a
 --      placeholder icon + keybind so positioning is visible out of combat.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local CreateFrame = _G.CreateFrame

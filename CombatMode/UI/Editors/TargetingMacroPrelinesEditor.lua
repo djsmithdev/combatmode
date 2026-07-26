@@ -1,15 +1,14 @@
 ---------------------------------------------------------------------------------------
---  Config/TargetingMacroPrelinesEditor.lua — Targeting Macro Prelines editor (custom)
+--  UI/Editors/TargetingMacroPrelinesEditor.lua — Targeting Macro Prelines editor (custom)
 ---------------------------------------------------------------------------------------
---  Standalone custom window (no AceConfigDialog) built with the CM.UI toolkit
+--  Standalone custom window built with the CM.UI toolkit
 --  (UI/Options/*). Opened from the Reticle Targeting tab via
 --  CM.OpenTargetingMacroPrelinesEditor. Persists account-wide overrides
 --  CM.DB.global.targetingMacroPrelineAnyOverride / targetingMacroPrelineEnemyOverride;
 --  Core/TargetingMacroBuilder.lua applies them. Combat-guarded on open.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local InCombatLockdown = _G.InCombatLockdown
@@ -22,7 +21,7 @@ local type = _G.type
 local UI = CM.UI
 local M = CM.METADATA
 
-local RELOAD_CONFIRM = "A UI Reload is required when making changes to Reticle Targeting.\nProceed?"
+local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed?"
 
 local window
 
@@ -45,7 +44,8 @@ local function Build()
     "CombatModeTargetingMacroPrelinesEditor",
     M["TITLE"] .. " - Targeting Macro Prelines Editor",
     700,
-    330
+    100,
+    { noScroll = true }
   )
 
   ctx:Description(
@@ -92,7 +92,7 @@ local function Build()
       end,
     },
     {
-      label = "Apply Changes (Reload UI)",
+      label = "Apply Changes",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       func = function()
@@ -102,6 +102,9 @@ local function Build()
   })
 
   ctx:Finish()
+  -- Short fixed form: no window ScrollFrame; grow the shell to the laid-out content
+  -- so the button row sits on the bottom edge.
+  UI.SizeWindowToContent(window)
 end
 
 function CM.OpenTargetingMacroPrelinesEditor()

@@ -1,7 +1,7 @@
 # scripts/sync-changelog-to-lua.ps1
-# Overwrites CombatMode/Config/ConfigChangelogData.lua (CM.Config.ChangelogText) from CombatMode/CHANGELOG.md.
-# WoW cannot read .md at runtime; the Lua string is what ConfigChangelogPanel.lua displays.
-# VS Code: task "Sync CHANGELOG.md to ConfigChangelogData.lua".
+# Overwrites CombatMode/UI/Changelog/ChangelogData.lua (CM.Config.ChangelogText) from CombatMode/CHANGELOG.md.
+# WoW cannot read .md at runtime; the Lua string is what ChangelogPanel.lua displays.
+# VS Code: task "Sync CHANGELOG.md to ChangelogData.lua".
 param(
     [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot)
 )
@@ -9,7 +9,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $mdPath = Join-Path $ProjectRoot "CombatMode\CHANGELOG.md"
-$luaPath = Join-Path $ProjectRoot "CombatMode\Config\ConfigChangelogData.lua"
+$luaPath = Join-Path $ProjectRoot "CombatMode\UI\Changelog\ChangelogData.lua"
 
 if (-not (Test-Path $mdPath)) {
     throw "CHANGELOG.md not found: $mdPath"
@@ -38,13 +38,11 @@ $body = $d.Open + "`n" + $md + $d.Close
 
 $lua = @"
 ---------------------------------------------------------------------------------------
---  Config/ConfigChangelogData.lua - changelog body for in-game viewer
+--  UI/Changelog/ChangelogData.lua - changelog body for in-game viewer
 --  Regenerate from CHANGELOG.md:  scripts\sync-changelog-to-lua.ps1
 ---------------------------------------------------------------------------------------
 local _G = _G
-local LibStub = _G.LibStub
-local AceAddon = LibStub("AceAddon-3.0")
-local CM = AceAddon:GetAddon("CombatMode")
+local CM = _G.CM
 
 CM.Config = CM.Config or {}
 CM.Config.ChangelogText = $body

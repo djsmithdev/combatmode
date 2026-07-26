@@ -9,16 +9,15 @@
 --  StyleThumbBar scrollbars shared by CreateScrollFrame / CreateMultilineEditScroll /
 --  CreateVerticalSlider (thin rounded track + thumb, wheel scroll eases toward a target),
 --  UI.FadeAlpha for tab/segment crossfades, and the "control relinquished" watermark
---  overlay (CreateWatermark). The main options window docks left on open and does not
+--  overlay (CreateWatermark). The main options window docks left-of-center on open and does not
 --  persist its position.
 --
 --  Owns visuals only — no settings logic. Consumed by UI/Options/Widgets.lua and
 --  UI/Options/OptionsPanel.lua. This is our own license-safe reimplementation of the
 --  "modern rounded card" aesthetic using Blizzard-shipped textures (no third-party art).
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
@@ -44,20 +43,19 @@ local UI = CM.UI
 ---------------------------------------------------------------------------------------
 --                                     PALETTE                                       --
 ---------------------------------------------------------------------------------------
--- Minimal monochrome theme: one warm-yellow accent (section titles + "on" states) over a
--- neutral grey ramp. Deliberately no blue tint and no per-feature hues.
+-- Minimal monochrome theme: one warm-yellow accent (section titles, selected tab, and
+-- toggle "on" states) over a neutral grey ramp. Deliberately no blue tint and no
+-- per-feature hues.
 UI.Colors = {
-  -- Single accent (section headers + selected tab).
-  accent = { 1.000, 0.804, 0.235 }, -- FFCD3C
+  -- Single accent (section headers + selected tab + toggle on). Muted gold so it
+  -- sits quieter against the dark chrome without losing warm yellow identity.
+  accent = { 0.620, 0.549, 0.345 }, -- 9E8C58
 
   -- Neutral text ramp.
   white = { 1.000, 1.000, 1.000 },
   text = { 0.804, 0.804, 0.804 }, -- primary labels
   textDim = { 0.549, 0.549, 0.549 }, -- descriptions / secondary
   grey = { 0.549, 0.549, 0.549 },
-
-  -- Toggle "on" track (not a per-feature accent).
-  green = { 0.290, 0.780, 0.420 },
 
   -- Window chrome: flat, near-black neutral greys.
   windowBg = { 0.055, 0.055, 0.055, 0.98 },
@@ -72,10 +70,11 @@ UI.Colors = {
   disabled = { 0.450, 0.450, 0.450, 1.0 },
 }
 
--- Fixed type scale: everything is `base` except section headers (ctx:Header) and the
--- muted under-option descriptions (`desc`).
+-- Fixed type scale: `base` for option rows, `nav` for the left sidebar tabs,
+-- `header` for section titles, `desc` for muted under-option helpers.
 UI.Fonts = {
   base = 10,
+  nav = 12,
   header = 13,
   desc = 9,
 }
@@ -106,14 +105,17 @@ end
 -- for EasyFind's private rounded-rect atlas: solid, sharp, no cloudy edges.
 --
 -- Each surface is a 9-slice: 4 masked corner quads + 4 solid edges + 1 solid center.
--- Returns { SetColor(r,g,b,a) } so callers can recolor on state changes (toggles, hover).
-local function Build9Slice(frame, radius, layer, color, inset)
+-- Textures are parented to `textureParent` (draw order / layers) and sized against
+-- `bounds` (may be the same frame, or a pad frame that extends past it).
+-- Returns { SetColor, Show, Hide } so callers can recolor or toggle visibility.
+local function Build9Slice(textureParent, bounds, radius, layer, color, inset)
+  bounds = bounds or textureParent
   inset = inset or 0
   local r, g, b, a = color[1], color[2], color[3], color[4] or 1
   local pieces = {}
 
   local function solid(...)
-    local tex = frame:CreateTexture(nil, layer)
+    local tex = textureParent:CreateTexture(nil, layer)
     tex:SetColorTexture(1, 1, 1, 1)
     tex:SetVertexColor(r, g, b, a)
     tex:SetPoint(...)
@@ -122,36 +124,36 @@ local function Build9Slice(frame, radius, layer, color, inset)
   end
 
   -- Center + 4 edges (solid rectangles, no rounding).
-  local c = solid("TOPLEFT", frame, "TOPLEFT", inset + radius, -(inset + radius))
-  c:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -(inset + radius), inset + radius)
+  local c = solid("TOPLEFT", bounds, "TOPLEFT", inset + radius, -(inset + radius))
+  c:SetPoint("BOTTOMRIGHT", bounds, "BOTTOMRIGHT", -(inset + radius), inset + radius)
 
-  local topEdge = solid("TOPLEFT", frame, "TOPLEFT", inset + radius, -inset)
-  topEdge:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -(inset + radius), -inset)
+  local topEdge = solid("TOPLEFT", bounds, "TOPLEFT", inset + radius, -inset)
+  topEdge:SetPoint("TOPRIGHT", bounds, "TOPRIGHT", -(inset + radius), -inset)
   topEdge:SetHeight(radius)
 
-  local bottomEdge = solid("BOTTOMLEFT", frame, "BOTTOMLEFT", inset + radius, inset)
-  bottomEdge:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -(inset + radius), inset)
+  local bottomEdge = solid("BOTTOMLEFT", bounds, "BOTTOMLEFT", inset + radius, inset)
+  bottomEdge:SetPoint("BOTTOMRIGHT", bounds, "BOTTOMRIGHT", -(inset + radius), inset)
   bottomEdge:SetHeight(radius)
 
-  local leftEdge = solid("TOPLEFT", frame, "TOPLEFT", inset, -(inset + radius))
-  leftEdge:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", inset, inset + radius)
+  local leftEdge = solid("TOPLEFT", bounds, "TOPLEFT", inset, -(inset + radius))
+  leftEdge:SetPoint("BOTTOMLEFT", bounds, "BOTTOMLEFT", inset, inset + radius)
   leftEdge:SetWidth(radius)
 
-  local rightEdge = solid("TOPRIGHT", frame, "TOPRIGHT", -inset, -(inset + radius))
-  rightEdge:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -inset, inset + radius)
+  local rightEdge = solid("TOPRIGHT", bounds, "TOPRIGHT", -inset, -(inset + radius))
+  rightEdge:SetPoint("BOTTOMRIGHT", bounds, "BOTTOMRIGHT", -inset, inset + radius)
   rightEdge:SetWidth(radius)
 
   -- 4 rounded corners: R×R quad showing one quadrant of a 2R circular mask.
   local function corner(point, xoff, yoff)
-    local tex = frame:CreateTexture(nil, layer)
+    local tex = textureParent:CreateTexture(nil, layer)
     tex:SetColorTexture(1, 1, 1, 1)
     tex:SetVertexColor(r, g, b, a)
     tex:SetSize(radius, radius)
-    tex:SetPoint(point, frame, point, xoff, yoff)
-    local mask = frame:CreateMaskTexture()
+    tex:SetPoint(point, bounds, point, xoff, yoff)
+    local mask = textureParent:CreateMaskTexture()
     mask:SetTexture(CORNER_MASK, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
     mask:SetSize(radius * 2, radius * 2)
-    mask:SetPoint(point, frame, point, xoff, yoff)
+    mask:SetPoint(point, bounds, point, xoff, yoff)
     tex:AddMaskTexture(mask)
     pieces[#pieces + 1] = tex
   end
@@ -164,6 +166,16 @@ local function Build9Slice(frame, radius, layer, color, inset)
     SetColor = function(nr, ng, nb, na)
       for _, tex in ipairs(pieces) do
         tex:SetVertexColor(nr, ng, nb, na or 1)
+      end
+    end,
+    Show = function()
+      for _, tex in ipairs(pieces) do
+        tex:Show()
+      end
+    end,
+    Hide = function()
+      for _, tex in ipairs(pieces) do
+        tex:Hide()
       end
     end,
   }
@@ -188,8 +200,8 @@ function UI.StyleRounded(frame, fill, border, radius)
   fill = fill or UI.Colors.cardBg
   border = border or UI.Colors.cardBorder
 
-  local borderSlice = Build9Slice(frame, radius, "BACKGROUND", border, 0)
-  local fillSlice = Build9Slice(frame, radius, "BORDER", fill, 1)
+  local borderSlice = Build9Slice(frame, frame, radius, "BACKGROUND", border, 0)
+  local fillSlice = Build9Slice(frame, frame, radius, "BORDER", fill, 1)
 
   frame.cmSetFill = function(_, r, g, b, a)
     fillSlice.SetColor(r, g, b, a)
@@ -198,6 +210,22 @@ function UI.StyleRounded(frame, fill, border, radius)
     borderSlice.SetColor(r, g, b, a)
   end
   return frame
+end
+
+--- Rounded BACKGROUND hover wash for option rows. Textures are parented to `frame` (so
+--- they sit under OVERLAY labels) and sized to `bounds` (a pad frame that may extend
+--- past the row). Returns { Show, Hide }.
+function UI.CreateRoundedHover(frame, bounds, color, radius)
+  local slice = Build9Slice(
+    frame,
+    bounds,
+    radius or UI.Radius.control,
+    "BACKGROUND",
+    color or UI.Colors.tabHover,
+    0
+  )
+  slice.Hide()
+  return slice
 end
 
 --- Convenience: small-radius control surface (was a full pill before the flat theme).
@@ -213,8 +241,8 @@ function UI.CreateCard(parent)
 end
 
 --- Custom window close button ("X") — replaces Blizzard's UIPanelCloseButton art with a
---- flat button that lifts to a neutral grey on hover. Closes its parent by default;
---- override OnClick for custom behavior. Caller positions it.
+--- flat button in the theme accent yellow. Closes its parent by default; override OnClick
+--- for custom behavior. Caller positions it.
 function UI.CreateCloseButton(parent)
   local btn = CreateFrame("Button", nil, parent)
   btn:SetSize(22, 22)
@@ -223,18 +251,20 @@ function UI.CreateCloseButton(parent)
   btn:SetFrameLevel(parent:GetFrameLevel() + 10)
   UI.StyleRounded(btn, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, UI.Radius.control)
 
+  local a = UI.Colors.accent
   local x = UI.CreateFontString(btn, "OVERLAY", 14, "GameFontNormalLarge")
   x:SetPoint("CENTER", btn, "CENTER", 0, 0)
   x:SetText("\195\151") -- multiplication sign (crisp X glyph)
-  x:SetTextColor(0.60, 0.60, 0.60)
+  x:SetTextColor(a[1], a[2], a[3])
 
   btn:SetScript("OnEnter", function(self)
     self:cmSetFill(1, 1, 1, 0.10)
-    x:SetTextColor(1, 1, 1)
+    -- Slightly lift the muted accent toward white on hover.
+    x:SetTextColor(a[1] + (1 - a[1]) * 0.35, a[2] + (1 - a[2]) * 0.35, a[3] + (1 - a[3]) * 0.35)
   end)
   btn:SetScript("OnLeave", function(self)
     self:cmSetFill(0, 0, 0, 0)
-    x:SetTextColor(0.60, 0.60, 0.60)
+    x:SetTextColor(a[1], a[2], a[3])
   end)
   btn:SetScript("OnClick", function()
     parent:Hide()
@@ -306,7 +336,7 @@ function UI.EnableEscClose(frame, globalName)
 end
 
 --- Makes `frame` draggable by `handle`. When `persist` is true the anchor is saved to
---- CM.DB.global.optionsPanelPosition (optional; the main options window docks left on
+--- CM.DB.global.optionsPanelPosition (optional; the main options window docks left-of-center on
 --- open and does not persist).
 function UI.EnableDrag(frame, handle, persist)
   handle = handle or frame

@@ -1,16 +1,15 @@
 ---------------------------------------------------------------------------------------
---  Config/ConfigChangelogPanel.lua — in-game changelog window (About + post-update)
+--  UI/Changelog/ChangelogPanel.lua — in-game changelog window (post-update viewer)
 ---------------------------------------------------------------------------------------
 --  Owns: markdown subset → SimpleHTML, CM.UI window (UI.CreateBareWindow) + custom thumb
 --  scrollbar (UI.CreateScrollFrame), CM.Config.ShowChangelog /
 --  CM.Config.MaybeShowChangelogOnNewVersion, CM.DB.global.lastSeenChangelogVersion when shown.
---  Data: CM.Config.ChangelogText from ConfigChangelogData.lua (sync from CHANGELOG.md via
---  scripts/sync-changelog-to-lua.ps1). Callers: ConfigAbout.lua (View Changelog), Core/Runtime.lua
---  (ScheduleChangelogIfNewVersion on login / after welcome popup).
+--  Data: CM.Config.ChangelogText from ChangelogData.lua (sync from CHANGELOG.md via
+--  scripts/sync-changelog-to-lua.ps1). Callers: OptionsPanel sidebar footer (View Changelog),
+--  Core/Runtime.lua (ScheduleChangelogIfNewVersion on login / after welcome popup).
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 local C_Timer = _G.C_Timer
 local CreateFrame = _G.CreateFrame

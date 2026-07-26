@@ -2,13 +2,10 @@
 --  Constants/ConstantsDatabaseDefaults.lua — constants module: db defaults
 ---------------------------------------------------------------------------------------
 --  Includes global targetingMacroPrelineAnyOverride / targetingMacroPrelineEnemyOverride
---  (nil = use built-in prelines; edited via Config/TargetingMacroPrelinesEditor.lua)
+--  (nil = use built-in prelines; edited via UI/Editors/TargetingMacroPrelinesEditor.lua)
 --  and reticleTargetingCVarOverrides (Reticle CVar editor; merged in RuntimeCVarManager).
 ---------------------------------------------------------------------------------------
-local _G = _G
-local LibStub = _G.LibStub
-local AceAddon = LibStub("AceAddon-3.0")
-local CM = AceAddon:GetAddon("CombatMode")
+local _, CM = ...
 
 local DefaultBindings = {
   button1 = {

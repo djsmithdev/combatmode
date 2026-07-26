@@ -1,16 +1,15 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabReticleTargeting.lua — OPTIONS TAB — Reticle Targeting
 ---------------------------------------------------------------------------------------
---  Registers the "Reticle Targeting" tab. Reproduces Config/ConfigReticleTargeting.lua:
---  the reticle toggles (confirm + ReloadUI), the exclude/@cursor spell lists, and the
---  execute buttons that open the custom Reticle CVar editor and the Targeting Macro
+--  Registers the "Reticle Targeting" tab: the reticle toggles (confirm + ReloadUI), the
+--  exclude/@cursor spell lists, and the execute buttons that open the custom Reticle CVar
+--  editor (UI/Editors/ReticleCVarEditorPanel.lua) and the Targeting Macro
 --  Prelines editor. Sticky targeting lives on the Action Camera tab; the Target Lock
 --  "selected target not crosshair" toggle lives on the General tab. Feature APIs
 --  unchanged (CM.ConfigReticleTargeting, RefreshClickCastMacros).
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local ReloadUI = _G.ReloadUI
@@ -20,20 +19,17 @@ local strtrim = _G.strtrim
 
 local UI = CM.UI
 
-local RELOAD_CONFIRM = "A UI Reload is required when making changes to Reticle Targeting.\nProceed?"
+local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed?"
 
 UI.Options.AddTab({
   id = "reticle",
   label = "Reticle Targeting",
   build = function(ctx)
     ctx:Header("RETICLE TARGETING")
-    ctx:Description(
-      "Enable Combat Mode to transform the default tab-targeting combat into an action-oriented experience, where the Crosshair dictates target acquisition."
-    )
 
     ctx:Toggle({
       label = "Enable Reticle Targeting",
-      desc = "Configures Blizzard's Action Targeting to be more precise, wrapping actions with targeting macro conditionals.\nThis overrides SoftTarget CVars.",
+      desc = "Transforms the default tab-targeting combat into an action-oriented experience, where the Crosshair dictates target acquisition.",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = function()
@@ -83,8 +79,8 @@ UI.Options.AddTab({
     })
     ctx:Gap()
     ctx:TextInput({
-      label = "Spells to exclude from Reticle Targeting (comma separated)",
-      desc = "Spells you DON'T want the targeting macro conditionals applied to.",
+      label = "Spells to exclude from Reticle Targeting",
+      desc = "Spells you DON'T want the targeting macro conditionals from Reticle Targeting applied to.",
       multiline = 4,
       get = function()
         return CM.DB.char.excludeFromTargetingSpells or ""
@@ -100,7 +96,7 @@ UI.Options.AddTab({
       end,
     })
     ctx:TextInput({
-      label = "Ground-targeted spells cast at the Reticle (comma separated)",
+      label = "Ground-targeted spells cast at the Reticle",
       desc = "Ground-targeted abilities cast with @cursor directly at the crosshair without placing the green circle.",
       multiline = 4,
       get = function()
@@ -120,7 +116,7 @@ UI.Options.AddTab({
     ctx:Gap()
     ctx:Header("CUSTOM SETTINGS")
     ctx:Description(
-      "Modify Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines.\nBe cautious: editing these values could break Reticle Targeting and Target Lock."
+      "Modify Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines. Be cautious: editing these values could break Reticle Targeting and Target Lock."
     )
     ctx:ButtonRow({
       {

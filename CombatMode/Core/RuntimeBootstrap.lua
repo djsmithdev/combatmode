@@ -4,9 +4,8 @@
 --  Owns module bootstrap helpers invoked by Runtime: bind-name preparation, binding
 --  safety setup, target macro initialization, and feature startup sequencing.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local CreateMacro = _G.CreateMacro

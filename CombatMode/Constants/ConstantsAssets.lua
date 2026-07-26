@@ -1,16 +1,17 @@
 ---------------------------------------------------------------------------------------
 --  Constants/ConstantsAssets.lua — constants module: assets/messages/visuals
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local AceAddon = LibStub("AceAddon-3.0")
-local CM = AceAddon:GetAddon("CombatMode")
 
 local ipairs = _G.ipairs
 
 -- Body only: the welcome modal (CM.UI.ShowWelcome) draws the logo + wordmark header itself.
-CM.Constants.PopupMsg =
-  "Thank you for trying out Combat Mode!\nUpon closing this, an options panel will open where you'll be able to configure the addon to your liking.\nTo undo all changes made by Combat Mode, type the following command in chat:\n/undocm"
+-- Slash commands keep inline color: blue for options (/cm, /combatmode), red for /undocm.
+CM.Constants.PopupMsg = "Thank you for trying out Combat Mode!\n\n"
+  .. "Upon closing this, the config panel will automatically open.\n\n"
+  .. "You can also open it anytime with the commands |cff69ccf0/cm|r or |cff69ccf0/combatmode|r.\n\n"
+  .. "To undo all changes made by Combat Mode, type |cffff5555/undocm|r in chat."
 
 CM.Constants.BasePrintMsg = CM.METADATA["TITLE"]
   .. " |cff00ff00v."

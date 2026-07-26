@@ -4,9 +4,8 @@
 --  Owns deferred binding writes used while in combat lockdown and exposes shared
 --  CM helpers used by config modules and runtime bootstrap.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local InCombatLockdown = _G.InCombatLockdown

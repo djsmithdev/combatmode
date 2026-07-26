@@ -5,12 +5,11 @@
 --  Interaction HUD, and Combat Assist. While this tab is open it turns on the live
 --  preview (CM.SetCrosshairOptionsPreview) so the real crosshair, Interaction HUD, and
 --  Combat Assist icon render at screen center with mouselook off. The options window
---  itself always docks left on open (see Options.DockWindowLeft). Feature APIs unchanged
---  (CM.CreateCrosshair, CM.DisplayCrosshair, CM.ApplyCrosshairPosition).
+--  itself docks left-of-center on open so the preview stays visible (see Options.DockWindowLeft).
+--  Feature APIs unchanged (CM.CreateCrosshair, CM.DisplayCrosshair, CM.ApplyCrosshairPosition).
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- Lua stdlib
 local pairs = _G.pairs
@@ -58,13 +57,10 @@ UI.Options.AddTab({
   end,
   build = function(ctx)
     ctx:Header("CROSSHAIR")
-    ctx:Description(
-      "The crosshair, Interaction HUD, and Combat Assist icon stay visible while this tab is open, so changes preview live on screen."
-    )
 
     ctx:Toggle({
       label = "Show Crosshair",
-      desc = "Shows the Combat Mode crosshair while Mouse Look is active.",
+      desc = "Shows the crosshair while Mouse Look is active.",
       get = function()
         return CM.DB.global.crosshair
       end,
@@ -76,7 +72,7 @@ UI.Options.AddTab({
     })
     ctx:Toggle({
       label = "Hide Crosshair While Mounted",
-      desc = "Hides the crosshair while you are mounted.",
+      desc = "Hides the crosshair while mounted.",
       get = function()
         return CM.DB.global.crosshairMounted
       end,
@@ -87,7 +83,7 @@ UI.Options.AddTab({
     })
     ctx:Dropdown({
       label = "Crosshair Appearance",
-      desc = "Texture style used for the crosshair.",
+      desc = "Texture used for the crosshair.",
       values = CM.Constants.CrosshairAppearanceSelectValues,
       order = appearanceOrder,
       get = function()
@@ -117,7 +113,7 @@ UI.Options.AddTab({
     })
     ctx:Slider({
       label = "Crosshair Opacity",
-      desc = "Transparency of the crosshair (0.1 = nearly invisible, 1 = solid).",
+      desc = "Transparency of the crosshair.",
       min = 0.1,
       max = 1,
       step = 0.1,

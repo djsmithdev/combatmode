@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Sync CHANGELOG.md to ConfigChangelogData.lua",
+      "label": "Sync CHANGELOG.md to ChangelogData.lua",
       "type": "shell",
       "command": "powershell",
       "args": [

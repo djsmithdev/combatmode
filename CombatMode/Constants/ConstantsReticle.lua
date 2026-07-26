@@ -1,10 +1,7 @@
 ---------------------------------------------------------------------------------------
 --  Constants/ConstantsReticle.lua — constants module: reticle
 ---------------------------------------------------------------------------------------
-local _G = _G
-local LibStub = _G.LibStub
-local AceAddon = LibStub("AceAddon-3.0")
-local CM = AceAddon:GetAddon("CombatMode")
+local _, CM = ...
 
 -- Texture file IDs / paths for "unable" interact cursor (dim icon, label color unchanged).
 CM.Constants.InteractionHUDUnableCursor = {

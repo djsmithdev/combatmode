@@ -1,18 +1,20 @@
 ---
-description: Guardrails for embedded third-party libraries in CombatMode/Libs
+description: Guardrails if third-party libraries are reintroduced under CombatMode/Libs
 globs: CombatMode/Libs/**
 alwaysApply: false
 ---
 
 # Vendored Libraries Policy (Libs)
 
-`CombatMode/Libs/**` contains embedded third-party code (Ace3, LibStub, CallbackHandler).
+CombatMode currently ships **without** embedded Ace3/LibStub libraries. Prefer Blizzard APIs and the AddOn namespace (`local _, CM = ...`) for lifecycle, SavedVariables, slash commands, and events.
+
+If a third-party library is reintroduced under `CombatMode/Libs/**`:
 
 ## Default behavior
 
 - Treat files in `Libs/` as vendor code; do not refactor, format, or rewrite proactively.
 - Do not apply project-specific architecture/style transformations to `Libs/`.
-- Keep edits in addon-owned code (`Core/`, `Config/`, `UI/`) whenever possible.
+- Keep edits in addon-owned code (`Core/`, `Constants/`, `UI/`) whenever possible.
 
 ## If a library issue is encountered
 

@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Config/ReticleCVarEditorPanel.lua — Reticle Targeting CVar editor panel
+--  UI/Editors/ReticleCVarEditorPanel.lua — Reticle Targeting CVar editor panel
 ---------------------------------------------------------------------------------------
 --  Custom CM.UI window (UI.CreateBareWindow + custom thumb scrollbar/vertical slider, no
 --  Blizzard frame templates). CM.OpenReticleTargetingCVarEditor; opened from the Reticle
@@ -8,9 +8,8 @@
 --  debounced RequestRefresh; CVAR_UPDATE + SetCVar hook for live values and
 --  external-change attribution.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
@@ -504,7 +503,7 @@ function CM.OpenReticleTargetingCVarEditor()
     listFrame:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 46)
 
     local resetControl = UI.MakeButton(frame, {
-      label = "Reset All to CombatMode Defaults",
+      label = "Reset to Defaults",
       pixelWidth = 260,
       func = function()
         if Data.ClearAllOverrides() then

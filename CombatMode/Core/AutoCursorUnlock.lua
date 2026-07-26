@@ -11,9 +11,8 @@
 --      Constants.WildcardFramesToMatch / FramesToCheck.
 --    • Read-only queries from Core; no direct mouselook Start/Stop here.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local GetPlayerAuraBySpellID = _G.C_UnitAuras.GetPlayerAuraBySpellID
@@ -50,6 +49,13 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
   for wildcardFrameName, frameNames in pairs(frameNameGroups) do
     if CursorUnlockFrameVisible(frameNames) then
       if wildcardFrameName == "OPieRT" then
+        -- OPie calls MouselookStop() itself, so UnlockFreeLook often no-ops (already
+        -- stopped). Still hide the crosshair and free CursorFreelookCentering so the
+        -- ring gets a usable cursor; FreeLookController latches this for a bounce rematch
+        -- when the ring closes.
+        if CM.NotifyOpieUnlockFrameVisible then
+          CM.NotifyOpieUnlockFrameVisible()
+        end
         if CM.IsCrosshairEnabled() then
           CM.DisplayCrosshair(false)
         end

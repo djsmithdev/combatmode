@@ -2,11 +2,12 @@
 --  Core/RuntimeEventRouter.lua — event map build + category dispatch
 ---------------------------------------------------------------------------------------
 --  Owns Runtime event category map and global XML event handler wiring while keeping
---  public/global names stable.
+--  public/global names stable. CombatModeFrame OnEvent is (self, event, ...);
+--  CombatMode_OnEvent accepts that Blizzard shape (and a legacy AceEvent (event, ...)
+--  call for safety).
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local C_Timer = _G.C_Timer
@@ -138,7 +139,26 @@ function CM.GetEventCategoryMap()
 end
 
 -- FIRES WHEN ONE OF OUR REGISTERED EVENTS HAPPEN IN GAME
-function _G.CombatMode_OnEvent(event, ...)
+-- CombatModeFrame XML OnEvent uses Blizzard's (self, event, ...) shape. AceEvent used to
+-- invoke this as (event, ...) — accept both so rematch/lock/unlock keep working.
+function _G.CombatMode_OnEvent(selfOrEvent, eventOrArg1, ...)
+  local event
+  if type(selfOrEvent) == "string" then
+    event = selfOrEvent
+    local categories = eventCategoryMap[event]
+    if not categories then
+      return
+    end
+    for _, category in ipairs(categories) do
+      HandleEventByCategory(category, event, eventOrArg1, ...)
+    end
+    return
+  end
+
+  event = eventOrArg1
+  if type(event) ~= "string" then
+    return
+  end
   local categories = eventCategoryMap[event]
   if not categories then
     return

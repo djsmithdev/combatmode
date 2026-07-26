@@ -1,9 +1,6 @@
 ---------------------------------------------------------------------------------------
---  Config/ConfigNamespace.lua — config module: namespace initialization
+--  UI/Changelog/ChangelogNamespace.lua — initializes the CM.Config namespace
 ---------------------------------------------------------------------------------------
-local _G = _G
-local LibStub = _G.LibStub
-local AceAddon = LibStub("AceAddon-3.0")
-local CM = AceAddon:GetAddon("CombatMode")
+local _, CM = ...
 
 CM.Config = CM.Config or {}

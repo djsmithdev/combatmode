@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------
---  Config/ReticleCVarEditorData.lua — Reticle Targeting CVar editor data layer
+--  UI/Editors/ReticleCVarEditorData.lua — Reticle Targeting CVar editor data layer
 ---------------------------------------------------------------------------------------
 --  Row list, description fallbacks, canonical/exclusion helpers (editor + runtime
 --  pruning must agree with CM.Constants.ReticleTargetingCVarEditorExcluded).
@@ -7,9 +7,8 @@
 --  CM.GetReticleTargetingCVarOverrides; SetOverride / clear-all guarded in combat.
 --  Related: ReticleCVarEditorPanel.lua, RuntimeCVarManager.lua, ConstantsCVars.lua.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local C_Console = _G.C_Console

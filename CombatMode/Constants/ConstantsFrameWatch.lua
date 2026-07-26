@@ -1,10 +1,7 @@
 ---------------------------------------------------------------------------------------
 --  Constants/ConstantsFrameWatch.lua — constants module: frame watch/mounts
 ---------------------------------------------------------------------------------------
-local _G = _G
-local LibStub = _G.LibStub
-local AceAddon = LibStub("AceAddon-3.0")
-local CM = AceAddon:GetAddon("CombatMode")
+local _, CM = ...
 
 -- Default frames to check with a static name.
 CM.Constants.FramesToCheck = {

@@ -10,9 +10,8 @@
 --     third-party bars are detected; this resolver remains the click-cast path.
 --   • Supported addons here: ElvUI and Bartender4. Unknown addons fall back to
 --     Blizzard frame resolution in higher-level callers.
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- Lua stdlib
 local ipairs = _G.ipairs

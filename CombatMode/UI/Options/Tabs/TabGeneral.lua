@@ -5,9 +5,8 @@
 --  Target Lock focus-target toggle (confirm + ReloadUI), and the pulse/tooltip toggles.
 --  Auto Unlock lives in TabAutoCursorUnlock.lua; Action Camera in TabCamera.lua.
 ---------------------------------------------------------------------------------------
+local _, CM = ...
 local _G = _G
-local LibStub = _G.LibStub
-local CM = LibStub("AceAddon-3.0"):GetAddon("CombatMode")
 
 -- WoW API
 local GetBindingKey = _G.GetBindingKey
@@ -18,18 +17,17 @@ local SetBinding = _G.SetBinding
 
 local UI = CM.UI
 
-local RELOAD_CONFIRM = "A UI Reload is required when making changes to Reticle Targeting.\nProceed?"
+local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed?"
 
 UI.Options.AddTab({
   id = "general",
   label = "General",
   build = function(ctx)
     ctx:Header("GENERAL")
-    ctx:Description("Set keybinds to activate Mouse Look and interact with the Crosshair target.")
 
     ctx:Keybind({
       label = "Toggle / Hold - Mouse Look",
-      desc = "Tap to toggle the Mouse Look camera On or Off.\nHold to temporarily deactivate it — releasing re-engages it.",
+      desc = "Tap to toggle Mouse Look on or off. Hold to temporarily deactivate it — releasing re-engages it.",
       get = function()
         return (GetBindingKey("Combat Mode - Mouse Look"))
       end,
@@ -48,7 +46,7 @@ UI.Options.AddTab({
     })
     ctx:Keybind({
       label = "Interact - Reticle Target",
-      desc = "Press to interact with the unit or world object under the crosshair when in range.",
+      desc = "Press to interact with the unit or object under the crosshair when in range.",
       get = function()
         return (GetBindingKey("INTERACTMOUSEOVER"))
       end,
@@ -68,7 +66,7 @@ UI.Options.AddTab({
     })
     ctx:Keybind({
       label = "Toggle - Target Lock",
-      desc = "Tap to Target Lock your current target. Tap again to unlock it. Target Lock prevents Reticle Targeting from swapping off your current target.",
+      desc = "Tap to lock onto your current target — tap again to unlock it. Prevents Reticle Targeting from swapping off your current target when locked.",
       get = function()
         return (GetBindingKey("Combat Mode - Toggle Focus Target"))
       end,
@@ -88,7 +86,7 @@ UI.Options.AddTab({
     })
     ctx:Toggle({
       label = "Target Lock Selected Target Not The Crosshair",
-      desc = "Target Lock will lock onto your currently selected target rather than the unit under your crosshair.",
+      desc = "Target Lock onto your currently selected target rather than the unit under your crosshair.",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = function()
@@ -106,7 +104,7 @@ UI.Options.AddTab({
     ctx:Gap()
     ctx:Toggle({
       label = "Pulse Cursor When Exiting Mouse Look",
-      desc = "Quickly pulses the location of the cursor when exiting Mouse Look mode.",
+      desc = "Quickly pulses the location of the cursor when exiting Mouse Look.",
       get = function()
         return CM.DB.global.pulseCursor
       end,

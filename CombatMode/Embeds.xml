@@ -1,13 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
-    <!-- LIBS -->
-    <Script file="Libs\LibStub\LibStub.lua"/>
-    <Include file="Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml"/>
-    <Include file="Libs\AceAddon-3.0\AceAddon-3.0.xml"/>
-    <Include file="Libs\AceEvent-3.0\AceEvent-3.0.xml"/>
-    <Include file="Libs\AceDB-3.0\AceDB-3.0.xml"/>
-    <Include file="Libs\AceConsole-3.0\AceConsole-3.0.xml"/>
-    <!-- CORE -->
+    <!-- CORE: Runtime defines _G.CM before Constants and feature modules load. -->
     <Script file="Core\Runtime.lua"/>
     <!-- CONSTANTS (must load before feature consumers) -->
     <Script file="Constants\ConstantsNamespace.lua"/>
@@ -33,7 +26,7 @@
     <Script file="Core\Crosshair.lua"/>
     <Script file="Core\AutoCursorUnlock.lua"/>
     <Script file="Core\HealingRadial.lua"/>
-    <!-- OPTIONS UI: custom standalone window (replaces AceConfig). Draw + Widgets before
+    <!-- OPTIONS UI: custom standalone window. Draw + Widgets before
          OptionsPanel (defines AddTab/CreateWindow); Tabs register after OptionsPanel. -->
     <Script file="UI\Options\Draw.lua"/>
     <Script file="UI\Options\Widgets.lua"/>
@@ -45,14 +38,15 @@
     <Script file="UI\Options\Tabs\TabAutoCursorUnlock.lua"/>
     <Script file="UI\Options\Tabs\TabCamera.lua"/>
     <Script file="UI\Options\Tabs\TabHealingRadial.lua"/>
-    <!-- CONFIG: changelog data/panel + standalone editors. ConfigNamespace first
-         (defines CM.Config); editors load after the OPTIONS UI toolkit they consume. -->
-    <Script file="Config\ConfigNamespace.lua"/>
-    <Script file="Config\ConfigChangelogData.lua"/>
-    <Script file="Config\ConfigChangelogPanel.lua"/>
-    <Script file="Config\ReticleCVarEditorData.lua"/>
-    <Script file="Config\ReticleCVarEditorPanel.lua"/>
-    <Script file="Config\TargetingMacroPrelinesEditor.lua"/>
+    <!-- CHANGELOG: in-game viewer. ChangelogNamespace first (defines CM.Config);
+         panel uses the OPTIONS UI toolkit loaded above. -->
+    <Script file="UI\Changelog\ChangelogNamespace.lua"/>
+    <Script file="UI\Changelog\ChangelogData.lua"/>
+    <Script file="UI\Changelog\ChangelogPanel.lua"/>
+    <!-- EDITORS: standalone secondary windows built on the OPTIONS UI toolkit. -->
+    <Script file="UI\Editors\ReticleCVarEditorData.lua"/>
+    <Script file="UI\Editors\ReticleCVarEditorPanel.lua"/>
+    <Script file="UI\Editors\TargetingMacroPrelinesEditor.lua"/>
     <!-- FRAME -->
     <Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
         <Scripts>
