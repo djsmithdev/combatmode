@@ -40,9 +40,9 @@ local function RefreshAssist()
   end
 end
 
-local function UpdateHealingRadialAnchor()
-  if CM.HealingRadial and CM.HealingRadial.UpdateMainFramePosition then
-    CM.HealingRadial.UpdateMainFramePosition()
+local function UpdatePartyRadialAnchor()
+  if CM.PartyRadial and CM.PartyRadial.UpdateMainFramePosition then
+    CM.PartyRadial.UpdateMainFramePosition()
   end
 end
 
@@ -138,7 +138,7 @@ UI.Options.AddTab({
       set = function(value)
         CM.DB.global.crosshairY = value
         CM.CreateCrosshair()
-        UpdateHealingRadialAnchor()
+        UpdatePartyRadialAnchor()
       end,
       disabled = CrosshairOff,
     })
@@ -147,7 +147,7 @@ UI.Options.AddTab({
     ctx:Header("INTERACTION HUD")
     ctx:Toggle({
       label = "Show Interaction HUD",
-      desc = "Show a prompt next to the crosshair for nearby interactables. Bind Interact under General to use it.",
+      desc = "Show a prompt next to the crosshair for nearby interactables.",
       get = function()
         return CM.DB.global.interactionHUD
       end,

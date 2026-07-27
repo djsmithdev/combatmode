@@ -66,6 +66,8 @@ UI.Colors = {
   text = { 0.804, 0.804, 0.804 }, -- primary labels
   textDim = { 0.549, 0.549, 0.549 }, -- descriptions / secondary
   grey = { 0.549, 0.549, 0.549 },
+  -- Caution / destructive callouts (Advanced editor warning, etc.).
+  warning = { 0.820, 0.350, 0.350 },
 
   -- Window chrome: flat, near-black neutral greys.
   windowBg = { 0.055, 0.055, 0.055, 0.98 },
@@ -90,6 +92,14 @@ end
 --- Wraps text in the theme accent |cff…|r markup.
 function UI.AccentWrap(text)
   return UI.Colors.accentMarkup .. (text or "") .. "|r"
+end
+
+-- Chat-slash hint blue (same as Esc → Options → AddOns bridge hints).
+UI.Colors.slashMarkup = "|cff69ccf0"
+
+--- Wraps a slash command (or any text) in the shared chat-hint blue |cff…|r markup.
+function UI.SlashWrap(text)
+  return UI.Colors.slashMarkup .. (text or "") .. "|r"
 end
 
 -- Fixed type scale: `base` for option rows, `nav` for the left sidebar tabs,

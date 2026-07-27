@@ -47,7 +47,7 @@ Use this checklist when preparing a release build.
   - core mouselook toggle/lock/unlock flow
   - reticle + targeting CVar behavior
   - click-casting base/modifier paths
-  - healing radial open/cast flow
+  - party radial open/cast flow
   - slash commands and keybind sanity
 - Confirm no combat-lockdown errors and no new Lua errors.
 - If MCP was unavailable during implementation, run an additional manual API spot-check for each changed WoW API call before tagging release.

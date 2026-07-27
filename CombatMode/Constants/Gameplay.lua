@@ -40,7 +40,7 @@ CM.Constants.BLIZZARD_EVENTS = {
     "PLAYER_MOUNT_DISPLAY_CHANGED", -- Toggling crosshair when mounting/dismounting
     "PLAYER_REGEN_ENABLED", -- Resetting crosshair when leaving combat
   },
-  -- Events that trigger refresh of click-cast bindings (and Healing Radial slice attrs when applicable)
+  -- Events that trigger refresh of click-cast bindings (and Party Radial slice attrs when applicable)
   REFRESH_BINDINGS_EVENTS = {
     "UPDATE_BINDINGS", -- User changed/saved keybinds; refresh overrides so they match new bindings
     "HOUSE_EDITOR_MODE_CHANGED", -- Enter/exit housing edit mode; refresh so action bar overrides are skipped in editor

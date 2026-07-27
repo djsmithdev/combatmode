@@ -15,9 +15,10 @@
 --      and sets CM.METADATA from the TOC. Other modules use `local _, CM = ...`.
 --    • Optional `_G.CM = CM` alias for debug / external scripts (primary handle is `...`).
 --    • Lifecycle: ADDON_LOADED → InitDatabase + slash; PLAYER_LOGIN → enable/bootstrap.
---    • Calls into feature modules: FreeLook, Crosshair, ClickCasting, HealingRadial.
+--    • Calls into feature modules: FreeLook, Crosshair, ClickCasting, PartyRadial
+--      (CM.PartyRadial API).
 --    • Exposes globals for XML: CombatMode_OnEvent, CombatMode_OnUpdate, keybind
---      handlers (CombatMode_CursorModeKey, CombatMode_HealingRadialKey).
+--      handlers (CombatMode_CursorModeKey, CombatMode_PartyRadialKey).
 --    • Shared CVar helpers live in Core/Runtime/CVarManager.lua and are used by editors
 --      and by Crosshair / Interaction HUD flows.
 ---------------------------------------------------------------------------------------
@@ -310,10 +311,10 @@ local function Rematch()
 
   CM.OnRematchCrosshair()
 
-  -- Dismiss healing radial so it is not considered "active" after load (fixes crosshair
-  -- not showing when healing radial is enabled, since IsHealingRadialActive() would block)
-  if CM.HealingRadial and CM.HealingRadial.DismissOnLoad then
-    CM.HealingRadial.DismissOnLoad()
+  -- Dismiss party radial so it is not considered "active" after load (fixes crosshair
+  -- not showing when party radial is enabled, since IsPartyRadialActive() would block)
+  if CM.PartyRadial and CM.PartyRadial.DismissOnLoad then
+    CM.PartyRadial.DismissOnLoad()
   end
 
   -- Early OnUpdate can start mouselook before Rematch; CursorFreelookCentering only
@@ -374,13 +375,13 @@ end
 ---------------------------------------------------------------------------------------
 -- FUNCTIONS CALLED FROM BINDINGS.XML
 
-function _G.CombatMode_HealingRadialKey(keystate)
-  if not CM.HealingRadial then
+function _G.CombatMode_PartyRadialKey(keystate)
+  if not CM.PartyRadial then
     return
   end
-  local HR = CM.HealingRadial
+  local HR = CM.PartyRadial
   CM.DebugPrint(
-    "HealingRadialKey: keystate=" .. tostring(keystate) .. " isActive=" .. tostring(HR.IsActive())
+    "PartyRadialKey: keystate=" .. tostring(keystate) .. " isActive=" .. tostring(HR.IsActive())
   )
   if keystate == "down" then
     if HR.IsActive() then

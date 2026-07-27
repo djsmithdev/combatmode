@@ -80,7 +80,7 @@ UI.Options.AddTab({
     ctx:Gap()
     ctx:TextInput({
       label = "Excluded Spells",
-      desc = "Spells to skip the reticle targeting logic, even if assigned to Click Casting binds.",
+      desc = "Spell names or IDs to skip the reticle targeting logic.",
       multiline = 4,
       get = function()
         return CM.DB.char.excludeFromTargetingSpells or ""
@@ -97,7 +97,7 @@ UI.Options.AddTab({
     })
     ctx:TextInput({
       label = "Cast at Crosshair",
-      desc = "Ground spells to automatically cast at the crosshair location.",
+      desc = "Ground spell names or IDs to cast at the crosshair location.",
       multiline = 4,
       get = function()
         return CM.DB.char.castAtCursorSpells or ""
@@ -115,9 +115,10 @@ UI.Options.AddTab({
 
     ctx:Gap()
     ctx:Header("ADVANCED")
-    ctx:Description(
-      "Modify Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines. Be cautious: editing these values could break Reticle Targeting and Target Lock."
-    )
+    ctx:Description({
+      text = "Modify Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines.",
+      warning = "Warning: editing these values could break Reticle Targeting and Target Lock.",
+    })
     ctx:ButtonRow({
       {
         label = "Reticle Targeting CVar Editor",

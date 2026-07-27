@@ -9,7 +9,7 @@
     <Script file="Constants\Assets.lua"/>
     <Script file="Constants\Gameplay.lua"/>
     <Script file="Constants\DatabaseDefaults.lua"/>
-    <Script file="Constants\HealingRadial.lua"/>
+    <Script file="Constants\PartyRadial.lua"/>
     <Script file="Constants\FrameWatch.lua"/>
     <Script file="Constants\Reticle.lua"/>
     <!-- RUNTIME support (events, CVars, deferred bindings, bootstrap) -->
@@ -29,8 +29,8 @@
     <Script file="Core\Crosshair\InteractionHUD.lua"/>
     <Script file="Core\Crosshair\AssistedHighlight.lua"/>
     <Script file="Core\Crosshair\Crosshair.lua"/>
-    <!-- HEALING RADIAL -->
-    <Script file="Core\HealingRadial\HealingRadial.lua"/>
+    <!-- PARTY RADIAL -->
+    <Script file="Core\PartyRadial\PartyRadial.lua"/>
     <!-- OPTIONS UI: custom standalone window. Draw + Widgets before
          OptionsPanel (defines AddTab/CreateWindow); Tabs register after OptionsPanel. -->
     <Script file="UI\Options\Draw.lua"/>
@@ -44,7 +44,7 @@
     <Script file="UI\Options\Tabs\TabClickCasting.lua"/>
     <Script file="UI\Options\Tabs\TabAutoCursorUnlock.lua"/>
     <Script file="UI\Options\Tabs\TabCamera.lua"/>
-    <Script file="UI\Options\Tabs\TabHealingRadial.lua"/>
+    <Script file="UI\Options\Tabs\TabPartyRadial.lua"/>
     <!-- CHANGELOG: in-game viewer. ChangelogNamespace first (defines CM.Config);
          panel uses the OPTIONS UI toolkit loaded above. -->
     <Script file="UI\Changelog\ChangelogNamespace.lua"/>

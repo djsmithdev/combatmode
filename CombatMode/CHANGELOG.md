@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 This log follows Keep a Changelog (https://keepachangelog.com/en/1.1.0/) and Semantic Versioning (https://semver.org/spec/v2.0.0.html).
 
+## [4.0.1] - 2026-07-27
+
+### Added
+- Added safeguard to prevent attempted binding of the primary mouse buttons;
+- The input boxes for Excluded Spells & Cast at Crosshair now accept IDs as well as names.
+
+### Changed
+
+- Adjusted helper text for a handful of options.
+
 ## [4.0.0] - 2026-07-25
 
 ### Changed

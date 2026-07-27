@@ -460,13 +460,14 @@ local function AttachOptionText(control, row, opts, widgetH)
   if type(raw) == "function" then
     raw = raw()
   end
-  local plain = raw and UI.StripColors(raw)
-  if plain and plain ~= "" then
+  local allowColors = opts.descAllowColors and true or false
+  local display = allowColors and raw or (raw and UI.StripColors(raw))
+  if display and display ~= "" then
     local desc = UI.CreateFontString(row, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
     desc:SetJustifyH("LEFT")
     desc:SetJustifyV("TOP")
     desc:SetWordWrap(true)
-    desc:SetText(plain)
+    desc:SetText(display)
     desc:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
     control.desc = desc
   end
@@ -1233,6 +1234,16 @@ local MOUSE_BUTTON_KEYS = {
   Button5 = "BUTTON5",
 }
 
+--- True for Left/Right mouse (BUTTON1/BUTTON2), including SHIFT-/CTRL-/ALT- variants.
+--- Binding those would steal Camera Or Select Or Move / Turn Or Action.
+local function IsPrimaryMouseButtonKey(key)
+  if type(key) ~= "string" or key == "" then
+    return false
+  end
+  local leaf = key:match("([^%-]+)$") or key
+  return leaf == "BUTTON1" or leaf == "BUTTON2"
+end
+
 local keybindCaptureFrame
 local keybindCaptureOnKey
 local keybindCaptureStopPrevious
@@ -1349,6 +1360,11 @@ function UI.MakeKeybind(parent, opts)
         keybindCaptureFrame:Hide()
       end
     end
+    -- Defense in depth: never persist LMB/RMB (would unbind camera / turn actions).
+    if IsPrimaryMouseButtonKey(key) then
+      Options.Sync()
+      return
+    end
     if opts.set then
       opts.set(key)
     end
@@ -1363,7 +1379,7 @@ function UI.MakeKeybind(parent, opts)
       applyKey("")
       return
     end
-    if IGNORE_KEYS[key] then
+    if IGNORE_KEYS[key] or IsPrimaryMouseButtonKey(key) then
       return
     end
     local keyPressed = key
@@ -1375,6 +1391,9 @@ function UI.MakeKeybind(parent, opts)
     end
     if _G.IsAltKeyDown() then
       keyPressed = "ALT-" .. keyPressed
+    end
+    if IsPrimaryMouseButtonKey(keyPressed) then
+      return
     end
     applyKey(keyPressed)
   end
@@ -1703,19 +1722,53 @@ function UI.MakeHeader(parent, text)
   return { frame = frame, height = 26 }
 end
 
-function UI.MakeDescription(parent, text)
+function UI.MakeDescription(parent, textOrOpts)
+  local text = textOrOpts
+  local color = C.textDim
+  local warningText
+  local warningColor = C.warning
+  if type(textOrOpts) == "table" then
+    text = textOrOpts.text
+    if textOrOpts.color then
+      color = textOrOpts.color
+    end
+    if textOrOpts.warning and textOrOpts.warning ~= "" then
+      warningText = textOrOpts.warning
+      if textOrOpts.warningColor then
+        warningColor = textOrOpts.warningColor
+      end
+    end
+  end
+
   local frame = CreateFrame("Frame", nil, parent)
   local fs = UI.CreateFontString(frame, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
   fs:SetPoint("TOPLEFT", frame, "TOPLEFT", 4, 0)
   fs:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -4, 0)
   fs:SetJustifyH("LEFT")
   fs:SetText(UI.StripColors(text) or "")
-  fs:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
+  fs:SetTextColor(color[1], color[2], color[3], color[4] or 1)
+
+  local warningFs
+  if warningText then
+    -- Keep warning in the same description block so layout ITEM_GAP does not split the lines.
+    warningFs = UI.CreateFontString(frame, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
+    warningFs:SetPoint("TOPLEFT", fs, "BOTTOMLEFT", 0, -2)
+    warningFs:SetPoint("TOPRIGHT", fs, "BOTTOMRIGHT", 0, -2)
+    warningFs:SetJustifyH("LEFT")
+    warningFs:SetText(UI.StripColors(warningText) or "")
+    warningFs:SetTextColor(warningColor[1], warningColor[2], warningColor[3], warningColor[4] or 1)
+  end
+
   local control = { frame = frame, height = 20 }
   -- Height depends on final width; recomputed by the layout once width is known.
   function control.SetWidthTo(width)
     fs:SetWidth(width - 8)
-    local h = fs:GetStringHeight() + 6
+    local h = fs:GetStringHeight()
+    if warningFs then
+      warningFs:SetWidth(width - 8)
+      h = h + 2 + warningFs:GetStringHeight()
+    end
+    h = h + 6
     frame:SetHeight(h)
     control.height = h
     return h

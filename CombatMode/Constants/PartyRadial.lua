@@ -1,14 +1,15 @@
 ---------------------------------------------------------------------------------------
---  Constants/HealingRadial.lua — CONSTANTS — party radial slice metadata
+--  Constants/PartyRadial.lua — CONSTANTS — party radial slice metadata
 ---------------------------------------------------------------------------------------
---  Owns CM.Constants.HealingRadialSlices (default role + angle per 5-man slot). Consumed
---  by Core/HealingRadial/HealingRadial.lua and the Party Radial options tab.
+--  Owns CM.Constants.PartyRadialSlices (default role + angle per 5-man slot). Consumed
+--  by Core/PartyRadial/PartyRadial.lua and the Party Radial options tab
+--  (UI/Options/Tabs/TabPartyRadial.lua). Runtime API remains CM.PartyRadial.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 
 -- Slice positions for 5-man content (angles in degrees, 0 = right, 90 = up)
 -- Each slice covers 72 degrees (360/5)
-CM.Constants.HealingRadialSlices = {
+CM.Constants.PartyRadialSlices = {
   [1] = { defaultRole = "TANK", angle = 90, label = "12 o'clock (top)" },
   [2] = { defaultRole = "DAMAGER", angle = 162, label = "10 o'clock (upper-left)" },
   [3] = { defaultRole = "HEALER", angle = 234, label = "7 o'clock (lower-left)" },
@@ -16,4 +17,4 @@ CM.Constants.HealingRadialSlices = {
   [5] = { defaultRole = "DAMAGER", angle = 18, label = "2 o'clock (upper-right)" },
 }
 
-CM.Constants.HealingRadialSliceArc = 72 -- degrees per slice
+CM.Constants.PartyRadialSliceArc = 72 -- degrees per slice

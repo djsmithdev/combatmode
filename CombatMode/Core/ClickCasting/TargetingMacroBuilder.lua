@@ -256,52 +256,55 @@ local CLICKCAST_PRE_LINE_ENEMY =
 CM.TargetingMacroPrelinesDefaults = CM.TargetingMacroPrelinesDefaults
   or { any = CLICKCAST_PRE_LINE_ANY, enemy = CLICKCAST_PRE_LINE_ENEMY }
 
--- Returns true if spellId is in the user's "Cast @Cursor Spells" list (comma-separated names in options).
-function CM.IsCastAtCursorSpell(spellId)
+local function ParseSpellList(list)
+  if not list or list == "" then
+    return nil, nil
+  end
+  local names = {}
+  local ids = {}
+  for entry in string.gmatch(list, "[^,]+") do
+    local token = strtrim(entry)
+    if token ~= "" then
+      local idText = token:gsub("^#", "")
+      local id = tonumber(idText)
+      if id and id > 0 then
+        ids[id] = true
+      else
+        names[token:lower()] = true
+      end
+    end
+  end
+  return names, ids
+end
+
+local function SpellListContains(list, spellId)
   if not spellId or spellId <= 0 then
     return false
   end
-  local list = CM.DB.char.castAtCursorSpells
-  if not list or list == "" then
+  local names, ids = ParseSpellList(list)
+  if not names or not ids then
     return false
   end
-  local set = {}
-  for name in string.gmatch(list, "[^,]+") do
-    local n = strtrim(name):lower()
-    if n ~= "" then
-      set[n] = true
-    end
+  if ids[spellId] then
+    return true
   end
   local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellId)
   local spellName = spellInfo and spellInfo.name
   if not spellName or spellName == "" then
     return false
   end
-  return set[spellName:lower()] == true
+  return names[spellName:lower()] == true
+end
+
+-- Returns true if spellId is in the user's "Cast @Cursor Spells" list
+-- (comma-separated spell names and/or IDs in options).
+function CM.IsCastAtCursorSpell(spellId)
+  return SpellListContains(CM.DB.char.castAtCursorSpells, spellId)
 end
 
 -- Returns true if spellId is in the user's "Exclude from targeting" blacklist (no pre-line applied).
 function CM.IsExcludedFromTargetingSpell(spellId)
-  if not spellId or spellId <= 0 then
-    return false
-  end
-  local list = CM.DB.char.excludeFromTargetingSpells
-  if not list or list == "" then
-    return false
-  end
-  local set = {}
-  for name in string.gmatch(list, "[^,]+") do
-    local n = strtrim(name):lower()
-    if n ~= "" then
-      set[n] = true
-    end
-  end
-  local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellId)
-  local spellName = spellInfo and spellInfo.name
-  if not spellName or spellName == "" then
-    return false
-  end
-  return set[spellName:lower()] == true
+  return SpellListContains(CM.DB.char.excludeFromTargetingSpells, spellId)
 end
 
 local function GetClickCastPreLine()

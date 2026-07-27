@@ -1,19 +1,20 @@
 ---------------------------------------------------------------------------------------
---  Core/HealingRadial/HealingRadial.lua — HEALING RADIAL — party menu, casts, mouselook
+--  Core/PartyRadial/PartyRadial.lua — PARTY RADIAL — party menu, casts, mouselook
 ---------------------------------------------------------------------------------------
---  Optional healer UX: radial slices for roster units, spell/item assignment per
---  slice, secure buttons for in-combat casts, capture layer + mouselook override keys
---  while open, and hooks from Runtime/FreeLook (OnMouselookChanged, combat events,
---  action bar refresh) to stay consistent with free look and the crosshair.
+--  Optional party UX: radial slices for roster units, spell/item assignment per
+--  slice, secure buttons for in-combat casts, and hooks from Runtime/FreeLook
+--  (OnMouselookChanged, combat events, action bar refresh) to stay consistent with
+--  free look and the crosshair. Opens via the Party Radial keybind during Mouse Look;
+--  casts via Click Casting mouse clicks on slices (not hold-to-open mouse overrides).
 --
 --  Architecture:
---    • Exposed as CM.HealingRadial (table of functions); Runtime bootstrap calls
---      Initialize from BootstrapFeatureModules and notifies OnMouselookChanged /
---      DismissOnLoad.
---    • Internal state machine (show/hide, keybind vs mouse open) avoids re-entrancy
---      with FreeLookController.LockFreeLook / UnlockFreeLook.
---    • Configuration lives under CM.DB.global.healingRadial; slice metadata in
---      Constants/HealingRadial.lua; options UI in UI/Options/Tabs/TabHealingRadial.lua.
+--    • Exposed as CM.PartyRadial (table of functions; name kept for SavedVariables /
+--      call-site stability); Runtime bootstrap calls Initialize from
+--      BootstrapFeatureModules and notifies OnMouselookChanged / DismissOnLoad.
+--    • Internal state machine (show/hide, keybind open) avoids re-entrancy with
+--      FreeLookController.LockFreeLook / UnlockFreeLook.
+--    • Configuration lives under CM.DB.global.partyRadial; slice metadata in
+--      Constants/PartyRadial.lua; options UI in UI/Options/Tabs/TabPartyRadial.lua.
 --    • Options live preview (SetOptionsPreview) shows the radial without freelook churn
 --      or isActive; empty slots use placeholders so Visual Settings update on-screen.
 ---------------------------------------------------------------------------------------
@@ -83,8 +84,8 @@ local COLOR_REACHABLE = CreateColor(1, 1, 1, 1.0)
 local COLOR_UNREACHABLE = CreateColor(1, 1, 1, 0.4)
 
 -- Module namespace
-CM.HealingRadial = {}
-local HR = CM.HealingRadial
+CM.PartyRadial = {}
+local HR = CM.PartyRadial
 
 ---------------------------------------------------------------------------------------
 --                                  STATE VARIABLES                                  --
@@ -246,10 +247,10 @@ end
 
 -- Get which slice the current mouse angle corresponds to
 local function GetSliceFromAngle(angle)
-  local sliceArc = CM.Constants.HealingRadialSliceArc
+  local sliceArc = CM.Constants.PartyRadialSliceArc
   local halfArc = sliceArc / 2
 
-  for i, sliceData in ipairs(CM.Constants.HealingRadialSlices) do
+  for i, sliceData in ipairs(CM.Constants.PartyRadialSlices) do
     local centerAngle = sliceData.angle
     local arcStart = (centerAngle - halfArc) % 360
     local arcEnd = (centerAngle + halfArc) % 360
@@ -364,7 +365,7 @@ local function RefreshPartyData()
     table.insert(RadialState.partyData, member)
   end
 
-  CM.DebugPrint("Healing Radial: Refreshed party data, " .. #RadialState.partyData .. " members")
+  CM.DebugPrint("Party Radial: Refreshed party data, " .. #RadialState.partyData .. " members")
 end
 
 -- Options-tab roster: real party members where present, role-labeled placeholders
@@ -388,7 +389,7 @@ local function BuildPreviewPartyData()
   local dpsIndex = 1
   for i = 1, 5 do
     if not occupied[i] then
-      local sliceMeta = CM.Constants.HealingRadialSlices[i]
+      local sliceMeta = CM.Constants.PartyRadialSlices[i]
       local role = (sliceMeta and sliceMeta.defaultRole) or "DAMAGER"
       local name, class
       if role == "TANK" then
@@ -426,7 +427,7 @@ end
 local function UpdateSecureButtonTargets()
   if InCombatLockdown() then
     RadialState.pendingUpdate = true
-    CM.DebugPrint("Healing Radial: Queueing button update (in combat)")
+    CM.DebugPrint("Party Radial: Queueing button update (in combat)")
     return
   end
 
@@ -445,7 +446,7 @@ local function UpdateSecureButtonTargets()
       slice:SetAttribute("unit", member.unitId)
     end
     CM.DebugPrint(
-      "Healing Radial: Slice "
+      "Party Radial: Slice "
         .. member.sliceIndex
         .. " = "
         .. member.unitId
@@ -550,7 +551,7 @@ end
 local function UpdateSliceActionAttributes()
   if InCombatLockdown() then
     RadialState.pendingUpdate = true
-    CM.DebugPrint("Healing Radial: Queueing action attr update (in combat)")
+    CM.DebugPrint("Party Radial: Queueing action attr update (in combat)")
     return
   end
 
@@ -607,7 +608,7 @@ local function UpdateSliceActionAttributes()
     end
   end
 
-  CM.DebugPrint("Healing Radial: Updated slice action attributes")
+  CM.DebugPrint("Party Radial: Updated slice action attributes")
 end
 
 ---------------------------------------------------------------------------------------
@@ -638,8 +639,8 @@ local function GetSliceInnerAnchor(angleDeg, radius)
 end
 
 local function CreateSliceFrame(sliceIndex)
-  local config = CM.DB.global.healingRadial
-  local sliceData = CM.Constants.HealingRadialSlices[sliceIndex]
+  local config = CM.DB.global.partyRadial
+  local sliceData = CM.Constants.PartyRadialSlices[sliceIndex]
   local angle = sliceData.angle
   local radius = config.sliceRadius
   local sliceScale = config.sliceSize or 1.0 -- sliceSize is now a scale factor (0.5-1.5)
@@ -738,7 +739,7 @@ local function CreateSliceFrame(sliceIndex)
   -- set by UpdateSliceActionAttributes(), triggered by hardware mouse clicks.
   slice:HookScript("PostClick", function(self, btn, down)
     CM.DebugPrint(
-      "Healing Radial: PostClick slice "
+      "Party Radial: PostClick slice "
         .. self.sliceIndex
         .. " btn="
         .. tostring(btn)
@@ -747,7 +748,7 @@ local function CreateSliceFrame(sliceIndex)
     )
     -- Close radial on non-left/right clicks (e.g. Mouse4/Mouse5 tap-to-toggle)
     if down and btn ~= "LeftButton" and btn ~= "RightButton" then
-      CM.DebugPrint("Healing Radial: Slice received " .. tostring(btn) .. ", closing radial")
+      CM.DebugPrint("Party Radial: Slice received " .. tostring(btn) .. ", closing radial")
       HR.Hide()
     end
   end)
@@ -813,7 +814,7 @@ function HR.UpdateSlicePositionsAndSizes()
     return
   end
 
-  local config = CM.DB.global.healingRadial
+  local config = CM.DB.global.partyRadial
   if not config then
     return
   end
@@ -824,7 +825,7 @@ function HR.UpdateSlicePositionsAndSizes()
   for i = 1, 5 do
     local slice = RadialState.sliceFrames[i]
     if slice then
-      local sliceData = CM.Constants.HealingRadialSlices[i]
+      local sliceData = CM.Constants.PartyRadialSlices[i]
       if sliceData then
         local angle = sliceData.angle
         local anchor, offsetX, offsetY = GetSliceInnerAnchor(angle, radius)
@@ -875,7 +876,7 @@ local function CreateMouseOverrideButtons()
   end
 end
 
--- Set up the mouselook override bindings for healing radial
+-- Set up the mouselook override bindings for party radial
 function HR.SetupMouselookBindings()
   if not RadialState.triggerButtons then
     return
@@ -886,7 +887,7 @@ function HR.SetupMouselookBindings()
   for key, triggerBtn in pairs(RadialState.triggerButtons) do
     -- Bind the mouse button to click the trigger button (shows radial)
     SetMouselookOverrideBinding(key, "CLICK " .. triggerBtn:GetName() .. ":LeftButton")
-    CM.DebugPrint("Healing Radial: Bound " .. key .. " to " .. triggerBtn:GetName())
+    CM.DebugPrint("Party Radial: Bound " .. key .. " to " .. triggerBtn:GetName())
   end
 end
 
@@ -897,7 +898,7 @@ function HR.ClearMouselookBindings()
   for _, key in ipairs(ALL_OVERRIDE_KEYS) do
     SetMouselookOverrideBinding(key, nil)
   end
-  CM.DebugPrint("Healing Radial: Cleared mouselook bindings")
+  CM.DebugPrint("Party Radial: Cleared mouselook bindings")
 end
 
 -- Update capture frame visibility based on mouselook state
@@ -906,7 +907,7 @@ function HR.OnMouselookChanged(isMouselooking)
   -- Dismiss radial if mouselook activates while radial is open
   -- This prevents the radial from staying open when user toggles mouselook via regular keybind
   CM.DebugPrint(
-    "Healing Radial: OnMouselookChanged("
+    "Party Radial: OnMouselookChanged("
       .. tostring(isMouselooking)
       .. ") active="
       .. tostring(RadialState.isActive)
@@ -935,7 +936,7 @@ function HR.OnMouselookChanged(isMouselooking)
   end
 end
 
--- Clear radial state after loading screen / zone change so IsHealingRadialActive() is false
+-- Clear radial state after loading screen / zone change so IsPartyRadialActive() is false
 -- and crosshair visibility can sync correctly. Does not re-engage mouselook or touch crosshair.
 function HR.DismissOnLoad()
   if RadialState.optionsPreviewActive then
@@ -955,7 +956,7 @@ function HR.DismissOnLoad()
   RadialState.boundKey = nil
 end
 
--- Toggle the healing radial system (called when enabled/disabled in settings).
+-- Toggle the party radial system (called when enabled/disabled in settings).
 -- When enabling/disabling, the config setter forces ReloadUI() so the frame is created
 -- or not in HR.Initialize(); this is only for any other callers that need to dismiss the radial.
 function HR.SetCaptureActive(active)
@@ -963,9 +964,9 @@ function HR.SetCaptureActive(active)
     HR.Hide()
   end
   if active then
-    CM.DebugPrint("Healing Radial: Activated")
+    CM.DebugPrint("Party Radial: Activated")
   else
-    CM.DebugPrint("Healing Radial: Deactivated")
+    CM.DebugPrint("Party Radial: Deactivated")
   end
 end
 
@@ -981,7 +982,7 @@ local function CreateMainFrame()
   -- In combat, EnableMouse is protected, so we accept that invisible slices at
   -- screen center may intercept clicks. This is acceptable because during combat
   -- the user is typically in mouselook mode (no visible cursor to click with).
-  local mainFrame = CreateFrame("Frame", "CombatModeHealingRadialFrame", UIParent)
+  local mainFrame = CreateFrame("Frame", "CombatModePartyRadialFrame", UIParent)
   mainFrame:SetFrameStrata("DIALOG")
   mainFrame:SetSize(400, 400)
   local ox, oy = GetCrosshairAnchorOffsetForUIParent()
@@ -996,7 +997,7 @@ local function CreateMainFrame()
   local frameSize = 400
   wheelBG:SetSize(frameSize * 1.3, frameSize * 1.3)
   wheelBG:SetPoint("CENTER", mainFrame, "CENTER", 0, 0)
-  wheelBG:SetShown(CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground)
+  wheelBG:SetShown(CM.DB.global.partyRadial and CM.DB.global.partyRadial.showBackground)
   RadialState.wheelBG = wheelBG
 
   RadialState.mainFrame = mainFrame
@@ -1134,7 +1135,7 @@ end
 ---------------------------------------------------------------------------------------
 local function UpdateSliceVisual(sliceIndex)
   local slice = RadialState.sliceFrames[sliceIndex]
-  local config = CM.DB.global.healingRadial
+  local config = CM.DB.global.partyRadial
 
   -- Find member assigned to this slice
   local memberData = nil
@@ -1324,7 +1325,7 @@ local function StartOptionsPreviewVisuals()
   HR.UpdateSlicePositionsAndSizes()
   if RadialState.wheelBG then
     RadialState.wheelBG:SetShown(
-      CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground
+      CM.DB.global.partyRadial and CM.DB.global.partyRadial.showBackground
     )
   end
   RadialState.sliceRefreshElapsed = 0
@@ -1344,7 +1345,7 @@ function HR.ApplyVisualConfig()
   HR.UpdateSlicePositionsAndSizes()
   if RadialState.wheelBG then
     RadialState.wheelBG:SetShown(
-      CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground
+      CM.DB.global.partyRadial and CM.DB.global.partyRadial.showBackground
     )
   end
   if RadialState.isActive or RadialState.optionsPreviewActive then
@@ -1449,7 +1450,7 @@ local function TrackMousePosition(_, elapsed)
     if elapsed_since_show > 0.2 then
       if not IsMouseButtonStillDown(RadialState.currentButton) then
         CM.DebugPrint(
-          "Healing Radial: Button released, closing (combat=" .. tostring(InCombatLockdown()) .. ")"
+          "Party Radial: Button released, closing (combat=" .. tostring(InCombatLockdown()) .. ")"
         )
         HR.ExecuteAndHide()
         return
@@ -1533,7 +1534,7 @@ local function TrackMousePosition(_, elapsed)
 end
 
 function HR.Show(buttonKey)
-  if not CM.DB.global.healingRadial or not CM.DB.global.healingRadial.enabled then
+  if not CM.DB.global.partyRadial or not CM.DB.global.partyRadial.enabled then
     return false
   end
   if not RadialState.mainFrame then
@@ -1555,7 +1556,7 @@ function HR.Show(buttonKey)
   RadialState.wasMouselooking = _G.IsMouselooking()
   RadialState.showTime = _G.GetTime()
   -- Cache max selection distance for TrackMousePosition (avoids DB access in combat)
-  local hrConfig = CM.DB.global.healingRadial
+  local hrConfig = CM.DB.global.partyRadial
   RadialState.maxSelectDistance = ((hrConfig and hrConfig.sliceRadius) or 120) + BASE_SLICE_SIZE / 2
 
   -- Stop mouselook so cursor is free for slice selection
@@ -1588,7 +1589,7 @@ function HR.Show(buttonKey)
   -- to child frames (slices inherit parent alpha).
   if RadialState.wheelBG then
     RadialState.wheelBG:SetShown(
-      CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground
+      CM.DB.global.partyRadial and CM.DB.global.partyRadial.showBackground
     )
   end
   RadialState.mainFrame:SetAlpha(1)
@@ -1621,7 +1622,7 @@ function HR.Show(buttonKey)
     CM.DisplayCrosshair(false)
   end
 
-  CM.DebugPrint("Healing Radial: Shown for " .. buttonKey)
+  CM.DebugPrint("Party Radial: Shown for " .. buttonKey)
 
   return true
 end
@@ -1637,9 +1638,9 @@ function HR.ExecuteAndHide()
   end
 
   if RadialState.selectedSlice then
-    CM.DebugPrint("Healing Radial: Closing (slice " .. RadialState.selectedSlice .. " was hovered)")
+    CM.DebugPrint("Party Radial: Closing (slice " .. RadialState.selectedSlice .. " was hovered)")
   else
-    CM.DebugPrint("Healing Radial: Closing (no slice selected)")
+    CM.DebugPrint("Party Radial: Closing (no slice selected)")
   end
 
   HR.Hide()
@@ -1656,7 +1657,7 @@ function HR.Hide()
     RadialState.boundKey = nil
     return
   end
-  CM.DebugPrint("Healing Radial: HR.Hide called from: " .. (debugstack(2, 1, 0) or "unknown"))
+  CM.DebugPrint("Party Radial: HR.Hide called from: " .. (debugstack(2, 1, 0) or "unknown"))
 
   -- Stop mouse tracking
   RadialState.mainFrame:SetScript("OnUpdate", nil)
@@ -1692,7 +1693,7 @@ function HR.Hide()
   -- the user is typically in mouselook (no visible cursor) during combat.
   SetSliceMouseEnabled(false)
 
-  -- Mark inactive so ShouldFreeLookBeOff() via IsHealingRadialActive()
+  -- Mark inactive so ShouldFreeLookBeOff() via IsPartyRadialActive()
   -- no longer detects the radial as open.
   RadialState.isActive = false
   RadialState.selectedSlice = nil
@@ -1717,12 +1718,12 @@ function HR.Hide()
     end
   end
 
-  CM.DebugPrint("Healing Radial: Hidden (combat=" .. tostring(InCombatLockdown()) .. ")")
+  CM.DebugPrint("Party Radial: Hidden (combat=" .. tostring(InCombatLockdown()) .. ")")
 end
 
 -- Open radial via keybind (targeting on hover, casting via mouse clicks on slices)
 function HR.ShowFromKeybind()
-  if not CM.DB.global.healingRadial or not CM.DB.global.healingRadial.enabled then
+  if not CM.DB.global.partyRadial or not CM.DB.global.partyRadial.enabled then
     return false
   end
   if not RadialState.mainFrame then
@@ -1739,7 +1740,7 @@ function HR.ShowFromKeybind()
   end
 
   -- Find which key is bound so we can poll for release in TrackMousePosition
-  local boundKey = _G.GetBindingKey("Combat Mode - Healing Radial")
+  local boundKey = _G.GetBindingKey("Combat Mode - Party Radial")
 
   -- Store state (currentButton = nil signals keybind mode)
   RadialState.isActive = true
@@ -1749,7 +1750,7 @@ function HR.ShowFromKeybind()
   RadialState.wasMouselooking = _G.IsMouselooking()
   RadialState.showTime = _G.GetTime()
   -- Cache max selection distance for TrackMousePosition (avoids DB access in combat)
-  local hrConfig = CM.DB.global.healingRadial
+  local hrConfig = CM.DB.global.partyRadial
   RadialState.maxSelectDistance = ((hrConfig and hrConfig.sliceRadius) or 120) + BASE_SLICE_SIZE / 2
 
   -- Stop mouselook so cursor is free for slice selection.
@@ -1781,7 +1782,7 @@ function HR.ShowFromKeybind()
   -- Show mainFrame + children via alpha (combat-safe). SetAlpha propagates to child slices.
   if RadialState.wheelBG then
     RadialState.wheelBG:SetShown(
-      CM.DB.global.healingRadial and CM.DB.global.healingRadial.showBackground
+      CM.DB.global.partyRadial and CM.DB.global.partyRadial.showBackground
     )
   end
   RadialState.mainFrame:SetAlpha(1)
@@ -1815,7 +1816,7 @@ function HR.ShowFromKeybind()
   end
 
   CM.DebugPrint(
-    "Healing Radial: Shown via keybind (combat="
+    "Party Radial: Shown via keybind (combat="
       .. tostring(InCombatLockdown())
       .. ", wasML="
       .. tostring(RadialState.wasMouselooking)
@@ -1827,22 +1828,22 @@ end
 -- Close radial opened via keybind
 function HR.HideFromKeybind()
   if not RadialState.isActive then
-    CM.DebugPrint("Healing Radial: HideFromKeybind called but radial not active")
+    CM.DebugPrint("Party Radial: HideFromKeybind called but radial not active")
     return
   end
   local elapsed = _G.GetTime() - (RadialState.showTime or 0)
   CM.DebugPrint(
-    "Healing Radial: HideFromKeybind elapsed="
+    "Party Radial: HideFromKeybind elapsed="
       .. string.format("%.3f", elapsed)
       .. "s combat="
       .. tostring(InCombatLockdown())
   )
   -- Tap vs hold detection: if key-up arrives quickly (< 0.3s), treat as a tap —
   -- keep the radial open so the user can select a slice with the mouse. A second
-  -- key-down (handled in CombatMode_HealingRadialKey) will close it.
+  -- key-down (handled in CombatMode_PartyRadialKey) will close it.
   -- If key-up arrives after 0.3s, treat as a hold release — close the radial.
   if elapsed < 0.3 then
-    CM.DebugPrint("Healing Radial: Tap detected, keeping open")
+    CM.DebugPrint("Party Radial: Tap detected, keeping open")
     return
   end
   HR.Hide()
@@ -1853,7 +1854,7 @@ function HR.IsActive()
 end
 
 function HR.IsEnabled()
-  return CM.DB.global.healingRadial and CM.DB.global.healingRadial.enabled
+  return CM.DB.global.partyRadial and CM.DB.global.partyRadial.enabled
 end
 
 ---------------------------------------------------------------------------------------
@@ -1923,12 +1924,12 @@ end
 ---------------------------------------------------------------------------------------
 function HR.Initialize()
   -- Ensure defaults exist
-  if not CM.DB.global.healingRadial then
-    CM.DB.global.healingRadial = CM.Constants.DatabaseDefaults.global.healingRadial
+  if not CM.DB.global.partyRadial then
+    CM.DB.global.partyRadial = CM.Constants.DatabaseDefaults.global.partyRadial
   end
 
-  -- Only create the frame and overlay when healing radial is enabled (avoids drawing anything when disabled)
-  if CM.DB.global.healingRadial.enabled then
+  -- Only create the frame and overlay when party radial is enabled (avoids drawing anything when disabled)
+  if CM.DB.global.partyRadial.enabled then
     CreateMainFrame()
     CreateMouseOverrideButtons()
     RefreshPartyData()
@@ -1936,7 +1937,7 @@ function HR.Initialize()
     UpdateSliceActionAttributes()
   end
 
-  CM.DebugPrint("Healing Radial: Initialized")
+  CM.DebugPrint("Party Radial: Initialized")
 end
 
 -- Expose state for Core.lua integration

@@ -1,10 +1,10 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Tabs/TabHealingRadial.lua — OPTIONS TAB — Party Radial
+--  UI/Options/Tabs/TabPartyRadial.lua — OPTIONS TAB — Party Radial
 ---------------------------------------------------------------------------------------
---  Registers the "Party Radial" tab (runtime module remains CM.HealingRadial):
+--  Registers the "Party Radial" tab (runtime module remains CM.PartyRadial):
 --  enable toggle (confirm + ReloadUI), keybind, and visual settings (radius, scale,
 --  name font, role icon size, health bars, background). Live preview while this tab
---  is open via CM.HealingRadial.SetOptionsPreview (same onSelect/onDeselect pattern as
+--  is open via CM.PartyRadial.SetOptionsPreview (same onSelect/onDeselect pattern as
 --  the Crosshair tab). Visual setters call ApplyVisualConfig so changes show live.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -22,7 +22,7 @@ local UI = CM.UI
 local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed?"
 
 local function RadialEnabled()
-  return CM.DB.global.healingRadial.enabled
+  return CM.DB.global.partyRadial.enabled
 end
 
 local function RadialDisabled()
@@ -30,28 +30,28 @@ local function RadialDisabled()
 end
 
 local function ApplyVisualConfig()
-  if CM.HealingRadial and CM.HealingRadial.ApplyVisualConfig then
-    CM.HealingRadial.ApplyVisualConfig()
+  if CM.PartyRadial and CM.PartyRadial.ApplyVisualConfig then
+    CM.PartyRadial.ApplyVisualConfig()
   end
 end
 
 UI.Options.AddTab({
-  id = "healingradial",
+  id = "partyradial",
   label = "Party Radial",
   onSelect = function()
-    if CM.HealingRadial and CM.HealingRadial.SetOptionsPreview then
-      CM.HealingRadial.SetOptionsPreview(true)
+    if CM.PartyRadial and CM.PartyRadial.SetOptionsPreview then
+      CM.PartyRadial.SetOptionsPreview(true)
     end
   end,
   onDeselect = function()
-    if CM.HealingRadial and CM.HealingRadial.SetOptionsPreview then
-      CM.HealingRadial.SetOptionsPreview(false)
+    if CM.PartyRadial and CM.PartyRadial.SetOptionsPreview then
+      CM.PartyRadial.SetOptionsPreview(false)
     end
   end,
   build = function(ctx)
     ctx:Header("PARTY RADIAL")
     ctx:Description(
-      "Hold a Click Casting action or the Party Radial keybind during Mouse Look, aim at a slice, and release to cast."
+      "During Mouse Look, open the Party Radial, aim at a slice, then click with a Click Casting bind to cast on that party member."
     )
 
     ctx:Toggle({
@@ -61,7 +61,7 @@ UI.Options.AddTab({
       confirmText = RELOAD_CONFIRM,
       get = RadialEnabled,
       set = function(value)
-        CM.DB.global.healingRadial.enabled = value
+        CM.DB.global.partyRadial.enabled = value
         ReloadUI()
       end,
     })
@@ -69,16 +69,16 @@ UI.Options.AddTab({
       label = "Keybind",
       desc = "Tap to toggle. Hold to show temporarily.",
       get = function()
-        return (GetBindingKey("Combat Mode - Healing Radial"))
+        return (GetBindingKey("Combat Mode - Party Radial"))
       end,
       set = function(key)
         CM.TryApplyBindingChange("party radial keybinding", function()
-          local oldKey = (GetBindingKey("Combat Mode - Healing Radial"))
+          local oldKey = (GetBindingKey("Combat Mode - Party Radial"))
           if oldKey then
             SetBinding(oldKey)
           end
           if key ~= "" then
-            SetBinding(key, "Combat Mode - Healing Radial")
+            SetBinding(key, "Combat Mode - Party Radial")
           end
           SaveBindings(GetCurrentBindingSet())
         end)
@@ -93,10 +93,10 @@ UI.Options.AddTab({
       max = 200,
       step = 10,
       get = function()
-        return CM.DB.global.healingRadial.sliceRadius
+        return CM.DB.global.partyRadial.sliceRadius
       end,
       set = function(value)
-        CM.DB.global.healingRadial.sliceRadius = value
+        CM.DB.global.partyRadial.sliceRadius = value
         ApplyVisualConfig()
       end,
       disabled = RadialDisabled,
@@ -108,10 +108,10 @@ UI.Options.AddTab({
       max = 1.5,
       step = 0.1,
       get = function()
-        return CM.DB.global.healingRadial.sliceSize
+        return CM.DB.global.partyRadial.sliceSize
       end,
       set = function(value)
-        CM.DB.global.healingRadial.sliceSize = value
+        CM.DB.global.partyRadial.sliceSize = value
         ApplyVisualConfig()
       end,
       disabled = RadialDisabled,
@@ -123,10 +123,10 @@ UI.Options.AddTab({
       max = 24,
       step = 1,
       get = function()
-        return CM.DB.global.healingRadial.nameFontSize or 13
+        return CM.DB.global.partyRadial.nameFontSize or 13
       end,
       set = function(value)
-        CM.DB.global.healingRadial.nameFontSize = value
+        CM.DB.global.partyRadial.nameFontSize = value
         ApplyVisualConfig()
       end,
       disabled = RadialDisabled,
@@ -138,10 +138,10 @@ UI.Options.AddTab({
       max = 96,
       step = 16,
       get = function()
-        return CM.DB.global.healingRadial.roleIconSize or 64
+        return CM.DB.global.partyRadial.roleIconSize or 64
       end,
       set = function(value)
-        CM.DB.global.healingRadial.roleIconSize = value
+        CM.DB.global.partyRadial.roleIconSize = value
         ApplyVisualConfig()
       end,
       disabled = RadialDisabled,
@@ -150,10 +150,10 @@ UI.Options.AddTab({
       label = "Health Bars",
       desc = "Show health bars on each slice.",
       get = function()
-        return CM.DB.global.healingRadial.showHealthBars
+        return CM.DB.global.partyRadial.showHealthBars
       end,
       set = function(value)
-        CM.DB.global.healingRadial.showHealthBars = value
+        CM.DB.global.partyRadial.showHealthBars = value
         ApplyVisualConfig()
       end,
       disabled = RadialDisabled,
@@ -162,10 +162,10 @@ UI.Options.AddTab({
       label = "Background",
       desc = "Show a background behind the radial.",
       get = function()
-        return CM.DB.global.healingRadial.showBackground
+        return CM.DB.global.partyRadial.showBackground
       end,
       set = function(value)
-        CM.DB.global.healingRadial.showBackground = value
+        CM.DB.global.partyRadial.showBackground = value
         ApplyVisualConfig()
       end,
       disabled = RadialDisabled,

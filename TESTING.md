@@ -35,7 +35,7 @@ Use this checklist for feature work and regressions.
 - Confirm mouselook unlocks when expected and relocks when expected.
 - Confirm pulse appears after unlock and does not persist unexpectedly.
 
-## Healing radial
+## Party radial
 
 - Open/close radial menu through configured keybind/toggle flow.
 - Cast valid spells from radial targets and verify target routing.

@@ -44,7 +44,7 @@ local function Build()
     "CombatModeTargetingMacroPrelinesEditor",
     M["TITLE"] .. " - Targeting Macro Prelines Editor",
     700,
-    100,
+    UI.GetSecondaryEditorHeight(),
     { noScroll = true }
   )
 
@@ -104,9 +104,11 @@ local function Build()
   })
 
   ctx:Finish()
-  -- Short fixed form: no window ScrollFrame; grow the shell to the laid-out content
-  -- so the button row sits on the bottom edge.
+  -- Measure content once, publish as the shared secondary-editor height, then apply it
+  -- (same GetSecondaryEditorHeight path the CVar editor uses).
   UI.SizeWindowToContent(window)
+  UI.SetSecondaryEditorHeight(window:GetHeight())
+  window:SetHeight(UI.GetSecondaryEditorHeight())
 end
 
 function CM.OpenTargetingMacroPrelinesEditor()
@@ -130,5 +132,6 @@ function CM.OpenTargetingMacroPrelinesEditor()
 
   window:Show()
   window:Raise()
+  window:SetHeight(UI.GetSecondaryEditorHeight())
   UI.Options.Sync()
 end

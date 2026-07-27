@@ -29,6 +29,7 @@ local UIParent = _G.UIParent
 local ipairs = _G.ipairs
 local floor = _G.math.floor
 local max = _G.math.max
+local type = _G.type
 
 local UI = CM.UI
 local C = UI.Colors
@@ -338,6 +339,42 @@ function UI.SizeWindowToContent(win)
   win:SetHeight(contentH + 44 + 14)
   if win.scroll and win.scroll.cmUpdate then
     win.scroll.cmUpdate()
+  end
+end
+
+--- Shared outer height for secondary editors (Prelines + Reticle CVar). Both windows
+--- call UI.GetSecondaryEditorHeight() on create/open. Prelines measures once via
+--- SizeWindowToContent and publishes with UI.SetSecondaryEditorHeight.
+UI.SecondaryEditorHeight = nil
+
+function UI.GetSecondaryEditorHeight()
+  if UI.SecondaryEditorHeight and UI.SecondaryEditorHeight > 1 then
+    return UI.SecondaryEditorHeight
+  end
+  local prelines = _G.CombatModeTargetingMacroPrelinesEditor
+  if prelines then
+    local h = prelines:GetHeight()
+    if h and h > 1 then
+      UI.SecondaryEditorHeight = h
+      return h
+    end
+  end
+  -- Provisional until the Prelines editor is built and sized to content.
+  return 340
+end
+
+function UI.SetSecondaryEditorHeight(height)
+  if type(height) ~= "number" or height < 1 then
+    return
+  end
+  UI.SecondaryEditorHeight = height
+  local prelines = _G.CombatModeTargetingMacroPrelinesEditor
+  if prelines then
+    prelines:SetHeight(height)
+  end
+  local cvar = _G.CombatModeReticleCVarEditor
+  if cvar then
+    cvar:SetHeight(height)
   end
 end
 
@@ -692,8 +729,8 @@ function CM.OpenOptions()
   end
   -- Mouselook auto-disables via the frame watcher: CombatModeOptionsFrame is registered
   -- in CM.Constants.FramesToCheck, so the cursor unlocks while this window is shown.
-  if CM.HealingRadial and CM.HealingRadial.IsActive and CM.HealingRadial.IsActive() then
-    CM.HealingRadial.Hide()
+  if CM.PartyRadial and CM.PartyRadial.IsActive and CM.PartyRadial.IsActive() then
+    CM.PartyRadial.Hide()
   end
   Options.Initialize()
   Options.DockWindowLeft()

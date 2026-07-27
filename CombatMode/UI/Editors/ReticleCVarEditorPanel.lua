@@ -124,12 +124,30 @@ local function BuildListFrame(parent, width, height)
   frame:SetFrameStrata(parent:GetFrameStrata())
   frame:SetFrameLevel(parent:GetFrameLevel() + 2)
   frame.itemHeight = 18
+  frame.rowPad = 4 -- top inset inside clip; bottom uses leftover (clipped if needed)
   frame.minValue = 0
   frame.value = 0
   frame.items = {}
   frame.rows = {}
   frame.sortColumn = 1
   frame.sortAscending = true
+
+  -- Rows live in a clipped inset so overflow never paints past the rounded list chrome.
+  -- Headers stay on `frame` (anchored above TOP) and must not be under SetClipsChildren.
+  local clip = CreateFrame("Frame", nil, frame)
+  clip:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1)
+  clip:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -22, 1)
+  clip:SetClipsChildren(true)
+  frame.clip = clip
+
+  local function VisibleRowCount(listHeight)
+    local clipH = listHeight or (clip:GetHeight() or 0)
+    if clipH < 1 then
+      clipH = (frame:GetHeight() or 0) - 2
+    end
+    return math.max(1, math.floor((clipH - frame.rowPad) / frame.itemHeight))
+  end
+  frame.VisibleRowCount = VisibleRowCount
 
   local cols = {
     { "CVar", 180, "LEFT" },
@@ -229,7 +247,7 @@ local function BuildListFrame(parent, width, height)
 
   function frame:SetItems(items)
     self.items = items or {}
-    self.visibleRows = math.max(1, math.floor((self:GetHeight() - 12) / self.itemHeight))
+    self.visibleRows = VisibleRowCount()
     if self.EnsureRows then
       self:EnsureRows(self.visibleRows)
     end
@@ -257,6 +275,19 @@ local function BuildListFrame(parent, width, height)
     self:UpdateRows()
   end)
 
+  -- Window height sync (secondary editors) can shrink this list after the first SetItems;
+  -- recompute visible rows so we never keep overflow rows shown.
+  frame:SetScript("OnSizeChanged", function(self, _, h)
+    if not self.items or (h or 0) < 1 then
+      return
+    end
+    local nextVisible = VisibleRowCount((h or self:GetHeight()) - 2)
+    if nextVisible == self.visibleRows then
+      return
+    end
+    self:SetItems(self.items)
+  end)
+
   scrollbar:SetScript("OnValueChanged", function(_, value)
     frame.value = math.floor(value)
     frame:UpdateRows()
@@ -265,12 +296,12 @@ local function BuildListFrame(parent, width, height)
   local lastClickTime = 0
 
   local function CreateRow(rowIndex)
-    local row = CreateFrame("Frame", nil, frame)
+    local row = CreateFrame("Frame", nil, clip)
     row:SetWidth(width - 34)
     row:SetHeight(frame.itemHeight)
     row:EnableMouse(true)
     if rowIndex == 1 then
-      row:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, -8)
+      row:SetPoint("TOPLEFT", clip, "TOPLEFT", 7, -frame.rowPad)
     else
       row:SetPoint("TOPLEFT", frame.rows[rowIndex - 1], "BOTTOMLEFT", 0, 0)
     end
@@ -463,7 +494,7 @@ function CM.OpenReticleTargetingCVarEditor()
       "CombatModeReticleCVarEditor",
       CM.METADATA["TITLE"] .. " - Reticle Targeting CVar Editor",
       735,
-      400
+      UI.GetSecondaryEditorHeight()
     )
     frame:Hide()
 
@@ -572,6 +603,7 @@ function CM.OpenReticleTargetingCVarEditor()
     Editor.inlineBlocker = blocker
   end
 
+  Editor.frame:SetHeight(UI.GetSecondaryEditorHeight())
   Editor.frame:Show()
   Editor.frame:Raise()
 

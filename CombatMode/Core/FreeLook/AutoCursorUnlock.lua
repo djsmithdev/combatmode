@@ -4,7 +4,7 @@
 --  Supplies CM.IsUnlockFrameVisible (static + wildcard frame name matching),
 --  vendor/mount/pet-battle/feign checks, and CM.IsCustomConditionTrue for optional
 --  user Lua. FreeLookController.ShouldFreeLookBeOff() combines these with spell targeting,
---  cinematics, healing radial, etc., so the global OnUpdate can call UnlockFreeLook.
+--  cinematics, party radial, etc., so the global OnUpdate can call UnlockFreeLook.
 --
 --  Architecture:
 --    • CM.InitializeWildcardFrameTracking called once from Runtime bootstrap; uses

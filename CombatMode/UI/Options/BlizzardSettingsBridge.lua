@@ -69,29 +69,26 @@ local function RegisterBlizzardAddOnCategory()
   titleArt:SetSize(320, 74)
   titleArt:SetPoint("TOP", optionsFrame, "CENTER", 0, 130)
 
-  local previous = titleArt
   local version = (CM.METADATA and CM.METADATA["VERSION"])
     or (C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata(
       "CombatMode",
       "Version"
     ))
     or ""
+  local versionText
   if version ~= "" then
-    local versionText = optionsFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-    versionText:SetPoint("TOP", previous, "BOTTOM", 0, -16)
+    versionText = optionsFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    versionText:SetPoint("TOP", titleArt, "BOTTOM", 0, -16)
     versionText:SetText(WrapWhite("Version: " .. version))
-    previous = versionText
   end
 
   local instructions = optionsFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge")
-  instructions:SetPoint("TOP", previous, "BOTTOM", 0, -28)
+  instructions:SetPoint("TOP", versionText or titleArt, "BOTTOM", 0, -28)
   instructions:SetText(WrapWhite("Use the button below to open Combat Mode options."))
-  previous = instructions
 
   local slashHint = optionsFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-  slashHint:SetPoint("TOP", previous, "BOTTOM", 0, -12)
+  slashHint:SetPoint("TOP", instructions, "BOTTOM", 0, -12)
   slashHint:SetText("You can also type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r in chat.")
-  previous = slashHint
 
   local template = "SharedButtonLargeTemplate"
   if C_XMLUtil and C_XMLUtil.GetTemplateInfo and not C_XMLUtil.GetTemplateInfo(template) then
@@ -103,7 +100,7 @@ local function RegisterBlizzardAddOnCategory()
   if DynamicResizeButton_Resize then
     DynamicResizeButton_Resize(button)
   end
-  button:SetPoint("TOP", previous, "BOTTOM", 0, -28)
+  button:SetPoint("TOP", slashHint, "BOTTOM", 0, -28)
   button:SetScale(1.5)
   button:SetScript("OnClick", function()
     -- Close Esc → Options so only CombatModeOptionsFrame remains.

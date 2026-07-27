@@ -8,11 +8,11 @@
 --    • free-look gating checks consumed by Core/Runtime/Runtime.lua OnUpdate
 --    • OPie close rematch (CM.NotifyOpieUnlockFrameVisible) — OPie MouselookStops itself
 --      and AutoCursorUnlock frees CursorFreelookCentering; on close we must bounce
---      mouselook with centering forced to 0 before Start (same pattern as HealingRadial)
+--      mouselook with centering forced to 0 before Start (same pattern as Party Radial)
 --
 --  Related: Core/FreeLook/AutoCursorUnlock.lua (unlock predicates),
 --  Core/Runtime/CVarManager.lua (CursorFreelookCentering writes),
---  Core/HealingRadial/HealingRadial.lua (OnMouselookChanged).
+--  Core/PartyRadial/PartyRadial.lua (OnMouselookChanged).
 --  Runtime remains the coordinator and calls exported CM helpers from this module.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -62,8 +62,8 @@ local function HideTooltip(shouldHide)
   end
 end
 
-local function IsHealingRadialActive()
-  return CM.HealingRadial and CM.HealingRadial.IsActive and CM.HealingRadial.IsActive()
+local function IsPartyRadialActive()
+  return CM.PartyRadial and CM.PartyRadial.IsActive and CM.PartyRadial.IsActive()
 end
 
 function CM.ShouldFreeLookBeOff()
@@ -77,7 +77,7 @@ function CM.ShouldFreeLookBeOff()
       or CM.IsVendorMountOut()
       or CM.IsInPetBattle()
       or CM.IsFeignDeathActive()
-      or IsHealingRadialActive()
+      or IsPartyRadialActive()
     )
 end
 
@@ -148,8 +148,8 @@ local function StartFreeLookFresh()
   MouselookStart()
   RunLockFreeLookDeferredUI()
   CM.ShowCrosshairLockIn()
-  if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
-    CM.HealingRadial.OnMouselookChanged(true)
+  if CM.PartyRadial and CM.PartyRadial.OnMouselookChanged then
+    CM.PartyRadial.OnMouselookChanged(true)
   end
   CM.DebugPrint("Free Look Enabled")
 end
@@ -172,8 +172,8 @@ function CM.UnlockFreeLook()
     CM.ShowCursorPulse()
   end
 
-  if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
-    CM.HealingRadial.OnMouselookChanged(false)
+  if CM.PartyRadial and CM.PartyRadial.OnMouselookChanged then
+    CM.PartyRadial.OnMouselookChanged(false)
   end
   CM.DebugPrint("Free Look Disabled")
 end
@@ -189,8 +189,8 @@ local function UnlockFreeLookPermanent()
     CM.ShowCursorPulse()
   end
 
-  if CM.HealingRadial and CM.HealingRadial.OnMouselookChanged then
-    CM.HealingRadial.OnMouselookChanged(false)
+  if CM.PartyRadial and CM.PartyRadial.OnMouselookChanged then
+    CM.PartyRadial.OnMouselookChanged(false)
   end
   CM.DebugPrint("Free Look Disabled (Permanent)")
 end
@@ -217,7 +217,7 @@ function CM.RematchFreeLookAfterOpieIfNeeded()
 end
 
 -- Unified cursor mode keybind: tap to toggle, hold to temporarily unlock.
--- Uses the same spurious key-up filter as the Healing Radial keybind.
+-- Uses the same spurious key-up filter as the Party Radial keybind.
 -- MouselookStop() fires spurious key-up events for held keys, so we ignore
 -- key-ups within 0.3s of unlocking. A quick tap leaves the cursor free (toggle);
 -- holding longer than 0.3s re-locks on release (hold).

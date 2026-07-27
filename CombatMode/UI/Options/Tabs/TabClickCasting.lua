@@ -5,7 +5,7 @@
 --  Base / Shift / Ctrl / Alt segment switcher that crossfades one modifier group's
 --  Left + Right click overrides at a time (enable, action dropdown, macro name). Binding
 --  APIs unchanged (CM.SetNewBinding, CM.ResetBindingOverride, CM.OverrideDefaultButtons,
---  HealingRadial.OnBindingChanged).
+--  CM.PartyRadial.OnBindingChanged).
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -73,8 +73,8 @@ local function Binding(slot)
 end
 
 local function OnBindingChanged()
-  if CM.HealingRadial and CM.HealingRadial.OnBindingChanged then
-    CM.HealingRadial.OnBindingChanged()
+  if CM.PartyRadial and CM.PartyRadial.OnBindingChanged then
+    CM.PartyRadial.OnBindingChanged()
   end
 end
 

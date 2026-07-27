@@ -42,7 +42,10 @@ UI.Options.AddTab({
     })
     ctx:TextInput({
       label = "Extra Frames",
-      desc = "Extra frame names that trigger an auto unlock.\nUse /fstack to find names.",
+      desc = "Extra frame names that trigger an auto unlock.\nUse "
+        .. UI.SlashWrap("/fstack")
+        .. " to find names.",
+      descAllowColors = true,
       multiline = 4,
       get = function()
         return tconcat(CM.DB.global.watchlist or {}, ", ")
@@ -61,7 +64,7 @@ UI.Options.AddTab({
     ctx:Gap()
     ctx:TextInput({
       label = "Custom Condition",
-      desc = "Lua that returns true to unlock the cursor.",
+      desc = "Custom Lua code checked during Mouse Look. Return true to trigger an auto unlock.",
       placeholder = "local isStill = GetUnitSpeed('player') == 0\nlocal onMount = IsMounted()\nreturn not onMount and isStill",
       multiline = 4,
       get = function()

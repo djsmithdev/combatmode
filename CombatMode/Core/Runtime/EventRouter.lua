@@ -71,11 +71,11 @@ local function HandleEventByCategory(category, event, ...)
       end
     end,
     FRIENDLY_TARGETING_EVENTS = function()
-      if CM.HealingRadial then
-        if event == "PLAYER_REGEN_DISABLED" and CM.HealingRadial.OnCombatStart then
-          CM.HealingRadial.OnCombatStart()
-        elseif event == "PLAYER_REGEN_ENABLED" and CM.HealingRadial.OnCombatEnd then
-          CM.HealingRadial.OnCombatEnd()
+      if CM.PartyRadial then
+        if event == "PLAYER_REGEN_DISABLED" and CM.PartyRadial.OnCombatStart then
+          CM.PartyRadial.OnCombatStart()
+        elseif event == "PLAYER_REGEN_ENABLED" and CM.PartyRadial.OnCombatEnd then
+          CM.PartyRadial.OnCombatEnd()
         end
       end
       if event == "PLAYER_REGEN_ENABLED" then
@@ -104,14 +104,14 @@ local function HandleEventByCategory(category, event, ...)
       if CM.InvalidateAssistedHighlightKeybindCache then
         CM.InvalidateAssistedHighlightKeybindCache()
       end
-      -- Healing Radial: update slice targets and spell attributes when roster or action bar changes
-      if not CM.HealingRadial then
+      -- Party Radial: update slice targets and spell attributes when roster or action bar changes
+      if not CM.PartyRadial then
         return
       end
-      if event == "GROUP_ROSTER_UPDATE" and CM.HealingRadial.OnGroupRosterUpdate then
-        CM.HealingRadial.OnGroupRosterUpdate()
-      elseif CM.HealingRadial.OnActionBarChanged then
-        CM.HealingRadial.OnActionBarChanged()
+      if event == "GROUP_ROSTER_UPDATE" and CM.PartyRadial.OnGroupRosterUpdate then
+        CM.PartyRadial.OnGroupRosterUpdate()
+      elseif CM.PartyRadial.OnActionBarChanged then
+        CM.PartyRadial.OnActionBarChanged()
       end
     end,
     FOCUS_LOCK_EVENTS = function()

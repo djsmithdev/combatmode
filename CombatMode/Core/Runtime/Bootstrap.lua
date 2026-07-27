@@ -65,7 +65,7 @@ function CM.BootstrapFeatureModules()
   CM.InitializeCursorPulse()
   CreateTargetMacros()
   CM.ApplyToggleFocusTargetBinding()
-  if CM.HealingRadial and CM.HealingRadial.Initialize then
-    CM.HealingRadial.Initialize()
+  if CM.PartyRadial and CM.PartyRadial.Initialize then
+    CM.PartyRadial.Initialize()
   end
 end
