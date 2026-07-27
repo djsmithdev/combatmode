@@ -2,32 +2,48 @@
 
 All notable changes to this project will be documented in this file.
 
-This log follows Keep a Changelog (https://keepachangelog.com/en/1.1.0/) and Semantic Versioning (https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [4.0.2] - 2026-07-27
+
+### Added
+
+- Changelog window now has a left-hand version list; click a version to scroll to that section.
 
 ## [4.0.1] - 2026-07-27
 
 ### Added
-- Added safeguard to prevent attempted binding of the primary mouse buttons;
-- The input boxes for Excluded Spells & Cast at Crosshair now accept IDs as well as names.
+
+- Excluded Spells and Cast at Crosshair now accept spell IDs as well as names (including mixed lists such as `Heroic Leap, #6544`).
+
+### Fixed
+
+- Keybind options can no longer bind Left or Right Mouse Button, which previously could clear Camera Or Select Or Move from `BUTTON1`.
 
 ### Changed
 
-- Adjusted helper text for a handful of options.
+- Clarified helper text on several options.
 
 ## [4.0.0] - 2026-07-25
 
 ### Changed
 
-- Rebuilt the settings interface as a standalone, movable Combat Mode window with a modern sidebar layout. Open it with |cff69ccf0/cm|r or |cff69ccf0/combatmode|r (the same as before), or from Escape → Options → AddOns → Combat Mode (opens the same window).
-- Combat Mode's Crosshair can no longer be edited through Edit Mode; all settings were moved to a dedicated window under the new config panel;
-- Healing Radial has been renamed to Party Radial and you can now see a live preview as you modify it.
-- Action Camera options have been moved to a dedicated section named Action Camera.
-- Removed the Ace3 / LibStub library stack in favour of our own internal solutions; settings still use the same SavedVariables (`CombatModeDB`) and slash commands.
+- **Breaking:** rebuilt the settings UI as a standalone, movable Combat Mode window with a sidebar layout. Open it with `/cm` or `/combatmode`, or from Escape > Options > AddOns > Combat Mode.
+- **Breaking:** Crosshair can no longer be edited through Edit Mode; its settings live under the Crosshair tab in the new options window.
+- Healing Radial renamed to Party Radial, with a live preview while adjusting visual settings.
+- Action Camera options moved into a dedicated Action Camera section.
+
+### Removed
+
+- Ace3 / LibStub dependency stack in favor of native Combat Mode modules. SavedVariables (`CombatModeDB`) and slash commands are unchanged.
 
 ### Fixed
 
-- Fixed issue where toggling OPie rings in quick sucession could cause the cursor to be stuck and visible while mouse look is active.
-- Fixed issue where a reload could cause the cursor to be visible while in the mouse look state post loading screen.
+- Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
+- Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
 ## [3.3.1] - 2026-07-18
 
@@ -39,8 +55,8 @@ This log follows Keep a Changelog (https://keepachangelog.com/en/1.1.0/) and Sem
 
 ### Added
 
-- Combat Assist Spell icon suggestion on the Crosshair: shows the next recommended spell icon near the crosshair (Retail Assisted Combat highlight).
-- Edit Mode controls for the assisted highlight widget: enable/disable, size, position (X/Y), keybind display, and keybind anchor (top/bottom/left/right).
+- Combat Assist spell icon suggestion on the Crosshair (Retail Assisted Combat highlight).
+- Edit Mode controls for the assisted highlight widget: enable/disable, size, position (X/Y), keybind display, and keybind anchor.
 
 ## [3.2.2] - 2026-03-28
 
@@ -58,21 +74,20 @@ This log follows Keep a Changelog (https://keepachangelog.com/en/1.1.0/) and Sem
 
 ### Added
 
-- Reticle Targeting CVar editor: customize the CVars Combat Mode uses for Reticle Targeting.
-- Targeting macro prelines editor: customize macro prelines injected into actions when Reticle Targeting is enabled.
+- Reticle Targeting CVar editor for customizing Combat Mode Reticle Targeting CVars.
+- Targeting macro prelines editor for customizing injected prelines when Reticle Targeting is enabled.
 
 ## [3.1.10] - 2026-03-26
 
 ### Added
 
-- Explicit third-party action bar policy: when Bartender4, Dominos, or ElvUI is detected, Combat Mode forces `macroInjectionClickCastOnly=true` and locks that toggle; Blizzard default bars keep full reticle targeting macro injection.
+- Third-party action bar policy: when Bartender4, Dominos, or ElvUI is detected, Combat Mode forces `macroInjectionClickCastOnly=true` and locks that toggle; Blizzard default bars keep full reticle targeting macro injection.
 
 ## [3.1.9] - 2026-03-26
 
 ### Changed
 
-- Refactored action bar binding overrides: canonical action-slot id is derived from the binding prefix and button index instead of `MultiBar*ButtonN` frames, whose `action` attribute can be ambiguous with Bartender4, Dominos, ElvUI, and similar addons.
-- Code cleanup.
+- Action bar binding overrides now derive the canonical action-slot id from the binding prefix and button index instead of `MultiBar*ButtonN` frames, whose `action` attribute can be ambiguous with Bartender4, Dominos, ElvUI, and similar addons.
 
 ## [3.1.8] - 2026-03-25
 
@@ -92,19 +107,13 @@ This log follows Keep a Changelog (https://keepachangelog.com/en/1.1.0/) and Sem
 
 - GitHub package release workflow.
 
-### Changed
-
-- Code cleanup.
-
 ## [3.1.5] - 2026-03-23
 
 ### Changed
 
-- Cursor freelook centring is tied to the Crosshair being active, not Reticle Targeting.
+- Cursor freelook centering is tied to the Crosshair being active, not Reticle Targeting.
 - Crosshair reactivity no longer requires Reticle Targeting.
-- Interaction HUD range check adjusted.
-
-Together, these updates allow using the Crosshair and Interaction HUD independently of Reticle Targeting configuration.
+- Interaction HUD range check adjusted so the Crosshair and Interaction HUD can be used independently of Reticle Targeting configuration.
 
 ## [3.1.4] - 2026-03-23
 
@@ -140,9 +149,28 @@ Together, these updates allow using the Crosshair and Interaction HUD independen
 ### Changed
 
 - Crosshair vertical positioning limit removed.
-- Crosshair behavior aligns more closely with config options, including more reliable cursor centring.
+- Crosshair behavior aligns more closely with config options, including more reliable cursor centering.
 - Reorganized project structure into smaller, easier-to-maintain files.
 
 ### Fixed
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
+
+[Unreleased]: https://github.com/sampconrad/combatmode/compare/4.0.1...HEAD
+[4.0.1]: https://github.com/sampconrad/combatmode/compare/4.0.0...4.0.1
+[4.0.0]: https://github.com/sampconrad/combatmode/compare/3.3.1...4.0.0
+[3.3.1]: https://github.com/sampconrad/combatmode/compare/3.3.0...3.3.1
+[3.3.0]: https://github.com/sampconrad/combatmode/compare/3.2.2...3.3.0
+[3.2.2]: https://github.com/sampconrad/combatmode/compare/3.2.1...3.2.2
+[3.2.1]: https://github.com/sampconrad/combatmode/compare/3.2.0...3.2.1
+[3.2.0]: https://github.com/sampconrad/combatmode/compare/3.1.10...3.2.0
+[3.1.10]: https://github.com/sampconrad/combatmode/compare/3.1.9...3.1.10
+[3.1.9]: https://github.com/sampconrad/combatmode/compare/3.1.8...3.1.9
+[3.1.8]: https://github.com/sampconrad/combatmode/compare/3.1.7...3.1.8
+[3.1.7]: https://github.com/sampconrad/combatmode/compare/3.1.6...3.1.7
+[3.1.6]: https://github.com/sampconrad/combatmode/compare/3.1.5...3.1.6
+[3.1.5]: https://github.com/sampconrad/combatmode/compare/3.1.4...3.1.5
+[3.1.4]: https://github.com/sampconrad/combatmode/compare/3.1.3...3.1.4
+[3.1.3]: https://github.com/sampconrad/combatmode/compare/3.1.2...3.1.3
+[3.1.2]: https://github.com/sampconrad/combatmode/compare/3.1.1...3.1.2
+[3.1.1]: https://github.com/sampconrad/combatmode/releases/tag/3.1.1

@@ -55,4 +55,5 @@ Use this checklist for feature work and regressions.
 - If keybind writes were changed, verify in-combat changes defer and apply automatically after leaving combat.
 - For contributor lint/format checks, use helper by default: `pwsh ./scripts/lint-changed.ps1`.
 - Equivalent direct gate: `pre-commit run --files <changed files>`.
+- After **code** changes: bump `CombatMode/CombatMode.toc` `## Version`, update `CombatMode/CHANGELOG.md`, then `pwsh ./scripts/sync-changelog-to-lua.ps1` (see `AGENTS.md` / change checklist).
 - Reserve full-repo gate for release prep: `pre-commit run --all-files`.

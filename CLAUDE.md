@@ -18,4 +18,8 @@ When you discover a durable pattern (debugging technique, API workaround, archit
 
 ## Finish requirements
 
-Match **`AGENTS.md`**: pre-commit on changed Lua, Selene/Stylua as in contributor workflow, no combat-unsafe paths, enable/disable symmetry for mouselook/CVars/bindings when touched.
+Match **`AGENTS.md`** and `.cursor/rules/combatmode-change-checklist.mdc`:
+
+1. No combat-unsafe paths; enable/disable symmetry for mouselook/CVars/bindings when touched.
+2. **Lint first:** `pwsh ./scripts/lint-changed.ps1` (or `pre-commit run --files <changed lua files>`).
+3. **After code changes** (not pure docs/rules-only): bump `## Version` in `CombatMode/CombatMode.toc`, update `CombatMode/CHANGELOG.md` (Keep a Changelog), then run `pwsh ./scripts/sync-changelog-to-lua.ps1` so `UI/Changelog/ChangelogData.lua` stays in sync.

@@ -64,10 +64,15 @@ See `STRUCTURE.md` for load-order details.
 
 ## Before finishing a change
 
-- Verify deprecations/replacements via WoW MCP tools.
-- Confirm no combat-unsafe paths were introduced.
-- Validate enable/disable symmetry for runtime state (mouselook/CVars/bindings).
-- Ensure docs/rule updates if architecture or workflow changed.
-- Run lint/format via pre-commit on changed files: `pre-commit run --files <changed lua files>`.
-- Use direct tool commands only for targeted debugging (`stylua --check ...`, `selene --config selene.toml ...`).
-- Run repo-wide formatting/lint only for release prep or explicit maintainer request: `pre-commit run --all-files`.
+Authoritative day-to-day finish order is also in `.cursor/rules/combatmode-change-checklist.mdc`.
+
+1. Verify deprecations/replacements via WoW MCP tools; confirm no combat-unsafe paths; validate enable/disable symmetry for mouselook/CVars/bindings when touched; update architecture docs/headers if the module graph changed.
+2. **Lint first** (before version/changelog):
+   - Preferred: `pwsh ./scripts/lint-changed.ps1`
+   - Equivalent: `pre-commit run --files <changed lua files>`
+   - Debug only: `stylua --check ...`, `selene --config selene.toml ...`
+   - Full repo only for release prep / explicit request: `pre-commit run --all-files`
+3. **After code changes** (skip for pure docs/rules-only edits):
+   - Bump `## Version` in `CombatMode/CombatMode.toc` (SemVer).
+   - Update `CombatMode/CHANGELOG.md` (Keep a Changelog): fold `[Unreleased]` into `## [x.y.z] - YYYY-MM-DD` matching the TOC version; use standard categories; refresh compare links.
+   - Run `pwsh ./scripts/sync-changelog-to-lua.ps1` so `CombatMode/UI/Changelog/ChangelogData.lua` matches the in-game viewer.

@@ -4,10 +4,13 @@ Use this checklist when preparing a release build.
 
 ## 1) Version and metadata
 
-- Update addon version in `CombatMode/CombatMode.toc` (and any mirrored version fields).
+Day-to-day code finishes already bump TOC + CHANGELOG + sync (see `AGENTS.md`). For a release tag, confirm:
+
+- Addon version in `CombatMode/CombatMode.toc` matches the latest dated section in `CombatMode/CHANGELOG.md`.
 - Verify `## Interface` targets current Retail build.
 - Confirm addon title/notes/author metadata are accurate.
 - Confirm `CombatMode/CombatMode.toc` addon folder/name metadata still matches `CombatMode` packaging expectations.
+- `ChangelogData.lua` is synced (`pwsh ./scripts/sync-changelog-to-lua.ps1`).
 
 ## Release automation setup (WoW Packager)
 

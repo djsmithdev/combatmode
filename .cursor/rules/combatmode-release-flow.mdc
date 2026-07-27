@@ -12,6 +12,10 @@ When asked to prepare a release, ship an update, or finalize a version:
 - Verify WoW API compatibility with MCP tools before finalizing notes.
 - Call out any user-impacting changes (bindings, CVars, settings migration) clearly.
 - Ensure version/interface metadata changes are explicitly included in the change summary.
+- Confirm `CombatMode/CombatMode.toc` `## Version` matches the new Keep a Changelog section in `CombatMode/CHANGELOG.md`.
 - After editing **`CombatMode/CHANGELOG.md`**, run **`scripts/sync-changelog-to-lua.ps1`** (or VS Code task **Sync CHANGELOG.md to ChangelogData.lua**) so **`CombatMode/UI/Changelog/ChangelogData.lua`** matches the in-game changelog viewer.
+- Run the full lint gate: `pre-commit run --all-files`.
+
+Day-to-day **code** finishes (not only tagged releases) still require lint → TOC version bump → CHANGELOG update → changelog sync per `combatmode-change-checklist.mdc` / `AGENTS.md`.
 
 If the request is not release-related, apply normal architecture/safety/checklist rules.

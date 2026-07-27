@@ -13,10 +13,15 @@ Use this guide for day-to-day contributor workflow.
 ## Default local workflow
 
 1. Make your code changes.
-2. Run lint/format on changed files:
-   - `pre-commit run --files <changed files>`
-3. Run focused runtime checks from `TESTING.md` for touched features.
-4. Open your PR.
+2. **Lint first** (before version/changelog):
+   - Preferred: `pwsh ./scripts/lint-changed.ps1`
+   - Equivalent: `pre-commit run --files <changed files>`
+3. **After code changes** (skip for pure docs/rules-only):
+   - Bump `## Version` in `CombatMode/CombatMode.toc` (SemVer).
+   - Update `CombatMode/CHANGELOG.md` (Keep a Changelog; match TOC version).
+   - Run `pwsh ./scripts/sync-changelog-to-lua.ps1` so `CombatMode/UI/Changelog/ChangelogData.lua` matches the in-game viewer.
+4. Run focused runtime checks from `TESTING.md` for touched features.
+5. Open your PR.
 
 ## When to run full-repo checks
 
@@ -33,7 +38,7 @@ Use full sweep only for release prep or explicit maintainer request:
 
 ## PR minimum checklist
 
-- Changed-files pre-commit checks pass.
+- Changed-files lint passes (`lint-changed.ps1` / pre-commit).
+- For code changes: TOC version bumped, `CHANGELOG.md` updated, and changelog sync script run.
 - Feature behavior verified with focused testing (`TESTING.md`).
 - Any process/rule/documentation updates included when workflow/architecture changed.
-- If you change **`CombatMode/CHANGELOG.md`**, run **`scripts/sync-changelog-to-lua.ps1`** so **`CombatMode/UI/Changelog/ChangelogData.lua`** matches the in-game changelog (or note in the PR if intentionally deferred).
