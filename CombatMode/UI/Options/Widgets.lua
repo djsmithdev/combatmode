@@ -1625,23 +1625,45 @@ function UI.MakeButton(parent, opts)
   button:SetHeight(btnH)
   button:SetWidth(btnW)
   button:SetPoint("TOPLEFT", row, "TOPLEFT", 0, 0)
-  -- Flat neutral button. The theme keeps a single accent (yellow) reserved for section
-  -- titles and selected-tab labels.
-  local IDLE = { 0.16, 0.16, 0.16, 1 }
-  UI.StylePill(button, IDLE, C.cardBorder)
+  -- Flat neutral button by default. opts.danger uses the warning red for uninstall-style actions.
+  -- Accent yellow stays reserved for section titles and selected-tab labels.
+  local IDLE = opts.danger
+      and {
+        C.warning[1] * 0.35,
+        C.warning[2] * 0.35,
+        C.warning[3] * 0.35,
+        1,
+      }
+    or { 0.16, 0.16, 0.16, 1 }
+  local HOVER = opts.danger
+      and {
+        C.warning[1] * 0.55,
+        C.warning[2] * 0.55,
+        C.warning[3] * 0.55,
+        1,
+      }
+    or { 0.26, 0.26, 0.26, 1 }
+  local TEXT = opts.danger and { C.warning[1], C.warning[2], C.warning[3] }
+    or { C.text[1], C.text[2], C.text[3] }
+  UI.StylePill(button, IDLE, opts.danger and {
+    C.warning[1] * 0.6,
+    C.warning[2] * 0.6,
+    C.warning[3] * 0.6,
+    1,
+  } or C.cardBorder)
 
   local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontNormal")
   text:SetPoint("CENTER")
   text:SetText(UI.StripColors(opts.label) or "")
-  text:SetTextColor(C.text[1], C.text[2], C.text[3])
+  text:SetTextColor(TEXT[1], TEXT[2], TEXT[3])
 
   button:SetScript("OnEnter", function(self)
-    self:cmSetFill(0.26, 0.26, 0.26, 1)
+    self:cmSetFill(HOVER[1], HOVER[2], HOVER[3], HOVER[4] or 1)
     text:SetTextColor(1, 1, 1)
   end)
   button:SetScript("OnLeave", function(self)
-    self:cmSetFill(IDLE[1], IDLE[2], IDLE[3], 1)
-    text:SetTextColor(C.text[1], C.text[2], C.text[3])
+    self:cmSetFill(IDLE[1], IDLE[2], IDLE[3], IDLE[4] or 1)
+    text:SetTextColor(TEXT[1], TEXT[2], TEXT[3])
   end)
   button:SetScript("OnClick", function()
     if not opts.func then

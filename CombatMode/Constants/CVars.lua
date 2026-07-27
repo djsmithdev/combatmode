@@ -2,11 +2,18 @@
 --  Constants/CVars.lua — CONSTANTS — CVar presets / editor exclusions
 ---------------------------------------------------------------------------------------
 --  Owns ReticleTargetingCVarValues (CombatMode reticle defaults), Blizzard reset
---  tables, Action Camera / Sticky Crosshair / Interaction HUD SoftTarget subsets, and
+--  tables, Action Camera / Sticky Crosshair / Interaction HUD SoftTarget subsets,
 --  ReticleTargetingCVarEditorExcluded (keys hidden from the editor and pruned from
---  saved overrides). Consumed by Core/Runtime/CVarManager.lua and UI/Editors/*.
+--  saved overrides), and ManagedCVarNames (union of every CVar CM may write — used by
+--  CVarManager to snapshot pre-CM values for Uninstall restore).
+--  Consumed by Core/Runtime/CVarManager.lua and UI/Editors/*.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+
+local ipairs = _G.ipairs
+local pairs = _G.pairs
+local table = _G.table
+local type = _G.type
 
 -- CVARS FOR RETICLE TARGETING
 CM.Constants.ReticleTargetingCVarValues = {
@@ -114,3 +121,40 @@ CM.Constants.BlizzardTargetFocusCVarValues = {
   ["test_cameraTargetFocusEnemyStrengthYaw"] = 0.4,
   ["test_cameraTargetFocusEnemyStrengthPitch"] = 0.5,
 }
+
+-- Every CVar Combat Mode may write. Used to snapshot the player's pre-CM values once
+-- so Uninstall can restore them instead of hard-coded Blizzard tables.
+do
+  local seen = {}
+  local names = {}
+  local function addTable(t)
+    if type(t) ~= "table" then
+      return
+    end
+    for name in pairs(t) do
+      if not seen[name] then
+        seen[name] = true
+        names[#names + 1] = name
+      end
+    end
+  end
+  addTable(CM.Constants.ReticleTargetingCVarValues)
+  addTable(CM.Constants.InteractionHUDSoftTargetCVarValues)
+  addTable(CM.Constants.ActionCameraCVarValues)
+  addTable(CM.Constants.TargetFocusCVarValues)
+  addTable(CM.Constants.BlizzardReticleTargetingCVarValues)
+  addTable(CM.Constants.BlizzardActionCameraCVarValues)
+  addTable(CM.Constants.BlizzardTargetFocusCVarValues)
+  for _, name in ipairs({
+    "cameraYawMoveSpeed",
+    "cameraPitchMoveSpeed",
+    "CursorCenteredYPos",
+  }) do
+    if not seen[name] then
+      seen[name] = true
+      names[#names + 1] = name
+    end
+  end
+  table.sort(names)
+  CM.Constants.ManagedCVarNames = names
+end

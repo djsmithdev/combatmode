@@ -3,8 +3,10 @@
 ---------------------------------------------------------------------------------------
 --  Owns CM.Constants.DatabaseDefaults merged by Core/Runtime/Runtime.lua (InitDatabase).
 --  Includes global targetingMacroPrelineAnyOverride / targetingMacroPrelineEnemyOverride
---  (nil = built-in prelines; edited via UI/Editors/TargetingMacroPrelinesEditor.lua) and
---  reticleTargetingCVarOverrides (Reticle CVar editor; merged in Core/Runtime/CVarManager.lua).
+--  (nil = built-in prelines; edited via UI/Editors/TargetingMacroPrelinesEditor.lua),
+--  reticleTargetingCVarOverrides (Reticle CVar editor; merged in Core/Runtime/CVarManager.lua),
+--  and priorCVarSnapshot (refreshed at each enable before CM overwrites; restored by
+--  Uninstall; preserved across Reset to Defaults).
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 
@@ -93,6 +95,8 @@ CM.Constants.DatabaseDefaults = {
     silenceAlerts = false,
     debugMode = false,
     reticleTargetingCVarOverrides = {},
+    -- Populated at each enable before the first CM CVar write.
+    priorCVarSnapshot = nil,
     targetingMacroPrelineAnyOverride = nil,
     targetingMacroPrelineEnemyOverride = nil,
     bindings = DefaultBindings,

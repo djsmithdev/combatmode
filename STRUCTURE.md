@@ -14,7 +14,7 @@ from [`CombatMode/CombatMode.toc`](CombatMode/CombatMode.toc)).
 
 ## Load order (scripts)
 
-1. **CombatMode/Core/Runtime/Runtime.lua** — receives the AddOn namespace (`local addonName, CM = ...`), optional `_G.CM` alias, registers `ADDON_LOADED` / `PLAYER_LOGIN` lifecycle, native `CombatModeDB` merge, and slash commands (`/cm`, `/combatmode`, `/undocm`).
+1. **CombatMode/Core/Runtime/Runtime.lua** — receives the AddOn namespace (`local addonName, CM = ...`), optional `_G.CM` alias, registers `ADDON_LOADED` / `PLAYER_LOGIN` lifecycle, native `CombatModeDB` merge, and slash commands (`/cm`, `/combatmode`).
 2. **CombatMode/Constants/** — constants/data modules initialize `CM.Constants` and must load before feature consumers (`Namespace.lua` first).
 3. **CombatMode/Core/Runtime/** — remaining runtime support scripts:
    - **EventRouter.lua** (event routing + `_G.CombatMode_OnEvent`)
@@ -28,6 +28,6 @@ from [`CombatMode/CombatMode.toc`](CombatMode/CombatMode.toc)).
 
 ## Public entry points
 
-- **Slash:** `/cm`, `/combatmode`, `/undocm` (Core/Runtime).
+- **Slash:** `/cm`, `/combatmode` (Core/Runtime). Uninstall is the options sidebar button (`CM.UninstallCombatMode`), not a slash command.
 - **Options:** standalone movable window `CombatModeOptionsFrame` opened by `CM.OpenOptions()` (bound to `/cm`, the first-login popup, and Escape → Options → AddOns → Combat Mode via `UI/Options/BlizzardSettingsBridge.lua`); tabs registered via `CM.UI.Options.AddTab` in `UI/Options/Tabs/`.
 - **Changelog (in-game):** `CM.Config.ShowChangelog()` (sidebar footer → View Changelog, or auto after version bump via `Core/Runtime/Runtime.lua` + `CM.Config.MaybeShowChangelogOnNewVersion`); body string `CM.Config.ChangelogText` in `UI/Changelog/ChangelogData.lua`, maintained from `CombatMode/CHANGELOG.md` with `scripts/sync-changelog-to-lua.ps1`.

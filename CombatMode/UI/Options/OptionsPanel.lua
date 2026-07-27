@@ -8,7 +8,7 @@
 --
 --  Tab content is contributed by UI/Options/Tabs/*.lua via CM.UI.Options.AddTab; this
 --  module owns only the shell, the vertical layout manager (ctx), tab switching, and the
---  pinned sidebar footer (silence/debug toggles + changelog/reset buttons, formerly the
+--  pinned sidebar footer (silence/debug toggles + changelog/reset/uninstall buttons, formerly the
 --  About tab). Widget construction/feature wiring lives in Widgets.lua + the tab builders.
 --
 --  Tabs may declare onSelect/onDeselect for transient side effects; they fire in pairs on
@@ -563,7 +563,7 @@ local function BuildTab(def, index)
 end
 
 --- Utility controls pinned to the bottom of the sidebar (formerly the About tab): the
---- silence-alerts / debug toggles and the changelog / reset-to-defaults buttons.
+--- silence-alerts / debug toggles and the changelog / reset / uninstall buttons.
 local function BuildSidebarFooter()
   local footer = CreateFrame("Frame", nil, frame)
   footer:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 12, 14)
@@ -606,9 +606,21 @@ local function BuildSidebarFooter()
     label = "Reset to Defaults",
     width = "full",
     confirm = true,
-    confirmText = "A UI Reload is required when making this change. Proceed?",
+    confirmText = "Reset Combat Mode settings to defaults and reload?",
     func = function()
       CM:OnResetDB()
+    end,
+  })
+  fctx:Button({
+    label = "Uninstall",
+    width = "full",
+    danger = true,
+    confirm = true,
+    confirmText = "Uninstall Combat Mode?\n\nThis restores your previous camera and targeting settings, disables the addon, and reloads.",
+    func = function()
+      if CM.UninstallCombatMode then
+        CM.UninstallCombatMode()
+      end
     end,
   })
 

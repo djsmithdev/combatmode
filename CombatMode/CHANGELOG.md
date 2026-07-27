@@ -11,7 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Uninstall button in the options sidebar: restores your pre-Combat Mode camera and targeting CVars, resets Left/Right Click to the default camera binds, disables the addon, and reloads.
+- Combat Mode now snapshots your CVars before changing them, so Uninstall can restore *your* settings instead of only hard-coded Blizzard defaults.
 - Changelog window now has a left-hand version list; click a version to scroll to that section.
+
+### Changed
+
+- Welcome popup now clarifies the difference between deleting the addon folder and and fully uninstalling.
+
+### Removed
+
+- `/undocm` slash command — use the Uninstall button in options instead.
+
 
 ## [4.0.1] - 2026-07-27
 

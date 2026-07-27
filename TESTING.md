@@ -49,7 +49,7 @@ Use this checklist for feature work and regressions.
 
 ## Quick regression pass
 
-- Slash commands: `/cm`, `/combatmode`, `/undocm`.
+- Slash commands: `/cm`, `/combatmode`.
 - Keybinds still function after reload and after disabling/re-enabling addon.
 - No Lua errors in normal use paths for edited features.
 - If keybind writes were changed, verify in-combat changes defer and apply automatically after leaving combat.

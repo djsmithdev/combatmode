@@ -11,11 +11,12 @@ local _G = _G
 local ipairs = _G.ipairs
 
 -- Body only: the welcome modal (CM.UI.ShowWelcome) draws the logo + wordmark header itself.
--- Slash commands keep inline color: blue for options (/cm, /combatmode), red for /undocm.
+-- Slash commands keep inline color: blue for options (/cm, /combatmode).
 CM.Constants.PopupMsg = "Thank you for trying out Combat Mode!\n\n"
   .. "Upon closing this, the config panel will automatically open.\n\n"
   .. "You can also open it anytime with the commands |cff69ccf0/cm|r or |cff69ccf0/combatmode|r.\n\n"
-  .. "To undo all changes made by Combat Mode, type |cffff5555/undocm|r in chat."
+  .. "If you decide not to keep Combat Mode, use the |cffff5555Uninstall|r button at the bottom of the options sidebar. That restores your previous camera and targeting settings, disables the addon, and reloads.\n\n"
+  .. "|cff909090Do not only disable or delete the addon without Uninstall — some camera settings are saved by the game and would otherwise stick around.|r"
 
 CM.Constants.BasePrintMsg = CM.METADATA["TITLE"]
   .. " |cff00ff00v."

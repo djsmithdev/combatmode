@@ -6,19 +6,119 @@
 --  (prune excluded keys), CM.GetEffectiveReticleTargetingCVarValues (presets +
 --  CM.DB.global.reticleTargetingCVarOverrides). Presets/exclusions live in Constants/CVars.lua;
 --  the Reticle CVar editor is UI/Editors/ReticleCVarEditor*.lua.
+--
+--  Also owns pre-CM CVar snapshots (CM.CapturePriorCVarSnapshot /
+--  CM.EnsurePriorCVarSnapshot / CM.RestorePriorCVars): each enable captures
+--  ManagedCVarNames into CM.DB.global.priorCVarSnapshot *before* CM writes, so
+--  Uninstall restores the values from the start of that session. Hard-coded
+--  Blizzard tables remain as fallback when no snapshot exists.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
 
 -- WoW API
+local GetCVar = _G.C_CVar.GetCVar
+local GetCVarDefault = _G.C_CVar.GetCVarDefault
 local SetCVar = _G.C_CVar.SetCVar
 local UIParent = _G.UIParent
 
 -- Lua stdlib
+local ipairs = _G.ipairs
 local math = _G.math
+local next = _G.next
 local pairs = _G.pairs
 local type = _G.type
 local tostring = _G.tostring
+
+-- Suppress snapshot capture while restoring (avoid treating restored values as "prior").
+local restoringCVars = false
+-- True after CapturePriorCVarSnapshot this login; Ensure becomes a no-op so Rematch
+-- / later SetCVar cannot overwrite the pre-apply snapshot with CM values.
+local sessionSnapshotCaptured = false
+
+local function SnapshotIsPopulated(snap)
+  return type(snap) == "table" and next(snap) ~= nil
+end
+
+local function CountKeys(t)
+  local n = 0
+  if type(t) ~= "table" then
+    return 0
+  end
+  for _ in pairs(t) do
+    n = n + 1
+  end
+  return n
+end
+
+--- Force-capture current managed CVar values. Call once at enable/bootstrap *before*
+--- any Combat Mode writes so Uninstall restores what the player had this session.
+function CM.CapturePriorCVarSnapshot()
+  if restoringCVars then
+    return
+  end
+  local globalDB = CM.DB and CM.DB.global
+  if not globalDB then
+    return
+  end
+
+  local snap = {}
+  local names = CM.Constants.ManagedCVarNames
+  if type(names) == "table" then
+    for _, name in ipairs(names) do
+      local value = GetCVar(name)
+      if value ~= nil then
+        snap[name] = value
+      end
+    end
+  end
+  globalDB.priorCVarSnapshot = snap
+  sessionSnapshotCaptured = true
+  CM.DebugPrint("Captured prior CVar snapshot (" .. CountKeys(snap) .. " keys).")
+end
+
+--- Safety net for SetCVar paths that run before CapturePriorCVarSnapshot.
+--- No-op once this session's pre-apply snapshot exists (do not refresh mid-session).
+function CM.EnsurePriorCVarSnapshot()
+  if restoringCVars or sessionSnapshotCaptured then
+    return
+  end
+  CM.CapturePriorCVarSnapshot()
+end
+
+--- Restore CVars from the pre-CM snapshot. Falls back to hard-coded Blizzard tables
+--- when no snapshot exists.
+function CM.RestorePriorCVars()
+  local globalDB = CM.DB and CM.DB.global
+  local snap = globalDB and globalDB.priorCVarSnapshot
+  restoringCVars = true
+
+  if SnapshotIsPopulated(snap) then
+    for name, value in pairs(snap) do
+      SetCVar(name, value)
+    end
+    -- Freelook centering must never linger after uninstall; force off even if missing.
+    SetCVar("CursorFreelookCentering", snap.CursorFreelookCentering or 0)
+    CM.DebugPrint("Restored prior CVar snapshot (" .. CountKeys(snap) .. " keys).")
+  else
+    CM.DebugPrint("No prior CVar snapshot — falling back to Blizzard preset tables.")
+    CM.ConfigReticleTargeting("blizzard")
+    CM.ConfigActionCamera("blizzard")
+    CM.ConfigStickyCrosshair("blizzard")
+    CM.HandleSoftTargetFriend(false)
+    SetCVar("CursorFreelookCentering", 0)
+    local yawDefault = GetCVarDefault and GetCVarDefault("cameraYawMoveSpeed")
+    local pitchDefault = GetCVarDefault and GetCVarDefault("cameraPitchMoveSpeed")
+    if yawDefault then
+      SetCVar("cameraYawMoveSpeed", yawDefault)
+    end
+    if pitchDefault then
+      SetCVar("cameraPitchMoveSpeed", pitchDefault)
+    end
+  end
+
+  restoringCVars = false
+end
 
 function CM.GetReticleTargetingCVarOverrides()
   local globalDB = CM.DB and CM.DB.global
@@ -58,6 +158,7 @@ function CM.GetEffectiveReticleTargetingCVarValues()
 end
 
 function CM.SetCVar(name, value)
+  CM.EnsurePriorCVarSnapshot()
   SetCVar(name, value)
 end
 
@@ -191,11 +292,9 @@ function CM.SetShoulderOffset()
   CM.DebugPrint("Setting Shoulder Offset to " .. offset)
 end
 
+--- Restore the player's pre-Combat Mode CVars (snapshot preferred; Blizzard tables fallback).
+--- Prefer CM.UninstallCombatMode for a full leave; this is the CVar half only.
 function CM:ResetCVarsToDefault()
-  self.ConfigReticleTargeting("blizzard")
-  self.ConfigActionCamera("blizzard")
-  self.ConfigStickyCrosshair("blizzard")
-  self.HandleSoftTargetFriend(false)
-
-  print(CM.Constants.BasePrintMsg .. "|cff909090: all changes have been reverted.|r")
+  CM.RestorePriorCVars()
+  print(CM.Constants.BasePrintMsg .. "|cff909090: camera and targeting CVars restored.|r")
 end

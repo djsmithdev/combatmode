@@ -19,8 +19,9 @@
 --      (CM.PartyRadial API).
 --    • Exposes globals for XML: CombatMode_OnEvent, CombatMode_OnUpdate, keybind
 --      handlers (CombatMode_CursorModeKey, CombatMode_PartyRadialKey).
---    • Shared CVar helpers live in Core/Runtime/CVarManager.lua and are used by editors
---      and by Crosshair / Interaction HUD flows.
+--  • Shared CVar helpers live in Core/Runtime/CVarManager.lua (including pre-CM
+--    priorCVarSnapshot capture/restore). Uninstall is CM.UninstallCombatMode
+--    (restore CVars, reset BUTTON1/BUTTON2 camera binds, disable, reload).
 ---------------------------------------------------------------------------------------
 local addonName, CM = ...
 local _G = _G
@@ -127,19 +128,6 @@ local function OpenConfigPanel()
   if CM.OpenOptions then
     CM.OpenOptions()
   end
-end
-
-local function UndoCMChanges()
-  if InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot run this cmd while in combat.|r")
-    return
-  end
-  CM:ResetCVarsToDefault()
-  if CM.OnDisable then
-    CM:OnDisable()
-  end
-  DisableAddOn(addonName)
-  ReloadUI()
 end
 
 local function ScheduleChangelogIfNewVersion()
@@ -273,6 +261,11 @@ function CM:OnResetDB()
   CM.DebugPrint("Reseting Combat Mode settings.")
   local defaults = CM.Constants.DatabaseDefaults
   local sv = _G.CombatModeDB or {}
+
+  -- Keep the pre-CM CVar snapshot so Uninstall still restores the player's original
+  -- values after a settings wipe. (Next enable refreshes it before CM writes.)
+  local priorCVars = CM.DB and CM.DB.global and CM.DB.global.priorCVarSnapshot
+
   for k in pairs(sv) do
     sv[k] = nil
   end
@@ -283,7 +276,43 @@ function CM:OnResetDB()
   sv.char = {
     [charKey] = DeepCopy(defaults.char or {}),
   }
+  if type(priorCVars) == "table" then
+    sv.global.priorCVarSnapshot = priorCVars
+  end
   BindDatabaseViews(sv, charKey)
+  ReloadUI()
+end
+
+--- Full leave path: restore pre-CM CVars, reset left/right click to Blizzard camera
+--- defaults, stop freelook, disable the addon, reload. Used by the options sidebar
+--- Uninstall button.
+function CM.UninstallCombatMode()
+  if InCombatLockdown() then
+    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot uninstall while in combat.|r")
+    return
+  end
+
+  if IsMouselooking() then
+    MouselookStop()
+  end
+
+  if CM.RestorePriorCVars then
+    CM.RestorePriorCVars()
+  end
+  if CM.RestorePriorBindings then
+    CM.RestorePriorBindings()
+  end
+
+  if CM.OnDisable then
+    -- Skip a second CVar restore; OnDisable only tears down UI/events here.
+    CM:OnDisable(true)
+  end
+
+  print(
+    CM.Constants.BasePrintMsg
+      .. "|cff909090: restored your previous camera/targeting settings and default mouse camera binds, then disabled the addon.|r"
+  )
+  DisableAddOn(addonName)
   ReloadUI()
 end
 
@@ -292,6 +321,10 @@ end
 ---------------------------------------------------------------------------------------
 -- Rematch is called after every reload and this is where we make sure our config persists
 local function Rematch()
+  -- Bootstrap already captured; Ensure is a no-op once sessionSnapshotCaptured is set.
+  if CM.EnsurePriorCVarSnapshot then
+    CM.EnsurePriorCVarSnapshot()
+  end
   IsDCLoaded()
   CM.SetMouseLookSpeed()
 
@@ -400,21 +433,11 @@ function CM:OpenConfigCMD()
   OpenConfigPanel()
 end
 
--- /UNDOCM CHAT COMMAND — resets CVars, disables the addon, reloads.
-function CM:RunUndoCMD()
-  UndoCMChanges()
-end
-
 local function RegisterSlashCommands()
   _G.SLASH_COMBATMODE1 = "/cm"
   _G.SLASH_COMBATMODE2 = "/combatmode"
   _G.SlashCmdList["COMBATMODE"] = function()
     CM:OpenConfigCMD()
-  end
-
-  _G.SLASH_UNDOCM1 = "/undocm"
-  _G.SlashCmdList["UNDOCM"] = function()
-    CM:RunUndoCMD()
   end
 end
 
@@ -467,13 +490,15 @@ function CM:OnEnable()
   end
 end
 
-function CM:OnDisable()
+function CM:OnDisable(skipCVarRestore)
   if not enabled then
     return
   end
   enabled = false
   CM.HideCrosshairFrame()
-  self:ResetCVarsToDefault()
+  if not skipCVarRestore and CM.RestorePriorCVars then
+    CM.RestorePriorCVars()
+  end
   local frame = _G.CombatModeFrame
   if frame then
     frame:UnregisterAllEvents()
