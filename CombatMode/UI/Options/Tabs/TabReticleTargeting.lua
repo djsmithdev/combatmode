@@ -2,11 +2,11 @@
 --  UI/Options/Tabs/TabReticleTargeting.lua — OPTIONS TAB — Reticle Targeting
 ---------------------------------------------------------------------------------------
 --  Registers the "Reticle Targeting" tab: the reticle toggles (confirm + ReloadUI), the
---  exclude/@cursor spell lists, and the execute buttons that open the custom Reticle CVar
---  editor (UI/Editors/ReticleCVarEditorPanel.lua) and the Targeting Macro
---  Prelines editor. Sticky targeting lives on the Action Camera tab; the Target Lock
---  "selected target not crosshair" toggle lives on the General tab. Feature APIs
---  unchanged (CM.ConfigReticleTargeting, RefreshClickCastMacros).
+--  exclude/@cursor spell lists (UI.MakeSpellMultiSelect pill editor), and the execute
+--  buttons that open the custom Reticle CVar editor (UI/Editors/ReticleCVarEditorPanel.lua)
+--  and the Targeting Macro Prelines editor. Sticky targeting lives on the Action Camera
+--  tab; the Target Lock "selected target not crosshair" toggle lives on the General tab.
+--  Feature APIs unchanged (CM.ConfigReticleTargeting, RefreshClickCastMacros).
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -81,11 +81,10 @@ UI.Options.AddTab({
       end,
     })
     ctx:Gap()
-    ctx:TextInput({
+    ctx:SpellMultiSelect({
       label = "Excluded Spells",
-      desc = "Spell names or IDs to skip the reticle targeting logic.",
+      desc = "Spells to skip the reticle targeting logic.",
       charSpecific = true,
-      multiline = 4,
       get = function()
         return CM.DB.char.excludeFromTargetingSpells or ""
       end,
@@ -99,11 +98,10 @@ UI.Options.AddTab({
         return not CM.DB.char.reticleTargeting
       end,
     })
-    ctx:TextInput({
+    ctx:SpellMultiSelect({
       label = "Cast at Crosshair",
-      desc = "Ground spell names or IDs to cast at the crosshair location.",
+      desc = "Ground spells to cast at the crosshair location.",
       charSpecific = true,
-      multiline = 4,
       get = function()
         return CM.DB.char.castAtCursorSpells or ""
       end,

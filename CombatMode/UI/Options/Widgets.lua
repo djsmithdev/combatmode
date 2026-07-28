@@ -4,13 +4,14 @@
 --  Owns the reusable option controls for the custom options window: toggle switch,
 --  slider (accent fill + eased value transitions), dropdown (custom high-strata popup
 --  w/ filter + scroll), keybind capture, text/multiline input, pill button, section
---  header, and wrapped description. Every value control exposes :Refresh()
---  (re-pulls get()/disabled()) and auto-registers with CM.UI.Options for the central
---  SyncControls pass. Confirmation dialogs route through UI.Confirm / UI.Notify
---  (CombatModeConfirmDialog; body text is stripped of color markup). The first-install
---  greeting uses a dedicated UI.ShowWelcome modal (CombatModeWelcomeDialog) that keeps
---  inline |cff| colors for slash-command hints and is not registered in UISpecialFrames,
---  so Blizzard's load-end CloseSpecialWindows cannot dismiss it.
+--  header, and wrapped description. Spell pill multi-select lives in
+--  UI/Options/SpellMultiSelect.lua (UI.MakeSpellMultiSelect). Every value control
+--  exposes :Refresh() (re-pulls get()/disabled()) and auto-registers with CM.UI.Options
+--  for the central SyncControls pass. Confirmation dialogs route through UI.Confirm /
+--  UI.Notify (CombatModeConfirmDialog; body text is stripped of color markup). The
+--  first-install greeting uses a dedicated UI.ShowWelcome modal (CombatModeWelcomeDialog)
+--  that keeps inline |cff| colors for slash-command hints and is not registered in
+--  UISpecialFrames, so Blizzard's load-end CloseSpecialWindows cannot dismiss it.
 --
 --  All text renders at the fixed UI.Fonts.base size with inline color markup stripped
 --  (UI.StripColors); UI.MakeHeader is the sole exception (larger + accent yellow), and
@@ -87,6 +88,10 @@ end
 local function IsDisabled(opts)
   return type(opts.disabled) == "function" and opts.disabled() or opts.disabled == true
 end
+
+--- Shared by SpellMultiSelect.lua (loaded after this file).
+Options.RegisterControl = Register
+Options.IsDisabled = IsDisabled
 
 --- Full-row hover highlight (mirrors the left sidebar tab hover): a subtle rounded
 --- background band shown while the cursor is anywhere over the row or its interactive
@@ -697,6 +702,10 @@ local function AttachOptionText(control, row, opts, widgetH)
   row:SetHeight(provisional)
 end
 
+--- Shared by SpellMultiSelect.lua.
+Options.AttachOptionText = AttachOptionText
+Options.AddRowHover = AddRowHover
+
 local function SetDescAlpha(control, a)
   if control.desc then
     control.desc:SetAlpha(a)
@@ -1172,6 +1181,24 @@ function UI.MakeDropdown(parent, opts)
     end
     menu.content:SetHeight(max(shown * ITEM_H, 1))
     menu.scroll:SetVerticalScroll(0)
+
+    -- Only reserve the scrollbar gutter when the list actually overflows.
+    local needsBar = shown > MAX_ROWS
+    local gutter = needsBar and BAR_GUTTER or 0
+    local menuW = menu:GetWidth()
+    local scrollW = menuW - (2 * MENU_PAD) - gutter
+    local visibleRows = needsBar and MAX_ROWS or max(shown, 1)
+    local listH = visibleRows * ITEM_H
+    menu.content:SetWidth(scrollW)
+    menu.scroll:SetWidth(scrollW)
+    menu.scroll:SetHeight(listH)
+
+    local topPad = MENU_PAD
+    if menu.filter:IsShown() then
+      topPad = MENU_PAD + 22 + MENU_PAD
+    end
+    menu:SetHeight(topPad + listH + MENU_PAD)
+
     if menu.scroll.cmUpdate then
       menu.scroll.cmUpdate()
     end
@@ -1225,9 +1252,8 @@ function UI.MakeDropdown(parent, opts)
     local count = #orderedIds()
     local useFilter = count > FILTER_MIN
     local width = max(button:GetWidth(), 220)
-    local scrollW = width - (2 * MENU_PAD) - BAR_GUTTER
 
-    menu.content:SetWidth(scrollW)
+    menu:SetWidth(width)
 
     local top = -MENU_PAD
     if useFilter then
@@ -1241,13 +1267,8 @@ function UI.MakeDropdown(parent, opts)
       menu.filter:Hide()
     end
 
-    local visibleRows = count > MAX_ROWS and MAX_ROWS or count
-    local listH = max(visibleRows * ITEM_H, ITEM_H)
-
     menu.scroll:ClearAllPoints()
     menu.scroll:SetPoint("TOPLEFT", menu, "TOPLEFT", MENU_PAD, top)
-    menu.scroll:SetWidth(scrollW)
-    menu.scroll:SetHeight(listH)
 
     menu.bar:ClearAllPoints()
     menu.bar:SetPoint("TOP", menu.scroll, "TOP", 0, 0)
@@ -1256,7 +1277,6 @@ function UI.MakeDropdown(parent, opts)
 
     Populate("")
 
-    menu:SetSize(width, -top + listH + MENU_PAD)
     menu:ClearAllPoints()
     menu:SetPoint("TOPRIGHT", button, "BOTTOMRIGHT", 0, -2)
     menu.closer:Show()

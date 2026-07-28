@@ -124,8 +124,8 @@ CM.Constants.DatabaseDefaults = {
     reticleTargetingEnemyOnly = true,
     macroInjectionClickCastOnly = false,
     focusCurrentTargetNotCrosshair = false,
-    castAtCursorSpells = "Heroic Leap, Shift, Sigil of Flame, 189110, 190356",
-    excludeFromTargetingSpells = "Shield Wall, Ice Block, Divine Shield, 198589",
+    castAtCursorSpells = "6544, 204596, 189110, 190356", -- Heroic Leap, Sigil of Flame, Infernal Strike, Blizzard
+    excludeFromTargetingSpells = "871, 45438, 642, 198589", -- Shield Wall, Ice Block, Divine Shield, Blur
     stickyCrosshair = false,
     bindings = DefaultBindings,
   },

@@ -35,6 +35,7 @@
          OptionsPanel (defines AddTab/CreateWindow); Tabs register after OptionsPanel. -->
     <Script file="UI\Options\Draw.lua"/>
     <Script file="UI\Options\Widgets.lua"/>
+    <Script file="UI\Options\SpellMultiSelect.lua"/>
     <Script file="UI\Options\OptionsPanel.lua"/>
     <!-- Blizzard AddOns panel bridge (Open Options → CM.OpenOptions); after OptionsPanel. -->
     <Script file="UI\Options\BlizzardSettingsBridge.lua"/>

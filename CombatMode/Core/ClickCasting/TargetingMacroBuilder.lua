@@ -5,6 +5,8 @@
 --  and special-bar / ground-target handling). Account-wide pre-line overrides live in
 --  CM.DB.global (targetingMacroPrelineAnyOverride, targetingMacroPrelineEnemyOverride);
 --  defaults for the editor are exposed as CM.TargetingMacroPrelinesDefaults.
+--  Cast-at-cursor / exclude lists in CM.DB.char are comma-separated spell IDs (legacy
+--  name tokens are resolved to IDs when parsed). Membership matches base/override IDs.
 --
 --  Secure frame creation + SetOverrideBinding plumbing stays in
 --  Core/ClickCasting/BindingOverrides.lua. Prelines UI: UI/Editors/TargetingMacroPrelinesEditor.lua.
@@ -16,10 +18,12 @@ local _G = _G
 local C_ActionBar = _G.C_ActionBar
 local C_CVar = _G.C_CVar
 local C_Spell = _G.C_Spell
+local C_SpellBook = _G.C_SpellBook
 local GetActionInfo = _G.GetActionInfo
 
 -- Lua stdlib
 local ipairs = _G.ipairs
+local pairs = _G.pairs
 local pcall = _G.pcall
 local strtrim = _G.strtrim
 local string = _G.string
@@ -256,12 +260,14 @@ local CLICKCAST_PRE_LINE_ENEMY =
 CM.TargetingMacroPrelinesDefaults = CM.TargetingMacroPrelinesDefaults
   or { any = CLICKCAST_PRE_LINE_ANY, enemy = CLICKCAST_PRE_LINE_ENEMY }
 
-local function ParseSpellList(list)
+--- Builds a set of numeric spell IDs from a CSV list. Numeric tokens are used as-is;
+--- legacy name tokens are resolved via C_Spell.GetSpellInfo when possible.
+local function ParseSpellListIds(list)
   if not list or list == "" then
-    return nil, nil
+    return nil
   end
-  local names = {}
   local ids = {}
+  local any = false
   for entry in string.gmatch(list, "[^,]+") do
     local token = strtrim(entry)
     if token ~= "" then
@@ -269,40 +275,62 @@ local function ParseSpellList(list)
       local id = tonumber(idText)
       if id and id > 0 then
         ids[id] = true
-      else
-        names[token:lower()] = true
+        any = true
+      elseif C_Spell and C_Spell.GetSpellInfo then
+        local si = C_Spell.GetSpellInfo(token)
+        local spellId = si and (si.spellID or si.spellId)
+        if spellId and spellId > 0 then
+          ids[spellId] = true
+          any = true
+        end
       end
     end
   end
-  return names, ids
+  if not any then
+    return nil
+  end
+  return ids
+end
+
+local function RelatedSpellIds(spellId)
+  local related = { [spellId] = true }
+  if C_SpellBook and C_SpellBook.FindBaseSpellByID then
+    local base = C_SpellBook.FindBaseSpellByID(spellId)
+    if base and base > 0 then
+      related[base] = true
+    end
+  end
+  if C_SpellBook and C_SpellBook.FindSpellOverrideByID then
+    local override = C_SpellBook.FindSpellOverrideByID(spellId)
+    if override and override > 0 then
+      related[override] = true
+    end
+  end
+  return related
 end
 
 local function SpellListContains(list, spellId)
   if not spellId or spellId <= 0 then
     return false
   end
-  local names, ids = ParseSpellList(list)
-  if not names or not ids then
+  local ids = ParseSpellListIds(list)
+  if not ids then
     return false
   end
-  if ids[spellId] then
-    return true
+  for id in pairs(RelatedSpellIds(spellId)) do
+    if ids[id] then
+      return true
+    end
   end
-  local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellId)
-  local spellName = spellInfo and spellInfo.name
-  if not spellName or spellName == "" then
-    return false
-  end
-  return names[spellName:lower()] == true
+  return false
 end
 
--- Returns true if spellId is in the user's "Cast @Cursor Spells" list
--- (comma-separated spell names and/or IDs in options).
+-- Returns true if spellId is in the user's cast-at-crosshair list (CSV of spell IDs).
 function CM.IsCastAtCursorSpell(spellId)
   return SpellListContains(CM.DB.char.castAtCursorSpells, spellId)
 end
 
--- Returns true if spellId is in the user's "Exclude from targeting" blacklist (no pre-line applied).
+-- Returns true if spellId is in the exclude-from-targeting list (CSV of spell IDs).
 function CM.IsExcludedFromTargetingSpell(spellId)
   return SpellListContains(CM.DB.char.excludeFromTargetingSpells, spellId)
 end

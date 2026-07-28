@@ -139,6 +139,9 @@ local function NewLayout(content, width)
   function ctx:TextInput(o)
     return self:Place(UI.MakeTextInput(self.content, o))
   end
+  function ctx:SpellMultiSelect(o)
+    return self:Place(UI.MakeSpellMultiSelect(self.content, o))
+  end
   function ctx:Button(o)
     local control = UI.MakeButton(self.content, o)
     -- Row spans the content width so under-button descriptions can wrap; the button
