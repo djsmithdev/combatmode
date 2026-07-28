@@ -4,7 +4,7 @@ Use this checklist when preparing a release build.
 
 ## 1) Version and metadata
 
-Day-to-day code finishes already bump TOC + CHANGELOG + sync (see `AGENTS.md`). For a release tag, confirm:
+Version bumps are opt-in during day-to-day work (agents ask; see `AGENTS.md`). For a release tag, confirm the bump happened:
 
 - Addon version in `CombatMode/CombatMode.toc` matches the latest dated section in `CombatMode/CHANGELOG.md`.
 - Verify `## Interface` targets current Retail build.

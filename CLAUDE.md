@@ -21,5 +21,5 @@ When you discover a durable pattern (debugging technique, API workaround, archit
 Match **`AGENTS.md`** and `.cursor/rules/combatmode-change-checklist.mdc`:
 
 1. No combat-unsafe paths; enable/disable symmetry for mouselook/CVars/bindings when touched.
-2. **Lint first:** `pwsh ./scripts/lint-changed.ps1` (or `pre-commit run --files <changed lua files>`).
-3. **After code changes** (not pure docs/rules-only): bump `## Version` in `CombatMode/CombatMode.toc`, update `CombatMode/CHANGELOG.md` (Keep a Changelog), then run `pwsh ./scripts/sync-changelog-to-lua.ps1` so `UI/Changelog/ChangelogData.lua` stays in sync.
+2. **Lint:** `pwsh ./scripts/lint-changed.ps1` (or `pre-commit run --files <changed lua files>`).
+3. **Version + changelog (ask first):** after code changes, ask if the user wants to bump versions. Only then bump `CombatMode/CombatMode.toc`, update `CombatMode/CHANGELOG.md`, and run `pwsh ./scripts/sync-changelog-to-lua.ps1`.

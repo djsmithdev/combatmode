@@ -5,6 +5,7 @@
 --  CM.UI window (UI.CreateBareWindow) + custom thumb scrollbars (UI.CreateScrollFrame),
 --  CM.Config.ShowChangelog / CM.Config.MaybeShowChangelogOnNewVersion,
 --  CM.DB.global.lastSeenChangelogVersion when shown.
+--  Link + nav date tips use UI.ShowTooltip (CombatModeUITooltip), not GameTooltip.
 --  Data: CM.Config.ChangelogText from ChangelogData.lua (sync from CHANGELOG.md via
 --  scripts/sync-changelog-to-lua.ps1). Callers: OptionsPanel sidebar footer (View Changelog),
 --  Core/Runtime/Runtime.lua (ScheduleChangelogIfNewVersion on login / after welcome popup).
@@ -320,13 +321,13 @@ local function WireSimpleHtmlLinks(body)
     if type(link) ~= "string" or link == "" then
       return
     end
-    _G.GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
-    _G.GameTooltip:SetText(link, 1, 1, 1, 1, true)
-    _G.GameTooltip:AddLine("Click to print URL to chat", 0.7, 0.7, 0.7)
-    _G.GameTooltip:Show()
+    UI.ShowTooltip(self, {
+      title = link,
+      text = "Click to print URL to chat",
+    }, "ANCHOR_RIGHT")
   end)
   body:SetScript("OnHyperlinkLeave", function()
-    _G.GameTooltip:Hide()
+    UI.HideTooltip()
   end)
 end
 
@@ -450,12 +451,6 @@ local function RebuildNavButtons(frame, sections)
     button.label = label
     SetNavButtonSelected(button, false)
 
-    if sec.date and sec.date ~= "" then
-      UI.AttachTooltip(button, function()
-        return sec.date
-      end)
-    end
-
     button:SetScript("OnClick", function()
       frame.suppressNavSync = true
       SelectVersion(i, false)
@@ -469,11 +464,15 @@ local function RebuildNavButtons(frame, sections)
       if not self.selected then
         self:cmSetFill(C.tabHover[1], C.tabHover[2], C.tabHover[3], C.tabHover[4])
       end
+      if sec.date and sec.date ~= "" then
+        UI.ShowTooltip(self, sec.date, "ANCHOR_RIGHT")
+      end
     end)
     button:SetScript("OnLeave", function(self)
       if not self.selected then
         self:cmSetFill(0, 0, 0, 0)
       end
+      UI.HideTooltip()
     end)
 
     frame.navButtons[i] = button

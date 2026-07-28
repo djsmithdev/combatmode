@@ -80,7 +80,7 @@ UI.Options.AddTab({
 
     ctx:Keybind({
       label = "Mouse Look Keybind",
-      desc = "Tap to toggle. Hold to unlock the cursor temporarily.",
+      desc = "Tap to toggle Mouse Look. Hold to unlock the cursor temporarily.",
       get = function()
         return (GetBindingKey("Combat Mode - Mouse Look"))
       end,
@@ -126,7 +126,7 @@ UI.Options.AddTab({
 
     ctx:Keybind({
       label = "Interact Keybind",
-      desc = "Interact with the unit chosen below.",
+      desc = "Tap to interact with the unit chosen below.",
       get = function()
         return GetInteractBindingKey()
       end,
@@ -136,7 +136,7 @@ UI.Options.AddTab({
     })
     ctx:Dropdown({
       label = "Interact Unit",
-      desc = "Which unit will be interacted with when the Interact keybind is pressed.",
+      desc = "Which unit will be interacted with when the key is pressed.",
       values = INTERACT_UNIT_VALUES,
       order = INTERACT_UNIT_ORDER,
       get = function()
@@ -156,7 +156,7 @@ UI.Options.AddTab({
 
     ctx:Keybind({
       label = "Target Lock Keybind",
-      desc = "Lock onto your target, preventing Reticle Targeting from swapping it.",
+      desc = "Tap to lock your target, preventing the reticle from swapping it; tap again to unlock.",
       get = function()
         return (GetBindingKey("Combat Mode - Toggle Focus Target"))
       end,

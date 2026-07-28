@@ -68,12 +68,9 @@ See `STRUCTURE.md` for load-order details.
 Authoritative day-to-day finish order is also in `.cursor/rules/combatmode-change-checklist.mdc`.
 
 1. Verify deprecations/replacements via WoW MCP tools; confirm no combat-unsafe paths; validate enable/disable symmetry for mouselook/CVars/bindings when touched; update architecture docs/headers if the module graph changed.
-2. **Lint first** (before version/changelog):
+2. **Lint:**
    - Preferred: `pwsh ./scripts/lint-changed.ps1`
    - Equivalent: `pre-commit run --files <changed lua files>`
    - Debug only: `stylua --check ...`, `selene --config selene.toml ...`
    - Full repo only for release prep / explicit request: `pre-commit run --all-files`
-3. **After code changes** (skip for pure docs/rules-only edits):
-   - Bump `## Version` in `CombatMode/CombatMode.toc` (SemVer).
-   - Update `CombatMode/CHANGELOG.md` (Keep a Changelog): fold `[Unreleased]` into `## [x.y.z] - YYYY-MM-DD` matching the TOC version; use standard categories; refresh compare links.
-   - Run `pwsh ./scripts/sync-changelog-to-lua.ps1` so `CombatMode/UI/Changelog/ChangelogData.lua` matches the in-game viewer.
+3. **Version + changelog (ask first):** after code changes, ask whether to bump versions. Do not edit `CombatMode/CombatMode.toc`, `CombatMode/CHANGELOG.md`, or run `scripts/sync-changelog-to-lua.ps1` unless the user agrees. If yes: SemVer bump TOC → Keep a Changelog update (fold `[Unreleased]`, refresh compare links) → sync to `UI/Changelog/ChangelogData.lua`.

@@ -17,21 +17,25 @@ Before finalizing **code** changes, run this checklist in order.
 - Standalone editor windows (`UI/Editors/ReticleCVarEditorData.lua` / `ReticleCVarEditorPanel.lua`, `UI/Editors/TargetingMacroPrelinesEditor.lua`): register in `Embeds.xml` after the `UI/Options` toolkit they consume; keep `CM.Open*` combat-guarded where frames are created; if changing reticle CVar presets or exclusions, update `Constants/CVars.lua`, `UI/Editors/ReticleCVarEditorData.lua`, and `Core/Runtime/CVarManager.lua` together so effective values and the editor stay aligned.
 - Regression pass: cover slash commands, keybind flows, and mainline runtime path for touched feature.
 
-## 2) Lint (before version / changelog)
+## 2) Lint
 
 - Preferred: `pwsh ./scripts/lint-changed.ps1`
 - Equivalent: `pre-commit run --files <changed lua files>`
 - Tool-specific debug when needed: `stylua --check <paths>`, `selene --config selene.toml <paths>`
 - Repo-wide gate only for release prep or explicit maintainer request: `pre-commit run --all-files`
 
-## 3) Version + changelog (required after code changes)
+## 3) Version + changelog (ask first — do not run automatically)
 
-Skip this block only for pure docs/rules/instruction edits with **no** addon code behavior change.
+Do **not** bump TOC version, edit `CHANGELOG.md`, or run the changelog sync script unless the user asks (or accepts when prompted).
+
+After finishing **code** changes (skip for pure docs/rules/instruction edits), **ask** the user whether they want to bump versions. If they say yes, run this flow in order:
 
 1. Bump `## Version` in **`CombatMode/CombatMode.toc`** (SemVer: patch for fixes, minor for features, major for breaking).
 2. Update **`CombatMode/CHANGELOG.md`** in Keep a Changelog form: move `[Unreleased]` notes into a new `## [x.y.z] - YYYY-MM-DD` section matching the TOC version (or add entries under that version), using `Added` / `Changed` / `Deprecated` / `Removed` / `Fixed` / `Security` as appropriate; refresh compare links at the bottom when adding a version.
 3. Run **`pwsh ./scripts/sync-changelog-to-lua.ps1`** (or VS Code task **Sync CHANGELOG.md to ChangelogData.lua**) so **`CombatMode/UI/Changelog/ChangelogData.lua`** matches the in-game viewer.
 4. Keep **`ChangelogNamespace.lua` → `ChangelogData.lua` → `ChangelogPanel.lua`** order in **`Embeds.xml`**, after the `UI/Options` toolkit.
+
+If they decline, leave TOC / changelog / `ChangelogData.lua` unchanged.
 
 ## 4) Docs when architecture changed
 

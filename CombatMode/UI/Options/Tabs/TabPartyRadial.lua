@@ -67,7 +67,7 @@ UI.Options.AddTab({
     })
     ctx:Keybind({
       label = "Party Radial Keybind",
-      desc = "Tap to toggle. Hold to show temporarily.",
+      desc = "Tap to toggle the Party Radial. Hold to show temporarily.",
       get = function()
         return (GetBindingKey("Combat Mode - Party Radial"))
       end,
