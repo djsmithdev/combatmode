@@ -17,7 +17,8 @@
 --  toggles use accent yellow when on / grey when off with a short knob/track ease on change.
 --  Option rows follow a WaypointUI-style 60/40 split: title + muted helper text
 --  (`opts.desc`) stack tightly in the left column, and the interactive control sits in
---  the right column (vertically centered).
+--  the right column (vertically centered). `opts.charSpecific = true` places a blue ©
+--  mark to the right of the title (tooltip: character-specific option).
 --
 --  Consumes UI/Options/Draw.lua primitives + theme tokens. Contains no feature logic:
 --  controls call the get/set/disabled closures supplied by the tab builders, which in
@@ -63,10 +64,22 @@ function Options.Sync()
     if control.Refresh then
       control.Refresh()
     end
+    if control.UpdateCharScopeTag then
+      control.UpdateCharScopeTag()
+    end
   end
 end
 
 local function Register(control)
+  if control.UpdateCharScopeTag then
+    local prevRefresh = control.Refresh
+    function control.Refresh()
+      if prevRefresh then
+        prevRefresh()
+      end
+      control.UpdateCharScopeTag()
+    end
+  end
   tinsert(Options.controls, control)
   return control
 end
@@ -420,6 +433,30 @@ local DESC_BELOW_GAP = 6
 local CONTROL_GAP = 20
 local ICON_GAP = 6
 local DEFAULT_ICON_SIZE = 20
+local CHAR_SCOPE_MARK = "©"
+local CHAR_SCOPE_MARK_SIZE = 11
+local CHAR_SCOPE_MARK_W = 12
+local CHAR_SCOPE_MARK_GAP = 3
+-- Same blue as slash-command hints (|cff69ccf0).
+local CHAR_SCOPE_MARK_COLOR = { 0.412, 0.800, 0.941 }
+local CHAR_SCOPE_TOOLTIP = "Character-specific option."
+
+--- Place the © immediately after the title glyphs (not at the right edge of the
+--- label's wrap box), vertically centered on the title line.
+local function PlaceCharScopeMark(scopeTag, label, labelW)
+  local titleW = label:GetStringWidth() or 0
+  if titleW > labelW then
+    titleW = labelW
+  end
+  local markX = titleW + CHAR_SCOPE_MARK_GAP
+  local maxX = max(labelW - CHAR_SCOPE_MARK_W, 0)
+  if markX > maxX then
+    markX = maxX
+  end
+  scopeTag:ClearAllPoints()
+  -- LEFT/LEFT centers the mark on the title FontString's height (the title line).
+  scopeTag:SetPoint("LEFT", label, "LEFT", markX, 0)
+end
 
 local function AddRowLabel(row, text)
   local label = UI.CreateFontString(row, "OVERLAY", UI.Fonts.base, "GameFontHighlight")
@@ -433,6 +470,14 @@ local function AddRowLabel(row, text)
   return label
 end
 
+local function CharSpecificEnabled(opts)
+  local v = opts and opts.charSpecific
+  if type(v) == "function" then
+    return v() and true or false
+  end
+  return v and true or false
+end
+
 --- Attaches opts.desc and installs SetWidthTo. Default layout is the WaypointUI-style
 --- 60/40 split (title+helper left, control right, vertically centered). When
 --- `opts.descBelow` is set, the title shares a top band with the control and the helper
@@ -440,12 +485,14 @@ end
 --- `opts.iconAtlas` / `opts.iconSize` place a texture left of the title.
 --- When `opts.iconFitText` is set, the icon grows to the title+helper block height and
 --- is vertically centered against that whole column (Click Casting mouse icons).
+--- `opts.charSpecific` places a blue © to the right of the title (bool or function).
 --- `control.widgetH` / `control.widgetFill` / `control.textFrac` behave as elsewhere
 --- (multiline inputs use textFrac 0.40 so the box gets ~60%).
 local function AttachOptionText(control, row, opts, widgetH)
   control.widgetH = widgetH or ROW_H
   control.descBelow = opts.descBelow and true or nil
   control.iconFitText = opts.iconFitText and true or nil
+  control.charSpecificOpt = opts.charSpecific
 
   if opts.iconAtlas then
     local iconSize = opts.iconSize or DEFAULT_ICON_SIZE
@@ -454,6 +501,23 @@ local function AttachOptionText(control, row, opts, widgetH)
     icon:SetSize(iconSize, iconSize)
     control.icon = icon
     control.iconSize = iconSize
+  end
+
+  if opts.charSpecific ~= nil then
+    -- Hit frame so the © can receive mouse for the tooltip (FontStrings cannot).
+    local hit = CreateFrame("Frame", nil, row)
+    hit:SetSize(CHAR_SCOPE_MARK_W, CHAR_SCOPE_MARK_W)
+    hit:EnableMouse(true)
+    local mark = UI.CreateFontString(hit, "OVERLAY", CHAR_SCOPE_MARK_SIZE, "GameFontHighlight")
+    mark:SetPoint("CENTER")
+    mark:SetText(CHAR_SCOPE_MARK)
+    mark:SetTextColor(CHAR_SCOPE_MARK_COLOR[1], CHAR_SCOPE_MARK_COLOR[2], CHAR_SCOPE_MARK_COLOR[3])
+    hit.mark = mark
+    control.scopeTag = hit
+    UI.AttachTooltip(hit, CHAR_SCOPE_TOOLTIP)
+    if not CharSpecificEnabled(opts) then
+      hit:Hide()
+    end
   end
 
   local raw = opts.desc
@@ -472,16 +536,49 @@ local function AttachOptionText(control, row, opts, widgetH)
     control.desc = desc
   end
 
+  function control.UpdateCharScopeTag()
+    local tag = control.scopeTag
+    if not tag then
+      return
+    end
+    local show = CharSpecificEnabled(opts)
+    local wasShown = tag:IsShown() and true or false
+    if show then
+      tag:Show()
+    else
+      tag:Hide()
+    end
+    -- Click Casting slots flip char/account with Account-Wide Binds; relayout when the
+    -- mark appears or disappears so title width stays correct after Options.Sync().
+    if (show and true or false) ~= wasShown and not control._layouting and control._layoutWidth then
+      control.SetWidthTo(control._layoutWidth)
+    end
+  end
+
   local prevSetWidthTo = control.SetWidthTo
   function control.SetWidthTo(width)
     if prevSetWidthTo then
       prevSetWidthTo(width)
     end
 
+    control._layouting = true
+    control._layoutWidth = width
+
+    local showScope = CharSpecificEnabled(opts)
+    if control.scopeTag then
+      if showScope then
+        control.scopeTag:Show()
+      else
+        control.scopeTag:Hide()
+      end
+    end
+
     local widget = control.widget
     local icon = control.icon
     local iconSize = icon and (control.iconSize or DEFAULT_ICON_SIZE) or 0
     local iconLead = icon and (iconSize + ICON_GAP) or 0
+    local scopeTag = control.scopeTag
+    local scopeShown = scopeTag and scopeTag:IsShown()
     local h
 
     if control.descBelow then
@@ -500,6 +597,9 @@ local function AttachOptionText(control, row, opts, widgetH)
       end
       row.label:ClearAllPoints()
       row.label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X + iconLead, -labelTop)
+      if scopeShown then
+        PlaceCharScopeMark(scopeTag, row.label, labelW)
+      end
       if widget then
         widget:ClearAllPoints()
         widget:SetPoint("TOPRIGHT", row, "TOPRIGHT", -ROW_PAD_X, -widgetTop)
@@ -556,6 +656,9 @@ local function AttachOptionText(control, row, opts, widgetH)
       end
       row.label:ClearAllPoints()
       row.label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X + iconLead, -textTop)
+      if scopeShown then
+        PlaceCharScopeMark(scopeTag, row.label, textW)
+      end
       if control.desc then
         control.desc:ClearAllPoints()
         control.desc:SetPoint("TOPLEFT", row.label, "BOTTOMLEFT", 0, -TEXT_GAP)
@@ -578,6 +681,7 @@ local function AttachOptionText(control, row, opts, widgetH)
 
     row:SetHeight(h)
     control.height = h
+    control._layouting = false
     return h
   end
 
@@ -599,6 +703,9 @@ local function SetDescAlpha(control, a)
   end
   if control.icon then
     control.icon:SetAlpha(a)
+  end
+  if control.scopeTag then
+    control.scopeTag:SetAlpha(a)
   end
 end
 

@@ -78,6 +78,10 @@ local function OnBindingChanged()
   end
 end
 
+local function CharScopedBindings()
+  return not CM.DB.char.useGlobalBindings
+end
+
 local function AddSlot(layout, slot, label, modifier, iconAtlas)
   layout:Toggle({
     label = label,
@@ -103,6 +107,7 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas)
   })
   layout:Dropdown({
     label = "Action",
+    charSpecific = CharScopedBindings,
     values = ACTION_VALUES,
     order = ACTION_ORDER,
     display = ActionDisplay,
@@ -238,6 +243,7 @@ UI.Options.AddTab({
     ctx:Toggle({
       label = "Account-Wide Binds",
       desc = "Share Click Casting binds across all characters.",
+      charSpecific = true,
       get = function()
         return CM.DB.char.useGlobalBindings
       end,

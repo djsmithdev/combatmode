@@ -1,9 +1,12 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabGeneral.lua — OPTIONS TAB — General
 ---------------------------------------------------------------------------------------
---  Registers the "General" tab: Mouse Look / Interact / Target Lock keybinds, the
---  Target Lock focus-target toggle (confirm + ReloadUI), and the pulse/tooltip toggles.
---  Auto Unlock lives in TabAutoCursorUnlock.lua; Action Camera in TabCamera.lua.
+--  Registers the "General" tab in three sections: Mouse Look (keybind + pulse/tooltip
+--  toggles), Interact (keybind + Crosshair/Soft Targeted unit selector), and Target Lock
+--  (keybind + Lock Selected Target toggle with confirm + ReloadUI). Changing Interact
+--  Unit rebinds the key to INTERACTMOUSEOVER or INTERACTTARGET and puts the other on
+--  ALT+key so Blizzard's interact-key warning stays suppressed. Auto Unlock lives in
+--  TabAutoCursorUnlock.lua; Action Camera in TabCamera.lua.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -15,18 +18,68 @@ local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
 
+-- Lua stdlib
+local ipairs = _G.ipairs
+
 local UI = CM.UI
 
 local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed?"
+
+local INTERACT_MOUSEOVER = "INTERACTMOUSEOVER"
+local INTERACT_TARGET = "INTERACTTARGET"
+
+local INTERACT_UNIT_VALUES = {
+  mouseover = "Crosshair Unit",
+  target = "Soft Targeted Unit",
+}
+local INTERACT_UNIT_ORDER = { "mouseover", "target" }
+
+--- Primary + alternate interact binding commands from CM.DB.global.interactUnit.
+local function GetInteractCommands()
+  if CM.DB.global.interactUnit == "target" then
+    return INTERACT_TARGET, INTERACT_MOUSEOVER
+  end
+  return INTERACT_MOUSEOVER, INTERACT_TARGET
+end
+
+--- Clears every key currently assigned to INTERACTMOUSEOVER / INTERACTTARGET.
+local function ClearInteractBindings()
+  for _, cmd in ipairs({ INTERACT_MOUSEOVER, INTERACT_TARGET }) do
+    local key = GetBindingKey(cmd)
+    while key do
+      SetBinding(key)
+      key = GetBindingKey(cmd)
+    end
+  end
+end
+
+--- Physical key currently used for Interact (primary, or alternate if mid-migration).
+local function GetInteractBindingKey()
+  local primary, alternate = GetInteractCommands()
+  return GetBindingKey(primary) or GetBindingKey(alternate)
+end
+
+--- Binds `key` to the selected interact command and ALT-key to the other, then saves.
+local function ApplyInteractKeybind(key)
+  CM.TryApplyBindingChange("reticle interact keybinding", function()
+    ClearInteractBindings()
+    if key and key ~= "" then
+      local primary, alternate = GetInteractCommands()
+      SetBinding(key, primary)
+      SetBinding("ALT-" .. key, alternate)
+    end
+    SaveBindings(GetCurrentBindingSet())
+  end)
+end
 
 UI.Options.AddTab({
   id = "general",
   label = "General",
   build = function(ctx)
-    ctx:Header("GENERAL")
+    ctx:Header("MOUSE LOOK")
 
     ctx:Keybind({
-      label = "Mouse Look",
+      label = "Mouse Look Keybind",
       desc = "Tap to toggle. Hold to unlock the cursor temporarily.",
       get = function()
         return (GetBindingKey("Combat Mode - Mouse Look"))
@@ -44,64 +97,6 @@ UI.Options.AddTab({
         end)
       end,
     })
-    ctx:Keybind({
-      label = "Interact",
-      desc = "Interact with the unit or object under the crosshair.",
-      get = function()
-        return (GetBindingKey("INTERACTMOUSEOVER"))
-      end,
-      set = function(key)
-        CM.TryApplyBindingChange("reticle interact keybinding", function()
-          local oldKey = (GetBindingKey("INTERACTMOUSEOVER"))
-          if oldKey then
-            SetBinding(oldKey)
-          end
-          if key ~= "" then
-            SetBinding(key, "INTERACTMOUSEOVER")
-            SetBinding("ALT-" .. key, "INTERACTTARGET")
-          end
-          SaveBindings(GetCurrentBindingSet())
-        end)
-      end,
-    })
-    ctx:Keybind({
-      label = "Target Lock",
-      desc = "Lock onto your target, preventing Reticle Targeting from swapping it.",
-      get = function()
-        return (GetBindingKey("Combat Mode - Toggle Focus Target"))
-      end,
-      set = function(key)
-        CM.TryApplyBindingChange("target lock keybinding", function()
-          local oldKey = (GetBindingKey("Combat Mode - Toggle Focus Target"))
-          if oldKey then
-            SetBinding(oldKey)
-          end
-          if key ~= "" then
-            SetBinding(key, "Combat Mode - Toggle Focus Target")
-          end
-          SaveBindings(GetCurrentBindingSet())
-          CM.ApplyToggleFocusTargetBinding()
-        end)
-      end,
-    })
-    ctx:Toggle({
-      label = "Lock Selected Target",
-      desc = "Lock your selected target instead of the unit under the crosshair.",
-      confirm = true,
-      confirmText = RELOAD_CONFIRM,
-      get = function()
-        return CM.DB.char.focusCurrentTargetNotCrosshair
-      end,
-      set = function(value)
-        CM.DB.char.focusCurrentTargetNotCrosshair = value
-        ReloadUI()
-      end,
-      disabled = function()
-        return not CM.DB.char.reticleTargeting
-      end,
-    })
-
-    ctx:Gap()
     ctx:Toggle({
       label = "Pulse Cursor on Unlock",
       desc = "Flash the cursor when Mouse Look ends.",
@@ -123,6 +118,77 @@ UI.Options.AddTab({
       end,
       disabled = function()
         return not CM.IsCrosshairEnabled()
+      end,
+    })
+
+    ctx:Gap()
+    ctx:Header("INTERACT")
+
+    ctx:Keybind({
+      label = "Interact Keybind",
+      desc = "Interact with the unit chosen below.",
+      get = function()
+        return GetInteractBindingKey()
+      end,
+      set = function(key)
+        ApplyInteractKeybind(key)
+      end,
+    })
+    ctx:Dropdown({
+      label = "Interact Unit",
+      desc = "Which unit will be interacted with when the Interact keybind is pressed.",
+      values = INTERACT_UNIT_VALUES,
+      order = INTERACT_UNIT_ORDER,
+      get = function()
+        return CM.DB.global.interactUnit or "mouseover"
+      end,
+      set = function(value)
+        local key = GetInteractBindingKey()
+        CM.DB.global.interactUnit = value
+        if key then
+          ApplyInteractKeybind(key)
+        end
+      end,
+    })
+
+    ctx:Gap()
+    ctx:Header("TARGET LOCK")
+
+    ctx:Keybind({
+      label = "Target Lock Keybind",
+      desc = "Lock onto your target, preventing Reticle Targeting from swapping it.",
+      get = function()
+        return (GetBindingKey("Combat Mode - Toggle Focus Target"))
+      end,
+      set = function(key)
+        CM.TryApplyBindingChange("target lock keybinding", function()
+          local oldKey = (GetBindingKey("Combat Mode - Toggle Focus Target"))
+          if oldKey then
+            SetBinding(oldKey)
+          end
+          if key ~= "" then
+            SetBinding(key, "Combat Mode - Toggle Focus Target")
+          end
+          SaveBindings(GetCurrentBindingSet())
+          CM.ApplyToggleFocusTargetBinding()
+        end)
+      end,
+    })
+    ctx:Toggle({
+      label = "Lock Selected Target",
+      desc = "Lock your selected target instead of the unit under the crosshair.",
+      charSpecific = true,
+      confirm = true,
+      confirmText = RELOAD_CONFIRM,
+      get = function()
+        return CM.DB.char.focusCurrentTargetNotCrosshair
+      end,
+      set = function(value)
+        CM.DB.char.focusCurrentTargetNotCrosshair = value
+        ReloadUI()
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
       end,
     })
   end,

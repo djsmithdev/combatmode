@@ -76,6 +76,8 @@ CM.Constants.DatabaseDefaults = {
     actionCamMouselookDisable = false,
     mouseLookSpeed = 120,
     pulseCursor = true,
+    -- "mouseover" (INTERACTMOUSEOVER) or "target" (INTERACTTARGET); ALT+key binds the other.
+    interactUnit = "mouseover",
     mountCheck = false,
     customCondition = "",
     crosshair = true,

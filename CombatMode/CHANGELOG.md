@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.3] - 2026-07-27
+
+### Added
+
+- Character-specific options now show a blue © mark beside the title; hover it for a tooltip explaining they are saved per character.
+- Interact Unit option (Crosshair Unit or Soft Targeted Unit) under the Interact keybind; switching units rebinds the key and keeps ALT+key on the other command to avoid Blizzard's interact warning.
+
+
 ## [4.0.2] - 2026-07-27
 
 ### Added
@@ -167,7 +175,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/sampconrad/combatmode/compare/4.0.1...HEAD
+[Unreleased]: https://github.com/sampconrad/combatmode/compare/4.0.3...HEAD
+[4.0.3]: https://github.com/sampconrad/combatmode/compare/4.0.2...4.0.3
+[4.0.2]: https://github.com/sampconrad/combatmode/compare/4.0.1...4.0.2
 [4.0.1]: https://github.com/sampconrad/combatmode/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/sampconrad/combatmode/compare/3.3.1...4.0.0
 [3.3.1]: https://github.com/sampconrad/combatmode/compare/3.3.0...3.3.1

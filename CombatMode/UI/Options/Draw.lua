@@ -4,7 +4,8 @@
 --  Owns the low-level, reusable visual primitives for the custom (non-Ace) options
 --  window: the theme tokens (CM.UI.Colors / UI.Fonts / UI.Radius — a minimal neutral-grey
 --  ramp with a single warm-yellow accent), UI.StripColors, solid/rounded surfaces,
---  circular knob masking, font sizing, tooltip attach, ESC-close, drag-to-move with
+--  circular knob masking, font sizing, themed tooltips (UI.ShowTooltip / UI.HideTooltip /
+--  UI.AttachTooltip via CombatModeUITooltip — not GameTooltip), ESC-close, drag-to-move with
 --  position persistence helpers for optional drag (UI.EnableDrag / UI.RestorePosition),
 --  StyleThumbBar scrollbars shared by CreateScrollFrame / CreateMultilineEditScroll /
 --  CreateVerticalSlider (thin rounded track + thumb, wheel scroll eases toward a target),
@@ -21,7 +22,6 @@ local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
-local GameTooltip = _G.GameTooltip
 local GetCursorPosition = _G.GetCursorPosition
 local UIParent = _G.UIParent
 
@@ -29,6 +29,7 @@ local UIParent = _G.UIParent
 local tinsert = _G.table.insert
 local ipairs = _G.ipairs
 local type = _G.type
+local tostring = _G.tostring
 local gsub = _G.string.gsub
 local format = _G.string.format
 local abs = _G.math.abs
@@ -358,22 +359,245 @@ end
 ---------------------------------------------------------------------------------------
 --                                    BEHAVIORS                                      --
 ---------------------------------------------------------------------------------------
---- Delayed tooltip on hover. `getText` returns the (already color-coded) string.
-function UI.AttachTooltip(widget, getText, anchor)
-  if not getText then
+-- Themed config tooltip (CombatModeUITooltip). Replaces GameTooltip for options chrome
+-- so tips match card surfaces and are not suppressed by gameplay hideTooltip.
+local tipFrame
+local tipTitle
+local tipBody
+local tipLinePool = {} -- { label = FontString, value = FontString }
+
+local TIP_PAD_X = 12
+local TIP_PAD_Y = 10
+local TIP_GAP = 4
+local TIP_SIMPLE_W = 240
+local TIP_RICH_W = 300
+local TIP_OWNER_GAP = 8
+
+local function ResolveTooltipContent(content)
+  if type(content) == "function" then
+    content = content()
+  end
+  if type(content) == "string" then
+    if content == "" then
+      return nil
+    end
+    return { text = content }
+  end
+  if type(content) == "table" then
+    return content
+  end
+  return nil
+end
+
+local function EnsureTipLine(index)
+  local line = tipLinePool[index]
+  if line then
+    return line
+  end
+  local label = UI.CreateFontString(tipFrame, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
+  label:SetJustifyH("LEFT")
+  label:SetWordWrap(false)
+  local value = UI.CreateFontString(tipFrame, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
+  value:SetJustifyH("LEFT")
+  value:SetJustifyV("TOP")
+  value:SetWordWrap(true)
+  if value.SetNonSpaceWrap then
+    value:SetNonSpaceWrap(true)
+  end
+  line = { label = label, value = value }
+  tipLinePool[index] = line
+  return line
+end
+
+local function EnsureTooltipFrame()
+  if tipFrame then
+    return tipFrame
+  end
+
+  tipFrame = CreateFrame("Frame", "CombatModeUITooltip", UIParent)
+  tipFrame:SetFrameStrata("TOOLTIP")
+  tipFrame:SetFrameLevel(10000)
+  tipFrame:SetClampedToScreen(true)
+  tipFrame:EnableMouse(false)
+  tipFrame:Hide()
+  UI.StyleRounded(tipFrame, UI.Colors.cardBg, UI.Colors.cardBorder, UI.Radius.card)
+
+  tipTitle = UI.CreateFontString(tipFrame, "OVERLAY", UI.Fonts.base, "GameFontHighlight")
+  tipTitle:SetJustifyH("LEFT")
+  tipTitle:SetWordWrap(true)
+  tipTitle:SetTextColor(UI.Colors.accent[1], UI.Colors.accent[2], UI.Colors.accent[3], 1)
+
+  tipBody = UI.CreateFontString(tipFrame, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
+  tipBody:SetJustifyH("LEFT")
+  tipBody:SetWordWrap(true)
+  tipBody:SetTextColor(UI.Colors.text[1], UI.Colors.text[2], UI.Colors.text[3], 1)
+
+  return tipFrame
+end
+
+local function PositionTooltip(owner, anchor)
+  tipFrame:ClearAllPoints()
+  if not owner then
+    tipFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+    return
+  end
+  if anchor == "ANCHOR_TOPLEFT" then
+    tipFrame:SetPoint("BOTTOMLEFT", owner, "TOPLEFT", 0, TIP_OWNER_GAP)
+  elseif anchor == "ANCHOR_LEFT" then
+    tipFrame:SetPoint("RIGHT", owner, "LEFT", -TIP_OWNER_GAP, 0)
+  else
+    -- ANCHOR_RIGHT (default)
+    tipFrame:SetPoint("LEFT", owner, "RIGHT", TIP_OWNER_GAP, 0)
+  end
+end
+
+--- Shows the themed config tooltip beside `owner`.
+--- `content` is a string, a table `{ title?, text?, lines? }`, or a function returning either.
+--- `lines` entries are `{ label, value, kind? }` (`kind = "warn"` uses warning color).
+function UI.ShowTooltip(owner, content, anchor)
+  content = ResolveTooltipContent(content)
+  if not content then
+    UI.HideTooltip()
+    return
+  end
+
+  EnsureTooltipFrame()
+
+  local title = content.title and tostring(content.title) or nil
+  if title == "" then
+    title = nil
+  end
+  local body = content.text and tostring(content.text) or nil
+  if body == "" then
+    body = nil
+  end
+
+  local lines = content.lines
+  local hasLines = type(lines) == "table" and #lines > 0
+  local rich = title ~= nil or hasLines
+  local maxW = rich and TIP_RICH_W or TIP_SIMPLE_W
+  local textW = maxW - TIP_PAD_X * 2
+
+  for _, line in ipairs(tipLinePool) do
+    line.label:Hide()
+    line.value:Hide()
+  end
+
+  local y = TIP_PAD_Y
+  local contentW = 0
+
+  if title then
+    tipTitle:ClearAllPoints()
+    tipTitle:SetPoint("TOPLEFT", tipFrame, "TOPLEFT", TIP_PAD_X, -y)
+    tipTitle:SetWidth(textW)
+    tipTitle:SetText(UI.StripColors(title) or title)
+    tipTitle:Show()
+    local th = tipTitle:GetStringHeight()
+    if th < 1 then
+      th = UI.Fonts.base + 2
+    end
+    contentW = max(contentW, min(tipTitle:GetStringWidth(), textW))
+    y = y + th + TIP_GAP
+  else
+    tipTitle:Hide()
+    tipTitle:SetText("")
+  end
+
+  if body then
+    tipBody:ClearAllPoints()
+    tipBody:SetPoint("TOPLEFT", tipFrame, "TOPLEFT", TIP_PAD_X, -y)
+    tipBody:SetWidth(textW)
+    tipBody:SetText(UI.StripColors(body) or body)
+    tipBody:Show()
+    local bh = tipBody:GetStringHeight()
+    if bh < 1 then
+      bh = UI.Fonts.desc + 2
+    end
+    contentW = max(contentW, min(tipBody:GetStringWidth(), textW))
+    if tipBody.GetWrappedWidth then
+      contentW = max(contentW, min(tipBody:GetWrappedWidth(), textW))
+    end
+    y = y + bh + (hasLines and TIP_GAP + 2 or 0)
+  else
+    tipBody:Hide()
+    tipBody:SetText("")
+  end
+
+  if hasLines then
+    local lineIndex = 0
+    for _, entry in ipairs(lines) do
+      if type(entry) == "table" and (entry.label or entry.value) then
+        lineIndex = lineIndex + 1
+        local line = EnsureTipLine(lineIndex)
+        local labelText = entry.label and tostring(entry.label) or ""
+        local valueText = entry.value ~= nil and tostring(entry.value) or ""
+        local warn = entry.kind == "warn"
+        local dim = UI.Colors.textDim
+        local valColor = warn and UI.Colors.warning or UI.Colors.text
+
+        line.label:ClearAllPoints()
+        line.label:SetPoint("TOPLEFT", tipFrame, "TOPLEFT", TIP_PAD_X, -y)
+        line.label:SetText(UI.StripColors(labelText) or labelText)
+        line.label:SetTextColor(dim[1], dim[2], dim[3], 1)
+        line.label:Show()
+
+        local labelW = line.label:GetStringWidth()
+        local valueW = max(48, textW - labelW - 6)
+        line.value:ClearAllPoints()
+        line.value:SetPoint("TOPLEFT", tipFrame, "TOPLEFT", TIP_PAD_X + labelW + 6, -y)
+        line.value:SetWidth(valueW)
+        line.value:SetText(UI.StripColors(valueText) or valueText)
+        line.value:SetTextColor(valColor[1], valColor[2], valColor[3], 1)
+        line.value:Show()
+
+        local valueH = line.value:GetStringHeight()
+        if valueH < 1 then
+          valueH = UI.Fonts.desc + 2
+        end
+        local labelH = max(line.label:GetStringHeight(), UI.Fonts.desc + 2)
+        y = y + max(labelH, valueH) + 2
+      end
+    end
+  end
+
+  -- Rich tips keep a fixed max width for wrapping. Simple text tips hug content.
+  local width
+  if title or hasLines then
+    width = maxW
+  else
+    width = max(min(contentW + TIP_PAD_X * 2, TIP_SIMPLE_W), 80)
+    if body then
+      tipBody:SetWidth(width - TIP_PAD_X * 2)
+      local bh = tipBody:GetStringHeight()
+      if bh < 1 then
+        bh = UI.Fonts.desc + 2
+      end
+      y = TIP_PAD_Y + bh
+    end
+  end
+  local height = y + TIP_PAD_Y - (hasLines and 2 or 0)
+  tipFrame:SetSize(width, max(height, TIP_PAD_Y * 2 + UI.Fonts.desc))
+  PositionTooltip(owner, anchor or "ANCHOR_RIGHT")
+  tipFrame:Show()
+end
+
+--- Hides the themed config tooltip if shown.
+function UI.HideTooltip()
+  if tipFrame then
+    tipFrame:Hide()
+  end
+end
+
+--- Tooltip on hover. `content` is a string, content table, or function returning either.
+function UI.AttachTooltip(widget, content, anchor)
+  if not content then
     return
   end
   widget:HookScript("OnEnter", function(self)
-    local text = type(getText) == "function" and getText() or getText
-    if not text or text == "" then
-      return
-    end
-    GameTooltip:SetOwner(self, anchor or "ANCHOR_RIGHT")
-    GameTooltip:SetText(text, 1, 1, 1, 1, true)
-    GameTooltip:Show()
+    UI.ShowTooltip(self, content, anchor or "ANCHOR_RIGHT")
   end)
   widget:HookScript("OnLeave", function()
-    GameTooltip:Hide()
+    UI.HideTooltip()
   end)
 end
 

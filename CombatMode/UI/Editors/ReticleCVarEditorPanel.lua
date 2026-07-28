@@ -6,7 +6,7 @@
 --  Targeting options tab; anchors to the right of the CombatMode options window when
 --  open (same pattern as TargetingMacroPrelinesEditor). Uses CM.ReticleCVarEditorData;
 --  debounced RequestRefresh; CVAR_UPDATE + SetCVar hook for live values and
---  external-change attribution.
+--  external-change attribution. Row hover tips use UI.ShowTooltip (themed CombatModeUITooltip).
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -17,7 +17,6 @@ local C_CVar = _G.C_CVar
 local C_Timer = _G.C_Timer
 local debugstack = _G.debugstack
 local GetTime = _G.GetTime
-local GameTooltip = _G.GameTooltip
 local hooksecurefunc = _G.hooksecurefunc
 local ipairs = _G.ipairs
 local strfind = _G.strfind
@@ -39,10 +38,23 @@ local refreshQueued = false
 
 local function IsIgnoredSource(source)
   local normalized = strlower(source or "")
-  -- Only ignore UI chrome and Blizzard CVar wrappers; keep ReticleCVarEditorData.lua so saves show attribution.
-  return strfind(normalized, "[\\/]combatmode[\\/]config[\\/]reticlecvareditorpanel%.lua")
+  -- Skip editor chrome, CVarManager (always on the stack for CM.SetCVar), and Blizzard wrappers.
+  -- Prefer ReticleCVarEditorData.lua (or other callers) so saves attribute to Combat Mode.
+  return strfind(normalized, "[\\/]combatmode[\\/]ui[\\/]editors[\\/]reticlecvareditorpanel%.lua")
+    or strfind(normalized, "[\\/]combatmode[\\/]core[\\/]runtime[\\/]cvarmanager%.lua")
     or strfind(normalized, "[_\\/]sharedxmlbase[\\/]cvarutil%.lua")
     or strfind(normalized, "[_\\/]sharedxml[\\/]cvarutil%.lua")
+end
+
+local function FormatModifiedBy(source, lineNum)
+  local normalized = strlower(source or "")
+  if strfind(normalized, "[\\/]combatmode[\\/]") then
+    if strfind(normalized, "reticlecvareditor") then
+      return "Combat Mode (Reticle CVar Editor)"
+    end
+    return "Combat Mode"
+  end
+  return source .. ":" .. lineNum
 end
 
 local function FindBestSourceFromTrace(trace)
@@ -79,12 +91,13 @@ local function TraceCVarSource(cvar)
     trace = debugstack(2, 50, 50) or debugstack(3) or ""
   end
   local source, lineNum = FindBestSourceFromTrace(trace)
-  if not source then
-    source, lineNum = "Unknown source", "?"
-  end
-
   local key = strlower(canonicalCVar)
-  Editor.modifiedBy[key] = source .. ":" .. lineNum
+  if source then
+    Editor.modifiedBy[key] = FormatModifiedBy(source, lineNum)
+  else
+    -- Hook fired with only ignored frames (CM.SetCVar path fully inside Combat Mode).
+    Editor.modifiedBy[key] = "Combat Mode"
+  end
   reticleCVarSeenFromHook[key] = true
 end
 
@@ -330,25 +343,26 @@ local function BuildListFrame(parent, width, height)
         return
       end
       self.bg:Show()
-      GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
       local rowData = Editor.rowDataByKey and Editor.rowDataByKey[self.value]
-      if rowData then
-        GameTooltip:AddLine(rowData.cvar, 1, 0.82, 0.2)
-        GameTooltip:AddLine(" ")
-        if rowData.description ~= "" then
-          GameTooltip:AddLine(rowData.description, 0.9, 0.9, 0.9, true)
-        end
-        GameTooltip:AddDoubleLine("Default Value:", rowData.defaultValue, 0.2, 1, 0.6, 0.2, 1, 0.6)
-        local modifiedBy = Editor.modifiedBy[strlower(rowData.cvar)]
-        if modifiedBy then
-          GameTooltip:AddDoubleLine("Last Modified By:", modifiedBy, 1, 0, 0, 1, 0, 0)
-        end
+      if not rowData then
+        return
       end
-      GameTooltip:Show()
+      local lines = {
+        { label = "Default Value:", value = rowData.defaultValue },
+      }
+      local modifiedBy = Editor.modifiedBy[strlower(rowData.cvar)]
+      if modifiedBy then
+        lines[#lines + 1] = { label = "Last Modified By:", value = modifiedBy, kind = "warn" }
+      end
+      UI.ShowTooltip(self, {
+        title = rowData.cvar,
+        text = rowData.description ~= "" and rowData.description or nil,
+        lines = lines,
+      }, "ANCHOR_TOPLEFT")
     end)
     row:SetScript("OnLeave", function(self)
       self.bg:Hide()
-      GameTooltip:Hide()
+      UI.HideTooltip()
     end)
     row:SetScript("OnMouseDown", function(self)
       if not self.value then

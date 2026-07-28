@@ -30,6 +30,7 @@ UI.Options.AddTab({
     ctx:Toggle({
       label = "Enable Reticle Targeting",
       desc = "Aim the crosshair at units to pick targets instead of tab-targeting.",
+      charSpecific = true,
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = function()
@@ -48,6 +49,7 @@ UI.Options.AddTab({
     ctx:Toggle({
       label = "Enemies Only",
       desc = "Only target hostile units, ignoring friendly NPCs and Players.",
+      charSpecific = true,
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = function()
@@ -64,6 +66,7 @@ UI.Options.AddTab({
     ctx:Toggle({
       label = "Click Casting Only",
       desc = "Apply reticle targeting logic only to Click Casting binds.",
+      charSpecific = true,
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = function()
@@ -81,6 +84,7 @@ UI.Options.AddTab({
     ctx:TextInput({
       label = "Excluded Spells",
       desc = "Spell names or IDs to skip the reticle targeting logic.",
+      charSpecific = true,
       multiline = 4,
       get = function()
         return CM.DB.char.excludeFromTargetingSpells or ""
@@ -98,6 +102,7 @@ UI.Options.AddTab({
     ctx:TextInput({
       label = "Cast at Crosshair",
       desc = "Ground spell names or IDs to cast at the crosshair location.",
+      charSpecific = true,
       multiline = 4,
       get = function()
         return CM.DB.char.castAtCursorSpells or ""

@@ -69,6 +69,7 @@ UI.Options.AddTab({
     layout:Toggle({
       label = "Sticky Targeting",
       desc = "Reticle slightly sticks to enemies so they're harder to lose by accident.",
+      charSpecific = true,
       get = function()
         return CM.DB.char.stickyCrosshair
       end,
@@ -87,6 +88,7 @@ UI.Options.AddTab({
     layout:Slider({
       label = "Shoulder Offset",
       desc = "Horizontal camera offset with the Action Camera preset.",
+      charSpecific = true,
       min = -2,
       max = 2,
       step = 0.1,

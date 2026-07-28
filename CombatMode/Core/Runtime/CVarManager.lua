@@ -11,7 +11,8 @@
 --  CM.EnsurePriorCVarSnapshot / CM.RestorePriorCVars): each enable captures
 --  ManagedCVarNames into CM.DB.global.priorCVarSnapshot *before* CM writes, so
 --  Uninstall restores the values from the start of that session. Hard-coded
---  Blizzard tables remain as fallback when no snapshot exists.
+--  Blizzard tables remain as fallback when no snapshot exists. CM.SetCVar always
+--  calls the live C_CVar.SetCVar so Reticle CVar editor hooks can attribute writes.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -19,8 +20,14 @@ local _G = _G
 -- WoW API
 local GetCVar = _G.C_CVar.GetCVar
 local GetCVarDefault = _G.C_CVar.GetCVarDefault
-local SetCVar = _G.C_CVar.SetCVar
 local UIParent = _G.UIParent
+
+-- Always resolve through the live C_CVar.SetCVar so hooksecurefunc consumers
+-- (e.g. Reticle CVar editor attribution) see Combat Mode writes. A load-time
+-- local would bypass those hooks.
+local function SetCVar(name, value)
+  return _G.C_CVar.SetCVar(name, value)
+end
 
 -- Lua stdlib
 local ipairs = _G.ipairs
