@@ -9,7 +9,7 @@
 --    • Core/Runtime/CVarManager.lua: reticle-targeting + Interaction HUD SoftTarget CVar presets.
 --    • Core/Crosshair/InteractionHUD.lua: Interaction HUD widget presentation/lifecycle.
 --    • Core/Crosshair/AssistedHighlight.lua: Assisted Combat suggestion icon + keybind.
---    • Core/Crosshair/Animations.lua: crosshair animation helpers used by previews and lock-in.
+--    • Core/Crosshair/Animations.lua: lock-in + cast feedback + reaction helpers.
 --    • UI/Options/Tabs/TabCrosshair.lua: user-facing crosshair settings; toggles the live
 --      preview via CM.SetCrosshairOptionsPreview so the reticle, Interaction HUD, and
 --      Combat Assist icon render with mouselook off (CM.IsCrosshairPreviewActive).
@@ -22,6 +22,8 @@
 --      Runtime/CVarManager.
 --    • CM.ApplyCrosshairAppearanceToWidget / CM.CreateCrosshairScaleAnimation are exposed
 --      for previews (implemented in Core/Crosshair/Animations.lua).
+--    • Cast feedback listens to CAST_FEEDBACK_EVENTS (player cast/channel) and drives
+--      Animations.lua grow / explode / break while CM.DB.global.crosshairCastFeedback is on.
 --    • Interaction HUD widget lifecycle is owned by Core/Crosshair/InteractionHUD.lua and is
 --      registered against the crosshair frame via CM.InitInteractionHUD.
 ---------------------------------------------------------------------------------------
@@ -42,7 +44,7 @@ local UnitIsGameObject = _G.UnitIsGameObject
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitReaction = _G.UnitReaction
 
--- Outer frame: positioning container. Inner frame: crosshair art, reaction scale, lock-in.
+-- Outer frame: positioning container. Inner frame: crosshair art, reaction scale, lock-in / cast feedback.
 local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
 local CrosshairVisualFrame = CreateFrame("Frame", nil, CrosshairFrame)
 local CrosshairTexture = CrosshairVisualFrame:CreateTexture(nil, "OVERLAY")
@@ -147,6 +149,9 @@ function CM.DisplayCrosshair(shouldShow)
     CrosshairFrame:SetAlpha(1)
     CrosshairVisualFrame:SetAlpha(crosshairOpacity)
   else
+    if CM.CancelCrosshairCastFeedback then
+      CM.CancelCrosshairCastFeedback()
+    end
     CrosshairTexture:Hide()
   end
   -- Keep assisted highlight in sync even when Runtime returns early (e.g. cursor mode / UI panels).
@@ -329,6 +334,7 @@ end
 function CM.OnRematchCrosshair()
   if CM.IsCrosshairEnabled() then
     CM.CancelCrosshairLockIn()
+    CM.CancelCrosshairCastFeedback()
     CM.CreateCrosshair()
     if CM.HideCrosshairWhileMounted() then
       SetCrosshairAppearance("mounted")
@@ -374,6 +380,36 @@ function CM.OnCrosshairFocusLockEvent(event)
   end
 end
 
+local function CastFeedbackAllowed()
+  return CM.DB
+    and CM.DB.global
+    and CM.DB.global.crosshairCastFeedback
+    and CM.IsCrosshairEnabled()
+    and not CM.HideCrosshairWhileMounted()
+    and (IsMouselooking() or CM.IsCrosshairPreviewActive())
+end
+
+--- Player cast/channel events → grow / explode / break (see Animations.lua).
+function CM.OnCrosshairCastFeedbackEvent(event, unitTarget, eventGUID)
+  if unitTarget ~= "player" or not CastFeedbackAllowed() then
+    return
+  end
+
+  if event == "UNIT_SPELLCAST_START" then
+    CM.StartCrosshairCastGrow(eventGUID, false)
+  elseif event == "UNIT_SPELLCAST_CHANNEL_START" then
+    CM.StartCrosshairCastGrow(eventGUID, true)
+  elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+    CM.NotifyCrosshairCastTerminal(eventGUID, "succeeded")
+  elseif event == "UNIT_SPELLCAST_FAILED" or event == "UNIT_SPELLCAST_INTERRUPTED" then
+    CM.NotifyCrosshairCastTerminal(eventGUID, "failed")
+  elseif event == "UNIT_SPELLCAST_STOP" then
+    CM.NotifyCrosshairCastTerminal(eventGUID, "stopped")
+  elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then
+    CM.NotifyCrosshairCastTerminal(eventGUID, "channel_stop")
+  end
+end
+
 --- Enables/disables the options-window live preview: forces the crosshair, Interaction
 --- HUD, and Combat Assist icon to render with mouselook off so the Crosshair tab shows
 --- changes on the real reticle. Disabling restores the normal mouselook-driven state.
@@ -394,6 +430,7 @@ function CM.SetCrosshairOptionsPreview(enabled)
   end
 
   CM.CancelCrosshairLockIn()
+  CM.CancelCrosshairCastFeedback()
   lastKnownAppearanceState = nil
   if CM.IsCrosshairEnabled() and not CM.HideCrosshairWhileMounted() then
     CM.DisplayCrosshair(IsMouselooking())

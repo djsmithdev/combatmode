@@ -63,6 +63,16 @@ CM.Constants.BLIZZARD_EVENTS = {
   FOCUS_LOCK_EVENTS = {
     "PLAYER_FOCUS_CHANGED", -- Focus changed (lock-in animation)
   },
+  -- Player cast/channel feedback for crosshair grow / explode / break
+  CAST_FEEDBACK_EVENTS = {
+    "UNIT_SPELLCAST_START",
+    "UNIT_SPELLCAST_STOP",
+    "UNIT_SPELLCAST_FAILED",
+    "UNIT_SPELLCAST_INTERRUPTED",
+    "UNIT_SPELLCAST_SUCCEEDED",
+    "UNIT_SPELLCAST_CHANNEL_START",
+    "UNIT_SPELLCAST_CHANNEL_STOP",
+  },
 }
 
 CM.Constants.ActionsToProcess = {

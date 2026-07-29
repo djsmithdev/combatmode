@@ -117,10 +117,15 @@ local function HandleEventByCategory(category, event, ...)
     FOCUS_LOCK_EVENTS = function()
       CM.OnCrosshairFocusLockEvent(event)
     end,
+    CAST_FEEDBACK_EVENTS = function(...)
+      if CM.OnCrosshairCastFeedbackEvent then
+        CM.OnCrosshairCastFeedbackEvent(event, ...)
+      end
+    end,
   }
 
   if eventHandlers[category] then
-    eventHandlers[category]()
+    eventHandlers[category](...)
   end
 end
 

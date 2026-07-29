@@ -1,12 +1,13 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabCrosshair.lua — OPTIONS TAB — Crosshair
 ---------------------------------------------------------------------------------------
---  Registers the "Crosshair" tab: enable/appearance/size/opacity, vertical position,
---  Interaction HUD, and Combat Assist. While this tab is open it turns on the live
---  preview (CM.SetCrosshairOptionsPreview) so the real crosshair, Interaction HUD, and
---  Combat Assist icon render at screen center with mouselook off. The options window
---  itself docks left-of-center on open so the preview stays visible (see Options.DockWindowLeft).
---  Feature APIs unchanged (CM.CreateCrosshair, CM.DisplayCrosshair, CM.ApplyCrosshairPosition).
+--  Registers the "Crosshair" tab: enable/appearance/size/opacity, cast feedback,
+--  vertical position, Interaction HUD, and Combat Assist. While this tab is open it
+--  turns on the live preview (CM.SetCrosshairOptionsPreview) so the real crosshair,
+--  Interaction HUD, and Combat Assist icon render at screen center with mouselook off.
+--  The options window itself docks left-of-center on open so the preview stays visible
+--  (see Options.DockWindowLeft). Feature APIs unchanged (CM.CreateCrosshair,
+--  CM.DisplayCrosshair, CM.ApplyCrosshairPosition).
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -78,6 +79,20 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.global.crosshairMounted = value
+      end,
+      disabled = CrosshairOff,
+    })
+    ctx:Toggle({
+      label = "Cast Feedback",
+      desc = "Crosshair provides visual feedback for casting spells.",
+      get = function()
+        return CM.DB.global.crosshairCastFeedback
+      end,
+      set = function(value)
+        CM.DB.global.crosshairCastFeedback = value
+        if not value and CM.CancelCrosshairCastFeedback then
+          CM.CancelCrosshairCastFeedback()
+        end
       end,
       disabled = CrosshairOff,
     })

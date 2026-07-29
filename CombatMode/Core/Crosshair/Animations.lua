@@ -7,6 +7,8 @@
 --      options preview via CM.ApplyCrosshairAppearanceToWidget /
 --      CM.CreateCrosshairScaleAnimation).
 --    • Crosshair lock-in: short scale/alpha tween when acquiring focus target.
+--    • Cast feedback: grow while casting/channeling, explode on success, shake-break
+--      on cancel/interrupt (shared outer OnUpdate with lock-in; one motion at a time).
 --
 --  Animation targets (frames/textures) are registered by their owning feature modules
 --  (Core/Crosshair/Crosshair.lua, FreeLook unlock path). No mouselook or CVar writes.
@@ -17,12 +19,16 @@ local _G = _G
 -- WoW API
 local CreateFrame = _G.CreateFrame
 local GetCursorPosition = _G.GetCursorPosition
+local GetTime = _G.GetTime
 local IsMouselooking = _G.IsMouselooking
 local UIParent = _G.UIParent
+local UnitCastingInfo = _G.UnitCastingInfo
+local UnitChannelInfo = _G.UnitChannelInfo
 
 -- Lua stdlib
 local math = _G.math
 local unpack = _G.unpack
+local random = _G.math.random
 
 ---------------------------------------------------------------------------------------
 --                                   CURSOR PULSE                                   --
@@ -121,6 +127,17 @@ local function ApplyCrosshairAppearanceToWidget(
   local reverseAnimation = state == "base" and true or false
   local parent = targetFrame:GetParent()
 
+  targetTexture:SetTexture(textureToUse)
+  targetTexture:SetVertexColor(r, g, b, a)
+  if previewMode or (state ~= "mounted" and IsMouselooking()) then
+    targetTexture:Show()
+  end
+
+  -- Cast feedback owns visual scale/offset; skip reaction Scale anim while active.
+  if CM.IsCrosshairCastFeedbackActive and CM.IsCrosshairCastFeedbackActive() then
+    return
+  end
+
   animGroup:SetScript("OnFinished", function()
     if state ~= "base" then
       targetFrame:SetScale(ENDING_SCALE)
@@ -128,11 +145,6 @@ local function ApplyCrosshairAppearanceToWidget(
     end
   end)
 
-  targetTexture:SetTexture(textureToUse)
-  targetTexture:SetVertexColor(r, g, b, a)
-  if previewMode or (state ~= "mounted" and IsMouselooking()) then
-    targetTexture:Show()
-  end
   animGroup:Play(reverseAnimation)
   if state == "base" then
     targetFrame:SetScale(STARTING_SCALE)
@@ -143,73 +155,305 @@ end
 CM.ApplyCrosshairAppearanceToWidget = ApplyCrosshairAppearanceToWidget
 
 ---------------------------------------------------------------------------------------
---                            CROSSHAIR LOCK-IN ANIMATION                             --
+--                    CROSSHAIR MOTION (LOCK-IN + CAST FEEDBACK)                      --
 ---------------------------------------------------------------------------------------
+local MOTION_IDLE = 0
+local MOTION_LOCK_IN = 1
+local MOTION_GROW = 2
+local MOTION_EXPLODE = 3
+local MOTION_BREAK = 4
+local MOTION_RESTORE = 5
+
 local LOCK_IN_DURATION = 0.25
-local LOCK_IN_STARTING_SCALE = 1.3
-local LOCK_IN_STARTING_ALPHA = 0.0
-local LOCK_IN_TOTAL_ELAPSED = -1
-local LOCK_IN_TARGET_SCALE = 1.0
-local LOCK_IN_TARGET_ALPHA = 1.0
+local CAST_GROW_MAX_SCALE = 1.35
+local CAST_EXPLODE_DURATION = 0.22
+local CAST_EXPLODE_EXTRA_SCALE = 0.4 -- added on top of current grow scale
+local CAST_RESTORE_DURATION = 0.16
+local CAST_BREAK_DURATION = 0.18
+local CAST_BREAK_SHAKE_PX = 5
+local CAST_BREAK_FLASH_HZ = 22
+local CAST_BASE_SCALE = 1.0
+local CAST_SUCCESS_PROGRESS = 0.85 -- STOP / CHANNEL_STOP treated as success at/above this
+
+local CAST_BREAK_COLOR_RED = { 1, 0.2, 0.3, 1 }
+local CAST_BREAK_COLOR_GREY = { 0.72, 0.72, 0.72, 1 }
+
+local motionState = MOTION_IDLE
+local motionElapsed = 0
+local motionStartScale = 1.0
+local motionStartAlpha = 1.0
+local motionExplodePeak = 1.4
+local lockInStartScale = 1.3
+local lockInStartAlpha = 0.0
+local lockInTargetScale = 1.0
+local lockInTargetAlpha = 1.0
+
+local castGUID = nil
+local castIsChannel = false
+local castInterrupted = false
+local castProgress = 0
+local growStartMS = nil
+local growEndMS = nil
+local breakSavedVertexColor = nil
 
 local crosshairOuterFrame
 local crosshairVisualFrame
 local crosshairTexture
 local onCrosshairLockInComplete
 
+local function Clamp01(value)
+  return math.max(0, math.min(1, value))
+end
+
+local function EaseOutQuad(progress)
+  local inv = 1 - progress
+  return 1 - inv * inv
+end
+
+local function GetConfiguredOpacity()
+  local defaults = CM.Constants.DatabaseDefaults.global
+  local cfg = CM.DB.global or {}
+  return cfg.crosshairOpacity or defaults.crosshairOpacity
+end
+
+local function CenterVisual()
+  if crosshairVisualFrame and crosshairOuterFrame then
+    crosshairVisualFrame:SetPoint("CENTER", crosshairOuterFrame, "CENTER", 0, 0)
+  end
+end
+
+local function RestoreBreakVertexColor()
+  if not (breakSavedVertexColor and crosshairTexture) then
+    return
+  end
+  local c = breakSavedVertexColor
+  crosshairTexture:SetVertexColor(c[1], c[2], c[3], c[4])
+  breakSavedVertexColor = nil
+end
+
+local function ResetVisualToBase()
+  if not crosshairVisualFrame then
+    return
+  end
+  crosshairVisualFrame:SetScale(CAST_BASE_SCALE)
+  crosshairVisualFrame:SetAlpha(GetConfiguredOpacity())
+  CenterVisual()
+  RestoreBreakVertexColor()
+end
+
+local function SetMotionIdle()
+  motionState = MOTION_IDLE
+  motionElapsed = 0
+  castGUID = nil
+  castIsChannel = false
+  castInterrupted = false
+  castProgress = 0
+  growStartMS = nil
+  growEndMS = nil
+end
+
+local function IsCastFeedbackMotion()
+  return motionState == MOTION_GROW
+    or motionState == MOTION_EXPLODE
+    or motionState == MOTION_BREAK
+    or motionState == MOTION_RESTORE
+end
+
+local function CastGUIDMatches(eventGUID)
+  if eventGUID and castGUID and eventGUID ~= castGUID then
+    return false
+  end
+  return true
+end
+
+function CM.IsCrosshairCastFeedbackActive()
+  return IsCastFeedbackMotion()
+end
+
+function CM.CancelCrosshairCastFeedback()
+  if not IsCastFeedbackMotion() then
+    castGUID = nil
+    castIsChannel = false
+    return
+  end
+  SetMotionIdle()
+  ResetVisualToBase()
+end
+
+function CM.CancelCrosshairLockIn()
+  if motionState == MOTION_LOCK_IN then
+    SetMotionIdle()
+  end
+end
+
+local function ReadCastTiming(isChannel)
+  local startTimeMS, endTimeMS
+  if isChannel then
+    local _
+    _, _, _, startTimeMS, endTimeMS = UnitChannelInfo("player")
+  else
+    local _
+    _, _, _, startTimeMS, endTimeMS = UnitCastingInfo("player")
+  end
+  if not startTimeMS or not endTimeMS or endTimeMS <= startTimeMS then
+    return nil, nil
+  end
+  return startTimeMS, endTimeMS
+end
+
+local function ReadCastProgress()
+  local startTimeMS, endTimeMS = ReadCastTiming(castIsChannel)
+  if startTimeMS then
+    growStartMS, growEndMS = startTimeMS, endTimeMS
+  else
+    startTimeMS, endTimeMS = growStartMS, growEndMS
+  end
+  if not startTimeMS or not endTimeMS or endTimeMS <= startTimeMS then
+    return nil
+  end
+  return Clamp01((GetTime() * 1000 - startTimeMS) / (endTimeMS - startTimeMS))
+end
+
+local function UpdateLockIn(elapsed)
+  motionElapsed = motionElapsed + elapsed
+  if motionElapsed >= LOCK_IN_DURATION then
+    SetMotionIdle()
+    if crosshairVisualFrame then
+      crosshairVisualFrame:SetScale(lockInTargetScale)
+      crosshairVisualFrame:SetAlpha(lockInTargetAlpha)
+      CenterVisual()
+    end
+    if onCrosshairLockInComplete then
+      onCrosshairLockInComplete()
+    end
+    return
+  end
+
+  local t = EaseOutQuad(Clamp01(motionElapsed / LOCK_IN_DURATION))
+  if crosshairVisualFrame then
+    local scale = lockInStartScale + (lockInTargetScale - lockInStartScale) * t
+    local alpha = lockInStartAlpha + (lockInTargetAlpha - lockInStartAlpha) * t
+    crosshairVisualFrame:SetScale(math.max(0.01, scale))
+    crosshairVisualFrame:SetAlpha(alpha)
+  end
+end
+
+local function UpdateGrow()
+  local progress = ReadCastProgress()
+  if not progress then
+    return -- hold until a terminal cast event
+  end
+  castProgress = progress
+  -- Linear base + cubic end kick (keeps long casts moving; ramps near finish).
+  local eased = 0.55 * progress + 0.45 * progress * progress * progress
+  local scale = CAST_BASE_SCALE + (CAST_GROW_MAX_SCALE - CAST_BASE_SCALE) * eased
+  if crosshairVisualFrame then
+    crosshairVisualFrame:SetScale(math.max(0.01, scale))
+  end
+end
+
+local function BeginRestoreFromExplode()
+  if not crosshairVisualFrame then
+    SetMotionIdle()
+    ResetVisualToBase()
+    return
+  end
+  CenterVisual()
+  crosshairVisualFrame:SetScale(CAST_BASE_SCALE)
+  crosshairVisualFrame:SetAlpha(0)
+  motionState = MOTION_RESTORE
+  motionElapsed = 0
+  castGUID = nil
+end
+
+local function UpdateExplode(elapsed)
+  motionElapsed = motionElapsed + elapsed
+  if motionElapsed >= CAST_EXPLODE_DURATION then
+    BeginRestoreFromExplode()
+    return
+  end
+  local progress = Clamp01(motionElapsed / CAST_EXPLODE_DURATION)
+  local scale = motionStartScale + (motionExplodePeak - motionStartScale) * EaseOutQuad(progress)
+  local alpha = motionStartAlpha * (1 - progress * (2 - progress))
+  if crosshairVisualFrame then
+    crosshairVisualFrame:SetScale(math.max(0.01, scale))
+    crosshairVisualFrame:SetAlpha(math.max(0, alpha))
+  end
+end
+
+local function UpdateRestore(elapsed)
+  motionElapsed = motionElapsed + elapsed
+  local opacity = GetConfiguredOpacity()
+  if motionElapsed >= CAST_RESTORE_DURATION then
+    SetMotionIdle()
+    if crosshairVisualFrame then
+      crosshairVisualFrame:SetScale(CAST_BASE_SCALE)
+      crosshairVisualFrame:SetAlpha(opacity)
+      CenterVisual()
+    end
+    return
+  end
+  local t = EaseOutQuad(Clamp01(motionElapsed / CAST_RESTORE_DURATION))
+  if crosshairVisualFrame then
+    crosshairVisualFrame:SetScale(CAST_BASE_SCALE)
+    crosshairVisualFrame:SetAlpha(opacity * t)
+  end
+end
+
+local function UpdateBreak(elapsed)
+  motionElapsed = motionElapsed + elapsed
+  if motionElapsed >= CAST_BREAK_DURATION then
+    SetMotionIdle()
+    ResetVisualToBase()
+    return
+  end
+  local progress = Clamp01(motionElapsed / CAST_BREAK_DURATION)
+  local decay = 1 - progress
+  local ox = (random() * 2 - 1) * CAST_BREAK_SHAKE_PX * decay
+  local oy = (random() * 2 - 1) * CAST_BREAK_SHAKE_PX * decay
+  local scale = motionStartScale + (CAST_BASE_SCALE - motionStartScale) * progress
+  local flicker = (math.floor(motionElapsed * 40) % 2 == 0) and 1 or 0.55
+  local alpha = GetConfiguredOpacity() * flicker * (0.65 + 0.35 * progress)
+  if crosshairTexture then
+    local c = ((math.floor(motionElapsed * CAST_BREAK_FLASH_HZ) % 2) == 0) and CAST_BREAK_COLOR_RED
+      or CAST_BREAK_COLOR_GREY
+    crosshairTexture:SetVertexColor(c[1], c[2], c[3], c[4])
+  end
+  if crosshairVisualFrame and crosshairOuterFrame then
+    crosshairVisualFrame:SetPoint("CENTER", crosshairOuterFrame, "CENTER", ox, oy)
+    crosshairVisualFrame:SetScale(math.max(0.01, scale))
+    crosshairVisualFrame:SetAlpha(alpha)
+  end
+end
+
+local motionUpdaters = {
+  [MOTION_LOCK_IN] = UpdateLockIn,
+  [MOTION_GROW] = function()
+    UpdateGrow()
+  end,
+  [MOTION_EXPLODE] = UpdateExplode,
+  [MOTION_BREAK] = UpdateBreak,
+  [MOTION_RESTORE] = UpdateRestore,
+}
+
+local function OnCrosshairMotionUpdate(_, elapsed)
+  local updater = motionUpdaters[motionState]
+  if updater then
+    updater(elapsed)
+  end
+end
+
 function CM.InitCrosshairAnimations(opts)
   if not opts then
     return
   end
-
   crosshairOuterFrame = opts.outerFrame
   crosshairVisualFrame = opts.visualFrame
   crosshairTexture = opts.texture
   onCrosshairLockInComplete = opts.onLockInComplete
-
   if crosshairOuterFrame and crosshairOuterFrame.SetScript then
-    crosshairOuterFrame:SetScript("OnUpdate", function(_, elapsed)
-      if LOCK_IN_TOTAL_ELAPSED == -1 then
-        return
-      end
-
-      LOCK_IN_TOTAL_ELAPSED = LOCK_IN_TOTAL_ELAPSED + elapsed
-
-      if LOCK_IN_TOTAL_ELAPSED >= LOCK_IN_DURATION then
-        LOCK_IN_TOTAL_ELAPSED = -1
-        if crosshairVisualFrame then
-          crosshairVisualFrame:SetScale(LOCK_IN_TARGET_SCALE)
-          crosshairVisualFrame:SetAlpha(LOCK_IN_TARGET_ALPHA)
-          crosshairVisualFrame:SetPoint("CENTER", crosshairOuterFrame, "CENTER", 0, 0)
-        end
-        if onCrosshairLockInComplete then
-          onCrosshairLockInComplete()
-        end
-        return
-      end
-
-      local progress = LOCK_IN_TOTAL_ELAPSED / LOCK_IN_DURATION
-      progress = math.max(0, math.min(1, progress))
-      local easedProgress = 1 - (1 - progress) * (1 - progress)
-
-      local currentScale = LOCK_IN_STARTING_SCALE
-        + (LOCK_IN_TARGET_SCALE - LOCK_IN_STARTING_SCALE) * easedProgress
-      currentScale = math.max(0.01, currentScale)
-      if crosshairVisualFrame then
-        crosshairVisualFrame:SetScale(currentScale)
-      end
-
-      local currentAlpha = LOCK_IN_STARTING_ALPHA
-        + (LOCK_IN_TARGET_ALPHA - LOCK_IN_STARTING_ALPHA) * easedProgress
-      if crosshairVisualFrame then
-        crosshairVisualFrame:SetAlpha(currentAlpha)
-      end
-    end)
+    crosshairOuterFrame:SetScript("OnUpdate", OnCrosshairMotionUpdate)
   end
-end
-
-function CM.CancelCrosshairLockIn()
-  LOCK_IN_TOTAL_ELAPSED = -1
 end
 
 function CM.ShowCrosshairLockIn()
@@ -220,20 +464,113 @@ function CM.ShowCrosshairLockIn()
     return
   end
 
+  CM.CancelCrosshairCastFeedback()
   crosshairTexture:Show()
-  local DefaultConfig = CM.Constants.DatabaseDefaults.global
-  local UserConfig = CM.DB.global or {}
-  local configuredOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
 
-  local currentScale = crosshairVisualFrame:GetScale()
-  LOCK_IN_STARTING_SCALE = currentScale * 1.3
-  LOCK_IN_STARTING_ALPHA = 0.0
-  LOCK_IN_TARGET_SCALE = 1.0
-  LOCK_IN_TARGET_ALPHA = configuredOpacity
+  lockInStartScale = crosshairVisualFrame:GetScale() * 1.3
+  lockInStartAlpha = 0.0
+  lockInTargetScale = CAST_BASE_SCALE
+  lockInTargetAlpha = GetConfiguredOpacity()
 
-  crosshairVisualFrame:SetPoint("CENTER", crosshairOuterFrame, "CENTER", 0, 0)
-  crosshairVisualFrame:SetScale(LOCK_IN_STARTING_SCALE)
-  crosshairVisualFrame:SetAlpha(LOCK_IN_STARTING_ALPHA)
+  CenterVisual()
+  crosshairVisualFrame:SetScale(lockInStartScale)
+  crosshairVisualFrame:SetAlpha(lockInStartAlpha)
+  motionState = MOTION_LOCK_IN
+  motionElapsed = 0
+end
 
-  LOCK_IN_TOTAL_ELAPSED = 0
+function CM.StartCrosshairCastGrow(eventGUID, isChannel)
+  if not (crosshairOuterFrame and crosshairVisualFrame and crosshairTexture) then
+    return
+  end
+
+  CM.CancelCrosshairLockIn()
+  if
+    motionState == MOTION_EXPLODE
+    or motionState == MOTION_BREAK
+    or motionState == MOTION_RESTORE
+  then
+    ResetVisualToBase()
+  end
+
+  castGUID = eventGUID
+  castIsChannel = isChannel and true or false
+  castInterrupted = false
+  castProgress = 0
+  growStartMS, growEndMS = ReadCastTiming(castIsChannel)
+  motionState = MOTION_GROW
+  motionElapsed = 0
+
+  CenterVisual()
+  crosshairVisualFrame:SetScale(CAST_BASE_SCALE)
+  crosshairVisualFrame:SetAlpha(GetConfiguredOpacity())
+end
+
+local function BeginExplode(eventGUID)
+  if motionState ~= MOTION_GROW or not CastGUIDMatches(eventGUID) or not crosshairVisualFrame then
+    return false
+  end
+  motionStartScale = crosshairVisualFrame:GetScale() or CAST_GROW_MAX_SCALE
+  motionStartAlpha = crosshairVisualFrame:GetAlpha() or GetConfiguredOpacity()
+  motionExplodePeak = motionStartScale + CAST_EXPLODE_EXTRA_SCALE
+  motionState = MOTION_EXPLODE
+  motionElapsed = 0
+  castGUID = nil
+  return true
+end
+
+local function BeginBreak(eventGUID)
+  if motionState ~= MOTION_GROW or not CastGUIDMatches(eventGUID) or not crosshairVisualFrame then
+    return false
+  end
+  if crosshairTexture and crosshairTexture.GetVertexColor then
+    local r, g, b, a = crosshairTexture:GetVertexColor()
+    breakSavedVertexColor = { r, g, b, a }
+  end
+  motionStartScale = crosshairVisualFrame:GetScale() or CAST_BASE_SCALE
+  motionState = MOTION_BREAK
+  motionElapsed = 0
+  castGUID = nil
+  return true
+end
+
+function CM.StartCrosshairCastExplode(eventGUID)
+  BeginExplode(eventGUID)
+end
+
+function CM.StartCrosshairCastBreak(eventGUID)
+  BeginBreak(eventGUID)
+end
+
+--- Terminal cast/channel resolution from Crosshair event handler.
+--- reason: "succeeded" | "stopped" | "failed" | "channel_stop"
+function CM.NotifyCrosshairCastTerminal(eventGUID, reason)
+  if reason == "failed" then
+    castInterrupted = true
+    BeginBreak(eventGUID)
+    return
+  end
+  if reason == "succeeded" then
+    if castIsChannel then
+      return -- channel ticks also fire SUCCEEDED
+    end
+    BeginExplode(eventGUID)
+    return
+  end
+  if reason == "stopped" then
+    if castProgress >= CAST_SUCCESS_PROGRESS then
+      BeginExplode(eventGUID)
+    else
+      BeginBreak(eventGUID)
+    end
+    return
+  end
+  if reason == "channel_stop" then
+    if castInterrupted or castProgress < CAST_SUCCESS_PROGRESS then
+      BeginBreak(eventGUID)
+    else
+      BeginExplode(eventGUID)
+    end
+    castInterrupted = false
+  end
 end

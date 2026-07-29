@@ -86,6 +86,7 @@ CM.Constants.DatabaseDefaults = {
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
     crosshairSize = 64,
     crosshairOpacity = 1.0,
+    crosshairCastFeedback = true,
     interactionHUD = true,
     assistedHighlightEnabled = true,
     assistedHighlightSize = 32,

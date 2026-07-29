@@ -32,7 +32,7 @@ Use this project map and conventions for all changes.
 - `Core/Crosshair/Crosshair.lua`: owns crosshair visuals and reaction logic. Crosshair reaction and cursor centering follow `CM.IsCrosshairEnabled()`. `CM.SetCrosshairOptionsPreview(enabled)` / `CM.IsCrosshairPreviewActive()` force the crosshair (and the Interaction HUD + Combat Assist companions) to render outside their normal mouselook/combat conditions for the Crosshair options tab. Vertical position is account-wide `CM.DB.global.crosshairY` (options slider only).
 - `Core/Crosshair/InteractionHUD.lua`: owns the Interaction HUD widget lifecycle, fade/range `OnUpdate`, and soft-interact event handling.
 - `Core/Crosshair/AssistedHighlight.lua`: owns Assisted Combat suggestion icon + keybind near the crosshair.
-- `Core/Crosshair/Animations.lua`: owns user-facing animations (cursor pulse after unlock/free-look transitions; crosshair reaction/lock-in presentation).
+- `Core/Crosshair/Animations.lua`: owns user-facing animations (cursor pulse after unlock/free-look transitions; crosshair reaction/lock-in; cast feedback grow/explode/break on a shared outer OnUpdate).
 - `Core/ClickCasting/BindingOverrides.lua`: owns override binding/macro synthesis for mouse buttons and modified clicks; refreshes when bars/bindings change.
 - `Core/ClickCasting/AddonActionBarResolver.lua`: owns third-party action bar button resolution by action-slot id (ElvUI/Bartender4).
 - `Core/ClickCasting/TargetingMacroBuilder.lua`: owns reticle-targeting macro text construction (pre-line, /click wrapper, @cursor handling). Exports `CM.TargetingMacroPrelinesDefaults`; honors account-wide `CM.DB.global.targetingMacroPrelineAnyOverride` / `targetingMacroPrelineEnemyOverride` when set.
