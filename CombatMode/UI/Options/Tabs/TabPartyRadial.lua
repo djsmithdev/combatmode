@@ -1,27 +1,25 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabPartyRadial.lua — OPTIONS TAB — Party Radial + preview
 ---------------------------------------------------------------------------------------
---  What it does: Wires party radial enable (reload), open keybind, and visual sliders/
---  toggles (sliceRadius/size, nameFontSize, roleIconSize, showHealthBars,
---  showBackground). SetOptionsPreview(true/false) on tab select/deselect for layout-only
---  preview.
+--  What it does: Wires party radial enable (reload), open keybind, and simplified visual
+--  options: Health Bars and Background. Layout geometry (slice radius, scale, role icon
+--  size, name font size) is fixed in Core/PartyRadial. SetOptionsPreview on tab
+--  select/deselect for layout-only preview.
 --  Architecture / how it works:
---    • All config under DB.global.partyRadial.*; ApplyVisualConfig after visual sets.
---    • Keybind changes via TryApplyBindingChange + SaveBindings.
+--    • Config under DB.global.partyRadial.*; ApplyVisualConfig after visual sets.
+--    • Keybind via TryApplyBindingChange + AssignNamedKeybind (clears Interact orphans
+--      and refreshes Target Lock override).
 --  Does not: Own secure slice attributes or roster hooks (CM.PartyRadial runtime).
 --  Related: Core/PartyRadial/PartyRadial.lua, Constants/PartyRadial.lua,
 --  Constants/DatabaseDefaults.lua, UI/Options/OptionsPanel.lua,
---  Core/Runtime/BindingQueue.lua
+--  Core/Runtime/BindingQueue.lua, Core/ClickCasting/BindingOverrides.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
 
 -- WoW API
 local GetBindingKey = _G.GetBindingKey
-local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local ReloadUI = _G.ReloadUI
-local SaveBindings = _G.SaveBindings
-local SetBinding = _G.SetBinding
 
 local UI = CM.UI
 
@@ -57,7 +55,7 @@ UI.Options.AddTab({
   build = function(ctx)
     ctx:Header("PARTY RADIAL")
     ctx:Description(
-      "During Mouse Look, open the Party Radial, aim at a slice, then click with a Click Casting bind to cast on that party member."
+      "During Mouse Look, use the Party Radial to quickly cast spells and target party members."
     )
 
     ctx:Toggle({
@@ -79,79 +77,12 @@ UI.Options.AddTab({
       end,
       set = function(key)
         CM.TryApplyBindingChange("party radial keybinding", function()
-          local oldKey = (GetBindingKey("Combat Mode - Party Radial"))
-          if oldKey then
-            SetBinding(oldKey)
-          end
-          if key ~= "" then
-            SetBinding(key, "Combat Mode - Party Radial")
-          end
-          SaveBindings(GetCurrentBindingSet())
+          CM.AssignNamedKeybind("Combat Mode - Party Radial", key)
         end)
       end,
       disabled = RadialDisabled,
     })
 
-    ctx:Slider({
-      label = "Size",
-      desc = "Distance from center to each slice.",
-      min = 100,
-      max = 200,
-      step = 10,
-      get = function()
-        return CM.DB.global.partyRadial.sliceRadius
-      end,
-      set = function(value)
-        CM.DB.global.partyRadial.sliceRadius = value
-        ApplyVisualConfig()
-      end,
-      disabled = RadialDisabled,
-    })
-    ctx:Slider({
-      label = "Slice Scale",
-      desc = "Scale of icons, names, and health bars.",
-      min = 0.5,
-      max = 1.5,
-      step = 0.1,
-      get = function()
-        return CM.DB.global.partyRadial.sliceSize
-      end,
-      set = function(value)
-        CM.DB.global.partyRadial.sliceSize = value
-        ApplyVisualConfig()
-      end,
-      disabled = RadialDisabled,
-    })
-    ctx:Slider({
-      label = "Name Size",
-      desc = "Party member name size.",
-      min = 8,
-      max = 24,
-      step = 1,
-      get = function()
-        return CM.DB.global.partyRadial.nameFontSize or 13
-      end,
-      set = function(value)
-        CM.DB.global.partyRadial.nameFontSize = value
-        ApplyVisualConfig()
-      end,
-      disabled = RadialDisabled,
-    })
-    ctx:Slider({
-      label = "Role Icon Size",
-      desc = "Role icon size.",
-      min = 16,
-      max = 96,
-      step = 16,
-      get = function()
-        return CM.DB.global.partyRadial.roleIconSize or 64
-      end,
-      set = function(value)
-        CM.DB.global.partyRadial.roleIconSize = value
-        ApplyVisualConfig()
-      end,
-      disabled = RadialDisabled,
-    })
     ctx:Toggle({
       label = "Health Bars",
       desc = "Show health bars on each slice.",

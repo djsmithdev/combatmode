@@ -7,9 +7,10 @@
 --  and focusCurrentTargetNotCrosshair.
 --  Architecture / how it works:
 --    • DB: global.pulseCursor, hideTooltip, interactUnit; char.focusCurrentTargetNotCrosshair.
---    • Keybind sets go through TryApplyBindingChange; interact rebind clears both
---      INTERACTMOUSEOVER and INTERACTTARGET then assigns primary + ALT alternate.
---    • Target Lock set also calls ApplyToggleFocusTargetBinding.
+--    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
+--      orphans on the stolen key and refreshes Target Lock override).
+--    • Interact rebind clears both INTERACTMOUSEOVER and INTERACTTARGET then assigns
+--      primary + ALT alternate.
 --  Does not: Own freelook state machine or click-cast slot table UI.
 --  Related: Core/FreeLook/FreeLookController.lua,
 --  Core/ClickCasting/BindingOverrides.lua, Core/Runtime/BindingQueue.lua,
@@ -76,6 +77,10 @@ local function ApplyInteractKeybind(key)
       SetBinding("ALT-" .. key, alternate)
     end
     SaveBindings(GetCurrentBindingSet())
+    -- Interact may have stolen a Target Lock key; refresh the override layer.
+    if CM.ApplyToggleFocusTargetBinding then
+      CM.ApplyToggleFocusTargetBinding()
+    end
   end)
 end
 
@@ -93,14 +98,7 @@ UI.Options.AddTab({
       end,
       set = function(key)
         CM.TryApplyBindingChange("mouse look keybinding", function()
-          local oldKey = (GetBindingKey("Combat Mode - Mouse Look"))
-          if oldKey then
-            SetBinding(oldKey)
-          end
-          if key ~= "" then
-            SetBinding(key, "Combat Mode - Mouse Look")
-          end
-          SaveBindings(GetCurrentBindingSet())
+          CM.AssignNamedKeybind("Combat Mode - Mouse Look", key)
         end)
       end,
     })
@@ -169,15 +167,7 @@ UI.Options.AddTab({
       end,
       set = function(key)
         CM.TryApplyBindingChange("target lock keybinding", function()
-          local oldKey = (GetBindingKey("Combat Mode - Toggle Focus Target"))
-          if oldKey then
-            SetBinding(oldKey)
-          end
-          if key ~= "" then
-            SetBinding(key, "Combat Mode - Toggle Focus Target")
-          end
-          SaveBindings(GetCurrentBindingSet())
-          CM.ApplyToggleFocusTargetBinding()
+          CM.AssignNamedKeybind("Combat Mode - Toggle Focus Target", key)
         end)
       end,
     })

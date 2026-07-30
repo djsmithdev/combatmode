@@ -10,7 +10,9 @@
 --    • SetNewBinding / OverrideDefaultButtons / ResetBindingOverride — per-slot secure
 --      attributes + SetMouselookOverrideBinding / SetOverrideBindingClick.
 --    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run.
---    • ApplyToggleFocusTargetBinding — Combat Mode Target Lock keybind.
+--    • ApplyToggleFocusTargetBinding — Combat Mode Target Lock keybind (always clears
+--      override owner first so stolen keys cannot leave a stale click override).
+--    • AssignNamedKeybind / ClearInteractOrphansOnKey — shared options keybind helpers.
 --    • Combat-safe via BindingQueue when options change mid-combat.
 --  Does not: Resolve ElvUI/BT4 frame names (AddonActionBarResolver) or build preline text
 --  (TargetingMacroBuilder).
@@ -26,8 +28,12 @@ local _G = _G
 local CreateFrame = _G.CreateFrame
 local ClearOverrideBindings = _G.ClearOverrideBindings
 local GetActionInfo = _G.GetActionInfo
+local GetBindingAction = _G.GetBindingAction
 local GetBindingKey = _G.GetBindingKey
+local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local InCombatLockdown = _G.InCombatLockdown
+local SaveBindings = _G.SaveBindings
+local SetBinding = _G.SetBinding
 local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 local SetOverrideBinding = _G.SetOverrideBinding
 local SetOverrideBindingClick = _G.SetOverrideBindingClick
@@ -38,6 +44,7 @@ local ipairs = _G.ipairs
 local pairs = _G.pairs
 local pcall = _G.pcall
 local select = _G.select
+local strfind = _G.string.find
 local tonumber = _G.tonumber
 local tostring = _G.tostring
 local type = _G.type
@@ -366,15 +373,16 @@ function CM.ResetBindingOverride(buttonSettings)
   CM.DebugPrint(buttonSettings.key .. "'s override binding is now cleared")
 end
 
--- Apply override binding for toggle focus target
+-- Apply override binding for toggle focus target. Always clear first so a stolen /
+-- unbound Target Lock key cannot leave a stale SetOverrideBindingClick active.
 function CM.ApplyToggleFocusTargetBinding()
   if InCombatLockdown() then
     return
   end
   UpdateToggleFocusTargetMacroText()
+  ClearOverrideBindings(ToggleFocusTargetOverrideOwner)
   local key = GetBindingKey("Combat Mode - Toggle Focus Target")
   if key then
-    ClearOverrideBindings(ToggleFocusTargetOverrideOwner)
     SetOverrideBindingClick(
       ToggleFocusTargetOverrideOwner,
       false,
@@ -383,7 +391,55 @@ function CM.ApplyToggleFocusTargetBinding()
       "LeftButton"
     )
     CM.DebugPrint("Toggle Focus Target binding applied to " .. tostring(key))
+  else
+    CM.DebugPrint("Toggle Focus Target override cleared (no key bound)")
   end
+end
+
+local INTERACT_MOUSEOVER = "INTERACTMOUSEOVER"
+local INTERACT_TARGET = "INTERACTTARGET"
+
+local function IsInteractAction(action)
+  return action == INTERACT_MOUSEOVER or action == INTERACT_TARGET
+end
+
+--- Clears Interact on `key` and `ALT-key` when those chords still hold INTERACT*.
+--- Mouse Look / Party Radial / Target Lock steal only the base key; Interact's intentional
+--- dual-bind otherwise leaves ALT-<key> behind and the Interact option shows Alt+key.
+function CM.ClearInteractOrphansOnKey(key)
+  if not key or key == "" or not GetBindingAction or not SetBinding then
+    return
+  end
+  if IsInteractAction(GetBindingAction(key)) then
+    SetBinding(key)
+  end
+  if not strfind(key, "^ALT%-") then
+    local altKey = "ALT-" .. key
+    if IsInteractAction(GetBindingAction(altKey)) then
+      SetBinding(altKey)
+    end
+  end
+end
+
+--- Assign (or clear) a named binding command, clear Interact orphans on the new key,
+--- save bindings, and refresh the Target Lock override layer.
+function CM.AssignNamedKeybind(command, key)
+  if not command or command == "" then
+    return
+  end
+  local oldKey = GetBindingKey(command)
+  while oldKey do
+    SetBinding(oldKey)
+    oldKey = GetBindingKey(command)
+  end
+  if key and key ~= "" then
+    CM.ClearInteractOrphansOnKey(key)
+    SetBinding(key, command)
+  end
+  if SaveBindings and GetCurrentBindingSet then
+    SaveBindings(GetCurrentBindingSet())
+  end
+  CM.ApplyToggleFocusTargetBinding()
 end
 
 -- Handler for toggle focus target keybinding (fallback - should be overridden)

@@ -73,7 +73,7 @@ function Options.DockWindowLeft()
   local parentW = parent:GetWidth() or 0
   local panelW = frame:GetWidth() or WINDOW_W
   local leftPad = 24
-  -- Party radial outer reach is ~sliceRadius(120)+half slice; keep a little air past that.
+  -- Party radial outer reach is ~fixed radius(120)+half slice; keep a little air past that.
   local clearFromCenter = 280
   local maxRight = (parentW * 0.5) - clearFromCenter
   local x = maxRight - panelW

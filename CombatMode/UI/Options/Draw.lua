@@ -131,8 +131,7 @@ end
 --                          SOLID ROUNDED-RECT RENDERER                             --
 ---------------------------------------------------------------------------------------
 -- Crisp rounded rectangle drawn from solid fills (WHITE8x8 via SetColorTexture) with
--- the four corners rounded by a circular alpha mask. This is our license-safe stand-in
--- for EasyFind's private rounded-rect atlas: solid, sharp, no cloudy edges.
+-- the four corners rounded by a circular alpha mask.
 --
 -- Each surface is a 9-slice: 4 masked corner quads + 4 solid edges + 1 solid center.
 -- Textures are parented to `textureParent` (draw order / layers) and sized against
@@ -460,13 +459,19 @@ function UI.ShowTooltip(owner, content, anchor)
 
   EnsureTooltipFrame()
 
-  local title = content.title and tostring(content.title) or nil
-  if title == "" then
-    title = nil
+  local title = nil
+  if content.title then
+    title = tostring(content.title)
+    if title == "" then
+      title = nil
+    end
   end
-  local body = content.text and tostring(content.text) or nil
-  if body == "" then
-    body = nil
+  local body = nil
+  if content.text then
+    body = tostring(content.text)
+    if body == "" then
+      body = nil
+    end
   end
 
   local lines = content.lines

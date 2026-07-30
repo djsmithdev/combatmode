@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-07-30
+
+### Added
+
+- Crosshair Cast Feedback option: crosshair provides visual feedback while casting; grows when channeling, explodes on a successful cast, and shakes/breaks on cancel or interrupt.
+
+### Fixed
+- Rebinding Mouse Look, Party Radial, or Target Lock now clears leftover Interact Alt+key chords and refreshes Target Lock overrides immediately (no longer requires a reload when stealing a key).
+
+### Changed
+- Combat Assist, Interaction HUD, and Party Radial options streamlined in favour of a fixed more controllable layout.
+- Redesigned Combat Assist HUD: improved animations & reactivity; custom keyboard and mouse icons for Click Casting bindings.
+- Redesigned Interaction HUD: Left/Right placement, fixed icon size, and opacity no longer tied to the crosshair opacity slider.
+- Redesigned Party Radial: health bars completely rebuilt and provide more information now.
+- Clicking a Party Radial slice now hard-targets / selects that party member (in addition to casting).
+- Clicking the Party Radial center close (X) clears the current target.
+- Code cleanup across modules and leaner docs/instruction files.
+
 ## [4.0.3] - 2026-07-28
 
 ### Added
@@ -180,7 +198,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.0.3...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.1.0...HEAD
+[4.1.0]: https://github.com/djsmithdev/combatmode/compare/4.0.3...4.1.0
 [4.0.3]: https://github.com/djsmithdev/combatmode/compare/4.0.2...4.0.3
 [4.0.2]: https://github.com/djsmithdev/combatmode/compare/4.0.1...4.0.2
 [4.0.1]: https://github.com/djsmithdev/combatmode/compare/4.0.0...4.0.1

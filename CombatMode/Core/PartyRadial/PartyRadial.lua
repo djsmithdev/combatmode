@@ -3,8 +3,12 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Full party-radial feature: secure slice frames that cast on party members,
 --  open/hold keybind while Mouse Look is active, roster/combat/action-bar refresh, visual
---  config under DB.global.partyRadial, and layout-only options preview
---  (SetOptionsPreview).
+--  config under DB.global.partyRadial (health bars / background), and layout-only
+--  options preview (SetOptionsPreview). Slice radius, scale, role icon size, and name
+--  font size are fixed constants (not user options). Health bars use the widgetstatusbar
+--  L/C/R kit with a white fill tinted by health % via UnitHealthPercent color curves
+--  (secret/taint-safe, same approach as Platynator/EQOL); options preview simulates varied
+--  health so low-health glow is visible.
 --  Architecture / how it works:
 --    • CM.PartyRadial API: Initialize, Show/Hide/ShowFromKeybind, ApplyVisualConfig,
 --      UpdateMainFramePosition, OnGroupRosterUpdate / OnCombatStart/End /
@@ -26,6 +30,8 @@ local CreateFrame = _G.CreateFrame
 local CreateColor = _G.CreateColor
 local debugstack = _G.debugstack
 local EvaluateColorFromBoolean = _G.C_CurveUtil and _G.C_CurveUtil.EvaluateColorFromBoolean
+local CreateColorCurve = _G.C_CurveUtil and _G.C_CurveUtil.CreateColorCurve
+local UnitHealthPercent = _G.UnitHealthPercent
 local GetActionInfo = _G.GetActionInfo
 local GetCursorPosition = _G.GetCursorPosition
 local GetItemInfo = _G.C_Item.GetItemInfo
@@ -112,6 +118,8 @@ local PREVIEW_DPS_VARIANTS = {
   { name = "Rogue", class = "ROGUE" },
   { name = "Hunter", class = "HUNTER" },
 }
+-- Options-preview health fractions per slice (low / mid / full / low / mid-high).
+local PREVIEW_HEALTH_BY_SLICE = { 0.15, 0.40, 1.0, 0.25, 0.60 }
 
 ---------------------------------------------------------------------------------------
 --                    MODIFIED ATTRIBUTE MAPPING FOR SPELL CASTING                   --
@@ -408,7 +416,7 @@ local function BuildPreviewPartyData()
         class = class,
         sliceIndex = i,
         isPreview = true,
-        previewHealthPct = 0.45 + (i * 0.1),
+        previewHealthPct = PREVIEW_HEALTH_BY_SLICE[i] or 0.75,
       })
     end
   end
@@ -459,10 +467,6 @@ local function UpdateSecureButtonTargets()
   RadialState.pendingUpdate = false
 end
 
--- Build the macrotext for a given action bar slot targeting a specific unit.
--- Returns macrotext string or nil if the slot is empty.
--- Uses /cast [@unit] SpellName for spells, /use [@unit] ItemName for items,
--- and raw macro body for user macros (which handle their own targeting).
 -- Resolve the effective action slot for a button index (1-8).
 -- Blizzard's ActionButton frames compute the current slot based on bar page, bonus bar
 -- (druid form, rogue stealth), vehicle bar, and override bar.
@@ -502,6 +506,22 @@ local function ResolveActionSlot(buttonIndex)
   return buttonIndex
 end
 
+-- Prepend /target so the click hard-selects the party member before cast/use/macro.
+local function WithHardTarget(unitId, body)
+  if not body then
+    return nil
+  end
+  if not unitId or unitId == "" then
+    return body
+  end
+  return "/target [@" .. unitId .. "]\n" .. body
+end
+
+-- Build the macrotext for a given action bar slot targeting a specific unit.
+-- Returns macrotext string or nil if the slot is empty.
+-- Uses /cast [@unit] SpellName for spells, /use [@unit] ItemName for items,
+-- and raw macro body for user macros. Always prepends /target [@unit] when unitId
+-- is set so the click also hard-selects that party member.
 local function BuildMacrotext(slot, unitId)
   -- When the vehicle/override bar is shown, skip spell resolution entirely.
   -- Vehicle abilities cast on party members can cause unintended effects (e.g. dismount).
@@ -519,20 +539,20 @@ local function BuildMacrotext(slot, unitId)
   if actionType == "spell" then
     local spellName = GetSpellName(actionId)
     if spellName and unitId then
-      return "/cast [@" .. unitId .. "] " .. spellName
+      return WithHardTarget(unitId, "/cast [@" .. unitId .. "] " .. spellName)
     elseif spellName then
       return "/cast " .. spellName
     end
   elseif actionType == "item" then
     local itemName = GetItemInfo(actionId)
     if itemName and unitId then
-      return "/use [@" .. unitId .. "] " .. itemName
+      return WithHardTarget(unitId, "/use [@" .. unitId .. "] " .. itemName)
     elseif itemName then
       return "/use " .. itemName
     end
   elseif actionType == "macro" then
-    -- User macros define their own targeting; use raw body
-    return GetMacroBody(actionId)
+    -- User macros define their own targeting; still hard-select the slice unit first.
+    return WithHardTarget(unitId, GetMacroBody(actionId))
   end
 
   return nil
@@ -543,9 +563,9 @@ end
 -- automatically at click time, even during combat. We just need to set the
 -- attributes ahead of time (out of combat) so the template knows what to do.
 --
--- We use type="macro" + macrotext="/cast [@unitId] SpellName" because
+-- We use type="macro" + macrotext="/target [@unit]\n/cast [@unit] SpellName" because
 -- type="spell" does not work on addon-created SecureActionButtonTemplate buttons,
--- while type="macro" with macrotext does.
+-- while type="macro" with macrotext does. /target hard-selects the party member.
 --
 -- Called on init, on action bar changes, on roster changes, and on combat end.
 local function UpdateSliceActionAttributes()
@@ -585,23 +605,14 @@ local function UpdateSliceActionAttributes()
             .. "=macro -> "
             .. macrotext
         )
-      elseif not mapping.isSpellBinding then
-        -- Non-ACTIONBUTTON binding (FOCUSTARGET, CLEARFOCUS, etc.): target the party member
+      elseif unitId then
+        -- Empty ACTIONBUTTON slot or non-spell binding: hard-target the party member.
         slice:SetAttribute(p .. "type" .. s, "target")
         slice:SetAttribute(p .. "macrotext" .. s, nil)
         CM.DebugPrint(
-          "  Slice "
-            .. i
-            .. " ("
-            .. tostring(unitId)
-            .. "): "
-            .. p
-            .. "type"
-            .. s
-            .. "=target (non-spell binding)"
+          "  Slice " .. i .. " (" .. tostring(unitId) .. "): " .. p .. "type" .. s .. "=target"
         )
       else
-        -- ACTIONBUTTON binding but empty slot: clear action so clicking does nothing
         slice:SetAttribute(p .. "type" .. s, nil)
         slice:SetAttribute(p .. "macrotext" .. s, nil)
       end
@@ -616,9 +627,327 @@ end
 ---------------------------------------------------------------------------------------
 -- Inner anchor point (edge toward radial center) so scaling grows outward from center
 -- and top/bottom slices don't displace asymmetrically. Returns anchor, offsetX, offsetY.
--- Uses fixed base size for positioning (sliceSize is now a scale factor, not pixel size)
+-- Uses fixed base size for positioning (scale is fixed at 1.0 for hit-area stability)
 local BASE_SLICE_SIZE = 80 -- Fixed base size for slice frame
 local CENTER_FIXED_SIZE = 64 -- Fixed size for dead-center elements (not tied to crosshair size)
+-- Fixed layout (no longer user-configurable)
+local SLICE_RADIUS = 120
+local SLICE_SCALE = 1.0
+local ROLE_ICON_SIZE = 64
+local NAME_FONT_SIZE = 13
+
+-- Party-slice health bar (widgetstatusbar kit), scaled from native 15px fill height.
+local HB_W, HB_H = 72, 10
+local HB_SCALE = HB_H / 15
+local HB_BORDER_X = math.floor(8 * HB_SCALE + 0.5)
+local HB_BG_X = math.max(1, math.floor(2 * HB_SCALE + 0.5))
+local HB_BORDER_H = math.floor(31 * HB_SCALE + 0.5)
+local HB_BORDER_END_W = math.floor(35 * HB_SCALE + 0.5)
+local HB_BG_H = math.floor(18 * HB_SCALE + 0.5)
+local HB_BG_END_W = math.floor(29 * HB_SCALE + 0.5)
+local HB_LOW_PCT = 0.25
+local HB_GLOW_R, HB_GLOW_G, HB_GLOW_B = 1, 0.12, 0.08
+local HB_FILL_WHITE = "widgetstatusbar-fill-white"
+local COLOR_HB_CRIT = CreateColor(1, 0.22, 0.12, 1)
+local COLOR_HB_DMG = CreateColor(1, 0.85, 0.15, 1)
+local COLOR_HB_OK = CreateColor(0.2, 0.85, 0.25, 1)
+local COLOR_HB_GLOW_ON = CreateColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
+local COLOR_HB_GLOW_OFF = CreateColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 0)
+local COLOR_HB_SPARK_ON = CreateColor(1, 1, 1, 1)
+local COLOR_HB_SPARK_OFF = CreateColor(1, 1, 1, 0)
+
+-- Secret-safe health → color (same pattern as Platynator / EQOL: UnitHealthPercent + color curve).
+-- Step curves hold a point's color until the next point, so green/glow-off must start
+-- immediately after their thresholds (not only at 1.0).
+local HB_FILL_CURVE, HB_GLOW_CURVE, HB_SPARK_CURVE
+if CreateColorCurve then
+  local stepType = _G.Enum and _G.Enum.LuaCurveType and _G.Enum.LuaCurveType.Step
+  local yellowAt = HB_LOW_PCT + 1e-4
+  local greenAt = 0.5 + 1e-4
+
+  HB_FILL_CURVE = CreateColorCurve()
+  if stepType then
+    HB_FILL_CURVE:SetType(stepType)
+  end
+  HB_FILL_CURVE:AddPoint(0, COLOR_HB_CRIT)
+  HB_FILL_CURVE:AddPoint(HB_LOW_PCT, COLOR_HB_CRIT)
+  HB_FILL_CURVE:AddPoint(yellowAt, COLOR_HB_DMG)
+  HB_FILL_CURVE:AddPoint(0.5, COLOR_HB_DMG)
+  HB_FILL_CURVE:AddPoint(greenAt, COLOR_HB_OK)
+  HB_FILL_CURVE:AddPoint(1, COLOR_HB_OK)
+
+  HB_GLOW_CURVE = CreateColorCurve()
+  if stepType then
+    HB_GLOW_CURVE:SetType(stepType)
+  end
+  HB_GLOW_CURVE:AddPoint(0, COLOR_HB_GLOW_ON)
+  HB_GLOW_CURVE:AddPoint(HB_LOW_PCT, COLOR_HB_GLOW_ON)
+  HB_GLOW_CURVE:AddPoint(yellowAt, COLOR_HB_GLOW_OFF)
+  HB_GLOW_CURVE:AddPoint(1, COLOR_HB_GLOW_OFF)
+
+  HB_SPARK_CURVE = CreateColorCurve()
+  if stepType then
+    HB_SPARK_CURVE:SetType(stepType)
+  end
+  -- Visible for any partial health; off at empty/full.
+  HB_SPARK_CURVE:AddPoint(0, COLOR_HB_SPARK_OFF)
+  HB_SPARK_CURVE:AddPoint(0.001, COLOR_HB_SPARK_ON)
+  HB_SPARK_CURVE:AddPoint(0.999, COLOR_HB_SPARK_ON)
+  HB_SPARK_CURVE:AddPoint(1, COLOR_HB_SPARK_OFF)
+end
+
+local function ApplyHealthBarFill(bar, atlas)
+  bar:SetStatusBarTexture(atlas)
+  local fillTex = bar:GetStatusBarTexture()
+  if fillTex then
+    if fillTex.SetAtlas then
+      fillTex:SetAtlas(atlas, false)
+    end
+    fillTex:SetHorizTile(true)
+  end
+  return fillTex
+end
+
+local function ExtractColorRGBA(color)
+  if not color then
+    return nil
+  end
+  if color.GetRGBA then
+    return color:GetRGBA()
+  end
+  if color.r then
+    return color.r, color.g, color.b, color.a
+  end
+  return color[1], color[2], color[3], color[4]
+end
+
+local function SetHealthBarGlowShown(bar, shown)
+  bar.glowLeft:SetShown(shown)
+  bar.glowCenter:SetShown(shown)
+  bar.glowRight:SetShown(shown)
+  if shown then
+    bar.glowLeft:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
+    bar.glowCenter:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
+    bar.glowRight:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
+    bar.glowLeft:SetAlpha(1)
+    bar.glowCenter:SetAlpha(1)
+    bar.glowRight:SetAlpha(1)
+  end
+end
+
+local function ApplyHealthBarGlowAlpha(bar, alpha)
+  bar.glowLeft:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
+  bar.glowCenter:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
+  bar.glowRight:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
+  bar.glowLeft:SetAlpha(alpha)
+  bar.glowCenter:SetAlpha(alpha)
+  bar.glowRight:SetAlpha(alpha)
+  bar.glowLeft:Show()
+  bar.glowCenter:Show()
+  bar.glowRight:Show()
+end
+
+-- Public (preview) health fraction → fill/glow/spark.
+local function ApplyHealthBarPublicAppearance(bar, pct, fillTex)
+  if type(pct) ~= "number" then
+    bar:SetStatusBarColor(COLOR_HB_OK:GetRGBA())
+    SetHealthBarGlowShown(bar, false)
+    bar.spark:Hide()
+    return
+  end
+
+  if pct <= HB_LOW_PCT then
+    bar:SetStatusBarColor(COLOR_HB_CRIT:GetRGBA())
+    SetHealthBarGlowShown(bar, true)
+  elseif pct <= 0.5 then
+    bar:SetStatusBarColor(COLOR_HB_DMG:GetRGBA())
+    SetHealthBarGlowShown(bar, false)
+  else
+    bar:SetStatusBarColor(COLOR_HB_OK:GetRGBA())
+    SetHealthBarGlowShown(bar, false)
+  end
+
+  if fillTex then
+    bar.spark:ClearAllPoints()
+    bar.spark:SetPoint("CENTER", fillTex, "RIGHT", 0, 0)
+  end
+  bar.spark:SetVertexColor(1, 1, 1, 1)
+  bar.spark:SetShown(pct > 0 and pct < 1)
+end
+
+-- Live unit: UnitHealthPercent + color curves (secret/taint safe; Platynator/EQOL pattern).
+local function ApplyHealthBarUnitAppearance(bar, unit, fillTex)
+  if not (UnitHealthPercent and HB_FILL_CURVE) then
+    return false
+  end
+
+  local fillColor = UnitHealthPercent(unit, true, HB_FILL_CURVE)
+  local fr, fg, fb, fa = ExtractColorRGBA(fillColor)
+  if not fr then
+    return false
+  end
+  bar:SetStatusBarColor(fr, fg, fb, fa)
+
+  local glowColor = UnitHealthPercent(unit, true, HB_GLOW_CURVE)
+  local _, _, _, glowA = ExtractColorRGBA(glowColor)
+  ApplyHealthBarGlowAlpha(bar, glowA or 0)
+
+  if fillTex then
+    bar.spark:ClearAllPoints()
+    bar.spark:SetPoint("CENTER", fillTex, "RIGHT", 0, 0)
+  end
+  local sparkColor = UnitHealthPercent(unit, true, HB_SPARK_CURVE)
+  local _, _, _, sparkA = ExtractColorRGBA(sparkColor)
+  bar.spark:SetVertexColor(1, 1, 1, 1)
+  bar.spark:SetAlpha(sparkA or 0)
+  bar.spark:Show()
+  return true
+end
+
+-- L/C/R chrome for widgetstatusbar (bg / border). Ends size to endW x height; center stretches.
+local function CreateHealthBarLCR(
+  bar,
+  drawLayer,
+  subLevel,
+  leftAtlas,
+  centerAtlas,
+  rightAtlas,
+  endW,
+  height,
+  xOff
+)
+  local left = bar:CreateTexture(nil, drawLayer, nil, subLevel)
+  left:SetAtlas(leftAtlas, false)
+  left:SetSize(endW, height)
+  left:SetPoint("LEFT", bar, "LEFT", -xOff, 0)
+
+  local right = bar:CreateTexture(nil, drawLayer, nil, subLevel)
+  right:SetAtlas(rightAtlas, false)
+  right:SetSize(endW, height)
+  right:SetPoint("RIGHT", bar, "RIGHT", xOff, 0)
+
+  local center = bar:CreateTexture(nil, drawLayer, nil, subLevel)
+  center:SetAtlas(centerAtlas, false)
+  center:SetHeight(height)
+  center:SetPoint("LEFT", left, "RIGHT")
+  center:SetPoint("RIGHT", right, "LEFT")
+
+  return left, center, right
+end
+
+local function CreateSliceHealthBar(parent)
+  local bar = CreateFrame("StatusBar", nil, parent)
+  bar:SetSize(HB_W, HB_H)
+  bar:SetPoint("BOTTOM", parent, "BOTTOM", 0, 4)
+  bar:SetMinMaxValues(0, 1)
+  bar:SetValue(1)
+  ApplyHealthBarFill(bar, HB_FILL_WHITE)
+  bar:SetStatusBarColor(COLOR_HB_OK:GetRGBA())
+
+  CreateHealthBarLCR(
+    bar,
+    "BACKGROUND",
+    0,
+    "widgetstatusbar-bgleft",
+    "widgetstatusbar-bgcenter",
+    "widgetstatusbar-bgright",
+    HB_BG_END_W,
+    HB_BG_H,
+    HB_BG_X
+  )
+
+  local borderLeft, _, borderRight = CreateHealthBarLCR(
+    bar,
+    "OVERLAY",
+    1,
+    "widgetstatusbar-borderleft",
+    "widgetstatusbar-bordercenter",
+    "widgetstatusbar-borderright",
+    HB_BORDER_END_W,
+    HB_BORDER_H,
+    HB_BORDER_X
+  )
+
+  -- Glow behind BG/fill (BACKGROUND) so it only blooms around the chrome, not over the track.
+  local function MakeGlow(atlas, point, relative)
+    local tex = bar:CreateTexture(nil, "BACKGROUND", nil, -1)
+    tex:SetAtlas(atlas, false)
+    tex:SetSize(HB_BORDER_END_W, HB_BORDER_H)
+    tex:SetBlendMode("ADD")
+    tex:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
+    tex:SetPoint(point, relative)
+    tex:Hide()
+    return tex
+  end
+  local glowLeft = MakeGlow("widgetstatusbar-glowleft", "LEFT", borderLeft)
+  local glowRight = MakeGlow("widgetstatusbar-glowright", "RIGHT", borderRight)
+  local glowCenter = bar:CreateTexture(nil, "BACKGROUND", nil, -1)
+  glowCenter:SetAtlas("widgetstatusbar-glowcenter", false)
+  glowCenter:SetBlendMode("ADD")
+  glowCenter:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
+  glowCenter:SetHeight(HB_BORDER_H)
+  glowCenter:SetPoint("LEFT", glowLeft, "RIGHT")
+  glowCenter:SetPoint("RIGHT", glowRight, "LEFT")
+  glowCenter:Hide()
+  bar.glowLeft = glowLeft
+  bar.glowCenter = glowCenter
+  bar.glowRight = glowRight
+
+  local spark = bar:CreateTexture(nil, "OVERLAY", nil, 2)
+  spark:SetAtlas("widgetstatusbar-spark", false)
+  spark:SetSize(6, HB_H + 4)
+  spark:SetBlendMode("ADD")
+  spark:Hide()
+  bar.spark = spark
+
+  return bar
+end
+
+local function UpdateSliceHealthBar(slice, config, memberData, sliceIndex, isPlaceholder)
+  local bar = slice.healthBar
+  if not bar then
+    return
+  end
+
+  bar:ClearAllPoints()
+  bar:SetPoint("TOP", slice.nameText, "BOTTOM", 0, -4)
+
+  if not config.showHealthBars then
+    bar:Hide()
+    return
+  end
+
+  local health, maxHealth, pct, unitId
+  if RadialState.optionsPreviewActive then
+    maxHealth = 100
+    pct = PREVIEW_HEALTH_BY_SLICE[sliceIndex] or 0.75
+    health = maxHealth * pct
+  elseif isPlaceholder then
+    maxHealth = 100
+    pct = memberData.previewHealthPct or 0.75
+    health = maxHealth * pct
+  else
+    unitId = memberData.unitId
+    -- Predicted health; StatusBar accepts secret values. Color via UnitHealthPercent curves.
+    health = UnitHealth(unitId, true)
+    maxHealth = UnitHealthMax(unitId)
+  end
+
+  bar:SetMinMaxValues(0, maxHealth)
+  bar:SetValue(health)
+
+  local fillTex = ApplyHealthBarFill(bar, HB_FILL_WHITE)
+  if unitId then
+    if not ApplyHealthBarUnitAppearance(bar, unitId, fillTex) and pct ~= nil then
+      ApplyHealthBarPublicAppearance(bar, pct, fillTex)
+    end
+  else
+    ApplyHealthBarPublicAppearance(bar, pct, fillTex)
+  end
+
+  bar:Show()
+end
+
 local function GetSliceInnerAnchor(angleDeg, radius)
   local a = math.rad(angleDeg)
   local x = radius * math.cos(a)
@@ -639,11 +968,10 @@ local function GetSliceInnerAnchor(angleDeg, radius)
 end
 
 local function CreateSliceFrame(sliceIndex)
-  local config = CM.DB.global.partyRadial
   local sliceData = CM.Constants.PartyRadialSlices[sliceIndex]
   local angle = sliceData.angle
-  local radius = config.sliceRadius
-  local sliceScale = config.sliceSize or 1.0 -- sliceSize is now a scale factor (0.5-1.5)
+  local radius = SLICE_RADIUS
+  local sliceScale = SLICE_SCALE
 
   -- Anchor slice by its inner edge to radial center (mainFrame) so SetScale grows
   -- outward from center; otherwise top slices move up and bottom move down asymmetrically.
@@ -680,22 +1008,10 @@ local function CreateSliceFrame(sliceIndex)
   inner:SetAllPoints(slice)
   inner:SetFrameLevel(slice:GetFrameLevel() + 1)
   slice.innerFrame = inner
-
-  -- Health bar background (repositioned in UpdateSliceVisual below name text when name size changes)
-  slice.healthBG = inner:CreateTexture(nil, "BORDER")
-  slice.healthBG:SetColorTexture(0.15, 0.15, 0.15, 0.9)
-  slice.healthBG:SetSize(BASE_SLICE_SIZE - 16, 10)
-  slice.healthBG:SetPoint("BOTTOM", inner, "BOTTOM", 0, 8)
-
-  -- Health bar fill (StatusBar accepts secret values from UnitHealth)
-  slice.healthFill = CreateFrame("StatusBar", nil, inner)
-  slice.healthFill:SetPoint("LEFT", slice.healthBG, "LEFT", 1, 0)
-  slice.healthFill:SetSize(BASE_SLICE_SIZE - 18, 8)
-  slice.healthFill:SetStatusBarTexture("Interface\\BUTTONS\\WHITE8X8")
-  slice.healthFill:SetStatusBarColor(unpack(config.healthyColor))
+  slice.healthBar = CreateSliceHealthBar(inner)
 
   -- Role icon (created first so roleIconBG can anchor to it)
-  local roleIconSize = config.roleIconSize or 18
+  local roleIconSize = ROLE_ICON_SIZE
   slice.roleIcon = inner:CreateTexture(nil, "OVERLAY")
   slice.roleIcon:SetSize(roleIconSize, roleIconSize)
   slice.roleIcon:SetPoint("TOP", inner, "TOP", 0, -4)
@@ -807,7 +1123,7 @@ function HR.UpdateMainFramePosition()
   end
 end
 
--- Update slice positions and sizes when config changes (sliceRadius or sliceSize)
+-- Update slice positions when layout needs a refresh (fixed radius + scale)
 -- SetPoint is protected on secure frames during combat, so we queue updates if needed
 function HR.UpdateSlicePositionsAndSizes()
   if not RadialState.sliceFrames or not RadialState.mainFrame then
@@ -819,8 +1135,8 @@ function HR.UpdateSlicePositionsAndSizes()
     return
   end
 
-  local radius = config.sliceRadius or 120
-  local sliceScale = config.sliceSize or 1.0 -- sliceSize is now a scale factor
+  local radius = SLICE_RADIUS
+  local sliceScale = SLICE_SCALE
 
   for i = 1, 5 do
     local slice = RadialState.sliceFrames[i]
@@ -1100,20 +1416,20 @@ local function CreateMainFrame()
     self:SetAlpha(currentAlpha)
   end)
 
-  -- Center close button: an invisible button covering the dead zone (30px radius).
-  -- Clicking the center X closes the radial and re-engages mouselook.
-  -- This replaces the dead-center handling that was previously in the click catcher.
-  -- Uses a regular Button (not SecureActionButtonTemplate) since LockFreeLook and
-  -- HR.Hide are not protected actions.
+  -- Center close button: an invisible secure button covering the dead zone (30px radius).
+  -- Clicking the center X clears the current target, closes the radial, and re-engages
+  -- mouselook (left/right). ClearTarget must be secure — use macrotext /cleartarget.
   local CENTER_DEAD_ZONE_PX = 30
-  local closeBtn = CreateFrame("Button", nil, mainFrame)
+  local closeBtn = CreateFrame("Button", nil, mainFrame, "SecureActionButtonTemplate")
   closeBtn:SetSize(CENTER_DEAD_ZONE_PX * 2, CENTER_DEAD_ZONE_PX * 2)
   closeBtn:SetPoint("CENTER", mainFrame, "CENTER", 0, 0)
   closeBtn:SetFrameStrata("DIALOG")
   closeBtn:SetFrameLevel(arrowFrame:GetFrameLevel() + 10) -- Above slices so it catches clicks first
   closeBtn:RegisterForClicks("AnyDown")
+  closeBtn:SetAttribute("type", "macro")
+  closeBtn:SetAttribute("macrotext", "/cleartarget")
   closeBtn:EnableMouse(false) -- Toggled by SetSliceMouseEnabled alongside slices
-  closeBtn:SetScript("OnClick", function(_, button)
+  closeBtn:HookScript("PostClick", function(_, button)
     if button == "LeftButton" or button == "RightButton" then
       CM.LockFreeLook()
       HR.Hide()
@@ -1176,7 +1492,7 @@ local function UpdateSliceVisual(sliceIndex)
   end
 
   -- Update name (class-coloured; show "You" for the player; font/size with drop shadow; always shown)
-  local fontSize = config.nameFontSize or 12
+  local fontSize = NAME_FONT_SIZE
   -- Always use drop shadow (no outline); locale-safe font (same as GameFontNormalSmall resolution)
   CM.SetFontStringFromTemplate(slice.nameText, fontSize, _G.GameFontNormalSmall)
   slice.nameText:SetShadowColor(0, 0, 0, 1)
@@ -1190,59 +1506,10 @@ local function UpdateSliceVisual(sliceIndex)
   slice.nameText:SetTextColor(color.r, color.g, color.b, 1)
   slice.nameText:SetText(displayName)
   slice.nameText:Show()
-  -- Position health bar below name so it doesn't overlap when font size is large
-  slice.healthBG:ClearAllPoints()
-  slice.healthBG:SetPoint("TOP", slice.nameText, "BOTTOM", 0, -4)
-
-  -- Update health bar (using StatusBar to handle secret values from 12.0.0)
-  if config.showHealthBars then
-    local health, maxHealth, pct
-    if isPlaceholder then
-      maxHealth = 100
-      pct = memberData.previewHealthPct or 0.75
-      health = maxHealth * pct
-      slice.healthFill:SetMinMaxValues(0, maxHealth)
-      slice.healthFill:SetValue(health)
-    else
-      health = UnitHealth(memberData.unitId)
-      maxHealth = UnitHealthMax(memberData.unitId)
-
-      slice.healthFill:SetMinMaxValues(0, maxHealth)
-      slice.healthFill:SetValue(health)
-
-      -- Color and percent text via pcall to safely handle secret values
-      local ok, computedPct = pcall(function()
-        local h = UnitHealth(memberData.unitId)
-        local m = UnitHealthMax(memberData.unitId)
-        return m > 0 and (h / m) or 1
-      end)
-      if ok then
-        pct = computedPct
-      end
-    end
-
-    if pct then
-      if pct > 0.5 then
-        slice.healthFill:SetStatusBarColor(unpack(config.healthyColor))
-      elseif pct > 0.25 then
-        slice.healthFill:SetStatusBarColor(unpack(config.damagedColor))
-      else
-        slice.healthFill:SetStatusBarColor(unpack(config.criticalColor))
-      end
-    else
-      -- Values are secret; bar still fills correctly via StatusBar, use default color
-      slice.healthFill:SetStatusBarColor(unpack(config.healthyColor))
-    end
-
-    slice.healthBG:Show()
-    slice.healthFill:Show()
-  else
-    slice.healthBG:Hide()
-    slice.healthFill:Hide()
-  end
+  UpdateSliceHealthBar(slice, config, memberData, sliceIndex, isPlaceholder)
 
   -- Update role icon backdrop (centered on role icon, extends beyond for shadow)
-  local size = config.roleIconSize or 18
+  local size = ROLE_ICON_SIZE
   slice.roleIconBG:SetSize(size * 1.5, size * 1.5)
 
   -- Update role icon (always shown)
@@ -1389,7 +1656,7 @@ end
 function HR.HighlightSlice(sliceIndex)
   -- Start scale transition on the inner visual frame: grow selected by 10%, others back to 1.0.
   -- The inner frame is a regular (non-secure) Frame, so SetScale is always combat-safe.
-  -- Config-level scale (sliceSize) is on the secure slice itself; hover scale is on innerFrame.
+  -- Hover scale is on innerFrame (slice frame itself stays at fixed SLICE_SCALE).
   local BASE_INNER = 1.0
   local HOVER_INNER = 1.1
 
@@ -1555,9 +1822,8 @@ function HR.Show(buttonKey)
   RadialState.currentButton = buttonKey
   RadialState.wasMouselooking = _G.IsMouselooking()
   RadialState.showTime = _G.GetTime()
-  -- Cache max selection distance for TrackMousePosition (avoids DB access in combat)
-  local hrConfig = CM.DB.global.partyRadial
-  RadialState.maxSelectDistance = ((hrConfig and hrConfig.sliceRadius) or 120) + BASE_SLICE_SIZE / 2
+  -- Cache max selection distance for TrackMousePosition
+  RadialState.maxSelectDistance = SLICE_RADIUS + BASE_SLICE_SIZE / 2
 
   -- Stop mouselook so cursor is free for slice selection
   -- Use UnlockFreeLook() instead of direct MouselookStop() to ensure proper state management
@@ -1749,9 +2015,8 @@ function HR.ShowFromKeybind()
   RadialState.keyUpCount = 0
   RadialState.wasMouselooking = _G.IsMouselooking()
   RadialState.showTime = _G.GetTime()
-  -- Cache max selection distance for TrackMousePosition (avoids DB access in combat)
-  local hrConfig = CM.DB.global.partyRadial
-  RadialState.maxSelectDistance = ((hrConfig and hrConfig.sliceRadius) or 120) + BASE_SLICE_SIZE / 2
+  -- Cache max selection distance for TrackMousePosition
+  RadialState.maxSelectDistance = SLICE_RADIUS + BASE_SLICE_SIZE / 2
 
   -- Stop mouselook so cursor is free for slice selection.
   -- NOTE: MouselookStop causes spurious key-up events for held keys. The

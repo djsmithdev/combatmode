@@ -1,16 +1,6 @@
 ---------------------------------------------------------------------------------------
---  UI/Changelog/ChangelogData.lua — CHANGELOG — body string for in-game viewer
----------------------------------------------------------------------------------------
---  What it does: Holds CM.Config.ChangelogText — the Keep a Changelog markdown body shown
---  in-game. Maintained from CombatMode/CHANGELOG.md via
---  scripts/sync-changelog-to-lua.ps1 (do not hand-edit unless regenerating).
---  Architecture / how it works:
---    • Uses `_G.CM` because sync output is plain assignment after namespace init.
---    • Panel parses a markdown subset into SimpleHTML; compare links / Unreleased may be
---      skipped in-game.
---  Does not: Own the viewer UI or version-bump detection.
---  Related: UI/Changelog/ChangelogPanel.lua, UI/Changelog/ChangelogNamespace.lua,
---  CombatMode/CHANGELOG.md
+--  UI/Changelog/ChangelogData.lua - changelog body for in-game viewer
+--  Regenerate from CHANGELOG.md:  scripts\sync-changelog-to-lua.ps1
 ---------------------------------------------------------------------------------------
 local _G = _G
 local CM = _G.CM
@@ -25,6 +15,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [4.1.0] - 2026-07-30
+
+### Added
+
+- Crosshair Cast Feedback option: crosshair provides visual feedback while casting; grows when channeling, explodes on a successful cast, and shakes/breaks on cancel or interrupt.
+
+### Fixed
+- Rebinding Mouse Look, Party Radial, or Target Lock now clears leftover Interact Alt+key chords and refreshes Target Lock overrides immediately (no longer requires a reload when stealing a key).
+
+### Changed
+- Combat Assist, Interaction HUD, and Party Radial options streamlined in favour of a fixed more controllable layout.
+- Redesigned Combat Assist HUD: improved animations & reactivity; custom keyboard and mouse icons for Click Casting bindings.
+- Redesigned Interaction HUD: Left/Right placement, fixed icon size, and opacity no longer tied to the crosshair opacity slider.
+- Redesigned Party Radial: health bars completely rebuilt and provide more information now.
+- Clicking a Party Radial slice now hard-targets / selects that party member (in addition to casting).
+- Clicking the Party Radial center close (X) clears the current target.
+- Code cleanup across modules and leaner docs/instruction files.
 
 ## [4.0.3] - 2026-07-28
 
@@ -199,24 +207,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/sampconrad/combatmode/compare/4.0.3...HEAD
-[4.0.3]: https://github.com/sampconrad/combatmode/compare/4.0.2...4.0.3
-[4.0.2]: https://github.com/sampconrad/combatmode/compare/4.0.1...4.0.2
-[4.0.1]: https://github.com/sampconrad/combatmode/compare/4.0.0...4.0.1
-[4.0.0]: https://github.com/sampconrad/combatmode/compare/3.3.1...4.0.0
-[3.3.1]: https://github.com/sampconrad/combatmode/compare/3.3.0...3.3.1
-[3.3.0]: https://github.com/sampconrad/combatmode/compare/3.2.2...3.3.0
-[3.2.2]: https://github.com/sampconrad/combatmode/compare/3.2.1...3.2.2
-[3.2.1]: https://github.com/sampconrad/combatmode/compare/3.2.0...3.2.1
-[3.2.0]: https://github.com/sampconrad/combatmode/compare/3.1.10...3.2.0
-[3.1.10]: https://github.com/sampconrad/combatmode/compare/3.1.9...3.1.10
-[3.1.9]: https://github.com/sampconrad/combatmode/compare/3.1.8...3.1.9
-[3.1.8]: https://github.com/sampconrad/combatmode/compare/3.1.7...3.1.8
-[3.1.7]: https://github.com/sampconrad/combatmode/compare/3.1.6...3.1.7
-[3.1.6]: https://github.com/sampconrad/combatmode/compare/3.1.5...3.1.6
-[3.1.5]: https://github.com/sampconrad/combatmode/compare/3.1.4...3.1.5
-[3.1.4]: https://github.com/sampconrad/combatmode/compare/3.1.3...3.1.4
-[3.1.3]: https://github.com/sampconrad/combatmode/compare/3.1.2...3.1.3
-[3.1.2]: https://github.com/sampconrad/combatmode/compare/3.1.1...3.1.2
-[3.1.1]: https://github.com/sampconrad/combatmode/releases/tag/3.1.1
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.1.0...HEAD
+[4.1.0]: https://github.com/djsmithdev/combatmode/compare/4.0.3...4.1.0
+[4.0.3]: https://github.com/djsmithdev/combatmode/compare/4.0.2...4.0.3
+[4.0.2]: https://github.com/djsmithdev/combatmode/compare/4.0.1...4.0.2
+[4.0.1]: https://github.com/djsmithdev/combatmode/compare/4.0.0...4.0.1
+[4.0.0]: https://github.com/djsmithdev/combatmode/compare/3.3.1...4.0.0
+[3.3.1]: https://github.com/djsmithdev/combatmode/compare/3.3.0...3.3.1
+[3.3.0]: https://github.com/djsmithdev/combatmode/compare/3.2.2...3.3.0
+[3.2.2]: https://github.com/djsmithdev/combatmode/compare/3.2.1...3.2.2
+[3.2.1]: https://github.com/djsmithdev/combatmode/compare/3.2.0...3.2.1
+[3.2.0]: https://github.com/djsmithdev/combatmode/compare/3.1.10...3.2.0
+[3.1.10]: https://github.com/djsmithdev/combatmode/compare/3.1.9...3.1.10
+[3.1.9]: https://github.com/djsmithdev/combatmode/compare/3.1.8...3.1.9
+[3.1.8]: https://github.com/djsmithdev/combatmode/compare/3.1.7...3.1.8
+[3.1.7]: https://github.com/djsmithdev/combatmode/compare/3.1.6...3.1.7
+[3.1.6]: https://github.com/djsmithdev/combatmode/compare/3.1.5...3.1.6
+[3.1.5]: https://github.com/djsmithdev/combatmode/compare/3.1.4...3.1.5
+[3.1.4]: https://github.com/djsmithdev/combatmode/compare/3.1.3...3.1.4
+[3.1.3]: https://github.com/djsmithdev/combatmode/compare/3.1.2...3.1.3
+[3.1.2]: https://github.com/djsmithdev/combatmode/compare/3.1.1...3.1.2
+[3.1.1]: https://github.com/djsmithdev/combatmode/releases/tag/3.1.1
 ]]

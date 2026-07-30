@@ -93,7 +93,7 @@ UI.Options.AddTab({
     })
     ctx:Toggle({
       label = "Cast Feedback",
-      desc = "Crosshair provides visual feedback during casting.",
+      desc = "Crosshair provides visual feedback while casting.",
       get = function()
         return CM.DB.global.crosshairCastFeedback
       end,
@@ -171,7 +171,7 @@ UI.Options.AddTab({
     ctx:Header("INTERACTION HUD")
     ctx:Toggle({
       label = "Show Interaction HUD",
-      desc = "Show a prompt next to the crosshair for nearby interactables outside of combat.",
+      desc = "Show a prompt outside of combat for nearby interactables",
       get = function()
         return CM.DB.global.interactionHUD
       end,
@@ -216,7 +216,7 @@ UI.Options.AddTab({
     ctx:Header("COMBAT ASSIST")
     ctx:Toggle({
       label = "Show Combat Assist",
-      desc = "Show Blizzard's next-spell suggestion next to the crosshair during combat.",
+      desc = "Show Blizzard's next-spell suggestion during combat.",
       get = function()
         return CM.DB.global.assistedHighlightEnabled
       end,

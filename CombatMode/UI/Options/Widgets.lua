@@ -414,7 +414,7 @@ function UI.ShowWelcome(text, onClose)
   dialog:Raise()
 end
 
---- WaypointUI-style option row: left ~60% holds the title + helper text stacked
+--- Split-menu-style option row: left ~60% holds the title + helper text stacked
 --- tightly; right ~40% holds the interactive control. The text block and the control
 --- are vertically centered against each other within the row. `opts.labelInset` is
 --- accepted for back-compat but ignored.
@@ -471,7 +471,7 @@ local function CharSpecificEnabled(opts)
   return v and true or false
 end
 
---- Attaches opts.desc and installs SetWidthTo. Default layout is the WaypointUI-style
+--- Attaches opts.desc and installs SetWidthTo. Default layout is the split-menu-style
 --- 60/40 split (title+helper left, control right, vertically centered). When
 --- `opts.descBelow` is set, the title shares a top band with the control and the helper
 --- spans the full row width underneath (used by the narrow sidebar footer).

@@ -180,7 +180,7 @@ local function GetInteractionHUDSide()
   return "LEFT"
 end
 
-local function LayoutInteractionHUDChildren(_sw)
+local function LayoutInteractionHUDChildren()
   if not InteractionHUDCluster or not InteractionHUDIcon or not InteractionHUDLabel then
     return
   end
@@ -215,7 +215,7 @@ local function ResizeInteractionHUDCluster()
     local w = IH_ICON + IH_GAP + sw + IH_TEXT_PAD
     local h = math.max(IH_ICON, sh)
     InteractionHUDCluster:SetSize(w, h)
-    LayoutInteractionHUDChildren(sw)
+    LayoutInteractionHUDChildren()
     if InteractionHUDShadow then
       InteractionHUDShadow:Hide()
     end
@@ -252,7 +252,7 @@ local function ResizeInteractionHUDCluster()
   local w = IH_ICON + IH_GAP + sw + IH_TEXT_PAD
   local h = math.max(IH_ICON, sh)
   InteractionHUDCluster:SetSize(w, h)
-  LayoutInteractionHUDChildren(sw)
+  LayoutInteractionHUDChildren()
   LayoutInteractionHUDShadow()
 end
 

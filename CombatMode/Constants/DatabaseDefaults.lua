@@ -10,7 +10,8 @@
 --      mouseLookSpeed, pulseCursor, interactUnit; crosshair*, crosshairCastFeedback,
 --      interactionHUD / interactionHUDSide (default LEFT), assistedHighlightEnabled /
 --      assistedHighlightSide (default RIGHT), crosshairY; reticleTargetingCVarOverrides,
---      priorCVarSnapshot, targetingMacroPreline*Override; bindings; partyRadial visuals.
+--      priorCVarSnapshot, targetingMacroPreline*Override; bindings; partyRadial
+--      (enabled, showHealthBars, showBackground; layout/scale fixed in Core).
 --    • char: useGlobalBindings, shoulderOffset, reticleTargeting / enemyOnly /
 --      macroInjectionClickCastOnly, focusCurrentTargetNotCrosshair, castAtCursorSpells,
 --      excludeFromTargetingSpells, stickyCrosshair, bindings.
@@ -115,15 +116,8 @@ CM.Constants.DatabaseDefaults = {
     bindings = DefaultBindings,
     partyRadial = {
       enabled = false,
-      sliceRadius = 120,
-      sliceSize = 1.0,
       showHealthBars = false,
       showBackground = true,
-      roleIconSize = 64,
-      nameFontSize = 13,
-      healthyColor = { 0, 0.8, 0, 1 },
-      damagedColor = { 1, 1, 0, 1 },
-      criticalColor = { 1, 0, 0, 1 },
       fadeInDuration = 0.08,
       fadeOutDuration = 0.05,
     },

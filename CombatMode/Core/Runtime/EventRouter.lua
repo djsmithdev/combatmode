@@ -8,7 +8,8 @@
 --  Architecture / how it works:
 --    • BuildEventCategoryMap / GetEventCategoryMap used at enable time.
 --    • REFRESH_BINDINGS_EVENTS coalesced via C_Timer so one RefreshClickCastMacros runs
---      after bursts; also InvalidateAssistedHighlightKeybindCache + Party Radial hooks.
+--      after bursts; also ApplyToggleFocusTargetBinding (UPDATE_BINDINGS),
+--      InvalidateAssistedHighlightKeybindCache + Party Radial hooks.
 --    • CAST_FEEDBACK_EVENTS → OnCrosshairCastFeedbackEvent; SUCCEEDED also
 --      OnAssistedHighlightSpellCast(spellID) for unit player.
 --    • ASSISTED_HIGHLIGHT_EVENTS → OnAssistedHighlightAssistedActionCast.
@@ -112,6 +113,10 @@ local function HandleEventByCategory(category, event, ...)
 
       if event == "CVAR_UPDATE" then
         return
+      end
+
+      if CM.ApplyToggleFocusTargetBinding then
+        CM.ApplyToggleFocusTargetBinding()
       end
 
       if CM.InvalidateAssistedHighlightKeybindCache then
