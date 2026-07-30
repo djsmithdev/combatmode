@@ -2,10 +2,27 @@
 --  Core/Crosshair/AssistedHighlight.lua — CROSSHAIR — Assisted Combat suggestion icon + keybind
 ---------------------------------------------------------------------------------------
 --  Shows the Blizzard Assisted Combat "next cast" suggestion anchored to Combat Mode's
---  crosshair. Mirrors Core/Crosshair/InteractionHUD.lua architecture:
+--  crosshair (Left/Right side select; vertically centered). Visual shell matches
+--   Assisted Highlight:
+--    Radial_Wheel_BG shadow → background → circular-masked spell art → cyan breath
+--    glow → dark frame.
+--  Click-cast keybinds render modifier BLPs (ctrl/shift/alt) + NPE mouse-button
+--  atlases (newplayertutorial-icon-mouse-leftbutton / -rightbutton) via FontString
+--  |T|/|A| markup on the outer side of the icon (left cluster → keybind left;
+--  right cluster → keybind right). Keyboard binds use abbreviated white FrizQT +
+--  OUTLINE, centered on the icon with a fixed top-right offset.
+--  Keybind is always shown when a bind exists. Icon size is fixed at 40.
+--  A UF-RogueCP-Slash-Blue FlipBook plays once in reverse on top of the chrome
+--  frame when the suggested spell changes (all 18 frames). Casting the suggested
+--  spell (or the Assisted Combat action button) explodes the icon (scale + fade)
+--  then hides so the next suggestion can fade in. Casting a different spell while
+--  the suggestion is shown plays a shake/flash break (like crosshair cast cancel)
+--  and keeps the icon visible.
+--  Architecture:
 --    • Crosshair owns the anchor frame; this module owns the widget lifecycle.
 --    • Crosshair calls CM.InitAssistedHighlight({ crosshairFrame, crosshairTexture }).
 --    • Runtime/Crosshair call CM.UpdateCrosshairAssistedHighlight() to refresh.
+--    • EventRouter calls CM.OnAssistedHighlightSpellCast / OnAssistedHighlightAssistedActionCast.
 --    • CM.IsCrosshairPreviewActive() (Crosshair options tab) forces a
 --      placeholder icon + keybind so positioning is visible out of combat.
 ---------------------------------------------------------------------------------------
@@ -14,6 +31,7 @@ local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
+local GetTime = _G.GetTime
 local IsMouselooking = _G.IsMouselooking
 local UnitAffectingCombat = _G.UnitAffectingCombat
 
@@ -28,18 +46,622 @@ local pairs = _G.pairs
 local pcall = _G.pcall
 local tonumber = _G.tonumber
 local type = _G.type
+local cos = _G.math.cos
+local sin = _G.math.sin
+local pi = _G.math.pi
+local random = _G.math.random
 
 local crosshairFrame
 local crosshairTexture
 
 local AssistedHighlightFrame
 local AssistedHighlightVisual
-local AssistedHighlightLockInDriver
-local AssistedHighlightWasShown = false
+local AssistedHighlightAnimDriver
+
+-- Shell layout (IconMask)
+local ICON_MASK_BASE_SIZE = 32
+local ICON_MASK_BASE_EXPAND = 6
+local SHADOW_SCALE = 1.3
+local ICON_SIZE = 40
+local ASSIST_OFFSET_X = 24 -- px beyond crosshair edge (matches Interaction HUD gap)
+
+-- Keyboard keybind (Assisted Highlight defaults)
+local KEYBOARD_KEYBIND_FONT = "Fonts\\FRIZQT__.TTF"
+local KEYBOARD_KEYBIND_FONT_SIZE = 15
+local KEYBOARD_KEYBIND_FONT_FLAGS = "OUTLINE"
+local KEYBOARD_KEYBIND_OFFSET_X = 10
+local KEYBOARD_KEYBIND_OFFSET_Y = 12
+
+-- Glow breath (Assisted Highlight defaults)
+local GLOW_ANIM_MIN_ALPHA = 0.45
+local GLOW_ANIM_MAX_ALPHA = 1
+local GLOW_CYCLE_DURATION = 2.6
+local GLOW_STRENGTH = 0.85
+local GLOW_COLOR_R, GLOW_COLOR_G, GLOW_COLOR_B = 0.44, 0.98, 1
+
+-- Rogue combo-point slash FlipBook (Interface/HUD/UIRogueCombPoints).
+-- Full sheet: 3x6 = 18 frames. Plays once in reverse when the suggested spell changes.
+local PROC_ATLAS = "UF-RogueCP-Slash-Blue"
+local PROC_FLIP_ROWS = 3
+local PROC_FLIP_COLUMNS = 6
+local PROC_FLIP_FRAMES = 18
+-- Match Blizzard RogueComboPointBar SlashFB FlipBook duration (.57).
+local PROC_PLAY_DURATION = 0.57
+local PROC_PREVIEW_SPELL_ID = -1
+
+-- Show/hide fade (Transition-style)
+local FADE_IN_DURATION = 0.22
+local FADE_OUT_DURATION = 0.36
+
+-- Cast-success explode (mirrors Crosshair Animations cast explode feel)
+local CAST_EXPLODE_DURATION = 0.24
+local CAST_EXPLODE_EXTRA_SCALE = 0.22
+-- Wrong-suggestion cast break (mirrors Crosshair Animations cast break)
+local CAST_BREAK_DURATION = 0.18
+local CAST_BREAK_SHAKE_PX = 5
+local CAST_BREAK_FLASH_HZ = 22
+local CAST_BREAK_COLOR_RED = { 1, 0.2, 0.3, 1 }
+local CAST_BREAK_COLOR_GREY = { 0.72, 0.72, 0.72, 1 }
+-- Keep recently shown suggestions matchable: Assisted Combat often advances
+-- GetNextCastSpell before UNIT_SPELLCAST_SUCCEEDED arrives.
+local RECENT_SHOWN_TTL = 0.9
+local RECENT_SHOWN_MAX = 4
+
+local glowPhase = 0
+local fadeMode = "hidden" -- "hidden" | "in" | "shown" | "out"
+local fadeElapsed = 0
+local fadeFromAlpha = 0
+local glowColorAlpha = 1
+local lastAppliedSide
+local lastProcSpellID
+local lastShownSpellID
+local recentShownSpells = {}
+local explodeActive = false
+local explodeElapsed = 0
+local explodeStartScale = 1
+local explodeStartAlpha = 1
+local breakActive = false
+local breakElapsed = 0
+local breakSavedIconColor
+local breakSavedGlowColor
+local breakSavedFrameColor
 
 -- Caches
 local assistedActionSlotSet
 local actionSlotCommandMap
+
+local function EaseOutSine(t)
+  return sin((t * pi) * 0.5)
+end
+
+local function EaseOutQuad(t)
+  local inv = 1 - t
+  return 1 - inv * inv
+end
+
+local function ResetVisualTransform()
+  if AssistedHighlightVisual then
+    AssistedHighlightVisual:SetScale(1)
+  end
+end
+
+local function CenterAssistVisual()
+  if AssistedHighlightVisual and AssistedHighlightFrame then
+    AssistedHighlightVisual:ClearAllPoints()
+    AssistedHighlightVisual:SetPoint("CENTER", AssistedHighlightFrame, "CENTER", 0, 0)
+  end
+end
+
+local function RestoreBreakColors()
+  if breakSavedIconColor and AssistedHighlightFrame and AssistedHighlightFrame.icon then
+    local c = breakSavedIconColor
+    AssistedHighlightFrame.icon:SetVertexColor(c[1], c[2], c[3], c[4] or 1)
+  end
+  breakSavedIconColor = nil
+  if breakSavedGlowColor and AssistedHighlightFrame and AssistedHighlightFrame.glow then
+    local c = breakSavedGlowColor
+    AssistedHighlightFrame.glow:SetVertexColor(c[1], c[2], c[3], c[4] or 1)
+  end
+  breakSavedGlowColor = nil
+  if breakSavedFrameColor and AssistedHighlightFrame and AssistedHighlightFrame.frame then
+    local c = breakSavedFrameColor
+    AssistedHighlightFrame.frame:SetVertexColor(c[1], c[2], c[3], c[4] or 1)
+  end
+  breakSavedFrameColor = nil
+end
+
+local function SaveBreakColors()
+  breakSavedIconColor = nil
+  breakSavedGlowColor = nil
+  breakSavedFrameColor = nil
+  local icon = AssistedHighlightFrame and AssistedHighlightFrame.icon
+  if icon and icon.GetVertexColor then
+    local r, g, b, a = icon:GetVertexColor()
+    breakSavedIconColor = { r, g, b, a }
+  end
+  local glow = AssistedHighlightFrame and AssistedHighlightFrame.glow
+  if glow and glow.GetVertexColor then
+    local r, g, b, a = glow:GetVertexColor()
+    breakSavedGlowColor = { r, g, b, a }
+  end
+  local frame = AssistedHighlightFrame and AssistedHighlightFrame.frame
+  if frame and frame.GetVertexColor then
+    local r, g, b, a = frame:GetVertexColor()
+    breakSavedFrameColor = { r, g, b, a }
+  end
+end
+
+local function ApplyBreakFlashColor(color)
+  if not color then
+    return
+  end
+  if AssistedHighlightFrame and AssistedHighlightFrame.icon then
+    AssistedHighlightFrame.icon:SetVertexColor(color[1], color[2], color[3], color[4] or 1)
+  end
+  if AssistedHighlightFrame and AssistedHighlightFrame.glow then
+    AssistedHighlightFrame.glow:SetVertexColor(color[1], color[2], color[3], color[4] or 1)
+  end
+  if AssistedHighlightFrame and AssistedHighlightFrame.frame then
+    AssistedHighlightFrame.frame:SetVertexColor(color[1], color[2], color[3], color[4] or 1)
+  end
+end
+
+local function CancelCastBreak()
+  if not breakActive then
+    return
+  end
+  breakActive = false
+  breakElapsed = 0
+  RestoreBreakColors()
+  CenterAssistVisual()
+  ResetVisualTransform()
+  if AssistedHighlightVisual then
+    AssistedHighlightVisual:SetAlpha(1)
+  end
+end
+
+local function FinishCastBreak()
+  breakActive = false
+  breakElapsed = 0
+  RestoreBreakColors()
+  CenterAssistVisual()
+  ResetVisualTransform()
+  if AssistedHighlightVisual then
+    AssistedHighlightVisual:SetAlpha(1)
+  end
+  fadeMode = "shown"
+  fadeElapsed = 0
+end
+
+local function IsAssistVisibleForCastFeedback()
+  if not (AssistedHighlightFrame and AssistedHighlightVisual) then
+    return false
+  end
+  if fadeMode == "hidden" or fadeMode == "out" then
+    return false
+  end
+  if not lastShownSpellID or lastShownSpellID == PROC_PREVIEW_SPELL_ID then
+    return false
+  end
+  return true
+end
+
+local function NormalizeSpellID(spellID)
+  spellID = tonumber(spellID)
+  if not spellID or spellID <= 0 then
+    return nil
+  end
+  if C_Spell and C_Spell.GetBaseSpell then
+    local ok, base = pcall(C_Spell.GetBaseSpell, spellID)
+    base = ok and tonumber(base) or nil
+    if base and base > 0 then
+      return base
+    end
+  end
+  return spellID
+end
+
+local function PruneRecentShownSpells(now)
+  now = now or GetTime()
+  local write = 1
+  for i = 1, #recentShownSpells do
+    local entry = recentShownSpells[i]
+    if entry and entry.expires > now then
+      recentShownSpells[write] = entry
+      write = write + 1
+    end
+  end
+  for i = write, #recentShownSpells do
+    recentShownSpells[i] = nil
+  end
+end
+
+local function RememberShownSpell(spellID)
+  spellID = tonumber(spellID)
+  if not spellID or spellID <= 0 or spellID == PROC_PREVIEW_SPELL_ID then
+    return
+  end
+  local now = GetTime()
+  local base = NormalizeSpellID(spellID) or spellID
+  PruneRecentShownSpells(now)
+  for i = 1, #recentShownSpells do
+    local entry = recentShownSpells[i]
+    if entry.spellID == spellID or entry.base == base then
+      entry.spellID = spellID
+      entry.base = base
+      entry.expires = now + RECENT_SHOWN_TTL
+      return
+    end
+  end
+  recentShownSpells[#recentShownSpells + 1] = {
+    spellID = spellID,
+    base = base,
+    expires = now + RECENT_SHOWN_TTL,
+  }
+  while #recentShownSpells > RECENT_SHOWN_MAX do
+    table.remove(recentShownSpells, 1)
+  end
+end
+
+local function SpellMatchesRecent(castSpellID)
+  castSpellID = tonumber(castSpellID)
+  if not castSpellID or castSpellID <= 0 then
+    return false
+  end
+  local castBase = NormalizeSpellID(castSpellID) or castSpellID
+  if lastShownSpellID and lastShownSpellID ~= PROC_PREVIEW_SPELL_ID then
+    if castSpellID == lastShownSpellID then
+      return true
+    end
+    local shownBase = NormalizeSpellID(lastShownSpellID)
+    if shownBase and shownBase == castBase then
+      return true
+    end
+  end
+  PruneRecentShownSpells()
+  for i = 1, #recentShownSpells do
+    local entry = recentShownSpells[i]
+    if entry.spellID == castSpellID or entry.base == castBase then
+      return true
+    end
+  end
+  return false
+end
+
+local function SetTextureSmooth(texture, texturePath)
+  if not (texture and texturePath) then
+    return
+  end
+  local ok = pcall(texture.SetTexture, texture, texturePath, nil, nil, "TRILINEAR")
+  if not ok then
+    texture:SetTexture(texturePath)
+  end
+end
+
+local function CalculateShellExpand(iconSize)
+  local expand = math.floor((iconSize / ICON_MASK_BASE_SIZE) * ICON_MASK_BASE_EXPAND + 0.5)
+  if expand < 0 then
+    expand = 0
+  end
+  return expand
+end
+
+local function LayoutShellAroundIcon(region, icon, expand)
+  if not (region and icon) then
+    return
+  end
+  region:ClearAllPoints()
+  region:SetPoint("TOPLEFT", icon, "TOPLEFT", -expand, expand)
+  region:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", expand, -expand)
+end
+
+--- Applies current FlipBook constants to an existing animation (safe after constant tweaks).
+local function ApplyProcFlipSettings(flipAnim)
+  if not flipAnim then
+    return
+  end
+  flipAnim:SetDuration(PROC_PLAY_DURATION)
+  flipAnim:SetFlipBookRows(PROC_FLIP_ROWS)
+  flipAnim:SetFlipBookColumns(PROC_FLIP_COLUMNS)
+  flipAnim:SetFlipBookFrames(PROC_FLIP_FRAMES)
+  flipAnim:SetFlipBookFrameWidth(0)
+  flipAnim:SetFlipBookFrameHeight(0)
+end
+
+local function EnsureProcAnimations()
+  if not AssistedHighlightVisual or not AssistedHighlightVisual.ProcLoop then
+    return
+  end
+  if AssistedHighlightVisual.ProcLoopAnim then
+    ApplyProcFlipSettings(AssistedHighlightVisual.ProcLoopFlip)
+    return
+  end
+
+  local animGroup = AssistedHighlightVisual:CreateAnimationGroup()
+  animGroup:SetLooping("NONE")
+  animGroup:SetToFinalAlpha(true)
+
+  local alphaHold = animGroup:CreateAnimation("Alpha")
+  alphaHold:SetChildKey("ProcLoop")
+  alphaHold:SetFromAlpha(1)
+  alphaHold:SetToAlpha(1)
+  alphaHold:SetDuration(0.001)
+  alphaHold:SetOrder(0)
+
+  local flipAnim = animGroup:CreateAnimation("FlipBook")
+  flipAnim:SetChildKey("ProcLoop")
+  flipAnim:SetOrder(0)
+  ApplyProcFlipSettings(flipAnim)
+
+  animGroup:SetScript("OnFinished", function()
+    if AssistedHighlightVisual and AssistedHighlightVisual.ProcLoop then
+      AssistedHighlightVisual.ProcLoop:Hide()
+    end
+  end)
+
+  AssistedHighlightVisual.ProcLoopAnim = animGroup
+  AssistedHighlightVisual.ProcLoopFlip = flipAnim
+end
+
+--- Plays the proc FlipBook once in reverse when `spellID` changes.
+local function PlayProcEffectForSpell(spellID)
+  if not (AssistedHighlightVisual and AssistedHighlightVisual.ProcLoop) then
+    return
+  end
+  if not spellID or spellID == lastProcSpellID then
+    return
+  end
+  lastProcSpellID = spellID
+
+  EnsureProcAnimations()
+  local anim = AssistedHighlightVisual.ProcLoopAnim
+  ApplyProcFlipSettings(AssistedHighlightVisual.ProcLoopFlip)
+  if anim and anim:IsPlaying() then
+    anim:Stop()
+  end
+  AssistedHighlightVisual.ProcLoop:SetAtlas(PROC_ATLAS)
+  AssistedHighlightVisual.ProcLoop:SetAlpha(1)
+  AssistedHighlightVisual.ProcLoop:Show()
+  if anim then
+    anim:Play(true)
+  end
+end
+
+local function StopProcEffect()
+  lastProcSpellID = nil
+  if not AssistedHighlightVisual then
+    return
+  end
+  local anim = AssistedHighlightVisual.ProcLoopAnim
+  if anim and anim:IsPlaying() then
+    anim:Stop()
+  end
+  if AssistedHighlightVisual.ProcLoop then
+    AssistedHighlightVisual.ProcLoop:Hide()
+  end
+end
+
+local function LayoutProcEffect(icon, expand)
+  if not (AssistedHighlightVisual and AssistedHighlightVisual.ProcLoop and icon) then
+    return
+  end
+  LayoutShellAroundIcon(AssistedHighlightVisual.ProcLoop, icon, expand)
+  AssistedHighlightVisual.ProcLoop:SetAtlas(PROC_ATLAS)
+end
+
+local function UpdateGlowBreath(elapsed)
+  local glow = AssistedHighlightFrame and AssistedHighlightFrame.glow
+  if not glow or not glow:IsShown() then
+    return
+  end
+  local duration = GLOW_CYCLE_DURATION
+  glowPhase = glowPhase + (elapsed / duration)
+  if glowPhase >= 1 then
+    glowPhase = glowPhase - math.floor(glowPhase)
+  end
+  local wave = 0.5 - 0.5 * cos(glowPhase * pi * 2)
+  local waveWithStrength = ((1 - GLOW_STRENGTH) * 0.5) + (GLOW_STRENGTH * wave)
+  local range = GLOW_ANIM_MAX_ALPHA - GLOW_ANIM_MIN_ALPHA
+  local scaled = GLOW_ANIM_MIN_ALPHA + (range * waveWithStrength)
+  glow:SetAlpha(scaled * glowColorAlpha)
+end
+
+local function SetVisualAlpha(alpha)
+  if AssistedHighlightVisual then
+    AssistedHighlightVisual:SetAlpha(math.max(0, math.min(1, alpha)))
+  end
+end
+
+local function FinishHide()
+  explodeActive = false
+  explodeElapsed = 0
+  if breakActive then
+    CancelCastBreak()
+  end
+  lastShownSpellID = nil
+  fadeMode = "hidden"
+  fadeElapsed = 0
+  StopProcEffect()
+  ResetVisualTransform()
+  CenterAssistVisual()
+  if AssistedHighlightVisual then
+    AssistedHighlightVisual:Hide()
+  end
+  if AssistedHighlightFrame then
+    AssistedHighlightFrame:Hide()
+  end
+  if AssistedHighlightAnimDriver then
+    AssistedHighlightAnimDriver:Hide()
+  end
+end
+
+--- Starts or restarts the cast-success explode. Safe during fade-out and mid-explode
+--- so quick successive casts still get feedback.
+local function BeginCastExplode()
+  if not (AssistedHighlightFrame and AssistedHighlightVisual) then
+    return
+  end
+  CancelCastBreak()
+  StopProcEffect()
+  AssistedHighlightFrame:Show()
+  AssistedHighlightVisual:Show()
+  if AssistedHighlightAnimDriver then
+    AssistedHighlightAnimDriver:Show()
+  end
+
+  -- Restart from a stable base so chained casts do not compound scale.
+  ResetVisualTransform()
+  CenterAssistVisual()
+  local currentAlpha = AssistedHighlightVisual:GetAlpha() or 1
+  if currentAlpha < 0.55 then
+    currentAlpha = 0.85
+  end
+  SetVisualAlpha(currentAlpha)
+
+  explodeActive = true
+  explodeElapsed = 0
+  explodeStartScale = 1
+  explodeStartAlpha = currentAlpha
+  fadeMode = "shown"
+  fadeElapsed = 0
+end
+
+local function UpdateCastExplode(elapsed)
+  if not AssistedHighlightVisual then
+    explodeActive = false
+    return
+  end
+  explodeElapsed = explodeElapsed + elapsed
+  if explodeElapsed >= CAST_EXPLODE_DURATION then
+    FinishHide()
+    return
+  end
+  local progress = math.min(1, explodeElapsed / CAST_EXPLODE_DURATION)
+  local eased = EaseOutQuad(progress)
+  local peak = explodeStartScale + CAST_EXPLODE_EXTRA_SCALE
+  local scale = explodeStartScale + (peak - explodeStartScale) * eased
+  local alpha = explodeStartAlpha * (1 - progress * (2 - progress))
+  AssistedHighlightVisual:SetScale(math.max(0.01, scale))
+  SetVisualAlpha(alpha)
+end
+
+--- Shake/flash when the player casts something other than the shown suggestion.
+local function BeginCastBreak()
+  if not (AssistedHighlightFrame and AssistedHighlightVisual) then
+    return
+  end
+  if fadeMode == "hidden" or fadeMode == "out" then
+    return
+  end
+  if explodeActive then
+    explodeActive = false
+    explodeElapsed = 0
+  end
+  StopProcEffect()
+  AssistedHighlightFrame:Show()
+  AssistedHighlightVisual:Show()
+  if AssistedHighlightAnimDriver then
+    AssistedHighlightAnimDriver:Show()
+  end
+
+  if not breakActive then
+    SaveBreakColors()
+  end
+  ResetVisualTransform()
+  CenterAssistVisual()
+  SetVisualAlpha(1)
+
+  breakActive = true
+  breakElapsed = 0
+  fadeMode = "shown"
+  fadeElapsed = 0
+end
+
+local function UpdateCastBreak(elapsed)
+  if not AssistedHighlightVisual then
+    breakActive = false
+    return
+  end
+  breakElapsed = breakElapsed + elapsed
+  if breakElapsed >= CAST_BREAK_DURATION then
+    FinishCastBreak()
+    return
+  end
+  local progress = math.min(1, breakElapsed / CAST_BREAK_DURATION)
+  local decay = 1 - progress
+  local ox = (random() * 2 - 1) * CAST_BREAK_SHAKE_PX * decay
+  local oy = (random() * 2 - 1) * CAST_BREAK_SHAKE_PX * decay
+  local flicker = (math.floor(breakElapsed * 40) % 2 == 0) and 1 or 0.55
+  local alpha = flicker * (0.65 + 0.35 * progress)
+  local flash = ((math.floor(breakElapsed * CAST_BREAK_FLASH_HZ) % 2) == 0) and CAST_BREAK_COLOR_RED
+    or CAST_BREAK_COLOR_GREY
+  ApplyBreakFlashColor(flash)
+  AssistedHighlightVisual:ClearAllPoints()
+  AssistedHighlightVisual:SetPoint("CENTER", AssistedHighlightFrame, "CENTER", ox, oy)
+  AssistedHighlightVisual:SetScale(1)
+  SetVisualAlpha(alpha)
+end
+
+local function RequestShow()
+  if not AssistedHighlightFrame or explodeActive or breakActive then
+    return
+  end
+  ResetVisualTransform()
+  CenterAssistVisual()
+  AssistedHighlightFrame:Show()
+  if AssistedHighlightVisual then
+    AssistedHighlightVisual:Show()
+  end
+  if AssistedHighlightAnimDriver then
+    AssistedHighlightAnimDriver:Show()
+  end
+  if fadeMode == "shown" or fadeMode == "in" then
+    return
+  end
+  fadeFromAlpha = (AssistedHighlightVisual and AssistedHighlightVisual:GetAlpha()) or 0
+  if fadeMode == "hidden" then
+    fadeFromAlpha = 0
+    SetVisualAlpha(0)
+  end
+  fadeMode = "in"
+  fadeElapsed = 0
+end
+
+local function RequestHide()
+  if explodeActive or breakActive then
+    return
+  end
+  if not AssistedHighlightFrame or fadeMode == "hidden" then
+    return
+  end
+  if fadeMode == "out" then
+    return
+  end
+  fadeFromAlpha = (AssistedHighlightVisual and AssistedHighlightVisual:GetAlpha()) or 1
+  fadeMode = "out"
+  fadeElapsed = 0
+end
+
+local function UpdateFade(elapsed)
+  if fadeMode == "in" then
+    fadeElapsed = fadeElapsed + elapsed
+    local t = math.min(1, fadeElapsed / FADE_IN_DURATION)
+    local eased = EaseOutSine(t)
+    SetVisualAlpha(fadeFromAlpha + (1 - fadeFromAlpha) * eased)
+    if t >= 1 then
+      fadeMode = "shown"
+      SetVisualAlpha(1)
+    end
+  elseif fadeMode == "out" then
+    fadeElapsed = fadeElapsed + elapsed
+    local t = math.min(1, fadeElapsed / FADE_OUT_DURATION)
+    local eased = EaseOutSine(t)
+    SetVisualAlpha(fadeFromAlpha * (1 - eased))
+    if t >= 1 then
+      FinishHide()
+    end
+  end
+end
 
 local function EnsureAssistedHighlight()
   if AssistedHighlightFrame then
@@ -49,142 +671,110 @@ local function EnsureAssistedHighlight()
     return
   end
 
-  -- Per-module lock-in animation driver (mirrors Core/Crosshair/Animations.lua crosshair lock-in style).
-  AssistedHighlightLockInDriver = CreateFrame("Frame", nil, crosshairFrame)
-  AssistedHighlightLockInDriver:Hide()
+  local assets = CM.Constants
+  AssistedHighlightAnimDriver = CreateFrame("Frame", nil, crosshairFrame)
+  AssistedHighlightAnimDriver:Hide()
 
   AssistedHighlightFrame = CreateFrame("Frame", nil, crosshairFrame)
   AssistedHighlightFrame:Hide()
   AssistedHighlightFrame:SetFrameStrata(crosshairFrame:GetFrameStrata())
   AssistedHighlightFrame:SetFrameLevel(crosshairFrame:GetFrameLevel() + 20)
 
-  -- Visual subframe: keep outer anchored; animate inner so scale origin is centered.
   AssistedHighlightVisual = CreateFrame("Frame", nil, AssistedHighlightFrame)
   AssistedHighlightVisual:SetPoint("CENTER", AssistedHighlightFrame, "CENTER", 0, 0)
   AssistedHighlightVisual:Hide()
 
-  AssistedHighlightFrame.shadow = AssistedHighlightVisual:CreateTexture(nil, "BORDER")
-  AssistedHighlightFrame.shadow:SetVertexColor(1, 1, 1, 1)
-  AssistedHighlightFrame.shadow:SetAlpha(0.7)
+  AssistedHighlightFrame.shadow = AssistedHighlightVisual:CreateTexture(nil, "BACKGROUND")
+  AssistedHighlightFrame.shadow:SetDrawLayer("BACKGROUND", -1)
+  AssistedHighlightFrame.shadow:SetAtlas("Radial_Wheel_BG")
+  AssistedHighlightFrame.shadow:SetAlpha(0.75)
 
-  AssistedHighlightFrame.icon = AssistedHighlightVisual:CreateTexture(nil, "OVERLAY")
+  -- BACKGROUND: dark beveled well
+  AssistedHighlightFrame.background = AssistedHighlightVisual:CreateTexture(nil, "BACKGROUND")
+  AssistedHighlightFrame.background:SetDrawLayer("BACKGROUND", 0)
+  SetTextureSmooth(AssistedHighlightFrame.background, assets.AssistedSpellIconBackground)
+  AssistedHighlightFrame.background:SetVertexColor(1, 1, 1, 1)
+
+  -- ARTWORK: spell icon (circular via mask)
+  AssistedHighlightFrame.icon = AssistedHighlightVisual:CreateTexture(nil, "ARTWORK")
+  AssistedHighlightFrame.icon:SetDrawLayer("ARTWORK", 0)
   AssistedHighlightFrame.icon:SetPoint("CENTER", AssistedHighlightVisual, "CENTER", 0, 0)
-  AssistedHighlightFrame.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  AssistedHighlightFrame.icon:SetTexCoord(0, 1, 0, 1)
 
   AssistedHighlightFrame.iconMask = AssistedHighlightVisual:CreateMaskTexture()
   AssistedHighlightFrame.iconMask:SetTexture(
-    "Interface\\CharacterFrame\\TempPortraitAlphaMask",
+    assets.AssistedSpellIconMask,
     "CLAMPTOBLACKADDITIVE",
     "CLAMPTOBLACKADDITIVE"
   )
-  AssistedHighlightFrame.iconMask:SetPoint("CENTER", AssistedHighlightFrame.icon, "CENTER")
   AssistedHighlightFrame.icon:AddMaskTexture(AssistedHighlightFrame.iconMask)
 
-  AssistedHighlightFrame.iconBorder = AssistedHighlightVisual:CreateTexture(nil, "OVERLAY")
-  AssistedHighlightFrame.iconBorder:SetDrawLayer("OVERLAY", 5)
-  AssistedHighlightFrame.iconBorder:SetDesaturated(true)
-  AssistedHighlightFrame.iconBorder:SetAlpha(1)
-  AssistedHighlightFrame.iconBorder:SetPoint("CENTER", AssistedHighlightFrame.icon, "CENTER", 0, 0)
-  AssistedHighlightFrame.iconBorder:Show()
+  -- ARTWORK+1: cyan breath glow ring
+  AssistedHighlightFrame.glow = AssistedHighlightVisual:CreateTexture(nil, "ARTWORK")
+  AssistedHighlightFrame.glow:SetDrawLayer("ARTWORK", 1)
+  AssistedHighlightFrame.glow:SetBlendMode("BLEND")
+  SetTextureSmooth(AssistedHighlightFrame.glow, assets.AssistedSpellIconGlow)
+  AssistedHighlightFrame.glow:SetVertexColor(GLOW_COLOR_R, GLOW_COLOR_G, GLOW_COLOR_B, 1)
+  AssistedHighlightFrame.glow:SetAlpha(GLOW_ANIM_MIN_ALPHA)
+
+  -- OVERLAY: dark metallic frame
+  AssistedHighlightFrame.frame = AssistedHighlightVisual:CreateTexture(nil, "OVERLAY")
+  AssistedHighlightFrame.frame:SetDrawLayer("OVERLAY", 1)
+  AssistedHighlightFrame.frame:SetBlendMode("BLEND")
+  SetTextureSmooth(AssistedHighlightFrame.frame, assets.AssistedSpellIconFrame)
+  AssistedHighlightFrame.frame:SetVertexColor(1, 1, 1, 1)
+
+  -- OVERLAY+2: Rogue CP slash FlipBook on top of the chrome border
+  AssistedHighlightVisual.ProcLoop = AssistedHighlightVisual:CreateTexture(nil, "OVERLAY")
+  AssistedHighlightVisual.ProcLoop:SetDrawLayer("OVERLAY", 2)
+  AssistedHighlightVisual.ProcLoop:SetBlendMode("ADD")
+  AssistedHighlightVisual.ProcLoop:SetAtlas(PROC_ATLAS)
+  AssistedHighlightVisual.ProcLoop:SetPoint("CENTER", AssistedHighlightFrame.icon, "CENTER", 0, 0)
+  AssistedHighlightVisual.ProcLoop:Hide()
+  EnsureProcAnimations()
 
   AssistedHighlightFrame.keybindText =
     AssistedHighlightVisual:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+  AssistedHighlightFrame.keybindText:SetDrawLayer("OVERLAY", 5)
   AssistedHighlightFrame.keybindText:SetJustifyH("LEFT")
   AssistedHighlightFrame.keybindText:SetText("")
   AssistedHighlightFrame.keybindText:SetShadowColor(0, 0, 0, 1)
   AssistedHighlightFrame.keybindText:SetShadowOffset(1, -1)
   AssistedHighlightFrame.keybindText:Hide()
 
-  -- Lock-in animation: scale/alpha tween when the frame shows.
-  local LOCK_IN_DURATION = 0.25
-  local totalElapsed = -1
-  local startScale = 1.3
-  local startAlpha = 0.0
-  local targetScale = 1.0
-  local targetAlpha = 1.0
-  local baseAlpha = 0.85 -- must match ApplyCrosshairAssistedHighlightOptions()
+  AssistedHighlightFrame.cornerKeybindText =
+    AssistedHighlightVisual:CreateFontString(nil, "OVERLAY")
+  AssistedHighlightFrame.cornerKeybindText:SetDrawLayer("OVERLAY", 6)
+  AssistedHighlightFrame.cornerKeybindText:SetJustifyH("CENTER")
+  AssistedHighlightFrame.cornerKeybindText:SetJustifyV("MIDDLE")
+  AssistedHighlightFrame.cornerKeybindText:SetFont(
+    KEYBOARD_KEYBIND_FONT,
+    KEYBOARD_KEYBIND_FONT_SIZE,
+    KEYBOARD_KEYBIND_FONT_FLAGS
+  )
+  AssistedHighlightFrame.cornerKeybindText:SetText("")
+  AssistedHighlightFrame.cornerKeybindText:SetTextColor(1, 1, 1, 1)
+  AssistedHighlightFrame.cornerKeybindText:SetShadowColor(0, 0, 0, 0)
+  AssistedHighlightFrame.cornerKeybindText:SetShadowOffset(0, 0)
+  AssistedHighlightFrame.cornerKeybindText:Hide()
 
-  AssistedHighlightLockInDriver:SetScript("OnUpdate", function(_, elapsed)
-    if totalElapsed == -1 then
+  AssistedHighlightAnimDriver:SetScript("OnUpdate", function(_, elapsed)
+    if breakActive then
+      UpdateCastBreak(elapsed)
       return
     end
-    totalElapsed = totalElapsed + elapsed
-    if totalElapsed >= LOCK_IN_DURATION then
-      totalElapsed = -1
-      AssistedHighlightLockInDriver:Hide()
-      if AssistedHighlightVisual then
-        AssistedHighlightVisual:SetScale(targetScale)
-        AssistedHighlightVisual:SetAlpha(baseAlpha)
-      end
+    if explodeActive then
+      UpdateCastExplode(elapsed)
       return
     end
-    local progress = totalElapsed / LOCK_IN_DURATION
-    progress = math.max(0, math.min(1, progress))
-    local eased = 1 - (1 - progress) * (1 - progress)
-
-    local currentScale = startScale + (targetScale - startScale) * eased
-    if AssistedHighlightVisual then
-      AssistedHighlightVisual:SetScale(math.max(0.01, currentScale))
-      local currentAlpha = startAlpha + (targetAlpha - startAlpha) * eased
-      AssistedHighlightVisual:SetAlpha(currentAlpha * baseAlpha)
+    if fadeMode == "hidden" then
+      return
+    end
+    UpdateFade(elapsed)
+    if fadeMode ~= "hidden" then
+      UpdateGlowBreath(elapsed)
     end
   end)
-
-  function AssistedHighlightFrame:PlayLockIn()
-    if not AssistedHighlightLockInDriver then
-      return
-    end
-    baseAlpha = 0.85
-    targetAlpha = 1.0
-    targetScale = 1.0
-    startScale = 1.3
-    startAlpha = 0.0
-    if AssistedHighlightVisual then
-      AssistedHighlightVisual:SetScale(startScale)
-      AssistedHighlightVisual:SetAlpha(0)
-      AssistedHighlightVisual:Show()
-    end
-    totalElapsed = 0
-    AssistedHighlightLockInDriver:Show()
-  end
-end
-
-local function SetAssistedHighlightShadowAtlas()
-  if not (AssistedHighlightFrame and AssistedHighlightFrame.shadow) then
-    return
-  end
-  local atlas = "Radial_Wheel_BG_Small"
-  if _G.C_Texture and _G.C_Texture.GetAtlasInfo then
-    local ok, info = pcall(_G.C_Texture.GetAtlasInfo, atlas)
-    if not ok or not info then
-      atlas = "PetJournal-BattleSlot-Shadow"
-      CM.DebugPrintThrottled(
-        "assistedHighlightShadowAtlas",
-        "Assisted Highlight: atlas Radial_Wheel_BG_Small not found; falling back to " .. atlas,
-        10
-      )
-    end
-  end
-  AssistedHighlightFrame.shadow:SetAtlas(atlas)
-end
-
-local function SetAssistedHighlightIconBorderAtlas()
-  if not (AssistedHighlightFrame and AssistedHighlightFrame.iconBorder) then
-    return
-  end
-  local atlas = "Evergreen-toast-celebration-content-ring"
-  if _G.C_Texture and _G.C_Texture.GetAtlasInfo then
-    local ok, info = pcall(_G.C_Texture.GetAtlasInfo, atlas)
-    if not ok or not info then
-      atlas = "UI-Quickslot2"
-      CM.DebugPrintThrottled(
-        "assistedHighlightIconBorderAtlas",
-        "Assisted Highlight: item border atlas missing; falling back to " .. atlas,
-        10
-      )
-    end
-  end
-  AssistedHighlightFrame.iconBorder:SetAtlas(atlas, false)
 end
 
 local COMPACT_KEY_MAP = {
@@ -256,19 +846,46 @@ local function FormatKeybindText(bindingKey)
   return AbbreviateKey(bindingKey) or bindingKey
 end
 
-local CLICK_ICON_LEFT = "|A:NPE_LeftClick:28:28|a"
-local CLICK_ICON_RIGHT = "|A:NPE_RightClick:28:28|a"
+-- Native mouse atlases are 52x69 (Interface/HelpFrame/NewPlayerExperienceParts).
+-- |A:atlas:height:width| must keep that aspect; modifier BLPs stay square.
+local CLICK_MOD_ICON_SIZE = 28
+local CLICK_MOUSE_ICON_HEIGHT = 28
+local CLICK_MOUSE_ICON_WIDTH = math.floor(CLICK_MOUSE_ICON_HEIGHT * 52 / 69 + 0.5) -- 21
+local CLICK_ICON_LEFT = "|A:newplayertutorial-icon-mouse-leftbutton:"
+  .. CLICK_MOUSE_ICON_HEIGHT
+  .. ":"
+  .. CLICK_MOUSE_ICON_WIDTH
+  .. "|a"
+local CLICK_ICON_RIGHT = "|A:newplayertutorial-icon-mouse-rightbutton:"
+  .. CLICK_MOUSE_ICON_HEIGHT
+  .. ":"
+  .. CLICK_MOUSE_ICON_WIDTH
+  .. "|a"
+
+local function ModifierTextureMarkup(path)
+  if not path or path == "" then
+    return nil
+  end
+  return "|T" .. path .. ":" .. CLICK_MOD_ICON_SIZE .. ":" .. CLICK_MOD_ICON_SIZE .. "|t"
+end
+
+local MOD_ICON_SHIFT = ModifierTextureMarkup(CM.Constants.ModifierKeyShift)
+local MOD_ICON_CTRL = ModifierTextureMarkup(CM.Constants.ModifierKeyCtrl)
+local MOD_ICON_ALT = ModifierTextureMarkup(CM.Constants.ModifierKeyAlt)
 
 local CLICKCAST_BINDING_ORDER = {
   { dbKey = "button1", mod = nil, icon = CLICK_ICON_LEFT },
   { dbKey = "button2", mod = nil, icon = CLICK_ICON_RIGHT },
-  { dbKey = "shiftbutton1", mod = "Shift+", icon = CLICK_ICON_LEFT },
-  { dbKey = "shiftbutton2", mod = "Shift+", icon = CLICK_ICON_RIGHT },
-  { dbKey = "ctrlbutton1", mod = "Ctrl+", icon = CLICK_ICON_LEFT },
-  { dbKey = "ctrlbutton2", mod = "Ctrl+", icon = CLICK_ICON_RIGHT },
-  { dbKey = "altbutton1", mod = "Alt+", icon = CLICK_ICON_LEFT },
-  { dbKey = "altbutton2", mod = "Alt+", icon = CLICK_ICON_RIGHT },
+  { dbKey = "shiftbutton1", mod = MOD_ICON_SHIFT, icon = CLICK_ICON_LEFT },
+  { dbKey = "shiftbutton2", mod = MOD_ICON_SHIFT, icon = CLICK_ICON_RIGHT },
+  { dbKey = "ctrlbutton1", mod = MOD_ICON_CTRL, icon = CLICK_ICON_LEFT },
+  { dbKey = "ctrlbutton2", mod = MOD_ICON_CTRL, icon = CLICK_ICON_RIGHT },
+  { dbKey = "altbutton1", mod = MOD_ICON_ALT, icon = CLICK_ICON_LEFT },
+  { dbKey = "altbutton2", mod = MOD_ICON_ALT, icon = CLICK_ICON_RIGHT },
 }
+
+local KEYBIND_STYLE_CLICKCAST = "clickcast"
+local KEYBIND_STYLE_KEYBOARD = "keyboard"
 
 local function IsAssistedCombatHighlightCVarEnabled()
   if _G.GetCVarBool then
@@ -462,9 +1079,9 @@ local function GetClickCastDisplayForSpell(spellID)
     local setting = bindings[entry.dbKey]
     if setting and setting.enabled and setting.value == bindingName then
       if entry.mod then
-        return entry.mod .. entry.icon
+        return entry.mod .. entry.icon, KEYBIND_STYLE_CLICKCAST
       end
-      return entry.icon
+      return entry.icon, KEYBIND_STYLE_CLICKCAST
     end
   end
 
@@ -552,6 +1169,27 @@ local function ShouldShowAssistedHighlightIcon()
   return true
 end
 
+local function ApplyClickCastKeybindStyle()
+  local label = AssistedHighlightFrame and AssistedHighlightFrame.keybindText
+  if not label then
+    return
+  end
+  label:SetTextColor(1, 1, 1, 1)
+  label:SetShadowColor(0, 0, 0, 1)
+  label:SetShadowOffset(1, -1)
+end
+
+local function ApplyKeyboardKeybindStyle()
+  local label = AssistedHighlightFrame and AssistedHighlightFrame.cornerKeybindText
+  if not label then
+    return
+  end
+  label:SetFont(KEYBOARD_KEYBIND_FONT, KEYBOARD_KEYBIND_FONT_SIZE, KEYBOARD_KEYBIND_FONT_FLAGS)
+  label:SetTextColor(1, 1, 1, 1)
+  label:SetShadowColor(0, 0, 0, 0)
+  label:SetShadowOffset(0, 0)
+end
+
 function CM.ApplyCrosshairAssistedHighlightOptions()
   EnsureAssistedHighlight()
   if not AssistedHighlightFrame then
@@ -565,81 +1203,152 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
 
   local g = CM.DB.global
   local d = CM.Constants.DatabaseDefaults.global
-  local size = tonumber(g.assistedHighlightSize or d.assistedHighlightSize) or 36
-  local offsetX = tonumber(g.assistedHighlightOffsetX or d.assistedHighlightOffsetX) or 0
-  local offsetY = tonumber(g.assistedHighlightOffsetY or d.assistedHighlightOffsetY) or 0
-  local opacity = 1 -- fixed, not user-adjustable
-  local fontSize = 14 -- fixed, not user-adjustable
-  local keybindAnchor = g.assistedHighlightKeybindAnchor
-    or d.assistedHighlightKeybindAnchor
-    or "RIGHT"
+  local size = ICON_SIZE
+  local side = g.assistedHighlightSide or d.assistedHighlightSide or "RIGHT"
+  if side ~= "LEFT" then
+    side = "RIGHT"
+  end
+  local fontSize = 14
+  local expand = CalculateShellExpand(size)
+  local outer = size + expand * 2
+  glowColorAlpha = 1
 
-  AssistedHighlightFrame:SetSize(size, size)
+  local crosshairSize = tonumber(g.crosshairSize or d.crosshairSize) or 64
+  local gap = (crosshairSize / 2) + ASSIST_OFFSET_X
+
+  local layoutChanged = lastAppliedSide ~= side
+
   AssistedHighlightFrame:ClearAllPoints()
-  AssistedHighlightFrame:SetPoint("CENTER", crosshairFrame, "CENTER", offsetX, offsetY)
-  AssistedHighlightFrame:SetAlpha(opacity)
-  if AssistedHighlightVisual then
-    AssistedHighlightVisual:SetSize(size, size)
-    AssistedHighlightVisual:SetPoint("CENTER", AssistedHighlightFrame, "CENTER", 0, 0)
+  if side == "LEFT" then
+    AssistedHighlightFrame:SetPoint("RIGHT", crosshairFrame, "CENTER", -gap, 0)
+  else
+    AssistedHighlightFrame:SetPoint("LEFT", crosshairFrame, "CENTER", gap, 0)
   end
+  AssistedHighlightFrame:SetAlpha(1)
 
-  SetAssistedHighlightShadowAtlas()
-  AssistedHighlightFrame.shadow:SetSize(size * 2.15, size * 2.15)
-  AssistedHighlightFrame.shadow:ClearAllPoints()
-  AssistedHighlightFrame.shadow:SetPoint("CENTER", AssistedHighlightFrame.icon, "CENTER", 0, 0)
-
-  SetAssistedHighlightIconBorderAtlas()
-  AssistedHighlightFrame.icon:SetSize(size, size)
-  AssistedHighlightFrame.iconMask:SetSize(size, size)
-  if AssistedHighlightFrame.iconBorder then
-    AssistedHighlightFrame.iconBorder:SetSize(size * 1.4, size * 1.4)
-  end
-
-  if AssistedHighlightFrame.keybindText then
-    AssistedHighlightFrame.keybindText:ClearAllPoints()
-    if keybindAnchor == "LEFT" then
-      AssistedHighlightFrame.keybindText:SetPoint(
-        "RIGHT",
+  -- Click-cast keybind flips with cluster side; keyboard stays top-right on the icon.
+  do
+    local keyGap = expand
+    local clickLabel = AssistedHighlightFrame.keybindText
+    if clickLabel then
+      clickLabel:ClearAllPoints()
+      if side == "LEFT" then
+        clickLabel:SetPoint("RIGHT", AssistedHighlightFrame.icon, "LEFT", -keyGap, 0)
+        clickLabel:SetJustifyH("RIGHT")
+      else
+        clickLabel:SetPoint("LEFT", AssistedHighlightFrame.icon, "RIGHT", keyGap, 0)
+        clickLabel:SetJustifyH("LEFT")
+      end
+    end
+    local keyboardLabel = AssistedHighlightFrame.cornerKeybindText
+    if keyboardLabel then
+      keyboardLabel:ClearAllPoints()
+      keyboardLabel:SetPoint(
+        "CENTER",
         AssistedHighlightFrame.icon,
-        "LEFT",
-        -11,
-        0
+        "CENTER",
+        KEYBOARD_KEYBIND_OFFSET_X,
+        KEYBOARD_KEYBIND_OFFSET_Y
       )
-      AssistedHighlightFrame.keybindText:SetJustifyH("RIGHT")
-    elseif keybindAnchor == "TOP" then
-      AssistedHighlightFrame.keybindText:SetPoint(
-        "BOTTOM",
-        AssistedHighlightFrame.icon,
-        "TOP",
-        0,
-        6
-      )
-      AssistedHighlightFrame.keybindText:SetJustifyH("CENTER")
-    elseif keybindAnchor == "BOTTOM" then
-      AssistedHighlightFrame.keybindText:SetPoint(
-        "TOP",
-        AssistedHighlightFrame.icon,
-        "BOTTOM",
-        0,
-        -6
-      )
-      AssistedHighlightFrame.keybindText:SetJustifyH("CENTER")
-    else
-      AssistedHighlightFrame.keybindText:SetPoint(
-        "LEFT",
-        AssistedHighlightFrame.icon,
-        "RIGHT",
-        11,
-        0
-      )
-      AssistedHighlightFrame.keybindText:SetJustifyH("LEFT")
+      keyboardLabel:SetJustifyH("CENTER")
     end
   end
 
-  CM.SetFontStringFromTemplate(AssistedHighlightFrame.keybindText, fontSize, _G.GameFontNormalSmall)
-  AssistedHighlightFrame.keybindText:SetTextColor(1, 1, 1, 1)
-  AssistedHighlightFrame.keybindText:SetShadowColor(0, 0, 0, 1)
-  AssistedHighlightFrame.keybindText:SetShadowOffset(1, -1)
+  if layoutChanged then
+    lastAppliedSide = side
+
+    -- Outer size fits the expanded shell (icon is `size`; chrome extends by expand).
+    AssistedHighlightFrame:SetSize(outer, outer)
+    if AssistedHighlightVisual then
+      AssistedHighlightVisual:SetSize(outer, outer)
+      AssistedHighlightVisual:SetPoint("CENTER", AssistedHighlightFrame, "CENTER", 0, 0)
+    end
+
+    AssistedHighlightFrame.icon:SetSize(size, size)
+    AssistedHighlightFrame.icon:ClearAllPoints()
+    AssistedHighlightFrame.icon:SetPoint("CENTER", AssistedHighlightVisual, "CENTER", 0, 0)
+
+    local shadowPad = math.floor((size * (SHADOW_SCALE - 1)) * 0.5 + 0.5)
+    AssistedHighlightFrame.shadow:ClearAllPoints()
+    AssistedHighlightFrame.shadow:SetPoint(
+      "TOPLEFT",
+      AssistedHighlightFrame.icon,
+      "TOPLEFT",
+      -shadowPad,
+      shadowPad
+    )
+    AssistedHighlightFrame.shadow:SetPoint(
+      "BOTTOMRIGHT",
+      AssistedHighlightFrame.icon,
+      "BOTTOMRIGHT",
+      shadowPad,
+      -shadowPad
+    )
+
+    LayoutShellAroundIcon(AssistedHighlightFrame.iconMask, AssistedHighlightFrame.icon, expand)
+    LayoutShellAroundIcon(AssistedHighlightFrame.background, AssistedHighlightFrame.icon, expand)
+    LayoutShellAroundIcon(AssistedHighlightFrame.glow, AssistedHighlightFrame.icon, expand)
+    LayoutShellAroundIcon(AssistedHighlightFrame.frame, AssistedHighlightFrame.icon, expand)
+    LayoutProcEffect(AssistedHighlightFrame.icon, expand)
+
+    -- Re-apply textures when layout changes (ApplyOptions path).
+    local assets = CM.Constants
+    SetTextureSmooth(AssistedHighlightFrame.background, assets.AssistedSpellIconBackground)
+    SetTextureSmooth(AssistedHighlightFrame.glow, assets.AssistedSpellIconGlow)
+    SetTextureSmooth(AssistedHighlightFrame.frame, assets.AssistedSpellIconFrame)
+    AssistedHighlightFrame.iconMask:SetTexture(
+      assets.AssistedSpellIconMask,
+      "CLAMPTOBLACKADDITIVE",
+      "CLAMPTOBLACKADDITIVE"
+    )
+
+    AssistedHighlightFrame.background:SetAlpha(1)
+    AssistedHighlightFrame.frame:SetAlpha(1)
+    AssistedHighlightFrame.glow:SetVertexColor(GLOW_COLOR_R, GLOW_COLOR_G, GLOW_COLOR_B, 1)
+    -- Do not set glow alpha here — breath OnUpdate owns it.
+    -- Do not restart the one-shot proc FlipBook on layout changes.
+
+    CM.SetFontStringFromTemplate(
+      AssistedHighlightFrame.keybindText,
+      fontSize,
+      _G.GameFontNormalSmall
+    )
+    ApplyClickCastKeybindStyle()
+    ApplyKeyboardKeybindStyle()
+  end
+end
+
+local function ShowAssistedHighlightContent(texture, keybindText, keybindStyle, spellID)
+  lastShownSpellID = spellID
+  RememberShownSpell(spellID)
+  AssistedHighlightFrame.icon:SetTexture(texture)
+  AssistedHighlightFrame.icon:Show()
+  AssistedHighlightFrame.shadow:Show()
+  AssistedHighlightFrame.background:Show()
+  AssistedHighlightFrame.glow:Show()
+  AssistedHighlightFrame.frame:Show()
+  PlayProcEffectForSpell(spellID)
+
+  if keybindText and keybindText ~= "" then
+    if keybindStyle == KEYBIND_STYLE_CLICKCAST then
+      AssistedHighlightFrame.keybindText:SetText(keybindText)
+      AssistedHighlightFrame.cornerKeybindText:SetText("")
+      AssistedHighlightFrame.cornerKeybindText:Hide()
+      ApplyClickCastKeybindStyle()
+      AssistedHighlightFrame.keybindText:Show()
+    else
+      AssistedHighlightFrame.cornerKeybindText:SetText(keybindText)
+      AssistedHighlightFrame.keybindText:SetText("")
+      AssistedHighlightFrame.keybindText:Hide()
+      ApplyKeyboardKeybindStyle()
+      AssistedHighlightFrame.cornerKeybindText:Show()
+    end
+  else
+    AssistedHighlightFrame.keybindText:Hide()
+    AssistedHighlightFrame.cornerKeybindText:Hide()
+  end
+
+  RequestShow()
 end
 
 function CM.UpdateCrosshairAssistedHighlight()
@@ -647,109 +1356,84 @@ function CM.UpdateCrosshairAssistedHighlight()
   if not AssistedHighlightFrame then
     return
   end
+  if explodeActive or breakActive then
+    return
+  end
 
   if CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive() then
     if not ShouldShowAssistedHighlightIcon() then
-      AssistedHighlightFrame:Hide()
-      AssistedHighlightWasShown = false
+      RequestHide()
       return
     end
     CM.ApplyCrosshairAssistedHighlightOptions()
-    AssistedHighlightFrame.icon:SetTexture(134400) -- INV_Misc_QuestionMark
-    AssistedHighlightFrame.icon:Show()
-    if AssistedHighlightFrame.shadow then
-      AssistedHighlightFrame.shadow:Show()
-    end
-    if AssistedHighlightFrame.iconBorder then
-      AssistedHighlightFrame.iconBorder:Show()
-    end
-    local showKeybind = CM.DB.global.assistedHighlightShowKeybind
-    if showKeybind == nil then
-      showKeybind = CM.Constants.DatabaseDefaults.global.assistedHighlightShowKeybind
-    end
-    if showKeybind then
-      AssistedHighlightFrame.keybindText:SetText("Shift+" .. CLICK_ICON_LEFT)
-      AssistedHighlightFrame.keybindText:Show()
-    else
-      AssistedHighlightFrame.keybindText:Hide()
-    end
-    AssistedHighlightFrame:Show()
-    if AssistedHighlightVisual then
-      AssistedHighlightVisual:Show()
-    end
-    if not AssistedHighlightWasShown and AssistedHighlightFrame.PlayLockIn then
-      AssistedHighlightFrame:PlayLockIn()
-    end
-    AssistedHighlightWasShown = true
+    ShowAssistedHighlightContent(
+      134400,
+      (MOD_ICON_SHIFT or "Shift+") .. CLICK_ICON_LEFT,
+      KEYBIND_STYLE_CLICKCAST,
+      PROC_PREVIEW_SPELL_ID
+    )
     return
   end
 
   if not ShouldShowAssistedHighlightIcon() then
-    AssistedHighlightFrame:Hide()
-    AssistedHighlightWasShown = false
+    RequestHide()
     return
   end
 
   local spellID = GetSuggestedAssistedSpellID()
   if not spellID then
-    AssistedHighlightFrame:Hide()
-    AssistedHighlightWasShown = false
+    RequestHide()
     return
   end
 
   if not (C_Spell and C_Spell.GetSpellInfo) then
-    AssistedHighlightFrame:Hide()
-    AssistedHighlightWasShown = false
+    RequestHide()
     return
   end
   local ok, info = pcall(C_Spell.GetSpellInfo, spellID)
   info = ok and info or nil
   local texture = info and info.iconID
   if not texture then
-    AssistedHighlightFrame:Hide()
-    AssistedHighlightWasShown = false
+    RequestHide()
     return
   end
 
-  AssistedHighlightFrame.icon:SetTexture(texture)
-  AssistedHighlightFrame.icon:Show()
-  if AssistedHighlightFrame.shadow then
-    AssistedHighlightFrame.shadow:Show()
-  end
-  if AssistedHighlightFrame.iconBorder then
-    AssistedHighlightFrame.iconBorder:Show()
+  CM.ApplyCrosshairAssistedHighlightOptions()
+
+  local keybindText, keybindStyle = GetClickCastDisplayForSpell(spellID)
+  if not keybindText then
+    keybindText = FormatKeybindText(GetFirstBindingKeyForSpell(spellID))
+    keybindStyle = keybindText and KEYBIND_STYLE_KEYBOARD or nil
   end
 
-  local showKeybind = CM.DB.global.assistedHighlightShowKeybind
-  if showKeybind == nil then
-    showKeybind = CM.Constants.DatabaseDefaults.global.assistedHighlightShowKeybind
+  ShowAssistedHighlightContent(texture, keybindText, keybindStyle, spellID)
+end
+
+--- Explode on suggested-spell cast; shake/flash break on any other successful cast
+--- while the assist icon is visible.
+function CM.OnAssistedHighlightSpellCast(spellID)
+  if CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive() then
+    return
   end
-  if showKeybind then
-    local text = GetClickCastDisplayForSpell(spellID)
-    if not text then
-      local key = GetFirstBindingKeyForSpell(spellID)
-      text = FormatKeybindText(key)
-    end
-    if text and text ~= "" then
-      AssistedHighlightFrame.keybindText:SetText(text)
-      AssistedHighlightFrame.keybindText:SetShadowColor(0, 0, 0, 1)
-      AssistedHighlightFrame.keybindText:SetShadowOffset(1, -1)
-      AssistedHighlightFrame.keybindText:Show()
-    else
-      AssistedHighlightFrame.keybindText:Hide()
-    end
+  if not IsAssistVisibleForCastFeedback() then
+    return
+  end
+  if SpellMatchesRecent(spellID) then
+    BeginCastExplode()
   else
-    AssistedHighlightFrame.keybindText:Hide()
+    BeginCastBreak()
   end
+end
 
-  AssistedHighlightFrame:Show()
-  if AssistedHighlightVisual then
-    AssistedHighlightVisual:Show()
+--- Explode when the Assisted Combat action button is used (no spellID payload).
+function CM.OnAssistedHighlightAssistedActionCast()
+  if CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive() then
+    return
   end
-  if not AssistedHighlightWasShown and AssistedHighlightFrame.PlayLockIn then
-    AssistedHighlightFrame:PlayLockIn()
+  if not IsAssistVisibleForCastFeedback() then
+    return
   end
-  AssistedHighlightWasShown = true
+  BeginCastExplode()
 end
 
 function CM.InitAssistedHighlight(opts)

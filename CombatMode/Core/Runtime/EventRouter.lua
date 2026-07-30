@@ -121,6 +121,17 @@ local function HandleEventByCategory(category, event, ...)
       if CM.OnCrosshairCastFeedbackEvent then
         CM.OnCrosshairCastFeedbackEvent(event, ...)
       end
+      if event == "UNIT_SPELLCAST_SUCCEEDED" and CM.OnAssistedHighlightSpellCast then
+        local unitTarget, _, spellID = ...
+        if unitTarget == "player" then
+          CM.OnAssistedHighlightSpellCast(spellID)
+        end
+      end
+    end,
+    ASSISTED_HIGHLIGHT_EVENTS = function()
+      if CM.OnAssistedHighlightAssistedActionCast then
+        CM.OnAssistedHighlightAssistedActionCast()
+      end
     end,
   }
 

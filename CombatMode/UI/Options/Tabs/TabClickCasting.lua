@@ -16,6 +16,7 @@ local CreateFrame = _G.CreateFrame
 -- Lua stdlib
 local ipairs = _G.ipairs
 local pairs = _G.pairs
+local floor = _G.math.floor
 local max = _G.math.max
 local tinsert = _G.table.insert
 
@@ -88,7 +89,9 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas)
     desc = "Override this click during Mouse Look.",
     iconAtlas = iconAtlas,
     iconFitText = true,
-    iconSize = 24,
+    -- Native atlas is 52x69; keep aspect while fitting row text height.
+    iconHeight = 24,
+    iconWidth = floor(24 * 52 / 69 + 0.5),
     get = function()
       return Binding(slot).enabled
     end,
@@ -159,9 +162,21 @@ local function BuildGroupPanel(parent, width, modifier)
   elseif modifier == "alt" then
     prefix = "Alt + "
   end
-  AddSlot(layout, Slot(modifier, 1), prefix .. "Left Click", modifier, "NPE_LeftClick")
+  AddSlot(
+    layout,
+    Slot(modifier, 1),
+    prefix .. "Left Click",
+    modifier,
+    "newplayertutorial-icon-mouse-leftbutton"
+  )
   layout:Gap(8)
-  AddSlot(layout, Slot(modifier, 2), prefix .. "Right Click", modifier, "NPE_RightClick")
+  AddSlot(
+    layout,
+    Slot(modifier, 2),
+    prefix .. "Right Click",
+    modifier,
+    "newplayertutorial-icon-mouse-rightbutton"
+  )
   layout:Finish()
   panel:SetHeight(-layout.y + 8)
   return panel

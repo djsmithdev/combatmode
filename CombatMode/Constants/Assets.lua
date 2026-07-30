@@ -2,8 +2,9 @@
 --  Constants/Assets.lua — CONSTANTS — assets, welcome message, crosshair textures
 ---------------------------------------------------------------------------------------
 --  Owns CM.Constants.PopupMsg (first-install welcome body), BasePrintMsg, Logo/Title
---  texture paths, PulseAtlas, and CrosshairTextureObj / CrosshairReaction* tables used
---  by Core/Crosshair and the Crosshair options tab.
+--  texture paths, PulseAtlas, Assisted Combat spell-icon + modifier-key BLPs, and
+--  CrosshairTextureObj / CrosshairReaction* tables used by Core/Crosshair and the
+--  Crosshair options tab.
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -27,6 +28,13 @@ local assetsFolderPath = "Interface\\AddOns\\CombatMode\\assets\\"
 CM.Constants.Logo = assetsFolderPath .. "cmlogo.blp"
 CM.Constants.Title = assetsFolderPath .. "cmtitle.blp"
 CM.Constants.PulseAtlas = "dragonflight-landingbutton-circleglow"
+CM.Constants.AssistedSpellIconBackground = assetsFolderPath .. "spell_icon_background.blp"
+CM.Constants.AssistedSpellIconGlow = assetsFolderPath .. "spell_icon_glow.blp"
+CM.Constants.AssistedSpellIconFrame = assetsFolderPath .. "spell_icon_frame.blp"
+CM.Constants.AssistedSpellIconMask = assetsFolderPath .. "spell_icon_mask.blp"
+CM.Constants.ModifierKeyCtrl = assetsFolderPath .. "ctrl.blp"
+CM.Constants.ModifierKeyShift = assetsFolderPath .. "shift.blp"
+CM.Constants.ModifierKeyAlt = assetsFolderPath .. "alt.blp"
 
 --[[
   CROSSHAIR TEXTURES

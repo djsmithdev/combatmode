@@ -73,6 +73,10 @@ CM.Constants.BLIZZARD_EVENTS = {
     "UNIT_SPELLCAST_CHANNEL_START",
     "UNIT_SPELLCAST_CHANNEL_STOP",
   },
+  -- Assisted Combat highlight cast-success feedback (icon explode)
+  ASSISTED_HIGHLIGHT_EVENTS = {
+    "ASSISTED_COMBAT_ACTION_SPELL_CAST",
+  },
 }
 
 CM.Constants.ActionsToProcess = {

@@ -488,8 +488,10 @@ end
 --- `opts.descBelow` is set, the title shares a top band with the control and the helper
 --- spans the full row width underneath (used by the narrow sidebar footer).
 --- `opts.iconAtlas` / `opts.iconSize` place a texture left of the title.
---- When `opts.iconFitText` is set, the icon grows to the title+helper block height and
---- is vertically centered against that whole column (Click Casting mouse icons).
+--- Optional `opts.iconWidth` / `opts.iconHeight` keep non-square atlases (e.g. 52x69
+--- mouse icons). When `opts.iconFitText` is set, the icon grows to the title+helper
+--- block height (width scales with aspect) and is vertically centered against that
+--- whole column (Click Casting mouse icons).
 --- `opts.charSpecific` places a blue © to the right of the title (bool or function).
 --- `control.widgetH` / `control.widgetFill` / `control.textFrac` behave as elsewhere
 --- (multiline inputs use textFrac 0.40 so the box gets ~60%).
@@ -500,12 +502,17 @@ local function AttachOptionText(control, row, opts, widgetH)
   control.charSpecificOpt = opts.charSpecific
 
   if opts.iconAtlas then
-    local iconSize = opts.iconSize or DEFAULT_ICON_SIZE
+    local iconHeight = opts.iconHeight or opts.iconSize or DEFAULT_ICON_SIZE
+    local iconWidth = opts.iconWidth or opts.iconSize or iconHeight
     local icon = row:CreateTexture(nil, "ARTWORK")
     icon:SetAtlas(opts.iconAtlas)
-    icon:SetSize(iconSize, iconSize)
+    icon:SetSize(iconWidth, iconHeight)
     control.icon = icon
-    control.iconSize = iconSize
+    control.iconWidth = iconWidth
+    control.iconHeight = iconHeight
+    control.iconAspect = iconHeight > 0 and (iconWidth / iconHeight) or 1
+    -- Legacy square size used as the minimum fit-text height floor.
+    control.iconSize = iconHeight
   end
 
   if opts.charSpecific ~= nil then
@@ -580,8 +587,10 @@ local function AttachOptionText(control, row, opts, widgetH)
 
     local widget = control.widget
     local icon = control.icon
-    local iconSize = icon and (control.iconSize or DEFAULT_ICON_SIZE) or 0
-    local iconLead = icon and (iconSize + ICON_GAP) or 0
+    local iconHeight = icon and (control.iconHeight or control.iconSize or DEFAULT_ICON_SIZE) or 0
+    local iconWidth = icon and (control.iconWidth or control.iconSize or iconHeight) or 0
+    local iconAspect = (control.iconAspect and control.iconAspect > 0) and control.iconAspect or 1
+    local iconLead = icon and (iconWidth + ICON_GAP) or 0
     local scopeTag = control.scopeTag
     local scopeShown = scopeTag and scopeTag:IsShown()
     local h
@@ -591,10 +600,10 @@ local function AttachOptionText(control, row, opts, widgetH)
       local labelW = max(width - (2 * ROW_PAD_X) - iconLead - CONTROL_GAP - 40, 40)
       row.label:SetWidth(labelW)
       local labelH = row.label:GetStringHeight()
-      local bandH = max(labelH, control.widgetH, iconSize)
+      local bandH = max(labelH, control.widgetH, iconHeight)
       local labelTop = ROW_PAD_Y + floor((bandH - labelH) / 2)
       local widgetTop = ROW_PAD_Y + floor((bandH - control.widgetH) / 2)
-      local iconTop = ROW_PAD_Y + floor((bandH - iconSize) / 2)
+      local iconTop = ROW_PAD_Y + floor((bandH - iconHeight) / 2)
 
       if icon then
         icon:ClearAllPoints()
@@ -637,23 +646,26 @@ local function AttachOptionText(control, row, opts, widgetH)
 
       -- Grow the icon to the title+helper block so it reads flush with both lines.
       if icon and control.iconFitText then
-        iconSize = max(control.iconSize or DEFAULT_ICON_SIZE, floor(textH + 0.5))
-        icon:SetSize(iconSize, iconSize)
-        iconLead = iconSize + ICON_GAP
+        iconHeight =
+          max(control.iconHeight or control.iconSize or DEFAULT_ICON_SIZE, floor(textH + 0.5))
+        iconWidth = max(1, floor(iconHeight * iconAspect + 0.5))
+        icon:SetSize(iconWidth, iconHeight)
+        iconLead = iconWidth + ICON_GAP
         textW, _, textH = MeasureText(iconLead)
-        iconSize = max(iconSize, floor(textH + 0.5))
-        icon:SetSize(iconSize, iconSize)
-        iconLead = iconSize + ICON_GAP
+        iconHeight = max(iconHeight, floor(textH + 0.5))
+        iconWidth = max(1, floor(iconHeight * iconAspect + 0.5))
+        icon:SetSize(iconWidth, iconHeight)
+        iconLead = iconWidth + ICON_GAP
       end
 
-      local contentH = max(textH, control.widgetH, iconSize)
+      local contentH = max(textH, control.widgetH, iconHeight)
       h = contentH + (2 * ROW_PAD_Y)
 
       -- Center the shorter column against the taller one so title/helper and control
       -- share a vertical midpoint. Icon centers on the full title+helper block.
       local textTop = ROW_PAD_Y + floor((contentH - textH) / 2)
       local widgetTop = ROW_PAD_Y + floor((contentH - control.widgetH) / 2)
-      local iconTop = textTop + floor((textH - iconSize) / 2)
+      local iconTop = textTop + floor((textH - iconHeight) / 2)
 
       if icon then
         icon:ClearAllPoints()
@@ -693,7 +705,7 @@ local function AttachOptionText(control, row, opts, widgetH)
   -- Provisional until the layout pass assigns width.
   local provisional = control.widgetH + (2 * ROW_PAD_Y)
   if control.icon then
-    provisional = max(provisional, control.iconSize + (2 * ROW_PAD_Y))
+    provisional = max(provisional, (control.iconHeight or control.iconSize or 0) + (2 * ROW_PAD_Y))
   end
   if control.desc then
     provisional = provisional + (control.descBelow and (DESC_BELOW_GAP + 28) or 14)

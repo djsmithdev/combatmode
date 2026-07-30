@@ -2,9 +2,10 @@
 --  UI/Options/Tabs/TabCrosshair.lua — OPTIONS TAB — Crosshair
 ---------------------------------------------------------------------------------------
 --  Registers the "Crosshair" tab: enable/appearance/size/opacity, cast feedback,
---  vertical position, Interaction HUD, and Combat Assist. While this tab is open it
---  turns on the live preview (CM.SetCrosshairOptionsPreview) so the real crosshair,
---  Interaction HUD, and Combat Assist icon render at screen center with mouselook off.
+--  vertical position, Interaction HUD (enable + Left/Right), and Combat Assist
+--  (enable + Left/Right). While this tab is open it turns on the live preview
+--  (CM.SetCrosshairOptionsPreview) so the real crosshair, Interaction HUD, and
+--  Combat Assist icon render at screen center with mouselook off.
 --  The options window itself docks left-of-center on open so the preview stays visible
 --  (see Options.DockWindowLeft). Feature APIs unchanged (CM.CreateCrosshair,
 --  CM.DisplayCrosshair, CM.ApplyCrosshairPosition).
@@ -84,7 +85,7 @@ UI.Options.AddTab({
     })
     ctx:Toggle({
       label = "Cast Feedback",
-      desc = "Crosshair provides visual feedback for casting spells.",
+      desc = "Crosshair provides visual feedback during casting.",
       get = function()
         return CM.DB.global.crosshairCastFeedback
       end,
@@ -162,7 +163,7 @@ UI.Options.AddTab({
     ctx:Header("INTERACTION HUD")
     ctx:Toggle({
       label = "Show Interaction HUD",
-      desc = "Show a prompt next to the crosshair for nearby interactables.",
+      desc = "Show a prompt next to the crosshair for nearby interactables outside of combat.",
       get = function()
         return CM.DB.global.interactionHUD
       end,
@@ -177,12 +178,37 @@ UI.Options.AddTab({
       end,
       disabled = CrosshairOff,
     })
+    ctx:Dropdown({
+      label = "Position",
+      desc = "Which side of the crosshair the Interaction HUD appears on.",
+      values = {
+        LEFT = "Left",
+        RIGHT = "Right",
+      },
+      order = { "LEFT", "RIGHT" },
+      get = function()
+        return CM.DB.global.interactionHUDSide
+          or CM.Constants.DatabaseDefaults.global.interactionHUDSide
+      end,
+      set = function(value)
+        CM.DB.global.interactionHUDSide = value
+        if CM.ApplyInteractionHUDLayout then
+          CM.ApplyInteractionHUDLayout()
+        end
+        if CM.RefreshInteractionHUD then
+          CM.RefreshInteractionHUD()
+        end
+      end,
+      disabled = function()
+        return CrosshairOff() or not CM.DB.global.interactionHUD
+      end,
+    })
 
     ctx:Gap()
     ctx:Header("COMBAT ASSIST")
     ctx:Toggle({
       label = "Show Combat Assist",
-      desc = "Show Blizzard's next-spell suggestion next to the crosshair.",
+      desc = "Show Blizzard's next-spell suggestion next to the crosshair during combat.",
       get = function()
         return CM.DB.global.assistedHighlightEnabled
       end,
@@ -192,83 +218,23 @@ UI.Options.AddTab({
       end,
       disabled = CrosshairOff,
     })
-    ctx:Slider({
-      label = "Icon Size",
-      desc = "Assist icon size.",
-      min = 28,
-      max = 52,
-      step = 1,
-      get = function()
-        return CM.DB.global.assistedHighlightSize
-      end,
-      set = function(value)
-        CM.DB.global.assistedHighlightSize = value
-        RefreshAssist()
-      end,
-      disabled = AssistOff,
-    })
-    ctx:Slider({
-      label = "X Offset",
-      desc = "Horizontal offset from the crosshair.",
-      min = -200,
-      max = 200,
-      step = 1,
-      get = function()
-        return CM.DB.global.assistedHighlightOffsetX
-      end,
-      set = function(value)
-        CM.DB.global.assistedHighlightOffsetX = value
-        RefreshAssist()
-      end,
-      disabled = AssistOff,
-    })
-    ctx:Slider({
-      label = "Y Offset",
-      desc = "Vertical offset from the crosshair.",
-      min = -200,
-      max = 200,
-      step = 1,
-      get = function()
-        return CM.DB.global.assistedHighlightOffsetY
-      end,
-      set = function(value)
-        CM.DB.global.assistedHighlightOffsetY = value
-        RefreshAssist()
-      end,
-      disabled = AssistOff,
-    })
-    ctx:Toggle({
-      label = "Show Keybind",
-      desc = "Show the keybind next to the assist icon.",
-      get = function()
-        return CM.DB.global.assistedHighlightShowKeybind
-      end,
-      set = function(value)
-        CM.DB.global.assistedHighlightShowKeybind = value
-        RefreshAssist()
-      end,
-      disabled = AssistOff,
-    })
     ctx:Dropdown({
-      label = "Keybind Position",
-      desc = "Where the keybind text appears.",
+      label = "Position",
+      desc = "Which side of the crosshair the Combat Assist icon appears on.",
       values = {
-        RIGHT = "Right",
         LEFT = "Left",
-        TOP = "Top",
-        BOTTOM = "Bottom",
+        RIGHT = "Right",
       },
-      order = { "RIGHT", "LEFT", "TOP", "BOTTOM" },
+      order = { "LEFT", "RIGHT" },
       get = function()
-        return CM.DB.global.assistedHighlightKeybindAnchor
+        return CM.DB.global.assistedHighlightSide
+          or CM.Constants.DatabaseDefaults.global.assistedHighlightSide
       end,
       set = function(value)
-        CM.DB.global.assistedHighlightKeybindAnchor = value
+        CM.DB.global.assistedHighlightSide = value
         RefreshAssist()
       end,
-      disabled = function()
-        return AssistOff() or not CM.DB.global.assistedHighlightShowKeybind
-      end,
+      disabled = AssistOff,
     })
   end,
 })

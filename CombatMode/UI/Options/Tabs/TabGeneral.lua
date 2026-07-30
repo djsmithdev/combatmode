@@ -156,7 +156,7 @@ UI.Options.AddTab({
 
     ctx:Keybind({
       label = "Target Lock Keybind",
-      desc = "Tap to lock your target, preventing the reticle from swapping it; tap again to unlock.",
+      desc = "Tap to lock your target, preventing the reticle from swapping it. Tap again to unlock.",
       get = function()
         return (GetBindingKey("Combat Mode - Toggle Focus Target"))
       end,

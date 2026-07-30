@@ -3,7 +3,8 @@
 ---------------------------------------------------------------------------------------
 --  Owns the Interaction HUD widget displayed near the crosshair when a soft-interact
 --  target is present. Includes:
---    • Frame creation and layout relative to the crosshair
+--    • Frame creation and Left/Right layout relative to the crosshair (label flips
+--      with the cluster so the icon stays nearer the reticle)
 --    • Secret-string-safe name handling (Retail 12.x)
 --    • Fade-in/out and range-based dimming (OnUpdate)
 --    • Soft-interact change event handling
@@ -55,13 +56,13 @@ local ihClusterFadeTarget = 0 -- 0 = hidden, 1 = visible
 local IH_GAP = 7
 local IH_LABEL_MAX_W = 280
 local IH_TEXT_PAD = 4 -- shadow bleed past glyphs
-local IH_ICON = 22
+local IH_ICON = 26
 local IH_FONT = 13 -- matches party radial slice name size
 local IH_NAME_COLOR = { 1, 204 / 255, 0 }
 local IH_NAME_OPACITY = 0.8
 local IH_SHADOW_ATLAS = "PetJournal-BattleSlot-Shadow"
-local IH_SHADOW_ALPHA = 0.7 -- × crosshair opacity only (not dimmed when out of range)
-local IH_OFFSET_X = 24 -- px right of crosshair center (LEFT anchor)
+local IH_SHADOW_ALPHA = 0.7 -- fixed; not tied to crosshair opacity
+local IH_OFFSET_X = 24 -- px beyond crosshair edge
 local IH_DIM_MIN = 0.5 -- GetInteractionHUDCursorDim when unable
 local IH_DIM_MAX = 0.9 -- when able
 local IH_RANGE_LERP_SPEED = 14
@@ -162,30 +163,38 @@ local function LayoutInteractionHUDShadow()
   )
 end
 
-local function LayoutInteractionHUDChildren(sw)
+local function GetInteractionHUDSide()
+  local defaults = CM.Constants
+    and CM.Constants.DatabaseDefaults
+    and CM.Constants.DatabaseDefaults.global
+  local g = CM.DB and CM.DB.global or {}
+  local side = g.interactionHUDSide or (defaults and defaults.interactionHUDSide) or "LEFT"
+  if side == "RIGHT" then
+    return "RIGHT"
+  end
+  return "LEFT"
+end
+
+local function LayoutInteractionHUDChildren(_sw)
   if not InteractionHUDCluster or not InteractionHUDIcon or not InteractionHUDLabel then
     return
   end
-  local lw = sw
-  if not ihInteractionHUDSecretIdentity then
-    local measured = InteractionHUDLabel:GetWidth()
-    if measured and not IsSecretValue(measured) then
-      if measured >= 1 then
-        lw = measured
-      end
-    end
-  end
+  local side = GetInteractionHUDSide()
   InteractionHUDIcon:ClearAllPoints()
-  InteractionHUDIcon:SetPoint("CENTER", InteractionHUDCluster, "LEFT", IH_ICON / 2, 1)
+  InteractionHUDIcon:SetSize(IH_ICON, IH_ICON)
   InteractionHUDLabel:ClearAllPoints()
-  InteractionHUDLabel:SetJustifyH("LEFT")
-  InteractionHUDLabel:SetPoint(
-    "CENTER",
-    InteractionHUDIcon,
-    "CENTER",
-    IH_ICON / 2 + IH_GAP + lw / 2,
-    0
-  )
+  InteractionHUDLabel:SetJustifyV("MIDDLE")
+  -- Edge-to-edge anchors share the same vertical midpoint so cursor art and text
+  -- stay aligned (avoids the old CENTER+1px hack that only suited some cursors).
+  if side == "LEFT" then
+    InteractionHUDIcon:SetPoint("RIGHT", InteractionHUDCluster, "RIGHT", 0, 0)
+    InteractionHUDLabel:SetJustifyH("RIGHT")
+    InteractionHUDLabel:SetPoint("RIGHT", InteractionHUDIcon, "LEFT", -IH_GAP, 0)
+  else
+    InteractionHUDIcon:SetPoint("LEFT", InteractionHUDCluster, "LEFT", 0, 0)
+    InteractionHUDLabel:SetJustifyH("LEFT")
+    InteractionHUDLabel:SetPoint("LEFT", InteractionHUDIcon, "RIGHT", IH_GAP, 0)
+  end
 end
 
 local function ResizeInteractionHUDCluster()
@@ -252,9 +261,14 @@ function CM.ApplyInteractionHUDLayout()
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
   local UserConfig = CM.DB and CM.DB.global or {}
   local crosshairSize = UserConfig.crosshairSize or DefaultConfig.crosshairSize
-  local x = (crosshairSize / 2) + IH_OFFSET_X
+  local gap = (crosshairSize / 2) + IH_OFFSET_X
+  local side = GetInteractionHUDSide()
   InteractionHUDCluster:ClearAllPoints()
-  InteractionHUDCluster:SetPoint("LEFT", crosshairFrame, "CENTER", x, 0)
+  if side == "LEFT" then
+    InteractionHUDCluster:SetPoint("RIGHT", crosshairFrame, "CENTER", -gap, 0)
+  else
+    InteractionHUDCluster:SetPoint("LEFT", crosshairFrame, "CENTER", gap, 0)
+  end
   ResizeInteractionHUDCluster()
 end
 
@@ -276,6 +290,7 @@ local function GetInteractionHUDCursorDim()
   if not SetUnitCursorTexture(InteractionHUDIcon, "softinteract") then
     InteractionHUDIcon:SetAtlas("mechagon-projects")
   end
+  InteractionHUDIcon:SetSize(IH_ICON, IH_ICON)
   local filePath = InteractionHUDIcon:GetTextureFilePath()
   if type(filePath) ~= "string" or (filePath and strfind(filePath, "FileData")) then
     filePath = tostring(InteractionHUDIcon:GetTextureFileID())
@@ -346,14 +361,11 @@ local function UpdateInteractionHUDVisual(elapsed)
     end
   end
   local dim = IH_DIM_MIN + (IH_DIM_MAX - IH_DIM_MIN) * ihRangeBlend
-  local DefaultConfig = CM.Constants.DatabaseDefaults.global
-  local crosshairOpacity = g.crosshairOpacity or DefaultConfig.crosshairOpacity
-  -- Range dimming applies to the icon only; name stays white (scaled by crosshair opacity).
-  local iconAlpha = dim * crosshairOpacity
+  -- Range dimming applies to the icon only; name/shadow use fixed alphas (not crosshair opacity).
   InteractionHUDLabel:SetTextColor(IH_NAME_COLOR[1], IH_NAME_COLOR[2], IH_NAME_COLOR[3], 1)
-  InteractionHUDShadow:SetAlpha(crosshairOpacity * IH_SHADOW_ALPHA)
-  InteractionHUDIcon:SetAlpha(iconAlpha)
-  InteractionHUDLabel:SetAlpha(crosshairOpacity * IH_NAME_OPACITY)
+  InteractionHUDShadow:SetAlpha(IH_SHADOW_ALPHA)
+  InteractionHUDIcon:SetAlpha(dim)
+  InteractionHUDLabel:SetAlpha(IH_NAME_OPACITY)
 end
 
 local function EnsureInteractionHUD()
@@ -411,6 +423,7 @@ local function RefreshInteractionHUD()
     ihInteractionHUDSecretIdentity = false
     ApplyInteractionHUDLabelFont()
     InteractionHUDIcon:SetAtlas(IH_PREVIEW_ATLAS)
+    InteractionHUDIcon:SetSize(IH_ICON, IH_ICON)
     InteractionHUDLabel:SetText(IH_PREVIEW_NAME)
     ResizeInteractionHUDCluster()
     ihClusterFadeTarget = 1
