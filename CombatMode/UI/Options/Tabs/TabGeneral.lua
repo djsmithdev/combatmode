@@ -1,12 +1,19 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Tabs/TabGeneral.lua — OPTIONS TAB — General
+--  UI/Options/Tabs/TabGeneral.lua — OPTIONS TAB — Mouse Look / Interact / Target Lock
 ---------------------------------------------------------------------------------------
---  Registers the "General" tab in three sections: Mouse Look (keybind + pulse/tooltip
---  toggles), Interact (keybind + Crosshair/Soft Targeted unit selector), and Target Lock
---  (keybind + Lock Selected Target toggle with confirm + ReloadUI). Changing Interact
---  Unit rebinds the key to INTERACTMOUSEOVER or INTERACTTARGET and puts the other on
---  ALT+key so Blizzard's interact-key warning stays suppressed. Auto Unlock lives in
---  TabAutoCursorUnlock.lua; Action Camera in TabCamera.lua.
+--  What it does: Wires General-tab controls to freelook and interact/focus binds:
+--  Mouse Look keybind, pulseCursor, hideTooltip, Interact keybind + interactUnit
+--  (mouseover vs soft target, with ALT+key on the alternate command), Target Lock keybind,
+--  and focusCurrentTargetNotCrosshair.
+--  Architecture / how it works:
+--    • DB: global.pulseCursor, hideTooltip, interactUnit; char.focusCurrentTargetNotCrosshair.
+--    • Keybind sets go through TryApplyBindingChange; interact rebind clears both
+--      INTERACTMOUSEOVER and INTERACTTARGET then assigns primary + ALT alternate.
+--    • Target Lock set also calls ApplyToggleFocusTargetBinding.
+--  Does not: Own freelook state machine or click-cast slot table UI.
+--  Related: Core/FreeLook/FreeLookController.lua,
+--  Core/ClickCasting/BindingOverrides.lua, Core/Runtime/BindingQueue.lua,
+--  Core/Crosshair/Crosshair.lua, UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

@@ -1,8 +1,18 @@
 ---------------------------------------------------------------------------------------
---  Constants/FrameWatch.lua — CONSTANTS — auto-unlock frames, wildcards, vendor mounts
+--  Constants/FrameWatch.lua — CONSTANTS — auto-unlock frame / mount watchlists
 ---------------------------------------------------------------------------------------
---  Owns FramesToCheck, WildcardFramesToMatch / WildcardFramesToCheck (incl. OPieRT), and
---  vendor-mount lists used by Core/FreeLook/AutoCursorUnlock.lua.
+--  What it does: Provides the default named-frame list, wildcard name groups (including
+--  OPie rings), and vendor-mount spell IDs that Auto Cursor Unlock evaluates when deciding
+--  whether freelook should stay off.
+--  Architecture / how it works:
+--    • FramesToCheck — static `_G[name]:IsVisible()` targets (bags, character, options,
+--      CombatMode dialogs, etc.).
+--    • Wildcard / group tables — prefix matches for dynamic frames; OPie rings feed the
+--      FreeLook OPie rematch latch when visible.
+--    • MountsToCheck — spell IDs for vendor mounts when mountCheck is enabled.
+--  Does not: Evaluate visibility, call MouselookStop, or own ShouldFreeLookBeOff.
+--  Related: Core/FreeLook/AutoCursorUnlock.lua, Core/FreeLook/FreeLookController.lua,
+--  UI/Options/Tabs/TabAutoCursorUnlock.lua, Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 

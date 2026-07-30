@@ -1,12 +1,19 @@
 ---------------------------------------------------------------------------------------
---  Core/Runtime/Bootstrap.lua — RUNTIME — startup/bootstrap helpers
+--  Core/Runtime/Bootstrap.lua — RUNTIME — enable sequencing
 ---------------------------------------------------------------------------------------
---  Owns module bootstrap helpers invoked by Runtime: bind-name preparation, binding
---  safety setup, target macro initialization, and feature startup sequencing
---  (CM.BootstrapFeatureModules) in the same order as Runtime enable.
---  UnbindMoveAndSteer reassigns MOVEANDSTEER's key to Mouse Look on enable.
---  CM.RestorePriorBindings (Uninstall) only resets BUTTON1/BUTTON2 to Blizzard camera
---  defaults — it does not clear Combat Mode keybind names.
+--  What it does: Ordered startup for feature modules after DB is ready: CVar snapshot,
+--  apply overrides, wildcard frame tracking, crosshair + cursor pulse, account macros,
+--  MOVEANDSTEER → Mouse Look rebind, toggle-focus bind, Party Radial init. Also
+--  RestorePriorBindings for uninstall (BUTTON1/BUTTON2 camera defaults only).
+--  Architecture / how it works:
+--    • BootstrapFeatureModules() is the enable-time sequence Runtime calls.
+--    • CreateTargetMacros from Constants.Macros if missing.
+--    • UnbindMoveAndSteer via TryApplyBindingChange + SaveBindings.
+--  Does not: Own ongoing freelook OnUpdate or EventRouter dispatch.
+--  Related: Core/Runtime/Runtime.lua, Core/Runtime/CVarManager.lua,
+--  Core/ClickCasting/BindingOverrides.lua, Core/Crosshair/Crosshair.lua,
+--  Core/FreeLook/AutoCursorUnlock.lua, Core/PartyRadial/PartyRadial.lua,
+--  Constants/Gameplay.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

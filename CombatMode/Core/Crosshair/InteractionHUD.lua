@@ -1,18 +1,23 @@
 ---------------------------------------------------------------------------------------
---  Core/Crosshair/InteractionHUD.lua — CROSSHAIR — soft-interact icon + label UI
+--  Core/Crosshair/InteractionHUD.lua — CROSSHAIR — soft-interact icon + label
 ---------------------------------------------------------------------------------------
---  Owns the Interaction HUD widget displayed near the crosshair when a soft-interact
---  target is present. Includes:
---    • Frame creation and Left/Right layout relative to the crosshair (label flips
---      with the cluster so the icon stays nearer the reticle)
---    • Secret-string-safe name handling (Retail 12.x)
---    • Fade-in/out and range-based dimming (OnUpdate)
---    • Soft-interact change event handling
---    • Sample icon + label while CM.IsCrosshairPreviewActive() (Crosshair options tab),
---      so the HUD is visible without a soft-interact target
---
---  The crosshair frame is owned by Core/Crosshair/Crosshair.lua and is registered via
---  CM.InitInteractionHUD. Unable-cursor ids live in Constants/Reticle.lua.
+--  What it does: Owns the Interaction HUD cluster beside the crosshair when a soft-interact
+--  target exists: side via interactionHUDSide (default LEFT), fixed icon size 26, name
+--  label + shadow, fade/range OnUpdate, unable-cursor dimming, and options preview sample
+--  content. Alphas are independent of crosshairOpacity.
+--  Architecture / how it works:
+--    • InitInteractionHUD({crosshairFrame, crosshairTexture}); ApplyInteractionHUDLayout
+--      + RefreshInteractionHUD for side/gap (offset 24px beyond reticle edge).
+--    • SoftTarget CVars applied elsewhere via CVarManager.ConfigInteractionHUDSoftTarget
+--      when HUD is on without full reticle targeting.
+--    • Unable-cursor: Constants.InteractionHUDUnableCursor (and "Unable" path) dims icon
+--      between IH_DIM_MIN/MAX; label/shadow keep fixed alphas.
+--    • Retail 12.x: secret-string-safe UnitName / FontString sizing (no literal compares).
+--    • Preview: IsCrosshairPreviewActive shows sample atlas + "Interactable" with no target.
+--  Does not: Write SoftTarget CVars or own the crosshair frame.
+--  Related: Core/Crosshair/Crosshair.lua, Core/Runtime/CVarManager.lua,
+--  Constants/Reticle.lua, Constants/CVars.lua, UI/Options/Tabs/TabCrosshair.lua,
+--  Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

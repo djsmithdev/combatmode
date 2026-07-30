@@ -1,15 +1,20 @@
 ---------------------------------------------------------------------------------------
---  Core/ClickCasting/TargetingMacroBuilder.lua — CLICK CASTING — reticle targeting macro text
+--  Core/ClickCasting/TargetingMacroBuilder.lua — CLICKCAST — reticle macro text
 ---------------------------------------------------------------------------------------
---  Builds click-cast macro text for reticle targeting (pre-line + /click + @cursor
---  and special-bar / ground-target handling). Account-wide pre-line overrides live in
---  CM.DB.global (targetingMacroPrelineAnyOverride, targetingMacroPrelineEnemyOverride);
---  defaults for the editor are exposed as CM.TargetingMacroPrelinesDefaults.
---  Cast-at-cursor / exclude lists in CM.DB.char are comma-separated spell IDs (legacy
---  name tokens are resolved to IDs when parsed). Membership matches base/override IDs.
---
---  Secure frame creation + SetOverrideBinding plumbing stays in
---  Core/ClickCasting/BindingOverrides.lua. Prelines UI: UI/Editors/TargetingMacroPrelinesEditor.lua.
+--  What it does: Builds the macrotext injected into click-cast proxies: targeting prelines
+--  (any vs enemy-only, with DB overrides), /click bar button or /cast [@cursor] for
+--  ground spells, and membership tests for cast-at-cursor / exclude lists (spell IDs).
+--  Architecture / how it works:
+--    • BuildClickCastMacroText(bindingValue) — no-op text when reticleTargeting off.
+--    • Default prelines in TargetingMacroPrelinesDefaults; overrides from
+--      global.targetingMacroPrelineAnyOverride / EnemyOverride.
+--    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists.
+--    • GetEffectiveBarButtonFrameName uses AddonActionBarResolver for third-party bars.
+--  Does not: Own SecureActionButton frames or SetOverrideBinding (BindingOverrides).
+--  Related: Core/ClickCasting/BindingOverrides.lua,
+--  UI/Editors/TargetingMacroPrelinesEditor.lua,
+--  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/SpellMultiSelect.lua,
+--  Constants/DatabaseDefaults.lua, Core/ClickCasting/AddonActionBarResolver.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

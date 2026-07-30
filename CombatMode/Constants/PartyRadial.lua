@@ -1,9 +1,14 @@
 ---------------------------------------------------------------------------------------
 --  Constants/PartyRadial.lua — CONSTANTS — party radial slice metadata
 ---------------------------------------------------------------------------------------
---  Owns CM.Constants.PartyRadialSlices (default role + angle per 5-man slot). Consumed
---  by Core/PartyRadial/PartyRadial.lua and the Party Radial options tab
---  (UI/Options/Tabs/TabPartyRadial.lua). Runtime API remains CM.PartyRadial.
+--  What it does: Defines the five-slice layout for party radial (default roles, angles,
+--  labels) and the per-slice arc width used by the runtime wheel.
+--  Architecture / how it works:
+--    • PartyRadialSlices[1..5] — angle degrees (0 = right, 90 = up), defaultRole, label.
+--    • PartyRadialSliceArc = 72 (360/5).
+--  Does not: Own CM.PartyRadial UI, secure attributes, or DB.global.partyRadial settings.
+--  Related: Core/PartyRadial/PartyRadial.lua, UI/Options/Tabs/TabPartyRadial.lua,
+--  Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 

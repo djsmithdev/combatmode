@@ -1,9 +1,22 @@
 ---------------------------------------------------------------------------------------
---  Constants/Gameplay.lua — CONSTANTS — macros, Blizzard event groups, action lists
+--  Constants/Gameplay.lua — CONSTANTS — macros, event groups, bindable actions
 ---------------------------------------------------------------------------------------
---  Owns CM.Constants.Macros, BLIZZARD_EVENTS (UNLOCK/LOCK/REMATCH/… categories consumed
---  by Core/Runtime/EventRouter.lua), ActionsToProcess, and related static gameplay
---  tables. No runtime side effects beyond table population.
+--  What it does: Central static gameplay tables: account macros Combat Mode creates,
+--  BLIZZARD_EVENTS category lists for EventRouter, ActionsToProcess / OverrideActions /
+--  ButtonsToOverride for click-cast UI and secure overrides.
+--  Architecture / how it works:
+--    • Macros: CM_ClearTarget/Focus, CM_ToggleFocus{Any,Enemy,Target}.
+--    • BLIZZARD_EVENTS groups: UNLOCK/LOCK/REMATCH, FRIENDLY_TARGETING,
+--      UNCATEGORIZED, REFRESH_BINDINGS (bars/vehicles/CVAR_UPDATE), FOCUS_LOCK,
+--      CAST_FEEDBACK (player cast/channel), ASSISTED_HIGHLIGHT
+--      (ASSISTED_COMBAT_ACTION_SPELL_CAST).
+--    • ActionsToProcess enumerates bindable Blizzard actions; OverrideActions labels
+--      CM-specific clear/toggle/macro choices; ButtonsToOverride lists the 8 mouse slots.
+--  Does not: Register events, create macros, or SetOverrideBinding (Bootstrap /
+--  EventRouter / BindingOverrides do).
+--  Related: Core/Runtime/EventRouter.lua, Core/ClickCasting/BindingOverrides.lua,
+--  Core/Runtime/Bootstrap.lua, UI/Options/Tabs/TabClickCasting.lua,
+--  Core/Crosshair/AssistedHighlight.lua, Core/Crosshair/Animations.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 

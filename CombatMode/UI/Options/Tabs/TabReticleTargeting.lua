@@ -1,12 +1,19 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Tabs/TabReticleTargeting.lua — OPTIONS TAB — Reticle Targeting
+--  UI/Options/Tabs/TabReticleTargeting.lua — OPTIONS TAB — reticle targeting
 ---------------------------------------------------------------------------------------
---  Registers the "Reticle Targeting" tab: the reticle toggles (confirm + ReloadUI), the
---  exclude/@cursor spell lists (UI.MakeSpellMultiSelect pill editor), and the execute
---  buttons that open the custom Reticle CVar editor (UI/Editors/ReticleCVarEditorPanel.lua)
---  and the Targeting Macro Prelines editor. Sticky targeting lives on the Action Camera
---  tab; the Target Lock "selected target not crosshair" toggle lives on the General tab.
---  Feature APIs unchanged (CM.ConfigReticleTargeting, RefreshClickCastMacros).
+--  What it does: Wires Reticle Targeting enable (reload + ConfigReticleTargeting),
+--  enemy-only preline mode, macroInjectionClickCastOnly, exclude / cast-at-crosshair
+--  spell multi-selects, and Advanced buttons that open the Reticle CVar editor and
+--  Targeting Macro Prelines editor.
+--  Architecture / how it works:
+--    • DB.char: reticleTargeting, reticleTargetingEnemyOnly, macroInjectionClickCastOnly,
+--      excludeFromTargetingSpells, castAtCursorSpells.
+--    • macroInjectionClickCastOnly disabled/forced when ThirdPartyActionBarsActive.
+--    • Spell lists stored as spell-ID CSV; membership in TargetingMacroBuilder.
+--  Does not: Own CVar override table UI (ReticleCVarEditor*) or secure proxies.
+--  Related: Core/Runtime/CVarManager.lua, Core/ClickCasting/BindingOverrides.lua,
+--  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/SpellMultiSelect.lua,
+--  UI/Editors/ReticleCVarEditorPanel.lua, UI/Editors/TargetingMacroPrelinesEditor.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

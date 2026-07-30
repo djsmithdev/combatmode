@@ -1,27 +1,24 @@
 ---------------------------------------------------------------------------------------
---  Core/Runtime/Runtime.lua — RUNTIME — addon shell, lifecycle, free look, global drivers
+--  Core/Runtime/Runtime.lua — RUNTIME — addon shell, DB, slash, OnUpdate
 ---------------------------------------------------------------------------------------
---  Instantiates the Combat Mode AddOn namespace (`CM` via `...`), SavedVariables
---  (CombatModeDB), and slash commands. Options live in the standalone window
---  (UI/Options/*; CM.OpenOptions). Coordinates runtime modules, Rematch on layout/reload,
---  and the throttled global OnUpdate loop that enforces free look via
---  Core/FreeLook/FreeLookController.lua and refreshes crosshair reactions. First-login
---  welcome modal (CM.UI.ShowWelcome, deferred past load-end UI reset);
---  ScheduleChangelogIfNewVersion → CM.Config.MaybeShowChangelogOnNewVersion
---  (UI/Changelog/ChangelogPanel.lua) when addon version changes (or always in Debug Mode).
---
---  Architecture:
---    • Loaded early (Core/Runtime/Runtime.lua); receives the shared AddOn namespace table
---      and sets CM.METADATA from the TOC. Other modules use `local _, CM = ...`.
---    • Optional `_G.CM = CM` alias for debug / external scripts (primary handle is `...`).
---    • Lifecycle: ADDON_LOADED → InitDatabase + slash; PLAYER_LOGIN → enable/bootstrap.
---    • Calls into feature modules: FreeLook, Crosshair, ClickCasting, PartyRadial
---      (CM.PartyRadial API).
---    • Exposes globals for XML: CombatMode_OnEvent, CombatMode_OnUpdate, keybind
---      handlers (CombatMode_CursorModeKey, CombatMode_PartyRadialKey).
---  • Shared CVar helpers live in Core/Runtime/CVarManager.lua (including pre-CM
---    priorCVarSnapshot capture/restore). Uninstall is CM.UninstallCombatMode
---    (restore CVars, reset BUTTON1/BUTTON2 camera binds, disable, reload).
+--  What it does: Receives the AddOn namespace (`local addonName, CM = ...`), optional
+--  `_G.CM` alias, TOC METADATA, native CombatModeDB merge, slash `/cm` `/combatmode`,
+--  lifecycle (ADDON_LOADED / PLAYER_LOGIN → OnInitialize / OnEnable), Rematch
+--  coordination, throttled CombatMode_OnUpdate (free-look + crosshair reaction),
+--  welcome/changelog scheduling, and UninstallCombatMode.
+--  Architecture / how it works:
+--    • InitDatabase merges Constants.DatabaseDefaults into global + char["Name - Realm"].
+--    • GetBindingsLocation → "global" vs "char" from useGlobalBindings.
+--    • RuntimeRematch reapplies CVars/bindings/crosshair after PEW / rematch events.
+--    • OnEnable registers root-frame events (via Bootstrap path) and starts freelook.
+--    • Uninstall restores priorCVarSnapshot, BUTTON1/2 camera binds, disables addon,
+--      ReloadUI.
+--    • DebugPrint / DebugPrintThrottled gated by debugMode.
+--  Does not: Own SetCVar helpers (CVarManager) or category dispatch (EventRouter).
+--  Related: Core/Runtime/Bootstrap.lua, Core/Runtime/EventRouter.lua,
+--  Core/Runtime/CVarManager.lua, Core/FreeLook/FreeLookController.lua,
+--  Core/Crosshair/Crosshair.lua, UI/Options/OptionsPanel.lua,
+--  UI/Changelog/ChangelogPanel.lua
 ---------------------------------------------------------------------------------------
 local addonName, CM = ...
 local _G = _G

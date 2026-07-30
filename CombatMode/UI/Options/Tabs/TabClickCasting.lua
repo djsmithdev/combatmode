@@ -1,11 +1,17 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Tabs/TabClickCasting.lua — OPTIONS TAB — Click Casting overrides
+--  UI/Options/Tabs/TabClickCasting.lua — OPTIONS TAB — click-cast slot overrides
 ---------------------------------------------------------------------------------------
---  Registers the "Click Casting" tab: account-wide binding toggle, then an in-tab
---  Base / Shift / Ctrl / Alt segment switcher that crossfades one modifier group's
---  Left + Right click overrides at a time (enable, action dropdown, macro name). Binding
---  APIs unchanged (CM.SetNewBinding, CM.ResetBindingOverride, CM.OverrideDefaultButtons,
---  CM.PartyRadial.OnBindingChanged).
+--  What it does: Wires the eight mouse click-cast slots (base + shift/ctrl/alt) with
+--  enable, key, action dropdown (OverrideActions + ActionsToProcess), optional macro
+--  name, and useGlobalBindings. Applies via SetNewBinding / ResetBindingOverride.
+--  Architecture / how it works:
+--    • Reads/writes CM.DB[GetBindingsLocation()].bindings[slot].
+--    • char.useGlobalBindings toggles whether char or global bindings table is edited.
+--    • Modifier segment UI groups slots; Party Radial notes may appear when enabled.
+--  Does not: Build targeting prelines or resolve third-party bar frames.
+--  Related: Core/ClickCasting/BindingOverrides.lua, Constants/Gameplay.lua,
+--  Core/PartyRadial/PartyRadial.lua, UI/Options/Widgets.lua,
+--  Constants/DatabaseDefaults.lua, Core/Runtime/Runtime.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

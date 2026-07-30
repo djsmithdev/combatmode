@@ -1,10 +1,17 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Tabs/TabCamera.lua — OPTIONS TAB — Action Camera
+--  UI/Options/Tabs/TabCamera.lua — OPTIONS TAB — Action Camera / sticky / speeds
 ---------------------------------------------------------------------------------------
---  Registers the "Action Camera" tab: Action Camera preset, shoulder offset, mouse-
---  look turn speed, and sticky targeting. When DynamicCam is loaded these controls are
---  watermarked as relinquished. Feature APIs unchanged (CM.ConfigActionCamera,
---  CM.SetShoulderOffset, CM.SetMouseLookSpeed, CM.ConfigStickyCrosshair).
+--  What it does: Wires Action Camera preset toggle (reload), actionCamMouselookDisable,
+--  stickyCrosshair, shoulderOffset, mouseLookSpeed. Shows a DynamicCam watermark / disable
+--  when that addon is present.
+--  Architecture / how it works:
+--    • DB: global.actionCamera, actionCamMouselookDisable, mouseLookSpeed;
+--      char.shoulderOffset, stickyCrosshair.
+--    • set() → ConfigActionCamera / ConfigStickyCrosshair / SetShoulderOffset /
+--      SetMouseLookSpeed (CVarManager).
+--  Does not: Own CVar preset tables (Constants/CVars) or freelook lock.
+--  Related: Core/Runtime/CVarManager.lua, Constants/CVars.lua,
+--  Core/Crosshair/Crosshair.lua, Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

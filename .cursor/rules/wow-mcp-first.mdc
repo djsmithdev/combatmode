@@ -23,6 +23,10 @@ For this addon workspace, prefer the `wow-api` MCP tools as the primary source f
 
 If WoW MCP is unavailable, clearly say so and then fall back to other sources.
 
+## Web fallback (when MCP cannot answer)
+
+Prefer [World of Warcraft API (wiki.gg)](https://warcraft.wiki.gg/wiki/World_of_Warcraft_API) and [Widget API (wiki.gg)](https://warcraft.wiki.gg/wiki/Widget_API). Wowpedia only if wiki.gg lacks the detail. Addon code uses **Lua 5.1** semantics ([manual](https://www.lua.org/manual/5.1/)). Prefer reading the owning `CombatMode/Core|UI|Constants/**/*.lua` module over guessing how CombatMode wires an API.
+
 ## Output expectations
 
 - Include exact signatures/parameter names/types when available.

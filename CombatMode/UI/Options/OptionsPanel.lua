@@ -1,20 +1,19 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/OptionsPanel.lua — OPTIONS WINDOW — standalone shell + layout + lifecycle
+--  UI/Options/OptionsPanel.lua — OPTIONS — standalone options shell
 ---------------------------------------------------------------------------------------
---  Owns CombatModeOptionsFrame: a standalone, movable window with a left sidebar tab
---  list and a right scroll content area. Replaces the former Ace3/Blizzard-embedded
---  options. Exposes CM.OpenOptions / CM.ToggleOptions / CM.CloseOptions (combat-guarded),
---  a lazy Initialize() that builds every tab once, and the central SyncControls pass.
---
---  Tab content is contributed by UI/Options/Tabs/*.lua via CM.UI.Options.AddTab; this
---  module owns only the shell, the vertical layout manager (ctx), tab switching, and the
---  pinned sidebar footer (silence/debug toggles + changelog/reset/uninstall buttons, formerly the
---  About tab). Widget construction/feature wiring lives in Widgets.lua + the tab builders.
---
---  Tabs may declare onSelect/onDeselect for transient side effects; they fire in pairs on
---  tab switches and on window show/hide. Tab content crossfades on switch. The window
---  always opens docked left-of-center (Options.DockWindowLeft) so the crosshair and
---  party radial stay clear for live previews.
+--  What it does: Owns CombatModeOptionsFrame — sidebar tabs, content host, left-of-center
+--  dock, fade between tabs, and footer actions (View Changelog / Reset / Uninstall).
+--  Exposes CM.OpenOptions / Close / Toggle / GetOptionsFrame and UI.Options.AddTab.
+--  Architecture / how it works:
+--    • AddTab({id, label, build, onSelect, onDeselect}) — tabs register at load;
+--      onSelect/onDeselect drive Crosshair / Party Radial preview.
+--    • Layout ctx passed to build() wraps Widgets factories.
+--    • Combat-guarded open where needed; not a Blizzard Settings host.
+--  Does not: Own per-feature option wiring (Tabs/*) or changelog body text.
+--  Related: UI/Options/Draw.lua, UI/Options/Widgets.lua,
+--  UI/Options/BlizzardSettingsBridge.lua, UI/Changelog/ChangelogPanel.lua,
+--  Core/Runtime/Runtime.lua, UI/Options/Tabs/TabCrosshair.lua,
+--  UI/Options/Tabs/TabPartyRadial.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

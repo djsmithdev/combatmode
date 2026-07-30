@@ -1,22 +1,22 @@
 ---------------------------------------------------------------------------------------
---  Core/PartyRadial/PartyRadial.lua — PARTY RADIAL — party menu, casts, mouselook
+--  Core/PartyRadial/PartyRadial.lua — PARTYRADIAL — party radial runtime (CM.PartyRadial)
 ---------------------------------------------------------------------------------------
---  Optional party UX: radial slices for roster units, spell/item assignment per
---  slice, secure buttons for in-combat casts, and hooks from Runtime/FreeLook
---  (OnMouselookChanged, combat events, action bar refresh) to stay consistent with
---  free look and the crosshair. Opens via the Party Radial keybind during Mouse Look;
---  casts via Click Casting mouse clicks on slices (not hold-to-open mouse overrides).
---
---  Architecture:
---    • Exposed as CM.PartyRadial (table of functions; name kept for SavedVariables /
---      call-site stability); Runtime bootstrap calls Initialize from
---      BootstrapFeatureModules and notifies OnMouselookChanged / DismissOnLoad.
---    • Internal state machine (show/hide, keybind open) avoids re-entrancy with
---      FreeLookController.LockFreeLook / UnlockFreeLook.
---    • Configuration lives under CM.DB.global.partyRadial; slice metadata in
---      Constants/PartyRadial.lua; options UI in UI/Options/Tabs/TabPartyRadial.lua.
---    • Options live preview (SetOptionsPreview) shows the radial without freelook churn
---      or isActive; empty slots use placeholders so Visual Settings update on-screen.
+--  What it does: Full party-radial feature: secure slice frames that cast on party members,
+--  open/hold keybind while Mouse Look is active, roster/combat/action-bar refresh, visual
+--  config under DB.global.partyRadial, and layout-only options preview
+--  (SetOptionsPreview).
+--  Architecture / how it works:
+--    • CM.PartyRadial API: Initialize, Show/Hide/ShowFromKeybind, ApplyVisualConfig,
+--      UpdateMainFramePosition, OnGroupRosterUpdate / OnCombatStart/End /
+--      OnActionBarChanged / OnBindingChanged, OnMouselookChanged.
+--    • Slice geometry from Constants.PartyRadialSlices; secure attributes refreshed when
+--      bars/roster change (EventRouter REFRESH_BINDINGS + FRIENDLY_TARGETING).
+--    • Preview is layout-only — does not reuse mouselook-gated Show/Hide.
+--  Does not: Own click-cast mouse slot overrides or SoftTarget CVars.
+--  Related: Constants/PartyRadial.lua, Core/FreeLook/FreeLookController.lua,
+--  Core/Runtime/EventRouter.lua, Core/Runtime/Bootstrap.lua,
+--  Core/ClickCasting/BindingOverrides.lua, UI/Options/Tabs/TabPartyRadial.lua,
+--  UI/Options/Tabs/TabClickCasting.lua, Core/Crosshair/Crosshair.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

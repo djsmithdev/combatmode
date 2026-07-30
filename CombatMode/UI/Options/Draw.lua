@@ -1,21 +1,18 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Draw.lua — OPTIONS TOOLKIT — drawing primitives + brand palette
+--  UI/Options/Draw.lua — OPTIONS — theme tokens + draw primitives
 ---------------------------------------------------------------------------------------
---  Owns the low-level, reusable visual primitives for the custom (non-Ace) options
---  window: the theme tokens (CM.UI.Colors / UI.Fonts / UI.Radius — a minimal neutral-grey
---  ramp with a single warm-yellow accent), UI.StripColors, solid/rounded surfaces,
---  circular knob masking, font sizing, themed tooltips (UI.ShowTooltip / UI.HideTooltip /
---  UI.AttachTooltip via CombatModeUITooltip — not GameTooltip), ESC-close, drag-to-move with
---  position persistence helpers for optional drag (UI.EnableDrag / UI.RestorePosition),
---  StyleThumbBar scrollbars shared by CreateScrollFrame / CreateMultilineEditScroll /
---  CreateVerticalSlider (thin rounded track + thumb, wheel scroll eases toward a target),
---  UI.FadeAlpha for tab/segment crossfades, and the "control relinquished" watermark
---  overlay (CreateWatermark). The main options window docks left-of-center on open and does not
---  persist its position.
---
---  Owns visuals only — no settings logic. Consumed by UI/Options/Widgets.lua and
---  UI/Options/OptionsPanel.lua. This is our own license-safe reimplementation of the
---  "modern rounded card" aesthetic using Blizzard-shipped textures (no third-party art).
+--  What it does: Boots `CM.UI` with the monochrome options theme (warm-yellow accent only
+--  for headers, selected tab, toggle on-states), StripColors, surface/card helpers,
+--  config tooltips, scroll thumbs, FadeAlpha, and watermark helpers shared by options,
+--  changelog, and editors.
+--  Architecture / how it works:
+--    • UI.Colors / Fonts / Radius — single palette; accentMarkup derived from accent RGB.
+--    • StripColors removes Blizzard inline colors for consistent mono body text.
+--    • No settings get/set — pure presentation primitives.
+--  Does not: Create the options window shell or register tabs.
+--  Related: UI/Options/Widgets.lua, UI/Options/OptionsPanel.lua,
+--  UI/Changelog/ChangelogPanel.lua, UI/Editors/ReticleCVarEditorPanel.lua,
+--  UI/Editors/TargetingMacroPrelinesEditor.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

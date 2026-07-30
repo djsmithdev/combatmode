@@ -1,30 +1,32 @@
 ---------------------------------------------------------------------------------------
---  Core/Crosshair/AssistedHighlight.lua — CROSSHAIR — Assisted Combat suggestion icon + keybind
+--  Core/Crosshair/AssistedHighlight.lua — CROSSHAIR — Assisted Combat icon + keybind
 ---------------------------------------------------------------------------------------
---  Shows the Blizzard Assisted Combat "next cast" suggestion anchored to Combat Mode's
---  crosshair (Left/Right side select; vertically centered). Visual shell matches
---   Assisted Highlight:
---    Radial_Wheel_BG shadow → background → circular-masked spell art → cyan breath
---    glow → dark frame.
---  Click-cast keybinds render modifier BLPs (ctrl/shift/alt) + NPE mouse-button
---  atlases (newplayertutorial-icon-mouse-leftbutton / -rightbutton) via FontString
---  |T|/|A| markup on the outer side of the icon (left cluster → keybind left;
---  right cluster → keybind right). Keyboard binds use abbreviated white FrizQT +
---  OUTLINE, centered on the icon with a fixed top-right offset.
---  Keybind is always shown when a bind exists. Icon size is fixed at 40.
---  A UF-RogueCP-Slash-Blue FlipBook plays once in reverse on top of the chrome
---  frame when the suggested spell changes (all 18 frames). Casting the suggested
---  spell (or the Assisted Combat action button) explodes the icon (scale + fade)
---  then hides so the next suggestion can fade in. Casting a different spell while
---  the suggestion is shown plays a shake/flash break (like crosshair cast cancel)
---  and keeps the icon visible.
---  Architecture:
---    • Crosshair owns the anchor frame; this module owns the widget lifecycle.
---    • Crosshair calls CM.InitAssistedHighlight({ crosshairFrame, crosshairTexture }).
---    • Runtime/Crosshair call CM.UpdateCrosshairAssistedHighlight() to refresh.
---    • EventRouter calls CM.OnAssistedHighlightSpellCast / OnAssistedHighlightAssistedActionCast.
---    • CM.IsCrosshairPreviewActive() (Crosshair options tab) forces a
---      placeholder icon + keybind so positioning is visible out of combat.
+--  What it does: Renders Blizzard Assisted Combat's next-cast suggestion beside the
+--  crosshair: Left/Right via assistedHighlightSide (default RIGHT), fixed icon size 40,
+--  click-cast or keyboard keybind glyphs, and its own cast motion (FlipBook / explode /
+--  break) — not Animations.lua. Visible in combat when enabled; options preview shows a
+--  placeholder out of combat.
+--  Architecture / how it works:
+--    • IconMask chrome shell: Radial_Wheel_BG shadow → spell_icon background →
+--      circular-masked spell art → cyan breath glow → dark frame; ProcLoop FlipBook
+--      (UF-RogueCP-Slash-Blue, 18 frames) plays once in reverse when the suggestion
+--      spell changes.
+--    • Click-cast keybinds: modifier BLPs + mouse-button atlases
+--      (newplayertutorial-icon-mouse-leftbutton / -rightbutton) via |T|/|A| markup on the
+--      outer side of the icon. Keyboard binds: abbreviated FrizQT OUTLINE, top-right
+--      offset on the icon. Style chosen from resolved binding for the suggested action.
+--    • Recent-suggestion cache (TTL ~0.9s, max 4): GetNextCastSpell often advances before
+--      UNIT_SPELLCAST_SUCCEEDED — cache keeps explode/break matching correct.
+--    • APIs: InitAssistedHighlight({crosshairFrame, crosshairTexture}),
+--      ApplyCrosshairAssistedHighlightOptions, UpdateCrosshairAssistedHighlight,
+--      InvalidateAssistedHighlightKeybindCache, OnAssistedHighlightSpellCast,
+--      OnAssistedHighlightAssistedActionCast (EventRouter).
+--    • Preview: IsCrosshairPreviewActive forces placeholder icon + keybind layout.
+--  Does not: Own reticle cast grow/explode/break (Animations) or SoftTarget CVars.
+--  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/Animations.lua,
+--  Core/Runtime/EventRouter.lua, Constants/Assets.lua, Constants/Gameplay.lua,
+--  UI/Options/Tabs/TabCrosshair.lua, Constants/DatabaseDefaults.lua,
+--  Core/ClickCasting/BindingOverrides.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -130,6 +132,9 @@ local breakSavedFrameColor
 local assistedActionSlotSet
 local actionSlotCommandMap
 
+---------------------------------------------------------------------------------------
+--                         SHARED HELPERS (EASING / TRANSFORM)                       --
+---------------------------------------------------------------------------------------
 local function EaseOutSine(t)
   return sin((t * pi) * 0.5)
 end
@@ -152,6 +157,9 @@ local function CenterAssistVisual()
   end
 end
 
+---------------------------------------------------------------------------------------
+--                    CAST FEEDBACK — BREAK COLOR / VISIBILITY STATE                 --
+---------------------------------------------------------------------------------------
 local function RestoreBreakColors()
   if breakSavedIconColor and AssistedHighlightFrame and AssistedHighlightFrame.icon then
     local c = breakSavedIconColor
@@ -246,6 +254,9 @@ local function IsAssistVisibleForCastFeedback()
   return true
 end
 
+---------------------------------------------------------------------------------------
+--                      SUGGESTION MATCHING (RECENT SPELL CACHE)                     --
+---------------------------------------------------------------------------------------
 local function NormalizeSpellID(spellID)
   spellID = tonumber(spellID)
   if not spellID or spellID <= 0 then
@@ -328,6 +339,9 @@ local function SpellMatchesRecent(castSpellID)
   return false
 end
 
+---------------------------------------------------------------------------------------
+--                            SHELL / TEXTURE LAYOUT HELPERS                         --
+---------------------------------------------------------------------------------------
 local function SetTextureSmooth(texture, texturePath)
   if not (texture and texturePath) then
     return
@@ -355,7 +369,9 @@ local function LayoutShellAroundIcon(region, icon, expand)
   region:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", expand, -expand)
 end
 
---- Applies current FlipBook constants to an existing animation (safe after constant tweaks).
+---------------------------------------------------------------------------------------
+--              MOTION — PROC FLIPBOOK / GLOW / FADE / EXPLODE / BREAK               --
+---------------------------------------------------------------------------------------
 local function ApplyProcFlipSettings(flipAnim)
   if not flipAnim then
     return
@@ -663,6 +679,9 @@ local function UpdateFade(elapsed)
   end
 end
 
+---------------------------------------------------------------------------------------
+--                              FRAME CREATION / OnUpdate                            --
+---------------------------------------------------------------------------------------
 local function EnsureAssistedHighlight()
   if AssistedHighlightFrame then
     return
@@ -777,6 +796,9 @@ local function EnsureAssistedHighlight()
   end)
 end
 
+---------------------------------------------------------------------------------------
+--                    KEYBIND RESOLUTION (CLICK-CAST + KEYBOARD)                     --
+---------------------------------------------------------------------------------------
 local COMPACT_KEY_MAP = {
   ["CTRL"] = "Ctrl",
   ["SHIFT"] = "Shift",
@@ -1131,6 +1153,9 @@ local function GetFirstBindingKeyForSpell(spellID)
   return key1 or key2
 end
 
+---------------------------------------------------------------------------------------
+--                         VISIBILITY GATE + KEYBIND STYLE                           --
+---------------------------------------------------------------------------------------
 local function ShouldShowAssistedHighlightIcon()
   if not (CM.DB and CM.DB.global) then
     return false
@@ -1190,6 +1215,9 @@ local function ApplyKeyboardKeybindStyle()
   label:SetShadowOffset(0, 0)
 end
 
+---------------------------------------------------------------------------------------
+--                    LAYOUT APPLY + PUBLIC API (OPTIONS / UPDATE)                   --
+---------------------------------------------------------------------------------------
 function CM.ApplyCrosshairAssistedHighlightOptions()
   EnsureAssistedHighlight()
   if not AssistedHighlightFrame then

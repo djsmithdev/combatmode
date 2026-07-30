@@ -1,14 +1,16 @@
 ---------------------------------------------------------------------------------------
---  UI/Changelog/ChangelogPanel.lua — in-game changelog window (post-update viewer)
+--  UI/Changelog/ChangelogPanel.lua — CHANGELOG — in-game changelog window
 ---------------------------------------------------------------------------------------
---  Owns: markdown subset → SimpleHTML sections, left version nav (click scrolls content),
---  CM.UI window (UI.CreateBareWindow) + custom thumb scrollbars (UI.CreateScrollFrame),
---  CM.Config.ShowChangelog / CM.Config.MaybeShowChangelogOnNewVersion,
---  CM.DB.global.lastSeenChangelogVersion when shown.
---  Link + nav date tips use UI.ShowTooltip (CombatModeUITooltip), not GameTooltip.
---  Data: CM.Config.ChangelogText from ChangelogData.lua (sync from CHANGELOG.md via
---  scripts/sync-changelog-to-lua.ps1). Callers: OptionsPanel sidebar footer (View Changelog),
---  Core/Runtime/Runtime.lua (ScheduleChangelogIfNewVersion on login / after welcome popup).
+--  What it does: Builds the changelog viewer (version sidebar + scrollable SimpleHTML
+--  body), exposes CM.Config.ShowChangelog and MaybeShowChangelogOnNewVersion, and
+--  persists lastSeenChangelogVersion when the user views a new TOC version.
+--  Architecture / how it works:
+--    • Parses ChangelogText markdown subset (h1/h2/h3/p/br/a); footer compare links
+--      skipped.
+--    • Uses CM.UI Draw primitives; opened from options footer or Runtime after bump.
+--  Does not: Author changelog content (ChangelogData / CHANGELOG.md).
+--  Related: UI/Changelog/ChangelogData.lua, UI/Options/Draw.lua,
+--  UI/Options/OptionsPanel.lua, Core/Runtime/Runtime.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

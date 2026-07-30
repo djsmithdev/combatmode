@@ -1,10 +1,16 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/SpellMultiSelect.lua — OPTIONS TOOLKIT — spell pill multi-select
+--  UI/Options/SpellMultiSelect.lua — OPTIONS — spell ID pill multi-select
 ---------------------------------------------------------------------------------------
---  Owns UI.MakeSpellMultiSelect: spell lists edited as icon+name pills with spellbook
---  (+ numeric ID) suggestions. Persistence is a comma-separated list of spell IDs
---  (names/icons are display-only). Legacy name tokens in SavedVariables are resolved to
---  IDs when loaded/saved. Runtime membership is Core/ClickCasting/TargetingMacroBuilder.lua.
+--  What it does: UI.MakeSpellMultiSelect — type-ahead suggestions from the spellbook,
+--  pill chips for selected spells, storage as CSV spell IDs for Reticle Targeting exclude
+--  and cast-at-crosshair lists.
+--  Architecture / how it works:
+--    • Suggestion popup capped (MAX_MATCHES / visible rows); migrates legacy name tokens
+--      when resolving.
+--    • Runtime membership tests live in TargetingMacroBuilder, not here.
+--  Does not: Build click-cast macros or write CVars.
+--  Related: UI/Options/Widgets.lua, UI/Options/Tabs/TabReticleTargeting.lua,
+--  Core/ClickCasting/TargetingMacroBuilder.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

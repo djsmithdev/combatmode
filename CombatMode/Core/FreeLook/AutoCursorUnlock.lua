@@ -1,16 +1,20 @@
 ---------------------------------------------------------------------------------------
---  Core/FreeLook/AutoCursorUnlock.lua — FREE LOOK — auto-drop mouselook (panels, Lua)
+--  Core/FreeLook/AutoCursorUnlock.lua — FREELOOK — unlock predicates
 ---------------------------------------------------------------------------------------
---  Supplies CM.IsUnlockFrameVisible (static + wildcard frame name matching),
---  vendor/mount/pet-battle/feign checks, and CM.IsCustomConditionTrue for optional
---  user Lua. FreeLookController.ShouldFreeLookBeOff() combines these with spell targeting,
---  cinematics, party radial, etc., so the global OnUpdate can call UnlockFreeLook.
---
---  Architecture:
---    • CM.InitializeWildcardFrameTracking called once from Runtime bootstrap; uses
---      Constants/FrameWatch.lua (WildcardFramesToMatch / FramesToCheck).
---    • Read-only queries from FreeLook; no direct mouselook Start/Stop here (except
---      the OPie branch frees CursorFreelookCentering + hides the crosshair).
+--  What it does: Answers whether the cursor should stay unlocked: watched frames,
+--  wildcard groups (incl. OPie), vendor mounts, pet battle, feign death, and optional
+--  customCondition loadstring. OPie visibility also notifies FreeLookController so
+--  centering can rematch after the ring closes.
+--  Architecture / how it works:
+--    • IsUnlockFrameVisible — FramesToCheck + watchlist + wildcard tracking when
+--      DB.global.frameWatching.
+--    • InitializeWildcardFrameTracking — hooks/create listeners for dynamic names.
+--    • IsVendorMountOut / IsInPetBattle / IsFeignDeathActive / IsCustomConditionTrue.
+--    • OPie path may free centering + hide crosshair via FreeLook helpers.
+--  Does not: Own Lock/Unlock or ShouldFreeLookBeOff aggregation.
+--  Related: Constants/FrameWatch.lua, Core/FreeLook/FreeLookController.lua,
+--  UI/Options/Tabs/TabAutoCursorUnlock.lua, Constants/DatabaseDefaults.lua,
+--  Core/Crosshair/Crosshair.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

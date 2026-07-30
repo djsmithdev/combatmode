@@ -180,23 +180,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/sampconrad/combatmode/compare/4.0.3...HEAD
-[4.0.3]: https://github.com/sampconrad/combatmode/compare/4.0.2...4.0.3
-[4.0.2]: https://github.com/sampconrad/combatmode/compare/4.0.1...4.0.2
-[4.0.1]: https://github.com/sampconrad/combatmode/compare/4.0.0...4.0.1
-[4.0.0]: https://github.com/sampconrad/combatmode/compare/3.3.1...4.0.0
-[3.3.1]: https://github.com/sampconrad/combatmode/compare/3.3.0...3.3.1
-[3.3.0]: https://github.com/sampconrad/combatmode/compare/3.2.2...3.3.0
-[3.2.2]: https://github.com/sampconrad/combatmode/compare/3.2.1...3.2.2
-[3.2.1]: https://github.com/sampconrad/combatmode/compare/3.2.0...3.2.1
-[3.2.0]: https://github.com/sampconrad/combatmode/compare/3.1.10...3.2.0
-[3.1.10]: https://github.com/sampconrad/combatmode/compare/3.1.9...3.1.10
-[3.1.9]: https://github.com/sampconrad/combatmode/compare/3.1.8...3.1.9
-[3.1.8]: https://github.com/sampconrad/combatmode/compare/3.1.7...3.1.8
-[3.1.7]: https://github.com/sampconrad/combatmode/compare/3.1.6...3.1.7
-[3.1.6]: https://github.com/sampconrad/combatmode/compare/3.1.5...3.1.6
-[3.1.5]: https://github.com/sampconrad/combatmode/compare/3.1.4...3.1.5
-[3.1.4]: https://github.com/sampconrad/combatmode/compare/3.1.3...3.1.4
-[3.1.3]: https://github.com/sampconrad/combatmode/compare/3.1.2...3.1.3
-[3.1.2]: https://github.com/sampconrad/combatmode/compare/3.1.1...3.1.2
-[3.1.1]: https://github.com/sampconrad/combatmode/releases/tag/3.1.1
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.0.3...HEAD
+[4.0.3]: https://github.com/djsmithdev/combatmode/compare/4.0.2...4.0.3
+[4.0.2]: https://github.com/djsmithdev/combatmode/compare/4.0.1...4.0.2
+[4.0.1]: https://github.com/djsmithdev/combatmode/compare/4.0.0...4.0.1
+[4.0.0]: https://github.com/djsmithdev/combatmode/compare/3.3.1...4.0.0
+[3.3.1]: https://github.com/djsmithdev/combatmode/compare/3.3.0...3.3.1
+[3.3.0]: https://github.com/djsmithdev/combatmode/compare/3.2.2...3.3.0
+[3.2.2]: https://github.com/djsmithdev/combatmode/compare/3.2.1...3.2.2
+[3.2.1]: https://github.com/djsmithdev/combatmode/compare/3.2.0...3.2.1
+[3.2.0]: https://github.com/djsmithdev/combatmode/compare/3.1.10...3.2.0
+[3.1.10]: https://github.com/djsmithdev/combatmode/compare/3.1.9...3.1.10
+[3.1.9]: https://github.com/djsmithdev/combatmode/compare/3.1.8...3.1.9
+[3.1.8]: https://github.com/djsmithdev/combatmode/compare/3.1.7...3.1.8
+[3.1.7]: https://github.com/djsmithdev/combatmode/compare/3.1.6...3.1.7
+[3.1.6]: https://github.com/djsmithdev/combatmode/compare/3.1.5...3.1.6
+[3.1.5]: https://github.com/djsmithdev/combatmode/compare/3.1.4...3.1.5
+[3.1.4]: https://github.com/djsmithdev/combatmode/compare/3.1.3...3.1.4
+[3.1.3]: https://github.com/djsmithdev/combatmode/compare/3.1.2...3.1.3
+[3.1.2]: https://github.com/djsmithdev/combatmode/compare/3.1.1...3.1.2
+[3.1.1]: https://github.com/djsmithdev/combatmode/releases/tag/3.1.1

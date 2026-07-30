@@ -1,12 +1,17 @@
 ---------------------------------------------------------------------------------------
---  UI/Editors/ReticleCVarEditorPanel.lua — Reticle Targeting CVar editor panel
+--  UI/Editors/ReticleCVarEditorPanel.lua — EDITOR — reticle CVar editor window
 ---------------------------------------------------------------------------------------
---  Custom CM.UI window (UI.CreateBareWindow + custom thumb scrollbar/vertical slider, no
---  Blizzard frame templates). CM.OpenReticleTargetingCVarEditor; opened from the Reticle
---  Targeting options tab; anchors to the right of the CombatMode options window when
---  open (same pattern as TargetingMacroPrelinesEditor). Uses CM.ReticleCVarEditorData;
---  debounced RequestRefresh; CVAR_UPDATE + SetCVar hook for live values and
---  external-change attribution. Row hover tips use UI.ShowTooltip (themed CombatModeUITooltip).
+--  What it does: Standalone editor UI (CM.OpenReticleTargetingCVarEditor) for per-account
+--  reticle CVar overrides. Live-refreshes on CVAR_UPDATE and attributes SetCVar sources
+--  via hooksecurefunc so rows show Combat Mode vs external writers.
+--  Architecture / how it works:
+--    • Combat-guarded open/create; uses CM.UI CreateWindow toolkit.
+--    • Ignores stack frames from this panel and CVarManager when attributing sources.
+--    • Writes go through ReticleCVarEditorData → overrides → CVarManager apply path.
+--  Does not: Own override storage schema (DB + CVarManager) or Reticle Targeting toggles.
+--  Related: UI/Editors/ReticleCVarEditorData.lua, Core/Runtime/CVarManager.lua,
+--  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/Draw.lua,
+--  UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

@@ -1,10 +1,23 @@
 ---------------------------------------------------------------------------------------
---  Core/Runtime/EventRouter.lua — RUNTIME — event map build + category dispatch
+--  Core/Runtime/EventRouter.lua — RUNTIME — event map + CombatMode_OnEvent
 ---------------------------------------------------------------------------------------
---  Owns Runtime event category map and global XML event handler wiring while keeping
---  public/global names stable. CombatModeFrame OnEvent is (self, event, ...);
---  CombatMode_OnEvent accepts that Blizzard shape (and a legacy AceEvent (event, ...)
---  call for safety). Event groups come from Constants/Gameplay.lua (BLIZZARD_EVENTS).
+--  What it does: Builds eventCategoryMap from Constants.BLIZZARD_EVENTS and implements
+--  global CombatMode_OnEvent(self, event, ...) — first arg is the root frame. Dispatches
+--  free-look lock/unlock, Rematch, deferred binding flush, click-cast refresh,
+--  crosshair cast feedback, Assisted Highlight cast hooks, and Party Radial combat/roster.
+--  Architecture / how it works:
+--    • BuildEventCategoryMap / GetEventCategoryMap used at enable time.
+--    • REFRESH_BINDINGS_EVENTS coalesced via C_Timer so one RefreshClickCastMacros runs
+--      after bursts; also InvalidateAssistedHighlightKeybindCache + Party Radial hooks.
+--    • CAST_FEEDBACK_EVENTS → OnCrosshairCastFeedbackEvent; SUCCEEDED also
+--      OnAssistedHighlightSpellCast(spellID) for unit player.
+--    • ASSISTED_HIGHLIGHT_EVENTS → OnAssistedHighlightAssistedActionCast.
+--    • FRIENDLY_TARGETING_EVENTS double as Party Radial combat start/end + FlushDeferred.
+--  Does not: RegisterEvent itself (root frame / Bootstrap) or own feature logic.
+--  Related: Constants/Gameplay.lua, Core/FreeLook/FreeLookController.lua,
+--  Core/ClickCasting/BindingOverrides.lua, Core/Crosshair/Crosshair.lua,
+--  Core/Crosshair/AssistedHighlight.lua, Core/PartyRadial/PartyRadial.lua,
+--  Core/Runtime/BindingQueue.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

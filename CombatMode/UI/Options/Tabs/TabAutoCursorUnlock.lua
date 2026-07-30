@@ -1,9 +1,15 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Tabs/TabAutoCursorUnlock.lua — OPTIONS TAB — Auto Unlock
+--  UI/Options/Tabs/TabAutoCursorUnlock.lua — OPTIONS TAB — frame watch / conditions
 ---------------------------------------------------------------------------------------
---  Registers the "Auto Unlock" tab: frame watching, vendor-mount unlock, the
---  frame watchlist, and the custom Lua unlock condition. Feature behavior lives in
---  Core/FreeLook/AutoCursorUnlock.lua; this tab only wires get/set/disabled to CM.DB.
+--  What it does: DB-only wiring for Auto Unlock: frameWatching, mountCheck, extra
+--  watchlist frame names, and customCondition expression. No direct freelook calls —
+--  predicates read these keys each update.
+--  Architecture / how it works:
+--    • DB.global.frameWatching, mountCheck, watchlist (CSV → table), customCondition.
+--    • Extra Frames disabled when frameWatching is off.
+--  Does not: Evaluate visibility or call MouselookStop.
+--  Related: Core/FreeLook/AutoCursorUnlock.lua, Constants/FrameWatch.lua,
+--  Constants/DatabaseDefaults.lua, Core/FreeLook/FreeLookController.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

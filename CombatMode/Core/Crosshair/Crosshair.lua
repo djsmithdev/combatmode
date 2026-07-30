@@ -1,31 +1,24 @@
 ---------------------------------------------------------------------------------------
---  Core/Crosshair/Crosshair.lua — CROSSHAIR — crosshair UI, cursor centering, reaction state
+--  Core/Crosshair/Crosshair.lua — CROSSHAIR — reticle frame, reaction, companion glue
 ---------------------------------------------------------------------------------------
---  Draws the on-screen crosshair (container + inner visual), tracks mouseover/soft-target
---  state for appearance, and syncs cursor centering (CursorCenteredYPos) to the crosshair
---  vertical position from CM.DB.global.crosshairY.
---
---  Related modules:
---    • Core/Runtime/CVarManager.lua: reticle-targeting + Interaction HUD SoftTarget CVar presets.
---    • Core/Crosshair/InteractionHUD.lua: Interaction HUD widget presentation/lifecycle.
---    • Core/Crosshair/AssistedHighlight.lua: Assisted Combat suggestion icon + keybind.
---    • Core/Crosshair/Animations.lua: lock-in + cast feedback + reaction helpers.
---    • UI/Options/Tabs/TabCrosshair.lua: user-facing crosshair settings; toggles the live
---      preview via CM.SetCrosshairOptionsPreview so the reticle, Interaction HUD, and
---      Combat Assist icon render with mouselook off (CM.IsCrosshairPreviewActive).
---
---  Architecture:
---    • Runtime drives CreateCrosshair from BootstrapFeatureModules. OnUpdate calls
---      CM.UpdateCrosshairReaction when the crosshair is enabled.
---    • Cursor Y sync uses AdjustCenteredCursorYPos → CursorCenteredYPos when the crosshair
---      is enabled; SetCursorFreelookCentering lives in FreeLookController /
---      Runtime/CVarManager.
---    • CM.ApplyCrosshairAppearanceToWidget / CM.CreateCrosshairScaleAnimation are exposed
---      for previews (implemented in Core/Crosshair/Animations.lua).
---    • Cast feedback listens to CAST_FEEDBACK_EVENTS (player cast/channel) and drives
---      Animations.lua grow / explode / break while CM.DB.global.crosshairCastFeedback is on.
---    • Interaction HUD widget lifecycle is owned by Core/Crosshair/InteractionHUD.lua and is
---      registered against the crosshair frame via CM.InitInteractionHUD.
+--  What it does: Owns the CombatModeCrosshairFrame container/texture, reaction-state
+--  tinting, Create/Display/ApplyPosition, CursorCenteredYPos sync from crosshairY, and
+--  options preview that forces Interaction HUD + Assisted Highlight companions visible.
+--  Inits InteractionHUD, AssistedHighlight, and Animations; routes cast terminals to
+--  Animations (SUCCEEDED also notifies AssistedHighlight via EventRouter).
+--  Architecture / how it works:
+--    • DB.global.crosshair / crosshairMounted / appearance / size / opacity / Y.
+--    • UpdateCrosshairReaction — hostile/friendly/dead/gameobject under mouse or soft
+--      target; drives texture + Animations reaction scale.
+--    • SetCrosshairOptionsPreview — tab onSelect/onDeselect; do not reuse mouselook
+--      Show/Hide gates.
+--    • OnCrosshairCastFeedbackEvent / FocusLock / Uncategorized / Rematch hooks from
+--      EventRouter / Runtime.
+--  Does not: Own SoftTarget CVar writes, assist FlipBook motion, or freelook lock.
+--  Related: Core/Crosshair/Animations.lua, Core/Crosshair/InteractionHUD.lua,
+--  Core/Crosshair/AssistedHighlight.lua, Core/Runtime/CVarManager.lua,
+--  Core/Runtime/EventRouter.lua, UI/Options/Tabs/TabCrosshair.lua,
+--  Constants/Assets.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

@@ -1,11 +1,17 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Tabs/TabPartyRadial.lua — OPTIONS TAB — Party Radial
+--  UI/Options/Tabs/TabPartyRadial.lua — OPTIONS TAB — Party Radial + preview
 ---------------------------------------------------------------------------------------
---  Registers the "Party Radial" tab (runtime module remains CM.PartyRadial):
---  enable toggle (confirm + ReloadUI), keybind, and visual settings (radius, scale,
---  name font, role icon size, health bars, background). Live preview while this tab
---  is open via CM.PartyRadial.SetOptionsPreview (same onSelect/onDeselect pattern as
---  the Crosshair tab). Visual setters call ApplyVisualConfig so changes show live.
+--  What it does: Wires party radial enable (reload), open keybind, and visual sliders/
+--  toggles (sliceRadius/size, nameFontSize, roleIconSize, showHealthBars,
+--  showBackground). SetOptionsPreview(true/false) on tab select/deselect for layout-only
+--  preview.
+--  Architecture / how it works:
+--    • All config under DB.global.partyRadial.*; ApplyVisualConfig after visual sets.
+--    • Keybind changes via TryApplyBindingChange + SaveBindings.
+--  Does not: Own secure slice attributes or roster hooks (CM.PartyRadial runtime).
+--  Related: Core/PartyRadial/PartyRadial.lua, Constants/PartyRadial.lua,
+--  Constants/DatabaseDefaults.lua, UI/Options/OptionsPanel.lua,
+--  Core/Runtime/BindingQueue.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

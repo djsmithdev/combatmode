@@ -1,17 +1,20 @@
 ---------------------------------------------------------------------------------------
---  Core/Crosshair/Animations.lua — CROSSHAIR — cursor pulse + crosshair motion helpers
+--  Core/Crosshair/Animations.lua — CROSSHAIR — cursor pulse + reticle cast feedback
 ---------------------------------------------------------------------------------------
---  Owns short, purely visual animations triggered by other systems:
---    • Cursor pulse: brief atlas pulse at the cursor after unlocking mouselook.
---    • Crosshair reaction: scale animation and appearance application (shared with
---      options preview via CM.ApplyCrosshairAppearanceToWidget /
---      CM.CreateCrosshairScaleAnimation).
---    • Crosshair lock-in: short scale/alpha tween when acquiring focus target.
---    • Cast feedback: grow while casting/channeling, explode on success, shake-break
---      on cancel/interrupt (shared outer OnUpdate with lock-in; one motion at a time).
---
---  Animation targets (frames/textures) are registered by their owning feature modules
---  (Core/Crosshair/Crosshair.lua, FreeLook unlock path). No mouselook or CVar writes.
+--  What it does: Purely visual helpers for the reticle and cursor: unlock pulse, reaction
+--  scale/appearance helpers, focus lock-in tween, and cast grow / explode / break gated
+--  by crosshairCastFeedback. One outer OnUpdate drives reticle motion at a time.
+--  Architecture / how it works:
+--    • InitializeCursorPulse / ShowCursorPulse — PulseAtlas at cursor after unlock.
+--    • InitCrosshairAnimations registers visual frame/texture from Crosshair.
+--    • StartCrosshairCastGrow / Explode / Break + NotifyCrosshairCastTerminal — EventRouter
+--      CAST_FEEDBACK path; CancelCrosshairCastFeedback / CancelCrosshairLockIn.
+--    • Shared scale animation constructors used by options preview appearance apply.
+--  Does not: Own Assisted Combat FlipBook / explode / break (AssistedHighlight.lua) or
+--  mouselook / CVar writes.
+--  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight.lua,
+--  Core/FreeLook/FreeLookController.lua, Constants/Assets.lua,
+--  UI/Options/Tabs/TabCrosshair.lua, Core/Runtime/EventRouter.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

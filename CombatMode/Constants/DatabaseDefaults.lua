@@ -1,12 +1,25 @@
 ---------------------------------------------------------------------------------------
---  Constants/DatabaseDefaults.lua — CONSTANTS — CombatModeDB defaults (global + char)
+--  Constants/DatabaseDefaults.lua — CONSTANTS — CombatModeDB defaults
 ---------------------------------------------------------------------------------------
---  Owns CM.Constants.DatabaseDefaults merged by Core/Runtime/Runtime.lua (InitDatabase).
---  Includes global targetingMacroPrelineAnyOverride / targetingMacroPrelineEnemyOverride
---  (nil = built-in prelines; edited via UI/Editors/TargetingMacroPrelinesEditor.lua),
---  reticleTargetingCVarOverrides (Reticle CVar editor; merged in Core/Runtime/CVarManager.lua),
---  and priorCVarSnapshot (refreshed at each enable before CM overwrites; restored by
---  Uninstall; preserved across Reset to Defaults).
+--  What it does: Defines `CM.Constants.DatabaseDefaults` (global + char) merged by
+--  `CM.InitDatabase` into AceDB-shaped CombatModeDB. This is the single source of truth
+--  for new-install defaults across free-look, crosshair companions, click-cast, reticle,
+--  and party radial.
+--  Architecture / how it works:
+--    • global: frameWatching/watchlist/mountCheck/customCondition; actionCamera,
+--      mouseLookSpeed, pulseCursor, interactUnit; crosshair*, crosshairCastFeedback,
+--      interactionHUD / interactionHUDSide (default LEFT), assistedHighlightEnabled /
+--      assistedHighlightSide (default RIGHT), crosshairY; reticleTargetingCVarOverrides,
+--      priorCVarSnapshot, targetingMacroPreline*Override; bindings; partyRadial visuals.
+--    • char: useGlobalBindings, shoulderOffset, reticleTargeting / enemyOnly /
+--      macroInjectionClickCastOnly, focusCurrentTargetNotCrosshair, castAtCursorSpells,
+--      excludeFromTargetingSpells, stickyCrosshair, bindings.
+--    • DefaultBindings seeds button1/2 + shift/ctrl/alt mouse slots and Mouse Look toggle.
+--  Does not: Migrate saved data or apply CVars/bindings at runtime.
+--  Related: Core/Runtime/Runtime.lua, Core/Runtime/CVarManager.lua,
+--  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/Tabs/TabCrosshair.lua,
+--  UI/Editors/TargetingMacroPrelinesEditor.lua, Core/PartyRadial/PartyRadial.lua,
+--  UI/Options/Tabs/TabClickCasting.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 

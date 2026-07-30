@@ -1,11 +1,17 @@
 ---------------------------------------------------------------------------------------
---  UI/Editors/ReticleCVarEditorData.lua — Reticle Targeting CVar editor data layer
+--  UI/Editors/ReticleCVarEditorData.lua — EDITOR — reticle CVar override data
 ---------------------------------------------------------------------------------------
---  Row list, description fallbacks, canonical/exclusion helpers (editor + runtime
---  pruning must agree with CM.Constants.ReticleTargetingCVarEditorExcluded).
---  Override table: CM.DB.global.reticleTargetingCVarOverrides; reads/writes go through
---  CM.GetReticleTargetingCVarOverrides; SetOverride / clear-all guarded in combat.
---  Related: ReticleCVarEditorPanel.lua, Core/Runtime/CVarManager.lua, Constants/CVars.lua.
+--  What it does: Data layer for the Reticle CVar editor: row lists from
+--  ReticleTargetingCVarValues minus exclusions, read/write of
+--  global.reticleTargetingCVarOverrides via CVarManager getters, combat-guarded writes,
+--  and description caches from C_Console where available.
+--  Architecture / how it works:
+--    • CM.ReticleCVarEditorData helpers; Panel owns the window + live attribution.
+--    • Effective values still computed in CVarManager.GetEffectiveReticleTargetingCVarValues.
+--  Does not: Draw the editor chrome or hook SetCVar for source attribution.
+--  Related: Constants/CVars.lua, Core/Runtime/CVarManager.lua,
+--  UI/Editors/ReticleCVarEditorPanel.lua, Constants/DatabaseDefaults.lua,
+--  UI/Options/Tabs/TabReticleTargeting.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

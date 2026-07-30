@@ -1,14 +1,22 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Tabs/TabCrosshair.lua — OPTIONS TAB — Crosshair
+--  UI/Options/Tabs/TabCrosshair.lua — OPTIONS TAB — Crosshair + HUD + Assist
 ---------------------------------------------------------------------------------------
---  Registers the "Crosshair" tab: enable/appearance/size/opacity, cast feedback,
---  vertical position, Interaction HUD (enable + Left/Right), and Combat Assist
---  (enable + Left/Right). While this tab is open it turns on the live preview
---  (CM.SetCrosshairOptionsPreview) so the real crosshair, Interaction HUD, and
---  Combat Assist icon render at screen center with mouselook off.
---  The options window itself docks left-of-center on open so the preview stays visible
---  (see Options.DockWindowLeft). Feature APIs unchanged (CM.CreateCrosshair,
---  CM.DisplayCrosshair, CM.ApplyCrosshairPosition).
+--  What it does: Wires crosshair enable/mounted/cast feedback/appearance/size/opacity/Y,
+--  Interaction HUD enable + side (LEFT/RIGHT), and Combat Assist enable + side. Live
+--  preview via SetCrosshairOptionsPreview onSelect/onDeselect; when HUD turns on without
+--  reticle targeting, applies ConfigInteractionHUDSoftTarget.
+--  Architecture / how it works:
+--    • DB.global: crosshair*, interactionHUD / interactionHUDSide, assistedHighlightEnabled
+--      / assistedHighlightSide.
+--    • set() → DisplayCrosshair / CreateCrosshair / CancelCrosshairCastFeedback /
+--      ApplyInteractionHUDLayout / RefreshInteractionHUD /
+--      ApplyCrosshairAssistedHighlightOptions / UpdateCrosshairAssistedHighlight;
+--      also PartyRadial.UpdateMainFramePosition when Y changes.
+--  Does not: Implement HUD/Assist widgets (companion modules own them).
+--  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD.lua,
+--  Core/Crosshair/AssistedHighlight.lua, Core/Crosshair/Animations.lua,
+--  Core/Runtime/CVarManager.lua, Constants/Assets.lua,
+--  Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

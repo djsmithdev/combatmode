@@ -1,13 +1,14 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/BlizzardSettingsBridge.lua — OPTIONS — Blizzard AddOns panel shortcut
+--  UI/Options/BlizzardSettingsBridge.lua — OPTIONS — Esc → AddOns bridge
 ---------------------------------------------------------------------------------------
---  Registers a minimal Escape → Options → AddOns → Combat Mode canvas category whose
---  only control is a button that opens the standalone Combat Mode options window
---  (CM.OpenOptions) and closes SettingsPanel so the Blizzard Esc → Options UI does
---  not stay stacked behind it. Same pattern as Chattynator: settings still live in
---  CombatModeOptionsFrame; this is a discoverability bridge, not a settings host.
---
---  Related: UI/Options/OptionsPanel.lua (CM.OpenOptions).
+--  What it does: Registers a minimal Blizzard Settings category whose only control is
+--  "Open Options", which calls CM.OpenOptions and hides the settings panel. Keeps Combat
+--  Mode discoverable from Esc → Options → AddOns without hosting settings there.
+--  Architecture / how it works:
+--    • Category display name uses TOC Title / cmtitle texture markup.
+--    • Not a settings host — all real config lives in CombatModeOptionsFrame.
+--  Does not: Duplicate tab controls or persist settings.
+--  Related: UI/Options/OptionsPanel.lua, Core/Runtime/Runtime.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

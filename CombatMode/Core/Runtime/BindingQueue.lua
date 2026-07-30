@@ -1,9 +1,18 @@
 ---------------------------------------------------------------------------------------
---  Core/Runtime/BindingQueue.lua — RUNTIME — deferred binding queue (combat-safe apply)
+--  Core/Runtime/BindingQueue.lua — RUNTIME — combat-deferred binding applies
 ---------------------------------------------------------------------------------------
---  Owns deferred binding writes used while in combat lockdown and exposes shared
---  CM helpers (TryApplyBindingChange, FlushDeferredBindingChanges) used by Click Casting
---  and Runtime bootstrap / PLAYER_REGEN_ENABLED.
+--  What it does: Queues binding/protected apply functions while InCombatLockdown and
+--  flushes them when combat ends so click-cast / interact / party-radial keybind changes
+--  never violate lockdown.
+--  Architecture / how it works:
+--    • TryApplyBindingChange(context, applyFn) — runs immediately out of combat; else
+--      enqueues and prints a deferred notice.
+--    • FlushDeferredBindingChanges — called from EventRouter on PLAYER_REGEN_ENABLED;
+--      pcall each applyFn.
+--  Does not: Build macros or call SetOverrideBinding itself (callers pass closures).
+--  Related: Core/ClickCasting/BindingOverrides.lua, Core/Runtime/EventRouter.lua,
+--  Core/Runtime/Bootstrap.lua, UI/Options/Tabs/TabGeneral.lua,
+--  UI/Options/Tabs/TabClickCasting.lua, UI/Options/Tabs/TabPartyRadial.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

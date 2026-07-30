@@ -1,8 +1,15 @@
 ---------------------------------------------------------------------------------------
 --  Constants/Reticle.lua — CONSTANTS — Interaction HUD unable-cursor texture ids
 ---------------------------------------------------------------------------------------
---  Owns CM.Constants.InteractionHUDUnableCursor (texture file IDs / paths that dim the
---  Interaction HUD icon). Consumed by Core/Crosshair/InteractionHUD.lua.
+--  What it does: Sets InteractionHUDUnableCursor — file-id / path keys that mark the
+--  soft-interact cursor as "unable" so Interaction HUD can dim the icon while keeping
+--  the name label color.
+--  Architecture / how it works:
+--    • Lookup table keyed by texture file id strings (and path substring "Unable" is
+--      also checked at runtime in InteractionHUD).
+--  Does not: Own SoftTarget CVars, the HUD widget, or crosshair reaction state.
+--  Related: Core/Crosshair/InteractionHUD.lua, Constants/CVars.lua,
+--  UI/Options/Tabs/TabCrosshair.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 

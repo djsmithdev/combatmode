@@ -1,22 +1,23 @@
 ---------------------------------------------------------------------------------------
---  Core/ClickCasting/BindingOverrides.lua — CLICK CASTING — overrides, macros, ground @cursor
+--  Core/ClickCasting/BindingOverrides.lua — CLICKCAST — secure proxies + overrides
 ---------------------------------------------------------------------------------------
---  Builds secure macro proxy buttons and SetMouselookOverrideBinding wiring so
---  action-bar and click-cast inputs run pre-lines (reticle /target selection) and
---  optional [@cursor] casts for whitelisted ground spells. Keyboard slot overrides
---  duplicate that path when macroInjectionClickCastOnly is off (priority overrides). Mouselook uses
---  LeftButton on proxy buttons.
---
---  Architecture:
---    • Core/Runtime/Bootstrap.lua enables via BootstrapFeatureModules
---      (OverrideDefaultButtons, ApplyGroundCastKeyOverrides, ApplyToggleFocusTargetBinding)
---      and REFRESH_BINDINGS_EVENTS (coalesced in Core/Runtime/EventRouter.lua) →
---      RefreshClickCastMacros.
---    • Macro text construction: Core/ClickCasting/TargetingMacroBuilder.lua.
---    • Third-party bar buttons: Core/ClickCasting/AddonActionBarResolver.lua.
---    • All injection paths honor CM.DB.char.reticleTargeting; GetBindingsLocation()
---      selects char vs global binding storage.
---    • Toggle-focus macro text is updated here; binding name is Combat Mode specific.
+--  What it does: Creates SecureActionButtonTemplate proxy frames, applies mouselook and
+--  keyboard override bindings for click-cast slots, ground @cursor casts, and the
+--  toggle-focus bind. RefreshClickCastMacros rebuilds macrotext from TargetingMacroBuilder.
+--  Architecture / how it works:
+--    • Honors char.reticleTargeting, macroInjectionClickCastOnly (skip keyboard overrides
+--      when true), and GetBindingsLocation() for which bindings table to read.
+--    • SetNewBinding / OverrideDefaultButtons / ResetBindingOverride — per-slot secure
+--      attributes + SetMouselookOverrideBinding / SetOverrideBindingClick.
+--    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run.
+--    • ApplyToggleFocusTargetBinding — Combat Mode Target Lock keybind.
+--    • Combat-safe via BindingQueue when options change mid-combat.
+--  Does not: Resolve ElvUI/BT4 frame names (AddonActionBarResolver) or build preline text
+--  (TargetingMacroBuilder).
+--  Related: Core/ClickCasting/TargetingMacroBuilder.lua,
+--  Core/ClickCasting/AddonActionBarResolver.lua, Core/Runtime/BindingQueue.lua,
+--  Core/Runtime/EventRouter.lua, Core/Runtime/Bootstrap.lua,
+--  UI/Options/Tabs/TabClickCasting.lua, Constants/Gameplay.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

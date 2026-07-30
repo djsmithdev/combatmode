@@ -1,19 +1,24 @@
 ---------------------------------------------------------------------------------------
---  Core/FreeLook/FreeLookController.lua — FREE LOOK — mouselook state machine + cursor keybind
+--  Core/FreeLook/FreeLookController.lua — FREELOOK — mouselook state machine
 ---------------------------------------------------------------------------------------
---  Owns free-look/mouselook transition behavior:
---    • lock/unlock transitions and UI side effects
---    • temporary/permanent unlock handling
---    • cursor-mode keybind tap/hold logic with spurious key-up filtering
---    • free-look gating checks consumed by Core/Runtime/Runtime.lua OnUpdate
---    • OPie close rematch (CM.NotifyOpieUnlockFrameVisible) — OPie MouselookStops itself
---      and AutoCursorUnlock frees CursorFreelookCentering; on close we must bounce
---      mouselook with centering forced to 0 before Start (same pattern as Party Radial)
---
---  Related: Core/FreeLook/AutoCursorUnlock.lua (unlock predicates),
---  Core/Runtime/CVarManager.lua (CursorFreelookCentering writes),
---  Core/PartyRadial/PartyRadial.lua (OnMouselookChanged).
---  Runtime remains the coordinator and calls exported CM helpers from this module.
+--  What it does: Owns Mouse Look lock/unlock, cursor-mode keybind behavior,
+--  ShouldFreeLookBeOff aggregation, CursorFreelookCentering bounce
+--  (force CVar 0 → MouselookStart → deferred set to 1), tooltip hide while locked,
+--  and the OPie rematch latch (NotifyOpieUnlockFrameVisible /
+--  RematchFreeLookAfterOpieIfNeeded).
+--  Architecture / how it works:
+--    • LockFreeLook / UnlockFreeLook drive MouselookStart/Stop + crosshair display +
+--      centering helpers via CVarManager.
+--    • StartFreeLookFresh forces centering off, starts mouselook, then deferred
+--      SetCursorFreelookCentering(true) so the cursor recenters reliably.
+--    • ShouldFreeLookBeOff consults AutoCursorUnlock predicates, SpellIsTargeting,
+--      cinematics, FreeLookOverride, default LMB/RMB held.
+--    • OPie: when a ring is visible, unlock path may free centering; Rematch after
+--      the ring closes re-bounces freelook if still desired.
+--  Does not: Own frame-watch lists/predicates (AutoCursorUnlock) or CVar preset tables.
+--  Related: Core/FreeLook/AutoCursorUnlock.lua, Core/Runtime/CVarManager.lua,
+--  Core/Runtime/Runtime.lua, Core/PartyRadial/PartyRadial.lua,
+--  Core/Crosshair/Animations.lua, Core/Crosshair/Crosshair.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

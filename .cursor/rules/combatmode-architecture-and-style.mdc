@@ -5,78 +5,45 @@ alwaysApply: true
 
 # CombatMode Architecture and Style
 
-Use this project map and conventions for all changes.
+Ownership detail lives in **Lua file headers**. Load order: **`STRUCTURE.md`** + **`CombatMode/Embeds.xml`**. Prefer Blizzard APIs + `local _, CM = ...`; do **not** reintroduce Ace3/LibStub or `CombatMode/Libs/**` unless explicitly requested.
 
-## Runtime structure
+## Folder map
 
-- `CombatMode/CombatMode.toc`: addon metadata, `SavedVariables: CombatModeDB`, load order entrypoint.
-- `CombatMode/Embeds.xml`: loads Lua files and owns the root frame scripts (`OnEvent`, `OnUpdate` bridge).
-- `CombatMode/Constants/*.lua`: constants and static tables (`CM.Constants`; `Namespace.lua` first).
-- `CombatMode/Core/{Runtime,FreeLook,Crosshair,ClickCasting,PartyRadial}/`: runtime systems and gameplay behavior by domain.
-- `CombatMode/UI/Options/*.lua`: standalone custom options window (`CM.UI` toolkit + tabs).
-- `CombatMode/UI/Changelog/*.lua`: in-game changelog viewer (namespace + data + panel).
-- `CombatMode/UI/Editors/*.lua`: standalone secondary editor windows (Reticle CVar, Targeting Macro Prelines).
-- `CombatMode/Bindings.xml`: keybinding declarations and binding click targets.
+- `CombatMode/CombatMode.toc` — metadata, `SavedVariables: CombatModeDB`
+- `CombatMode/Embeds.xml` — script load order + root frame `OnEvent` / `OnUpdate`
+- `CombatMode/Constants/` — static tables (`Namespace.lua` first)
+- `CombatMode/Core/{Runtime,FreeLook,Crosshair,ClickCasting,PartyRadial}/` — runtime by domain
+- `CombatMode/UI/{Options,Changelog,Editors}/` — options toolkit/tabs, in-game changelog, secondary editors
+- `CombatMode/Bindings.xml` — keybind declarations
 
-## Module responsibilities
+## Watch-outs (read the file header for full ownership)
 
-- `Core/Runtime/Runtime.lua`: owns the AddOn namespace table (`local addonName, CM = ...`), optional `_G.CM` debug alias, native SavedVariables (`CombatModeDB` â†’ `CM.DB.global` / `CM.DB.char`), slash commands, lifecycle (`ADDON_LOADED` â†’ `OnInitialize`, `PLAYER_LOGIN` â†’ `OnEnable`), cross-feature coordination points, global `CombatMode_OnUpdate`, the first-login welcome modal (deferred `CM.UI.ShowWelcome` with `CM.Constants.PopupMsg`), deferred in-game changelog open (`ScheduleChangelogIfNewVersion` â†’ `CM.Config.MaybeShowChangelogOnNewVersion`) when `CM.DB.global.lastSeenChangelogVersion` â‰  `CM.METADATA["VERSION"]` (always when Debug Mode is on), and `CM.UninstallCombatMode` (options sidebar Uninstall button: restore prior CVars, reset left/right click camera binds, disable addon, reload). `OnResetDB` wipes settings but preserves the prior CVar snapshot. Registers Blizzard events on `CombatModeFrame` during enable.
-- `Core/Runtime/EventRouter.lua`: owns centralized event category dispatch and `_G.CombatMode_OnEvent`; builds/owns `eventCategoryMap`.
-- `Core/Runtime/CVarManager.lua`: owns all addon-owned **CVar writes** (centralized `CM.SetCVar*` helpers), pre-CM **priorCVarSnapshot** capture/restore (`CM.CapturePriorCVarSnapshot` at each enable before writes, `CM.EnsurePriorCVarSnapshot` as a mid-session no-op safety net, `CM.RestorePriorCVars` on Uninstall), and the feature-level CVar helpers (reticle targeting presets merged with `CM.DB.global.reticleTargetingCVarOverrides` via `CM.GetEffectiveReticleTargetingCVarValues`, Interaction HUD soft-target subset, action camera, sticky crosshair, shoulder offset, mouselook speed). Uninstall prefers restoring the session snapshot over hard-coded Blizzard tables.
-- `Core/Runtime/BindingQueue.lua`: owns combat-safe deferred binding write queue (`CM.TryApplyBindingChange`, `CM.FlushDeferredBindingChanges`).
-- `Core/Runtime/Bootstrap.lua`: owns startup wiring (`CM.BootstrapFeatureModules`) and `CM.RestorePriorBindings` (Uninstall resets `BUTTON1`/`BUTTON2` to Blizzard camera defaults only).
-- `Core/FreeLook/FreeLookController.lua`: owns free-look/mouselook state transitions, cursor-mode keybind behavior, and UI side effects tied to lock/unlock flow. Lock applies centering with force-CVar-0 â†’ `MouselookStart` â†’ deferred CVar-1 (PartyRadial / 10.2 quirk). OPie close rematch is latched via `CM.NotifyOpieUnlockFrameVisible` / `CM.RematchFreeLookAfterOpieIfNeeded` from Runtime OnUpdate so a ring that stops mouselook and frees centering cannot leave mouselook on with a visible cursor.
-- `Core/FreeLook/AutoCursorUnlock.lua`: owns unlock predicates (frame visibility, mounts, pet battle, custom expression) and wildcard frame tracking.
-- `Constants/Namespace.lua`: initializes the `CM.Constants` namespace only.
-- `Constants/{CVars,Assets,Gameplay,DatabaseDefaults,PartyRadial,FrameWatch,Reticle}.lua`: define immutable/static tables (defaults, CVars, event groups, assets, watchlists, radial metadata); no runtime side effects beyond table population.
-- `Core/Crosshair/Crosshair.lua`: owns crosshair visuals and reaction logic. Crosshair reaction and cursor centering follow `CM.IsCrosshairEnabled()`. `CM.SetCrosshairOptionsPreview(enabled)` / `CM.IsCrosshairPreviewActive()` force the crosshair (and the Interaction HUD + Combat Assist companions) to render outside their normal mouselook/combat conditions for the Crosshair options tab. Vertical position is account-wide `CM.DB.global.crosshairY` (options slider only).
-- `Core/Crosshair/InteractionHUD.lua`: owns the Interaction HUD widget lifecycle, Left/Right side layout (`interactionHUDSide`, default LEFT), fade/range `OnUpdate`, and soft-interact event handling.
-- `Core/Crosshair/AssistedHighlight.lua`: owns Assisted Combat suggestion icon + keybind near the crosshair (circular shell: background / mask / cyan breath glow / frame; fade in/out). Fixed icon size 40; cluster Left/Right via `assistedHighlightSide` (default RIGHT). Click-cast hints flip to the outer side (`CM.Constants.ModifierKey*` BLPs + `newplayertutorial-icon-mouse-leftbutton` / `-rightbutton`); keyboard binds stay white FrizQT+OUTLINE top-right on the icon. Bright `UF-RogueCP-Slash-Blue` FlipBook plays once in reverse on suggestion change, on top of the chrome border. Casting the shown suggestion (or Assisted Combat action button) explodes the icon then hides for the next suggestion; casting a different spell while shown plays a shake/flash break.
-- `Core/Crosshair/Animations.lua`: owns user-facing animations (cursor pulse after unlock/free-look transitions; crosshair reaction/lock-in; cast feedback grow/explode/break on a shared outer OnUpdate).
-- `Core/ClickCasting/BindingOverrides.lua`: owns override binding/macro synthesis for mouse buttons and modified clicks; refreshes when bars/bindings change.
-- `Core/ClickCasting/AddonActionBarResolver.lua`: owns third-party action bar button resolution by action-slot id (ElvUI/Bartender4).
-- `Core/ClickCasting/TargetingMacroBuilder.lua`: owns reticle-targeting macro text construction (pre-line, /click wrapper, @cursor handling). Exports `CM.TargetingMacroPrelinesDefaults`; honors account-wide `CM.DB.global.targetingMacroPrelineAnyOverride` / `targetingMacroPrelineEnemyOverride` when set.
-- `Core/PartyRadial/PartyRadial.lua`: owns radial frame lifecycle, selection tracking, secure cast attributes, and group/role slice updates. Exposed as `CM.PartyRadial` (API name kept for call-site/DB stability). `CM.PartyRadial.SetOptionsPreview(enabled)` / `IsOptionsPreviewActive()` force a layout-only radial (no freelook unlock, no `IsActive`) for the Party Radial options tab; empty slots use placeholders; Visual Settings refresh via `ApplyVisualConfig`.
-- `UI/Options/Draw.lua`: owns the theme tokens (`CM.UI.Colors` / `UI.Fonts` / `UI.Radius` â€” a minimal neutral-grey ramp with a single accent yellow), `UI.StripColors` / `UI.SetFontSize`, drawing primitives (rounded surfaces, circular knob mask, font sizing, ESC-close, drag helpers), and the themed config tooltip (`UI.ShowTooltip` / `UI.HideTooltip` / `UI.AttachTooltip` via `CombatModeUITooltip`, not `GameTooltip`). Visuals only. Text renders at `UI.Fonts.base` with inline `|cff..|` markup stripped; only `UI.MakeHeader` uses `UI.Fonts.header` + accent; option rows use a 60/40 split (title + muted `opts.desc` helper in the left column; control in the right, vertically centered).
-- `UI/Options/Widgets.lua`: owns the control factories (toggle, slider, dropdown via `MenuUtil`, keybind capture, text/multiline input, pill button, header, description). Shared helpers for sibling modules: `CM.UI.Options.RegisterControl` / `IsDisabled` / `AttachOptionText` / `AddRowHover`. Every value control exposes `:Refresh()` and registers with `CM.UI.Options` for the central `Options.Sync()` pass; `UI.Confirm(text, onAccept)` / `UI.Notify(text, onClose)` own the themed modal (`CombatModeConfirmDialog`) â€” one shared window built from the `Draw.lua` primitives that replaces Blizzard's `StaticPopup`, with a logo + wordmark header, full-screen click blocker, ESC cancel, and colors stripped from the message. `Confirm` shows paired Yes/No and fires `onAccept` on Yes only; `Notify` collapses to a single centered Okay and fires `onClose` on any dismissal. Toggles and buttons that pass `confirm = true` route their apply step through `UI.Confirm`. `UI.ShowWelcome` owns the dedicated first-install modal `CombatModeWelcomeDialog` (not registered in `UISpecialFrames`, so load-end `CloseSpecialWindows` cannot dismiss it).
-- `UI/Options/SpellMultiSelect.lua`: owns `UI.MakeSpellMultiSelect` (spellbook + ID suggestions, icon+name pills, CSV get/set for Reticle Targeting spell lists).
-- `UI/Options/OptionsPanel.lua`: owns `CombatModeOptionsFrame` (standalone movable window, sidebar tabs, scroll content), the vertical layout manager (`ctx`), `CM.OpenOptions`/`CM.ToggleOptions`/`CM.CloseOptions` (combat-guarded), `CM.GetOptionsFrame`, and the reusable `CM.UI.CreateWindow` / `CM.UI.NewLayout` used by editors. `CM.UI.Options.AddTab` is the tab registration entry point. The window docks left-of-center on open (`Options.DockWindowLeft`) so the crosshair and party radial stay clear for live previews. The bottom of the sidebar hosts a fixed footer (`BuildSidebarFooter`) with the Silence Alerts / Debug Mode toggles and the View Changelog / Reset to Defaults / Uninstall buttons (formerly the About tab).
-- `UI/Options/BlizzardSettingsBridge.lua`: registers a Blizzard AddOns canvas category (Escape â†’ Options â†’ AddOns â†’ Combat Mode) whose only control opens `CM.OpenOptions`; does not host settings itself.
-- `UI/Options/Tabs/Tab*.lua`: per-category tab builders (General, Crosshair, ReticleTargeting, ClickCasting, AutoCursorUnlock, Camera, PartyRadial). Each calls `CM.UI.Options.AddTab` and wires get/set/disabled closures to existing `CM.*` feature APIs + `CM.DB` fields (no duplicated feature logic). Tab defs may add `onSelect`/`onDeselect` for transient side effects (fired in pairs on tab switch and window show/hide); `TabCrosshair.lua` uses them to call `CM.SetCrosshairOptionsPreview(true)` so the real crosshair, Interaction HUD, and Combat Assist icon preview live with mouselook off; `TabPartyRadial.lua` uses them to call `CM.PartyRadial.SetOptionsPreview(true)` so the Party Radial previews Visual Settings live.
-- `UI/Changelog/ChangelogNamespace.lua`: initializes the `CM.Config` namespace only.
-- `UI/Changelog/ChangelogData.lua`: holds `CM.Config.ChangelogText` (markdown string for the in-game viewer); keep in sync with `CombatMode/CHANGELOG.md` via `scripts/sync-changelog-to-lua.ps1`.
-- `UI/Changelog/ChangelogPanel.lua`: changelog popup UI (`SimpleHTML` + `ScrollFrame`); `CM.Config.ShowChangelog`, `CM.Config.MaybeShowChangelogOnNewVersion`; sets `CM.DB.global.lastSeenChangelogVersion` when shown. Called from the sidebar footer (View Changelog) and scheduled in `Core/Runtime/Runtime.lua` on login after version changes.
-- `UI/Editors/ReticleCVarEditorData.lua`: reticle CVar editor row data and override persistence helpers.
-- `UI/Editors/ReticleCVarEditorPanel.lua`: custom Reticle Targeting CVar editor UI; `CM.OpenReticleTargetingCVarEditor()`; anchors to the right of `CM.GetOptionsFrame()` when open.
-- `UI/Editors/TargetingMacroPrelinesEditor.lua`: standalone custom window (built on the `CM.UI` toolkit) for click-cast preline overrides; `CM.OpenTargetingMacroPrelinesEditor()`; opened from the Reticle Targeting tab.
+- **CVarManager** — all addon `SetCVar` writes; prior snapshot capture/restore; reticle presets + overrides; Interaction HUD SoftTarget subset.
+- **FreeLookController** — mouselook lock/unlock; centering `0 → MouselookStart → deferred 1`; OPie rematch latch.
+- **Crosshair companions** — Interaction HUD and Assisted Combat are separate modules; assist FlipBook/explode/break stay in `AssistedHighlight.lua`, not `Animations.lua` (reticle cast feedback only).
+- **Options** — standalone `CombatModeOptionsFrame` (`CM.OpenOptions` / `/cm`), not Blizzard settings; tabs wire to existing `CM.*` + `CM.DB` only.
 
-## Required coding conventions
+## Coding conventions
 
-- **Lua global localization header convention**
-  - Keep global aliases per-file; do not create a shared/global alias module (for example, no `CM.API` globals table).
-  - Header order:
-    1. AddOn namespace handle (`local _, CM = ...`; Runtime uses `local addonName, CM = ...`) and `_G` when needed
-    2. WoW API globals
-    3. Lua stdlib aliases (`pairs`, `ipairs`, `type`, `pcall`, `math`, etc.)
-    4. module-local constants
-    - Localize only symbols used in that file.
-    - Remove unused aliases when touching a file.
-    - Prefer function alias style (`local strfind = _G.string.find`) unless many members from the table are used.
-    - Do not use `local CM = _G.CM` â€” the shared table comes from `...`. `_G.CM` is an optional debug alias only.
-- Keep event wiring centralized via constants and core dispatch; avoid ad-hoc event frames.
-- Prefer extending existing `CM` feature APIs over introducing new global state.
-- Respect combat lockdown and secure action patterns (`SecureActionButtonTemplate`, macro attributes).
-- Use existing DB scopes consistently:
-  - account-wide in `CM.DB.global`
-  - character-specific in `CM.DB.char`
-- Put new user-facing settings in the matching `UI/Options/Tabs/Tab*.lua` builder (call `ctx:Toggle/Slider/Dropdown/...` with get/set/disabled closures); add a new tab via `CM.UI.Options.AddTab`.
-- Preserve slash command and keybinding behavior unless change is explicitly requested.
-- Lua validation default is changed-files pre-commit: `pre-commit run --files <changed files>`.
-- Use direct formatter/linter commands only for targeted debugging.
-- Run repo-wide gate only for release prep or explicit maintainer request: `pre-commit run --all-files`.
+- Per-file global aliases only (no shared `CM.API` alias module). Header order: AddOn namespace (`local _, CM = ...`; Runtime uses `local addonName, CM = ...`) → WoW API → Lua stdlib → module locals. Do not use `local CM = _G.CM`.
+- Centralize events via `Constants/Gameplay.lua` + `EventRouter`; no ad-hoc event frames.
+- Extend existing `CM` APIs; keep DB scope intentional (`CM.DB.global` vs `CM.DB.char`).
+- New settings → matching `UI/Options/Tabs/Tab*.lua` via `ctx:*` helpers + `CM.UI.Options.AddTab`.
+- Preserve slash commands and keybinds unless explicitly changing them.
+- Lint: `pwsh ./scripts/lint-changed.ps1` (full `pre-commit run --all-files` only for release / explicit request).
+
+## Durable runtime notes
+
+Record non-obvious fixes here (or in `combatmode-lua-safety.mdc`) — one place.
+
+- **Root frame events:** `CombatMode_OnEvent(self, event, ...)` — first arg is the frame, not the event name.
+- **DB shape:** AceDB-compatible (`CombatModeDB.global` + `char["Name - Realm"]`); defaults merge in `CM.InitDatabase`.
+- **Cast feedback:** Animations outer `OnUpdate` (one motion); terminals via `CM.NotifyCrosshairCastTerminal`; gated by `crosshairCastFeedback`.
+- **Assisted Combat matching:** short recent-suggestion cache — `GetNextCastSpell` often advances before `UNIT_SPELLCAST_SUCCEEDED`.
+- **Options preview:** tab `onSelect`/`onDeselect`; Crosshair → `CM.SetCrosshairOptionsPreview`; Party Radial → `CM.PartyRadial.SetOptionsPreview` (layout-only). Do not reuse mouselook-gated Show/Hide.
+- **Options theme:** monochrome via `UI.StripColors`; accent yellow only for headers, selected tab, toggle on-states.
 
 ## Change expectations
 
-- Follow current file header purpose comments as source of truth for module intent.
-- Keep edits minimal and local to the owning module.
+- Edit the owning module; keep headers accurate when ownership moves. Default header shape for every Lua file: What it does / Architecture / Does not / Related (see docs-sync rule).
 - Call out behavior changes that affect mouselook, targeting CVars, or binding overrides.

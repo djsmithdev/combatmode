@@ -1,10 +1,19 @@
 ---------------------------------------------------------------------------------------
---  Constants/Assets.lua — CONSTANTS — assets, welcome message, crosshair textures
+--  Constants/Assets.lua — CONSTANTS — textures, welcome copy, crosshair appearances
 ---------------------------------------------------------------------------------------
---  Owns CM.Constants.PopupMsg (first-install welcome body), BasePrintMsg, Logo/Title
---  texture paths, PulseAtlas, Assisted Combat spell-icon + modifier-key BLPs, and
---  CrosshairTextureObj / CrosshairReaction* tables used by Core/Crosshair and the
---  Crosshair options tab.
+--  What it does: Holds static art paths and copy used by welcome UI, crosshair rendering,
+--  Assisted Combat chrome, and modifier-key glyphs. Also defines CrosshairTextureObj /
+--  appearance select values and reaction color tables the Crosshair tab and runtime read.
+--  Architecture / how it works:
+--    • `PopupMsg` / `BasePrintMsg` — welcome modal + print prefix (version from METADATA).
+--    • Logo/Title BLPs, PulseAtlas, AssistedSpellIcon{Background,Glow,Frame,Mask},
+--      ModifierKey{Ctrl,Shift,Alt} BLPs under Interface\AddOns\CombatMode\assets\.
+--    • CrosshairTextureObj entries pair active/inactive BLPs; AppearanceSelectValues
+--      drives the Crosshair options dropdown.
+--  Does not: Draw widgets, own frame lifecycle, or apply appearance at runtime.
+--  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight.lua,
+--  Core/Crosshair/Animations.lua, UI/Options/Tabs/TabCrosshair.lua,
+--  UI/Options/Widgets.lua, UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

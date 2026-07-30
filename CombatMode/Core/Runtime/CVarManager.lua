@@ -1,18 +1,24 @@
 ---------------------------------------------------------------------------------------
---  Core/Runtime/CVarManager.lua — RUNTIME — CVar apply/reset helpers
+--  Core/Runtime/CVarManager.lua — RUNTIME — all addon SetCVar writes
 ---------------------------------------------------------------------------------------
---  Owns generic CVar loading and runtime camera/sticky-crosshair helpers used by
---  Runtime rematch and options. Reticle targeting: CM.GetReticleTargetingCVarOverrides
---  (prune excluded keys), CM.GetEffectiveReticleTargetingCVarValues (presets +
---  CM.DB.global.reticleTargetingCVarOverrides). Presets/exclusions live in Constants/CVars.lua;
---  the Reticle CVar editor is UI/Editors/ReticleCVarEditor*.lua.
---
---  Also owns pre-CM CVar snapshots (CM.CapturePriorCVarSnapshot /
---  CM.EnsurePriorCVarSnapshot / CM.RestorePriorCVars): each enable captures
---  ManagedCVarNames into CM.DB.global.priorCVarSnapshot *before* CM writes, so
---  Uninstall restores the values from the start of that session. Hard-coded
---  Blizzard tables remain as fallback when no snapshot exists. CM.SetCVar always
---  calls the live C_CVar.SetCVar so Reticle CVar editor hooks can attribute writes.
+--  What it does: Single owner of Combat Mode CVar writes. Captures/restores
+--  priorCVarSnapshot, merges reticleTargetingCVarOverrides into effective reticle
+--  values, applies Action Camera / sticky / shoulder / mouselook speed, Interaction HUD
+--  SoftTarget subset, and CursorFreelookCentering / CursorCenteredYPos helpers for
+--  FreeLook + Crosshair.
+--  Architecture / how it works:
+--    • Always calls live `_G.C_CVar.SetCVar` so Reticle CVar editor attribution hooks see CM.
+--    • CapturePriorCVarSnapshot / EnsurePriorCVarSnapshot once per login over ManagedCVarNames;
+--      RestorePriorCVars used by Uninstall; restoringCVars suppresses re-snapshot.
+--    • GetEffectiveReticleTargetingCVarValues = preset ∪ global.reticleTargetingCVarOverrides.
+--    • ConfigReticleTargeting / ConfigInteractionHUDSoftTarget / ConfigActionCamera /
+--      ConfigStickyCrosshair / SetMouseLookSpeed / SetShoulderOffset / HandleSoftTargetFriend.
+--    • SetCursorFreelookCenteringCVar + SetCursorCenteredYPos — FreeLook bounce + Y sync.
+--  Does not: Own SoftTarget UI widgets or freelook state machine.
+--  Related: Constants/CVars.lua, Constants/DatabaseDefaults.lua,
+--  Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD.lua,
+--  UI/Editors/ReticleCVarEditorData.lua, UI/Options/Tabs/TabReticleTargeting.lua,
+--  UI/Options/Tabs/TabCamera.lua, Core/FreeLook/FreeLookController.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

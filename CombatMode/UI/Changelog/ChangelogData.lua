@@ -1,6 +1,16 @@
 ---------------------------------------------------------------------------------------
---  UI/Changelog/ChangelogData.lua - changelog body for in-game viewer
---  Regenerate from CHANGELOG.md:  scripts\sync-changelog-to-lua.ps1
+--  UI/Changelog/ChangelogData.lua — CHANGELOG — body string for in-game viewer
+---------------------------------------------------------------------------------------
+--  What it does: Holds CM.Config.ChangelogText — the Keep a Changelog markdown body shown
+--  in-game. Maintained from CombatMode/CHANGELOG.md via
+--  scripts/sync-changelog-to-lua.ps1 (do not hand-edit unless regenerating).
+--  Architecture / how it works:
+--    • Uses `_G.CM` because sync output is plain assignment after namespace init.
+--    • Panel parses a markdown subset into SimpleHTML; compare links / Unreleased may be
+--      skipped in-game.
+--  Does not: Own the viewer UI or version-bump detection.
+--  Related: UI/Changelog/ChangelogPanel.lua, UI/Changelog/ChangelogNamespace.lua,
+--  CombatMode/CHANGELOG.md
 ---------------------------------------------------------------------------------------
 local _G = _G
 local CM = _G.CM

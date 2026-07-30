@@ -1,12 +1,21 @@
 ---------------------------------------------------------------------------------------
 --  Constants/CVars.lua — CONSTANTS — CVar presets / editor exclusions
 ---------------------------------------------------------------------------------------
---  Owns ReticleTargetingCVarValues (CombatMode reticle defaults), Blizzard reset
---  tables, Action Camera / Sticky Crosshair / Interaction HUD SoftTarget subsets,
---  ReticleTargetingCVarEditorExcluded (keys hidden from the editor and pruned from
---  saved overrides), and ManagedCVarNames (union of every CVar CM may write — used by
---  CVarManager to snapshot pre-CM values for Uninstall restore).
---  Consumed by Core/Runtime/CVarManager.lua and UI/Editors/*.
+--  What it does: Declares every named CVar preset Combat Mode may apply: reticle targeting,
+--  Interaction HUD SoftTarget subset, Action Camera, sticky crosshair (TargetFocus), and
+--  matching Blizzard reset tables. Builds ManagedCVarNames as the union used for prior
+--  snapshots. Also lists ReticleTargetingCVarEditorExcluded keys the editor must not show.
+--  Architecture / how it works:
+--    • ReticleTargetingCVarValues — SoftTarget*, deselectOnClick, CursorStickyCentering, etc.
+--    • InteractionHUDSoftTargetCVarValues — SoftTargetInteract + icon CVars when HUD is on
+--      without full reticle targeting.
+--    • ActionCameraCVarValues / TargetFocusCVarValues (+ Blizzard* counterparts).
+--    • ManagedCVarNames also includes cameraYaw/PitchMoveSpeed and CursorCenteredYPos.
+--  Does not: Call SetCVar or merge DB overrides (CVarManager owns writes + effective values).
+--  Related: Core/Runtime/CVarManager.lua, UI/Editors/ReticleCVarEditorData.lua,
+--  UI/Editors/ReticleCVarEditorPanel.lua, Constants/DatabaseDefaults.lua,
+--  Core/Crosshair/InteractionHUD.lua, UI/Options/Tabs/TabReticleTargeting.lua,
+--  UI/Options/Tabs/TabCamera.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 

@@ -1,29 +1,17 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Widgets.lua — OPTIONS TOOLKIT — control factories
+--  UI/Options/Widgets.lua — OPTIONS — control factories
 ---------------------------------------------------------------------------------------
---  Owns the reusable option controls for the custom options window: toggle switch,
---  slider (accent fill + eased value transitions), dropdown (custom high-strata popup
---  w/ filter + scroll), keybind capture, text/multiline input, pill button, section
---  header, and wrapped description. Spell pill multi-select lives in
---  UI/Options/SpellMultiSelect.lua (UI.MakeSpellMultiSelect). Every value control
---  exposes :Refresh() (re-pulls get()/disabled()) and auto-registers with CM.UI.Options
---  for the central SyncControls pass. Confirmation dialogs route through UI.Confirm /
---  UI.Notify (CombatModeConfirmDialog; body text is stripped of color markup). The
---  first-install greeting uses a dedicated UI.ShowWelcome modal (CombatModeWelcomeDialog)
---  that keeps inline |cff| colors for slash-command hints and is not registered in
---  UISpecialFrames, so Blizzard's load-end CloseSpecialWindows cannot dismiss it.
---
---  All text renders at the fixed UI.Fonts.base size with inline color markup stripped
---  (UI.StripColors); UI.MakeHeader is the sole exception (larger + accent yellow), and
---  toggles use accent yellow when on / grey when off with a short knob/track ease on change.
---  Option rows follow a WaypointUI-style 60/40 split: title + muted helper text
---  (`opts.desc`) stack tightly in the left column, and the interactive control sits in
---  the right column (vertically centered). `opts.charSpecific = true` places a blue ©
---  mark to the right of the title (tooltip: character-specific option).
---
---  Consumes UI/Options/Draw.lua primitives + theme tokens. Contains no feature logic:
---  controls call the get/set/disabled closures supplied by the tab builders, which in
---  turn call existing CM.* feature APIs and CM.DB fields.
+--  What it does: Factories for toggles, sliders, dropdowns, keybind capture, text inputs,
+--  headers, gaps, Confirm/Notify dialogs, ShowWelcome, and SyncControls registration.
+--  Tabs supply get/set closures; widgets stay feature-API agnostic.
+--  Architecture / how it works:
+--    • UI.Options.controls registry; Options.Sync() refreshes values + disabled state.
+--    • Layout helpers (NewLayout) used by tabs and nested hosts (e.g. Camera/DynamicCam).
+--    • charSpecific badge + tooltips for per-character settings.
+--  Does not: Call CM feature apply functions except via tab-provided set() callbacks.
+--  Related: UI/Options/Draw.lua, UI/Options/SpellMultiSelect.lua,
+--  UI/Options/OptionsPanel.lua, UI/Options/Tabs/TabGeneral.lua,
+--  UI/Options/Tabs/TabCrosshair.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

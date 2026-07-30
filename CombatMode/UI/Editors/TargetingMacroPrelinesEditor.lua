@@ -1,11 +1,17 @@
 ---------------------------------------------------------------------------------------
---  UI/Editors/TargetingMacroPrelinesEditor.lua — Targeting Macro Prelines editor (custom)
+--  UI/Editors/TargetingMacroPrelinesEditor.lua — EDITOR — targeting macro prelines
 ---------------------------------------------------------------------------------------
---  Standalone custom window built with the CM.UI toolkit
---  (UI/Options/*). Opened from the Reticle Targeting tab via
---  CM.OpenTargetingMacroPrelinesEditor. Persists account-wide overrides
---  CM.DB.global.targetingMacroPrelineAnyOverride / targetingMacroPrelineEnemyOverride;
---  Core/ClickCasting/TargetingMacroBuilder.lua applies them. Combat-guarded on open.
+--  What it does: Standalone editor (CM.OpenTargetingMacroPrelinesEditor) for customizing
+--  the any-unit and enemy-only targeting prelines injected into click-cast macros.
+--  Persists targetingMacroPrelineAnyOverride / EnemyOverride; reload confirm on save.
+--  Architecture / how it works:
+--    • Defaults from TargetingMacroBuilder.TargetingMacroPrelinesDefaults.
+--    • Enemy-only field relevance follows char.reticleTargetingEnemyOnly.
+--    • Combat-guarded open; uses CM.UI CreateWindow.
+--  Does not: Rebuild secure macrotext until reload / RefreshClickCastMacros path runs.
+--  Related: Core/ClickCasting/TargetingMacroBuilder.lua,
+--  UI/Options/Tabs/TabReticleTargeting.lua, Constants/DatabaseDefaults.lua,
+--  UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
