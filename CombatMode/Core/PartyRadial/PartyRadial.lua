@@ -8,13 +8,15 @@
 --  font size are fixed constants (not user options). Health bars use the widgetstatusbar
 --  L/C/R kit with a white fill tinted by health % via UnitHealthPercent color curves
 --  (secret/taint-safe, same approach as Platynator/EQOL); options preview simulates varied
---  health so low-health glow is visible.
+--  health so low-health glow is visible. Show/hide fades mainFrame alpha (combat-safe;
+--  never Show/Hide secure children for visibility).
 --  Architecture / how it works:
 --    • CM.PartyRadial API: Initialize, Show/Hide/ShowFromKeybind, ApplyVisualConfig,
 --      UpdateMainFramePosition, OnGroupRosterUpdate / OnCombatStart/End /
 --      OnActionBarChanged / OnBindingChanged, OnMouselookChanged.
---    • Slice geometry from Constants.PartyRadialSlices; secure attributes refreshed when
---      bars/roster change (EventRouter REFRESH_BINDINGS + FRIENDLY_TARGETING).
+--    • Visibility: SetAlpha fade in/out on always-shown mainFrame (protected Show/Hide
+--      avoided). Logical close (isActive, freelook, EnableMouse) is immediate on Hide;
+--      visual fade-out continues on a short OnUpdate.
 --    • Preview is layout-only — does not reuse mouselook-gated Show/Hide.
 --  Does not: Own click-cast mouse slot overrides or SoftTarget CVars.
 --  Related: Constants/PartyRadial.lua, Core/FreeLook/FreeLookController.lua,
@@ -46,6 +48,7 @@ local UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned
 local UnitHealth = _G.UnitHealth
 local UnitHealthMax = _G.UnitHealthMax
 local UnitInRange = _G.UnitInRange
+local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitIsUnit = _G.UnitIsUnit
 local UnitName = _G.UnitName
 
@@ -84,10 +87,12 @@ end
 
 -- Colors used with EvaluateColorFromBoolean to extract tainted boolean values.
 -- EvaluateColorFromBoolean(bool, trueColor, falseColor) returns a ColorMixin
--- whose .a field reflects the boolean's value without triggering taint errors.
--- We use alpha=1.0 for "reachable" and alpha=0.4 for "unreachable".
+-- whose fields reflect the boolean's value without triggering taint errors.
+-- Reachable uses alpha; dead role icons use RGB (SetDesaturated needs a public bool).
 local COLOR_REACHABLE = CreateColor(1, 1, 1, 1.0)
 local COLOR_UNREACHABLE = CreateColor(1, 1, 1, 0.4)
+local COLOR_ICON_ALIVE = CreateColor(1, 1, 1, 1)
+local COLOR_ICON_DEAD = CreateColor(0.45, 0.45, 0.45, 1)
 
 -- Module namespace
 CM.PartyRadial = {}
@@ -111,6 +116,11 @@ local RadialState = {
   triggerButtons = {},
   sliceRefreshElapsed = 0,
   sliceRefreshInterval = 0.08,
+  -- mainFrame alpha fade: "in" | "out" | nil
+  fadeMode = nil,
+  fadeElapsed = 0,
+  fadeFrom = 0,
+  fadeTo = 1,
 }
 
 local PREVIEW_DPS_VARIANTS = {
@@ -1259,9 +1269,15 @@ function HR.DismissOnLoad()
     HR.SetOptionsPreview(false)
   end
   if not RadialState.isActive then
+    if RadialState.mainFrame then
+      RadialState.fadeMode = nil
+      RadialState.mainFrame:SetScript("OnUpdate", nil)
+      RadialState.mainFrame:SetAlpha(0)
+    end
     return
   end
   if RadialState.mainFrame then
+    RadialState.fadeMode = nil
     RadialState.mainFrame:SetScript("OnUpdate", nil)
     RadialState.mainFrame:SetAlpha(0)
   end
@@ -1528,6 +1544,30 @@ local function UpdateSliceVisual(sliceIndex)
   }
   if roleAtlas[memberData.role] then
     slice.roleIcon:SetAtlas(roleAtlas[memberData.role])
+    -- Grey out dead/ghost members (secret-safe via EvaluateColorFromBoolean).
+    if isPlaceholder or not UnitIsDeadOrGhost then
+      slice.roleIcon:SetVertexColor(1, 1, 1, 1)
+      if slice.roleIcon.SetDesaturated then
+        slice.roleIcon:SetDesaturated(false)
+      end
+    elseif EvaluateColorFromBoolean then
+      local isDead = UnitIsDeadOrGhost(memberData.unitId)
+      local iconColor = EvaluateColorFromBoolean(isDead, COLOR_ICON_DEAD, COLOR_ICON_ALIVE)
+      if slice.roleIcon.SetDesaturated then
+        slice.roleIcon:SetDesaturated(false)
+      end
+      slice.roleIcon:SetVertexColor(iconColor.r, iconColor.g, iconColor.b, iconColor.a)
+    else
+      local isDead = UnitIsDeadOrGhost(memberData.unitId)
+      if slice.roleIcon.SetDesaturated then
+        slice.roleIcon:SetDesaturated(isDead and true or false)
+      end
+      if isDead then
+        slice.roleIcon:SetVertexColor(0.45, 0.45, 0.45, 1)
+      else
+        slice.roleIcon:SetVertexColor(1, 1, 1, 1)
+      end
+    end
     slice.roleIcon:Show()
     slice.roleIconBG:Show() -- Show background when role icon is shown
     -- Show checkmark when this slice's unit is the current target
@@ -1564,6 +1604,7 @@ end
 
 local function StopOptionsPreviewVisuals()
   if RadialState.mainFrame then
+    RadialState.fadeMode = nil
     RadialState.mainFrame:SetScript("OnUpdate", nil)
     RadialState.mainFrame:SetAlpha(0)
   end
@@ -1599,6 +1640,7 @@ local function StartOptionsPreviewVisuals()
   UpdateAllSlices()
   -- Layout-only: do not steal clicks or cast while tweaking settings.
   SetSliceMouseEnabled(false)
+  RadialState.fadeMode = nil
   RadialState.mainFrame:SetAlpha(1)
   RadialState.mainFrame:SetScript("OnUpdate", PreviewOnUpdate)
 end
@@ -1706,7 +1748,114 @@ local function IsMouseButtonStillDown(buttonKey)
   return mouseDown
 end
 
+---------------------------------------------------------------------------------------
+--                         MAINFRAME SHOW/HIDE ALPHA FADE                            --
+---------------------------------------------------------------------------------------
+local FADE_IN_DURATION = 0.18
+local FADE_OUT_DURATION = 0.22
+
+local function EaseOutQuad(progress)
+  local inv = 1 - progress
+  return 1 - inv * inv
+end
+
+local function ResetRadialHideVisuals()
+  for i = 1, 5 do
+    local slice = RadialState.sliceFrames[i]
+    if slice then
+      slice:SetAlpha(0)
+      slice.targetScale = 1.0
+      slice.scaleStart = 1.0
+      slice.scaleElapsed = -1
+      if slice.innerFrame then
+        slice.innerFrame:SetScale(1.0)
+        slice.innerFrame:SetAlpha(1.0)
+      end
+    end
+  end
+
+  local arrowFrame = RadialState.centerArrowFrame
+  if arrowFrame then
+    arrowFrame.arrowLockInElapsed = -1
+    arrowFrame:SetScale(1.0)
+    arrowFrame:SetAlpha(1.0)
+  end
+end
+
+local function FinishFadeOutVisuals()
+  ResetRadialHideVisuals()
+  if RadialState.mainFrame then
+    RadialState.mainFrame:SetAlpha(0)
+    if not RadialState.isActive then
+      RadialState.mainFrame:SetScript("OnUpdate", nil)
+    end
+  end
+end
+
+-- Returns true while a fade is still running.
+local function UpdateRadialFade(elapsed)
+  if not RadialState.fadeMode or not RadialState.mainFrame then
+    return false
+  end
+
+  local duration = RadialState.fadeMode == "in" and FADE_IN_DURATION or FADE_OUT_DURATION
+  RadialState.fadeElapsed = RadialState.fadeElapsed + elapsed
+  local progress = RadialState.fadeElapsed / duration
+  if progress >= 1 then
+    RadialState.mainFrame:SetAlpha(RadialState.fadeTo)
+    local mode = RadialState.fadeMode
+    RadialState.fadeMode = nil
+    RadialState.fadeElapsed = 0
+    if mode == "out" then
+      FinishFadeOutVisuals()
+    end
+    return false
+  end
+
+  local eased = EaseOutQuad(progress)
+  local alpha = RadialState.fadeFrom + (RadialState.fadeTo - RadialState.fadeFrom) * eased
+  RadialState.mainFrame:SetAlpha(alpha)
+  return true
+end
+
+local function StartRadialFade(toAlpha)
+  local frame = RadialState.mainFrame
+  if not frame then
+    return
+  end
+
+  local fromAlpha = frame:GetAlpha() or 0
+  RadialState.fadeFrom = fromAlpha
+  RadialState.fadeTo = toAlpha
+  RadialState.fadeElapsed = 0
+  if toAlpha >= fromAlpha then
+    RadialState.fadeMode = "in"
+  else
+    RadialState.fadeMode = "out"
+  end
+
+  if math.abs(toAlpha - fromAlpha) < 0.001 then
+    frame:SetAlpha(toAlpha)
+    local mode = RadialState.fadeMode
+    RadialState.fadeMode = nil
+    RadialState.fadeElapsed = 0
+    if mode == "out" then
+      FinishFadeOutVisuals()
+    end
+  end
+end
+
+local function FadeOutOnUpdate(_, elapsed)
+  if not UpdateRadialFade(elapsed) and RadialState.mainFrame and not RadialState.isActive then
+    RadialState.mainFrame:SetScript("OnUpdate", nil)
+  end
+end
+
 local function TrackMousePosition(_, elapsed)
+  if RadialState.fadeMode == "in" then
+    UpdateRadialFade(elapsed)
+  end
+
   if not RadialState.isActive then
     return
   end
@@ -1851,19 +2000,18 @@ function HR.Show(buttonKey)
   -- in combat, slices keep EnableMouse from last out-of-combat Show, which is true)
   SetSliceMouseEnabled(true)
 
-  -- Show mainFrame + children via alpha (combat-safe). SetAlpha propagates
-  -- to child frames (slices inherit parent alpha).
+  -- Fade mainFrame + children in via alpha (combat-safe).
   if RadialState.wheelBG then
     RadialState.wheelBG:SetShown(
       CM.DB.global.partyRadial and CM.DB.global.partyRadial.showBackground
     )
   end
-  RadialState.mainFrame:SetAlpha(1)
+  StartRadialFade(1)
 
   -- Apply initial highlight AFTER slices are visible
   HR.HighlightSlice(RadialState.selectedSlice)
 
-  -- Start mouse tracking
+  -- Start mouse tracking (also drives fade-in)
   RadialState.mainFrame:SetScript("OnUpdate", TrackMousePosition)
 
   -- Play arrow lock-in animation (always start from base scale 1.0 to prevent compounding)
@@ -1925,42 +2073,12 @@ function HR.Hide()
   end
   CM.DebugPrint("Party Radial: HR.Hide called from: " .. (debugstack(2, 1, 0) or "unknown"))
 
-  -- Stop mouse tracking
-  RadialState.mainFrame:SetScript("OnUpdate", nil)
-
-  -- Hide all slices via alpha; reset inner frame scale and animation state
-  for i = 1, 5 do
-    local slice = RadialState.sliceFrames[i]
-    if slice then
-      slice:SetAlpha(0)
-      slice.targetScale = 1.0
-      slice.scaleStart = 1.0
-      slice.scaleElapsed = -1
-      if slice.innerFrame then
-        slice.innerFrame:SetScale(1.0) -- Always safe: innerFrame is not secure
-        slice.innerFrame:SetAlpha(1.0) -- Reset range dimming
-      end
-    end
-  end
-
-  -- Reset arrow animation state and scale (prevents compounding on next Show)
-  local arrowFrame = RadialState.centerArrowFrame
-  if arrowFrame then
-    arrowFrame.arrowLockInElapsed = -1
-    arrowFrame:SetScale(1.0)
-  end
-
-  -- Hide mainFrame + children via alpha (combat-safe)
-  RadialState.mainFrame:SetAlpha(0)
-
-  -- Disable mouse on slices so they don't intercept clicks when invisible.
+  -- Disable mouse immediately so a fading radial cannot steal clicks.
   -- Only works out of combat (EnableMouse is protected on secure frames in combat).
-  -- In combat, slices stay mouse-enabled but are invisible; acceptable because
-  -- the user is typically in mouselook (no visible cursor) during combat.
   SetSliceMouseEnabled(false)
 
   -- Mark inactive so ShouldFreeLookBeOff() via IsPartyRadialActive()
-  -- no longer detects the radial as open.
+  -- no longer detects the radial as open (freelook can return during fade-out).
   RadialState.isActive = false
   RadialState.selectedSlice = nil
 
@@ -1982,6 +2100,15 @@ function HR.Hide()
     if CM.IsCrosshairEnabled() then
       CM.DisplayCrosshair(true)
     end
+  end
+
+  -- Visual fade-out continues after logical close (combat-safe SetAlpha only).
+  StartRadialFade(0)
+  if RadialState.fadeMode == "out" then
+    RadialState.mainFrame:SetScript("OnUpdate", FadeOutOnUpdate)
+  else
+    -- Already at 0 (or snap-finished); ensure OnUpdate is cleared.
+    RadialState.mainFrame:SetScript("OnUpdate", nil)
   end
 
   CM.DebugPrint("Party Radial: Hidden (combat=" .. tostring(InCombatLockdown()) .. ")")
@@ -2044,18 +2171,18 @@ function HR.ShowFromKeybind()
   -- Enable mouse on slices so they can receive clicks
   SetSliceMouseEnabled(true)
 
-  -- Show mainFrame + children via alpha (combat-safe). SetAlpha propagates to child slices.
+  -- Fade mainFrame + children in via alpha (combat-safe).
   if RadialState.wheelBG then
     RadialState.wheelBG:SetShown(
       CM.DB.global.partyRadial and CM.DB.global.partyRadial.showBackground
     )
   end
-  RadialState.mainFrame:SetAlpha(1)
+  StartRadialFade(1)
 
   -- Apply initial highlight AFTER slices are visible
   HR.HighlightSlice(RadialState.selectedSlice)
 
-  -- Start mouse tracking (for health bar updates and OnEnter/OnLeave)
+  -- Start mouse tracking (for health bar updates and OnEnter/OnLeave; also drives fade-in)
   RadialState.mainFrame:SetScript("OnUpdate", TrackMousePosition)
 
   -- Play arrow lock-in animation (always start from base scale 1.0 to prevent compounding)
