@@ -90,6 +90,8 @@ CM.Constants.DatabaseDefaults = {
     actionCamMouselookDisable = false,
     mouseLookSpeed = 120,
     pulseCursor = true,
+    -- Unsheath in Mouse Look; sheath on tap-off and Auto Cursor Unlock (not hold/radial/OPie/ground).
+    sheathWeaponsWithMouselook = true,
     -- "mouseover" (INTERACTMOUSEOVER) or "target" (INTERACTTARGET); ALT+key binds the other.
     interactUnit = "mouseover",
     mountCheck = false,

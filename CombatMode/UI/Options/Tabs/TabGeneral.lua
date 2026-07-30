@@ -125,6 +125,16 @@ UI.Options.AddTab({
         return not CM.IsCrosshairEnabled()
       end,
     })
+    ctx:Toggle({
+      label = "Sheath Weapons with Mouse Look",
+      desc = "Unsheath weapons when Mouse Look turns on. Sheath when it turns off.",
+      get = function()
+        return CM.DB.global.sheathWeaponsWithMouselook
+      end,
+      set = function(value)
+        CM.DB.global.sheathWeaponsWithMouselook = value
+      end,
+    })
 
     ctx:Gap()
     ctx:Header("INTERACT")

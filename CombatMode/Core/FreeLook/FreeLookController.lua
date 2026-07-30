@@ -4,8 +4,8 @@
 --  What it does: Owns Mouse Look lock/unlock, cursor-mode keybind behavior,
 --  ShouldFreeLookBeOff aggregation, CursorFreelookCentering bounce
 --  (force CVar 0 → MouselookStart → deferred set to 1), tooltip hide while locked,
---  and the OPie rematch latch (NotifyOpieUnlockFrameVisible /
---  RematchFreeLookAfterOpieIfNeeded).
+--  optional sheath-with-mouselook (intentional toggle only), and the OPie rematch
+--  latch (NotifyOpieUnlockFrameVisible / RematchFreeLookAfterOpieIfNeeded).
 --  Architecture / how it works:
 --    • LockFreeLook / UnlockFreeLook drive MouselookStart/Stop + crosshair display +
 --      centering helpers via CVarManager.
@@ -13,6 +13,9 @@
 --      SetCursorFreelookCentering(true) so the cursor recenters reliably.
 --    • ShouldFreeLookBeOff consults AutoCursorUnlock predicates, SpellIsTargeting,
 --      cinematics, FreeLookOverride, default LMB/RMB held.
+--    • SheathWeaponsWithMouselook: unsheath on intentional Mouse Look; sheath on
+--      tap unlock (poll detects binding release) and Auto Cursor Unlock. Hold
+--      never sheaths. Party Radial, ground targeting, and OPie keep weapons drawn.
 --    • OPie: when a ring is visible, unlock path may free centering; Rematch after
 --      the ring closes re-bounces freelook if still desired.
 --  Does not: Own frame-watch lists/predicates (AutoCursorUnlock) or CVar preset tables.
@@ -26,14 +29,18 @@ local _G = _G
 -- WoW API
 local C_Timer = _G.C_Timer
 local GameTooltip = _G.GameTooltip
+local GetBindingKey = _G.GetBindingKey
+local GetSheathState = _G.GetSheathState
 local GetTime = _G.GetTime
 local InCinematic = _G.InCinematic
 local IsInCinematicScene = _G.IsInCinematicScene
+local IsKeyDown = _G.IsKeyDown
 local IsMouseButtonDown = _G.IsMouseButtonDown
 local IsMouselooking = _G.IsMouselooking
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
 local SpellIsTargeting = _G.SpellIsTargeting
+local ToggleSheath = _G.ToggleSheath
 
 -- Lua stdlib
 local string = _G.string
@@ -42,6 +49,126 @@ local string = _G.string
 local FreeLookOverride = false -- Changes when Free Look state is modified through user input ("Toggle / Hold" keybind and "/cm" cmd)
 local CursorModeShowTime = 0 -- GetTime() when cursor was unlocked via keybind (for spurious key-up filter)
 local opieUnlockSeen = false -- Latched while an OPie ring was reported visible
+local pendingTapSheath = false -- True until tap sheath is applied or hold is confirmed
+local SHEATH_STATE_SHEATHED = 1
+local MOUSE_LOOK_BINDING = "Combat Mode - Mouse Look"
+local CURSOR_MODE_HOLD_THRESHOLD = 0.3
+local CURSOR_MODE_SPURIOUS_KEY_UP = 0.05
+local CURSOR_MODE_SHEATH_POLL = 0.05
+local MOUSE_BINDING_BUTTON = {
+  BUTTON1 = "LeftButton",
+  BUTTON2 = "RightButton",
+  BUTTON3 = "MiddleButton",
+  BUTTON4 = "Button4",
+  BUTTON5 = "Button5",
+}
+
+local function IsPartyRadialActive()
+  return CM.PartyRadial and CM.PartyRadial.IsActive and CM.PartyRadial.IsActive()
+end
+
+-- Idempotent sheath/unsheath when the option is on.
+local function ApplyWeaponsSheathed(wantSheathed)
+  if not (CM.DB and CM.DB.global and CM.DB.global.sheathWeaponsWithMouselook) then
+    return
+  end
+  if not (GetSheathState and ToggleSheath) then
+    return
+  end
+  local state = GetSheathState()
+  if not state then
+    return
+  end
+  local isSheathed = state == SHEATH_STATE_SHEATHED
+  if wantSheathed == isSheathed then
+    return
+  end
+  ToggleSheath()
+end
+
+-- Temporary gameplay unlocks keep weapons drawn; Auto Cursor Unlock / etc. may sheath.
+local function ShouldKeepWeaponsDrawnOnTempUnlock()
+  if FreeLookOverride then
+    return true
+  end
+  if IsPartyRadialActive() then
+    return true
+  end
+  if SpellIsTargeting() then
+    return true
+  end
+  -- Set by AutoCursorUnlock while an OPie ring is visible (before UnlockFreeLook).
+  if opieUnlockSeen then
+    return true
+  end
+  return false
+end
+
+local function IsMouseLookBindingKeyDown()
+  if not GetBindingKey then
+    return false
+  end
+  local key1, key2 = GetBindingKey(MOUSE_LOOK_BINDING)
+  for i = 1, 2 do
+    local key = (i == 1) and key1 or key2
+    if key then
+      if IsKeyDown and IsKeyDown(key) then
+        return true
+      end
+      local mouseButton = MOUSE_BINDING_BUTTON[key]
+      if mouseButton and IsMouseButtonDown(mouseButton) then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+local function CancelPendingTapSheath()
+  pendingTapSheath = false
+end
+
+-- Never sheath on unlock press (hold would flash). Poll until the binding is up
+-- (tap → sheath) or the hold threshold elapses while still down (hold → no sheath).
+local function ScheduleTapSheathPoll()
+  pendingTapSheath = true
+  if not (C_Timer and C_Timer.After) then
+    pendingTapSheath = false
+    return
+  end
+
+  local function poll()
+    if not pendingTapSheath then
+      return
+    end
+    if not FreeLookOverride then
+      pendingTapSheath = false
+      return
+    end
+
+    local elapsed = GetTime() - CursorModeShowTime
+    if IsMouseLookBindingKeyDown() then
+      if elapsed >= CURSOR_MODE_HOLD_THRESHOLD then
+        -- Hold confirmed: keep weapons drawn.
+        pendingTapSheath = false
+        return
+      end
+      C_Timer.After(CURSOR_MODE_SHEATH_POLL, poll)
+      return
+    end
+
+    -- Key/button released. Ignore the near-instant MouselookStop spurious window.
+    if elapsed < CURSOR_MODE_SPURIOUS_KEY_UP then
+      C_Timer.After(CURSOR_MODE_SHEATH_POLL, poll)
+      return
+    end
+
+    pendingTapSheath = false
+    ApplyWeaponsSheathed(true)
+  end
+
+  C_Timer.After(CURSOR_MODE_SPURIOUS_KEY_UP, poll)
+end
 
 -- This prevents the auto running bug.
 function CM.IsDefaultMouseActionBeingUsed()
@@ -65,10 +192,6 @@ local function HideTooltip(shouldHide)
   if tooltipHidden and GameTooltip:IsShown() then
     GameTooltip:Hide()
   end
-end
-
-local function IsPartyRadialActive()
-  return CM.PartyRadial and CM.PartyRadial.IsActive and CM.PartyRadial.IsActive()
 end
 
 function CM.ShouldFreeLookBeOff()
@@ -164,6 +287,10 @@ function CM.LockFreeLook()
     return
   end
   StartFreeLookFresh()
+  -- Returning to intentional Mouse Look (e.g. after Auto Cursor Unlock).
+  if not FreeLookOverride then
+    ApplyWeaponsSheathed(false)
+  end
 end
 
 function CM.UnlockFreeLook()
@@ -180,6 +307,12 @@ function CM.UnlockFreeLook()
   if CM.PartyRadial and CM.PartyRadial.OnMouselookChanged then
     CM.PartyRadial.OnMouselookChanged(false)
   end
+
+  -- Auto Cursor Unlock / mount / pet battle / etc. sheath; hold/radial/ground/OPie do not.
+  if not ShouldKeepWeaponsDrawnOnTempUnlock() then
+    ApplyWeaponsSheathed(true)
+  end
+
   CM.DebugPrint("Free Look Disabled")
 end
 
@@ -226,6 +359,7 @@ end
 -- MouselookStop() fires spurious key-up events for held keys, so we ignore
 -- key-ups within 0.3s of unlocking. A quick tap leaves the cursor free (toggle);
 -- holding longer than 0.3s re-locks on release (hold).
+-- Sheath polls the binding: tap sheaths after release; hold never sheaths.
 function _G.CombatMode_CursorModeKey(keystate)
   if CM.IsDefaultMouseActionBeingUsed() then
     CM.DebugPrint("Cannot toggle Free Look while holding down your left or right click.")
@@ -235,14 +369,17 @@ function _G.CombatMode_CursorModeKey(keystate)
   if keystate == "down" then
     if not IsMouselooking() and FreeLookOverride then
       -- Already unlocked via previous tap — re-lock (toggle off)
+      CancelPendingTapSheath()
       CM.LockFreeLook()
       FreeLookOverride = false
       CursorModeShowTime = 0 -- No spurious filter needed for lock
+      ApplyWeaponsSheathed(false)
     elseif IsMouselooking() then
-      -- Currently mouselooking — unlock cursor
+      -- Currently mouselooking — unlock cursor (tap or hold; sheath only if tap)
       CursorModeShowTime = GetTime()
       UnlockFreeLookPermanent()
       FreeLookOverride = true
+      ScheduleTapSheathPoll()
     end
   elseif keystate == "up" then
     if not FreeLookOverride then
@@ -251,13 +388,14 @@ function _G.CombatMode_CursorModeKey(keystate)
     end
     -- Ignore spurious key-ups from MouselookStop (within 0.3s)
     local elapsed = GetTime() - CursorModeShowTime
-    if elapsed < 0.3 then
+    if elapsed < CURSOR_MODE_HOLD_THRESHOLD then
       CM.DebugPrint(
         "Cursor Mode: Ignoring spurious key-up (elapsed=" .. string.format("%.3f", elapsed) .. "s)"
       )
       return
     end
-    -- Hold release: re-lock mouselook
+    -- Hold release: re-lock mouselook; do not sheath
+    CancelPendingTapSheath()
     CM.LockFreeLook()
     FreeLookOverride = false
   end
