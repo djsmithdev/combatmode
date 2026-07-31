@@ -10,7 +10,8 @@
 --    • IconMask chrome shell: Radial_Wheel_BG shadow → spell_icon background →
 --      circular-masked spell art → cyan breath glow → dark frame; ProcLoop FlipBook
 --      (UF-RogueCP-Slash-Blue, 18 frames) plays once in reverse when the suggestion
---      spell changes.
+--      spell changes. Cast-success BurstFX FlipBook (dragonriding_sgvigor_burst_flipbook,
+--      4x4 / 16 frames) plays near native speed and lingers slightly past the icon explode.
 --    • Click-cast keybinds: modifier BLPs + mouse-button atlases
 --      (newplayertutorial-icon-mouse-leftbutton / -rightbutton) via |T|/|A| markup on the
 --      outer side of the icon. Keyboard binds: abbreviated FrizQT OUTLINE, top-right
@@ -91,12 +92,23 @@ local PROC_FLIP_FRAMES = 18
 local PROC_PLAY_DURATION = 0.57
 local PROC_PREVIEW_SPELL_ID = -1
 
+-- Dragonriding vigor burst FlipBook (Interface/Widgets/DragonridingSGVigorWidget2x).
+-- Full sheet: 4x4 = 16 frames. Near-native speed; lingers slightly past the icon explode.
+local BURST_ATLAS = "dragonriding_sgvigor_burst_flipbook"
+local BURST_FLIP_ROWS = 4
+local BURST_FLIP_COLUMNS = 4
+local BURST_FLIP_FRAMES = 16
+-- Native vigor burst pace (~0.5s); longer than CAST_EXPLODE_DURATION so it lingers.
+local BURST_PLAY_DURATION = 0.5
+-- Burst is larger than the spell icon so the VFX reads clearly.
+local BURST_SIZE_MULT = 2.25
+
 -- Show/hide fade (Transition-style)
 local FADE_IN_DURATION = 0.22
 local FADE_OUT_DURATION = 0.36
 
--- Cast-success explode (mirrors Crosshair Animations cast explode feel)
-local CAST_EXPLODE_DURATION = 0.24
+-- Cast-success explode (icon shell); burst FlipBook uses BURST_PLAY_DURATION.
+local CAST_EXPLODE_DURATION = 0.36
 local CAST_EXPLODE_EXTRA_SCALE = 0.22
 -- Wrong-suggestion cast break (mirrors Crosshair Animations cast break)
 local CAST_BREAK_DURATION = 0.18
@@ -131,6 +143,9 @@ local breakSavedFrameColor
 -- Caches
 local assistedActionSlotSet
 local actionSlotCommandMap
+
+-- Forward declare: assigned below (FinishHide).
+local FinishHide
 
 ---------------------------------------------------------------------------------------
 --                         SHARED HELPERS (EASING / TRANSFORM)                       --
@@ -465,6 +480,102 @@ local function LayoutProcEffect(icon, expand)
   AssistedHighlightVisual.ProcLoop:SetAtlas(PROC_ATLAS)
 end
 
+local function ApplyBurstFlipSettings(flipAnim)
+  if not flipAnim then
+    return
+  end
+  flipAnim:SetDuration(BURST_PLAY_DURATION)
+  flipAnim:SetFlipBookRows(BURST_FLIP_ROWS)
+  flipAnim:SetFlipBookColumns(BURST_FLIP_COLUMNS)
+  flipAnim:SetFlipBookFrames(BURST_FLIP_FRAMES)
+  flipAnim:SetFlipBookFrameWidth(0)
+  flipAnim:SetFlipBookFrameHeight(0)
+end
+
+local function EnsureBurstAnimations()
+  if not (AssistedHighlightFrame and AssistedHighlightFrame.BurstFX) then
+    return
+  end
+  if AssistedHighlightFrame.BurstAnim then
+    ApplyBurstFlipSettings(AssistedHighlightFrame.BurstFlip)
+    return
+  end
+
+  -- Group lives on BurstFX so FlipBook targets this texture without SetChildKey.
+  local animGroup = AssistedHighlightFrame.BurstFX:CreateAnimationGroup()
+  animGroup:SetLooping("NONE")
+  animGroup:SetToFinalAlpha(true)
+
+  local flipAnim = animGroup:CreateAnimation("FlipBook")
+  flipAnim:SetOrder(0)
+  ApplyBurstFlipSettings(flipAnim)
+
+  animGroup:SetScript("OnFinished", function()
+    if AssistedHighlightFrame and AssistedHighlightFrame.BurstFX then
+      AssistedHighlightFrame.BurstFX:Hide()
+    end
+  end)
+
+  AssistedHighlightFrame.BurstAnim = animGroup
+  AssistedHighlightFrame.BurstFlip = flipAnim
+end
+
+local function LayoutBurstEffect(icon)
+  local burst = AssistedHighlightFrame and AssistedHighlightFrame.BurstFX
+  if not (burst and icon) then
+    return
+  end
+  local iconW = icon:GetWidth() or 40
+  local size = iconW * BURST_SIZE_MULT
+  burst:ClearAllPoints()
+  burst:SetPoint("CENTER", icon, "CENTER", 0, 0)
+  burst:SetSize(size, size)
+  burst:SetAtlas(BURST_ATLAS)
+end
+
+local function StopCastBurst()
+  if not AssistedHighlightFrame then
+    return
+  end
+  local anim = AssistedHighlightFrame.BurstAnim
+  if anim and anim:IsPlaying() then
+    anim:Stop()
+  end
+  if AssistedHighlightFrame.BurstFX then
+    AssistedHighlightFrame.BurstFX:Hide()
+  end
+end
+
+local function SetBurstAlpha(alpha)
+  local burst = AssistedHighlightFrame and AssistedHighlightFrame.BurstFX
+  if burst and burst:IsShown() then
+    burst:SetAlpha(math.max(0, math.min(1, alpha)))
+  end
+end
+
+--- Plays the vigor burst FlipBook once when the suggested spell is cast successfully.
+local function PlayCastBurst()
+  if not (AssistedHighlightFrame and AssistedHighlightFrame.BurstFX) then
+    return
+  end
+  EnsureBurstAnimations()
+  local icon = AssistedHighlightFrame.icon
+  if icon then
+    LayoutBurstEffect(icon)
+  end
+  local anim = AssistedHighlightFrame.BurstAnim
+  ApplyBurstFlipSettings(AssistedHighlightFrame.BurstFlip)
+  if anim and anim:IsPlaying() then
+    anim:Stop()
+  end
+  AssistedHighlightFrame.BurstFX:SetAtlas(BURST_ATLAS)
+  AssistedHighlightFrame.BurstFX:SetAlpha(1)
+  AssistedHighlightFrame.BurstFX:Show()
+  if anim then
+    anim:Play()
+  end
+end
+
 local function UpdateGlowBreath(elapsed)
   local glow = AssistedHighlightFrame and AssistedHighlightFrame.glow
   if not glow or not glow:IsShown() then
@@ -488,7 +599,7 @@ local function SetVisualAlpha(alpha)
   end
 end
 
-local function FinishHide()
+FinishHide = function()
   explodeActive = false
   explodeElapsed = 0
   if breakActive then
@@ -498,6 +609,7 @@ local function FinishHide()
   fadeMode = "hidden"
   fadeElapsed = 0
   StopProcEffect()
+  StopCastBurst()
   ResetVisualTransform()
   CenterAssistVisual()
   if AssistedHighlightVisual then
@@ -525,6 +637,9 @@ local function BeginCastExplode()
     AssistedHighlightAnimDriver:Show()
   end
 
+  -- Burst first so the FlipBook is visible from the first explode frame.
+  PlayCastBurst()
+
   -- Restart from a stable base so chained casts do not compound scale.
   ResetVisualTransform()
   CenterAssistVisual()
@@ -533,6 +648,7 @@ local function BeginCastExplode()
     currentAlpha = 0.85
   end
   SetVisualAlpha(currentAlpha)
+  SetBurstAlpha(1)
 
   explodeActive = true
   explodeElapsed = 0
@@ -545,20 +661,39 @@ end
 local function UpdateCastExplode(elapsed)
   if not AssistedHighlightVisual then
     explodeActive = false
+    StopCastBurst()
     return
   end
   explodeElapsed = explodeElapsed + elapsed
-  if explodeElapsed >= CAST_EXPLODE_DURATION then
-    FinishHide()
-    return
-  end
-  local progress = math.min(1, explodeElapsed / CAST_EXPLODE_DURATION)
-  local eased = EaseOutQuad(progress)
+
+  -- Icon shell: scale + fade over CAST_EXPLODE_DURATION (then stay hidden).
+  local iconProgress = math.min(1, explodeElapsed / CAST_EXPLODE_DURATION)
+  local eased = EaseOutQuad(iconProgress)
   local peak = explodeStartScale + CAST_EXPLODE_EXTRA_SCALE
   local scale = explodeStartScale + (peak - explodeStartScale) * eased
-  local alpha = explodeStartAlpha * (1 - progress * (2 - progress))
+  local iconHoldEnd = 0.33
+  local iconFadeT = 0
+  if iconProgress > iconHoldEnd then
+    iconFadeT = (iconProgress - iconHoldEnd) / (1 - iconHoldEnd)
+  end
+  local iconAlpha = explodeStartAlpha * (1 - iconFadeT * iconFadeT)
   AssistedHighlightVisual:SetScale(math.max(0.01, scale))
-  SetVisualAlpha(alpha)
+  SetVisualAlpha(iconAlpha)
+
+  -- Burst: FlipBook at native pace; opacity holds longer then fades over BURST_PLAY_DURATION.
+  local burstProgress = math.min(1, explodeElapsed / BURST_PLAY_DURATION)
+  local burstHoldEnd = 0.45
+  local burstFadeT = 0
+  if burstProgress > burstHoldEnd then
+    burstFadeT = (burstProgress - burstHoldEnd) / (1 - burstHoldEnd)
+  end
+  SetBurstAlpha(1 - burstFadeT * burstFadeT)
+
+  if explodeElapsed >= BURST_PLAY_DURATION then
+    SetVisualAlpha(0)
+    SetBurstAlpha(0)
+    FinishHide()
+  end
 end
 
 --- Shake/flash when the player casts something other than the shown suggestion.
@@ -574,6 +709,7 @@ local function BeginCastBreak()
     explodeElapsed = 0
   end
   StopProcEffect()
+  StopCastBurst()
   AssistedHighlightFrame:Show()
   AssistedHighlightVisual:Show()
   if AssistedHighlightAnimDriver then
@@ -751,6 +887,16 @@ local function EnsureAssistedHighlight()
   AssistedHighlightVisual.ProcLoop:SetPoint("CENTER", AssistedHighlightFrame.icon, "CENTER", 0, 0)
   AssistedHighlightVisual.ProcLoop:Hide()
   EnsureProcAnimations()
+
+  -- OVERLAY+4 on frame (sibling of Visual): vigor burst FlipBook on suggested-spell cast.
+  -- Parent is AssistedHighlightFrame so explode alpha on Visual does not wash out the burst.
+  AssistedHighlightFrame.BurstFX = AssistedHighlightFrame:CreateTexture(nil, "OVERLAY")
+  AssistedHighlightFrame.BurstFX:SetDrawLayer("OVERLAY", 4)
+  AssistedHighlightFrame.BurstFX:SetBlendMode("ADD")
+  AssistedHighlightFrame.BurstFX:SetAtlas(BURST_ATLAS)
+  AssistedHighlightFrame.BurstFX:SetPoint("CENTER", AssistedHighlightFrame.icon, "CENTER", 0, 0)
+  AssistedHighlightFrame.BurstFX:Hide()
+  EnsureBurstAnimations()
 
   AssistedHighlightFrame.keybindText =
     AssistedHighlightVisual:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -1318,6 +1464,7 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
     LayoutShellAroundIcon(AssistedHighlightFrame.glow, AssistedHighlightFrame.icon, expand)
     LayoutShellAroundIcon(AssistedHighlightFrame.frame, AssistedHighlightFrame.icon, expand)
     LayoutProcEffect(AssistedHighlightFrame.icon, expand)
+    LayoutBurstEffect(AssistedHighlightFrame.icon)
 
     -- Re-apply textures when layout changes (ApplyOptions path).
     local assets = CM.Constants

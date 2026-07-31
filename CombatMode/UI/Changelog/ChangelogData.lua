@@ -20,20 +20,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Crosshair Cast Feedback: crosshair provides visual feedback while casting; grows when channeling, explodes on a successful cast, and shakes/breaks on cancel or interrupt.
-- Sheath Weapons with Mouse Look: unsheath weapons when Mouse Look turns on. Sheath when it turns off.
-- Redesigned Combat Assist HUD: improved animations & reactivity; custom keyboard and mouse icons for Click Casting bindings.
-- Redesigned Interaction HUD: Left/Right placement, fixed icon size, and opacity no longer tied to the crosshair opacity slider.
-- Redesigned Party Radial: health bars completely rebuilt and provide way more information now.
-
-### Fixed
-- Rebinding Mouse Look, Party Radial, or Target Lock now clears leftover Interact Alt+key chords and refreshes Target Lock overrides immediately (no longer requires a reload when stealing a key).
+- Crosshair Cast Feedback: the crosshair grows while channeling, explodes on a successful cast, and shakes on cancel or interrupt.
+- Sheath Weapons with Mouse Look (on by default): unsheath when Mouse Look turns on; sheath when it turns off or Auto Cursor Unlock opens a panel. Temporary unlocks (hold, Party Radial, ground spells, OPie) keep weapons drawn.
+- Redesigned Combat Assist HUD with improved animations and custom keyboard/mouse icons for Click Casting bindings.
+- Redesigned Interaction HUD with Left/Right placement, fixed icon size, and opacity independent of the crosshair opacity slider.
+- Redesigned Party Radial with rebuilt health bars, smooth fade in/out, and greyed role icons for dead members.
 
 ### Changed
-- Combat Assist, Interaction HUD, and Party Radial options streamlined in favour of a fixed, more controllable layout.
-- Clicking a Party Radial slice now hard-targets / selects that party member (in addition to casting).
+
+- Combat Assist, Interaction HUD, and Party Radial options streamlined for a fixed, more controllable layout.
+- Clicking a Party Radial slice now also hard-targets that party member.
 - Clicking the Party Radial center close (X) clears the current target.
-- Code cleanup across modules and leaner pattern/architecture/instruction files.
+
+### Fixed
+
+- Rebinding Mouse Look, Party Radial, or Target Lock now clears leftover Interact Alt+key chords and refreshes Target Lock overrides immediately (no reload required when stealing a key).
 
 ## [4.0.3] - 2026-07-28
 
