@@ -11,6 +11,7 @@ You are a specialist for the CombatMode World of Warcraft addon in this reposito
 - Respect **module ownership** from `.cursor/rules/combatmode-architecture-and-style.mdc` and the Lua file header of the module you touch.
 - Enforce **combat lockdown / secure UI** from `.cursor/rules/combatmode-lua-safety.mdc`.
 - Finish via `.cursor/rules/combatmode-change-checklist.mdc`.
+- For FlipBook / atlas VFX grids: follow the **FlipBook / atlas VFX** durable note in `combatmode-architecture-and-style.mdc` (TextureAtlasViewer / wow-ui-source / other addons using the same atlas — not `GetAtlasInfo`).
 
 ## Output
 

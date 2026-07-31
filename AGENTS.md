@@ -20,6 +20,8 @@ How agents should work in this addon workspace.
 | Docs/headers when architecture moves | `.cursor/rules/combatmode-docs-and-headers-stay-in-sync.mdc` |
 | Release prep (manual / when asked) | `.cursor/rules/combatmode-release-flow.mdc` + `RELEASE.md` |
 
+Durable notes in the architecture rule include FlipBook/atlas VFX lookup (TextureAtlasViewer / wow-ui-source / peer addons — not `GetAtlasInfo`).
+
 ## Layout (quick)
 
 - Installable addon lives under **`CombatMode/`**, not the repo root.
