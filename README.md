@@ -10,6 +10,21 @@ Introducing <strong>Combat Mode</strong> – an AddOn designed to bring a more d
 <p align="center">
   <img src="media/previewGif.gif">
 </p>
+<p align="center">
+  <img src="media/targeting_hostiles.gif">
+</p>
+<p align="center">
+  <img src="media/combat_assist.gif">
+</p>
+<p align="center">
+  <img src="media/interaction_hud.gif">
+</p>
+<p align="center">
+  <img src="media/targeting_friendlies.gif">
+</p>
+<p align="center">
+  <img src="media/party_radial.gif">
+</p>
 
 <p align="center">
 With a full suite of carefully programmed changes inspired by <ins>Guild Wars 2's Action Camera</ins> - <strong>all aimed at breathing some much-needed life into WoW's tab-targeting combat</strong> - Combat Mode introduces features like <ins>Free Look</ins>, allowing you to change your character’s facing direction by moving the mouse without needing to perpetually hold right-click. When enabled - either through a <em>toggle</em> or <em>press & hold</em> key bind - the cursor is locked to the center of the screen and transformed into a <ins>reticle capable of target selection</ins>, even supporting the use of <em>@cursor</em> or <em>@mouseover</em> macros.
@@ -30,10 +45,6 @@ Experience <em>World of Warcraft</em> like never before with <strong>Combat Mode
 - <strong>Mouse Click Casting</strong> - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them.
 - <strong>Cursor Unlock</strong> - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.
 - <strong>Party Radial</strong> - Radial menu for quickly targeting and casting helpful spells at party members.
-- <strong>In-game changelog</strong> - View release notes from the About panel; optional popup after updating to a new addon version.
-<p align="center">
-  <img src="media/previewGif2.gif">
-</p>
 
 <br />
 
