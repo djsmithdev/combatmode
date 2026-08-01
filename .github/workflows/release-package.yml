@@ -23,8 +23,15 @@ jobs:
         uses: BigWigsMods/packager@v2
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
           GIT_WORK_TREE: ${{ github.workspace }}
           GIT_DIR: ${{ github.workspace }}/.git
         with:
-          args: -g retail -p "${{ vars.CURSEFORGE_PROJECT_ID }}" -n "CombatMode-{project-version}" -t CombatMode -m .pkgmeta
+          args: >-
+            -g retail
+            -p "${{ vars.CURSEFORGE_PROJECT_ID }}"
+            -a "${{ vars.WAGO_PROJECT_ID }}"
+            -n "CombatMode-{project-version}"
+            -t CombatMode
+            -m .pkgmeta

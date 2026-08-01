@@ -15,11 +15,13 @@ Version bumps are opt-in during day-to-day work (agents ask; see `AGENTS.md`). F
 ## Release automation setup (WoW Packager)
 
 - GitHub release packaging and publishing is handled by `.github/workflows/release-package.yml` using `BigWigsMods/packager@v2`.
-- Required repository secret:
+- Required repository secrets:
   - `CF_API_KEY`: CurseForge API token used for upload.
-- Required repository variable:
+  - `WAGO_API_TOKEN`: Wago Addons API token used for upload ([API keys](https://addons.wago.io/account/apikeys)).
+- Required repository variables:
   - `CURSEFORGE_PROJECT_ID`: numeric CurseForge project ID.
-- Wago upload is intentionally not configured yet.
+  - `WAGO_PROJECT_ID`: Wago project ID (also in `CombatMode.toc` as `## X-Wago-ID`).
+- Wago listing: [Combat Mode (MouseLook)](https://addons.wago.io/addons/combat-mode-mouselook).
 - Root `.pkgmeta` sets `package-as`, `ignore`, and `manual-changelog` (packager uses `-t CombatMode -m .pkgmeta`).
 - Maintain `CombatMode/CHANGELOG.md` manually and commit it **before** tagging/publishing a release; the packager includes it in the zip via `.pkgmeta` (`manual-changelog: CHANGELOG.md` under `-t CombatMode`).
 - Regenerate the in-game viewer copy by running **`scripts/sync-changelog-to-lua.ps1`** (or VS Code task **Sync CHANGELOG.md to ChangelogData.lua**) so **`CombatMode/UI/Changelog/ChangelogData.lua`** (`CM.Config.ChangelogText`) stays aligned with `CHANGELOG.md`.
@@ -68,12 +70,13 @@ Version bumps are opt-in during day-to-day work (agents ask; see `AGENTS.md`). F
 - Note any keybind, CVar, or migration-impacting changes explicitly.
 - Include known limitations or follow-up items if any.
 
-## 7) Post-release verification (CurseForge-first flow)
+## 7) Post-release verification (CurseForge + Wago)
 
 - Publish a GitHub release tag (draft/prerelease is fine for validation).
 - Confirm the `Release Package` workflow run succeeds in GitHub Actions.
 - Confirm the GitHub release has the workflow-generated package asset attached.
 - Confirm a new file appears on CurseForge for `CURSEFORGE_PROJECT_ID` with the expected version/tag.
+- Confirm a new file appears on [Wago](https://addons.wago.io/addons/combat-mode-mouselook) for `WAGO_PROJECT_ID` with the expected version/tag.
 
 ## Suggested changelog format
 

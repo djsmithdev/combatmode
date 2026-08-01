@@ -14,7 +14,9 @@
 ## SavedVariables: CombatModeDB
 
 ## X-Category: Misc
+## X-Wago-ID: rN4kqAGD
 ## X-Curse: curseforge.com/wow/addons/combat-mode
+## X-Wago: addons.wago.io/addons/combat-mode-mouselook
 ## X-Github: github.com/djsmithdev/combatmode
 ## X-Discord: discord.gg/5mwBSmz
 
