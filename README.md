@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-Introducing <strong>Combat Mode</strong> – an AddOn designed to bring a more dynamic action combat experience to <em>World of Warcraft</em> by implementing Free Look, Reticle Targeting, casting with mouse clicks, and more!
+Introducing <strong>Combat Mode</strong> – an AddOn designed to bring a more dynamic action combat experience to <em>World of Warcraft</em> by implementing Mouse Look, Reticle Targeting, casting with mouse clicks, and more!
 </p>
 
 <p align="center">
@@ -12,10 +12,10 @@ Introducing <strong>Combat Mode</strong> – an AddOn designed to bring a more d
 </p>
 
 <p align="center">
-With a full suite of carefully programmed changes inspired by <ins>Guild Wars 2's Action Camera</ins> - <strong>all aimed at breathing some much-needed life into WoW's tab-targeting combat</strong> - Combat Mode introduces features like <ins>Free Look</ins>, allowing you to change your character’s facing direction by moving the mouse without needing to perpetually hold right-click. When enabled - either through a <em>toggle</em> or <em>press & hold</em> key bind - the cursor is locked to the center of the screen and transformed into a <ins>reticle capable of target selection</ins>, even supporting the use of <em>@cursor</em> or <em>@mouseover</em> macros.
+With a full suite of carefully curated changes inspired by <ins>Guild Wars 2's Action Camera</ins> - <strong>all aimed at breathing some much-needed life into WoW's tab-targeting combat</strong> - Combat Mode introduces features like <ins>Mouse Look</ins>, allowing you to change your character’s facing direction by moving the mouse without needing to perpetually hold right-click. When enabled, the cursor is locked to the center of the screen and transformed into a <ins>reticle capable of target selection</ins>.
 </p>
 <p align="center">
-Combat Mode takes it further by allowing you to <ins>cast spells with mouse clicks</ins>, a mechanic inspired by third-person action games. For convenience, the AddOn will <ins>automatically deactivate Free Look while interacting with a range of interface panels</ins>, reactivating it once closed.
+Combat Mode takes it further by allowing you to <ins>cast spells with mouse clicks</ins>, a mechanic inspired by third-person action games. For convenience, the AddOn will <ins>automatically deactivate Mouse Look while interacting with a range of interface panels</ins>, reactivating it once closed.
 </p>
 <p align="center">
 Experience <em>World of Warcraft</em> like never before with <strong>Combat Mode</strong>!
@@ -25,11 +25,14 @@ Experience <em>World of Warcraft</em> like never before with <strong>Combat Mode
 <br />
 
 ## <img width="20" height="20" src="media/cmlogo.svg"> FEATURES
-- <strong>[Free Look Camera](https://en.wikipedia.org/wiki/Free_look)</strong> - Rotate the player character's view with the camera without having to perpetually hold right click.
-- <strong>Reticle Targeting</strong> - Enable users to target units by simply aiming the reticle at them, as well as allowing proper use of @mouseover and @cursor macro decorators in combination with the crosshairs. Settings include a Reticle Targeting CVar editor and an optional editor for the click-cast targeting macro preline (advanced).
-- <strong>Mouse Click Casting</strong> - When Free Look is enabled, frees your mouse clicks so you can cast up to 8 skills with them.
-- <strong>Cursor Unlock</strong> - Automatically releases the cursor when opening interface panels like bags, map, character panel, etc.
-- <strong>Party Radial</strong> - Radial menu for quickly targeting and casting helpful spells at party members.
+- <strong>[Mouse Look](https://en.wikipedia.org/wiki/Free_look)</strong> - Lock the cursor to screen center and steer with the mouse — no more holding right-click to turn. Toggle it on, hold it when you need to temporarily free the cursor, and control your facing direction by simply moving the mouse. 
+- <strong>Reticle Targeting</strong> - Aim the crosshair to target enemies and friendlies the way action games do. Built for `@cursor` and `@mouseover` macros, with optional Target Lock, automatic casting at crosshair location, spell exclusions, and advanced CVar / targeting-macro logic editors when you want full control.
+- <strong>Click Casting</strong> - Bind Left, Right, and modified mouse clicks to your rotation so every press under Mouse Look casts a spell — up to eight actions on your left and right click.
+- <strong>Interaction HUD</strong> - When something under the reticle can be interacted with (NPCs, world objects, interactables), a clear icon appears beside the crosshair so you never miss a prompt mid-combat.
+- <strong>Combat Assist</strong> - Shows Blizzard's Assisted Combat next-cast suggestion next to the crosshair, with satisfying cast-success feedback so your rotation stays readable without staring at the action bar.
+- <strong>Action Camera</strong> - Optional dynamic camera preset that leans into that third-person action feel while Mouse Look is active.
+- <strong>Auto Cursor Unlock</strong> - Automatically drops Mouse Look when you open bags, the map, character panel, and other UI — then snaps back when you're done so mouse look never fights your menus.
+- <strong>Party Radial</strong> - Hold a key during Mouse Look to open a radial of your party: pick a slice to hard-target or cast helpful spells at group members, with health bars and role icons so triage stays fast.
 
 <br />
 

@@ -4,8 +4,8 @@
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
 ## Notes: Combat Mode transforms the standard tab-targeting combat into a more engaging and dynamic action-oriented experience.
 
-## Author: justice7ca, sampconrad.
-## X-Contributors: Orazur, DKulan, BennyFits.
+## Author: justice7ca, sampconrad
+## X-Contributors: Orazur, DKulan, BennyFits
 
 ## IconTexture: Interface\AddOns\CombatMode\assets\cmlogo
 
@@ -14,6 +14,7 @@
 ## SavedVariables: CombatModeDB
 
 ## X-Category: Misc
+## X-Curse-Project-ID: 282870
 ## X-Wago-ID: rN4kqAGD
 ## X-Curse: curseforge.com/wow/addons/combat-mode
 ## X-Wago: addons.wago.io/addons/combat-mode
