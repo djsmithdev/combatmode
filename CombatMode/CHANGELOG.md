@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.1] - 2026-08-01
+
+### Fixed
+
+- Combat Assist no longer plays its cast-success animation twice when using the Single-Button Assistant action (the assisted-action event and `UNIT_SPELLCAST_SUCCEEDED` are coalesced into one).
+
 ## [4.1.0] - 2026-07-30
 
 ### Added
@@ -200,7 +206,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.1.0...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.1.1...HEAD
+[4.1.1]: https://github.com/djsmithdev/combatmode/compare/4.1.0...4.1.1
 [4.1.0]: https://github.com/djsmithdev/combatmode/compare/4.0.3...4.1.0
 [4.0.3]: https://github.com/djsmithdev/combatmode/compare/4.0.2...4.0.3
 [4.0.2]: https://github.com/djsmithdev/combatmode/compare/4.0.1...4.0.2
