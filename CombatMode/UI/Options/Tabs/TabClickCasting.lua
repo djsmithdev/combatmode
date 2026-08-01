@@ -89,15 +89,19 @@ local function CharScopedBindings()
   return not CM.DB.char.useGlobalBindings
 end
 
-local function AddSlot(layout, slot, label, modifier, iconAtlas)
+local function AddSlot(layout, slot, label, modifier, iconAtlas, leadingIconTexture)
   layout:Toggle({
     label = label,
     desc = "Override this click during Mouse Look.",
+    leadingIconTexture = leadingIconTexture,
     iconAtlas = iconAtlas,
     iconFitText = true,
-    -- Native atlas is 52x69; keep aspect while fitting row text height.
+    -- Native mouse atlas is 52x69; keep aspect while fitting row text height.
     iconHeight = 24,
     iconWidth = floor(24 * 52 / 69 + 0.5),
+    -- Modifier key BLPs are square; match mouse icon height.
+    leadingIconHeight = 24,
+    leadingIconWidth = 24,
     get = function()
       return Binding(slot).enabled
     end,
@@ -161,19 +165,24 @@ local function BuildGroupPanel(parent, width, modifier)
   local layout = UI.NewLayout(panel, width)
   layout.y = 0
   local prefix = ""
+  local leadingIconTexture
   if modifier == "shift" then
     prefix = "Shift + "
+    leadingIconTexture = CM.Constants.ModifierKeyShift
   elseif modifier == "ctrl" then
     prefix = "Ctrl + "
+    leadingIconTexture = CM.Constants.ModifierKeyCtrl
   elseif modifier == "alt" then
     prefix = "Alt + "
+    leadingIconTexture = CM.Constants.ModifierKeyAlt
   end
   AddSlot(
     layout,
     Slot(modifier, 1),
     prefix .. "Left Click",
     modifier,
-    "newplayertutorial-icon-mouse-leftbutton"
+    "newplayertutorial-icon-mouse-leftbutton",
+    leadingIconTexture
   )
   layout:Gap(8)
   AddSlot(
@@ -181,7 +190,8 @@ local function BuildGroupPanel(parent, width, modifier)
     Slot(modifier, 2),
     prefix .. "Right Click",
     modifier,
-    "newplayertutorial-icon-mouse-rightbutton"
+    "newplayertutorial-icon-mouse-rightbutton",
+    leadingIconTexture
   )
   layout:Finish()
   panel:SetHeight(-layout.y + 8)

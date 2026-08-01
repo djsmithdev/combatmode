@@ -5,7 +5,7 @@
 --  scale/appearance helpers, focus lock-in tween, and cast grow / explode / break gated
 --  by crosshairCastFeedback. One outer OnUpdate drives reticle motion at a time.
 --  Architecture / how it works:
---    • InitializeCursorPulse / ShowCursorPulse — PulseAtlas at cursor after unlock.
+--    • InitializeCursorPulse / ShowCursorPulse — Blizzard PulseAtlas at cursor after unlock.
 --    • InitCrosshairAnimations registers visual frame/texture from Crosshair.
 --    • StartCrosshairCastGrow / Explode / Break + NotifyCrosshairCastTerminal — EventRouter
 --      CAST_FEEDBACK path; CancelCrosshairCastFeedback / CancelCrosshairLockIn.
@@ -36,6 +36,7 @@ local random = _G.math.random
 ---------------------------------------------------------------------------------------
 --                                   CURSOR PULSE                                   --
 ---------------------------------------------------------------------------------------
+local PULSE_ATLAS = "dragonflight-landingbutton-circleglow"
 local PULSE_DURATION = 0.4
 local PULSE_STARTING_ALPHA = 0.5
 local PULSE_STARTING_SIZE = 256
@@ -47,7 +48,7 @@ local PulseTexture = PulseFrame:CreateTexture(nil, "BACKGROUND")
 function CM.InitializeCursorPulse()
   PulseFrame:SetSize(0, 0)
   PulseFrame:Hide()
-  PulseTexture:SetAtlas(CM.Constants.PulseAtlas, true)
+  PulseTexture:SetAtlas(PULSE_ATLAS, true)
   PulseTexture:SetVertexColor(1, 1, 1, 1)
   PulseTexture:SetAllPoints()
 end

@@ -6,11 +6,12 @@
 --  appearance select values and reaction color tables the Crosshair tab and runtime read.
 --  Architecture / how it works:
 --    • `PopupMsg` / `BasePrintMsg` — welcome modal + print prefix (version from METADATA).
---    • Logo/Title BLPs, PulseAtlas, AssistedSpellIcon{Background,Glow,Frame,Mask},
+--    • Logo/Title BLPs, AssistedSpellIcon{Background,Glow,Frame,Mask},
 --      ModifierKey{Ctrl,Shift,Alt} BLPs under Interface\AddOns\CombatMode\assets\.
 --    • CrosshairTextureObj entries pair active/inactive BLPs; AppearanceSelectValues
 --      drives the Crosshair options dropdown.
---  Does not: Draw widgets, own frame lifecycle, or apply appearance at runtime.
+--  Does not: Draw widgets, own frame lifecycle, apply appearance at runtime, or
+--  own Blizzard atlas FlipBook/VFX names (those stay local to the owning module).
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight.lua,
 --  Core/Crosshair/Animations.lua, UI/Options/Tabs/TabCrosshair.lua,
 --  UI/Options/Widgets.lua, UI/Options/OptionsPanel.lua
@@ -36,14 +37,13 @@ CM.Constants.BasePrintMsg = CM.METADATA["TITLE"]
 local assetsFolderPath = "Interface\\AddOns\\CombatMode\\assets\\"
 CM.Constants.Logo = assetsFolderPath .. "cmlogo.blp"
 CM.Constants.Title = assetsFolderPath .. "cmtitle.blp"
-CM.Constants.PulseAtlas = "dragonflight-landingbutton-circleglow"
-CM.Constants.AssistedSpellIconBackground = assetsFolderPath .. "spell_icon_background.blp"
-CM.Constants.AssistedSpellIconGlow = assetsFolderPath .. "spell_icon_glow.blp"
-CM.Constants.AssistedSpellIconFrame = assetsFolderPath .. "spell_icon_frame.blp"
-CM.Constants.AssistedSpellIconMask = assetsFolderPath .. "spell_icon_mask.blp"
-CM.Constants.ModifierKeyCtrl = assetsFolderPath .. "ctrl.blp"
-CM.Constants.ModifierKeyShift = assetsFolderPath .. "shift.blp"
-CM.Constants.ModifierKeyAlt = assetsFolderPath .. "alt.blp"
+CM.Constants.AssistedSpellIconBackground = assetsFolderPath .. "spell-bg.blp"
+CM.Constants.AssistedSpellIconGlow = assetsFolderPath .. "spell-glow.blp"
+CM.Constants.AssistedSpellIconFrame = assetsFolderPath .. "spell-frame.blp"
+CM.Constants.AssistedSpellIconMask = assetsFolderPath .. "spell-mask.blp"
+CM.Constants.ModifierKeyCtrl = assetsFolderPath .. "key-ctrl.blp"
+CM.Constants.ModifierKeyShift = assetsFolderPath .. "key-shift.blp"
+CM.Constants.ModifierKeyAlt = assetsFolderPath .. "key-alt.blp"
 
 --[[
   CROSSHAIR TEXTURES

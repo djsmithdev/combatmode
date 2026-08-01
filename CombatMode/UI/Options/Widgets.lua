@@ -11,7 +11,7 @@
 --  Does not: Call CM feature apply functions except via tab-provided set() callbacks.
 --  Related: UI/Options/Draw.lua, UI/Options/SpellMultiSelect.lua,
 --  UI/Options/OptionsPanel.lua, UI/Options/Tabs/TabGeneral.lua,
---  UI/Options/Tabs/TabCrosshair.lua
+--  UI/Options/Tabs/TabCrosshair.lua, UI/Options/Tabs/TabClickCasting.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -477,9 +477,10 @@ end
 --- spans the full row width underneath (used by the narrow sidebar footer).
 --- `opts.iconAtlas` / `opts.iconSize` place a texture left of the title.
 --- Optional `opts.iconWidth` / `opts.iconHeight` keep non-square atlases (e.g. 52x69
---- mouse icons). When `opts.iconFitText` is set, the icon grows to the title+helper
---- block height (width scales with aspect) and is vertically centered against that
---- whole column (Click Casting mouse icons).
+--- mouse icons). Optional `opts.leadingIconTexture` (BLP path) sits to the left of
+--- `iconAtlas` (Click Casting Ctrl/Shift/Alt + mouse). When `opts.iconFitText` is set,
+--- icons grow to the title+helper block height (width scales with aspect) and are
+--- vertically centered against that whole column.
 --- `opts.charSpecific` places a blue © to the right of the title (bool or function).
 --- `control.widgetH` / `control.widgetFill` / `control.textFrac` behave as elsewhere
 --- (multiline inputs use textFrac 0.40 so the box gets ~60%).
@@ -488,6 +489,21 @@ local function AttachOptionText(control, row, opts, widgetH)
   control.descBelow = opts.descBelow and true or nil
   control.iconFitText = opts.iconFitText and true or nil
   control.charSpecificOpt = opts.charSpecific
+
+  if opts.leadingIconTexture then
+    local leadHeight = opts.leadingIconHeight
+      or opts.iconHeight
+      or opts.iconSize
+      or DEFAULT_ICON_SIZE
+    local leadWidth = opts.leadingIconWidth or leadHeight
+    local lead = row:CreateTexture(nil, "ARTWORK")
+    lead:SetTexture(opts.leadingIconTexture)
+    lead:SetSize(leadWidth, leadHeight)
+    control.leadingIcon = lead
+    control.leadingIconWidth = leadWidth
+    control.leadingIconHeight = leadHeight
+    control.leadingIconAspect = leadHeight > 0 and (leadWidth / leadHeight) or 1
+  end
 
   if opts.iconAtlas then
     local iconHeight = opts.iconHeight or opts.iconSize or DEFAULT_ICON_SIZE
@@ -575,28 +591,56 @@ local function AttachOptionText(control, row, opts, widgetH)
 
     local widget = control.widget
     local icon = control.icon
+    local leadingIcon = control.leadingIcon
     local iconHeight = icon and (control.iconHeight or control.iconSize or DEFAULT_ICON_SIZE) or 0
     local iconWidth = icon and (control.iconWidth or control.iconSize or iconHeight) or 0
     local iconAspect = (control.iconAspect and control.iconAspect > 0) and control.iconAspect or 1
-    local iconLead = icon and (iconWidth + ICON_GAP) or 0
+    local leadHeight = leadingIcon and (control.leadingIconHeight or DEFAULT_ICON_SIZE) or 0
+    local leadWidth = leadingIcon and (control.leadingIconWidth or leadHeight) or 0
+    local leadAspect = (control.leadingIconAspect and control.leadingIconAspect > 0)
+        and control.leadingIconAspect
+      or 1
+    local function IconsLead()
+      local lead = 0
+      if leadingIcon then
+        lead = lead + leadWidth + ICON_GAP
+      end
+      if icon then
+        lead = lead + iconWidth + ICON_GAP
+      end
+      return lead
+    end
+    local iconLead = IconsLead()
+    local iconsHeight = max(iconHeight, leadHeight)
     local scopeTag = control.scopeTag
     local scopeShown = scopeTag and scopeTag:IsShown()
     local h
+
+    local function PlaceIconColumn(topY, textBlockH)
+      local x = ROW_PAD_X
+      if leadingIcon then
+        local leadTop = topY + floor(((textBlockH or leadHeight) - leadHeight) / 2)
+        leadingIcon:ClearAllPoints()
+        leadingIcon:SetPoint("TOPLEFT", row, "TOPLEFT", x, -leadTop)
+        x = x + leadWidth + ICON_GAP
+      end
+      if icon then
+        local mouseTop = topY + floor(((textBlockH or iconHeight) - iconHeight) / 2)
+        icon:ClearAllPoints()
+        icon:SetPoint("TOPLEFT", row, "TOPLEFT", x, -mouseTop)
+      end
+    end
 
     if control.descBelow then
       -- Top band: title left + control right; helper full-width below.
       local labelW = max(width - (2 * ROW_PAD_X) - iconLead - CONTROL_GAP - 40, 40)
       row.label:SetWidth(labelW)
       local labelH = row.label:GetStringHeight()
-      local bandH = max(labelH, control.widgetH, iconHeight)
+      local bandH = max(labelH, control.widgetH, iconsHeight)
       local labelTop = ROW_PAD_Y + floor((bandH - labelH) / 2)
       local widgetTop = ROW_PAD_Y + floor((bandH - control.widgetH) / 2)
-      local iconTop = ROW_PAD_Y + floor((bandH - iconHeight) / 2)
 
-      if icon then
-        icon:ClearAllPoints()
-        icon:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X, -iconTop)
-      end
+      PlaceIconColumn(ROW_PAD_Y + floor((bandH - iconsHeight) / 2), iconsHeight)
       row.label:ClearAllPoints()
       row.label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X + iconLead, -labelTop)
       if scopeShown then
@@ -632,33 +676,46 @@ local function AttachOptionText(control, row, opts, widgetH)
 
       local textW, _, textH = MeasureText(iconLead)
 
-      -- Grow the icon to the title+helper block so it reads flush with both lines.
-      if icon and control.iconFitText then
-        iconHeight =
-          max(control.iconHeight or control.iconSize or DEFAULT_ICON_SIZE, floor(textH + 0.5))
-        iconWidth = max(1, floor(iconHeight * iconAspect + 0.5))
-        icon:SetSize(iconWidth, iconHeight)
-        iconLead = iconWidth + ICON_GAP
+      -- Grow icons to the title+helper block so they read flush with both lines.
+      if (icon or leadingIcon) and control.iconFitText then
+        local fitH = floor(textH + 0.5)
+        if icon then
+          iconHeight = max(control.iconHeight or control.iconSize or DEFAULT_ICON_SIZE, fitH)
+          iconWidth = max(1, floor(iconHeight * iconAspect + 0.5))
+          icon:SetSize(iconWidth, iconHeight)
+        end
+        if leadingIcon then
+          leadHeight = max(control.leadingIconHeight or DEFAULT_ICON_SIZE, fitH)
+          leadWidth = max(1, floor(leadHeight * leadAspect + 0.5))
+          leadingIcon:SetSize(leadWidth, leadHeight)
+        end
+        iconsHeight = max(iconHeight, leadHeight)
+        iconLead = IconsLead()
         textW, _, textH = MeasureText(iconLead)
-        iconHeight = max(iconHeight, floor(textH + 0.5))
-        iconWidth = max(1, floor(iconHeight * iconAspect + 0.5))
-        icon:SetSize(iconWidth, iconHeight)
-        iconLead = iconWidth + ICON_GAP
+        fitH = floor(textH + 0.5)
+        if icon then
+          iconHeight = max(iconHeight, fitH)
+          iconWidth = max(1, floor(iconHeight * iconAspect + 0.5))
+          icon:SetSize(iconWidth, iconHeight)
+        end
+        if leadingIcon then
+          leadHeight = max(leadHeight, fitH)
+          leadWidth = max(1, floor(leadHeight * leadAspect + 0.5))
+          leadingIcon:SetSize(leadWidth, leadHeight)
+        end
+        iconsHeight = max(iconHeight, leadHeight)
+        iconLead = IconsLead()
       end
 
-      local contentH = max(textH, control.widgetH, iconHeight)
+      local contentH = max(textH, control.widgetH, iconsHeight)
       h = contentH + (2 * ROW_PAD_Y)
 
       -- Center the shorter column against the taller one so title/helper and control
-      -- share a vertical midpoint. Icon centers on the full title+helper block.
+      -- share a vertical midpoint. Icons center on the full title+helper block.
       local textTop = ROW_PAD_Y + floor((contentH - textH) / 2)
       local widgetTop = ROW_PAD_Y + floor((contentH - control.widgetH) / 2)
-      local iconTop = textTop + floor((textH - iconHeight) / 2)
 
-      if icon then
-        icon:ClearAllPoints()
-        icon:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X, -iconTop)
-      end
+      PlaceIconColumn(textTop, textH)
       row.label:ClearAllPoints()
       row.label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X + iconLead, -textTop)
       if scopeShown then

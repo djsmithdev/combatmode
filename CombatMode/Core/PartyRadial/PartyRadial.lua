@@ -7,9 +7,10 @@
 --  options preview (SetOptionsPreview). Slice radius, scale, role icon size, and name
 --  font size are fixed constants (not user options). Health bars use the widgetstatusbar
 --  L/C/R kit with a white fill tinted by health % via UnitHealthPercent color curves
---  (secret/taint-safe, same approach as Platynator/EQOL); options preview simulates varied
---  health so low-health glow is visible. Show/hide fades mainFrame alpha (combat-safe;
---  never Show/Hide secure children for visibility).
+--  (secret/taint-safe, same approach as Platynator/EQOL); fill uses StatusBar
+--  ExponentialEaseOut; low-health glow pulses on OVERLAY with ADD blend. Options preview
+--  simulates varied health so low-health glow is visible. Show/hide fades mainFrame alpha
+--  (combat-safe; never Show/Hide secure children for visibility).
 --  Architecture / how it works:
 --    • CM.PartyRadial API: Initialize, Show/Hide/ShowFromKeybind, ApplyVisualConfig,
 --      UpdateMainFramePosition, OnGroupRosterUpdate / OnCombatStart/End /
@@ -34,6 +35,7 @@ local debugstack = _G.debugstack
 local EvaluateColorFromBoolean = _G.C_CurveUtil and _G.C_CurveUtil.EvaluateColorFromBoolean
 local CreateColorCurve = _G.C_CurveUtil and _G.C_CurveUtil.CreateColorCurve
 local UnitHealthPercent = _G.UnitHealthPercent
+local issecretvalue = _G.issecretvalue
 local GetActionInfo = _G.GetActionInfo
 local GetCursorPosition = _G.GetCursorPosition
 local GetItemInfo = _G.C_Item.GetItemInfo
@@ -51,6 +53,8 @@ local UnitInRange = _G.UnitInRange
 local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitIsUnit = _G.UnitIsUnit
 local UnitName = _G.UnitName
+local StatusBarInterpolation = _G.Enum and _G.Enum.StatusBarInterpolation
+local HB_VALUE_INTERP = StatusBarInterpolation and StatusBarInterpolation.ExponentialEaseOut
 
 -- Lua stdlib
 local ipairs = _G.ipairs
@@ -657,6 +661,10 @@ local HB_BG_H = math.floor(18 * HB_SCALE + 0.5)
 local HB_BG_END_W = math.floor(29 * HB_SCALE + 0.5)
 local HB_LOW_PCT = 0.25
 local HB_GLOW_R, HB_GLOW_G, HB_GLOW_B = 1, 0.12, 0.08
+-- Continuous low-health glow breath (shared phase across slices).
+local HB_GLOW_PULSE_PERIOD = 1.15
+local HB_GLOW_PULSE_MIN = 0.35
+local HB_GLOW_PULSE_MAX = 1.0
 local HB_FILL_WHITE = "widgetstatusbar-fill-white"
 local COLOR_HB_CRIT = CreateColor(1, 0.22, 0.12, 1)
 local COLOR_HB_DMG = CreateColor(1, 0.85, 0.15, 1)
@@ -735,46 +743,83 @@ local function SetHealthBarGlowShown(bar, shown)
   bar.glowLeft:SetShown(shown)
   bar.glowCenter:SetShown(shown)
   bar.glowRight:SetShown(shown)
-  if shown then
-    bar.glowLeft:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
-    bar.glowCenter:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
-    bar.glowRight:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
-    bar.glowLeft:SetAlpha(1)
-    bar.glowCenter:SetAlpha(1)
-    bar.glowRight:SetAlpha(1)
+end
+
+-- Low-health gate stays on vertex alpha; pulse is glowFrame:SetAlpha only.
+-- Texture:SetAlpha would override vertex alpha and light every bar.
+local function ApplyHealthBarGlowPulse(bar, pulseA)
+  local baseA = bar.glowBaseA
+  local glowFrame = bar.glowFrame
+  if not glowFrame or baseA == nil then
+    if glowFrame then
+      glowFrame:Hide()
+    end
+    return
+  end
+  if not (issecretvalue and issecretvalue(baseA)) and type(baseA) == "number" and baseA <= 0 then
+    glowFrame:Hide()
+    return
+  end
+  bar.glowLeft:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, baseA)
+  bar.glowCenter:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, baseA)
+  bar.glowRight:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, baseA)
+  glowFrame:SetAlpha(pulseA)
+  SetHealthBarGlowShown(bar, true)
+  glowFrame:Show()
+end
+
+local function UpdateAllHealthBarGlowPulses(elapsed)
+  RadialState.hbGlowPulsePhase = (RadialState.hbGlowPulsePhase or 0)
+    + elapsed / HB_GLOW_PULSE_PERIOD
+  if RadialState.hbGlowPulsePhase >= 1 then
+    RadialState.hbGlowPulsePhase = RadialState.hbGlowPulsePhase
+      - math.floor(RadialState.hbGlowPulsePhase)
+  end
+  local wave = 0.5 - 0.5 * math.cos(RadialState.hbGlowPulsePhase * math.pi * 2)
+  local pulseA = HB_GLOW_PULSE_MIN + (HB_GLOW_PULSE_MAX - HB_GLOW_PULSE_MIN) * wave
+  for i = 1, 5 do
+    local slice = RadialState.sliceFrames[i]
+    local bar = slice and slice.healthBar
+    if bar and bar:IsShown() then
+      ApplyHealthBarGlowPulse(bar, pulseA)
+      -- Keep spark on the interpolating fill edge between slice refreshes.
+      local fillTex = bar:GetStatusBarTexture()
+      if fillTex and bar.spark then
+        bar.spark:ClearAllPoints()
+        bar.spark:SetPoint("CENTER", fillTex, "RIGHT", 0, 0)
+      end
+    end
   end
 end
 
-local function ApplyHealthBarGlowAlpha(bar, alpha)
-  bar.glowLeft:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
-  bar.glowCenter:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
-  bar.glowRight:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
-  bar.glowLeft:SetAlpha(alpha)
-  bar.glowCenter:SetAlpha(alpha)
-  bar.glowRight:SetAlpha(alpha)
-  bar.glowLeft:Show()
-  bar.glowCenter:Show()
-  bar.glowRight:Show()
+local function ResetHealthBarAnimState()
+  for i = 1, 5 do
+    local slice = RadialState.sliceFrames[i]
+    local bar = slice and slice.healthBar
+    if bar then
+      bar._hbHasValue = nil
+    end
+  end
 end
 
 -- Public (preview) health fraction → fill/glow/spark.
 local function ApplyHealthBarPublicAppearance(bar, pct, fillTex)
   if type(pct) ~= "number" then
     bar:SetStatusBarColor(COLOR_HB_OK:GetRGBA())
-    SetHealthBarGlowShown(bar, false)
+    bar.glowBaseA = 0
     bar.spark:Hide()
     return
   end
 
   if pct <= HB_LOW_PCT then
     bar:SetStatusBarColor(COLOR_HB_CRIT:GetRGBA())
-    SetHealthBarGlowShown(bar, true)
+    bar.glowBaseA = 1
   elseif pct <= 0.5 then
     bar:SetStatusBarColor(COLOR_HB_DMG:GetRGBA())
-    SetHealthBarGlowShown(bar, false)
+    bar.glowBaseA = 0
   else
     bar:SetStatusBarColor(COLOR_HB_OK:GetRGBA())
-    SetHealthBarGlowShown(bar, false)
+    bar.glowBaseA = 0
   end
 
   if fillTex then
@@ -800,7 +845,8 @@ local function ApplyHealthBarUnitAppearance(bar, unit, fillTex)
 
   local glowColor = UnitHealthPercent(unit, true, HB_GLOW_CURVE)
   local _, _, _, glowA = ExtractColorRGBA(glowColor)
-  ApplyHealthBarGlowAlpha(bar, glowA or 0)
+  -- May be secret 0/1; vertex alpha gates the pulse without a public boolean test.
+  bar.glowBaseA = glowA or 0
 
   if fillTex then
     bar.spark:ClearAllPoints()
@@ -878,9 +924,15 @@ local function CreateSliceHealthBar(parent)
     HB_BORDER_X
   )
 
-  -- Glow behind BG/fill (BACKGROUND) so it only blooms around the chrome, not over the track.
+  -- Low-health glow above border/spark (ADD). Pulse via glowFrame alpha so vertex
+  -- alpha can still gate visibility by health without Texture:SetAlpha overriding it.
+  local glowFrame = CreateFrame("Frame", nil, bar)
+  glowFrame:SetAllPoints(bar)
+  glowFrame:Hide()
+  bar.glowFrame = glowFrame
+
   local function MakeGlow(atlas, point, relative)
-    local tex = bar:CreateTexture(nil, "BACKGROUND", nil, -1)
+    local tex = glowFrame:CreateTexture(nil, "OVERLAY", nil, 3)
     tex:SetAtlas(atlas, false)
     tex:SetSize(HB_BORDER_END_W, HB_BORDER_H)
     tex:SetBlendMode("ADD")
@@ -891,7 +943,7 @@ local function CreateSliceHealthBar(parent)
   end
   local glowLeft = MakeGlow("widgetstatusbar-glowleft", "LEFT", borderLeft)
   local glowRight = MakeGlow("widgetstatusbar-glowright", "RIGHT", borderRight)
-  local glowCenter = bar:CreateTexture(nil, "BACKGROUND", nil, -1)
+  local glowCenter = glowFrame:CreateTexture(nil, "OVERLAY", nil, 3)
   glowCenter:SetAtlas("widgetstatusbar-glowcenter", false)
   glowCenter:SetBlendMode("ADD")
   glowCenter:SetVertexColor(HB_GLOW_R, HB_GLOW_G, HB_GLOW_B, 1)
@@ -923,6 +975,12 @@ local function UpdateSliceHealthBar(slice, config, memberData, sliceIndex, isPla
   bar:SetPoint("TOP", slice.nameText, "BOTTOM", 0, -4)
 
   if not config.showHealthBars then
+    bar._hbHasValue = nil
+    bar.glowBaseA = nil
+    if bar.glowFrame then
+      bar.glowFrame:Hide()
+    end
+    SetHealthBarGlowShown(bar, false)
     bar:Hide()
     return
   end
@@ -943,8 +1001,15 @@ local function UpdateSliceHealthBar(slice, config, memberData, sliceIndex, isPla
     maxHealth = UnitHealthMax(unitId)
   end
 
-  bar:SetMinMaxValues(0, maxHealth)
-  bar:SetValue(health)
+  -- Snap first value after show/create; ease subsequent updates.
+  if HB_VALUE_INTERP and bar._hbHasValue then
+    bar:SetMinMaxValues(0, maxHealth, HB_VALUE_INTERP)
+    bar:SetValue(health, HB_VALUE_INTERP)
+  else
+    bar:SetMinMaxValues(0, maxHealth)
+    bar:SetValue(health)
+    bar._hbHasValue = true
+  end
 
   local fillTex = ApplyHealthBarFill(bar, HB_FILL_WHITE)
   if unitId then
@@ -1595,6 +1660,7 @@ end
 HR.UpdateAllSlices = UpdateAllSlices
 
 local function PreviewOnUpdate(_, elapsed)
+  UpdateAllHealthBarGlowPulses(elapsed)
   RadialState.sliceRefreshElapsed = (RadialState.sliceRefreshElapsed or 0) + elapsed
   if RadialState.sliceRefreshElapsed >= (RadialState.sliceRefreshInterval or 0.08) then
     RadialState.sliceRefreshElapsed = 0
@@ -1637,6 +1703,7 @@ local function StartOptionsPreviewVisuals()
     )
   end
   RadialState.sliceRefreshElapsed = 0
+  ResetHealthBarAnimState()
   UpdateAllSlices()
   -- Layout-only: do not steal clicks or cast while tweaking settings.
   SetSliceMouseEnabled(false)
@@ -1941,6 +2008,8 @@ local function TrackMousePosition(_, elapsed)
     end
   end
 
+  UpdateAllHealthBarGlowPulses(elapsed)
+
   -- Update expensive slice/unit status at a short cadence instead of every frame.
   RadialState.sliceRefreshElapsed = (RadialState.sliceRefreshElapsed or 0) + elapsed
   if RadialState.sliceRefreshElapsed >= (RadialState.sliceRefreshInterval or 0.08) then
@@ -1994,6 +2063,7 @@ function HR.Show(buttonKey)
   -- Update visuals first so slice alpha is set to 1 for populated slices
   -- (HighlightSlice checks GetAlpha() > 0 to decide if a slice can be scaled)
   RadialState.sliceRefreshElapsed = 0
+  ResetHealthBarAnimState()
   UpdateAllSlices()
 
   -- Enable mouse on slices so they can receive clicks (out of combat only;
@@ -2166,6 +2236,7 @@ function HR.ShowFromKeybind()
   end
   -- Update visuals first so slice alpha is set to 1 for populated slices
   RadialState.sliceRefreshElapsed = 0
+  ResetHealthBarAnimState()
   UpdateAllSlices()
 
   -- Enable mouse on slices so they can receive clicks
