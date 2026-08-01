@@ -18,6 +18,8 @@
 --      offset on the icon. Style chosen from resolved binding for the suggested action.
 --    • Recent-suggestion cache (TTL ~0.9s, max 4): GetNextCastSpell often advances before
 --      UNIT_SPELLCAST_SUCCEEDED — cache keeps explode/break matching correct.
+--    • Cast-success explode coalesces ~0.25s so Single-Button Assistant's dual events
+--      (ASSISTED_COMBAT_ACTION_SPELL_CAST + UNIT_SPELLCAST_SUCCEEDED) do not restart FlipBook.
 --    • APIs: InitAssistedHighlight({crosshairFrame, crosshairTexture}),
 --      ApplyCrosshairAssistedHighlightOptions, UpdateCrosshairAssistedHighlight,
 --      InvalidateAssistedHighlightKeybindCache, OnAssistedHighlightSpellCast,
@@ -110,6 +112,8 @@ local FADE_OUT_DURATION = 0.36
 -- Cast-success explode (icon shell); burst FlipBook uses BURST_PLAY_DURATION.
 local CAST_EXPLODE_DURATION = 0.36
 local CAST_EXPLODE_EXTRA_SCALE = 0.22
+-- Dual events for one Single-Button Assistant press (assisted + SUCCEEDED); << GCD.
+local CAST_EXPLODE_COALESCE_SEC = 0.25
 -- Wrong-suggestion cast break (mirrors Crosshair Animations cast break)
 local CAST_BREAK_DURATION = 0.18
 local CAST_BREAK_SHAKE_PX = 5
@@ -134,6 +138,7 @@ local explodeActive = false
 local explodeElapsed = 0
 local explodeStartScale = 1
 local explodeStartAlpha = 1
+local lastCastExplodeAt = 0
 local breakActive = false
 local breakElapsed = 0
 local breakSavedIconColor
@@ -624,11 +629,18 @@ FinishHide = function()
 end
 
 --- Starts or restarts the cast-success explode. Safe during fade-out and mid-explode
---- so quick successive casts still get feedback.
+--- so quick successive casts still get feedback. Coalesces the dual Single-Button
+--- Assistant events (ASSISTED_COMBAT_ACTION_SPELL_CAST + UNIT_SPELLCAST_SUCCEEDED).
 local function BeginCastExplode()
   if not (AssistedHighlightFrame and AssistedHighlightVisual) then
     return
   end
+  local now = GetTime()
+  if (now - lastCastExplodeAt) < CAST_EXPLODE_COALESCE_SEC then
+    return
+  end
+  lastCastExplodeAt = now
+
   CancelCastBreak()
   StopProcEffect()
   AssistedHighlightFrame:Show()
@@ -1595,9 +1607,17 @@ function CM.OnAssistedHighlightSpellCast(spellID)
   end
   if SpellMatchesRecent(spellID) then
     BeginCastExplode()
-  else
-    BeginCastBreak()
+    return
   end
+  -- Single-Button Assistant can also succeed as the meta action spell; that is not
+  -- a wrong-suggestion cast (and must not cancel an in-flight explode).
+  local actionSpell = C_AssistedCombat
+    and C_AssistedCombat.GetActionSpell
+    and C_AssistedCombat.GetActionSpell()
+  if actionSpell and spellID == actionSpell then
+    return
+  end
+  BeginCastBreak()
 end
 
 --- Explode when the Assisted Combat action button is used (no spellID payload).
