@@ -35,7 +35,7 @@ Experience <em>World of Warcraft</em> like never before with <strong>Combat Mode
 
 ## <img width="20" height="20" src="media/cmlogo.svg"> DOWNLOAD
 
-Grab it on [**CurseForge**](https://www.curseforge.com/wow/addons/combat-mode) or [**Wago Addons**](https://addons.wago.io/addons/combat-mode-mouselook).
+Grab it on [**CurseForge**](https://www.curseforge.com/wow/addons/combat-mode) or [**Wago Addons**](https://addons.wago.io/addons/combat-mode).
 
 <br />
 
