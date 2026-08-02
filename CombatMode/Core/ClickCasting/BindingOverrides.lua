@@ -44,7 +44,6 @@ local ipairs = _G.ipairs
 local pairs = _G.pairs
 local pcall = _G.pcall
 local select = _G.select
-local strfind = _G.string.find
 local tonumber = _G.tonumber
 local tostring = _G.tostring
 local type = _G.type
@@ -406,6 +405,8 @@ end
 --- Clears Interact on `key` and `ALT-key` when those chords still hold INTERACT*.
 --- Mouse Look / Party Radial / Target Lock steal only the base key; Interact's intentional
 --- dual-bind otherwise leaves ALT-<key> behind and the Interact option shows Alt+key.
+--- Always try ALT-<key> too — including when `key` is already ALT-* — so a leftover
+--- ALT-ALT-* orphan (from an older dual-bind bug) is cleared when the chord is stolen.
 function CM.ClearInteractOrphansOnKey(key)
   if not key or key == "" or not GetBindingAction or not SetBinding then
     return
@@ -413,11 +414,9 @@ function CM.ClearInteractOrphansOnKey(key)
   if IsInteractAction(GetBindingAction(key)) then
     SetBinding(key)
   end
-  if not strfind(key, "^ALT%-") then
-    local altKey = "ALT-" .. key
-    if IsInteractAction(GetBindingAction(altKey)) then
-      SetBinding(altKey)
-    end
+  local altKey = "ALT-" .. key
+  if IsInteractAction(GetBindingAction(altKey)) then
+    SetBinding(altKey)
   end
 end
 

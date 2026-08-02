@@ -10,15 +10,16 @@
 --    • REFRESH_BINDINGS_EVENTS coalesced via C_Timer so one RefreshClickCastMacros runs
 --      after bursts; also ApplyToggleFocusTargetBinding (UPDATE_BINDINGS),
 --      InvalidateAssistedHighlightKeybindCache + Party Radial hooks.
---    • CAST_FEEDBACK_EVENTS → OnCrosshairCastFeedbackEvent; SUCCEEDED also
---      OnAssistedHighlightSpellCast(spellID) for unit player.
+--    • CAST_FEEDBACK_EVENTS → OnCrosshairCastFeedbackEvent; player casts also
+--      OnAssistedHighlightCastProgress (dark swipe) and SUCCEEDED →
+--      OnAssistedHighlightSpellCast(spellID).
 --    • ASSISTED_HIGHLIGHT_EVENTS → OnAssistedHighlightAssistedActionCast.
 --    • FRIENDLY_TARGETING_EVENTS double as Party Radial combat start/end + FlushDeferred.
 --  Does not: RegisterEvent itself (root frame / Bootstrap) or own feature logic.
 --  Related: Constants/Gameplay.lua, Core/FreeLook/FreeLookController.lua,
 --  Core/ClickCasting/BindingOverrides.lua, Core/Crosshair/Crosshair.lua,
---  Core/Crosshair/AssistedHighlight.lua, Core/PartyRadial/PartyRadial.lua,
---  Core/Runtime/BindingQueue.lua
+--  Core/Crosshair/AssistedHighlight/{Keybinds,CastProgress,Feedback,Assist}.lua,
+--  Core/PartyRadial/PartyRadial.lua, Core/Runtime/BindingQueue.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -139,9 +140,12 @@ local function HandleEventByCategory(category, event, ...)
       if CM.OnCrosshairCastFeedbackEvent then
         CM.OnCrosshairCastFeedbackEvent(event, ...)
       end
-      if event == "UNIT_SPELLCAST_SUCCEEDED" and CM.OnAssistedHighlightSpellCast then
-        local unitTarget, _, spellID = ...
-        if unitTarget == "player" then
+      local unitTarget, castGUID, spellID = ...
+      if unitTarget == "player" then
+        if CM.OnAssistedHighlightCastProgress then
+          CM.OnAssistedHighlightCastProgress(event, castGUID, spellID)
+        end
+        if event == "UNIT_SPELLCAST_SUCCEEDED" and CM.OnAssistedHighlightSpellCast then
           CM.OnAssistedHighlightSpellCast(spellID)
         end
       end

@@ -10,9 +10,10 @@
 --    • StartCrosshairCastGrow / Explode / Break + NotifyCrosshairCastTerminal — EventRouter
 --      CAST_FEEDBACK path; CancelCrosshairCastFeedback / CancelCrosshairLockIn.
 --    • Shared scale animation constructors used by options preview appearance apply.
---  Does not: Own Assisted Combat FlipBook / explode / break (AssistedHighlight.lua) or
---  mouselook / CVar writes.
---  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight.lua,
+--  Does not: Own Assisted Combat ProcLoop FlipBook (AssistedHighlight/Motion.lua) /
+--  interrupt cast break (AssistedHighlight/CastProgress.lua) or mouselook / CVar writes.
+--  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight/Assist.lua,
+--  Core/Crosshair/AssistedHighlight/Motion.lua, Core/Crosshair/AssistedHighlight/Feedback.lua,
 --  Core/FreeLook/FreeLookController.lua, Constants/Assets.lua,
 --  UI/Options/Tabs/TabCrosshair.lua, Core/Runtime/EventRouter.lua
 ---------------------------------------------------------------------------------------

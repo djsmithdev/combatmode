@@ -20,7 +20,7 @@ Ownership detail lives in **Lua file headers**. Load order: **`STRUCTURE.md`** +
 
 - **CVarManager** — all addon `SetCVar` writes; prior snapshot capture/restore; reticle presets + overrides; Interaction HUD SoftTarget subset.
 - **FreeLookController** — mouselook lock/unlock; centering `0 → MouselookStart → deferred 1`; OPie rematch latch.
-- **Crosshair companions** — Interaction HUD and Assisted Combat are separate modules; assist FlipBook/explode/break stay in `AssistedHighlight.lua`, not `Animations.lua` (reticle cast feedback only).
+- **Crosshair companions** — Interaction HUD and Assisted Combat are separate modules under subfolders. Interaction HUD: `Core/Crosshair/InteractionHUD/` — `Target` → `Visual` (fade/range) → `HUD` (chrome + public APIs). Assisted Combat: `Core/Crosshair/AssistedHighlight/` — `Keybinds` → `Motion` (ProcLoop/glow/fade) → `CastProgress` (swipe/break) → `Feedback` (press/pulse + façade; Attach also binds CastProgress) → `Assist` (chrome + public APIs). Not `Animations.lua` (reticle cast feedback only).
 - **Options** — standalone `CombatModeOptionsFrame` (`CM.OpenOptions` / `/cm`), not Blizzard settings; tabs wire to existing `CM.*` + `CM.DB` only.
 
 ## Coding conventions
@@ -40,7 +40,7 @@ Record non-obvious fixes here (or in `combatmode-lua-safety.mdc`) — one place.
 - **DB shape:** AceDB-compatible (`CombatModeDB.global` + `char["Name - Realm"]`); defaults merge in `CM.InitDatabase`.
 - **Cast feedback:** Animations outer `OnUpdate` (one motion); terminals via `CM.NotifyCrosshairCastTerminal`; gated by `crosshairCastFeedback`.
 - **Assisted Combat matching:** short recent-suggestion cache — `GetNextCastSpell` often advances before `UNIT_SPELLCAST_SUCCEEDED`.
-- **FlipBook / atlas VFX:** Ship rows/cols/frames/duration next to the atlas constant in the owning Lua file (see `AssistedHighlight.lua` for `UF-RogueCP-Slash-Blue` and `dragonriding_sgvigor_burst_flipbook`). `C_Texture.GetAtlasInfo` does **not** return FlipBook grid layout. To discover or verify: (1) TextureAtlasViewer / Blizzard UI source (`wow-ui-source`) FlipBook XML for that atlas, (2) other retail addons that already call `SetFlipBookRows` / `SetFlipBookColumns` / `SetFlipBookFrames` + duration on the same atlas name, (3) confirm visually in-game. Do **not** vendor wow-ui-source trees or atlas catalogs into this repo.
+- **FlipBook / atlas VFX:** Ship rows/cols/frames/duration next to the atlas constant in the owning Lua file (see `AssistedHighlight/Motion.lua` for `UF-RogueCP-Slash-Blue`). `C_Texture.GetAtlasInfo` does **not** return FlipBook grid layout. To discover or verify: (1) TextureAtlasViewer / Blizzard UI source (`wow-ui-source`) FlipBook XML for that atlas, (2) other retail addons that already call `SetFlipBookRows` / `SetFlipBookColumns` / `SetFlipBookFrames` + duration on the same atlas name, (3) confirm visually in-game. Do **not** vendor wow-ui-source trees or atlas catalogs into this repo.
 - **Options preview:** tab `onSelect`/`onDeselect`; Crosshair → `CM.SetCrosshairOptionsPreview`; Party Radial → `CM.PartyRadial.SetOptionsPreview` (layout-only). Do not reuse mouselook-gated Show/Hide.
 - **Options theme:** monochrome via `UI.StripColors`; accent yellow only for headers, selected tab, toggle on-states.
 

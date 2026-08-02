@@ -16,6 +16,8 @@
 --    • SheathWeaponsWithMouselook: unsheath on intentional Mouse Look; sheath on
 --      tap unlock (poll detects binding release) and Auto Cursor Unlock. Hold
 --      never sheaths. Party Radial, ground targeting, and OPie keep weapons drawn.
+--      Sheath requests are debounced (~1.5s) so rapid Mouse Look toggle does not
+--      flash sheath/unsheath; unsheath and re-lock cancel any pending sheath.
 --    • OPie: when a ring is visible, unlock path may free centering; Rematch after
 --      the ring closes re-bounces freelook if still desired.
 --  Does not: Own frame-watch lists/predicates (AutoCursorUnlock) or CVar preset tables.
@@ -50,11 +52,14 @@ local FreeLookOverride = false -- Changes when Free Look state is modified throu
 local CursorModeShowTime = 0 -- GetTime() when cursor was unlocked via keybind (for spurious key-up filter)
 local opieUnlockSeen = false -- Latched while an OPie ring was reported visible
 local pendingTapSheath = false -- True until tap sheath is applied or hold is confirmed
+local pendingSheathToken = 0 -- Bumped to cancel a scheduled sheath debounce
 local SHEATH_STATE_SHEATHED = 1
 local MOUSE_LOOK_BINDING = "Combat Mode - Mouse Look"
 local CURSOR_MODE_HOLD_THRESHOLD = 0.3
 local CURSOR_MODE_SPURIOUS_KEY_UP = 0.05
 local CURSOR_MODE_SHEATH_POLL = 0.05
+-- Delay sheath-on so quick Mouse Look re-entry (e.g. pull → click → lock) does not flash.
+local SHEATH_DEBOUNCE_SEC = 1.5
 local MOUSE_BINDING_BUTTON = {
   BUTTON1 = "LeftButton",
   BUTTON2 = "RightButton",
@@ -67,8 +72,12 @@ local function IsPartyRadialActive()
   return CM.PartyRadial and CM.PartyRadial.IsActive and CM.PartyRadial.IsActive()
 end
 
--- Idempotent sheath/unsheath when the option is on.
-local function ApplyWeaponsSheathed(wantSheathed)
+local function CancelPendingSheath()
+  pendingSheathToken = pendingSheathToken + 1
+end
+
+-- Immediate idempotent ToggleSheath when the option is on (no debounce).
+local function ApplyWeaponsSheathedNow(wantSheathed)
   if not (CM.DB and CM.DB.global and CM.DB.global.sheathWeaponsWithMouselook) then
     return
   end
@@ -84,6 +93,30 @@ local function ApplyWeaponsSheathed(wantSheathed)
     return
   end
   ToggleSheath()
+end
+
+-- Unsheath immediately; sheath after SHEATH_DEBOUNCE_SEC (cancelledable by unsheath/re-lock).
+local function ApplyWeaponsSheathed(wantSheathed)
+  if not wantSheathed then
+    CancelPendingSheath()
+    ApplyWeaponsSheathedNow(false)
+    return
+  end
+  if not (CM.DB and CM.DB.global and CM.DB.global.sheathWeaponsWithMouselook) then
+    return
+  end
+  CancelPendingSheath()
+  local token = pendingSheathToken
+  if not (C_Timer and C_Timer.After) then
+    ApplyWeaponsSheathedNow(true)
+    return
+  end
+  C_Timer.After(SHEATH_DEBOUNCE_SEC, function()
+    if token ~= pendingSheathToken then
+      return
+    end
+    ApplyWeaponsSheathedNow(true)
+  end)
 end
 
 -- Temporary gameplay unlocks keep weapons drawn; Auto Cursor Unlock / etc. may sheath.
@@ -126,6 +159,7 @@ end
 
 local function CancelPendingTapSheath()
   pendingTapSheath = false
+  CancelPendingSheath()
 end
 
 -- Never sheath on unlock press (hold would flash). Poll until the binding is up

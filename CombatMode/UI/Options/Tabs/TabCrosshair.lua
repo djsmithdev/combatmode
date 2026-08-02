@@ -13,10 +13,9 @@
 --      ApplyCrosshairAssistedHighlightOptions / UpdateCrosshairAssistedHighlight;
 --      also PartyRadial.UpdateMainFramePosition when Y changes.
 --  Does not: Implement HUD/Assist widgets (companion modules own them).
---  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD.lua,
---  Core/Crosshair/AssistedHighlight.lua, Core/Crosshair/Animations.lua,
---  Core/Runtime/CVarManager.lua, Constants/Assets.lua,
---  Constants/DatabaseDefaults.lua
+--  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD/HUD.lua,
+--  Core/Crosshair/AssistedHighlight/Assist.lua, Core/Crosshair/Animations.lua,
+--  Core/Runtime/CVarManager.lua, Constants/Assets.lua, Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

@@ -14,9 +14,10 @@
 --      Show/Hide gates.
 --    • OnCrosshairCastFeedbackEvent / FocusLock / Uncategorized / Rematch hooks from
 --      EventRouter / Runtime.
---  Does not: Own SoftTarget CVar writes, assist FlipBook motion, or freelook lock.
---  Related: Core/Crosshair/Animations.lua, Core/Crosshair/InteractionHUD.lua,
---  Core/Crosshair/AssistedHighlight.lua, Core/Runtime/CVarManager.lua,
+--  Does not: Own SoftTarget CVar writes, assist FlipBook / cast feedback motion, or freelook lock.
+--  Related: Core/Crosshair/Animations.lua, Core/Crosshair/InteractionHUD/HUD.lua
+--  (and sibling Target/Visual), Core/Crosshair/AssistedHighlight/Assist.lua
+--  (and sibling Keybinds/Motion/CastProgress/Feedback), Core/Runtime/CVarManager.lua,
 --  Core/Runtime/EventRouter.lua, UI/Options/Tabs/TabCrosshair.lua,
 --  Constants/Assets.lua
 ---------------------------------------------------------------------------------------

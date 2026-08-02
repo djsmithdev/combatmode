@@ -6,13 +6,14 @@
 --  appearance select values and reaction color tables the Crosshair tab and runtime read.
 --  Architecture / how it works:
 --    • `PopupMsg` / `BasePrintMsg` — welcome modal + print prefix (version from METADATA).
---    • Logo/Title BLPs, AssistedSpellIcon{Background,Glow,Frame,Mask},
+--    • Logo/Title BLPs, AssistedSpellIcon{Background,Glow,Frame,Mask,CooldownSwipe},
 --      ModifierKey{Ctrl,Shift,Alt} BLPs under Interface\AddOns\CombatMode\assets\.
 --    • CrosshairTextureObj entries pair active/inactive BLPs; AppearanceSelectValues
 --      drives the Crosshair options dropdown.
 --  Does not: Draw widgets, own frame lifecycle, apply appearance at runtime, or
 --  own Blizzard atlas FlipBook/VFX names (those stay local to the owning module).
---  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight.lua,
+--  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight/Assist.lua,
+--  Core/Crosshair/AssistedHighlight/{Keybinds,CastProgress,Feedback}.lua,
 --  Core/Crosshair/Animations.lua, UI/Options/Tabs/TabCrosshair.lua,
 --  UI/Options/Widgets.lua, UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
@@ -41,6 +42,7 @@ CM.Constants.AssistedSpellIconBackground = assetsFolderPath .. "spell-bg.blp"
 CM.Constants.AssistedSpellIconGlow = assetsFolderPath .. "spell-glow.blp"
 CM.Constants.AssistedSpellIconFrame = assetsFolderPath .. "spell-frame.blp"
 CM.Constants.AssistedSpellIconMask = assetsFolderPath .. "spell-mask.blp"
+CM.Constants.AssistedSpellIconCooldownSwipe = assetsFolderPath .. "spell-swipe.blp"
 CM.Constants.ModifierKeyCtrl = assetsFolderPath .. "key-ctrl.blp"
 CM.Constants.ModifierKeyShift = assetsFolderPath .. "key-shift.blp"
 CM.Constants.ModifierKeyAlt = assetsFolderPath .. "key-alt.blp"

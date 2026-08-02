@@ -34,7 +34,6 @@ local tconcat = _G.table.concat
 local tremove = _G.table.remove
 local tonumber = _G.tonumber
 local tostring = _G.tostring
-local type = _G.type
 local wipe = _G.wipe
 
 local UI = CM.UI

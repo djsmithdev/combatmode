@@ -16,7 +16,8 @@
 --  EventRouter / BindingOverrides do).
 --  Related: Core/Runtime/EventRouter.lua, Core/ClickCasting/BindingOverrides.lua,
 --  Core/Runtime/Bootstrap.lua, UI/Options/Tabs/TabClickCasting.lua,
---  Core/Crosshair/AssistedHighlight.lua, Core/Crosshair/Animations.lua
+--  Core/Crosshair/AssistedHighlight/{CastProgress,Feedback,Assist}.lua,
+--  Core/Crosshair/Animations.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 
@@ -82,11 +83,12 @@ CM.Constants.BLIZZARD_EVENTS = {
     "UNIT_SPELLCAST_STOP",
     "UNIT_SPELLCAST_FAILED",
     "UNIT_SPELLCAST_INTERRUPTED",
+    "UNIT_SPELLCAST_DELAYED",
     "UNIT_SPELLCAST_SUCCEEDED",
     "UNIT_SPELLCAST_CHANNEL_START",
     "UNIT_SPELLCAST_CHANNEL_STOP",
   },
-  -- Assisted Combat highlight cast-success feedback (icon explode)
+  -- Assisted Combat highlight cast hooks (suggestion refresh)
   ASSISTED_HIGHLIGHT_EVENTS = {
     "ASSISTED_COMBAT_ACTION_SPELL_CAST",
   },

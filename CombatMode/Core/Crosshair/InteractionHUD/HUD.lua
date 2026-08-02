@@ -1,43 +1,33 @@
 ---------------------------------------------------------------------------------------
---  Core/Crosshair/InteractionHUD.lua — CROSSHAIR — soft-interact icon + label
+--  Core/Crosshair/InteractionHUD/HUD.lua — CROSSHAIR — soft-interact cluster chrome
 ---------------------------------------------------------------------------------------
 --  What it does: Owns the Interaction HUD cluster beside the crosshair when a soft-interact
 --  target exists: side via interactionHUDSide (default LEFT), fixed icon size 26, name
---  label + shadow, fade/range OnUpdate, unable-cursor dimming, and options preview sample
---  content. Alphas are independent of crosshairOpacity.
+--  label + shadow, layout/resize, options preview sample, and public Apply / Refresh / Init.
 --  Architecture / how it works:
 --    • InitInteractionHUD({crosshairFrame, crosshairTexture}); ApplyInteractionHUDLayout
 --      + RefreshInteractionHUD for side/gap (offset 24px beyond reticle edge).
---    • SoftTarget CVars applied elsewhere via CVarManager.ConfigInteractionHUDSoftTarget
---      when HUD is on without full reticle targeting.
---    • Unable-cursor: Constants.InteractionHUDUnableCursor (and "Unable" path) dims icon
---      between IH_DIM_MIN/MAX; label/shadow keep fixed alphas.
+--    • SoftTarget CVars applied elsewhere via CVarManager.ConfigInteractionHUDSoftTarget.
+--    • Visual.Attach + OnUpdate Visual.Tick; Target for identity / cursor dim.
 --    • Retail 12.x: secret-string-safe UnitName / FontString sizing (no literal compares).
 --    • Preview: IsCrosshairPreviewActive shows sample atlas + "Interactable" with no target.
---  Does not: Write SoftTarget CVars or own the crosshair frame.
---  Related: Core/Crosshair/Crosshair.lua, Core/Runtime/CVarManager.lua,
---  Constants/Reticle.lua, Constants/CVars.lua, UI/Options/Tabs/TabCrosshair.lua,
---  Constants/DatabaseDefaults.lua
+--  Does not: Write SoftTarget CVars or own fade/range internals (Visual) / cursor resolve (Target).
+--  Related: Core/Crosshair/InteractionHUD/{Target,Visual}.lua, Core/Crosshair/Crosshair.lua,
+--  Core/Runtime/CVarManager.lua, Constants/Reticle.lua, Constants/CVars.lua,
+--  UI/Options/Tabs/TabCrosshair.lua, Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
-local GetUnitName = _G.GetUnitName
-local SetUnitCursorTexture = _G.SetUnitCursorTexture
-local UnitExists = _G.UnitExists
-local UnitGUID = _G.UnitGUID
 local UnitIsGameObject = _G.UnitIsGameObject
-local UnitName = _G.UnitName
-local UnitNameUnmodified = _G.UnitNameUnmodified
 
 -- Lua stdlib
-local issecretvalue = _G.issecretvalue
 local math = _G.math
-local strfind = _G.string.find
-local tostring = _G.tostring
-local type = _G.type
+
+local Target = CM.InteractionHUDTarget
+local Visual = CM.InteractionHUDVisual
 
 local crosshairFrame
 local crosshairTexture
@@ -47,94 +37,54 @@ local InteractionHUDShadow
 local InteractionHUDIcon
 local InteractionHUDLabel
 local interactionHUDNameRetry = 0
--- 12.0.0+: UnitName etc. may return secret strings; FontString widths/heights can be secret — no compares with literals.
+-- 12.0.0+: UnitName etc. may return secret strings; FontString widths/heights can be secret.
 local ihInteractionHUDSecretIdentity = false
-
-local function IsSecretValue(v)
-  return v ~= nil and issecretvalue and issecretvalue(v)
-end
-local ihRangeBlend -- 0 = out of range, 1 = in range (lerped)
-local ihSnapRangeBlend = true -- snap on next HUD show after hide
-local ihClusterFade = 0 -- parent alpha (fade in / fade out)
-local ihClusterFadeTarget = 0 -- 0 = hidden, 1 = visible
 
 local IH_GAP = 7
 local IH_LABEL_MAX_W = 280
 local IH_TEXT_PAD = 4 -- shadow bleed past glyphs
-local IH_ICON = 26
+local IH_ICON = (Target and Target.IH_ICON) or 26
 local IH_FONT = 13 -- matches party radial slice name size
-local IH_NAME_COLOR = { 1, 204 / 255, 0 }
-local IH_NAME_OPACITY = 0.8
 local IH_SHADOW_ATLAS = "PetJournal-BattleSlot-Shadow"
-local IH_SHADOW_ALPHA = 0.7 -- fixed; not tied to crosshair opacity
 local IH_OFFSET_X = 24 -- px beyond crosshair edge
-local IH_DIM_MIN = 0.5 -- GetInteractionHUDCursorDim when unable
-local IH_DIM_MAX = 0.9 -- when able
-local IH_RANGE_LERP_SPEED = 14
-local IH_CLUSTER_FADE_SPEED = 16
-
-local function HasInteractionHUDTarget()
-  return UnitGUID("softinteract") ~= nil
-    or UnitExists("softinteract")
-    or UnitIsGameObject("softinteract")
-end
-
-local function GetInteractionHUDUnitName()
-  local name = UnitName("softinteract")
-  if name then
-    if IsSecretValue(name) then
-      return name
-    end
-    if name ~= "" then
-      return name
-    end
-  end
-  if UnitNameUnmodified then
-    name = UnitNameUnmodified("softinteract")
-    if name then
-      if IsSecretValue(name) then
-        return name
-      end
-      if name ~= "" then
-        return name
-      end
-    end
-  end
-  if GetUnitName then
-    name = GetUnitName("softinteract", false)
-    if name then
-      if IsSecretValue(name) then
-        return name
-      end
-      if name ~= "" then
-        return name
-      end
-    end
-  end
-end
-
-local IH_CURSOR_UNABLE = (CM.Constants and CM.Constants.InteractionHUDUnableCursor) or {}
 
 -- Options tab preview: render sample content with no soft-interact target.
 local IH_PREVIEW_ATLAS = "mechagon-projects"
 local IH_PREVIEW_NAME = "Interactable"
 
+local function IsSecretValue(v)
+  return Target and Target.IsSecretValue and Target.IsSecretValue(v) or false
+end
+
 local function IsInteractionHUDPreviewActive()
   return CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive()
 end
 
+local function BindVisual()
+  if not (Visual and Visual.Attach) then
+    return
+  end
+  Visual.Attach({
+    getCluster = function()
+      return InteractionHUDCluster
+    end,
+    getIcon = function()
+      return InteractionHUDIcon
+    end,
+    getLabel = function()
+      return InteractionHUDLabel
+    end,
+    getShadow = function()
+      return InteractionHUDShadow
+    end,
+    isPreviewActive = IsInteractionHUDPreviewActive,
+  })
+end
+
 local function HideInteractionHUD()
   ihInteractionHUDSecretIdentity = false
-  ihSnapRangeBlend = true
-  if not InteractionHUDCluster then
-    return
-  end
-  ihClusterFadeTarget = 0
-  if not InteractionHUDCluster:IsShown() then
-    return
-  end
-  if ihClusterFade <= 0.001 then
-    InteractionHUDCluster:Hide()
+  if Visual and Visual.RequestHide then
+    Visual.RequestHide()
   end
 end
 
@@ -206,7 +156,7 @@ local function ResizeInteractionHUDCluster()
   if not InteractionHUDCluster or not InteractionHUDLabel then
     return
   end
-  -- Secret identity: fixed width, no string/width measurements (avoids secret number compares); drop shadow hidden.
+  -- Secret identity: fixed width, no string/width measurements; drop shadow hidden.
   if ihInteractionHUDSecretIdentity then
     InteractionHUDLabel:SetWidth(IH_LABEL_MAX_W)
     InteractionHUDLabel:SetWordWrap(true)
@@ -277,7 +227,7 @@ function CM.ApplyInteractionHUDLayout()
   ResizeInteractionHUDCluster()
 end
 
--- Localized UI font + drop shadow; visuals updated in UpdateInteractionHUDVisual.
+-- Localized UI font + drop shadow; visuals updated in Visual.Tick.
 local function ApplyInteractionHUDLabelFont()
   if not InteractionHUDLabel then
     return
@@ -285,92 +235,6 @@ local function ApplyInteractionHUDLabelFont()
   CM.SetFontStringFromTemplate(InteractionHUDLabel, IH_FONT, _G.GameFontNormalSmall)
   InteractionHUDLabel:SetShadowColor(0, 0, 0, 1)
   InteractionHUDLabel:SetShadowOffset(1, -1)
-end
-
--- SetUnitCursorTexture("softinteract") → file id/path; dim when "unable" art.
-local function GetInteractionHUDCursorDim()
-  if not InteractionHUDIcon then
-    return 0.9, true
-  end
-  if not SetUnitCursorTexture(InteractionHUDIcon, "softinteract") then
-    InteractionHUDIcon:SetAtlas("mechagon-projects")
-  end
-  InteractionHUDIcon:SetSize(IH_ICON, IH_ICON)
-  local filePath = InteractionHUDIcon:GetTextureFilePath()
-  if type(filePath) ~= "string" or (filePath and strfind(filePath, "FileData")) then
-    filePath = tostring(InteractionHUDIcon:GetTextureFileID())
-  end
-  if not filePath then
-    return 0.9, true
-  end
-  if IH_CURSOR_UNABLE[filePath] or (type(filePath) == "string" and strfind(filePath, "Unable")) then
-    return 0.5, false
-  end
-  return 0.9, true
-end
-
-local function UpdateInteractionHUDVisual(elapsed)
-  if not InteractionHUDCluster then
-    return
-  end
-  local dt = (elapsed and elapsed > 0) and elapsed or (1 / 60)
-
-  if math.abs(ihClusterFade - ihClusterFadeTarget) > 0.001 then
-    local step = math.min(1, dt * IH_CLUSTER_FADE_SPEED)
-    ihClusterFade = ihClusterFade + (ihClusterFadeTarget - ihClusterFade) * step
-    if math.abs(ihClusterFade - ihClusterFadeTarget) < 0.01 then
-      ihClusterFade = ihClusterFadeTarget
-    end
-  else
-    ihClusterFade = ihClusterFadeTarget
-  end
-  InteractionHUDCluster:SetAlpha(ihClusterFade)
-  if ihClusterFadeTarget == 0 and ihClusterFade <= 0.001 then
-    InteractionHUDCluster:Hide()
-    ihClusterFade = 0
-    return
-  end
-
-  if not InteractionHUDCluster:IsShown() then
-    return
-  end
-  -- Fading out: do not call SetUnitCursorTexture — softinteract may already be cleared (fallback gear).
-  if ihClusterFadeTarget == 0 then
-    return
-  end
-  local g = CM.DB and CM.DB.global
-  if
-    not g
-    or g.interactionHUD ~= true
-    or not CM.IsCrosshairEnabled()
-    or not InteractionHUDIcon
-    or not InteractionHUDLabel
-  then
-    return
-  end
-  -- Preview keeps the placeholder art: SetUnitCursorTexture would clear it without a target.
-  local inRange = true
-  if not IsInteractionHUDPreviewActive() then
-    local _, cursorInRange = GetInteractionHUDCursorDim()
-    inRange = cursorInRange
-  end
-  local target = inRange and 1 or 0
-  if ihRangeBlend == nil or ihSnapRangeBlend then
-    ihRangeBlend = target
-    ihSnapRangeBlend = false
-  else
-    local step = math.min(1, dt * IH_RANGE_LERP_SPEED)
-    ihRangeBlend = ihRangeBlend + (target - ihRangeBlend) * step
-    if math.abs(ihRangeBlend - target) < 0.002 then
-      ihRangeBlend = target
-    end
-  end
-  local dim = IH_DIM_MIN + (IH_DIM_MAX - IH_DIM_MIN) * ihRangeBlend
-  -- Range dimming applies to the icon only; name/shadow use fixed alphas (not crosshair opacity).
-  InteractionHUDLabel:SetTextColor(IH_NAME_COLOR[1], IH_NAME_COLOR[2], IH_NAME_COLOR[3], 1)
-  InteractionHUDShadow:SetAlpha(IH_SHADOW_ALPHA)
-  InteractionHUDIcon:SetAlpha(dim)
-  InteractionHUDLabel:SetAlpha(IH_NAME_OPACITY)
 end
 
 local function EnsureInteractionHUD()
@@ -401,13 +265,17 @@ local function EnsureInteractionHUD()
   InteractionHUDLabel:SetJustifyH("LEFT")
   InteractionHUDLabel:Hide()
 
+  BindVisual()
   ApplyInteractionHUDLabelFont()
   CM.ApplyInteractionHUDLayout()
   InteractionHUDCluster:SetAlpha(0)
-  ihClusterFade = 0
-  ihClusterFadeTarget = 0
+  if Visual and Visual.ResetFadeState then
+    Visual.ResetFadeState()
+  end
   InteractionHUDCluster:SetScript("OnUpdate", function(_, elapsed)
-    UpdateInteractionHUDVisual(elapsed)
+    if Visual and Visual.Tick then
+      Visual.Tick(elapsed)
+    end
   end)
 end
 
@@ -431,12 +299,16 @@ local function RefreshInteractionHUD()
     InteractionHUDIcon:SetSize(IH_ICON, IH_ICON)
     InteractionHUDLabel:SetText(IH_PREVIEW_NAME)
     ResizeInteractionHUDCluster()
-    ihClusterFadeTarget = 1
+    if Visual and Visual.RequestShow then
+      Visual.RequestShow()
+    end
     InteractionHUDShadow:Show()
     InteractionHUDIcon:Show()
     InteractionHUDLabel:Show()
     InteractionHUDCluster:Show()
-    UpdateInteractionHUDVisual(0)
+    if Visual and Visual.Tick then
+      Visual.Tick(0)
+    end
     return
   end
   if not (crosshairTexture and crosshairTexture.IsShown and crosshairTexture:IsShown()) then
@@ -444,12 +316,12 @@ local function RefreshInteractionHUD()
     HideInteractionHUD()
     return
   end
-  if not HasInteractionHUDTarget() then
+  if not (Target and Target.HasTarget and Target.HasTarget()) then
     interactionHUDNameRetry = 0
     HideInteractionHUD()
     return
   end
-  local name = GetInteractionHUDUnitName()
+  local name = Target.GetUnitName and Target.GetUnitName() or nil
   local hasName = false
   if name ~= nil then
     if IsSecretValue(name) then
@@ -483,14 +355,18 @@ local function RefreshInteractionHUD()
   if C_Timer and C_Timer.After then
     C_Timer.After(0, ResizeInteractionHUDCluster)
   end
-  ihClusterFadeTarget = 1
+  if Visual and Visual.RequestShow then
+    Visual.RequestShow()
+  end
   if not ihInteractionHUDSecretIdentity and InteractionHUDShadow then
     InteractionHUDShadow:Show()
   end
   InteractionHUDIcon:Show()
   InteractionHUDLabel:Show()
   InteractionHUDCluster:Show()
-  UpdateInteractionHUDVisual(0)
+  if Visual and Visual.Tick then
+    Visual.Tick(0)
+  end
 end
 
 CM.RefreshInteractionHUD = RefreshInteractionHUD

@@ -16,7 +16,7 @@
 --    • SetCursorFreelookCenteringCVar + SetCursorCenteredYPos — FreeLook bounce + Y sync.
 --  Does not: Own SoftTarget UI widgets or freelook state machine.
 --  Related: Constants/CVars.lua, Constants/DatabaseDefaults.lua,
---  Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD.lua,
+--  Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD/HUD.lua,
 --  UI/Editors/ReticleCVarEditorData.lua, UI/Options/Tabs/TabReticleTargeting.lua,
 --  UI/Options/Tabs/TabCamera.lua, Core/FreeLook/FreeLookController.lua
 ---------------------------------------------------------------------------------------

@@ -10,7 +10,7 @@
 --    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
 --      orphans on the stolen key and refreshes Target Lock override).
 --    • Interact rebind clears both INTERACTMOUSEOVER and INTERACTTARGET then assigns
---      primary + ALT alternate.
+--      primary + ALT alternate (skipped ALT dual-bind when the chosen key already has ALT-).
 --  Does not: Own freelook state machine or click-cast slot table UI.
 --  Related: Core/FreeLook/FreeLookController.lua,
 --  Core/ClickCasting/BindingOverrides.lua, Core/Runtime/BindingQueue.lua,
@@ -28,6 +28,7 @@ local SetBinding = _G.SetBinding
 
 -- Lua stdlib
 local ipairs = _G.ipairs
+local strfind = _G.string.find
 
 local UI = CM.UI
 
@@ -68,13 +69,17 @@ local function GetInteractBindingKey()
 end
 
 --- Binds `key` to the selected interact command and ALT-key to the other, then saves.
+--- When `key` already starts with ALT- (e.g. ALT-BUTTON3), skip the dual-bind so we do
+--- not create ALT-ALT-BUTTON3.
 local function ApplyInteractKeybind(key)
   CM.TryApplyBindingChange("reticle interact keybinding", function()
     ClearInteractBindings()
     if key and key ~= "" then
       local primary, alternate = GetInteractCommands()
       SetBinding(key, primary)
-      SetBinding("ALT-" .. key, alternate)
+      if not strfind(key, "^ALT%-") then
+        SetBinding("ALT-" .. key, alternate)
+      end
     end
     SaveBindings(GetCurrentBindingSet())
     -- Interact may have stolen a Target Lock key; refresh the override layer.
@@ -127,7 +132,7 @@ UI.Options.AddTab({
     })
     ctx:Toggle({
       label = "Sheath Weapons with Mouse Look",
-      desc = "Unsheath weapons when Mouse Look turns on. Sheath when it turns off.",
+      desc = "Unsheath weapons when Mouse Look turns on. Sheath when it turns off (brief delay so quick toggles do not flash).",
       get = function()
         return CM.DB.global.sheathWeaponsWithMouselook
       end,

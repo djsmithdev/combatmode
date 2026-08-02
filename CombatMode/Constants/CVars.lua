@@ -14,7 +14,7 @@
 --  Does not: Call SetCVar or merge DB overrides (CVarManager owns writes + effective values).
 --  Related: Core/Runtime/CVarManager.lua, UI/Editors/ReticleCVarEditorData.lua,
 --  UI/Editors/ReticleCVarEditorPanel.lua, Constants/DatabaseDefaults.lua,
---  Core/Crosshair/InteractionHUD.lua, UI/Options/Tabs/TabReticleTargeting.lua,
+--  Core/Crosshair/InteractionHUD/HUD.lua, UI/Options/Tabs/TabReticleTargeting.lua,
 --  UI/Options/Tabs/TabCamera.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...

@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.3] - 2026-08-02
+
+### Fixed
+
+- Binding another action to an Interact key that already includes Alt (for example Alt+Mouse Button 3) no longer leaves Interact as Alt+Alt+key.
+- Rapid Single-Button Assistant presses no longer spam Combat Assist cast-success press/pulse animations (repeats are coalesced while feedback is already playing).
+
+### Changed
+
+- Combat Assist animations reworked to be more subtle.
+- Sheath Weapons with Mouse Look now waits briefly before sheathing after unlock, so rapid Mouse Look toggles (e.g. while single-pulling) no longer flash sheath/unsheath. Unsheath on lock is still immediate.
+- Combat Assist and Interaction HUD runtime code are split into focused submodules under `Core/Crosshair/AssistedHighlight/` and `Core/Crosshair/InteractionHUD/` (behavior unchanged).
+
 ## [4.1.2] - 2026-08-01
 
 ### Added
@@ -221,7 +234,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.1.2...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.1.3...HEAD
+[4.1.3]: https://github.com/djsmithdev/combatmode/compare/4.1.2...4.1.3
 [4.1.2]: https://github.com/djsmithdev/combatmode/compare/4.1.1...4.1.2
 [4.1.1]: https://github.com/djsmithdev/combatmode/compare/4.1.0...4.1.1
 [4.1.0]: https://github.com/djsmithdev/combatmode/compare/4.0.3...4.1.0

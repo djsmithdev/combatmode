@@ -26,8 +26,14 @@
     <Script file="Core\FreeLook\AutoCursorUnlock.lua"/>
     <!-- CROSSHAIR (+ companions) -->
     <Script file="Core\Crosshair\Animations.lua"/>
-    <Script file="Core\Crosshair\InteractionHUD.lua"/>
-    <Script file="Core\Crosshair\AssistedHighlight.lua"/>
+    <Script file="Core\Crosshair\InteractionHUD\Target.lua"/>
+    <Script file="Core\Crosshair\InteractionHUD\Visual.lua"/>
+    <Script file="Core\Crosshair\InteractionHUD\HUD.lua"/>
+    <Script file="Core\Crosshair\AssistedHighlight\Keybinds.lua"/>
+    <Script file="Core\Crosshair\AssistedHighlight\Motion.lua"/>
+    <Script file="Core\Crosshair\AssistedHighlight\CastProgress.lua"/>
+    <Script file="Core\Crosshair\AssistedHighlight\Feedback.lua"/>
+    <Script file="Core\Crosshair\AssistedHighlight\Assist.lua"/>
     <Script file="Core\Crosshair\Crosshair.lua"/>
     <!-- PARTY RADIAL -->
     <Script file="Core\PartyRadial\PartyRadial.lua"/>
