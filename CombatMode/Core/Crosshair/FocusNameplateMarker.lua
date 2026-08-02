@@ -22,7 +22,6 @@ local _G = _G
 -- WoW API
 local CreateFrame = _G.CreateFrame
 local UnitExists = _G.UnitExists
-local UnitGUID = _G.UnitGUID
 local UnitIsUnit = _G.UnitIsUnit
 local UIParent = _G.UIParent
 
@@ -52,7 +51,6 @@ local activePlate
 local activeAnchor
 local pendingPlateAdd
 local sizeRetryCount = 0
-local trackedFocusGUID
 local waitingForPlate = false
 
 local markerFrame
@@ -378,7 +376,6 @@ local function DismissMarkerInstant()
   waitingForPlate = false
   pendingPlateAdd = nil
   sizeRetryCount = 0
-  trackedFocusGUID = nil
   RestoreCenterReticle()
   HideMarkerInstant()
   activePlate = nil
@@ -406,7 +403,6 @@ StartTransfer = function(plate, anchor)
   sizeRetryCount = 0
   activePlate = plate
   activeAnchor = anchor
-  trackedFocusGUID = UnitGUID and UnitGUID("focus") or nil
   SuppressCenterReticle()
   BeginPlateArrive()
 end
@@ -439,7 +435,6 @@ function CM.UpdateFocusNameplateMarker()
   -- Static base-colored Dot at center; hostile-red arrive plays on the nameplate.
   SuppressCenterReticle()
 
-  local focusGUID = UnitGUID and UnitGUID("focus") or nil
   local plate = GetPlateForFocus()
   if not plate then
     waitingForPlate = true
@@ -472,22 +467,13 @@ function CM.UpdateFocusNameplateMarker()
 
   waitingForPlate = false
 
-  if
-    state == STATE_SETTLED
-    and trackedFocusGUID
-    and focusGUID
-    and trackedFocusGUID == focusGUID
-  then
+  -- Same plate identity (not GUID — UnitGUID is secret under dungeon taint).
+  if state == STATE_SETTLED and activePlate == plate then
     ReanchorSettledIfNeeded(plate, anchor)
     return
   end
 
-  if
-    state == STATE_PLATE_ARRIVE
-    and trackedFocusGUID
-    and focusGUID
-    and trackedFocusGUID == focusGUID
-  then
+  if state == STATE_PLATE_ARRIVE and activePlate == plate then
     activePlate = plate
     activeAnchor = anchor
     return

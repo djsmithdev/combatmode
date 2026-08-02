@@ -51,7 +51,6 @@ local FOCUS_LOCK_SOUND = (SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN) or 839
 local FOCUS_UNLOCK_SOUND = (SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_CLOSE) or 840
 local FOCUS_CYCLE_SOUND = (SOUNDKIT and SOUNDKIT.IG_MAINMENU_OPTION) or 852
 local hadFocusUnit = false
-local lastFocusGUID = nil
 
 -- Outer frame: positioning container. Inner frame: crosshair art, reaction scale, lock-in / cast feedback.
 local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
@@ -466,16 +465,16 @@ local function PlayFocusLockSounds(hasFocus)
   if not PlaySound then
     return
   end
-  local guid = hasFocus and UnitGUID("focus") or nil
+  -- Do not compare UnitGUID here — GUIDs are secret under instance taint.
+  -- PLAYER_FOCUS_CHANGED + UnitExists covers lock / unlock / A→B cycle.
   if hasFocus and not hadFocusUnit then
     PlaySound(FOCUS_LOCK_SOUND, "Master", true)
   elseif not hasFocus and hadFocusUnit then
     PlaySound(FOCUS_UNLOCK_SOUND, "Master", true)
-  elseif hasFocus and hadFocusUnit and guid and guid ~= lastFocusGUID then
+  elseif hasFocus and hadFocusUnit then
     -- Focus A → B (e.g. mouse-wheel cycle).
     PlaySound(FOCUS_CYCLE_SOUND, "Master", true)
   end
-  lastFocusGUID = guid
 end
 
 function CM.OnCrosshairFocusLockEvent(event)
