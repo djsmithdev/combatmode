@@ -391,9 +391,6 @@ function CM.BuildClickCastMacroText(bindingValue)
     -- (works when exiting vehicle in combat; we can't refresh bindings then)
     -- For bonus/shapeshift bars, bindings are refreshed via events when out of combat
     local regularFrame = FindPrimaryBarButtonFrame(buttonNum) or ("ActionButton" .. buttonNum)
-    CM.DebugPrint(
-      "BuildClickCastMacroText: ACTIONBUTTON" .. buttonNum .. " regularFrame=" .. regularFrame
-    )
 
     local overrideFrame = "OverrideActionBarButton" .. buttonNum
     local overrideClick = IsAddonActionButtonFrame(overrideFrame)
@@ -409,9 +406,6 @@ function CM.BuildClickCastMacroText(bindingValue)
       .. "; "
       .. regularClick
   else
-    CM.DebugPrint(
-      "BuildClickCastMacroText: " .. bindingValue .. " effectiveFrame=" .. effectiveFrame
-    )
     castLine = FormatClickLine(effectiveFrame, "LeftButton")
   end
 

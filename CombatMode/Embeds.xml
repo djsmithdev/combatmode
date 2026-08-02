@@ -34,6 +34,7 @@
     <Script file="Core\Crosshair\AssistedHighlight\CastProgress.lua"/>
     <Script file="Core\Crosshair\AssistedHighlight\Feedback.lua"/>
     <Script file="Core\Crosshair\AssistedHighlight\Assist.lua"/>
+    <Script file="Core\Crosshair\FocusNameplateMarker.lua"/>
     <Script file="Core\Crosshair\Crosshair.lua"/>
     <!-- PARTY RADIAL -->
     <Script file="Core\PartyRadial\PartyRadial.lua"/>

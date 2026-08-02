@@ -47,7 +47,7 @@ local AssistedHighlightAnimDriver
 -- Shell layout (IconMask)
 local ICON_MASK_BASE_SIZE = 32
 local ICON_MASK_BASE_EXPAND = 6
-local SHADOW_SCALE = 1.3
+local SHADOW_SCALE = 1.5
 local ICON_SIZE = 40
 local ASSIST_OFFSET_X = 24 -- px beyond crosshair edge (matches Interaction HUD gap)
 
@@ -166,10 +166,11 @@ local function EnsureAssistedHighlight()
   AssistedHighlightVisual:SetPoint("CENTER", AssistedHighlightFrame, "CENTER", 0, 0)
   AssistedHighlightVisual:Hide()
 
+  -- Backdrop shadow (same atlas as Party Radial role icons; larger so soft edge extends).
   AssistedHighlightFrame.shadow = AssistedHighlightVisual:CreateTexture(nil, "BACKGROUND")
   AssistedHighlightFrame.shadow:SetDrawLayer("BACKGROUND", -1)
-  AssistedHighlightFrame.shadow:SetAtlas("Radial_Wheel_BG")
-  AssistedHighlightFrame.shadow:SetAlpha(0.75)
+  AssistedHighlightFrame.shadow:SetAtlas("Radial_Wheel_BG_Small")
+  AssistedHighlightFrame.shadow:SetAlpha(1)
 
   -- BACKGROUND: dark beveled well
   AssistedHighlightFrame.background = AssistedHighlightVisual:CreateTexture(nil, "BACKGROUND")
@@ -405,22 +406,10 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
     AssistedHighlightFrame.icon:ClearAllPoints()
     AssistedHighlightFrame.icon:SetPoint("CENTER", AssistedHighlightVisual, "CENTER", 0, 0)
 
-    local shadowPad = math.floor((size * (SHADOW_SCALE - 1)) * 0.5 + 0.5)
+    local shadowSize = size * SHADOW_SCALE
     AssistedHighlightFrame.shadow:ClearAllPoints()
-    AssistedHighlightFrame.shadow:SetPoint(
-      "TOPLEFT",
-      AssistedHighlightFrame.icon,
-      "TOPLEFT",
-      -shadowPad,
-      shadowPad
-    )
-    AssistedHighlightFrame.shadow:SetPoint(
-      "BOTTOMRIGHT",
-      AssistedHighlightFrame.icon,
-      "BOTTOMRIGHT",
-      shadowPad,
-      -shadowPad
-    )
+    AssistedHighlightFrame.shadow:SetSize(shadowSize, shadowSize)
+    AssistedHighlightFrame.shadow:SetPoint("CENTER", AssistedHighlightFrame.icon, "CENTER", 0, 0)
 
     LayoutShellAroundIcon(AssistedHighlightFrame.iconMask, AssistedHighlightFrame.icon, expand)
     LayoutShellAroundIcon(AssistedHighlightFrame.background, AssistedHighlightFrame.icon, expand)

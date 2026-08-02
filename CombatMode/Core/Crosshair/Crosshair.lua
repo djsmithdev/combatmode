@@ -9,16 +9,19 @@
 --  Architecture / how it works:
 --    • DB.global.crosshair / crosshairMounted / appearance / size / opacity / Y.
 --    • UpdateCrosshairReaction — hostile/friendly/dead/gameobject under mouse or soft
---      target; drives texture + Animations reaction scale.
+--      target; drives texture + Animations reaction scale. While Target Lock is held,
+--      center reticle is a static base-colored Dot (FocusNameplateMarker / SetFocusLockReticleSuppressed);
+--      lock feedback is on the nameplate marker.
 --    • SetCrosshairOptionsPreview — tab onSelect/onDeselect; do not reuse mouselook
 --      Show/Hide gates.
---    • OnCrosshairCastFeedbackEvent / FocusLock (lock-in anim + optional lock/unlock
---      SFX) / Uncategorized / Rematch hooks from EventRouter / Runtime.
+--    • OnCrosshairCastFeedbackEvent / FocusLock (optional lock/unlock SFX; nameplate
+--      transfer visual lives in FocusNameplateMarker) / Uncategorized / Rematch hooks
+--      from EventRouter / Runtime.
 --  Does not: Own SoftTarget CVar writes, assist FlipBook / cast feedback motion, or freelook lock.
 --  Related: Core/Crosshair/Animations.lua, Core/Crosshair/InteractionHUD/HUD.lua
 --  (and sibling Target/Visual), Core/Crosshair/AssistedHighlight/Assist.lua
---  (and sibling Keybinds/Motion/CastProgress/Feedback), Core/Runtime/CVarManager.lua,
---  Core/Runtime/EventRouter.lua, UI/Options/Tabs/TabCrosshair.lua,
+--  (and sibling Keybinds/Motion/CastProgress/Feedback), Core/Crosshair/FocusNameplateMarker.lua,
+--  Core/Runtime/CVarManager.lua, Core/Runtime/EventRouter.lua, UI/Options/Tabs/TabCrosshair.lua,
 --  Constants/Assets.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -39,6 +42,9 @@ local UnitIsPlayer = _G.UnitIsPlayer
 local UnitReaction = _G.UnitReaction
 local PlaySound = _G.PlaySound
 local SOUNDKIT = _G.SOUNDKIT
+
+-- Lua stdlib
+local type = _G.type
 
 -- Soft UI ticks on Master: character panel open/close for lock/unlock; option click for cycle.
 local FOCUS_LOCK_SOUND = (SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN) or 839
@@ -82,6 +88,85 @@ function CM.IsInteractionHUDEnabled()
 end
 
 CM.IsCrosshairOptionsPreviewActive = false
+
+-- While Target Lock is held: center reticle becomes a static base-colored Dot (unreactive).
+-- Nameplate marker uses hostile red; assist/HUD stay on CrosshairFrame.
+local focusLockReticleSuppressed = false
+local lastKnownAppearanceState = nil
+
+function CM.IsFocusLockReticleSuppressed()
+  return focusLockReticleSuppressed
+end
+
+local function GetFocusLockIdleTexturePath()
+  local obj = CM.Constants
+    and CM.Constants.CrosshairTextureObj
+    and CM.Constants.CrosshairTextureObj.Dot
+  if type(obj) == "table" and type(obj.Base) == "string" then
+    return obj.Base
+  end
+  return "Interface\\AddOns\\CombatMode\\assets\\crosshairDot.blp"
+end
+
+local function GetFocusLockIdleColor()
+  local c = CM.Constants
+    and CM.Constants.CrosshairReactionColors
+    and CM.Constants.CrosshairReactionColors.base
+  if type(c) == "table" then
+    return c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 0.5
+  end
+  return 1, 1, 1, 0.5
+end
+
+local function ApplyFocusLockIdleReticle()
+  if CM.CancelCrosshairLockIn then
+    CM.CancelCrosshairLockIn()
+  end
+  if CrosshairAnimation and CrosshairAnimation.Stop then
+    CrosshairAnimation:Stop()
+  end
+  CrosshairVisualFrame:SetScale(1)
+  CrosshairVisualFrame:SetPoint("CENTER", CrosshairFrame, "CENTER", 0, 0)
+  local DefaultConfig = CM.Constants.DatabaseDefaults.global
+  local UserConfig = CM.DB.global or {}
+  local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
+  CrosshairFrame:SetAlpha(1)
+  CrosshairVisualFrame:SetAlpha(crosshairOpacity)
+  CrosshairTexture:SetTexture(GetFocusLockIdleTexturePath())
+  local r, g, b, a = GetFocusLockIdleColor()
+  CrosshairTexture:SetVertexColor(r, g, b, a)
+  if
+    CM.IsCrosshairEnabled()
+    and not CM.HideCrosshairWhileMounted()
+    and (IsMouselooking() or CM.IsCrosshairPreviewActive())
+  then
+    CrosshairTexture:Show()
+  end
+end
+
+function CM.SetFocusLockReticleSuppressed(suppressed)
+  suppressed = suppressed and true or false
+  if focusLockReticleSuppressed == suppressed then
+    if suppressed then
+      ApplyFocusLockIdleReticle()
+    end
+    return
+  end
+  focusLockReticleSuppressed = suppressed
+  if suppressed then
+    ApplyFocusLockIdleReticle()
+    return
+  end
+  local DefaultConfig = CM.Constants.DatabaseDefaults.global
+  local UserConfig = CM.DB.global or {}
+  local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
+  CrosshairVisualFrame:SetAlpha(crosshairOpacity)
+  if CM.IsCrosshairEnabled() and not CM.HideCrosshairWhileMounted() and IsMouselooking() then
+    CrosshairTexture:Show()
+    lastKnownAppearanceState = nil
+    CM.UpdateCrosshairReaction()
+  end
+end
 
 -- True while the Crosshair options tab is open and forcing the reticle (and HUD /
 -- Combat Assist companions) to render with mouselook off.
@@ -145,12 +230,16 @@ function CM.DisplayCrosshair(shouldShow)
     shouldShow = true
   end
   if shouldShow then
-    CrosshairTexture:Show()
     local DefaultConfig = CM.Constants.DatabaseDefaults.global
     local UserConfig = CM.DB.global or {}
     local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
     CrosshairFrame:SetAlpha(1)
     CrosshairVisualFrame:SetAlpha(crosshairOpacity)
+    if focusLockReticleSuppressed then
+      ApplyFocusLockIdleReticle()
+    else
+      CrosshairTexture:Show()
+    end
   else
     if CM.CancelCrosshairCastFeedback then
       CM.CancelCrosshairCastFeedback()
@@ -224,8 +313,6 @@ DebugCrosshairUpdater:SetScript("OnUpdate", function()
     DebugCrosshairFrame:Hide()
   end
 end)
-
-local lastKnownAppearanceState = nil
 
 local function GetUnitReactionType(unitID)
   if not unitID then
@@ -313,17 +400,14 @@ function CM.UpdateCrosshairReaction()
     return
   end
 
-  local hasFocus = UnitExists("focus")
-  local currentUnit, currentReaction = GetUnitUnderCursor()
-
-  local appearanceState
-  if hasFocus then
-    appearanceState = "focus"
-  elseif currentUnit then
-    appearanceState = currentReaction or "base"
-  else
-    appearanceState = "base"
+  -- Static base-colored Dot while Target Lock is held — do not react to mouseover.
+  if focusLockReticleSuppressed then
+    return
   end
+
+  -- Target Lock marker lives on FocusNameplateMarker (plate arrive); center is idle Dot.
+  local currentUnit, currentReaction = GetUnitUnderCursor()
+  local appearanceState = currentUnit and (currentReaction or "base") or "base"
 
   if appearanceState ~= lastKnownAppearanceState then
     lastKnownAppearanceState = appearanceState
@@ -398,8 +482,11 @@ function CM.OnCrosshairFocusLockEvent(event)
   if event == "PLAYER_FOCUS_CHANGED" then
     local hasFocus = UnitExists("focus")
     PlayFocusLockSounds(hasFocus)
-    if hasFocus and IsMouselooking() then
-      CM.ShowCrosshairLockIn()
+    -- Static base-colored Dot at center during lock; FocusNameplateMarker plays the plate marker.
+    if hasFocus then
+      if CM.SetFocusLockReticleSuppressed then
+        CM.SetFocusLockReticleSuppressed(true)
+      end
     end
     hadFocusUnit = hasFocus and true or false
     CM.UpdateCrosshairReaction()

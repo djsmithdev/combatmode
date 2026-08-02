@@ -9,7 +9,8 @@
 --    • DB: global.pulseCursor, hideTooltip, interactUnit, cycleFocusWithMouseWheel,
 --      targetLockSounds; char.focusCurrentTargetNotCrosshair.
 --    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
---      orphans on the stolen key and refreshes Target Lock override).
+--      orphans on the stolen key and refreshes Target Lock override). Cycle Lock with
+--      Mouse Wheel also uses TryApplyBindingChange → UpdateFocusCycleWheelBindings.
 --    • Interact rebind clears both INTERACTMOUSEOVER and INTERACTTARGET then assigns
 --      primary + ALT alternate (skipped ALT dual-bind when the chosen key already has ALT-).
 --  Does not: Own freelook state machine or click-cast slot table UI.
@@ -195,9 +196,9 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.global.cycleFocusWithMouseWheel = value
-        if CM.UpdateFocusCycleWheelBindings then
+        CM.TryApplyBindingChange("focus cycle mouse wheel", function()
           CM.UpdateFocusCycleWheelBindings()
-        end
+        end)
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting

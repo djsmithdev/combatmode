@@ -10,7 +10,8 @@
 --    • BLIZZARD_EVENTS groups: UNLOCK/LOCK/REMATCH, FRIENDLY_TARGETING,
 --      UNCATEGORIZED, REFRESH_BINDINGS (bars/vehicles/CVAR_UPDATE), FOCUS_LOCK,
 --      CAST_FEEDBACK (player cast/channel), ASSISTED_HIGHLIGHT
---      (ASSISTED_COMBAT_ACTION_SPELL_CAST).
+--      (ASSISTED_COMBAT_ACTION_SPELL_CAST), FOCUS_NAMEPLATE (nameplate add/remove for
+--      Target Lock nameplate marker).
 --    • ActionsToProcess enumerates bindable Blizzard actions; OverrideActions labels
 --      CM-specific clear/toggle/macro choices; ButtonsToOverride lists the 8 mouse slots.
 --  Does not: Register events, create macros, or SetOverrideBinding (Bootstrap /
@@ -18,7 +19,7 @@
 --  Related: Core/Runtime/EventRouter.lua, Core/ClickCasting/BindingOverrides.lua,
 --  Core/Runtime/Bootstrap.lua, UI/Options/Tabs/TabClickCasting.lua,
 --  Core/Crosshair/AssistedHighlight/{CastProgress,Feedback,Assist}.lua,
---  Core/Crosshair/Animations.lua
+--  Core/Crosshair/Animations.lua, Core/Crosshair/FocusNameplateMarker.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 
@@ -29,8 +30,8 @@ CM.Constants.Macros = {
   CM_ToggleFocusEnemy = "/focus [@focus,exists] none; [@mouseover,exists,harm,nodead][]",
   CM_ToggleFocusTarget = "/focus [@focus,exists] none; [@target,exists][]",
   -- Mouse-wheel Target Lock cycle (nearest / previous enemy, then focus).
-  CM_CycleFocusEnemyNext = "/targetenemy [focus,exists]\n/focus [@target,exists]",
-  CM_CycleFocusEnemyPrev = "/targetenemy [focus,exists] 1\n/focus [@target,exists]",
+  CM_CycleFocusEnemyNext = "/targetenemy [@focus,exists]\n/focus [@target,exists]",
+  CM_CycleFocusEnemyPrev = "/targetenemy [@focus,exists] 1\n/focus [@target,exists]",
 }
 
 -- EVENTS TO BE TRACKED
@@ -80,6 +81,11 @@ CM.Constants.BLIZZARD_EVENTS = {
   -- Events for focus lock detection
   FOCUS_LOCK_EVENTS = {
     "PLAYER_FOCUS_CHANGED", -- Focus changed (lock-in animation)
+  },
+  -- Nameplate add/remove for Target Lock nameplate marker (arrive / clear when plate exists)
+  FOCUS_NAMEPLATE_EVENTS = {
+    "NAME_PLATE_UNIT_ADDED",
+    "NAME_PLATE_UNIT_REMOVED",
   },
   -- Player cast/channel feedback for crosshair grow / explode / break
   CAST_FEEDBACK_EVENTS = {

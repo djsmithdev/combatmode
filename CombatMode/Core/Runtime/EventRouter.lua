@@ -8,26 +8,30 @@
 --  Architecture / how it works:
 --    • BuildEventCategoryMap / GetEventCategoryMap used at enable time.
 --    • REFRESH_BINDINGS_EVENTS coalesced via C_Timer so one RefreshClickCastMacros runs
---      after bursts; also ApplyToggleFocusTargetBinding (UPDATE_BINDINGS),
---      InvalidateAssistedHighlightKeybindCache + Party Radial hooks.
+--      after bursts (also Toggle Focus + Party Radial side effects). Self-echo events
+--      during apply are suppressed; Assisted Combat suggestion slots and unchanged
+--      ACTIONBAR_SLOT_CHANGED are skipped.
 --    • CAST_FEEDBACK_EVENTS → OnCrosshairCastFeedbackEvent; player casts also
 --      OnAssistedHighlightCastProgress (dark swipe) and SUCCEEDED →
 --      OnAssistedHighlightSpellCast(spellID).
 --    • ASSISTED_HIGHLIGHT_EVENTS → OnAssistedHighlightAssistedActionCast.
---    • FRIENDLY_TARGETING_EVENTS double as Party Radial combat start/end + FlushDeferred
---      + FlushFocusCycleWheelBindingsIfDirty on PLAYER_REGEN_ENABLED.
---    • FOCUS_LOCK_EVENTS → OnCrosshairFocusLockEvent + UpdateFocusCycleWheelBindings.
+--    • FRIENDLY_TARGETING_EVENTS double as Party Radial combat start/end +
+--      FlushDeferredBindingChanges on PLAYER_REGEN_ENABLED.
+--    • FOCUS_LOCK_EVENTS → UpdateFocusNameplateMarker + OnCrosshairFocusLockEvent.
+--    • FOCUS_NAMEPLATE_EVENTS → OnFocusNameplateMarkerEvent (ADD/REMOVE).
 --  Does not: RegisterEvent itself (root frame / Bootstrap) or own feature logic.
 --  Related: Constants/Gameplay.lua, Core/FreeLook/FreeLookController.lua,
 --  Core/ClickCasting/BindingOverrides.lua, Core/Crosshair/Crosshair.lua,
 --  Core/Crosshair/AssistedHighlight/{Keybinds,CastProgress,Feedback,Assist}.lua,
---  Core/PartyRadial/PartyRadial.lua, Core/Runtime/BindingQueue.lua
+--  Core/Crosshair/FocusNameplateMarker.lua, Core/PartyRadial/PartyRadial.lua,
+--  Core/Runtime/BindingQueue.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
 
 -- WoW API
 local C_Timer = _G.C_Timer
+local GetTime = _G.GetTime
 
 -- Lua stdlib
 local ipairs = _G.ipairs
@@ -37,31 +41,95 @@ local select = _G.select
 local eventCategoryMap = {}
 
 -- Coalesce REFRESH_BINDINGS_EVENTS: one RefreshClickCastMacros after bursts.
+-- Our override re-applies can echo UPDATE_BINDINGS / ACTIONBAR_SLOT_CHANGED; suppress
+-- those while applying. Unchanged action-bar content is skipped via fingerprint.
 local clickCastRefreshGen = 0
-local clickCastRefreshReason = "bar" -- "cvar" | "bar"
+local clickCastRefreshReason = "bar" -- "cvar" | event name
+local clickCastRefreshSlot = nil -- ACTIONBAR_SLOT_CHANGED payload when present
+local selfBindingEventSuppressUntil = 0
+local lastActionBarFingerprint = nil
+
+local function SuppressSelfBindingEvents(seconds)
+  local now = GetTime and GetTime() or 0
+  local untilTime = now + (seconds or 0.2)
+  if untilTime > selfBindingEventSuppressUntil then
+    selfBindingEventSuppressUntil = untilTime
+  end
+end
+
+local function IsSelfBindingEventSuppressed()
+  return GetTime and GetTime() < selfBindingEventSuppressUntil
+end
+
+local function ActionBarContentUnchanged()
+  if not CM.GetActionBarContentFingerprint then
+    return false
+  end
+  local fp = CM.GetActionBarContentFingerprint()
+  if lastActionBarFingerprint ~= nil and fp == lastActionBarFingerprint then
+    return true
+  end
+  return false
+end
+
+local function RememberActionBarFingerprint()
+  if CM.GetActionBarContentFingerprint then
+    lastActionBarFingerprint = CM.GetActionBarContentFingerprint()
+  end
+end
 
 local function DebugPrintClickCastRefreshReason()
   if clickCastRefreshReason == "cvar" then
     CM.DebugPrint("ActionButtonUseKeyDown changed, refreshing binding macros")
+  elseif clickCastRefreshReason == "ACTIONBAR_SLOT_CHANGED" and clickCastRefreshSlot ~= nil then
+    CM.DebugPrint(
+      "Refreshing binding macros (ACTIONBAR_SLOT_CHANGED slot="
+        .. tostring(clickCastRefreshSlot)
+        .. ")"
+    )
   else
-    CM.DebugPrint("Action Bar state changed, refreshing binding macros")
+    CM.DebugPrint("Refreshing binding macros (" .. tostring(clickCastRefreshReason) .. ")")
   end
+end
+
+local function RunClickCastBindingRefresh()
+  -- Binding/attribute writes can echo UPDATE_BINDINGS and ACTIONBAR_SLOT_CHANGED.
+  SuppressSelfBindingEvents(0.5)
+  DebugPrintClickCastRefreshReason()
+  CM.RefreshClickCastMacros()
+  if
+    CM.ApplyToggleFocusTargetBinding
+    and (
+      clickCastRefreshReason == "UPDATE_BINDINGS"
+      or clickCastRefreshReason == "HOUSE_EDITOR_MODE_CHANGED"
+    )
+  then
+    CM.ApplyToggleFocusTargetBinding()
+  end
+  if CM.PartyRadial and CM.PartyRadial.OnActionBarChanged then
+    if clickCastRefreshReason == "GROUP_ROSTER_UPDATE" then
+      if CM.PartyRadial.OnGroupRosterUpdate then
+        CM.PartyRadial.OnGroupRosterUpdate()
+      end
+    elseif clickCastRefreshReason ~= "UPDATE_BINDINGS" then
+      CM.PartyRadial.OnActionBarChanged()
+    end
+  end
+  RememberActionBarFingerprint()
 end
 
 local function ScheduleClickCastBindingRefresh()
   if not C_Timer or not C_Timer.After then
-    DebugPrintClickCastRefreshReason()
-    CM.RefreshClickCastMacros()
+    RunClickCastBindingRefresh()
     return
   end
   clickCastRefreshGen = clickCastRefreshGen + 1
   local myGen = clickCastRefreshGen
-  C_Timer.After(0.1, function()
+  C_Timer.After(0.15, function()
     if myGen ~= clickCastRefreshGen then
       return
     end
-    DebugPrintClickCastRefreshReason()
-    CM.RefreshClickCastMacros()
+    RunClickCastBindingRefresh()
   end)
 end
 
@@ -97,9 +165,6 @@ local function HandleEventByCategory(category, event, ...)
       end
       if event == "PLAYER_REGEN_ENABLED" then
         CM.FlushDeferredBindingChanges()
-        if CM.FlushFocusCycleWheelBindingsIfDirty then
-          CM.FlushFocusCycleWheelBindingsIfDirty()
-        end
       end
     end,
     UNCATEGORIZED_EVENTS = function()
@@ -110,10 +175,34 @@ local function HandleEventByCategory(category, event, ...)
         return
       end
 
+      -- Our own override / attribute writes echo as UPDATE_BINDINGS or ACTIONBAR_SLOT_CHANGED.
+      if IsSelfBindingEventSuppressed() then
+        return
+      end
+
+      -- Assisted Combat suggestion buttons rewrite their slot spell often; that must not
+      -- rebuild click-cast overrides / Party Radial attrs.
+      if event == "ACTIONBAR_SLOT_CHANGED" and CM.IsAssistedCombatActionSlot then
+        if CM.IsAssistedCombatActionSlot(cvarName) then
+          return
+        end
+      end
+
+      -- Noisy ACTIONBAR_SLOT_CHANGED with unchanged spell/item/macro contents.
+      if event == "ACTIONBAR_SLOT_CHANGED" and ActionBarContentUnchanged() then
+        return
+      end
+
       if event == "CVAR_UPDATE" then
         clickCastRefreshReason = "cvar"
+        clickCastRefreshSlot = nil
       else
-        clickCastRefreshReason = "bar"
+        clickCastRefreshReason = event
+        if event == "ACTIONBAR_SLOT_CHANGED" then
+          clickCastRefreshSlot = cvarName -- first payload arg is slot
+        else
+          clickCastRefreshSlot = nil
+        end
       end
       ScheduleClickCastBindingRefresh()
 
@@ -121,27 +210,20 @@ local function HandleEventByCategory(category, event, ...)
         return
       end
 
-      if CM.ApplyToggleFocusTargetBinding then
-        CM.ApplyToggleFocusTargetBinding()
-      end
-
       if CM.InvalidateAssistedHighlightKeybindCache then
         CM.InvalidateAssistedHighlightKeybindCache()
       end
-      -- Party Radial: update slice targets and spell attributes when roster or action bar changes
-      if not CM.PartyRadial then
-        return
-      end
-      if event == "GROUP_ROSTER_UPDATE" and CM.PartyRadial.OnGroupRosterUpdate then
-        CM.PartyRadial.OnGroupRosterUpdate()
-      elseif CM.PartyRadial.OnActionBarChanged then
-        CM.PartyRadial.OnActionBarChanged()
-      end
     end,
     FOCUS_LOCK_EVENTS = function()
+      -- Nameplate transfer suppresses the center reticle before reaction tint/scale.
+      if CM.UpdateFocusNameplateMarker then
+        CM.UpdateFocusNameplateMarker()
+      end
       CM.OnCrosshairFocusLockEvent(event)
-      if CM.UpdateFocusCycleWheelBindings then
-        CM.UpdateFocusCycleWheelBindings()
+    end,
+    FOCUS_NAMEPLATE_EVENTS = function(...)
+      if CM.OnFocusNameplateMarkerEvent then
+        CM.OnFocusNameplateMarkerEvent(event, ...)
       end
     end,
     CAST_FEEDBACK_EVENTS = function(...)

@@ -93,5 +93,5 @@ CM.Constants.CrosshairReactionColors = {
   object = { 1, 0.8, 0.2, 0.8 }, -- yellow
   base = { 1, 1, 1, 0.5 }, -- white
   mounted = { 1, 1, 1, 0 }, -- transparent
-  focus = { 1, 0, 1, 1 }, -- purple
+  focus = { 1, 0.2, 0.3, 1 }, -- Target Lock nameplate: same as hostile
 }

@@ -63,7 +63,6 @@ local pairs = _G.pairs
 local select = _G.select
 local table = _G.table
 local tostring = _G.tostring
-local unpack = _G.unpack
 local utf8 = _G.utf8
 
 -- Shorten display names by UTF-8 character count (byte :sub breaks Cyrillic/CJK).
@@ -607,33 +606,16 @@ local function UpdateSliceActionAttributes()
       if macrotext then
         slice:SetAttribute(p .. "type" .. s, "macro")
         slice:SetAttribute(p .. "macrotext" .. s, macrotext)
-        CM.DebugPrint(
-          "  Slice "
-            .. i
-            .. " ("
-            .. tostring(unitId)
-            .. "): "
-            .. p
-            .. "type"
-            .. s
-            .. "=macro -> "
-            .. macrotext
-        )
       elseif unitId then
         -- Empty ACTIONBUTTON slot or non-spell binding: hard-target the party member.
         slice:SetAttribute(p .. "type" .. s, "target")
         slice:SetAttribute(p .. "macrotext" .. s, nil)
-        CM.DebugPrint(
-          "  Slice " .. i .. " (" .. tostring(unitId) .. "): " .. p .. "type" .. s .. "=target"
-        )
       else
         slice:SetAttribute(p .. "type" .. s, nil)
         slice:SetAttribute(p .. "macrotext" .. s, nil)
       end
     end
   end
-
-  CM.DebugPrint("Party Radial: Updated slice action attributes")
 end
 
 ---------------------------------------------------------------------------------------

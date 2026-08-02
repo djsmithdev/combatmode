@@ -93,9 +93,7 @@ function CM.BootstrapFeatureModules()
   CM.InitializeCursorPulse()
   CreateTargetMacros()
   CM.ApplyToggleFocusTargetBinding()
-  if CM.UpdateFocusCycleWheelBindings then
-    CM.UpdateFocusCycleWheelBindings()
-  end
+  CM.UpdateFocusCycleWheelBindings()
   if CM.PartyRadial and CM.PartyRadial.Initialize then
     CM.PartyRadial.Initialize()
   end

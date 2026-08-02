@@ -11,17 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Cycle Target Lock with Mouse Wheel (on by default): while a Target Lock is set, mouse wheel cycles nearby enemies and moves the lock, facilitating prioritization on stacked targets.. The scroll wheel is restored to camera zoom when no target lock is set.
+- Cycle Target Lock with Mouse Wheel (on by default): while Mouse Look is on and a Target Lock is set, mouse wheel cycles nearby enemies and moves the lock. Without a lock (or with Mouse Look off), the wheel zooms the camera as usual.
 - Target Lock Sound Cues (on by default): play distinct cues when a Target Lock is set, cleared, or cycled to another enemy.
+- Target Lock nameplate marker: while locked, the center reticle becomes a static Dot and a hit marker (the Active texture for your selected crosshair Appearance) appears on the locked unit's nameplate health bar.
 
 ### Fixed
 
 - Binding another action to an Interact key that already includes Alt (for example Alt+Mouse Button 3) no longer leaves Interact as Alt+Alt+key.
 - Rapid Single-Button Assistant presses no longer spam Combat Assist cast-success press/pulse animations (repeats are coalesced while feedback is already playing).
+- Click-cast binding refresh no longer loops when Blizzard's Single-Button Assistant rewrites its action slot.
 
 ### Changed
 
-- Combat Assist animations reworked to be more subtle.
+- Combat Assist animations & appearance reworked to be more subtle.
 - Sheath Weapons with Mouse Look now waits briefly before sheathing after unlock, so rapid Mouse Look toggles (e.g. while single-pulling) no longer flash sheath/unsheath. Unsheath on lock is still immediate.
 - Combat Assist and Interaction HUD runtime code are split into focused submodules under `Core/Crosshair/AssistedHighlight/` and `Core/Crosshair/InteractionHUD/` (behavior unchanged).
 

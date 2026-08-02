@@ -12,16 +12,16 @@
 --    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run.
 --    • ApplyToggleFocusTargetBinding — Combat Mode Target Lock keybind (always clears
 --      override owner first so stolen keys cannot leave a stale click override).
---    • UpdateFocusCycleWheelBindings — MOUSEWHEELUP/DOWN → cycle nearest/previous enemy
---      then /focus, only while Mouse Look + focus + cycleFocusWithMouseWheel (dirty+REGEN
---      when lockdown blocks apply/clear).
+--    • UpdateFocusCycleWheelBindings — SetMouselookOverrideBinding for MOUSEWHEEL while
+--      cycleFocusWithMouseWheel is on (active during Mouse Look only). Secure PreClick
+--      uses UnitExists("focus") for cycle macros; zoom fallback via CallMethod.
 --    • AssignNamedKeybind / ClearInteractOrphansOnKey — shared options keybind helpers.
 --    • Combat-safe via BindingQueue when options change mid-combat.
 --  Does not: Resolve ElvUI/BT4 frame names (AddonActionBarResolver) or build preline text
 --  (TargetingMacroBuilder).
 --  Related: Core/ClickCasting/TargetingMacroBuilder.lua,
 --  Core/ClickCasting/AddonActionBarResolver.lua, Core/Runtime/BindingQueue.lua,
---  Core/Runtime/EventRouter.lua, Core/Runtime/Bootstrap.lua, Core/FreeLook/FreeLookController.lua,
+--  Core/Runtime/EventRouter.lua, Core/Runtime/Bootstrap.lua,
 --  UI/Options/Tabs/TabClickCasting.lua, UI/Options/Tabs/TabGeneral.lua, Constants/Gameplay.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -35,14 +35,12 @@ local GetBindingAction = _G.GetBindingAction
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local InCombatLockdown = _G.InCombatLockdown
-local IsMouselooking = _G.IsMouselooking
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
 local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 local SetOverrideBinding = _G.SetOverrideBinding
 local SetOverrideBindingClick = _G.SetOverrideBindingClick
 local UIParent = _G.UIParent
-local UnitExists = _G.UnitExists
 
 -- Lua stdlib
 local ipairs = _G.ipairs
@@ -117,17 +115,20 @@ ToggleFocusTargetButton:SetAttribute("type", "macro")
 -- macrotext set by UpdateToggleFocusTargetMacroText() based on reticleTargetingEnemyOnly
 ToggleFocusTargetButton:RegisterForClicks("AnyUp", "AnyDown")
 
--- Mouse-wheel Target Lock cycle (nearest / previous enemy → focus). Separate owner so
--- ClearOverrideBindings here never touches Target Lock or ground-cast overrides.
-local FocusCycleWheelOverrideOwner = CreateFrame("Frame", nil, UIParent)
-local FocusCycleWheelDirty = false
-local FOCUS_CYCLE_WHEEL_PRIORITY = true
+-- Mouse-wheel Target Lock cycle (nearest / previous enemy → focus).
+-- Uses SetMouselookOverrideBinding so bindings only apply during Mouse Look.
+-- Secure PreClick: UnitExists("focus") → cycle macro; else CallMethod CMZoom
+-- (CameraZoomIn/Out are not in the restricted environment). Option toggles go
+-- through BindingQueue (TryApplyBindingChange) so mid-combat changes flush on REGEN.
+local SecureHandlerWrapScript = _G.SecureHandlerWrapScript
+local CameraZoomIn = _G.CameraZoomIn
+local CameraZoomOut = _G.CameraZoomOut
 
 local CycleFocusEnemyNextButton = CreateFrame(
   "Button",
   "CombatModeCycleFocusEnemyNext",
-  FocusCycleWheelOverrideOwner,
-  "SecureActionButtonTemplate"
+  UIParent,
+  "SecureActionButtonTemplate, SecureHandlerBaseTemplate"
 )
 CycleFocusEnemyNextButton:SetAttribute("type", "macro")
 CycleFocusEnemyNextButton:RegisterForClicks("AnyUp", "AnyDown")
@@ -135,70 +136,96 @@ CycleFocusEnemyNextButton:RegisterForClicks("AnyUp", "AnyDown")
 local CycleFocusEnemyPrevButton = CreateFrame(
   "Button",
   "CombatModeCycleFocusEnemyPrev",
-  FocusCycleWheelOverrideOwner,
-  "SecureActionButtonTemplate"
+  UIParent,
+  "SecureActionButtonTemplate, SecureHandlerBaseTemplate"
 )
 CycleFocusEnemyPrevButton:SetAttribute("type", "macro")
 CycleFocusEnemyPrevButton:RegisterForClicks("AnyUp", "AnyDown")
 
+-- Insecure zoom only — never call these on the cycle path (CallMethod taints macros).
+function CycleFocusEnemyNextButton:CMZoom()
+  if CameraZoomIn then
+    CameraZoomIn(1)
+  end
+end
+
+function CycleFocusEnemyPrevButton:CMZoom()
+  if CameraZoomOut then
+    CameraZoomOut(1)
+  end
+end
+
+if SecureHandlerWrapScript then
+  SecureHandlerWrapScript(
+    CycleFocusEnemyNextButton,
+    "PreClick",
+    CycleFocusEnemyNextButton,
+    [[
+      if UnitExists("focus") then
+        self:SetAttribute("type", "macro")
+      else
+        self:SetAttribute("type", nil)
+        self:CallMethod("CMZoom")
+      end
+    ]]
+  )
+  SecureHandlerWrapScript(
+    CycleFocusEnemyPrevButton,
+    "PreClick",
+    CycleFocusEnemyPrevButton,
+    [[
+      if UnitExists("focus") then
+        self:SetAttribute("type", "macro")
+      else
+        self:SetAttribute("type", nil)
+        self:CallMethod("CMZoom")
+      end
+    ]]
+  )
+end
+
 local function EnsureFocusCycleWheelMacroText()
   local macros_const = CM.Constants and CM.Constants.Macros
-  if not macros_const then
+  if not macros_const or InCombatLockdown() then
     return
   end
-  if not InCombatLockdown() then
-    if macros_const.CM_CycleFocusEnemyNext then
-      CycleFocusEnemyNextButton:SetAttribute("macrotext", macros_const.CM_CycleFocusEnemyNext)
-    end
-    if macros_const.CM_CycleFocusEnemyPrev then
-      CycleFocusEnemyPrevButton:SetAttribute("macrotext", macros_const.CM_CycleFocusEnemyPrev)
-    end
+  if macros_const.CM_CycleFocusEnemyNext then
+    CycleFocusEnemyNextButton:SetAttribute("macrotext", macros_const.CM_CycleFocusEnemyNext)
+  end
+  if macros_const.CM_CycleFocusEnemyPrev then
+    CycleFocusEnemyPrevButton:SetAttribute("macrotext", macros_const.CM_CycleFocusEnemyPrev)
   end
 end
 
---- Install or clear MOUSEWHEELUP/DOWN → cycle-focus secure buttons.
---- Active only while Mouse Look + focus + cycleFocusWithMouseWheel. Lockdown sets a dirty
---- flag (no chat spam); call again after PLAYER_REGEN_ENABLED.
+local function ClearFocusCycleWheelMouselookBindings()
+  SetMouselookOverrideBinding("MOUSEWHEELUP", nil)
+  SetMouselookOverrideBinding("MOUSEWHEELDOWN", nil)
+end
+
+local function ApplyFocusCycleWheelMouselookBindings()
+  EnsureFocusCycleWheelMacroText()
+  SetMouselookOverrideBinding(
+    "MOUSEWHEELUP",
+    "CLICK " .. CycleFocusEnemyNextButton:GetName() .. ":LeftButton"
+  )
+  SetMouselookOverrideBinding(
+    "MOUSEWHEELDOWN",
+    "CLICK " .. CycleFocusEnemyPrevButton:GetName() .. ":LeftButton"
+  )
+end
+
+--- Install/clear mouselook-only wheel overrides. Call out of combat (BindingQueue
+--- defers option toggles). PreClick reads UnitExists("focus") at click time.
 function CM.UpdateFocusCycleWheelBindings()
   if InCombatLockdown() then
-    FocusCycleWheelDirty = true
     return
   end
-  FocusCycleWheelDirty = false
-  EnsureFocusCycleWheelMacroText()
-  ClearOverrideBindings(FocusCycleWheelOverrideOwner)
-
   local g = CM.DB and CM.DB.global
-  if not g or g.cycleFocusWithMouseWheel == false then
-    return
-  end
-  if not (IsMouselooking and IsMouselooking()) then
-    return
-  end
-  if not (UnitExists and UnitExists("focus")) then
-    return
-  end
-
-  SetOverrideBindingClick(
-    FocusCycleWheelOverrideOwner,
-    FOCUS_CYCLE_WHEEL_PRIORITY,
-    "MOUSEWHEELUP",
-    CycleFocusEnemyNextButton:GetName(),
-    "LeftButton"
-  )
-  SetOverrideBindingClick(
-    FocusCycleWheelOverrideOwner,
-    FOCUS_CYCLE_WHEEL_PRIORITY,
-    "MOUSEWHEELDOWN",
-    CycleFocusEnemyPrevButton:GetName(),
-    "LeftButton"
-  )
-  CM.DebugPrint("Focus cycle mouse-wheel overrides applied")
-end
-
-function CM.FlushFocusCycleWheelBindingsIfDirty()
-  if FocusCycleWheelDirty then
-    CM.UpdateFocusCycleWheelBindings()
+  if not g or g.cycleFocusWithMouseWheel ~= false then
+    ApplyFocusCycleWheelMouselookBindings()
+    CM.DebugPrint("Focus cycle mouse-wheel mouselook overrides applied")
+  else
+    ClearFocusCycleWheelMouselookBindings()
   end
 end
 
@@ -405,6 +432,19 @@ function CM.RefreshClickCastMacros()
   CM.ApplyGroundCastKeyOverrides()
 end
 
+-- Compact snapshot of action-bar slot contents (type+id). Used to ignore noisy
+-- ACTIONBAR_SLOT_CHANGED bursts that do not change spells/items/macros we care about.
+function CM.GetActionBarContentFingerprint()
+  local parts = {}
+  for slot = 1, 180 do
+    local ok, atype, id = pcall(GetActionInfo, slot)
+    if ok and atype then
+      parts[#parts + 1] = slot .. ":" .. atype .. ":" .. tostring(id)
+    end
+  end
+  return table.concat(parts, "|")
+end
+
 local function ClickCastMouseButton(key)
   return key:match("BUTTON2") and "RightButton" or "LeftButton"
 end
@@ -448,7 +488,6 @@ function CM.SetNewBinding(buttonSettings)
     end
   end
   SetMouselookOverrideBinding(key, valueToUse)
-  CM.DebugPrint(key .. "'s override binding is now " .. valueToUse)
 end
 
 function CM.OverrideDefaultButtons()

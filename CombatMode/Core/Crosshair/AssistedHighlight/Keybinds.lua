@@ -234,6 +234,15 @@ local function BuildAssistedActionSlotSet()
   return assistedActionSlotSet
 end
 
+--- True when `slot` is a Blizzard Assisted Combat action button (suggestion spell churn).
+function CM.IsAssistedCombatActionSlot(slot)
+  slot = tonumber(slot)
+  if not slot or slot <= 0 then
+    return false
+  end
+  return BuildAssistedActionSlotSet()[slot] == true
+end
+
 local function GetFirstActionSlotForSpell(spellID)
   if not (spellID and C_ActionBar and C_ActionBar.FindSpellActionButtons) then
     return nil

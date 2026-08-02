@@ -127,10 +127,21 @@ local function ApplyCrosshairAppearanceToWidget(
     return
   end
 
+  local parent = targetFrame:GetParent()
+
+  -- Target Lock idle Dot: Crosshair.lua owns texture/tint; skip all reaction changes.
+  if CM.IsFocusLockReticleSuppressed and CM.IsFocusLockReticleSuppressed() then
+    if animGroup and animGroup.Stop then
+      animGroup:Stop()
+    end
+    targetFrame:SetScale(STARTING_SCALE)
+    targetFrame:SetPoint("CENTER", parent, "CENTER", 0, verticalOffset)
+    return
+  end
+
   local r, g, b, a = unpack(CM.Constants.CrosshairReactionColors[state])
   local textureToUse = state == "base" and CrosshairAppearance.Base or CrosshairAppearance.Active
   local reverseAnimation = state == "base" and true or false
-  local parent = targetFrame:GetParent()
 
   targetTexture:SetTexture(textureToUse)
   targetTexture:SetVertexColor(r, g, b, a)
@@ -462,6 +473,9 @@ function CM.InitCrosshairAnimations(opts)
 end
 
 function CM.ShowCrosshairLockIn()
+  if CM.IsFocusLockReticleSuppressed and CM.IsFocusLockReticleSuppressed() then
+    return
+  end
   if not (CM.IsCrosshairEnabled and CM.IsCrosshairEnabled()) then
     return
   end

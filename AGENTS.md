@@ -25,7 +25,7 @@ Durable notes in the architecture rule include FlipBook/atlas VFX lookup (Textur
 ## Layout (quick)
 
 - Installable addon lives under **`CombatMode/`**, not the repo root.
-- Domains: `Core/{Runtime,FreeLook,Crosshair,ClickCasting,PartyRadial}`, `Constants/`, `UI/{Options,Changelog,Editors}`. Crosshair companions: `InteractionHUD/` (Target, Visual, HUD) and `AssistedHighlight/` (Keybinds, Motion, CastProgress, Feedback, Assist).
+- Domains: `Core/{Runtime,FreeLook,Crosshair,ClickCasting,PartyRadial}`, `Constants/`, `UI/{Options,Changelog,Editors}`. Crosshair companions: `InteractionHUD/` (Target, Visual, HUD), `AssistedHighlight/` (Keybinds, Motion, CastProgress, Feedback, Assist), and `FocusNameplateMarker`.
 - No vendored Ace3/LibStub — do not add `CombatMode/Libs/**` unless asked.
 
 ## Finish
