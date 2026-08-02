@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.1.3] - 2026-08-02
 
+### Added
+
+- Cycle Target Lock with Mouse Wheel (on by default): while a Target Lock is set, mouse wheel cycles nearby enemies and moves the lock, facilitating prioritization on stacked targets.. The scroll wheel is restored to camera zoom when no target lock is set.
+- Target Lock Sound Cues (on by default): play distinct cues when a Target Lock is set, cleared, or cycled to another enemy.
+
 ### Fixed
 
 - Binding another action to an Interact key that already includes Alt (for example Alt+Mouse Button 3) no longer leaves Interact as Alt+Alt+key.

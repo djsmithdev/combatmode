@@ -3,8 +3,9 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Ordered startup for feature modules after DB is ready: CVar snapshot,
 --  apply overrides, wildcard frame tracking, crosshair + cursor pulse, account macros,
---  MOVEANDSTEER → Mouse Look rebind, toggle-focus bind, Party Radial init. Also
---  RestorePriorBindings for uninstall (BUTTON1/BUTTON2 camera defaults only).
+--  MOVEANDSTEER → Mouse Look rebind, toggle-focus bind, focus-cycle wheel refresh,
+--  Party Radial init. Also RestorePriorBindings for uninstall (BUTTON1/BUTTON2 camera
+--  defaults only).
 --  Architecture / how it works:
 --    • BootstrapFeatureModules() is the enable-time sequence Runtime calls.
 --    • CreateTargetMacros from Constants.Macros if missing.
@@ -92,6 +93,9 @@ function CM.BootstrapFeatureModules()
   CM.InitializeCursorPulse()
   CreateTargetMacros()
   CM.ApplyToggleFocusTargetBinding()
+  if CM.UpdateFocusCycleWheelBindings then
+    CM.UpdateFocusCycleWheelBindings()
+  end
   if CM.PartyRadial and CM.PartyRadial.Initialize then
     CM.PartyRadial.Initialize()
   end

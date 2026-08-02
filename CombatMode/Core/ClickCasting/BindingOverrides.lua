@@ -2,8 +2,8 @@
 --  Core/ClickCasting/BindingOverrides.lua — CLICKCAST — secure proxies + overrides
 ---------------------------------------------------------------------------------------
 --  What it does: Creates SecureActionButtonTemplate proxy frames, applies mouselook and
---  keyboard override bindings for click-cast slots, ground @cursor casts, and the
---  toggle-focus bind. RefreshClickCastMacros rebuilds macrotext from TargetingMacroBuilder.
+--  keyboard override bindings for click-cast slots, ground @cursor casts, the
+--  toggle-focus bind, and focus-gated mouse-wheel Target Lock cycling.
 --  Architecture / how it works:
 --    • Honors char.reticleTargeting, macroInjectionClickCastOnly (skip keyboard overrides
 --      when true), and GetBindingsLocation() for which bindings table to read.
@@ -12,14 +12,17 @@
 --    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run.
 --    • ApplyToggleFocusTargetBinding — Combat Mode Target Lock keybind (always clears
 --      override owner first so stolen keys cannot leave a stale click override).
+--    • UpdateFocusCycleWheelBindings — MOUSEWHEELUP/DOWN → cycle nearest/previous enemy
+--      then /focus, only while Mouse Look + focus + cycleFocusWithMouseWheel (dirty+REGEN
+--      when lockdown blocks apply/clear).
 --    • AssignNamedKeybind / ClearInteractOrphansOnKey — shared options keybind helpers.
 --    • Combat-safe via BindingQueue when options change mid-combat.
 --  Does not: Resolve ElvUI/BT4 frame names (AddonActionBarResolver) or build preline text
 --  (TargetingMacroBuilder).
 --  Related: Core/ClickCasting/TargetingMacroBuilder.lua,
 --  Core/ClickCasting/AddonActionBarResolver.lua, Core/Runtime/BindingQueue.lua,
---  Core/Runtime/EventRouter.lua, Core/Runtime/Bootstrap.lua,
---  UI/Options/Tabs/TabClickCasting.lua, Constants/Gameplay.lua
+--  Core/Runtime/EventRouter.lua, Core/Runtime/Bootstrap.lua, Core/FreeLook/FreeLookController.lua,
+--  UI/Options/Tabs/TabClickCasting.lua, UI/Options/Tabs/TabGeneral.lua, Constants/Gameplay.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -32,12 +35,14 @@ local GetBindingAction = _G.GetBindingAction
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local InCombatLockdown = _G.InCombatLockdown
+local IsMouselooking = _G.IsMouselooking
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
 local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 local SetOverrideBinding = _G.SetOverrideBinding
 local SetOverrideBindingClick = _G.SetOverrideBindingClick
 local UIParent = _G.UIParent
+local UnitExists = _G.UnitExists
 
 -- Lua stdlib
 local ipairs = _G.ipairs
@@ -111,6 +116,91 @@ local ToggleFocusTargetButton = CreateFrame(
 ToggleFocusTargetButton:SetAttribute("type", "macro")
 -- macrotext set by UpdateToggleFocusTargetMacroText() based on reticleTargetingEnemyOnly
 ToggleFocusTargetButton:RegisterForClicks("AnyUp", "AnyDown")
+
+-- Mouse-wheel Target Lock cycle (nearest / previous enemy → focus). Separate owner so
+-- ClearOverrideBindings here never touches Target Lock or ground-cast overrides.
+local FocusCycleWheelOverrideOwner = CreateFrame("Frame", nil, UIParent)
+local FocusCycleWheelDirty = false
+local FOCUS_CYCLE_WHEEL_PRIORITY = true
+
+local CycleFocusEnemyNextButton = CreateFrame(
+  "Button",
+  "CombatModeCycleFocusEnemyNext",
+  FocusCycleWheelOverrideOwner,
+  "SecureActionButtonTemplate"
+)
+CycleFocusEnemyNextButton:SetAttribute("type", "macro")
+CycleFocusEnemyNextButton:RegisterForClicks("AnyUp", "AnyDown")
+
+local CycleFocusEnemyPrevButton = CreateFrame(
+  "Button",
+  "CombatModeCycleFocusEnemyPrev",
+  FocusCycleWheelOverrideOwner,
+  "SecureActionButtonTemplate"
+)
+CycleFocusEnemyPrevButton:SetAttribute("type", "macro")
+CycleFocusEnemyPrevButton:RegisterForClicks("AnyUp", "AnyDown")
+
+local function EnsureFocusCycleWheelMacroText()
+  local macros_const = CM.Constants and CM.Constants.Macros
+  if not macros_const then
+    return
+  end
+  if not InCombatLockdown() then
+    if macros_const.CM_CycleFocusEnemyNext then
+      CycleFocusEnemyNextButton:SetAttribute("macrotext", macros_const.CM_CycleFocusEnemyNext)
+    end
+    if macros_const.CM_CycleFocusEnemyPrev then
+      CycleFocusEnemyPrevButton:SetAttribute("macrotext", macros_const.CM_CycleFocusEnemyPrev)
+    end
+  end
+end
+
+--- Install or clear MOUSEWHEELUP/DOWN → cycle-focus secure buttons.
+--- Active only while Mouse Look + focus + cycleFocusWithMouseWheel. Lockdown sets a dirty
+--- flag (no chat spam); call again after PLAYER_REGEN_ENABLED.
+function CM.UpdateFocusCycleWheelBindings()
+  if InCombatLockdown() then
+    FocusCycleWheelDirty = true
+    return
+  end
+  FocusCycleWheelDirty = false
+  EnsureFocusCycleWheelMacroText()
+  ClearOverrideBindings(FocusCycleWheelOverrideOwner)
+
+  local g = CM.DB and CM.DB.global
+  if not g or g.cycleFocusWithMouseWheel == false then
+    return
+  end
+  if not (IsMouselooking and IsMouselooking()) then
+    return
+  end
+  if not (UnitExists and UnitExists("focus")) then
+    return
+  end
+
+  SetOverrideBindingClick(
+    FocusCycleWheelOverrideOwner,
+    FOCUS_CYCLE_WHEEL_PRIORITY,
+    "MOUSEWHEELUP",
+    CycleFocusEnemyNextButton:GetName(),
+    "LeftButton"
+  )
+  SetOverrideBindingClick(
+    FocusCycleWheelOverrideOwner,
+    FOCUS_CYCLE_WHEEL_PRIORITY,
+    "MOUSEWHEELDOWN",
+    CycleFocusEnemyPrevButton:GetName(),
+    "LeftButton"
+  )
+  CM.DebugPrint("Focus cycle mouse-wheel overrides applied")
+end
+
+function CM.FlushFocusCycleWheelBindingsIfDirty()
+  if FocusCycleWheelDirty then
+    CM.UpdateFocusCycleWheelBindings()
+  end
+end
 
 local function UpdateToggleFocusTargetMacroText()
   if not ToggleFocusTargetButton then

@@ -6,12 +6,11 @@
 --  for new-install defaults across free-look, crosshair companions, click-cast, reticle,
 --  and party radial.
 --  Architecture / how it works:
---    • global: frameWatching/watchlist/mountCheck/customCondition; actionCamera,
---      mouseLookSpeed, pulseCursor, interactUnit; crosshair*, crosshairCastFeedback,
---      interactionHUD / interactionHUDSide (default LEFT), assistedHighlightEnabled /
---      assistedHighlightSide (default RIGHT), crosshairY; reticleTargetingCVarOverrides,
---      priorCVarSnapshot, targetingMacroPreline*Override; bindings; partyRadial
---      (enabled, showHealthBars, showBackground; layout/scale fixed in Core).
+--      mouseLookSpeed, pulseCursor, interactUnit, cycleFocusWithMouseWheel; crosshair*,
+--      crosshairCastFeedback, interactionHUD / interactionHUDSide (default LEFT),
+--      assistedHighlightEnabled / assistedHighlightSide (default RIGHT), crosshairY;
+--      reticleTargetingCVarOverrides, priorCVarSnapshot, targetingMacroPreline*Override;
+--      bindings; partyRadial (enabled, showHealthBars, showBackground; layout/scale fixed in Core).
 --    • char: useGlobalBindings, shoulderOffset, reticleTargeting / enemyOnly /
 --      macroInjectionClickCastOnly, focusCurrentTargetNotCrosshair, castAtCursorSpells,
 --      excludeFromTargetingSpells, stickyCrosshair, bindings.
@@ -92,6 +91,10 @@ CM.Constants.DatabaseDefaults = {
     pulseCursor = true,
     -- Unsheath in Mouse Look; sheath on tap-off and Auto Cursor Unlock (not hold/radial/OPie/ground).
     sheathWeaponsWithMouselook = true,
+    -- While Mouse Look + Target Lock (focus): wheel cycles nearest/previous enemy and re-focuses.
+    cycleFocusWithMouseWheel = true,
+    -- Subtle SFX when Target Lock (focus) is acquired or cleared.
+    targetLockSounds = true,
     -- "mouseover" (INTERACTMOUSEOVER) or "target" (INTERACTTARGET); ALT+key binds the other.
     interactUnit = "mouseover",
     mountCheck = false,

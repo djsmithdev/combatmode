@@ -18,6 +18,8 @@
 --      never sheaths. Party Radial, ground targeting, and OPie keep weapons drawn.
 --      Sheath requests are debounced (~1.5s) so rapid Mouse Look toggle does not
 --      flash sheath/unsheath; unsheath and re-lock cancel any pending sheath.
+--    • Focus cycle wheel overrides refresh via CM.UpdateFocusCycleWheelBindings on
+--      lock/unlock (BindingOverrides owns the secure buttons).
 --    • OPie: when a ring is visible, unlock path may free centering; Rematch after
 --      the ring closes re-bounces freelook if still desired.
 --  Does not: Own frame-watch lists/predicates (AutoCursorUnlock) or CVar preset tables.
@@ -325,6 +327,9 @@ function CM.LockFreeLook()
   if not FreeLookOverride then
     ApplyWeaponsSheathed(false)
   end
+  if CM.UpdateFocusCycleWheelBindings then
+    CM.UpdateFocusCycleWheelBindings()
+  end
 end
 
 function CM.UnlockFreeLook()
@@ -347,6 +352,10 @@ function CM.UnlockFreeLook()
     ApplyWeaponsSheathed(true)
   end
 
+  if CM.UpdateFocusCycleWheelBindings then
+    CM.UpdateFocusCycleWheelBindings()
+  end
+
   CM.DebugPrint("Free Look Disabled")
 end
 
@@ -364,6 +373,11 @@ local function UnlockFreeLookPermanent()
   if CM.PartyRadial and CM.PartyRadial.OnMouselookChanged then
     CM.PartyRadial.OnMouselookChanged(false)
   end
+
+  if CM.UpdateFocusCycleWheelBindings then
+    CM.UpdateFocusCycleWheelBindings()
+  end
+
   CM.DebugPrint("Free Look Disabled (Permanent)")
 end
 
@@ -385,6 +399,9 @@ function CM.RematchFreeLookAfterOpieIfNeeded()
     MouselookStop()
   end
   StartFreeLookFresh()
+  if CM.UpdateFocusCycleWheelBindings then
+    CM.UpdateFocusCycleWheelBindings()
+  end
   return true
 end
 

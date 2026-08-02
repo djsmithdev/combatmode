@@ -4,9 +4,10 @@
 --  What it does: Wires General-tab controls to freelook and interact/focus binds:
 --  Mouse Look keybind, pulseCursor, hideTooltip, Interact keybind + interactUnit
 --  (mouseover vs soft target, with ALT+key on the alternate command), Target Lock keybind,
---  and focusCurrentTargetNotCrosshair.
+--  cycleFocusWithMouseWheel, targetLockSounds, and focusCurrentTargetNotCrosshair.
 --  Architecture / how it works:
---    • DB: global.pulseCursor, hideTooltip, interactUnit; char.focusCurrentTargetNotCrosshair.
+--    • DB: global.pulseCursor, hideTooltip, interactUnit, cycleFocusWithMouseWheel,
+--      targetLockSounds; char.focusCurrentTargetNotCrosshair.
 --    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
 --      orphans on the stolen key and refreshes Target Lock override).
 --    • Interact rebind clears both INTERACTMOUSEOVER and INTERACTTARGET then assigns
@@ -132,7 +133,7 @@ UI.Options.AddTab({
     })
     ctx:Toggle({
       label = "Sheath Weapons with Mouse Look",
-      desc = "Unsheath weapons when Mouse Look turns on. Sheath when it turns off (brief delay so quick toggles do not flash).",
+      desc = "Unsheath weapons when Mouse Look turns on. Sheath when it turns off.",
       get = function()
         return CM.DB.global.sheathWeaponsWithMouselook
       end,
@@ -184,6 +185,35 @@ UI.Options.AddTab({
         CM.TryApplyBindingChange("target lock keybinding", function()
           CM.AssignNamedKeybind("Combat Mode - Toggle Focus Target", key)
         end)
+      end,
+    })
+    ctx:Toggle({
+      label = "Cycle Lock with Mouse Wheel",
+      desc = "While a Target Lock is set, mouse wheel cycles nearby enemies and moves the lock, facilitating prioritization on stacked targets.",
+      get = function()
+        return CM.DB.global.cycleFocusWithMouseWheel ~= false
+      end,
+      set = function(value)
+        CM.DB.global.cycleFocusWithMouseWheel = value
+        if CM.UpdateFocusCycleWheelBindings then
+          CM.UpdateFocusCycleWheelBindings()
+        end
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Toggle({
+      label = "Target Lock Sound Cues",
+      desc = "Play sound cues when a Target Lock is set, cleared, or cycled.",
+      get = function()
+        return CM.DB.global.targetLockSounds ~= false
+      end,
+      set = function(value)
+        CM.DB.global.targetLockSounds = value
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
       end,
     })
     ctx:Toggle({

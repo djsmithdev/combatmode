@@ -14,7 +14,9 @@
 --      OnAssistedHighlightCastProgress (dark swipe) and SUCCEEDED →
 --      OnAssistedHighlightSpellCast(spellID).
 --    • ASSISTED_HIGHLIGHT_EVENTS → OnAssistedHighlightAssistedActionCast.
---    • FRIENDLY_TARGETING_EVENTS double as Party Radial combat start/end + FlushDeferred.
+--    • FRIENDLY_TARGETING_EVENTS double as Party Radial combat start/end + FlushDeferred
+--      + FlushFocusCycleWheelBindingsIfDirty on PLAYER_REGEN_ENABLED.
+--    • FOCUS_LOCK_EVENTS → OnCrosshairFocusLockEvent + UpdateFocusCycleWheelBindings.
 --  Does not: RegisterEvent itself (root frame / Bootstrap) or own feature logic.
 --  Related: Constants/Gameplay.lua, Core/FreeLook/FreeLookController.lua,
 --  Core/ClickCasting/BindingOverrides.lua, Core/Crosshair/Crosshair.lua,
@@ -95,6 +97,9 @@ local function HandleEventByCategory(category, event, ...)
       end
       if event == "PLAYER_REGEN_ENABLED" then
         CM.FlushDeferredBindingChanges()
+        if CM.FlushFocusCycleWheelBindingsIfDirty then
+          CM.FlushFocusCycleWheelBindingsIfDirty()
+        end
       end
     end,
     UNCATEGORIZED_EVENTS = function()
@@ -135,6 +140,9 @@ local function HandleEventByCategory(category, event, ...)
     end,
     FOCUS_LOCK_EVENTS = function()
       CM.OnCrosshairFocusLockEvent(event)
+      if CM.UpdateFocusCycleWheelBindings then
+        CM.UpdateFocusCycleWheelBindings()
+      end
     end,
     CAST_FEEDBACK_EVENTS = function(...)
       if CM.OnCrosshairCastFeedbackEvent then

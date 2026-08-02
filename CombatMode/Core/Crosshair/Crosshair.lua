@@ -12,8 +12,8 @@
 --      target; drives texture + Animations reaction scale.
 --    • SetCrosshairOptionsPreview — tab onSelect/onDeselect; do not reuse mouselook
 --      Show/Hide gates.
---    • OnCrosshairCastFeedbackEvent / FocusLock / Uncategorized / Rematch hooks from
---      EventRouter / Runtime.
+--    • OnCrosshairCastFeedbackEvent / FocusLock (lock-in anim + optional lock/unlock
+--      SFX) / Uncategorized / Rematch hooks from EventRouter / Runtime.
 --  Does not: Own SoftTarget CVar writes, assist FlipBook / cast feedback motion, or freelook lock.
 --  Related: Core/Crosshair/Animations.lua, Core/Crosshair/InteractionHUD/HUD.lua
 --  (and sibling Target/Visual), Core/Crosshair/AssistedHighlight/Assist.lua
@@ -37,6 +37,15 @@ local UnitGUID = _G.UnitGUID
 local UnitIsGameObject = _G.UnitIsGameObject
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitReaction = _G.UnitReaction
+local PlaySound = _G.PlaySound
+local SOUNDKIT = _G.SOUNDKIT
+
+-- Soft UI ticks on Master: character panel open/close for lock/unlock; option click for cycle.
+local FOCUS_LOCK_SOUND = (SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN) or 839
+local FOCUS_UNLOCK_SOUND = (SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_CLOSE) or 840
+local FOCUS_CYCLE_SOUND = (SOUNDKIT and SOUNDKIT.IG_MAINMENU_OPTION) or 852
+local hadFocusUnit = false
+local lastFocusGUID = nil
 
 -- Outer frame: positioning container. Inner frame: crosshair art, reaction scale, lock-in / cast feedback.
 local CrosshairFrame = CreateFrame("Frame", "CombatModeCrosshairFrame", UIParent)
@@ -365,11 +374,34 @@ function CM.OnCrosshairUncategorizedEvent()
   end
 end
 
+local function PlayFocusLockSounds(hasFocus)
+  local g = CM.DB and CM.DB.global
+  if not g or g.targetLockSounds == false then
+    return
+  end
+  if not PlaySound then
+    return
+  end
+  local guid = hasFocus and UnitGUID("focus") or nil
+  if hasFocus and not hadFocusUnit then
+    PlaySound(FOCUS_LOCK_SOUND, "Master", true)
+  elseif not hasFocus and hadFocusUnit then
+    PlaySound(FOCUS_UNLOCK_SOUND, "Master", true)
+  elseif hasFocus and hadFocusUnit and guid and guid ~= lastFocusGUID then
+    -- Focus A → B (e.g. mouse-wheel cycle).
+    PlaySound(FOCUS_CYCLE_SOUND, "Master", true)
+  end
+  lastFocusGUID = guid
+end
+
 function CM.OnCrosshairFocusLockEvent(event)
   if event == "PLAYER_FOCUS_CHANGED" then
-    if UnitExists("focus") and IsMouselooking() then
+    local hasFocus = UnitExists("focus")
+    PlayFocusLockSounds(hasFocus)
+    if hasFocus and IsMouselooking() then
       CM.ShowCrosshairLockIn()
     end
+    hadFocusUnit = hasFocus and true or false
     CM.UpdateCrosshairReaction()
   end
 end
