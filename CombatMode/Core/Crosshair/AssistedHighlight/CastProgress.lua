@@ -2,13 +2,16 @@
 --  Core/Crosshair/AssistedHighlight/CastProgress.lua — CROSSHAIR — swipe + cast break
 ---------------------------------------------------------------------------------------
 --  What it does: Owns dark Cooldown cast-progress swipe, cast-GUID cancel-vs-success
---  tracking, and interrupt/cancel cast-break shake/flash for Assisted Combat.
+--  tracking (secret-safe under instance taint), and interrupt/cancel cast-break
+--  shake/flash for Assisted Combat.
 --  Architecture / how it works:
 --    • CM.AssistedHighlightCastProgress.Attach binds host chrome + fade/spell bridges
 --      and optional stopPress/stopPulse (from Feedback).
 --    • CreateSwipeTexture / LayoutCastProgressSwipe / UpdateCastProgressSwipe /
 --      IsBreakActive / TickBreak / StopAll.
 --    • CM.OnAssistedHighlightCastProgress — EventRouter CAST_FEEDBACK path.
+--    • CastGuidsCompatible skips == when either GUID is secret; pending cancel uses a
+--      public token (not GUID ~=) so deferred STOP cannot taint-error.
 --  Does not: Own press/pulse, recent-suggestion cache, chrome, ProcLoop (siblings).
 --  Related: Core/Crosshair/AssistedHighlight/Feedback.lua,
 --  Core/Runtime/EventRouter.lua, Constants/Assets.lua, Constants/Gameplay.lua
@@ -21,6 +24,7 @@ local CreateFrame = _G.CreateFrame
 local UnitCastingInfo = _G.UnitCastingInfo
 local UnitChannelInfo = _G.UnitChannelInfo
 local C_Timer = _G.C_Timer
+local issecretvalue = _G.issecretvalue
 
 -- Lua stdlib
 local math = _G.math
@@ -46,12 +50,13 @@ local stopPulse
 -- Dark cast-progress swipe
 local CAST_SWIPE_R, CAST_SWIPE_G, CAST_SWIPE_B, CAST_SWIPE_A = 0, 0, 0, 0.44
 
--- Interrupt/cancel cast break (shake + flash)
-local CAST_BREAK_DURATION = 0.18
-local CAST_BREAK_SHAKE_PX = 5
-local CAST_BREAK_FLASH_HZ = 22
-local CAST_BREAK_COLOR_RED = { 1, 0.2, 0.3, 1 }
-local CAST_BREAK_COLOR_GREY = { 0.72, 0.72, 0.72, 1 }
+-- Interrupt/cancel cast break (shake + flash) — shared with crosshair Animations.
+local CastBreak = CM.Constants.CrosshairCastBreak
+local CAST_BREAK_DURATION = CastBreak.duration
+local CAST_BREAK_SHAKE_PX = CastBreak.shakePx
+local CAST_BREAK_FLASH_HZ = CastBreak.flashHz
+local CAST_BREAK_COLOR_RED = CM.Constants.CrosshairReactionColors.hostile
+local CAST_BREAK_COLOR_GREY = CastBreak.grey
 
 local breakActive = false
 local breakElapsed = 0
@@ -64,9 +69,26 @@ local assistCastIsChannel = false
 local assistCastInterrupted = false
 local assistCastGUID = nil
 local assistCastHadSuccess = false
-local assistCastPendingCancelGUID = nil
+-- Public generation token for deferred STOP→cancel (never compare secret GUIDs).
+local assistCastPendingCancelToken = 0
 
 local BeginCastBreak
+
+-- True when event/tracked GUID is absent, they match, or either is secret (cannot
+-- compare under taint; prefer completing swipe/break for the in-flight assist cast).
+local function CastGuidsCompatible(eventGUID, trackedGUID)
+  if not eventGUID or not trackedGUID then
+    return true
+  end
+  if issecretvalue and (issecretvalue(eventGUID) or issecretvalue(trackedGUID)) then
+    return true
+  end
+  return eventGUID == trackedGUID
+end
+
+local function InvalidatePendingCancel()
+  assistCastPendingCancelToken = assistCastPendingCancelToken + 1
+end
 
 local function HostFrame()
   return getFrame and getFrame() or nil
@@ -281,7 +303,7 @@ local function ResetAssistCastTracking()
   assistCastInterrupted = false
   assistCastGUID = nil
   assistCastHadSuccess = false
-  assistCastPendingCancelGUID = nil
+  InvalidatePendingCancel()
 end
 
 --- Interrupt/cancel break while assist is visible.
@@ -477,7 +499,7 @@ function CM.OnAssistedHighlightCastProgress(event, castGUID)
     assistCastIsChannel = false
     assistCastInterrupted = false
     assistCastHadSuccess = false
-    assistCastPendingCancelGUID = nil
+    InvalidatePendingCancel()
     CastProgress.UpdateCastProgressSwipe()
     -- Track even if swipe is not shown yet (cancel break while assist is up).
     assistCastActive = IsAssistVisibleForCastFeedback()
@@ -489,7 +511,7 @@ function CM.OnAssistedHighlightCastProgress(event, castGUID)
     assistCastIsChannel = true
     assistCastInterrupted = false
     assistCastHadSuccess = false
-    assistCastPendingCancelGUID = nil
+    InvalidatePendingCancel()
     CastProgress.UpdateCastProgressSwipe()
     assistCastActive = IsAssistVisibleForCastFeedback()
     return
@@ -503,12 +525,11 @@ function CM.OnAssistedHighlightCastProgress(event, castGUID)
   end
 
   if event == "UNIT_SPELLCAST_FAILED" or event == "UNIT_SPELLCAST_INTERRUPTED" then
-    local matched = assistCastActive
-      and (not assistCastGUID or not castGUID or castGUID == assistCastGUID)
+    local matched = assistCastActive and CastGuidsCompatible(castGUID, assistCastGUID)
     assistCastInterrupted = true
     if matched then
       assistCastActive = false
-      assistCastPendingCancelGUID = nil
+      InvalidatePendingCancel()
       TryAssistCastInterruptBreak()
     else
       ClearCastProgressSwipe()
@@ -518,12 +539,9 @@ function CM.OnAssistedHighlightCastProgress(event, castGUID)
 
   if event == "UNIT_SPELLCAST_SUCCEEDED" then
     -- Channel ticks fire SUCCEEDED; latch cast-time success so STOP does not break.
-    if
-      not assistCastIsChannel
-      and (not assistCastGUID or not castGUID or castGUID == assistCastGUID)
-    then
+    if not assistCastIsChannel and CastGuidsCompatible(castGUID, assistCastGUID) then
       assistCastHadSuccess = true
-      assistCastPendingCancelGUID = nil
+      InvalidatePendingCancel()
       ClearCastProgressSwipe()
     end
     return
@@ -533,18 +551,18 @@ function CM.OnAssistedHighlightCastProgress(event, castGUID)
     ClearCastProgressSwipe()
     local matched = assistCastActive
       and not assistCastIsChannel
-      and (not assistCastGUID or not castGUID or castGUID == assistCastGUID)
+      and CastGuidsCompatible(castGUID, assistCastGUID)
     local shouldBreak = matched and not assistCastHadSuccess and not assistCastInterrupted
     assistCastActive = false
-    if shouldBreak and castGUID then
-      -- STOP can arrive before SUCCEEDED; defer one frame.
-      assistCastPendingCancelGUID = castGUID
-      local pendingGUID = castGUID
+    if shouldBreak then
+      -- STOP can arrive before SUCCEEDED; defer one frame (public token, not GUID ~=).
+      assistCastPendingCancelToken = assistCastPendingCancelToken + 1
+      local token = assistCastPendingCancelToken
       C_Timer.After(0, function()
-        if assistCastPendingCancelGUID ~= pendingGUID then
+        if assistCastPendingCancelToken ~= token then
           return
         end
-        assistCastPendingCancelGUID = nil
+        InvalidatePendingCancel()
         if assistCastHadSuccess then
           assistCastGUID = nil
           assistCastHadSuccess = false
@@ -570,7 +588,7 @@ function CM.OnAssistedHighlightCastProgress(event, castGUID)
     assistCastInterrupted = false
     assistCastGUID = nil
     assistCastHadSuccess = false
-    assistCastPendingCancelGUID = nil
+    InvalidatePendingCancel()
     if shouldBreak then
       TryAssistCastInterruptBreak()
     end

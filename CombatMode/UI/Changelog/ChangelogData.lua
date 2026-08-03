@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Party Radial runtime is split into focused submodules under `Core/PartyRadial/` (`PartyData` → `SecureBindings` → `HealthBars` → `RoleIcons` → `Visual` → `Lifecycle` → façade; behavior unchanged).
+- Shared crosshair cast-break VFX tuning and companion side offset live in `Constants/Assets.lua` (`CrosshairCastBreak`, `CrosshairCompanionOffsetX`); cast-break flash red reuses hostile reaction color.
+- Party Radial Show Health Bars is on by default for new installs.
+
+### Fixed
+
+- Crosshair cast feedback and Combat Assist cast swipe/break no longer error in instances when cast GUIDs are secret under taint.
 
 ## [4.1.3] - 2026-08-02
 

@@ -6,7 +6,7 @@
 --  label + shadow, layout/resize, options preview sample, and public Apply / Refresh / Init.
 --  Architecture / how it works:
 --    • InitInteractionHUD({crosshairFrame, crosshairTexture}); ApplyInteractionHUDLayout
---      + RefreshInteractionHUD for side/gap (offset 24px beyond reticle edge).
+--      + RefreshInteractionHUD for side/gap (CrosshairCompanionOffsetX beyond reticle edge).
 --    • SoftTarget CVars applied elsewhere via CVarManager.ConfigInteractionHUDSoftTarget.
 --    • Visual.Attach + OnUpdate Visual.Tick; Target for identity / cursor dim.
 --    • Retail 12.x: secret-string-safe UnitName / FontString sizing (no literal compares).
@@ -46,7 +46,7 @@ local IH_TEXT_PAD = 4 -- shadow bleed past glyphs
 local IH_ICON = (Target and Target.IH_ICON) or 26
 local IH_FONT = 13 -- matches party radial slice name size
 local IH_SHADOW_ATLAS = "PetJournal-BattleSlot-Shadow"
-local IH_OFFSET_X = 24 -- px beyond crosshair edge
+local IH_OFFSET_X = CM.Constants.CrosshairCompanionOffsetX
 
 -- Options tab preview: render sample content with no soft-interact target.
 local IH_PREVIEW_ATLAS = "mechagon-projects"

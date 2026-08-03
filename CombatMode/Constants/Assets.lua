@@ -6,10 +6,12 @@
 --  appearance select values and reaction color tables the Crosshair tab and runtime read.
 --  Architecture / how it works:
 --    • `PopupMsg` / `BasePrintMsg` — welcome modal + print prefix (version from METADATA).
---    • Logo/Title BLPs, AssistedSpellIcon{Background,Glow,Frame,Mask,CooldownSwipe},
+--  • Logo/Title BLPs, AssistedSpellIcon{Background,Glow,Frame,Mask,CooldownSwipe},
 --      ModifierKey{Ctrl,Shift,Alt} BLPs under Interface\AddOns\CombatMode\assets\.
 --    • CrosshairTextureObj entries pair active/inactive BLPs; AppearanceSelectValues
 --      drives the Crosshair options dropdown.
+--    • CrosshairReactionColors, CrosshairCastBreak (shared interrupt VFX), and
+--      CrosshairCompanionOffsetX (Assist + Interaction HUD gap past reticle edge).
 --  Does not: Draw widgets, own frame lifecycle, apply appearance at runtime, or
 --  own Blizzard atlas FlipBook/VFX names (those stay local to the owning module).
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight/Assist.lua,
@@ -87,7 +89,7 @@ for _, assetName in ipairs(crosshairAssetNames) do
 end
 
 CM.Constants.CrosshairReactionColors = {
-  hostile = { 1, 0.2, 0.3, 1 }, -- red
+  hostile = { 1, 0.2, 0.3, 1 }, -- red (also cast-break flash + Target Lock nameplate)
   friendly_npc = { 0, 1, 0.3, 0.8 }, -- green (friendly NPCs)
   friendly_player = { 0.3, 0.6, 1, 0.8 }, -- blue (friendly players)
   object = { 1, 0.8, 0.2, 0.8 }, -- yellow
@@ -95,3 +97,15 @@ CM.Constants.CrosshairReactionColors = {
   mounted = { 1, 1, 1, 0 }, -- transparent
   focus = { 1, 0.2, 0.3, 1 }, -- Target Lock nameplate: same as hostile
 }
+
+-- Interrupt/cancel cast-break VFX (crosshair cast feedback + Assist CastProgress).
+-- Flash red uses CrosshairReactionColors.hostile (do not duplicate the RGB).
+CM.Constants.CrosshairCastBreak = {
+  duration = 0.18,
+  shakePx = 5,
+  flashHz = 22,
+  grey = { 0.72, 0.72, 0.72, 1 },
+}
+
+-- Interaction HUD + Combat Assist: pixels beyond the crosshair edge (keep in sync).
+CM.Constants.CrosshairCompanionOffsetX = 24

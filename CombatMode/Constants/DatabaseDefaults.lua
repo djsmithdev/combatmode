@@ -122,7 +122,7 @@ CM.Constants.DatabaseDefaults = {
     bindings = DefaultBindings,
     partyRadial = {
       enabled = false,
-      showHealthBars = false,
+      showHealthBars = true,
       showBackground = true,
     },
   },

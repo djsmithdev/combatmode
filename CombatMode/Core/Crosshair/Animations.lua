@@ -9,6 +9,7 @@
 --    • InitCrosshairAnimations registers visual frame/texture from Crosshair.
 --    • StartCrosshairCastGrow / Explode / Break + NotifyCrosshairCastTerminal — EventRouter
 --      CAST_FEEDBACK path; CancelCrosshairCastFeedback / CancelCrosshairLockIn.
+--    • Cast GUID match is secret-safe (issecretvalue): cannot == under instance taint.
 --    • Shared scale animation constructors used by options preview appearance apply.
 --  Does not: Own Assisted Combat ProcLoop FlipBook (AssistedHighlight/Motion.lua) /
 --  interrupt cast break (AssistedHighlight/CastProgress.lua) or mouselook / CVar writes.
@@ -28,6 +29,7 @@ local IsMouselooking = _G.IsMouselooking
 local UIParent = _G.UIParent
 local UnitCastingInfo = _G.UnitCastingInfo
 local UnitChannelInfo = _G.UnitChannelInfo
+local issecretvalue = _G.issecretvalue
 
 -- Lua stdlib
 local math = _G.math
@@ -185,14 +187,15 @@ local CAST_GROW_MAX_SCALE = 1.35
 local CAST_EXPLODE_DURATION = 0.22
 local CAST_EXPLODE_EXTRA_SCALE = 0.4 -- added on top of current grow scale
 local CAST_RESTORE_DURATION = 0.16
-local CAST_BREAK_DURATION = 0.18
-local CAST_BREAK_SHAKE_PX = 5
-local CAST_BREAK_FLASH_HZ = 22
 local CAST_BASE_SCALE = 1.0
 local CAST_SUCCESS_PROGRESS = 0.85 -- STOP / CHANNEL_STOP treated as success at/above this
 
-local CAST_BREAK_COLOR_RED = { 1, 0.2, 0.3, 1 }
-local CAST_BREAK_COLOR_GREY = { 0.72, 0.72, 0.72, 1 }
+local CastBreak = CM.Constants.CrosshairCastBreak
+local CAST_BREAK_DURATION = CastBreak.duration
+local CAST_BREAK_SHAKE_PX = CastBreak.shakePx
+local CAST_BREAK_FLASH_HZ = CastBreak.flashHz
+local CAST_BREAK_COLOR_RED = CM.Constants.CrosshairReactionColors.hostile
+local CAST_BREAK_COLOR_GREY = CastBreak.grey
 
 local motionState = MOTION_IDLE
 local motionElapsed = 0
@@ -276,10 +279,15 @@ local function IsCastFeedbackMotion()
 end
 
 local function CastGUIDMatches(eventGUID)
-  if eventGUID and castGUID and eventGUID ~= castGUID then
-    return false
+  -- Nil on either side = no filter. Secret GUIDs cannot be compared under taint
+  -- (instances); accept so grow/explode/break are not left stuck.
+  if not eventGUID or not castGUID then
+    return true
   end
-  return true
+  if issecretvalue and (issecretvalue(eventGUID) or issecretvalue(castGUID)) then
+    return true
+  end
+  return eventGUID == castGUID
 end
 
 function CM.IsCrosshairCastFeedbackActive()

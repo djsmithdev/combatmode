@@ -49,7 +49,7 @@ local ICON_MASK_BASE_SIZE = 32
 local ICON_MASK_BASE_EXPAND = 6
 local SHADOW_SCALE = 1.5
 local ICON_SIZE = 40
-local ASSIST_OFFSET_X = 24 -- px beyond crosshair edge (matches Interaction HUD gap)
+local ASSIST_OFFSET_X = CM.Constants.CrosshairCompanionOffsetX
 
 local lastAppliedSide
 local lastShownSpellID
