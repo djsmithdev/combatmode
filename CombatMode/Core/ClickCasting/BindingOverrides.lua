@@ -11,14 +11,15 @@
 --      attributes + SetMouselookOverrideBinding / SetOverrideBindingClick.
 --    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run.
 --    • ApplyToggleFocusTargetBinding — Combat Mode Target Lock keybind (always clears
---      override owner first so stolen keys cannot leave a stale click override).
+--      override owner first so stolen keys cannot leave a stale click override). No-ops
+--      install when char.reticleTargeting is off (CM.IsTargetLockEnabled).
 --    • Mid-combat RefreshClickCastMacros / ApplyGroundCastKeyOverrides /
 --      ApplyToggleFocusTargetBinding set a pending flag; EventRouter flushes on
 --      PLAYER_REGEN_ENABLED via FlushPendingClickCastRefresh (silent; BindingQueue
 --      remains for options UI deferred applies).
 --    • UpdateFocusCycleWheelBindings — SetMouselookOverrideBinding for MOUSEWHEEL while
---      cycleFocusWithMouseWheel is on (active during Mouse Look only). Secure PreClick
---      uses UnitExists("focus") for cycle macros; zoom fallback via CallMethod.
+--      Target Lock is enabled and cycleFocusWithMouseWheel is on (mouselook only).
+--      Secure PreClick uses UnitExists("focus") for cycle macros; zoom fallback via CallMethod.
 --    • AssignNamedKeybind / ClearInteractOrphansOnKey — shared options keybind helpers.
 --    • Combat-safe via BindingQueue when options change mid-combat.
 --  Does not: Resolve ElvUI/BT4 frame names (AddonActionBarResolver) or build preline text
@@ -218,6 +219,11 @@ local function ApplyFocusCycleWheelMouselookBindings()
   )
 end
 
+--- Target Lock (focus toggle, wheel cycle, marker, sounds) requires Reticle Targeting.
+function CM.IsTargetLockEnabled()
+  return CM.DB and CM.DB.char and CM.DB.char.reticleTargeting and true or false
+end
+
 --- Install/clear mouselook-only wheel overrides. Call out of combat (BindingQueue
 --- defers option toggles). PreClick reads UnitExists("focus") at click time.
 function CM.UpdateFocusCycleWheelBindings()
@@ -225,7 +231,7 @@ function CM.UpdateFocusCycleWheelBindings()
     return
   end
   local g = CM.DB and CM.DB.global
-  if not g or g.cycleFocusWithMouseWheel ~= false then
+  if CM.IsTargetLockEnabled() and (not g or g.cycleFocusWithMouseWheel ~= false) then
     ApplyFocusCycleWheelMouselookBindings()
     CM.DebugPrint("Focus cycle mouse-wheel mouselook overrides applied")
   else
@@ -527,13 +533,18 @@ end
 
 -- Apply override binding for toggle focus target. Always clear first so a stolen /
 -- unbound Target Lock key cannot leave a stale SetOverrideBindingClick active.
+-- Reticle Targeting off: clear only (Target Lock requires SoftTarget / reticle).
 function CM.ApplyToggleFocusTargetBinding()
   if InCombatLockdown() then
     MarkPendingClickCastRefresh()
     return
   end
-  UpdateToggleFocusTargetMacroText()
   ClearOverrideBindings(ToggleFocusTargetOverrideOwner)
+  if not CM.IsTargetLockEnabled() then
+    CM.DebugPrint("Toggle Focus Target override cleared (Reticle Targeting off)")
+    return
+  end
+  UpdateToggleFocusTargetMacroText()
   local key = GetBindingKey("Combat Mode - Toggle Focus Target")
   if key then
     SetOverrideBindingClick(

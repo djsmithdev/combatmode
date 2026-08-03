@@ -4,10 +4,11 @@
 --  What it does: Wires General-tab controls to freelook and interact/focus binds:
 --  Mouse Look keybind, pulseCursor, hideTooltip, Interact keybind + interactUnit
 --  (mouseover vs soft target, with ALT+key on the alternate command), Target Lock keybind,
---  cycleFocusWithMouseWheel, targetLockSounds, and focusCurrentTargetNotCrosshair.
+--  cycleFocusWithMouseWheel, targetLockSounds, showTargetLockMarker, and
+--  focusCurrentTargetNotCrosshair.
 --  Architecture / how it works:
 --    • DB: global.pulseCursor, hideTooltip, interactUnit, cycleFocusWithMouseWheel,
---      targetLockSounds; char.focusCurrentTargetNotCrosshair.
+--      targetLockSounds, showTargetLockMarker; char.focusCurrentTargetNotCrosshair.
 --    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
 --      orphans on the stolen key and refreshes Target Lock override). Cycle Lock with
 --      Mouse Wheel also uses TryApplyBindingChange → UpdateFocusCycleWheelBindings.
@@ -187,6 +188,26 @@ UI.Options.AddTab({
           CM.AssignNamedKeybind("Combat Mode - Toggle Focus Target", key)
         end)
       end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Toggle({
+      label = "Lock Selected Target",
+      desc = "Lock your selected target instead of the unit under the crosshair.",
+      charSpecific = true,
+      confirm = true,
+      confirmText = RELOAD_CONFIRM,
+      get = function()
+        return CM.DB.char.focusCurrentTargetNotCrosshair
+      end,
+      set = function(value)
+        CM.DB.char.focusCurrentTargetNotCrosshair = value
+        ReloadUI()
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
     })
     ctx:Toggle({
       label = "Cycle Lock with Mouse Wheel",
@@ -205,6 +226,25 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
+      label = "Target Lock Nameplate Marker",
+      desc = "When a Target Lock is set, show a crosshair marker on the nameplate of the target.",
+      get = function()
+        return CM.DB.global.showTargetLockMarker ~= false
+      end,
+      set = function(value)
+        CM.DB.global.showTargetLockMarker = value
+        if CM.ClearFocusNameplateMarker then
+          CM.ClearFocusNameplateMarker()
+        end
+        if value and CM.UpdateFocusNameplateMarker then
+          CM.UpdateFocusNameplateMarker()
+        end
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Toggle({
       label = "Target Lock Sound Cues",
       desc = "Play sound cues when a Target Lock is set, cleared, or cycled.",
       get = function()
@@ -212,23 +252,6 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.global.targetLockSounds = value
-      end,
-      disabled = function()
-        return not CM.DB.char.reticleTargeting
-      end,
-    })
-    ctx:Toggle({
-      label = "Lock Selected Target",
-      desc = "Lock your selected target instead of the unit under the crosshair.",
-      charSpecific = true,
-      confirm = true,
-      confirmText = RELOAD_CONFIRM,
-      get = function()
-        return CM.DB.char.focusCurrentTargetNotCrosshair
-      end,
-      set = function(value)
-        CM.DB.char.focusCurrentTargetNotCrosshair = value
-        ReloadUI()
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting

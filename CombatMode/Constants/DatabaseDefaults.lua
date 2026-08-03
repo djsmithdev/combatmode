@@ -90,13 +90,10 @@ CM.Constants.DatabaseDefaults = {
     actionCamMouselookDisable = false,
     mouseLookSpeed = 120,
     pulseCursor = true,
-    -- Unsheath in Mouse Look; sheath on tap-off and Auto Cursor Unlock (not hold/radial/OPie/ground).
     sheathWeaponsWithMouselook = true,
-    -- While Mouse Look + Target Lock (focus): wheel cycles nearest/previous enemy and re-focuses.
     cycleFocusWithMouseWheel = true,
-    -- Subtle SFX when Target Lock (focus) is acquired or cleared.
     targetLockSounds = true,
-    -- "mouseover" (INTERACTMOUSEOVER) or "target" (INTERACTTARGET); ALT+key binds the other.
+    showTargetLockMarker = true,
     interactUnit = "mouseover",
     mountCheck = false,
     customCondition = "",
@@ -115,7 +112,6 @@ CM.Constants.DatabaseDefaults = {
     silenceAlerts = false,
     debugMode = false,
     reticleTargetingCVarOverrides = {},
-    -- Populated at each enable before the first CM CVar write.
     priorCVarSnapshot = nil,
     targetingMacroPrelineAnyOverride = nil,
     targetingMacroPrelineEnemyOverride = nil,

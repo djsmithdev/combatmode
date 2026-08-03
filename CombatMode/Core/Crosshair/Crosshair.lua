@@ -16,9 +16,9 @@
 --      waiting for a plate keeps the reactive reticle.
 --    • SetCrosshairOptionsPreview — tab onSelect/onDeselect; do not reuse mouselook
 --      Show/Hide gates.
---    • OnCrosshairCastFeedbackEvent / FocusLock (optional lock/unlock SFX; nameplate
---      transfer visual lives in FocusNameplateMarker) / Uncategorized / Rematch hooks
---      from EventRouter / Runtime.
+--    • OnCrosshairCastFeedbackEvent / FocusLock (lock/unlock SFX when Target Lock is
+--      enabled via CM.IsTargetLockEnabled; nameplate transfer visual lives in
+--      FocusNameplateMarker) / Uncategorized / Rematch hooks from EventRouter / Runtime.
 --  Does not: Own SoftTarget CVar writes, assist FlipBook / cast feedback motion, or freelook lock.
 --  Related: Core/Crosshair/Animations.lua, Core/Crosshair/InteractionHUD/HUD.lua
 --  (and sibling Target/Visual), Core/Crosshair/AssistedHighlight/Assist.lua
@@ -481,6 +481,9 @@ function CM.OnCrosshairUncategorizedEvent()
 end
 
 local function PlayFocusLockSounds(hasFocus)
+  if CM.IsTargetLockEnabled and not CM.IsTargetLockEnabled() then
+    return
+  end
   local g = CM.DB and CM.DB.global
   if not g or g.targetLockSounds == false then
     return

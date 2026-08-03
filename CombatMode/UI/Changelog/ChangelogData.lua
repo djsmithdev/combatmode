@@ -18,16 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.1.4] - 2026-08-03
 
+### Added
+
+- Target Lock Marker option (on by default): turn off to keep the normal reactive crosshair while locked, with no nameplate hit marker.
+
 ### Changed
 
 - Party Radial runtime is split into focused submodules under `Core/PartyRadial/` (`PartyData` → `SecureBindings` → `HealthBars` → `RoleIcons` → `Visual` → `Lifecycle` → façade; behavior unchanged).
 - Shared crosshair cast-break VFX tuning and companion side offset live in `Constants/Assets.lua` (`CrosshairCastBreak`, `CrosshairCompanionOffsetX`); cast-break flash red reuses hostile reaction color.
 - Party Radial Show Health Bars is on by default for new installs.
+- Target Lock (keybind, mouse-wheel cycle, marker, and sound cues) is fully disabled when Reticle Targeting is off, matching the options panel.
 
 ### Fixed
 
 - Crosshair cast feedback and Combat Assist cast swipe/break no longer error in instances when cast GUIDs are secret under taint.
-- Hardened several patterns acrross the code base against possibly secret or tainted value comparisons.
+- Hardened several patterns across the code base against possibly secret or tainted value comparisons.
 - Target Lock no longer leaves the center reticle stuck on a static Dot when the focus nameplate never appears; the plate marker still shows if the plate arrives later.
 - Party Radial no longer blanket-enables slice mouse when the feature is disabled; inactive slices also collapse hit rects out of combat to reduce free-cursor click-steal.
 

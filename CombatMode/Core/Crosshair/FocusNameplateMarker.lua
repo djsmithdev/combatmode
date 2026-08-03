@@ -1,12 +1,14 @@
 ---------------------------------------------------------------------------------------
 --  Core/Crosshair/FocusNameplateMarker.lua — CROSSHAIR — lock marker on locked nameplate
 ---------------------------------------------------------------------------------------
---  What it does: On Target Lock, switches the center reticle to a static base-colored Dot
---  (unreactive) and reverse-explodes a hostile-red hit marker (user's crosshair Appearance
---  Active/-hit texture) onto the focus nameplate health bar center. Unlock hides the
---  marker instantly and restores the normal reactive center reticle.
+--  What it does: On Target Lock (when showTargetLockMarker is on), switches the center
+--  reticle to a static base-colored Dot (unreactive) and reverse-explodes a hostile-red
+--  hit marker (user's crosshair Appearance Active/-hit texture) onto the focus nameplate
+--  health bar center. Unlock or toggle-off hides the marker and restores the reactive reticle.
 --  Architecture / how it works:
 --    • CM.UpdateFocusNameplateMarker / ClearFocusNameplateMarker / OnFocusNameplateMarkerEvent.
+--    • Gated by CM.IsTargetLockEnabled (char.reticleTargeting) and
+--      CM.DB.global.showTargetLockMarker (default true; ~= false). Off → Clear.
 --    • State machine: IDLE → PLATE_ARRIVE → SETTLED (instant clear on unlock).
 --    • If focus exists but no usable plate/anchor (waitingForPlate / SIZE_RETRY_MAX),
 --      center reticle is restored so the player is not stuck on a static Dot; plate
@@ -16,8 +18,7 @@
 --    • Plate GetWidth/GetAlpha/GetScale probes are secret-safe (issecretvalue) so instance
 --      taint cannot error while scanning StatusBars.
 --    • Driven by PLAYER_FOCUS_CHANGED + NAME_PLATE_UNIT_ADDED/REMOVED via EventRouter.
---    • Always on with Target Lock (no user toggle).
---  Does not: Own focus macros, Target Lock keybind, or third-party nameplate restyles.
+--  Does not: Own focus macros, Target Lock keybind, sounds, or third-party nameplate restyles.
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/Animations.lua,
 --  Core/Runtime/EventRouter.lua, Constants/Assets.lua, UI/Options/Tabs/TabGeneral.lua
 ---------------------------------------------------------------------------------------
@@ -42,6 +43,14 @@ local issecretvalue = _G.issecretvalue
 local STATE_IDLE = 0
 local STATE_PLATE_ARRIVE = 1
 local STATE_SETTLED = 2
+
+local function IsMarkerEnabled()
+  if CM.IsTargetLockEnabled and not CM.IsTargetLockEnabled() then
+    return false
+  end
+  local g = CM.DB and CM.DB.global
+  return not g or g.showTargetLockMarker ~= false
+end
 
 local MARKER_SIZE = 24
 local ARRIVE_DURATION = 0.25
@@ -450,6 +459,11 @@ function CM.ClearFocusNameplateMarker()
 end
 
 function CM.UpdateFocusNameplateMarker()
+  if not IsMarkerEnabled() then
+    CM.ClearFocusNameplateMarker()
+    return
+  end
+
   if not (UnitExists and UnitExists("focus")) then
     CM.ClearFocusNameplateMarker()
     return
@@ -517,6 +531,10 @@ function CM.UpdateFocusNameplateMarker()
 end
 
 function CM.OnFocusNameplateMarkerEvent(event, unitToken)
+  if not IsMarkerEnabled() then
+    return
+  end
+
   if event == "NAME_PLATE_UNIT_REMOVED" then
     if unitToken and UnitIsUnit and UnitIsUnit(unitToken, "focus") then
       HideMarkerInstant()
