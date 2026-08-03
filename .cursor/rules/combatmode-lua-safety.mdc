@@ -13,6 +13,33 @@ Apply these guardrails for all Lua changes in this addon.
 - Guard protected paths with `InCombatLockdown()` and defer changes until safe when needed.
 - Keep secure action setup deterministic; avoid dynamic attribute churn during combat.
 - Prefer existing secure patterns already used by the addon (`SecureActionButtonTemplate`, macrotext attributes, override bindings).
+- When a refresh hits lockdown, **queue and flush on `PLAYER_REGEN_ENABLED`** (Party Radial `pendingUpdate`, `CM.FlushPendingClickCastRefresh` / BindingQueue). Do not silently drop mid-combat bar/bind updates.
+- Do not assume `EnableMouse`, `SetPoint`, `SetAttribute`, or `SetHitRectInsets` work on secure frames in combat — they are protected (may error or silently no-op).
+
+## Secret values and instance taint (Mainline)
+
+Unit identity and many measures can be **secret** in instances while execution is addon-tainted. Comparing or branching on secrets raises Lua errors (`attempt to compare ... secret ... while execution tainted`).
+
+### Never do this on possibly secret values
+
+- `==` / `~=` / `<` / `<=` / `>` / `>=` on `UnitGUID`, cast GUIDs, `UnitReaction`, raw `UnitHealth` / widths / alphas, or secret strings
+- Truth-test secret booleans without checking `issecretvalue` first (e.g. `if UnitIsDeadOrGhost(u) then`)
+- `string.len` / `#` / `:sub` / `strfind` / `tostring` used as a compare key on secret names or texture paths
+- Arithmetic on secret numbers then comparing the result (`w * scale > best`)
+
+### Do this instead
+
+- **`issecretvalue(v)` before** any branch/compare; treat secret as **unknown** and fail soft (base tint, skip filter, placeholder `"…"`, accept in-flight anim).
+- **Booleans:** `PublicBool` pattern — if secret → `nil`; only branch on public `true`/`false` (see Party Radial `RoleIcons` / HealthBars, Crosshair).
+- **Numbers (width/alpha/scale):** `PublicNumber(v, fallback)` before compare/arithmetic (see `FocusNameplateMarker`).
+- **Identity:** prefer `UnitExists`, `UnitIsUnit`, plate/frame identity — not GUID string equality. Focus lock sounds use existence + event order, not GUID diffs.
+- **Cast GUID match:** if either side is secret, treat as compatible for the single in-flight cast; deferred cancel uses a **public generation token**, not `pendingGUID ~= castGUID` (see `Animations`, `AssistedHighlight/CastProgress`).
+- **Health / dead styling:** prefer `UnitHealthPercent` + color curves and `C_CurveUtil.EvaluateColorFromBoolean` when available; never compare raw secret health fractions for control flow.
+- **Presence without GUID compare:** `UnitExists` first; if you must read GUID, use `issecretvalue(guid)` as presence, never `guid ~= nil` as a compare on secrets (see `InteractionHUD/Target.HasTarget`).
+
+### Reference modules
+
+`Core/Crosshair/Crosshair.lua`, `FocusNameplateMarker.lua`, `InteractionHUD/Target.lua` + `HUD.lua`, `AssistedHighlight/CastProgress.lua`, `Animations.lua`, `Core/PartyRadial/{HealthBars,RoleIcons,Visual,PartyData}.lua`.
 
 ## Taint-avoidance practices
 

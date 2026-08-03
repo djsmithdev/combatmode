@@ -15,7 +15,7 @@ How agents should work in this addon workspace.
 | --- | --- |
 | WoW MCP first | `.cursor/rules/wow-mcp-first.mdc` |
 | Folder map + conventions + durable notes | `.cursor/rules/combatmode-architecture-and-style.mdc` |
-| Combat lockdown / taint / CVar hygiene | `.cursor/rules/combatmode-lua-safety.mdc` |
+| Combat lockdown / secret values / taint / CVar hygiene | `.cursor/rules/combatmode-lua-safety.mdc` |
 | Finish a code change | `.cursor/rules/combatmode-change-checklist.mdc` |
 | Docs/headers when architecture moves | `.cursor/rules/combatmode-docs-and-headers-stay-in-sync.mdc` |
 | Release prep (manual / when asked) | `.cursor/rules/combatmode-release-flow.mdc` + `RELEASE.md` |

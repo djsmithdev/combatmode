@@ -11,7 +11,8 @@ Before finalizing **code** changes, run this checklist in order.
 
 - API checks: verify changed WoW API usage with MCP (`lookup_api`, `list_deprecated`, `get_event`, `get_enum`).
 - Module ownership: keep edits in the feature/config module that owns behavior.
-- Combat safety: guard protected paths and avoid insecure changes in combat.
+- Combat safety: guard protected paths and avoid insecure changes in combat; queue lockdown-blocked binding/attr refreshes for regen flush.
+- Secret/taint safety: no compares or length/sub on possibly secret UnitGUID / cast GUID / reaction / health / names / bar measures — follow `.cursor/rules/combatmode-lua-safety.mdc` (PublicBool / PublicNumber / UnitExists / color curves).
 - State symmetry: for mouselook/CVars/bindings, ensure enable/apply has matching disable/cleanup.
 - Config wiring: new setting has defaults, correct DB scope, and options UI integration.
 - Standalone editor windows (`UI/Editors/ReticleCVarEditorData.lua` / `ReticleCVarEditorPanel.lua`, `UI/Editors/TargetingMacroPrelinesEditor.lua`): register in `Embeds.xml` after the `UI/Options` toolkit they consume; keep `CM.Open*` combat-guarded where frames are created; if changing reticle CVar presets or exclusions, update `Constants/CVars.lua`, `UI/Editors/ReticleCVarEditorData.lua`, and `Core/Runtime/CVarManager.lua` together so effective values and the editor stay aligned.

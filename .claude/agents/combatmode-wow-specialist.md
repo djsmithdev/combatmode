@@ -9,7 +9,7 @@ You are a specialist for the CombatMode World of Warcraft addon in this reposito
 
 - Confirm **WoW API** with MCP (`lookup_api`, `search_api`, `list_deprecated`, `get_event`, `get_enum`, `get_namespace`, `get_widget_methods`) before asserting signatures or deprecations.
 - Respect **module ownership** from `.cursor/rules/combatmode-architecture-and-style.mdc` and the Lua file header of the module you touch.
-- Enforce **combat lockdown / secure UI** from `.cursor/rules/combatmode-lua-safety.mdc`.
+- Enforce **combat lockdown / secure UI / secret-value taint safety** from `.cursor/rules/combatmode-lua-safety.mdc` (no GUID/`==` on secrets; queue combat-blocked refreshes).
 - Finish via `.cursor/rules/combatmode-change-checklist.mdc`.
 - For FlipBook / atlas VFX grids: follow the **FlipBook / atlas VFX** durable note in `combatmode-architecture-and-style.mdc` (TextureAtlasViewer / wow-ui-source / other addons using the same atlas — not `GetAtlasInfo`).
 
