@@ -35,4 +35,4 @@ Follow `.cursor/rules/combatmode-change-checklist.mdc` (lint changed Lua; **ask*
 ## Optional
 
 - Specialist: `.claude/agents/combatmode-wow-specialist.md` (WoW API + ownership + lockdown).
-- Human docs: `README.md`, `CONTRIBUTING.md`, `RELEASE.md`, `TESTING.md`, `CombatMode/CHANGELOG.md`.
+- Human docs: `README.md` (architecture blurb), `CONTRIBUTING.md` (first-hour path: toggle / constant / secrets / docs-cold), `RELEASE.md`, `TESTING.md`, `CombatMode/CHANGELOG.md`.

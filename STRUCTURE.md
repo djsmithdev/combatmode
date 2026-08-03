@@ -1,7 +1,10 @@
 # CombatMode add-on layout
 
+High-level domain map: [README — Architecture](README.md#architecture).
 Load order is defined in [`CombatMode/Embeds.xml`](CombatMode/Embeds.xml) (included
 from [`CombatMode/CombatMode.toc`](CombatMode/CombatMode.toc)).
+
+When you move or rename modules, update this file, `Embeds.xml`, the architecture rule, and touched Lua headers in the same change (see [CONTRIBUTING.md](CONTRIBUTING.md#keep-docs-cold)).
 
 ## Folders
 

@@ -53,6 +53,23 @@ You can report bugs, request features and provide feedback over on our [**Discor
 
 <br />
 
+## <img width="20" height="20" src="media/cmlogo.svg"> ARCHITECTURE
+
+Combat Mode is organized by **domain**. Runtime lives under `CombatMode/Core/`; settings under `CombatMode/UI/`; static tables under `CombatMode/Constants/`.
+
+| Domain | Owns |
+|--------|------|
+| **Runtime** | AddOn shell, events, CVars, binding queue, bootstrap (`Core/Runtime/`) |
+| **FreeLook** | Mouse look / mouselook state + auto cursor unlock |
+| **Crosshair** | Reticle, Interaction HUD, Combat Assist, Target Lock focus marker, cast animations |
+| **ClickCasting** | Mouse override bindings + targeting macro builder |
+| **PartyRadial** | Hold-to-open party radial (secure slices, health, roles) |
+| **Options toolkit** | Standalone options window + editors (`UI/Options/`, `UI/Editors/`) |
+
+Load order and public entry points: **[STRUCTURE.md](STRUCTURE.md)**. Agent/contributor rules: **[AGENTS.md](AGENTS.md)**.
+
+<br />
+
 ## <img width="20" height="20" src="media/cmlogo.svg"> CONTRIBUTING
 
 You can submit a PR with your contributions to [**Combat Mode's repository on GitHub**](https://github.com/djsmithdev/combatmode).
@@ -60,11 +77,10 @@ You can submit a PR with your contributions to [**Combat Mode's repository on Gi
 ### Developer quickstart
 
 1. Clone and install the addon into your Retail `Interface/AddOns` folder for local testing.
-2. Review module ownership and load order in [STRUCTURE.md](STRUCTURE.md).
-3. Run a focused manual pass from [TESTING.md](TESTING.md) for your changed features.
-4. Validate release/API compatibility checks from [RELEASE.md](RELEASE.md).
-5. Open a PR and complete the repo checklist in `.github/PULL_REQUEST_TEMPLATE.md`.
-6. Follow [CONTRIBUTING.md](CONTRIBUTING.md) for contributor workflow and PR minimum checks.
+2. Skim the [architecture table](#architecture) above, then [STRUCTURE.md](STRUCTURE.md) for load order.
+3. Follow [CONTRIBUTING.md](CONTRIBUTING.md) — especially the **first-hour path** (change a toggle, add a constant, secret-value rules).
+4. Run a focused manual pass from [TESTING.md](TESTING.md) for your changed features.
+5. Open a PR and complete `.github/PULL_REQUEST_TEMPLATE.md`. Use [RELEASE.md](RELEASE.md) when shipping a version.
 
 ### Code Style & Linting
 
