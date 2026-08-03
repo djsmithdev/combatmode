@@ -16,7 +16,7 @@
 --      OnAssistedHighlightSpellCast(spellID).
 --    • ASSISTED_HIGHLIGHT_EVENTS → OnAssistedHighlightAssistedActionCast.
 --    • FRIENDLY_TARGETING_EVENTS double as Party Radial combat start/end +
---      FlushDeferredBindingChanges on PLAYER_REGEN_ENABLED.
+--      FlushDeferredBindingChanges / FlushPendingClickCastRefresh on PLAYER_REGEN_ENABLED.
 --    • FOCUS_LOCK_EVENTS → UpdateFocusNameplateMarker + OnCrosshairFocusLockEvent.
 --    • FOCUS_NAMEPLATE_EVENTS → OnFocusNameplateMarkerEvent (ADD/REMOVE).
 --  Does not: RegisterEvent itself (root frame / Bootstrap) or own feature logic.
@@ -165,6 +165,9 @@ local function HandleEventByCategory(category, event, ...)
       end
       if event == "PLAYER_REGEN_ENABLED" then
         CM.FlushDeferredBindingChanges()
+        if CM.FlushPendingClickCastRefresh then
+          CM.FlushPendingClickCastRefresh()
+        end
       end
     end,
     UNCATEGORIZED_EVENTS = function()

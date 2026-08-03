@@ -71,11 +71,19 @@ end
 -- Called when combat starts (PLAYER_REGEN_DISABLED).
 -- Pre-enable mouse on slices so they're ready to receive clicks if the radial
 -- opens during combat (EnableMouse is protected during InCombatLockdown).
+-- Only arm when the feature is enabled — do not blanket-enable for a disabled radial.
+-- SetSliceMouseEnabled no-ops if lockdown is already active; Hide/OnCombatEnd still
+-- disable mouse OOC. SetHitRectInsets is also combat-protected on secure frames.
 function HR.OnCombatStart()
   local RadialState = GetState()
   if RadialState.optionsPreviewActive then
     -- Keep the preview flag; hide visuals until combat ends (protected SetPoint/SetScale).
     Lifecycle.StopOptionsPreviewVisuals()
+  end
+  if
+    not (CM.DB and CM.DB.global and CM.DB.global.partyRadial and CM.DB.global.partyRadial.enabled)
+  then
+    return
   end
   Visual.SetSliceMouseEnabled(true)
 end

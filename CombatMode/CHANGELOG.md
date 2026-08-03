@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Crosshair cast feedback and Combat Assist cast swipe/break no longer error in instances when cast GUIDs are secret under taint.
+- Hardened several patterns acrross the code base against possibly secret or tainted value comparisons.
+- Target Lock no longer leaves the center reticle stuck on a static Dot when the focus nameplate never appears; the plate marker still shows if the plate arrives later.
+- Party Radial no longer blanket-enables slice mouse when the feature is disabled; inactive slices also collapse hit rects out of combat to reduce free-cursor click-steal.
 
 ## [4.1.3] - 2026-08-02
 

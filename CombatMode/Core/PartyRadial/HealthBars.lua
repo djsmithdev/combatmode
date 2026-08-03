@@ -43,6 +43,17 @@ end
 
 local PREVIEW_HEALTH_BY_SLICE = PartyData.PREVIEW_HEALTH_BY_SLICE
 
+-- Public boolean when not secret; nil when unknown/secret (cannot branch on it).
+local function PublicBool(value)
+  if value == nil then
+    return nil
+  end
+  if issecretvalue and issecretvalue(value) then
+    return nil
+  end
+  return value and true or false
+end
+
 -- Party-slice health bar (widgetstatusbar kit), scaled from native 15px fill height.
 local HB = CM.Constants.PartyRadialHealthBar
 local HB_W, HB_H = HB.width, HB.height
@@ -461,8 +472,9 @@ local function UpdateSliceHealthBar(slice, config, memberData, sliceIndex, isPla
   if memberData and memberData.previewDead then
     isDead = true
   elseif unitId and UnitIsDeadOrGhost then
-    local deadOrGhost = UnitIsDeadOrGhost(unitId)
-    if deadOrGhost and not (issecretvalue and issecretvalue(deadOrGhost)) then
+    -- Check issecretvalue BEFORE branching on deadOrGhost truthiness (PublicBool).
+    local deadPublic = PublicBool(UnitIsDeadOrGhost(unitId))
+    if deadPublic then
       isDead = true
     end
   end

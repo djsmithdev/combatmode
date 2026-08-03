@@ -335,7 +335,13 @@ local function RefreshInteractionHUD()
     ihInteractionHUDSecretIdentity = false
   end
   if not hasName then
-    if UnitIsGameObject("softinteract") and interactionHUDNameRetry < 1 then
+    -- PublicBool-style: do not truth-test secret UnitIsGameObject under taint.
+    local isObj = UnitIsGameObject and UnitIsGameObject("softinteract")
+    local isObjPublic = nil
+    if isObj ~= nil and not IsSecretValue(isObj) then
+      isObjPublic = isObj and true or false
+    end
+    if isObjPublic == true and interactionHUDNameRetry < 1 then
       interactionHUDNameRetry = interactionHUDNameRetry + 1
       local C_Timer = _G.C_Timer
       if C_Timer and C_Timer.After then

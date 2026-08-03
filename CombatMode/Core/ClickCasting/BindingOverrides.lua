@@ -12,6 +12,10 @@
 --    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run.
 --    • ApplyToggleFocusTargetBinding — Combat Mode Target Lock keybind (always clears
 --      override owner first so stolen keys cannot leave a stale click override).
+--    • Mid-combat RefreshClickCastMacros / ApplyGroundCastKeyOverrides /
+--      ApplyToggleFocusTargetBinding set a pending flag; EventRouter flushes on
+--      PLAYER_REGEN_ENABLED via FlushPendingClickCastRefresh (silent; BindingQueue
+--      remains for options UI deferred applies).
 --    • UpdateFocusCycleWheelBindings — SetMouselookOverrideBinding for MOUSEWHEEL while
 --      cycleFocusWithMouseWheel is on (active during Mouse Look only). Secure PreClick
 --      uses UnitExists("focus") for cycle macros; zoom fallback via CallMethod.
@@ -363,8 +367,26 @@ end
 
 -- Override keyboard keys (Q, E, etc.) to click our slot frame so the same macro logic runs (pre-line + /click or /cast [@cursor] for ground spells). No per-spell macros.
 -- When macroInjectionClickCastOnly is true, skip keyboard overrides so only the 8 click-cast mouse bindings get the injection.
+local pendingClickCastRefresh = false
+
+local function MarkPendingClickCastRefresh()
+  pendingClickCastRefresh = true
+end
+
+function CM.FlushPendingClickCastRefresh()
+  if InCombatLockdown() or not pendingClickCastRefresh then
+    return
+  end
+  pendingClickCastRefresh = false
+  CM.RefreshClickCastMacros()
+  if CM.ApplyToggleFocusTargetBinding then
+    CM.ApplyToggleFocusTargetBinding()
+  end
+end
+
 function CM.ApplyGroundCastKeyOverrides()
   if InCombatLockdown() then
+    MarkPendingClickCastRefresh()
     return
   end
   ClearOverrideBindings(GroundCastKeyOverrideOwner)
@@ -423,8 +445,10 @@ end
 
 function CM.RefreshClickCastMacros()
   if InCombatLockdown() then
+    MarkPendingClickCastRefresh()
     return
   end
+  pendingClickCastRefresh = false
   CM.ClearAddonButtonCaches()
   -- Re-apply all bindings so macro slots get "click real button" and spell slots get our frame.
   -- This refreshes both keyboard bindings (via ApplyGroundCastKeyOverrides) and mouse button bindings (via OverrideDefaultButtons)
@@ -505,6 +529,7 @@ end
 -- unbound Target Lock key cannot leave a stale SetOverrideBindingClick active.
 function CM.ApplyToggleFocusTargetBinding()
   if InCombatLockdown() then
+    MarkPendingClickCastRefresh()
     return
   end
   UpdateToggleFocusTargetMacroText()

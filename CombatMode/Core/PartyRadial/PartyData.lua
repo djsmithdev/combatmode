@@ -7,7 +7,8 @@
 --    • CM.PartyRadial = CM.PartyRadial or {}; local HR alias; RadialState table.
 --    • HR.GetState returns RadialState for sibling modules.
 --    • CM.PartyRadialPartyData: RefreshPartyData, BuildPreviewPartyData,
---      GetVisualPartyData, PREVIEW_* stamp tables.
+--      GetVisualPartyData, PREVIEW_* stamp tables. UnitName stored only when public
+--      (secret names → nil; Visual shows "…").
 --  Does not: Own secure attributes, health bars, role icons, frames, or show/hide.
 --  Related: Core/PartyRadial/SecureBindings.lua, Visual.lua, Lifecycle.lua,
 --  PartyRadial.lua, Constants/PartyRadial.lua
@@ -23,6 +24,7 @@ local UnitName = _G.UnitName
 
 -- Lua stdlib
 local ipairs = _G.ipairs
+local issecretvalue = _G.issecretvalue
 local pairs = _G.pairs
 local select = _G.select
 local table = _G.table
@@ -77,6 +79,15 @@ HR.GetState = function()
   return RadialState
 end
 
+-- Store only public names; secret UnitName values cannot be truncated/compared later.
+local function SafeUnitName(unitId)
+  local name = UnitName(unitId)
+  if name ~= nil and issecretvalue and issecretvalue(name) then
+    return nil
+  end
+  return name
+end
+
 local function RefreshPartyData()
   RadialState.partyData = {}
 
@@ -90,7 +101,7 @@ local function RefreshPartyData()
   end
   table.insert(members, {
     unitId = "player",
-    name = UnitName("player"),
+    name = SafeUnitName("player"),
     role = selfRole,
     class = select(2, UnitClass("player")),
   })
@@ -105,7 +116,7 @@ local function RefreshPartyData()
       end
       table.insert(members, {
         unitId = unitId,
-        name = UnitName(unitId),
+        name = SafeUnitName(unitId),
         role = role,
         class = select(2, UnitClass(unitId)),
       })

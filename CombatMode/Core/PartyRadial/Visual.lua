@@ -33,6 +33,7 @@ local UnitIsUnit = _G.UnitIsUnit
 
 -- Lua stdlib
 local ipairs = _G.ipairs
+local issecretvalue = _G.issecretvalue
 local math = _G.math
 local tostring = _G.tostring
 local utf8 = _G.utf8
@@ -56,9 +57,15 @@ local HB_GLOW_R = HealthBars.HB_GLOW_R
 local HB_GLOW_G = HealthBars.HB_GLOW_G
 local HB_GLOW_B = HealthBars.HB_GLOW_B
 
+local SECRET_NAME_PLACEHOLDER = "…"
+
 -- Shorten display names by UTF-8 character count (byte :sub breaks Cyrillic/CJK).
+-- Secret strings must not be length/sub'd — show a public placeholder instead.
 local function TruncateUtf8Name(str, maxChars, keepChars, ellipsis)
   ellipsis = ellipsis or "..."
+  if str ~= nil and issecretvalue and issecretvalue(str) then
+    return SECRET_NAME_PLACEHOLDER
+  end
   if not str or str == "" then
     return str
   end
@@ -354,12 +361,23 @@ end
 
 local function SetSliceMouseEnabled(enabled)
   if InCombatLockdown() then
-    return -- Can't toggle EnableMouse during combat
+    return -- Can't toggle EnableMouse / hit rects during combat on secure frames
   end
   for i = 1, 5 do
     local slice = GetState().sliceFrames[i]
     if slice then
       slice:EnableMouse(enabled)
+      -- Collapse hit rects when inactive so a free cursor cannot click invisible slices.
+      -- SetHitRectInsets is also protected in combat (silently fails on secure frames).
+      if slice.SetHitRectInsets then
+        if enabled then
+          slice:SetHitRectInsets(0, 0, 0, 0)
+        else
+          local w = slice.GetWidth and slice:GetWidth() or 100
+          local h = slice.GetHeight and slice:GetHeight() or 100
+          slice:SetHitRectInsets(w, w, h, h)
+        end
+      end
     end
   end
   if GetState().closeButton then
@@ -424,10 +442,11 @@ local function CreateMainFrame()
   -- visibility toggling (always combat-safe).
   --
   -- Click-through prevention for hidden slices: out of combat, we toggle
-  -- EnableMouse(false) on each slice when hiding and EnableMouse(true) when showing.
-  -- In combat, EnableMouse is protected, so we accept that invisible slices at
-  -- screen center may intercept clicks. This is acceptable because during combat
-  -- the user is typically in mouselook mode (no visible cursor to click with).
+  -- EnableMouse(false) + collapsed SetHitRectInsets when hiding, and restore when
+  -- showing. In combat both are protected on SecureActionButton frames, so
+  -- OnCombatStart pre-arms mouse only when the feature is enabled (combat-open
+  -- readiness). While combat + inactive + mouse armed, free-cursor click-steal
+  -- remains possible until PLAYER_REGEN_ENABLED disables mouse again.
   local mainFrame = CreateFrame("Frame", "CombatModePartyRadialFrame", UIParent)
   mainFrame:SetFrameStrata("DIALOG")
   mainFrame:SetSize(400, 400)
@@ -626,7 +645,11 @@ local function UpdateSliceVisual(sliceIndex)
   slice.nameText:SetShadowOffset(1, -1)
   local displayName = (not isPlaceholder and memberData.unitId == "player") and "You"
     or (memberData.name or "Unknown")
-  displayName = TruncateUtf8Name(displayName, 10, 9, "...")
+  if issecretvalue and issecretvalue(displayName) then
+    displayName = SECRET_NAME_PLACEHOLDER
+  else
+    displayName = TruncateUtf8Name(displayName, 10, 9, "...")
+  end
   local color = (memberData.class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[memberData.class])
       and RAID_CLASS_COLORS[memberData.class]
     or { r = 1, g = 1, b = 1 }
@@ -676,8 +699,10 @@ local function UpdateSliceVisual(sliceIndex)
       local iconColor = EvaluateColorFromBoolean(isDead, COLOR_ICON_DEAD, COLOR_ICON_ALIVE)
       slice.roleIcon:SetVertexColor(iconColor.r, iconColor.g, iconColor.b, iconColor.a)
     else
-      local isDead = UnitIsDeadOrGhost(memberData.unitId)
-      if isDead then
+      -- Pre-12 fallback: PublicBool before branching (do not truth-test secret dead).
+      local deadPublic = RoleIcons.PublicBool
+        and RoleIcons.PublicBool(UnitIsDeadOrGhost(memberData.unitId))
+      if deadPublic == true then
         slice.roleIcon:SetVertexColor(0.45, 0.45, 0.45, 1)
       else
         slice.roleIcon:SetVertexColor(1, 1, 1, 1)

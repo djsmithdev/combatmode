@@ -8,8 +8,13 @@
 --  Architecture / how it works:
 --    • CM.UpdateFocusNameplateMarker / ClearFocusNameplateMarker / OnFocusNameplateMarkerEvent.
 --    • State machine: IDLE → PLATE_ARRIVE → SETTLED (instant clear on unlock).
+--    • If focus exists but no usable plate/anchor (waitingForPlate / SIZE_RETRY_MAX),
+--      center reticle is restored so the player is not stuck on a static Dot; plate
+--      ADD later re-suppresses and shows the marker while focus remains set.
 --    • Own OnUpdate (does not use Animations.lua reticle motion channel).
 --    • Anchors centered on Blizzard/Platynator health bar (IsVisible + under-plate).
+--    • Plate GetWidth/GetAlpha/GetScale probes are secret-safe (issecretvalue) so instance
+--      taint cannot error while scanning StatusBars.
 --    • Driven by PLAYER_FOCUS_CHANGED + NAME_PLATE_UNIT_ADDED/REMOVED via EventRouter.
 --    • Always on with Target Lock (no user toggle).
 --  Does not: Own focus macros, Target Lock keybind, or third-party nameplate restyles.
@@ -32,6 +37,7 @@ local C_Timer = _G.C_Timer
 local math = _G.math
 local pcall = _G.pcall
 local type = _G.type
+local issecretvalue = _G.issecretvalue
 
 local STATE_IDLE = 0
 local STATE_PLATE_ARRIVE = 1
@@ -55,6 +61,18 @@ local waitingForPlate = false
 
 local markerFrame
 local driverFrame
+
+-- Public number for compares/arithmetic; secret measures (e.g. tainted StatusBar
+-- GetWidth/GetAlpha) fall back so we never branch on secret values under taint.
+local function PublicNumber(value, fallback)
+  if type(value) ~= "number" then
+    return fallback
+  end
+  if issecretvalue and issecretvalue(value) then
+    return fallback
+  end
+  return value
+end
 
 local function Clamp01(value)
   return math.max(0, math.min(1, value))
@@ -128,7 +146,8 @@ local function IsUsableRegion(region)
   elseif region.IsShown and not region:IsShown() then
     return false
   end
-  local alpha = region.GetAlpha and region:GetAlpha() or 1
+  -- Secret alpha → treat as fully visible (do not reject the region).
+  local alpha = PublicNumber(region.GetAlpha and region:GetAlpha(), 1)
   if alpha < 0.05 then
     return false
   end
@@ -149,9 +168,10 @@ local function IsUnderPlate(region, plate)
 end
 
 local function GetVisualSize(region)
-  local w = region.GetWidth and region:GetWidth() or 0
-  local h = region.GetHeight and region:GetHeight() or 0
-  local scale = region.GetScale and region:GetScale() or 1
+  -- Secret width/height/scale → 0 so the candidate fails IsPlausibleHealthBarSize.
+  local w = PublicNumber(region.GetWidth and region:GetWidth(), 0)
+  local h = PublicNumber(region.GetHeight and region:GetHeight(), 0)
+  local scale = PublicNumber(region.GetScale and region:GetScale(), 1)
   return w * scale, h * scale
 end
 
@@ -385,6 +405,9 @@ end
 
 local function ScheduleSizeRetry()
   if sizeRetryCount >= SIZE_RETRY_MAX then
+    -- Exhausted retries: restore reactive center reticle; plate ADD can retry later.
+    RestoreCenterReticle()
+    waitingForPlate = true
     return
   end
   if not (C_Timer and C_Timer.After) then
@@ -432,12 +455,11 @@ function CM.UpdateFocusNameplateMarker()
     return
   end
 
-  -- Static base-colored Dot at center; hostile-red arrive plays on the nameplate.
-  SuppressCenterReticle()
-
   local plate = GetPlateForFocus()
   if not plate then
     waitingForPlate = true
+    -- Focus set but plate not on screen yet — keep reactive reticle until plate arrives.
+    RestoreCenterReticle()
     if state == STATE_PLATE_ARRIVE or state == STATE_SETTLED then
       HideMarkerInstant()
       activePlate = nil
@@ -451,6 +473,11 @@ function CM.UpdateFocusNameplateMarker()
   if not anchor then
     waitingForPlate = true
     if needsRetry then
+      if sizeRetryCount >= SIZE_RETRY_MAX then
+        RestoreCenterReticle()
+        return
+      end
+      RestoreCenterReticle()
       ScheduleSizeRetry()
       return
     end
@@ -458,9 +485,14 @@ function CM.UpdateFocusNameplateMarker()
     return
   end
 
-  local w = anchor.GetWidth and anchor:GetWidth() or 0
+  local w = PublicNumber(anchor.GetWidth and anchor:GetWidth(), 0)
   if w < 8 then
     waitingForPlate = true
+    if sizeRetryCount >= SIZE_RETRY_MAX then
+      RestoreCenterReticle()
+      return
+    end
+    RestoreCenterReticle()
     ScheduleSizeRetry()
     return
   end
@@ -469,11 +501,13 @@ function CM.UpdateFocusNameplateMarker()
 
   -- Same plate identity (not GUID — UnitGUID is secret under dungeon taint).
   if state == STATE_SETTLED and activePlate == plate then
+    SuppressCenterReticle()
     ReanchorSettledIfNeeded(plate, anchor)
     return
   end
 
   if state == STATE_PLATE_ARRIVE and activePlate == plate then
+    SuppressCenterReticle()
     activePlate = plate
     activeAnchor = anchor
     return
@@ -490,6 +524,8 @@ function CM.OnFocusNameplateMarkerEvent(event, unitToken)
       activeAnchor = nil
       waitingForPlate = true
       SetIdle()
+      -- Plate gone while focus remains — restore reactive reticle until plate returns.
+      RestoreCenterReticle()
       return
     end
     if activePlate and C_NamePlate and C_NamePlate.GetNamePlateForUnit and unitToken then
@@ -500,6 +536,9 @@ function CM.OnFocusNameplateMarkerEvent(event, unitToken)
         activeAnchor = nil
         waitingForPlate = UnitExists and UnitExists("focus")
         SetIdle()
+        if waitingForPlate then
+          RestoreCenterReticle()
+        end
       end
     end
     return

@@ -5,8 +5,10 @@
 --  unable-cursor dimming via SetUnitCursorTexture for the Interaction HUD.
 --  Architecture / how it works:
 --    • CM.InteractionHUDTarget: HasTarget, GetUnitName, IsSecretValue, GetCursorDim.
+--    • HasTarget uses UnitExists / issecretvalue-aware GUID presence (no GUID ~= nil).
 --    • GetCursorDim applies softinteract cursor art onto the host icon and returns
---      (dimAlpha, inRange) — unable art dims to 0.5 / out of range.
+--      (dimAlpha, inRange) — unable art dims to 0.5 / out of range. Texture path/id
+--      probes skip secrets (no strfind / table-key under taint).
 --  Does not: Own cluster chrome, fade/range motion, SoftTarget CVar writes.
 --  Related: Core/Crosshair/InteractionHUD/{Visual,HUD}.lua, Constants/Reticle.lua
 ---------------------------------------------------------------------------------------
@@ -41,9 +43,22 @@ function Target.IsSecretValue(v)
 end
 
 function Target.HasTarget()
-  return UnitGUID("softinteract") ~= nil
-    or UnitExists("softinteract")
-    or UnitIsGameObject("softinteract")
+  -- Prefer UnitExists; never compare UnitGUID under instance taint (secret values).
+  if UnitExists("softinteract") then
+    return true
+  end
+  local guid = UnitGUID and UnitGUID("softinteract")
+  if issecretvalue and issecretvalue(guid) then
+    return true
+  end
+  if guid then
+    return true
+  end
+  local isObj = UnitIsGameObject and UnitIsGameObject("softinteract")
+  if Target.IsSecretValue(isObj) then
+    return false
+  end
+  return isObj and true or false
 end
 
 function Target.GetUnitName()
@@ -81,6 +96,7 @@ function Target.GetUnitName()
 end
 
 --- SetUnitCursorTexture("softinteract") → file id/path; dim when "unable" art.
+--- Path/id probes are secret-safe (no strfind / table-key on secrets under taint).
 --- @return number dimAlpha, boolean inRange
 function Target.GetCursorDim(icon)
   if not icon then
@@ -91,13 +107,24 @@ function Target.GetCursorDim(icon)
   end
   icon:SetSize(IH_ICON, IH_ICON)
   local filePath = icon:GetTextureFilePath()
-  if type(filePath) ~= "string" or (filePath and strfind(filePath, "FileData")) then
-    filePath = tostring(icon:GetTextureFileID())
-  end
-  if not filePath then
+  if Target.IsSecretValue(filePath) then
+    -- Cannot classify unable art; keep full opacity / in-range.
     return 0.9, true
   end
-  if IH_CURSOR_UNABLE[filePath] or (type(filePath) == "string" and strfind(filePath, "Unable")) then
+  if type(filePath) ~= "string" or (filePath and strfind(filePath, "FileData")) then
+    local fileId = icon:GetTextureFileID()
+    if Target.IsSecretValue(fileId) then
+      return 0.9, true
+    end
+    filePath = tostring(fileId)
+  end
+  if not filePath or Target.IsSecretValue(filePath) then
+    return 0.9, true
+  end
+  if type(filePath) ~= "string" then
+    return 0.9, true
+  end
+  if IH_CURSOR_UNABLE[filePath] or strfind(filePath, "Unable") then
     return 0.5, false
   end
   return 0.9, true

@@ -9,9 +9,11 @@
 --  Architecture / how it works:
 --    • DB.global.crosshair / crosshairMounted / appearance / size / opacity / Y.
 --    • UpdateCrosshairReaction — hostile/friendly/dead/gameobject under mouse or soft
---      target; drives texture + Animations reaction scale. While Target Lock is held,
---      center reticle is a static base-colored Dot (FocusNameplateMarker / SetFocusLockReticleSuppressed);
---      lock feedback is on the nameplate marker.
+--      target; drives texture + Animations reaction scale. Presence via UnitExists;
+--      reaction/booleans are secret-safe (issecretvalue / PublicBool — no UnitGUID
+--      compares). While Target Lock shows a nameplate marker, center reticle is a
+--      static base-colored Dot (FocusNameplateMarker / SetFocusLockReticleSuppressed);
+--      waiting for a plate keeps the reactive reticle.
 --    • SetCrosshairOptionsPreview — tab onSelect/onDeselect; do not reuse mouselook
 --      Show/Hide gates.
 --    • OnCrosshairCastFeedbackEvent / FocusLock (optional lock/unlock SFX; nameplate
@@ -36,7 +38,6 @@ local IsMouselooking = _G.IsMouselooking
 local UIParent = _G.UIParent
 local UnitCanAttack = _G.UnitCanAttack
 local UnitExists = _G.UnitExists
-local UnitGUID = _G.UnitGUID
 local UnitIsGameObject = _G.UnitIsGameObject
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitReaction = _G.UnitReaction
@@ -44,7 +45,19 @@ local PlaySound = _G.PlaySound
 local SOUNDKIT = _G.SOUNDKIT
 
 -- Lua stdlib
+local issecretvalue = _G.issecretvalue
 local type = _G.type
+
+-- Public boolean when not secret; nil when unknown/secret (cannot branch on it).
+local function PublicBool(value)
+  if value == nil then
+    return nil
+  end
+  if issecretvalue and issecretvalue(value) then
+    return nil
+  end
+  return value and true or false
+end
 
 -- Soft UI ticks on Master: character panel open/close for lock/unlock; option click for cycle.
 local FOCUS_LOCK_SOUND = (SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN) or 839
@@ -317,23 +330,32 @@ local function GetUnitReactionType(unitID)
   if not unitID then
     return "base"
   end
-  if not UnitExists(unitID) or not UnitGUID(unitID) then
+  -- Prefer UnitExists; do not truth-test / compare UnitGUID under instance taint.
+  if not UnitExists(unitID) then
     return "base"
   end
-  local isTargetObject = UnitIsGameObject(unitID)
+  local isTargetObject = PublicBool(UnitIsGameObject(unitID))
   if isTargetObject then
     return "object"
   end
   local reaction = UnitReaction("player", unitID)
+  -- Secret reaction numbers cannot be compared; keep base appearance.
+  if issecretvalue and issecretvalue(reaction) then
+    return "base"
+  end
   if not reaction then
     return "base"
   end
-  if UnitIsPlayer(unitID) then
-    if UnitCanAttack("player", unitID) then
-      return "hostile"
-    else
-      return "friendly_player"
+  local isPlayer = PublicBool(UnitIsPlayer(unitID))
+  if isPlayer then
+    local canAttack = PublicBool(UnitCanAttack("player", unitID))
+    if canAttack == nil then
+      return "base"
     end
+    if canAttack then
+      return "hostile"
+    end
+    return "friendly_player"
   elseif reaction <= 4 then
     return "hostile"
   elseif reaction >= 5 then
@@ -352,11 +374,12 @@ local function IsEnemyOnlyReticleInCombat()
 end
 
 local function GetUnitUnderCursor()
-  local isTargetObject = UnitIsGameObject("softinteract")
+  local isTargetObject = PublicBool(UnitIsGameObject("softinteract"))
   if isTargetObject then
     return "softinteract", "object"
   end
-  if UnitExists("mouseover") and UnitGUID("mouseover") then
+  -- UnitExists only — do not truth-test UnitGUID under taint.
+  if UnitExists("mouseover") then
     local reactionType = GetUnitReactionType("mouseover")
     local enemyOnlyInCombat = IsEnemyOnlyReticleInCombat()
 
@@ -371,7 +394,7 @@ local function GetUnitUnderCursor()
     local isFriendlyMouseover = reactionType == "friendly_player" or reactionType == "friendly_npc"
     if isFriendlyMouseover then
       local fallbackUnitID = "softenemy"
-      if UnitExists(fallbackUnitID) and UnitGUID(fallbackUnitID) then
+      if UnitExists(fallbackUnitID) then
         local fallbackReactionType = GetUnitReactionType(fallbackUnitID)
         if fallbackReactionType == "hostile" then
           CM.DebugPrintThrottled(
@@ -481,12 +504,8 @@ function CM.OnCrosshairFocusLockEvent(event)
   if event == "PLAYER_FOCUS_CHANGED" then
     local hasFocus = UnitExists("focus")
     PlayFocusLockSounds(hasFocus)
-    -- Static base-colored Dot at center during lock; FocusNameplateMarker plays the plate marker.
-    if hasFocus then
-      if CM.SetFocusLockReticleSuppressed then
-        CM.SetFocusLockReticleSuppressed(true)
-      end
-    end
+    -- Suppress/restore of the center reticle is owned by FocusNameplateMarker
+    -- (only while a plate marker is shown; waiting for a plate keeps the reactive reticle).
     hadFocusUnit = hasFocus and true or false
     CM.UpdateCrosshairReaction()
   end
