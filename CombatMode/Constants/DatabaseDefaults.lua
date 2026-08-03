@@ -10,7 +10,8 @@
 --      crosshairCastFeedback, interactionHUD / interactionHUDSide (default LEFT),
 --      assistedHighlightEnabled / assistedHighlightSide (default RIGHT), crosshairY;
 --      reticleTargetingCVarOverrides, priorCVarSnapshot, targetingMacroPreline*Override;
---      bindings; partyRadial (enabled, showHealthBars, showBackground; layout/scale fixed in Core).
+--      bindings; partyRadial (enabled, showHealthBars, showBackground; layout/fade fixed in
+--      Constants/PartyRadial.lua).
 --    • char: useGlobalBindings, shoulderOffset, reticleTargeting / enemyOnly /
 --      macroInjectionClickCastOnly, focusCurrentTargetNotCrosshair, castAtCursorSpells,
 --      excludeFromTargetingSpells, stickyCrosshair, bindings.
@@ -123,8 +124,6 @@ CM.Constants.DatabaseDefaults = {
       enabled = false,
       showHealthBars = false,
       showBackground = true,
-      fadeInDuration = 0.08,
-      fadeOutDuration = 0.05,
     },
   },
   char = {

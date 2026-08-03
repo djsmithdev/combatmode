@@ -1,17 +1,19 @@
 ---------------------------------------------------------------------------------------
---  Constants/PartyRadial.lua — CONSTANTS — party radial slice metadata
+--  Constants/PartyRadial.lua — CONSTANTS — party radial slice metadata + layout
 ---------------------------------------------------------------------------------------
 --  What it does: Defines the five-slice layout for party radial (default roles, angles,
---  labels), per-slice arc width, and static role-icon atlas / ranged-spec lookup tables
---  used by the runtime wheel.
+--  labels), per-slice arc width, fixed layout/fade/health-bar sizes, and static role-icon
+--  atlas / ranged-spec lookup tables used by the runtime wheel.
 --  Architecture / how it works:
 --    • PartyRadialSlices[1..5] — angle degrees (0 = right, 90 = up), defaultRole, label.
 --    • PartyRadialSliceArc = 72 (360/5).
+--    • PartyRadialLayout — fixed slice radius/sizes + fade durations (not DB options).
+--    • PartyRadialHealthBar — bar size, low-health threshold, glow/controlled pulse.
 --    • PartyRadialRoleAtlases — LFG role icon atlases (normal/disabled; DPS melee+ranged).
 --    • PartyRadialRangedSpecIDs / PartyRadialRangedDamagerClasses — melee vs ranged DPS
 --      heuristics when UnitGroupRolesAssigned is DAMAGER (no Mainline melee/ranged API).
 --  Does not: Own CM.PartyRadial UI, secure attributes, or DB.global.partyRadial settings.
---  Related: Core/PartyRadial/PartyRadial.lua, UI/Options/Tabs/TabPartyRadial.lua,
+--  Related: Core/PartyRadial/*.lua, UI/Options/Tabs/TabPartyRadial.lua,
 --  Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -27,6 +29,34 @@ CM.Constants.PartyRadialSlices = {
 }
 
 CM.Constants.PartyRadialSliceArc = 72 -- degrees per slice
+
+-- Fixed layout (not user-configurable; options only toggle enabled/bars/background).
+CM.Constants.PartyRadialLayout = {
+  baseSliceSize = 80,
+  centerFixedSize = 64,
+  sliceRadius = 120,
+  sliceScale = 1.0,
+  roleIconSize = 64,
+  nameFontSize = 13,
+  fadeInDuration = 0.18,
+  fadeOutDuration = 0.22,
+  sliceScaleDuration = 0.1,
+}
+
+-- Health bar chrome + shared pulse tuning (widgetstatusbar kit, native fill height 15).
+CM.Constants.PartyRadialHealthBar = {
+  width = 72,
+  height = 10,
+  lowPct = 0.25,
+  glowR = 1,
+  glowG = 0.12,
+  glowB = 0.08,
+  glowPulsePeriod = 1.15,
+  glowPulseMin = 0.35,
+  glowPulseMax = 1.0,
+  controlledOverlayPulsePeriod = 0.55,
+  fillWhiteAtlas = "widgetstatusbar-fill-white",
+}
 
 -- LFG role icon atlases (interface/lfgframe/uilfgprompts). Controlled overlay uses
 -- DeclineMark (X, no backdrop) faded over the normal role icon. DPS uses melee by

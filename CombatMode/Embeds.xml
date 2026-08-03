@@ -36,7 +36,14 @@
     <Script file="Core\Crosshair\AssistedHighlight\Assist.lua"/>
     <Script file="Core\Crosshair\FocusNameplateMarker.lua"/>
     <Script file="Core\Crosshair\Crosshair.lua"/>
-    <!-- PARTY RADIAL -->
+    <!-- PARTY RADIAL: PartyData → SecureBindings → HealthBars → RoleIcons → Visual →
+         Lifecycle → PartyRadial (façade / CM.PartyRadial public API). -->
+    <Script file="Core\PartyRadial\PartyData.lua"/>
+    <Script file="Core\PartyRadial\SecureBindings.lua"/>
+    <Script file="Core\PartyRadial\HealthBars.lua"/>
+    <Script file="Core\PartyRadial\RoleIcons.lua"/>
+    <Script file="Core\PartyRadial\Visual.lua"/>
+    <Script file="Core\PartyRadial\Lifecycle.lua"/>
     <Script file="Core\PartyRadial\PartyRadial.lua"/>
     <!-- OPTIONS UI: custom standalone window. Draw + Widgets before
          OptionsPanel (defines AddTab/CreateWindow); Tabs register after OptionsPanel. -->

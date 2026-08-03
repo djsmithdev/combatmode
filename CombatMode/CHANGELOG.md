@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.4] - 2026-08-03
+
+### Changed
+
+- Party Radial runtime is split into focused submodules under `Core/PartyRadial/` (`PartyData` → `SecureBindings` → `HealthBars` → `RoleIcons` → `Visual` → `Lifecycle` → façade; behavior unchanged).
+
 ## [4.1.3] - 2026-08-02
 
 ### Added

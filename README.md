@@ -11,22 +11,12 @@
   <img src="media/previewGif.gif">
 </p>
 
-<p align="center">
-With a full suite of carefully curated changes inspired by <ins>Guild Wars 2's Action Camera</ins> - <strong>all aimed at breathing some much-needed life into WoW's tab-targeting combat</strong> - Combat Mode introduces features like <ins>Mouse Look</ins>, allowing you to change your character’s facing direction by moving the mouse without needing to perpetually hold right-click. When enabled, the cursor is locked to the center of the screen and transformed into a <ins>reticle capable of target selection</ins> — <strong>no more tab-targeting!</strong>
-</p>
-<p align="center">
-Combat Mode takes it further by allowing you to <ins>cast spells with mouse clicks</ins>, a mechanic inspired by third-person action games. For convenience, the AddOn will <ins>automatically deactivate Mouse Look while interacting with a range of interface panels</ins>, reactivating it once closed.
-</p>
-<p align="center">
-Experience <em>World of Warcraft</em> like never before with <strong>Combat Mode</strong>!
-</p>
-
-
 <br />
 
 ## <img width="20" height="20" src="media/cmlogo.svg"> FEATURES
 - <strong>[Mouse Look](https://en.wikipedia.org/wiki/Free_look)</strong> - Lock the cursor to screen center and steer with the mouse — no more holding right-click to turn. Toggle it on, hold it when you need to temporarily free the cursor, and control your facing direction by simply moving the mouse. 
 - <strong>Reticle Targeting</strong> - Aim the crosshair to target enemies and friendlies the way action games do. Built for `@cursor` and `@mouseover` macros, with optional Target Lock, automatic casting at crosshair location, spell exclusions, and advanced CVar / targeting-macro logic editors when you want full control.
+- <strong>Target Lock & Cycle</strong> - Tap to lock your target, preventing the reticle from swapping it. Tap again to unlock. While a Target Lock is set, mouse wheel cycles nearby enemies and moves the lock, facilitating prioritization on stacked targets.
 - <strong>Click Casting</strong> - Bind Left, Right, and modified mouse clicks to your rotation so every press under Mouse Look casts a spell — up to eight actions on your left and right click.
 - <strong>Interaction HUD</strong> - When something under the reticle can be interacted with (NPCs, world objects, interactables), a clear icon appears beside the crosshair so you never miss a prompt mid-combat.
 - <strong>Combat Assist</strong> - Shows Blizzard's Assisted Combat next-cast suggestion next to the crosshair, with satisfying cast-success feedback so your rotation stays readable without staring at the action bar.
