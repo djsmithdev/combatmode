@@ -6,7 +6,7 @@
 --  appearance select values and reaction color tables the Crosshair tab and runtime read.
 --  Architecture / how it works:
 --    • `PopupMsg` / `BasePrintMsg` — welcome modal + print prefix (version from METADATA).
---  • Logo/Title BLPs, AssistedSpellIcon{Background,Glow,Frame,Mask,CooldownSwipe},
+--  • Logo/Title BLPs, Discord/GitHub icons + community URLs, AssistedSpellIcon*,
 --      ModifierKey{Ctrl,Shift,Alt} BLPs under Interface\AddOns\CombatMode\assets\.
 --    • CrosshairTextureObj entries pair active/inactive BLPs; AppearanceSelectValues
 --      drives the Crosshair options dropdown.
@@ -24,13 +24,12 @@ local _G = _G
 
 local ipairs = _G.ipairs
 
--- Body only: the welcome modal (CM.UI.ShowWelcome) draws the logo + wordmark header itself.
+-- Body only: the welcome modal (CM.UI.ShowWelcome) draws the wordmark header itself.
 -- Slash commands keep inline color: blue for options (/cm, /combatmode).
-CM.Constants.PopupMsg = "Thank you for trying out Combat Mode!\n\n"
-  .. "Upon closing this, the config panel will automatically open.\n\n"
-  .. "You can also open it anytime with the commands |cff69ccf0/cm|r or |cff69ccf0/combatmode|r.\n\n"
-  .. "If you decide not to keep Combat Mode, use the |cffff5555Uninstall|r button at the bottom of the options sidebar. That restores your previous camera and targeting settings, disables the addon, and reloads.\n\n"
-  .. "|cff909090Do not only disable or delete the addon without Uninstall — some camera settings are saved by the game and would otherwise stick around.|r"
+CM.Constants.PopupMsg = "Welcome to Combat Mode!\n\n"
+  .. "The configuration panel will open after you close this message.\n\n"
+  .. "You can reopen it anytime with |cff69ccf0/cm|r or |cff69ccf0/combatmode|r.\n\n"
+  .. "|cff909090To restore your previous settings, use the |cffff5555Uninstall|r button in the options panel.|r\n\n"
 
 CM.Constants.BasePrintMsg = CM.METADATA["TITLE"]
   .. " |cff00ff00v."
@@ -40,6 +39,10 @@ CM.Constants.BasePrintMsg = CM.METADATA["TITLE"]
 local assetsFolderPath = "Interface\\AddOns\\CombatMode\\assets\\"
 CM.Constants.Logo = assetsFolderPath .. "cmlogo.blp"
 CM.Constants.Title = assetsFolderPath .. "cmtitle.blp"
+CM.Constants.DiscordIcon = assetsFolderPath .. "discord.blp"
+CM.Constants.GitHubIcon = assetsFolderPath .. "github.blp"
+CM.Constants.DiscordURL = "https://www.discord.gg/5mwBSmz"
+CM.Constants.GitHubURL = "https://github.com/djsmithdev/combatmode"
 CM.Constants.AssistedSpellIconBackground = assetsFolderPath .. "spell-bg.blp"
 CM.Constants.AssistedSpellIconGlow = assetsFolderPath .. "spell-glow.blp"
 CM.Constants.AssistedSpellIconFrame = assetsFolderPath .. "spell-frame.blp"

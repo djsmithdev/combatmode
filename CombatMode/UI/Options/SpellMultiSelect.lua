@@ -783,9 +783,9 @@ function UI.MakeSpellMultiSelect(parent, opts)
     if edit.SetEnabled then
       edit:SetEnabled(not disabled)
     end
-    box:SetAlpha(disabled and 0.45 or 1)
+    box:SetAlpha(disabled and (C.disabledAlpha or 0.5) or 1)
     if row.label then
-      row.label:SetAlpha(disabled and 0.45 or 1)
+      row.label:SetAlpha(disabled and (C.disabledAlpha or 0.5) or 1)
     end
     if disabled then
       CloseSuggest()

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.5] - 2026-08-05
+
+### Added
+
+- Scale sliders for Interaction HUD, Combat Assist, and Party Radial (0.5–1.5); each scales the full companion / radial chrome.
+- Added Discord & GitHub repository links to the config panel.
+
+### Changed
+
+- Crosshair Size is now Scale (0.5–1.5, default 1.0); existing pixel sizes migrate to the equivalent scale.
+- Added new Combat Mode theme to celebrate the release of version 4.
+
+### Fixed
+
+- While Target Lock is held (and the marker option is on), the center reticle stays on the locked dot even if the focus nameplate is not visible.
+- Cycling Target Lock with the mouse wheel no longer briefly flashes the reactive crosshair; the locked dot stays up across focus swaps.
+
 ## [4.1.4] - 2026-08-03
 
 ### Added
@@ -253,7 +270,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.1.3...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.1.5...HEAD
+[4.1.5]: https://github.com/djsmithdev/combatmode/compare/4.1.4...4.1.5
+[4.1.4]: https://github.com/djsmithdev/combatmode/compare/4.1.3...4.1.4
 [4.1.3]: https://github.com/djsmithdev/combatmode/compare/4.1.2...4.1.3
 [4.1.2]: https://github.com/djsmithdev/combatmode/compare/4.1.1...4.1.2
 [4.1.1]: https://github.com/djsmithdev/combatmode/compare/4.1.0...4.1.1

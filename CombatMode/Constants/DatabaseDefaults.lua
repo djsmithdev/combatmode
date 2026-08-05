@@ -6,12 +6,12 @@
 --  for new-install defaults across free-look, crosshair companions, click-cast, reticle,
 --  and party radial.
 --  Architecture / how it works:
---      mouseLookSpeed, pulseCursor, interactUnit, cycleFocusWithMouseWheel; crosshair*,
---      crosshairCastFeedback, interactionHUD / interactionHUDSide (default LEFT),
---      assistedHighlightEnabled / assistedHighlightSide (default RIGHT), crosshairY;
+--      mouseLookSpeed, pulseCursor, interactUnit, cycleFocusWithMouseWheel; crosshair*
+--      (crosshairScale, opacity, Y, cast feedback), interactionHUD / Side / Scale,
+--      assistedHighlightEnabled / Side / Scale; partyRadial (enabled, showHealthBars,
+--      showBackground, scale; layout/fade fixed in Constants/PartyRadial.lua).
 --      reticleTargetingCVarOverrides, priorCVarSnapshot, targetingMacroPreline*Override;
---      bindings; partyRadial (enabled, showHealthBars, showBackground; layout/fade fixed in
---      Constants/PartyRadial.lua).
+--      bindings.
 --    • char: useGlobalBindings, shoulderOffset, reticleTargeting / enemyOnly /
 --      macroInjectionClickCastOnly, focusCurrentTargetNotCrosshair, castAtCursorSpells,
 --      excludeFromTargetingSpells, stickyCrosshair, bindings.
@@ -101,13 +101,16 @@ CM.Constants.DatabaseDefaults = {
     crosshairMounted = false,
     hideTooltip = true,
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
-    crosshairSize = 64,
+    -- Base reticle is 64px; scale 1.0 = legacy default size.
+    crosshairScale = 1.0,
     crosshairOpacity = 1.0,
     crosshairCastFeedback = true,
     interactionHUD = true,
     interactionHUDSide = "LEFT",
+    interactionHUDScale = 1.0,
     assistedHighlightEnabled = true,
     assistedHighlightSide = "RIGHT",
+    assistedHighlightScale = 1.0,
     crosshairY = 100,
     silenceAlerts = false,
     debugMode = false,
@@ -120,6 +123,7 @@ CM.Constants.DatabaseDefaults = {
       enabled = false,
       showHealthBars = true,
       showBackground = true,
+      scale = 1.0,
     },
   },
   char = {

@@ -1,13 +1,13 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabCrosshair.lua — OPTIONS TAB — Crosshair + HUD + Assist
 ---------------------------------------------------------------------------------------
---  What it does: Wires crosshair enable/mounted/cast feedback/appearance/size/opacity/Y,
---  Interaction HUD enable + side (LEFT/RIGHT), and Combat Assist enable + side. Live
+--  What it does: Wires crosshair enable/mounted/cast feedback/appearance/scale/opacity/Y,
+--  Interaction HUD enable + side + scale, and Combat Assist enable + side + scale. Live
 --  preview via SetCrosshairOptionsPreview onSelect/onDeselect; when HUD turns on without
 --  reticle targeting, applies ConfigInteractionHUDSoftTarget.
 --  Architecture / how it works:
---    • DB.global: crosshair*, interactionHUD / interactionHUDSide, assistedHighlightEnabled
---      / assistedHighlightSide.
+--    • DB.global: crosshair*, crosshairScale, interactionHUD / Side / Scale,
+--      assistedHighlightEnabled / Side / Scale.
 --    • set() → DisplayCrosshair / CreateCrosshair / CancelCrosshairCastFeedback /
 --      ApplyInteractionHUDLayout / RefreshInteractionHUD /
 --      ApplyCrosshairAssistedHighlightOptions / UpdateCrosshairAssistedHighlight;
@@ -120,16 +120,16 @@ UI.Options.AddTab({
       disabled = CrosshairOff,
     })
     ctx:Slider({
-      label = "Size",
-      desc = "Crosshair size.",
-      min = 16,
-      max = 128,
-      step = 16,
+      label = "Scale",
+      desc = "Scales the size of the crosshair.",
+      min = 0.5,
+      max = 1.5,
+      step = 0.05,
       get = function()
-        return CM.DB.global.crosshairSize
+        return CM.GetCrosshairScale and CM.GetCrosshairScale() or CM.DB.global.crosshairScale or 1
       end,
       set = function(value)
-        CM.DB.global.crosshairSize = value
+        CM.DB.global.crosshairScale = value
         CM.CreateCrosshair()
       end,
       disabled = CrosshairOff,
@@ -170,7 +170,7 @@ UI.Options.AddTab({
     ctx:Header("INTERACTION HUD")
     ctx:Toggle({
       label = "Show Interaction HUD",
-      desc = "Show a prompt outside of combat for nearby interactables",
+      desc = "Show a prompt outside of combat for nearby interactables.",
       get = function()
         return CM.DB.global.interactionHUD
       end,
@@ -199,6 +199,30 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.global.interactionHUDSide = value
+        if CM.ApplyInteractionHUDLayout then
+          CM.ApplyInteractionHUDLayout()
+        end
+        if CM.RefreshInteractionHUD then
+          CM.RefreshInteractionHUD()
+        end
+      end,
+      disabled = function()
+        return CrosshairOff() or not CM.DB.global.interactionHUD
+      end,
+    })
+    ctx:Slider({
+      label = "Scale",
+      desc = "Scales the size of the Interaction HUD.",
+      min = 0.5,
+      max = 1.5,
+      step = 0.05,
+      get = function()
+        return CM.DB.global.interactionHUDScale
+          or CM.Constants.DatabaseDefaults.global.interactionHUDScale
+          or 1
+      end,
+      set = function(value)
+        CM.DB.global.interactionHUDScale = value
         if CM.ApplyInteractionHUDLayout then
           CM.ApplyInteractionHUDLayout()
         end
@@ -239,6 +263,23 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.global.assistedHighlightSide = value
+        RefreshAssist()
+      end,
+      disabled = AssistOff,
+    })
+    ctx:Slider({
+      label = "Scale",
+      desc = "Scales the size of the Combat Assist.",
+      min = 0.5,
+      max = 1.5,
+      step = 0.05,
+      get = function()
+        return CM.DB.global.assistedHighlightScale
+          or CM.Constants.DatabaseDefaults.global.assistedHighlightScale
+          or 1
+      end,
+      set = function(value)
+        CM.DB.global.assistedHighlightScale = value
         RefreshAssist()
       end,
       disabled = AssistOff,

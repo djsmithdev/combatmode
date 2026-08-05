@@ -4,25 +4,86 @@
 </p>
 
 <p align="center">
-<strong>Combat Mode</strong> brings action combat to <em>World of Warcraft</em> — aim with a reticle, cast with mouse clicks, and keep your eyes on the fight instead of your bars.
+<strong>Combat Mode</strong> brings modern action-game controls to <em>World of Warcraft</em>, replacing traditional tab-targeting with intuitive aiming, more engaging controls, and immersive combat..
 </p>
 
 <p align="center">
-  <img src="media/previewGif.gif">
+  <img src="media/previewPic.png">
 </p>
 
 <br />
 
 ## <img width="20" height="20" src="media/cmlogo.svg"> FEATURES
-- <strong>[Mouse Look](https://en.wikipedia.org/wiki/Free_look)</strong> - Lock the cursor to screen center and steer with the mouse — no more holding right-click to turn. Toggle it on, hold it when you need to temporarily free the cursor, and control your facing direction by simply moving the mouse. 
-- <strong>Reticle Targeting</strong> - Aim the crosshair to target enemies and friendlies the way action games do. Built for `@cursor` and `@mouseover` macros, with optional Target Lock, automatic casting at crosshair location, spell exclusions, and advanced CVar / targeting-macro logic editors when you want full control.
-- <strong>Target Lock & Cycle</strong> - Tap to lock your target, preventing the reticle from swapping it. Tap again to unlock. While a Target Lock is set, mouse wheel cycles nearby enemies and moves the lock, facilitating prioritization on stacked targets.
-- <strong>Click Casting</strong> - Bind Left, Right, and modified mouse clicks to your rotation so every press under Mouse Look casts a spell — up to eight actions on your left and right click.
-- <strong>Interaction HUD</strong> - When something under the reticle can be interacted with (NPCs, world objects, interactables), a clear icon appears beside the crosshair so you never miss a prompt mid-combat.
-- <strong>Combat Assist</strong> - Shows Blizzard's Assisted Combat next-cast suggestion next to the crosshair, with satisfying cast-success feedback so your rotation stays readable without staring at the action bar.
-- <strong>Action Camera</strong> - Optional dynamic camera preset that leans into that third-person action feel while Mouse Look is active.
-- <strong>Auto Cursor Unlock</strong> - Automatically drops Mouse Look when you open bags, the map, character panel, and other UI — then snaps back when you're done so mouse look never fights your menus.
-- <strong>Party Radial</strong> - Hold a key during Mouse Look to open a radial of your party: pick a slice to hard-target or cast helpful spells at group members, with health bars and role icons so triage stays fast.
+
+### Mouse Look
+Lock your cursor to the center of the screen and control your character by simply moving the mouse—no more holding right-click to turn. Toggle Mouse Look on permanently, or hold a key to temporarily free the cursor whenever you need it.
+
+<p align="center">
+  <img src="media/mouse_look.gif">
+</p>
+
+### Reticle Targeting
+Target enemies by simply aiming at them. Combat Mode's reticle targeting replaces traditional tab-targeting with an action-inspired system that also supports automatic ground targeting for AoE abilities, casting them exactly where you aim.
+
+<p align="center">
+  <img src="media/reticle_targeting.gif">
+</p>
+
+### Dynamic Crosshair
+The crosshair is the heart of Combat Mode—a fully reactive, intelligent HUD that adapts to your target and combat state in real time, delivers rich contextual feedback, and is fully customizable.
+
+<p align="center">
+  <img src="media/crosshair.gif">
+</p>
+
+### Click Casting
+Bind left-click, right-click, and modifier combinations directly to your rotation. While Mouse Look is active, every click becomes an instant spell cast, giving you up to eight actions at your fingertips without touching your action bars.
+
+<p align="center">
+  <img src="media/click_casting.gif">
+</p>
+
+### Target Lock & Cycle
+Lock onto a target with a single tap to prevent the reticle from switching unexpectedly. Tap again to release it. While locked, use the mouse wheel to cycle nearby enemies, making it easy to prioritize targets in crowded encounters.
+
+<p align="center">
+  <img src="media/target_lock.gif">
+</p>
+
+### Combat Assist
+Displays Blizzard's Assisted Combat next-cast suggestion directly beside the crosshair, complete with satisfying cast-success feedback. Keep your rotation readable without staring at the action bar.
+
+<p align="center">
+  <img src="media/combat_assist.gif">
+</p>
+
+### Interaction HUD
+When your reticle passes over an NPC, quest object, or other interactable, a contextual, range-aware indicator appears beside the crosshair so you always know when something is within reach.
+
+<p align="center">
+  <img src="media/interaction_hud.gif">
+</p>
+
+### Party Radial
+Hold a key during Mouse Look to instantly open a radial menu for your party. Select a teammate to target and cast supportive abilities without ever leaving Mouse Look. Integrated health, range, and status indicators help you react quickly when every second counts.
+
+<p align="center">
+  <img src="media/party_radial.gif">
+</p>
+
+### Auto Unlock
+Mouse Look automatically disengages whenever you open bags, the map, your character panel, or other interface windows, then seamlessly resumes when you're finished. You can even define your own UI frames and custom conditions to trigger Auto Unlock.
+
+<p align="center">
+  <img src="media/auto_unlock.gif">
+</p>
+
+### Action Camera
+Enhance immersion with an optional, fully customizable action camera that delivers a more dynamic third-person perspective, making combat feel faster, weightier, and more cinematic.
+
+<p align="center">
+  <img src="media/action_camera.gif">
+</p>
 
 <br />
 
@@ -37,7 +98,7 @@ Grab it on [**CurseForge**](https://www.curseforge.com/wow/addons/combat-mode) o
 After installing the AddOn, you'll be greeted by this message upon your first login on each character:
 
 <p align="center">
-  <img src="media/previewMsg.png">
+  <img src="media/welcome_msg.png">
 </p>
 
 1. Click Okay to proceed or go to Game Menu (ESC) > Options > AddOns > Combat Mode.

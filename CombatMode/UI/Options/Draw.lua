@@ -1,12 +1,13 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Draw.lua — OPTIONS — theme tokens + draw primitives
 ---------------------------------------------------------------------------------------
---  What it does: Boots `CM.UI` with the monochrome options theme (warm-yellow accent only
---  for headers, selected tab, toggle on-states), StripColors, surface/card helpers,
+--  What it does: Boots `CM.UI` with the options theme (gold accent for headers/selection;
+--  green-on / grey-off toggles), StripColors, surface/card helpers,
 --  config tooltips, scroll thumbs, FadeAlpha, and watermark helpers shared by options,
 --  changelog, and editors.
 --  Architecture / how it works:
---    • UI.Colors / Fonts / Radius — single palette; accentMarkup derived from accent RGB.
+--    • UI.Colors / Fonts / Radius — single palette; accentMarkup derived from accent RGB;
+--      toggleOn is separate from accent (off uses trackOff).
 --    • StripColors removes Blizzard inline colors for consistent mono body text.
 --    • No settings get/set — pure presentation primitives.
 --  Does not: Create the options window shell or register tabs.
@@ -42,9 +43,9 @@ local UI = CM.UI
 ---------------------------------------------------------------------------------------
 --                                     PALETTE                                       --
 ---------------------------------------------------------------------------------------
--- Minimal monochrome theme: one warm-yellow accent (section titles, selected tab, and
--- toggle "on" states) over a neutral grey ramp. Deliberately no blue tint and no
--- per-feature hues. accentMarkup is derived from accent RGB — edit accent only.
+-- Minimal monochrome theme: one warm-gold accent (section titles, selected tab) over a
+-- neutral grey ramp. Toggle on uses dedicated green; off stays trackOff grey.
+-- accentMarkup is derived from accent RGB — edit accent only for headers/selection chrome.
 local function RgbToCffMarkup(r, g, b)
   return format(
     "|cff%02x%02x%02x",
@@ -55,9 +56,8 @@ local function RgbToCffMarkup(r, g, b)
 end
 
 UI.Colors = {
-  -- Single accent (section headers + selected tab + toggle on). Muted gold so it
-  -- sits quieter against the dark chrome without losing warm yellow identity.
-  accent = { 0.620, 0.549, 0.345 }, -- 9E8C58
+  -- Single accent (section headers + selected tab + scroll thumb).
+  accent = { 0.878, 0.722, 0.278 }, -- E0B847
 
   -- Neutral text ramp.
   white = { 1.000, 1.000, 1.000 },
@@ -67,17 +67,25 @@ UI.Colors = {
   -- Caution / destructive callouts (Advanced editor warning, etc.).
   warning = { 0.820, 0.350, 0.350 },
 
-  -- Window chrome: flat, near-black neutral greys.
-  windowBg = { 0.055, 0.055, 0.055, 0.98 },
+  -- Toggle track fill when on (green). Off uses trackOff grey.
+  toggleOn = { 0.320, 0.620, 0.380, 1.0 },
+
+  -- Window chrome: dark slate panel fill.
+  windowBg = { 0.094, 0.106, 0.125, 1.0 }, -- rgb(24, 27, 32) — darker slate of 39/43/51
   windowBorder = { 0.204, 0.204, 0.204, 1.0 },
   cardBg = { 0.098, 0.098, 0.098, 1.0 },
   cardBorder = { 0.169, 0.169, 0.169, 1.0 },
   rowWash = { 1, 1, 1, 0.02 },
   trackOff = { 0.220, 0.220, 0.220, 1.0 },
-  inputBg = { 0.035, 0.035, 0.035, 1.0 },
+  -- Input wells (text fields, editor filters): darker slate than the panel.
+  inputBg = { 0.055, 0.062, 0.078, 1.0 }, -- rgb(14, 16, 20)
   tabHover = { 1, 1, 1, 0.05 },
   tabActive = { 1, 1, 1, 0.08 },
   disabled = { 0.450, 0.450, 0.450, 1.0 },
+  -- Alpha applied to disabled option rows / controls (not the watermark scrim).
+  disabledAlpha = 0.5,
+  -- Watermark over relinquished blocks (e.g. DynamicCam): slate tint, readable but clearly inactive.
+  watermarkScrim = { 0.06, 0.07, 0.08, 0.52 },
 }
 UI.Colors.accentMarkup =
   RgbToCffMarkup(UI.Colors.accent[1], UI.Colors.accent[2], UI.Colors.accent[3])
@@ -224,13 +232,20 @@ end
 --- Paints a crisp solid rounded rectangle onto `frame` (thin border + fill).
 --- Exposes frame.cmSetFill(r,g,b,a) / frame.cmSetBorder(r,g,b,a) for state recolors.
 --- `radius` defaults to a card corner; pass height/2 for a pill.
-function UI.StyleRounded(frame, fill, border, radius)
+--- Fully transparent border (`a == 0`) uses fill inset 0 (full-bleed) unless `fillInset`
+--- is passed explicitly (scroll thumbs keep inset 1 so they stay visually thin).
+function UI.StyleRounded(frame, fill, border, radius, fillInset)
   radius = radius or UI.Radius.card
   fill = fill or UI.Colors.cardBg
   border = border or UI.Colors.cardBorder
 
+  if fillInset == nil then
+    local borderA = border[4] or 1
+    fillInset = borderA > 0 and 1 or 0
+  end
+
   local borderSlice = Build9Slice(frame, frame, radius, "BACKGROUND", border, 0)
-  local fillSlice = Build9Slice(frame, frame, radius, "BORDER", fill, 1)
+  local fillSlice = Build9Slice(frame, frame, radius, "BORDER", fill, fillInset)
 
   frame.cmSetFill = function(_, r, g, b, a)
     fillSlice.SetColor(r, g, b, a)
@@ -298,6 +313,40 @@ function UI.CreateCloseButton(parent)
   btn:SetScript("OnClick", function()
     parent:Hide()
   end)
+  return btn
+end
+
+--- Frameless icon button that shows a copy-link popup (LaunchURL / CopyToClipboard are
+--- protected from addons). Caller positions it. Same frame level as CreateCloseButton.
+--- `label` is a short name in the popup (e.g. "Discord", "GitHub").
+function UI.CreateIconLinkButton(parent, texturePath, url, tooltip, label)
+  local btn = CreateFrame("Button", nil, parent)
+  btn:SetSize(18, 18)
+  btn:SetFrameLevel(parent:GetFrameLevel() + 10)
+
+  local icon = btn:CreateTexture(nil, "ARTWORK")
+  icon:SetAllPoints(btn)
+  icon:SetTexture(texturePath)
+  icon:SetAlpha(0.8)
+
+  btn:SetScript("OnEnter", function()
+    icon:SetAlpha(1)
+  end)
+  btn:SetScript("OnLeave", function()
+    icon:SetAlpha(0.8)
+  end)
+  btn:SetScript("OnClick", function()
+    if type(url) ~= "string" or url == "" then
+      return
+    end
+    if UI.ShowCopyLink then
+      UI.ShowCopyLink(url, label)
+    end
+  end)
+
+  if tooltip then
+    UI.AttachTooltip(btn, tooltip, "ANCHOR_BOTTOM")
+  end
   return btn
 end
 
@@ -661,14 +710,15 @@ local function StyleThumbBar(owner, thickness)
   thickness = thickness or 6
   local bar = CreateFrame("Frame", nil, owner)
   bar:SetWidth(thickness)
-  UI.StyleRounded(bar, { 1, 1, 1, 0.05 }, { 0, 0, 0, 0 }, thickness / 2)
+  UI.StyleRounded(bar, { 1, 1, 1, 0.05 }, { 0, 0, 0, 0 }, thickness / 2, 1)
 
   local thumb = CreateFrame("Frame", nil, bar)
   thumb:SetWidth(thickness)
   thumb:SetHeight(40)
   thumb:SetPoint("TOP", bar, "TOP", 0, 0)
   local a = UI.Colors.accent
-  UI.StyleRounded(thumb, { a[1], a[2], a[3], 1 }, { 0, 0, 0, 0 }, thickness / 2)
+  -- Explicit fill inset keeps the painted thumb thinner than the hit/track width.
+  UI.StyleRounded(thumb, { a[1], a[2], a[3], 1 }, { 0, 0, 0, 0 }, thickness / 2, 1)
   thumb:EnableMouse(true)
   return bar, thumb
 end
@@ -1146,7 +1196,8 @@ function UI.CreateWatermark(parent, text, fontSize)
 
   local scrim = overlay:CreateTexture(nil, "OVERLAY")
   scrim:SetAllPoints(overlay)
-  scrim:SetColorTexture(0.02, 0.02, 0.02, 0.62)
+  local s = UI.Colors.watermarkScrim or UI.Colors.windowBg
+  scrim:SetColorTexture(s[1], s[2], s[3], s[4] or 0.42)
 
   local stamp =
     UI.CreateFontString(overlay, "OVERLAY", fontSize or UI.Fonts.header, "GameFontNormalLarge")

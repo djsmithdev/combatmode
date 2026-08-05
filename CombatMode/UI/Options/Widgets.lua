@@ -2,7 +2,7 @@
 --  UI/Options/Widgets.lua — OPTIONS — control factories
 ---------------------------------------------------------------------------------------
 --  What it does: Factories for toggles, sliders, dropdowns, keybind capture, text inputs,
---  headers, gaps, Confirm/Notify dialogs, ShowWelcome, and SyncControls registration.
+--  headers, gaps, Confirm/Notify/ShowCopyLink dialogs, ShowWelcome, and SyncControls registration.
 --  Tabs supply get/set closures; widgets stay feature-API agnostic.
 --  Architecture / how it works:
 --    • UI.Options.controls registry; Options.Sync() refreshes values + disabled state.
@@ -37,6 +37,7 @@ local type = _G.type
 
 local UI = CM.UI
 local C = UI.Colors
+local DISABLED_A = C.disabledAlpha or 0.5
 UI.Options = UI.Options or {}
 local Options = UI.Options
 Options.controls = Options.controls or {}
@@ -141,7 +142,6 @@ end
 ---------------------------------------------------------------------------------------
 local CONFIRM_W = 400
 local CONFIRM_PAD = 18
-local CONFIRM_HEADER_H = 24
 local CONFIRM_TITLE_W = 95
 local CONFIRM_TITLE_H = 22
 local CONFIRM_BTN_W = 116
@@ -149,21 +149,15 @@ local CONFIRM_BTN_H = 24
 local confirmDialog
 local welcomeDialog
 
---- Logo + wordmark row, horizontally centered under the dialog top edge.
+--- Wordmark row, horizontally centered under the dialog top edge (no logo).
 local function AttachBrandedHeader(dialog)
   local header = CreateFrame("Frame", nil, dialog)
-  header:SetSize(CONFIRM_HEADER_H + 8 + CONFIRM_TITLE_W, CONFIRM_HEADER_H)
+  header:SetSize(CONFIRM_TITLE_W, CONFIRM_TITLE_H)
   header:SetPoint("TOP", dialog, "TOP", 0, -CONFIRM_PAD)
-
-  local logo = header:CreateTexture(nil, "ARTWORK")
-  logo:SetTexture(CM.Constants.Logo)
-  logo:SetSize(CONFIRM_HEADER_H, CONFIRM_HEADER_H)
-  logo:SetPoint("LEFT", header, "LEFT", 0, 0)
 
   local titleArt = header:CreateTexture(nil, "ARTWORK")
   titleArt:SetTexture(CM.Constants.Title)
-  titleArt:SetSize(CONFIRM_TITLE_W, CONFIRM_TITLE_H)
-  titleArt:SetPoint("LEFT", logo, "RIGHT", 8, 0)
+  titleArt:SetAllPoints(header)
 
   return header
 end
@@ -173,7 +167,8 @@ local function CreateDialogButton(parent, label)
   local button = CreateFrame("Button", nil, parent)
   button:SetSize(CONFIRM_BTN_W, CONFIRM_BTN_H)
   local idle = { 0.16, 0.16, 0.16, 1 }
-  UI.StylePill(button, idle, C.cardBorder)
+  local hover = { 0.26, 0.26, 0.26, 1 }
+  UI.StylePill(button, idle, { 0, 0, 0, 0 })
 
   local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontNormal")
   text:SetPoint("CENTER")
@@ -181,7 +176,7 @@ local function CreateDialogButton(parent, label)
   text:SetTextColor(C.text[1], C.text[2], C.text[3])
 
   button:SetScript("OnEnter", function(self)
-    self:cmSetFill(0.26, 0.26, 0.26, 1)
+    self:cmSetFill(hover[1], hover[2], hover[3], 1)
     text:SetTextColor(1, 1, 1)
   end)
   button:SetScript("OnLeave", function(self)
@@ -284,7 +279,7 @@ local function ShowDialog(text, single, onAccept, onClose)
 
   dialog:SetHeight(
     CONFIRM_PAD
-      + CONFIRM_HEADER_H
+      + CONFIRM_TITLE_H
       + 12
       + dialog.message:GetStringHeight()
       + 16
@@ -316,6 +311,147 @@ end
 --- first-install greeting — that uses a dedicated frame deferred past load-end UI reset.
 function UI.Notify(text, onClose)
   ShowDialog(text, true, nil, onClose)
+end
+
+---------------------------------------------------------------------------------------
+--                              COPY LINK POPUP                                       --
+---------------------------------------------------------------------------------------
+-- LaunchURL / CopyToClipboard are protected from addons. Show an EditBox with the URL
+-- highlighted so the player can Ctrl+C, then paste in a browser.
+local COPY_LINK_W = 360
+local COPY_LINK_INPUT_H = 28
+local copyLinkDialog
+
+local function BuildCopyLinkDialog()
+  local blocker = CreateFrame("Button", nil, UIParent)
+  blocker:SetAllPoints(UIParent)
+  blocker:SetFrameStrata("FULLSCREEN_DIALOG")
+  blocker:SetFrameLevel(9000)
+  blocker:EnableMouse(true)
+  blocker:Hide()
+
+  local dim = blocker:CreateTexture(nil, "BACKGROUND")
+  dim:SetAllPoints(blocker)
+  dim:SetColorTexture(0, 0, 0, 0.55)
+
+  local dialog = CreateFrame("Frame", "CombatModeCopyLinkDialog", UIParent)
+  dialog:SetFrameStrata("FULLSCREEN_DIALOG")
+  dialog:SetFrameLevel(blocker:GetFrameLevel() + 10)
+  dialog:SetToplevel(true)
+  dialog:SetSize(COPY_LINK_W, 160)
+  UI.StyleRounded(dialog, C.windowBg, C.windowBorder, UI.Radius.window)
+  dialog:EnableMouse(true)
+  dialog:Hide()
+
+  local header = AttachBrandedHeader(dialog)
+
+  local message = UI.CreateFontString(dialog, "OVERLAY", UI.Fonts.base, "GameFontHighlight")
+  message:SetPoint("TOP", header, "BOTTOM", 0, -12)
+  message:SetWidth(COPY_LINK_W - (2 * CONFIRM_PAD))
+  message:SetJustifyH("CENTER")
+  message:SetJustifyV("TOP")
+  message:SetWordWrap(true)
+  message:SetTextColor(C.text[1], C.text[2], C.text[3])
+
+  local box = CreateFrame("Frame", nil, dialog)
+  box:SetHeight(COPY_LINK_INPUT_H)
+  box:SetPoint("TOPLEFT", message, "BOTTOMLEFT", 0, -12)
+  box:SetPoint("TOPRIGHT", message, "BOTTOMRIGHT", 0, -12)
+  UI.StyleRounded(box, C.inputBg, C.cardBorder, UI.Radius.control)
+
+  local edit = CreateFrame("EditBox", nil, box)
+  edit:SetAutoFocus(false)
+  edit:EnableMouse(true)
+  UI.SetEditBoxFont(edit)
+  edit:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+  edit:SetPoint("TOPLEFT", box, "TOPLEFT", 8, -4)
+  edit:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -8, 4)
+  edit:SetScript("OnEscapePressed", function()
+    dialog:Hide()
+  end)
+  edit:SetScript("OnEnterPressed", function(self)
+    self:HighlightText()
+  end)
+  -- Keep the URL intact if the player types over it; selection is for Ctrl+C only.
+  edit:SetScript("OnTextChanged", function(self, userInput)
+    if not userInput then
+      return
+    end
+    local locked = self.cmUrl
+    if locked and self:GetText() ~= locked then
+      self:SetText(locked)
+      self:HighlightText()
+    end
+  end)
+  box:EnableMouse(true)
+  box:SetScript("OnMouseDown", function()
+    edit:SetFocus()
+    edit:HighlightText()
+  end)
+
+  local okay = CreateDialogButton(dialog, _G.OKAY or "Okay")
+  okay:SetPoint("BOTTOM", dialog, "BOTTOM", 0, CONFIRM_PAD)
+  okay:SetScript("OnClick", function()
+    dialog:Hide()
+  end)
+
+  dialog:SetScript("OnHide", function()
+    blocker:Hide()
+    edit:ClearFocus()
+    edit.cmUrl = nil
+  end)
+  dialog:SetScript("OnShow", function()
+    edit:SetFocus()
+    edit:HighlightText()
+  end)
+
+  UI.EnableEscClose(dialog, "CombatModeCopyLinkDialog")
+
+  dialog.blocker = blocker
+  dialog.message = message
+  dialog.edit = edit
+  return dialog
+end
+
+--- Modal with a read-locked EditBox containing `url`. Player Ctrl+C then pastes outside WoW.
+function UI.ShowCopyLink(url, label)
+  if type(url) ~= "string" or url == "" then
+    return
+  end
+
+  copyLinkDialog = copyLinkDialog or BuildCopyLinkDialog()
+  local dialog = copyLinkDialog
+  local name = (type(label) == "string" and label ~= "") and label or "Link"
+
+  dialog.message:SetText("Copy the " .. name .. " link (Ctrl+C), then paste it in your browser.")
+  dialog.edit.cmUrl = url
+  dialog.edit:SetText(url)
+
+  dialog:SetHeight(
+    CONFIRM_PAD
+      + CONFIRM_TITLE_H
+      + 12
+      + dialog.message:GetStringHeight()
+      + 12
+      + COPY_LINK_INPUT_H
+      + 16
+      + CONFIRM_BTN_H
+      + CONFIRM_PAD
+  )
+
+  local anchor = CM.GetOptionsFrame and CM.GetOptionsFrame()
+  dialog:ClearAllPoints()
+  if anchor and anchor:IsShown() then
+    dialog:SetPoint("CENTER", anchor, "CENTER", 0, 0)
+  else
+    dialog:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+  end
+
+  dialog.blocker:Show()
+  dialog:Show()
+  dialog:Raise()
+  dialog.edit:SetFocus()
+  dialog.edit:HighlightText()
 end
 
 ---------------------------------------------------------------------------------------
@@ -403,7 +539,7 @@ function UI.ShowWelcome(text, onClose)
   if msgH < 1 then
     msgH = 60
   end
-  dialog:SetHeight(CONFIRM_PAD + CONFIRM_HEADER_H + 12 + msgH + 16 + CONFIRM_BTN_H + CONFIRM_PAD)
+  dialog:SetHeight(CONFIRM_PAD + CONFIRM_TITLE_H + 12 + msgH + 16 + CONFIRM_BTN_H + CONFIRM_PAD)
 
   dialog:ClearAllPoints()
   dialog:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
@@ -818,15 +954,15 @@ function UI.MakeToggle(parent, opts)
     knob:ClearAllPoints()
     knob:SetPoint("LEFT", track, "LEFT", x, 0)
     track:cmSetFill(
-      Lerp(C.trackOff[1], C.accent[1], t),
-      Lerp(C.trackOff[2], C.accent[2], t),
-      Lerp(C.trackOff[3], C.accent[3], t),
+      Lerp(C.trackOff[1], C.toggleOn[1], t),
+      Lerp(C.trackOff[2], C.toggleOn[2], t),
+      Lerp(C.trackOff[3], C.toggleOn[3], t),
       1
     )
     track:cmSetBorder(
-      Lerp(C.cardBorder[1], C.accent[1] * 0.75, t),
-      Lerp(C.cardBorder[2], C.accent[2] * 0.75, t),
-      Lerp(C.cardBorder[3], C.accent[3] * 0.75, t),
+      Lerp(C.cardBorder[1], C.toggleOn[1] * 0.85, t),
+      Lerp(C.cardBorder[2], C.toggleOn[2] * 0.85, t),
+      Lerp(C.cardBorder[3], C.toggleOn[3] * 0.85, t),
       1
     )
     knob:SetColorTexture(0.95, 0.95, 0.95, 1)
@@ -874,7 +1010,7 @@ function UI.MakeToggle(parent, opts)
       ApplyToggleVisual(displayT)
     end
 
-    local a = disabled and 0.4 or 1
+    local a = disabled and DISABLED_A or 1
     row.label:SetAlpha(a)
     track:SetAlpha(a)
     SetDescAlpha(control, a)
@@ -1102,7 +1238,7 @@ function UI.MakeSlider(parent, opts)
     end
 
     slider:SetEnabled(not disabled)
-    local a = disabled and 0.4 or 1
+    local a = disabled and DISABLED_A or 1
     row.label:SetAlpha(a)
     valueText:SetAlpha(a)
     slider:SetAlpha(a)
@@ -1125,7 +1261,7 @@ function UI.MakeDropdown(parent, opts)
 
   local button = CreateFrame("Button", nil, row, "BackdropTemplate")
   button:SetHeight(22)
-  UI.StylePill(button, C.trackOff, C.cardBorder)
+  UI.StylePill(button, C.trackOff, { 0, 0, 0, 0 })
 
   local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
   text:SetPoint("LEFT", button, "LEFT", 8, 0)
@@ -1376,7 +1512,7 @@ function UI.MakeDropdown(parent, opts)
     text:SetText(DisplayText(value))
     local disabled = IsDisabled(opts)
     button:SetEnabled(not disabled)
-    local a = disabled and 0.4 or 1
+    local a = disabled and DISABLED_A or 1
     row.label:SetAlpha(a)
     button:SetAlpha(a)
     SetDescAlpha(control, a)
@@ -1499,7 +1635,7 @@ function UI.MakeKeybind(parent, opts)
 
   local button = CreateFrame("Button", nil, row)
   button:SetHeight(22)
-  UI.StylePill(button, C.trackOff, C.cardBorder)
+  UI.StylePill(button, C.trackOff, { 0, 0, 0, 0 })
   button:EnableMouse(true)
   button:RegisterForClicks("AnyDown")
   button:EnableMouseWheel(false)
@@ -1642,7 +1778,7 @@ function UI.MakeKeybind(parent, opts)
     end
     local disabled = IsDisabled(opts)
     button:SetEnabled(not disabled)
-    local a = disabled and 0.4 or 1
+    local a = disabled and DISABLED_A or 1
     row.label:SetAlpha(a)
     button:SetAlpha(a)
     SetDescAlpha(control, a)
@@ -1769,7 +1905,7 @@ function UI.MakeTextInput(parent, opts)
       edit:Enable()
     end
     edit:EnableMouse(not disabled)
-    local a = disabled and 0.4 or 1
+    local a = disabled and DISABLED_A or 1
     row.label:SetAlpha(a)
     box:SetAlpha(a)
     SetDescAlpha(control, a)
@@ -1809,8 +1945,7 @@ function UI.MakeButton(parent, opts)
   button:SetHeight(btnH)
   button:SetWidth(btnW)
   button:SetPoint("TOPLEFT", row, "TOPLEFT", 0, 0)
-  -- Flat neutral button by default. opts.danger uses the warning red for uninstall-style actions.
-  -- Accent yellow stays reserved for section titles and selected-tab labels.
+  -- Flat borderless fill. opts.danger uses warning red for uninstall-style actions.
   local IDLE = opts.danger
       and {
         C.warning[1] * 0.35,
@@ -1827,14 +1962,9 @@ function UI.MakeButton(parent, opts)
         1,
       }
     or { 0.26, 0.26, 0.26, 1 }
-  local TEXT = opts.danger and { C.warning[1], C.warning[2], C.warning[3] }
-    or { C.text[1], C.text[2], C.text[3] }
-  UI.StylePill(button, IDLE, opts.danger and {
-    C.warning[1] * 0.6,
-    C.warning[2] * 0.6,
-    C.warning[3] * 0.6,
-    1,
-  } or C.cardBorder)
+  -- Danger actions stay white; neutral buttons use theme text and brighten on hover.
+  local TEXT = opts.danger and { 1, 1, 1 } or { C.text[1], C.text[2], C.text[3] }
+  UI.StylePill(button, IDLE, { 0, 0, 0, 0 })
 
   local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontNormal")
   text:SetPoint("CENTER")
@@ -1865,7 +1995,7 @@ function UI.MakeButton(parent, opts)
     function control.Refresh()
       local disabled = IsDisabled(opts)
       button:SetEnabled(not disabled)
-      local a = disabled and 0.4 or 1
+      local a = disabled and DISABLED_A or 1
       button:SetAlpha(a)
       SetDescAlpha(control, a)
       ClearHoverIfDisabled(row, disabled)
@@ -1889,8 +2019,6 @@ function UI.MakeButton(parent, opts)
     desc:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
     control.desc = desc
   end
-
-  AddRowHover(row, opts, button)
 
   function control.SetWidthTo(width)
     if opts.width == "full" then

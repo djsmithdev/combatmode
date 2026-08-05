@@ -10,9 +10,9 @@
 --    • Gated by CM.IsTargetLockEnabled (char.reticleTargeting) and
 --      CM.DB.global.showTargetLockMarker (default true; ~= false). Off → Clear.
 --    • State machine: IDLE → PLATE_ARRIVE → SETTLED (instant clear on unlock).
---    • If focus exists but no usable plate/anchor (waitingForPlate / SIZE_RETRY_MAX),
---      center reticle is restored so the player is not stuck on a static Dot; plate
---      ADD later re-suppresses and shows the marker while focus remains set.
+--    • While focus exists and the marker option is on, center stays on the static Dot
+--      even if no nameplate is visible (user feedback that Target Lock is held). Plate
+--      arrive still shows the hit marker; unlock / marker-off Clears and restores.
 --    • Own OnUpdate (does not use Animations.lua reticle motion channel).
 --    • Anchors centered on Blizzard/Platynator health bar (IsVisible + under-plate).
 --    • Plate GetWidth/GetAlpha/GetScale probes are secret-safe (issecretvalue) so instance
@@ -414,8 +414,8 @@ end
 
 local function ScheduleSizeRetry()
   if sizeRetryCount >= SIZE_RETRY_MAX then
-    -- Exhausted retries: restore reactive center reticle; plate ADD can retry later.
-    RestoreCenterReticle()
+    -- Exhausted retries: Dot stays while focus remains; plate ADD can retry later.
+    SuppressCenterReticle()
     waitingForPlate = true
     return
   end
@@ -472,8 +472,8 @@ function CM.UpdateFocusNameplateMarker()
   local plate = GetPlateForFocus()
   if not plate then
     waitingForPlate = true
-    -- Focus set but plate not on screen yet — keep reactive reticle until plate arrives.
-    RestoreCenterReticle()
+    -- Locked with no plate on screen — Dot still shows lock state.
+    SuppressCenterReticle()
     if state == STATE_PLATE_ARRIVE or state == STATE_SETTLED then
       HideMarkerInstant()
       activePlate = nil
@@ -486,27 +486,24 @@ function CM.UpdateFocusNameplateMarker()
   local anchor, needsRetry = GetIconAnchor(plate)
   if not anchor then
     waitingForPlate = true
+    SuppressCenterReticle()
     if needsRetry then
       if sizeRetryCount >= SIZE_RETRY_MAX then
-        RestoreCenterReticle()
         return
       end
-      RestoreCenterReticle()
       ScheduleSizeRetry()
       return
     end
-    CM.ClearFocusNameplateMarker()
     return
   end
 
   local w = PublicNumber(anchor.GetWidth and anchor:GetWidth(), 0)
   if w < 8 then
     waitingForPlate = true
+    SuppressCenterReticle()
     if sizeRetryCount >= SIZE_RETRY_MAX then
-      RestoreCenterReticle()
       return
     end
-    RestoreCenterReticle()
     ScheduleSizeRetry()
     return
   end
@@ -542,8 +539,7 @@ function CM.OnFocusNameplateMarkerEvent(event, unitToken)
       activeAnchor = nil
       waitingForPlate = true
       SetIdle()
-      -- Plate gone while focus remains — restore reactive reticle until plate returns.
-      RestoreCenterReticle()
+      SuppressCenterReticle()
       return
     end
     if activePlate and C_NamePlate and C_NamePlate.GetNamePlateForUnit and unitToken then
@@ -555,6 +551,8 @@ function CM.OnFocusNameplateMarkerEvent(event, unitToken)
         waitingForPlate = UnitExists and UnitExists("focus")
         SetIdle()
         if waitingForPlate then
+          SuppressCenterReticle()
+        else
           RestoreCenterReticle()
         end
       end

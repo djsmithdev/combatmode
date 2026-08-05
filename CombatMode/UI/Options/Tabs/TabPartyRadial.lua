@@ -1,9 +1,9 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabPartyRadial.lua — OPTIONS TAB — Party Radial + preview
 ---------------------------------------------------------------------------------------
---  What it does: Wires party radial enable (reload), open keybind, and simplified visual
---  options: Health Bars and Background. Layout geometry (slice radius, scale, role icon
---  size, name font size) is fixed in Core/PartyRadial. SetOptionsPreview on tab
+--  What it does: Wires party radial enable (reload), open keybind, and visual options:
+--  Health Bars, Background, and Scale. Layout geometry is fixed in Constants/PartyRadial;
+--  scale applies to the whole radial (chrome + hit distances). SetOptionsPreview on tab
 --  select/deselect for layout-only preview.
 --  Architecture / how it works:
 --    • Config under DB.global.partyRadial.*; ApplyVisualConfig after visual sets.
@@ -103,6 +103,23 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.global.partyRadial.showBackground = value
+        ApplyVisualConfig()
+      end,
+      disabled = RadialDisabled,
+    })
+    ctx:Slider({
+      label = "Scale",
+      desc = "Scales the size of the Party Radial.",
+      min = 0.5,
+      max = 1.5,
+      step = 0.05,
+      get = function()
+        return CM.DB.global.partyRadial.scale
+          or CM.Constants.DatabaseDefaults.global.partyRadial.scale
+          or 1
+      end,
+      set = function(value)
+        CM.DB.global.partyRadial.scale = value
         ApplyVisualConfig()
       end,
       disabled = RadialDisabled,

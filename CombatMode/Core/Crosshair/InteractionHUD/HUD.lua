@@ -215,7 +215,10 @@ function CM.ApplyInteractionHUDLayout()
   end
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
   local UserConfig = CM.DB and CM.DB.global or {}
-  local crosshairSize = UserConfig.crosshairSize or DefaultConfig.crosshairSize
+  local crosshairSize = (CM.GetCrosshairPixelSize and CM.GetCrosshairPixelSize())
+    or UserConfig.crosshairSize
+    or DefaultConfig.crosshairSize
+    or 64
   local gap = (crosshairSize / 2) + IH_OFFSET_X
   local side = GetInteractionHUDSide()
   InteractionHUDCluster:ClearAllPoints()
@@ -224,6 +227,15 @@ function CM.ApplyInteractionHUDLayout()
   else
     InteractionHUDCluster:SetPoint("LEFT", crosshairFrame, "CENTER", gap, 0)
   end
+  local hudScale = tonumber(UserConfig.interactionHUDScale)
+    or DefaultConfig.interactionHUDScale
+    or 1
+  if hudScale < 0.5 then
+    hudScale = 0.5
+  elseif hudScale > 1.5 then
+    hudScale = 1.5
+  end
+  InteractionHUDCluster:SetScale(hudScale)
   ResizeInteractionHUDCluster()
 end
 

@@ -7,13 +7,13 @@
 --  Inits InteractionHUD, AssistedHighlight, and Animations; routes cast terminals to
 --  Animations (SUCCEEDED also notifies AssistedHighlight via EventRouter).
 --  Architecture / how it works:
---    • DB.global.crosshair / crosshairMounted / appearance / size / opacity / Y.
+--    • DB.global.crosshair / crosshairMounted / appearance / crosshairScale / opacity / Y.
 --    • UpdateCrosshairReaction — hostile/friendly/dead/gameobject under mouse or soft
 --      target; drives texture + Animations reaction scale. Presence via UnitExists;
 --      reaction/booleans are secret-safe (issecretvalue / PublicBool — no UnitGUID
 --      compares). While Target Lock shows a nameplate marker, center reticle is a
 --      static base-colored Dot (FocusNameplateMarker / SetFocusLockReticleSuppressed);
---      waiting for a plate keeps the reactive reticle.
+--      Dot stays while focus exists (even with no nameplate); unlock restores.
 --    • SetCrosshairOptionsPreview — tab onSelect/onDeselect; do not reuse mouselook
 --      Show/Hide gates.
 --    • OnCrosshairCastFeedbackEvent / FocusLock (lock/unlock SFX when Target Lock is
@@ -88,6 +88,41 @@ function CM.IsCrosshairEnabled()
     return CM.Constants.DatabaseDefaults.global.crosshair
   end
   return not not c
+end
+
+local CROSSHAIR_BASE_SIZE = 64
+
+local function ClampUserScale(scale)
+  scale = tonumber(scale) or 1
+  if scale < 0.5 then
+    return 0.5
+  end
+  if scale > 1.5 then
+    return 1.5
+  end
+  return scale
+end
+
+--- Pixel size of the reticle (base 64 × crosshairScale). Migrates legacy crosshairSize once.
+function CM.GetCrosshairPixelSize()
+  local g = CM.DB and CM.DB.global
+  local d = CM.Constants.DatabaseDefaults and CM.Constants.DatabaseDefaults.global
+  local scale
+  if g then
+    scale = g.crosshairScale
+    if scale == nil and g.crosshairSize ~= nil then
+      scale = (tonumber(g.crosshairSize) or CROSSHAIR_BASE_SIZE) / CROSSHAIR_BASE_SIZE
+      g.crosshairScale = scale
+    end
+  end
+  if scale == nil and d then
+    scale = d.crosshairScale
+  end
+  return CROSSHAIR_BASE_SIZE * ClampUserScale(scale)
+end
+
+function CM.GetCrosshairScale()
+  return CM.GetCrosshairPixelSize() / CROSSHAIR_BASE_SIZE
 end
 
 -- SavedVariables may store 1/0; match "Show Interaction HUD" / DatabaseDefaults.
@@ -268,7 +303,7 @@ end
 function CM.CreateCrosshair()
   local DefaultConfig = CM.Constants.DatabaseDefaults.global
   local UserConfig = CM.DB.global or {}
-  local crosshairSize = UserConfig.crosshairSize or DefaultConfig.crosshairSize
+  local crosshairSize = CM.GetCrosshairPixelSize()
   local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
 
   CrosshairTexture:SetAllPoints(CrosshairVisualFrame)
@@ -316,9 +351,7 @@ DebugCrosshairUpdater:SetScript("OnUpdate", function()
     local scale = UIParent:GetEffectiveScale()
     DebugCrosshairFrame:ClearAllPoints()
     DebugCrosshairFrame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x / scale, y / scale)
-    local size = CM.DB.global.crosshairSize
-      or (CM.Constants.DatabaseDefaults and CM.Constants.DatabaseDefaults.global and CM.Constants.DatabaseDefaults.global.crosshairSize)
-      or 64
+    local size = CM.GetCrosshairPixelSize and CM.GetCrosshairPixelSize() or 64
     DebugCrosshairFrame:SetSize(size, size)
     DebugCrosshairFrame:Show()
   else
@@ -508,7 +541,7 @@ function CM.OnCrosshairFocusLockEvent(event)
     local hasFocus = UnitExists("focus")
     PlayFocusLockSounds(hasFocus)
     -- Suppress/restore of the center reticle is owned by FocusNameplateMarker
-    -- (only while a plate marker is shown; waiting for a plate keeps the reactive reticle).
+    -- (Dot stays while focus exists, including waitingForPlate / A→B cycle).
     hadFocusUnit = hasFocus and true or false
     CM.UpdateCrosshairReaction()
   end

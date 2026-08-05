@@ -181,7 +181,7 @@ local function GetSliceFromAngle(angle)
   return nil
 end
 
--- Uses fixed base size for positioning (scale is fixed at 1.0 for hit-area stability)
+-- Uses fixed base size for positioning; whole-wheel user scale is mainFrame:SetScale.
 local Layout = CM.Constants.PartyRadialLayout
 local BASE_SLICE_SIZE = Layout.baseSliceSize
 local CENTER_FIXED_SIZE = Layout.centerFixedSize
@@ -189,6 +189,61 @@ local SLICE_RADIUS = Layout.sliceRadius
 local SLICE_SCALE = Layout.sliceScale
 local ROLE_ICON_SIZE = Layout.roleIconSize
 local NAME_FONT_SIZE = Layout.nameFontSize
+local BASE_DEAD_ZONE = 30
+
+local function ClampUserScale(scale)
+  scale = tonumber(scale) or 1
+  if scale < 0.5 then
+    return 0.5
+  end
+  if scale > 1.5 then
+    return 1.5
+  end
+  return scale
+end
+
+local function GetUserRadialScale()
+  local pr = CM.DB and CM.DB.global and CM.DB.global.partyRadial
+  local d = CM.Constants.DatabaseDefaults.global.partyRadial
+  return ClampUserScale((pr and pr.scale) or (d and d.scale) or 1)
+end
+
+--- Cache UIParent-space hit distances for Lifecycle (must match mainFrame scale).
+local function CacheHitDistances(scale)
+  scale = ClampUserScale(scale or GetUserRadialScale())
+  GetState().radialScale = scale
+  GetState().centerDeadZone = BASE_DEAD_ZONE * scale
+  GetState().maxSelectDistance = (SLICE_RADIUS + BASE_SLICE_SIZE / 2) * scale
+end
+
+local function ApplyMainFrameScale()
+  local mf = GetState().mainFrame
+  if not mf then
+    return
+  end
+  local scale = GetUserRadialScale()
+  CacheHitDistances(scale)
+  if InCombatLockdown() then
+    GetState().pendingRadialScale = scale
+    return
+  end
+  GetState().pendingRadialScale = nil
+  mf:SetScale(scale)
+end
+
+local function FlushPendingRadialScale()
+  local pending = GetState().pendingRadialScale
+  if pending == nil or InCombatLockdown() then
+    return
+  end
+  local mf = GetState().mainFrame
+  if not mf then
+    return
+  end
+  GetState().pendingRadialScale = nil
+  CacheHitDistances(pending)
+  mf:SetScale(pending)
+end
 
 local function GetSliceInnerAnchor(angleDeg, radius)
   local a = math.rad(angleDeg)
@@ -593,6 +648,7 @@ local function CreateMainFrame()
   for i = 1, 5 do
     CreateSliceFrame(i)
   end
+  ApplyMainFrameScale()
 end
 
 local function UpdateSliceVisual(sliceIndex)
@@ -780,6 +836,7 @@ local function ApplyVisualConfig()
   if not GetState().mainFrame then
     return
   end
+  ApplyMainFrameScale()
   UpdateSlicePositionsAndSizes()
   if GetState().wheelBG then
     GetState().wheelBG:SetShown(
@@ -805,3 +862,6 @@ Visual.UpdateSliceVisual = UpdateSliceVisual
 Visual.UpdateAllSlices = UpdateAllSlices
 Visual.HighlightSlice = HighlightSlice
 Visual.ApplyVisualConfig = ApplyVisualConfig
+Visual.CacheHitDistances = CacheHitDistances
+Visual.ApplyMainFrameScale = ApplyMainFrameScale
+Visual.FlushPendingRadialScale = FlushPendingRadialScale

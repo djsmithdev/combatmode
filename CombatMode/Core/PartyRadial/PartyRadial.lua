@@ -98,6 +98,9 @@ function HR.OnCombatEnd()
     HR.UpdateSlicePositionsAndSizes()
     HR.UpdateMainFramePosition()
   end
+  if Visual.FlushPendingRadialScale then
+    Visual.FlushPendingRadialScale()
+  end
 
   -- If radial is not active, disable mouse on slices so invisible slices
   -- don't intercept clicks now that we're out of combat

@@ -608,7 +608,7 @@ local function BuildSidebarFooter()
     label = "Reset to Defaults",
     width = "full",
     confirm = true,
-    confirmText = "Reset Combat Mode settings to defaults and reload?",
+    confirmText = "Reset all Combat Mode settings to defaults and reload?",
     func = function()
       CM:OnResetDB()
     end,
@@ -618,7 +618,7 @@ local function BuildSidebarFooter()
     width = "full",
     danger = true,
     confirm = true,
-    confirmText = "Uninstall Combat Mode?\n\nThis restores your previous camera and targeting settings, disables the addon, and reloads.",
+    confirmText = "Uninstall Combat Mode?\n\nThis will restore your previous camera and targeting settings, disable the addon, and reload.",
     func = function()
       if CM.UninstallCombatMode then
         CM.UninstallCombatMode()
@@ -697,6 +697,26 @@ local function BuildShell()
 
   local closeX = UI.CreateCloseButton(frame)
   closeX:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -8, -8)
+
+  -- Community links (frameless icons) immediately left of the close X.
+  -- LaunchURL / CopyToClipboard are protected; clicks open a copy-link EditBox popup.
+  local githubBtn = UI.CreateIconLinkButton(
+    frame,
+    CM.Constants.GitHubIcon,
+    CM.Constants.GitHubURL,
+    "Copy GitHub repository link",
+    "GitHub"
+  )
+  githubBtn:SetPoint("RIGHT", closeX, "LEFT", -12, 0)
+
+  local discordBtn = UI.CreateIconLinkButton(
+    frame,
+    CM.Constants.DiscordIcon,
+    CM.Constants.DiscordURL,
+    "Copy Discord invite link",
+    "Discord"
+  )
+  discordBtn:SetPoint("RIGHT", githubBtn, "LEFT", -10, 0)
 
   -- Sidebar/content divider
   local divider = frame:CreateTexture(nil, "ARTWORK")

@@ -365,9 +365,9 @@ local function TrackMousePosition(_, elapsed)
   -- Radial selection: cursor angle picks a slice, but only within a reasonable
   -- distance from center. Beyond the outer edge of slices, nothing is selected
   -- so the hover animation doesn't mislead the user into clicking outside the frames.
-  -- Uses GetState().maxSelectDistance computed at Show time (combat-safe, no DB access).
+  -- Uses GetState().maxSelectDistance / centerDeadZone (scaled; combat-safe, no DB access).
   local angle, distance = GetMouseAngleAndDistanceFromCenter()
-  local CENTER_DEAD_ZONE = 30
+  local CENTER_DEAD_ZONE = GetState().centerDeadZone or 30
   local sliceIndex = nil
   if distance > CENTER_DEAD_ZONE and distance <= (GetState().maxSelectDistance or 160) then
     sliceIndex = GetSliceFromAngle(angle)
@@ -458,8 +458,13 @@ Show = function(buttonKey)
   GetState().currentButton = buttonKey
   GetState().wasMouselooking = _G.IsMouselooking()
   GetState().showTime = _G.GetTime()
-  -- Cache max selection distance for TrackMousePosition
-  GetState().maxSelectDistance = SLICE_RADIUS + BASE_SLICE_SIZE / 2
+  -- Cache max selection distance for TrackMousePosition (matches mainFrame scale).
+  if Visual.CacheHitDistances then
+    Visual.CacheHitDistances()
+  else
+    GetState().maxSelectDistance = SLICE_RADIUS + BASE_SLICE_SIZE / 2
+    GetState().centerDeadZone = 30
+  end
 
   -- Stop mouselook so cursor is free for slice selection
   -- Use UnlockFreeLook() instead of direct MouselookStop() to ensure proper state management
@@ -473,7 +478,7 @@ Show = function(buttonKey)
   -- Initial selection from current cursor angle
   -- Only select within dead zone → outer edge of slices range
   local angle, distance = GetMouseAngleAndDistanceFromCenter()
-  local CENTER_DEAD_ZONE = 30
+  local CENTER_DEAD_ZONE = GetState().centerDeadZone or 30
   GetState().selectedSlice = nil
   if distance > CENTER_DEAD_ZONE and distance <= GetState().maxSelectDistance then
     GetState().selectedSlice = GetSliceFromAngle(angle)
@@ -631,8 +636,13 @@ ShowFromKeybind = function()
   GetState().keyUpCount = 0
   GetState().wasMouselooking = _G.IsMouselooking()
   GetState().showTime = _G.GetTime()
-  -- Cache max selection distance for TrackMousePosition
-  GetState().maxSelectDistance = SLICE_RADIUS + BASE_SLICE_SIZE / 2
+  -- Cache max selection distance for TrackMousePosition (matches mainFrame scale).
+  if Visual.CacheHitDistances then
+    Visual.CacheHitDistances()
+  else
+    GetState().maxSelectDistance = SLICE_RADIUS + BASE_SLICE_SIZE / 2
+    GetState().centerDeadZone = 30
+  end
 
   -- Stop mouselook so cursor is free for slice selection.
   -- NOTE: MouselookStop causes spurious key-up events for held keys. The
@@ -648,7 +658,7 @@ ShowFromKeybind = function()
   -- Initial selection from current cursor angle
   -- Only select within dead zone → outer edge of slices range
   local angle, distance = GetMouseAngleAndDistanceFromCenter()
-  local CENTER_DEAD_ZONE = 30
+  local CENTER_DEAD_ZONE = GetState().centerDeadZone or 30
   GetState().selectedSlice = nil
   if distance > CENTER_DEAD_ZONE and distance <= GetState().maxSelectDistance then
     GetState().selectedSlice = GetSliceFromAngle(angle)

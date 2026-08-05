@@ -355,7 +355,9 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
   local expand = CalculateShellExpand(size)
   local outer = size + expand * 2
 
-  local crosshairSize = tonumber(g.crosshairSize or d.crosshairSize) or 64
+  local crosshairSize = (CM.GetCrosshairPixelSize and CM.GetCrosshairPixelSize())
+    or tonumber(g.crosshairSize or d.crosshairSize)
+    or 64
   local gap = (crosshairSize / 2) + ASSIST_OFFSET_X
 
   local layoutChanged = lastAppliedSide ~= side
@@ -367,6 +369,13 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
     AssistedHighlightFrame:SetPoint("LEFT", crosshairFrame, "CENTER", gap, 0)
   end
   AssistedHighlightFrame:SetAlpha(1)
+  local assistScale = tonumber(g.assistedHighlightScale) or d.assistedHighlightScale or 1
+  if assistScale < 0.5 then
+    assistScale = 0.5
+  elseif assistScale > 1.5 then
+    assistScale = 1.5
+  end
+  AssistedHighlightFrame:SetScale(assistScale)
 
   -- Click-cast keybind flips with cluster side; keyboard stays top-right on the icon.
   do
