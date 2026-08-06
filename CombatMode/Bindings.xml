@@ -4,6 +4,9 @@
 			CombatMode_CursorModeKey(keystate)
 		end
 	</Binding>
+	<Binding name="Combat Mode - Reset Mouse Look" description="Recover the cursor if it gets stuck after switching windows (re-grabs and releases Mouse Look)" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
+		CombatMode_ResetMouseLook()
+	</Binding>
 	<Binding name="Combat Mode - Party Radial" description="Hold to open Party Radial for party targeting" header="Party Radial" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t" runOnUp="true">
 		if keystate == "down" or keystate == "up" then
 			CombatMode_PartyRadialKey(keystate)
