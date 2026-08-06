@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-<strong>Combat Mode</strong> brings modern action-game controls to <em>World of Warcraft</em>, replacing traditional tab-targeting with intuitive aiming, more engaging controls, and immersive combat..
+<strong>Combat Mode</strong> brings modern action-game controls to <em>World of Warcraft</em>, replacing traditional tab-targeting with intuitive aiming, more engaging controls, and immersive combat.
 </p>
 
 <p align="center">
