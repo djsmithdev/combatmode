@@ -435,3 +435,21 @@ function _G.CombatMode_CursorModeKey(keystate)
     FreeLookOverride = false
   end
 end
+
+-- Manual recovery for the macOS stuck-cursor freeze (a MouselookStop issued while the
+-- window was backgrounded leaves the OS capture stuck). Re-grab and release through the
+-- free-look state machine so the crosshair/tooltip/CVar side effects stay in sync rather
+-- than trusting IsMouselooking(); OnUpdate re-locks afterward if free look should be active.
+function _G.CombatMode_ResetMouseLook()
+  CM.LockFreeLook()
+  local function settle()
+    if CM.ShouldFreeLookBeOff() then
+      CM.UnlockFreeLook()
+    end
+  end
+  if C_Timer and C_Timer.After then
+    C_Timer.After(0, settle)
+  else
+    settle()
+  end
+end

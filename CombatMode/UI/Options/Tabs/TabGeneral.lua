@@ -25,6 +25,7 @@ local _G = _G
 -- WoW API
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
+local IsMacClient = _G.IsMacClient
 local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
@@ -110,6 +111,22 @@ UI.Options.AddTab({
         end)
       end,
     })
+    -- macOS only: on other clients the stuck-cursor freeze does not occur, so this
+    -- recovery keybind is hidden to avoid clutter.
+    if IsMacClient() then
+      ctx:Keybind({
+        label = "Reset Mouse Look",
+        desc = "Recover a stuck cursor after switching windows on macOS. Re-grabs and releases Mouse Look to clear a capture the game left stuck while running in the background.",
+        get = function()
+          return (GetBindingKey("Combat Mode - Reset Mouse Look"))
+        end,
+        set = function(key)
+          CM.TryApplyBindingChange("reset mouse look keybinding", function()
+            CM.AssignNamedKeybind("Combat Mode - Reset Mouse Look", key)
+          end)
+        end,
+      })
+    end
     ctx:Toggle({
       label = "Pulse Cursor on Unlock",
       desc = "Flash the cursor when Mouse Look ends.",
