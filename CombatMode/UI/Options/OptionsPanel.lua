@@ -704,7 +704,7 @@ local function BuildShell()
     frame,
     CM.Constants.GitHubIcon,
     CM.Constants.GitHubURL,
-    "Copy GitHub repository link",
+    "GitHub Repository",
     "GitHub"
   )
   githubBtn:SetPoint("RIGHT", closeX, "LEFT", -12, 0)
@@ -713,10 +713,19 @@ local function BuildShell()
     frame,
     CM.Constants.DiscordIcon,
     CM.Constants.DiscordURL,
-    "Copy Discord invite link",
+    "Discord Server",
     "Discord"
   )
   discordBtn:SetPoint("RIGHT", githubBtn, "LEFT", -10, 0)
+
+  local sponsorsBtn = UI.CreateIconLinkButton(
+    frame,
+    CM.Constants.SponsorIcon,
+    CM.Constants.SponsorsURL,
+    "Sponsor Development",
+    "Sponsors"
+  )
+  sponsorsBtn:SetPoint("RIGHT", discordBtn, "LEFT", -10, 0)
 
   -- Sidebar/content divider
   local divider = frame:CreateTexture(nil, "ARTWORK")

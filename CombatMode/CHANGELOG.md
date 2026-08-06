@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.6] - 2026-08-06
+
+### Added
+
+- Reset Mouse Look keybind to recover a macOS stuck-cursor freeze after switching windows (macOS only, PR #179, thanks Roman Kitaev).
+- GitHub Sponsors button in the config panel header.
+
 ## [4.1.5] - 2026-08-05
 
 ### Added
@@ -270,7 +277,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.1.5...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.1.6...HEAD
+[4.1.6]: https://github.com/djsmithdev/combatmode/compare/4.1.5...4.1.6
 [4.1.5]: https://github.com/djsmithdev/combatmode/compare/4.1.4...4.1.5
 [4.1.4]: https://github.com/djsmithdev/combatmode/compare/4.1.3...4.1.4
 [4.1.3]: https://github.com/djsmithdev/combatmode/compare/4.1.2...4.1.3

@@ -6,7 +6,7 @@
 --  appearance select values and reaction color tables the Crosshair tab and runtime read.
 --  Architecture / how it works:
 --    • `PopupMsg` / `BasePrintMsg` — welcome modal + print prefix (version from METADATA).
---  • Logo/Title BLPs, Discord/GitHub icons + community URLs, AssistedSpellIcon*,
+--  • Logo/Title BLPs, Discord/GitHub/Sponsor icons + community URLs, AssistedSpellIcon*,
 --      ModifierKey{Ctrl,Shift,Alt} BLPs under Interface\AddOns\CombatMode\assets\.
 --    • CrosshairTextureObj entries pair active/inactive BLPs; AppearanceSelectValues
 --      drives the Crosshair options dropdown.
@@ -41,8 +41,10 @@ CM.Constants.Logo = assetsFolderPath .. "cmlogo.blp"
 CM.Constants.Title = assetsFolderPath .. "cmtitle.blp"
 CM.Constants.DiscordIcon = assetsFolderPath .. "discord.blp"
 CM.Constants.GitHubIcon = assetsFolderPath .. "github.blp"
+CM.Constants.SponsorIcon = assetsFolderPath .. "sponsor.blp"
 CM.Constants.DiscordURL = "https://www.discord.gg/5mwBSmz"
 CM.Constants.GitHubURL = "https://github.com/djsmithdev/combatmode"
+CM.Constants.SponsorsURL = "https://github.com/sponsors/sampconrad"
 CM.Constants.AssistedSpellIconBackground = assetsFolderPath .. "spell-bg.blp"
 CM.Constants.AssistedSpellIconGlow = assetsFolderPath .. "spell-glow.blp"
 CM.Constants.AssistedSpellIconFrame = assetsFolderPath .. "spell-frame.blp"
