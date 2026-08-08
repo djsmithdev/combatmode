@@ -16,7 +16,7 @@
 
 ## Scope and safety
 
-- [ ] Change stays within owning module(s); do not reintroduce Ace3/LibStub or `CombatMode/Libs/**`.
+- [ ] Change stays within owning module(s).
 - [ ] New settings/defaults use intentional DB scope (`global` vs `char`).
 - [ ] Any load-order-sensitive files were added to `Embeds.xml`.
 - [ ] Changelog updated (if user-visible changes): `CombatMode/CHANGELOG.md`

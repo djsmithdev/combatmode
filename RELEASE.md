@@ -17,11 +17,10 @@ Version bumps are opt-in during day-to-day work (agents ask; see `AGENTS.md`). F
 - GitHub release packaging and publishing is handled by `.github/workflows/release-package.yml` using `BigWigsMods/packager@v2`.
 - Required repository secrets:
   - `CF_API_KEY`: CurseForge API token used for upload.
-  - `WAGO_API_TOKEN`: Wago Addons API token used for upload ([API keys](https://addons.wago.io/account/apikeys)).
+  - `WAGO_API_TOKEN`: Wago Addons API token used for upload.
 - Required repository variables:
   - `CURSEFORGE_PROJECT_ID`: numeric CurseForge project ID.
   - `WAGO_PROJECT_ID`: Wago project ID (also in `CombatMode.toc` as `## X-Wago-ID`).
-- Wago listing: [Combat Mode](https://addons.wago.io/addons/combat-mode).
 - Root `.pkgmeta` sets `package-as`, `ignore`, and `manual-changelog` (packager uses `-t CombatMode -m .pkgmeta`).
 - Maintain `CombatMode/CHANGELOG.md` manually and commit it **before** tagging/publishing a release; the packager includes it in the zip via `.pkgmeta` (`manual-changelog: CHANGELOG.md` under `-t CombatMode`).
 - Regenerate the in-game viewer copy by running **`scripts/sync-changelog-to-lua.ps1`** (or VS Code task **Sync CHANGELOG.md to ChangelogData.lua**) so **`CombatMode/UI/Changelog/ChangelogData.lua`** (`CM.Config.ChangelogText`) stays aligned with `CHANGELOG.md`.
@@ -70,12 +69,12 @@ Version bumps are opt-in during day-to-day work (agents ask; see `AGENTS.md`). F
 - Note any keybind, CVar, or migration-impacting changes explicitly.
 - Include known limitations or follow-up items if any.
 
-## 7) Post-release verification (CurseForge + Wago)
+## 7) Post-release verification
 
 - Publish a GitHub release tag (draft/prerelease is fine for validation).
 - Confirm the `Release Package` workflow run succeeds in GitHub Actions.
 - Confirm the GitHub release has the workflow-generated package asset attached.
-- Confirm a new file appears on CurseForge for `CURSEFORGE_PROJECT_ID` with the expected version/tag.
+- Confirm a new file appears on [CurseForge](https://www.curseforge.com/wow/addons/combat-mode) for `CURSEFORGE_PROJECT_ID` with the expected version/tag.
 - Confirm a new file appears on [Wago](https://addons.wago.io/addons/combat-mode) for `WAGO_PROJECT_ID` with the expected version/tag.
 
 ## Suggested changelog format

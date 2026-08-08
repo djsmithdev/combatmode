@@ -5,7 +5,7 @@ alwaysApply: true
 
 # CombatMode Architecture and Style
 
-Ownership detail lives in **Lua file headers**. Load order: **`STRUCTURE.md`** + **`CombatMode/Embeds.xml`**. Prefer Blizzard APIs + `local _, CM = ...`; do **not** reintroduce Ace3/LibStub or `CombatMode/Libs/**` unless explicitly requested.
+Ownership detail lives in **Lua file headers**. Load order: **`STRUCTURE.md`** + **`CombatMode/Embeds.xml`**. Prefer Blizzard APIs + `local _, CM = ...`.
 
 ## Folder map
 
