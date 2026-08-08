@@ -349,25 +349,27 @@ local function SetIdle()
 end
 
 local function OnDriverUpdate(_, elapsed)
-  motionElapsed = motionElapsed + elapsed
+  CM.Profile("FNM:OnDriverUpdate", function()
+    motionElapsed = motionElapsed + elapsed
 
-  if state == STATE_PLATE_ARRIVE then
-    local marker = EnsureMarkerFrame()
-    if motionElapsed >= ARRIVE_DURATION then
-      marker:SetScale(1)
-      marker:SetAlpha(1)
-      state = STATE_SETTLED
-      motionElapsed = 0
-      StopDriver()
+    if state == STATE_PLATE_ARRIVE then
+      local marker = EnsureMarkerFrame()
+      if motionElapsed >= ARRIVE_DURATION then
+        marker:SetScale(1)
+        marker:SetAlpha(1)
+        state = STATE_SETTLED
+        motionElapsed = 0
+        StopDriver()
+        return
+      end
+      local t = EaseOutQuad(Clamp01(motionElapsed / ARRIVE_DURATION))
+      local scale = ARRIVE_START_SCALE + (1 - ARRIVE_START_SCALE) * t
+      local alpha = t
+      marker:SetScale(math.max(0.01, scale))
+      marker:SetAlpha(alpha)
       return
     end
-    local t = EaseOutQuad(Clamp01(motionElapsed / ARRIVE_DURATION))
-    local scale = ARRIVE_START_SCALE + (1 - ARRIVE_START_SCALE) * t
-    local alpha = t
-    marker:SetScale(math.max(0.01, scale))
-    marker:SetAlpha(alpha)
-    return
-  end
+  end)
 end
 
 local function StartDriver()

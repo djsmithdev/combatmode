@@ -177,29 +177,34 @@ local function ApplyHealthBarGlowPulse(bar, pulseA)
 end
 
 local function UpdateAllHealthBarGlowPulses(elapsed)
-  GetState().hbGlowPulsePhase = (GetState().hbGlowPulsePhase or 0) + elapsed / HB_GLOW_PULSE_PERIOD
-  if GetState().hbGlowPulsePhase >= 1 then
-    GetState().hbGlowPulsePhase = GetState().hbGlowPulsePhase
-      - math.floor(GetState().hbGlowPulsePhase)
+  local state = GetState()
+  state.hbGlowPulsePhase = (state.hbGlowPulsePhase or 0) + elapsed / HB_GLOW_PULSE_PERIOD
+  if state.hbGlowPulsePhase >= 1 then
+    state.hbGlowPulsePhase = state.hbGlowPulsePhase - math.floor(state.hbGlowPulsePhase)
   end
-  local wave = 0.5 - 0.5 * math.cos(GetState().hbGlowPulsePhase * math.pi * 2)
+  local wave = 0.5 - 0.5 * math.cos(state.hbGlowPulsePhase * math.pi * 2)
   local pulseA = HB_GLOW_PULSE_MIN + (HB_GLOW_PULSE_MAX - HB_GLOW_PULSE_MIN) * wave
 
-  GetState().controlledOverlayPulsePhase = (GetState().controlledOverlayPulsePhase or 0)
+  state.controlledOverlayPulsePhase = (state.controlledOverlayPulsePhase or 0)
     + elapsed / CONTROLLED_OVERLAY_PULSE_PERIOD
-  if GetState().controlledOverlayPulsePhase >= 1 then
-    GetState().controlledOverlayPulsePhase = GetState().controlledOverlayPulsePhase
-      - math.floor(GetState().controlledOverlayPulsePhase)
+  if state.controlledOverlayPulsePhase >= 1 then
+    state.controlledOverlayPulsePhase = state.controlledOverlayPulsePhase
+      - math.floor(state.controlledOverlayPulsePhase)
   end
-  local controlledWave = 0.5 - 0.5 * math.cos(GetState().controlledOverlayPulsePhase * math.pi * 2)
+  local controlledWave = 0.5 - 0.5 * math.cos(state.controlledOverlayPulsePhase * math.pi * 2)
 
+  local slices = state.sliceFrames
   for i = 1, 5 do
-    local slice = GetState().sliceFrames[i]
+    local slice = slices[i]
     local bar = slice and slice.healthBar
     if bar and bar:IsShown() then
       ApplyHealthBarGlowPulse(bar, pulseA)
       -- Keep spark on the interpolating fill edge between slice refreshes.
-      local fillTex = bar:GetStatusBarTexture()
+      local fillTex = bar.fillTex
+      if not fillTex then
+        fillTex = bar:GetStatusBarTexture()
+        bar.fillTex = fillTex
+      end
       if fillTex and bar.spark then
         bar.spark:ClearAllPoints()
         bar.spark:SetPoint("CENTER", fillTex, "RIGHT", 0, 0)

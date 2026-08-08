@@ -576,7 +576,7 @@ local function BuildSidebarFooter()
 
   fctx:Toggle({
     label = "Silence Alerts",
-    desc = "Hide Combat Mode chat alerts after reload.",
+    desc = "Hide chat alerts after reload.",
     descBelow = true,
     get = function()
       return CM.DB.global.silenceAlerts
@@ -587,13 +587,22 @@ local function BuildSidebarFooter()
   })
   fctx:Toggle({
     label = "Debug Mode",
-    desc = "Print Combat Mode debug logs to chat.",
+    desc = "Print debug logs to chat.",
     descBelow = true,
     get = function()
       return CM.DB.global.debugMode
     end,
     set = function(value)
       CM.DB.global.debugMode = value
+      if value then
+        if CM.StartProfiling then
+          CM.StartProfiling()
+        end
+      else
+        if CM.StopAndReportProfiling then
+          CM.StopAndReportProfiling()
+        end
+      end
     end,
   })
   fctx:Gap(6)

@@ -93,29 +93,31 @@ local function DebugPrintClickCastRefreshReason()
 end
 
 local function RunClickCastBindingRefresh()
-  -- Binding/attribute writes can echo UPDATE_BINDINGS and ACTIONBAR_SLOT_CHANGED.
-  SuppressSelfBindingEvents(0.5)
-  DebugPrintClickCastRefreshReason()
-  CM.RefreshClickCastMacros()
-  if
-    CM.ApplyToggleFocusTargetBinding
-    and (
-      clickCastRefreshReason == "UPDATE_BINDINGS"
-      or clickCastRefreshReason == "HOUSE_EDITOR_MODE_CHANGED"
-    )
-  then
-    CM.ApplyToggleFocusTargetBinding()
-  end
-  if CM.PartyRadial and CM.PartyRadial.OnActionBarChanged then
-    if clickCastRefreshReason == "GROUP_ROSTER_UPDATE" then
-      if CM.PartyRadial.OnGroupRosterUpdate then
-        CM.PartyRadial.OnGroupRosterUpdate()
-      end
-    elseif clickCastRefreshReason ~= "UPDATE_BINDINGS" then
-      CM.PartyRadial.OnActionBarChanged()
+  CM.Profile("EventRouter:BindRefresh", function()
+    -- Binding/attribute writes can echo UPDATE_BINDINGS and ACTIONBAR_SLOT_CHANGED.
+    SuppressSelfBindingEvents(0.5)
+    DebugPrintClickCastRefreshReason()
+    CM.RefreshClickCastMacros()
+    if
+      CM.ApplyToggleFocusTargetBinding
+      and (
+        clickCastRefreshReason == "UPDATE_BINDINGS"
+        or clickCastRefreshReason == "HOUSE_EDITOR_MODE_CHANGED"
+      )
+    then
+      CM.ApplyToggleFocusTargetBinding()
     end
-  end
-  RememberActionBarFingerprint()
+    if CM.PartyRadial and CM.PartyRadial.OnActionBarChanged then
+      if clickCastRefreshReason == "GROUP_ROSTER_UPDATE" then
+        if CM.PartyRadial.OnGroupRosterUpdate then
+          CM.PartyRadial.OnGroupRosterUpdate()
+        end
+      elseif clickCastRefreshReason ~= "UPDATE_BINDINGS" then
+        CM.PartyRadial.OnActionBarChanged()
+      end
+    end
+    RememberActionBarFingerprint()
+  end)
 end
 
 local function ScheduleClickCastBindingRefresh()
@@ -244,6 +246,9 @@ local function HandleEventByCategory(category, event, ...)
       end
     end,
     ASSISTED_HIGHLIGHT_EVENTS = function()
+      if CM.InvalidateSuggestedSpellCache then
+        CM.InvalidateSuggestedSpellCache()
+      end
       if CM.OnAssistedHighlightAssistedActionCast then
         CM.OnAssistedHighlightAssistedActionCast()
       end
@@ -280,6 +285,7 @@ function _G.CombatMode_OnEvent(selfOrEvent, eventOrArg1, ...)
     if not categories then
       return
     end
+    CM.ProfileEvent("OnEvent:" .. tostring(event))
     for _, category in ipairs(categories) do
       HandleEventByCategory(category, event, eventOrArg1, ...)
     end
@@ -294,6 +300,7 @@ function _G.CombatMode_OnEvent(selfOrEvent, eventOrArg1, ...)
   if not categories then
     return
   end
+  CM.ProfileEvent("OnEvent:" .. tostring(event))
   for _, category in ipairs(categories) do
     HandleEventByCategory(category, event, ...)
   end

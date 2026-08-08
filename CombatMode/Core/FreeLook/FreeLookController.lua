@@ -229,18 +229,35 @@ local function HideTooltip(shouldHide)
 end
 
 function CM.ShouldFreeLookBeOff()
-  return CM.IsCustomConditionTrue()
-    or (
-      FreeLookOverride
-      or SpellIsTargeting()
+  return CM.Profile("FreeLook:ShouldBeOff", function()
+    -- Fast locals and cheap bools first; expensive calls (SpellIsTargeting, frame walks)
+    -- are last since Lua or short-circuits on the first true condition.
+    if FreeLookOverride then
+      return true
+    end
+    if IsPartyRadialActive() then
+      return true
+    end
+    if CM.IsFeignDeathActive() then
+      return true
+    end
+    if CM.IsInPetBattle() then
+      return true
+    end
+    if CM.IsCustomConditionTrue() then
+      return true
+    end
+    if
+      SpellIsTargeting()
       or InCinematic()
       or IsInCinematicScene()
       or CM.IsUnlockFrameVisible()
       or CM.IsVendorMountOut()
-      or CM.IsInPetBattle()
-      or CM.IsFeignDeathActive()
-      or IsPartyRadialActive()
-    )
+    then
+      return true
+    end
+    return false
+  end)
 end
 
 -- Helper function to handle UI state changes when toggling free look

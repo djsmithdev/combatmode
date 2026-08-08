@@ -286,7 +286,9 @@ local function EnsureInteractionHUD()
   end
   InteractionHUDCluster:SetScript("OnUpdate", function(_, elapsed)
     if Visual and Visual.Tick then
-      Visual.Tick(elapsed)
+      CM.Profile("IHUD:Visual.Tick", function()
+        Visual.Tick(elapsed)
+      end)
     end
   end)
 end

@@ -227,16 +227,18 @@ end
 --- Install/clear mouselook-only wheel overrides. Call out of combat (BindingQueue
 --- defers option toggles). PreClick reads UnitExists("focus") at click time.
 function CM.UpdateFocusCycleWheelBindings()
-  if InCombatLockdown() then
-    return
-  end
-  local g = CM.DB and CM.DB.global
-  if CM.IsTargetLockEnabled() and (not g or g.cycleFocusWithMouseWheel ~= false) then
-    ApplyFocusCycleWheelMouselookBindings()
-    CM.DebugPrint("Focus cycle mouse-wheel mouselook overrides applied")
-  else
-    ClearFocusCycleWheelMouselookBindings()
-  end
+  CM.Profile("Bind:WheelCycle", function()
+    if InCombatLockdown() then
+      return
+    end
+    local g = CM.DB and CM.DB.global
+    if CM.IsTargetLockEnabled() and (not g or g.cycleFocusWithMouseWheel ~= false) then
+      ApplyFocusCycleWheelMouselookBindings()
+      CM.DebugPrint("Focus cycle mouse-wheel mouselook overrides applied")
+    else
+      ClearFocusCycleWheelMouselookBindings()
+    end
+  end)
 end
 
 local function UpdateToggleFocusTargetMacroText()
@@ -450,29 +452,35 @@ function CM.ApplyGroundCastKeyOverrides()
 end
 
 function CM.RefreshClickCastMacros()
-  if InCombatLockdown() then
-    MarkPendingClickCastRefresh()
-    return
-  end
-  pendingClickCastRefresh = false
-  CM.ClearAddonButtonCaches()
-  -- Re-apply all bindings so macro slots get "click real button" and spell slots get our frame.
-  -- This refreshes both keyboard bindings (via ApplyGroundCastKeyOverrides) and mouse button bindings (via OverrideDefaultButtons)
-  CM.OverrideDefaultButtons()
-  CM.ApplyGroundCastKeyOverrides()
+  return CM.Profile("Bind:RefreshMacros", function()
+    if InCombatLockdown() then
+      MarkPendingClickCastRefresh()
+      return
+    end
+    pendingClickCastRefresh = false
+    CM.ClearAddonButtonCaches()
+    -- Re-apply all bindings so macro slots get "click real button" and spell slots get our frame.
+    -- This refreshes both keyboard bindings (via ApplyGroundCastKeyOverrides) and mouse button bindings (via OverrideDefaultButtons)
+    CM.OverrideDefaultButtons()
+    CM.ApplyGroundCastKeyOverrides()
+  end)
 end
 
 -- Compact snapshot of action-bar slot contents (type+id). Used to ignore noisy
 -- ACTIONBAR_SLOT_CHANGED bursts that do not change spells/items/macros we care about.
+-- Uses a numeric hash to minimize per-call string allocation.
+local FINGERPRINT_PRIME = 31
 function CM.GetActionBarContentFingerprint()
-  local parts = {}
+  local fingerprint = 0
   for slot = 1, 180 do
     local ok, atype, id = pcall(GetActionInfo, slot)
     if ok and atype then
-      parts[#parts + 1] = slot .. ":" .. atype .. ":" .. tostring(id)
+      local typeByte = atype:byte() or 0
+      local idNum = tonumber(id) or 0
+      fingerprint = fingerprint * FINGERPRINT_PRIME + slot + typeByte + idNum
     end
   end
-  return table.concat(parts, "|")
+  return fingerprint
 end
 
 local function ClickCastMouseButton(key)

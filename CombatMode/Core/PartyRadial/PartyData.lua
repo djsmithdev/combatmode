@@ -89,105 +89,107 @@ local function SafeUnitName(unitId)
 end
 
 local function RefreshPartyData()
-  RadialState.partyData = {}
+  CM.Profile("PR:RefreshPartyData", function()
+    RadialState.partyData = {}
 
-  -- Collect all party members including self (works solo too)
-  local members = {}
+    -- Collect all party members including self (works solo too)
+    local members = {}
 
-  -- Add self
-  local selfRole = UnitGroupRolesAssigned("player")
-  if selfRole == "NONE" then
-    selfRole = "DAMAGER" -- Default to DPS if no role assigned
-  end
-  table.insert(members, {
-    unitId = "player",
-    name = SafeUnitName("player"),
-    role = selfRole,
-    class = select(2, UnitClass("player")),
-  })
+    -- Add self
+    local selfRole = UnitGroupRolesAssigned("player")
+    if selfRole == "NONE" then
+      selfRole = "DAMAGER" -- Default to DPS if no role assigned
+    end
+    table.insert(members, {
+      unitId = "player",
+      name = SafeUnitName("player"),
+      role = selfRole,
+      class = select(2, UnitClass("player")),
+    })
 
-  -- Add party members
-  for i = 1, 4 do
-    local unitId = "party" .. i
-    if UnitExists(unitId) then
-      local role = UnitGroupRolesAssigned(unitId)
-      if role == "NONE" then
-        role = "DAMAGER"
+    -- Add party members
+    for i = 1, 4 do
+      local unitId = "party" .. i
+      if UnitExists(unitId) then
+        local role = UnitGroupRolesAssigned(unitId)
+        if role == "NONE" then
+          role = "DAMAGER"
+        end
+        table.insert(members, {
+          unitId = unitId,
+          name = SafeUnitName(unitId),
+          role = role,
+          class = select(2, UnitClass(unitId)),
+        })
       end
-      table.insert(members, {
-        unitId = unitId,
-        name = SafeUnitName(unitId),
-        role = role,
-        class = select(2, UnitClass(unitId)),
-      })
     end
-  end
 
-  -- Sort members by role for slot assignment
-  local tanks = {}
-  local healers = {}
-  local dps = {}
+    -- Sort members by role for slot assignment
+    local tanks = {}
+    local healers = {}
+    local dps = {}
 
-  for _, member in ipairs(members) do
-    if member.role == "TANK" then
-      table.insert(tanks, member)
-    elseif member.role == "HEALER" then
-      table.insert(healers, member)
-    else
-      table.insert(dps, member)
+    for _, member in ipairs(members) do
+      if member.role == "TANK" then
+        table.insert(tanks, member)
+      elseif member.role == "HEALER" then
+        table.insert(healers, member)
+      else
+        table.insert(dps, member)
+      end
     end
-  end
 
-  -- Assign to slice positions based on role
-  local assignments = {}
+    -- Assign to slice positions based on role
+    local assignments = {}
 
-  -- Slice 1 (top) = Tank
-  if #tanks > 0 then
-    assignments[1] = tanks[1]
-    table.remove(tanks, 1)
-  end
+    -- Slice 1 (top) = Tank
+    if #tanks > 0 then
+      assignments[1] = tanks[1]
+      table.remove(tanks, 1)
+    end
 
-  -- Slice 3 (bottom-left) = Healer
-  if #healers > 0 then
-    assignments[3] = healers[1]
-    table.remove(healers, 1)
-  end
+    -- Slice 3 (bottom-left) = Healer
+    if #healers > 0 then
+      assignments[3] = healers[1]
+      table.remove(healers, 1)
+    end
 
-  -- Fill DPS slots (2, 4, 5)
-  local dpsSlots = { 2, 5, 4 }
-  local dpsIndex = 1
-  for _, slot in ipairs(dpsSlots) do
-    if not assignments[slot] then
-      if dps[dpsIndex] then
-        assignments[slot] = dps[dpsIndex]
+    -- Fill DPS slots (2, 4, 5)
+    local dpsSlots = { 2, 5, 4 }
+    local dpsIndex = 1
+    for _, slot in ipairs(dpsSlots) do
+      if not assignments[slot] then
+        if dps[dpsIndex] then
+          assignments[slot] = dps[dpsIndex]
+          dpsIndex = dpsIndex + 1
+        elseif tanks[1] then
+          -- Overflow: extra tanks go to DPS slots
+          assignments[slot] = tanks[1]
+          table.remove(tanks, 1)
+        elseif healers[1] then
+          -- Overflow: extra healers go to DPS slots
+          assignments[slot] = healers[1]
+          table.remove(healers, 1)
+        end
+      end
+    end
+
+    -- Fill any remaining empty slots with remaining DPS
+    for i = 1, 5 do
+      if not assignments[i] and dps[dpsIndex] then
+        assignments[i] = dps[dpsIndex]
         dpsIndex = dpsIndex + 1
-      elseif tanks[1] then
-        -- Overflow: extra tanks go to DPS slots
-        assignments[slot] = tanks[1]
-        table.remove(tanks, 1)
-      elseif healers[1] then
-        -- Overflow: extra healers go to DPS slots
-        assignments[slot] = healers[1]
-        table.remove(healers, 1)
       end
     end
-  end
 
-  -- Fill any remaining empty slots with remaining DPS
-  for i = 1, 5 do
-    if not assignments[i] and dps[dpsIndex] then
-      assignments[i] = dps[dpsIndex]
-      dpsIndex = dpsIndex + 1
+    -- Store assignments with slice index
+    for sliceIndex, member in pairs(assignments) do
+      member.sliceIndex = sliceIndex
+      table.insert(RadialState.partyData, member)
     end
-  end
 
-  -- Store assignments with slice index
-  for sliceIndex, member in pairs(assignments) do
-    member.sliceIndex = sliceIndex
-    table.insert(RadialState.partyData, member)
-  end
-
-  CM.DebugPrint("Party Radial: Refreshed party data, " .. #RadialState.partyData .. " members")
+    CM.DebugPrint("Party Radial: Refreshed party data, " .. #RadialState.partyData .. " members")
+  end)
 end
 
 -- Options-tab roster: real party members where present, role-labeled placeholders

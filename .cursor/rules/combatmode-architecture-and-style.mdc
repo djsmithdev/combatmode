@@ -12,7 +12,7 @@ Ownership detail lives in **Lua file headers**. Load order: **`STRUCTURE.md`** +
 - `CombatMode/CombatMode.toc` — metadata, `SavedVariables: CombatModeDB`
 - `CombatMode/Embeds.xml` — script load order + root frame `OnEvent` / `OnUpdate`
 - `CombatMode/Constants/` — static tables (`Namespace.lua` first)
-- `CombatMode/Core/{Runtime,FreeLook,Crosshair,ClickCasting,PartyRadial}/` — runtime by domain
+- `CombatMode/Core/{Runtime,FreeLook,Crosshair,ClickCasting,PartyRadial,Dev}/` — runtime by domain; `Dev/` holds developer tools (profiler) with no production impact when idle
 - `CombatMode/UI/{Options,Changelog,Editors}/` — options toolkit/tabs, in-game changelog, secondary editors
 - `CombatMode/Bindings.xml` — keybind declarations
 
@@ -44,6 +44,7 @@ Record non-obvious fixes here (or in `combatmode-lua-safety.mdc`) — one place.
 - **Assisted Combat matching:** short recent-suggestion cache — `GetNextCastSpell` often advances before `UNIT_SPELLCAST_SUCCEEDED`.
 - **FlipBook / atlas VFX:** Ship rows/cols/frames/duration next to the atlas constant in the owning Lua file (see `AssistedHighlight/Motion.lua` for `UF-RogueCP-Slash-Blue`). `C_Texture.GetAtlasInfo` does **not** return FlipBook grid layout. To discover or verify: (1) TextureAtlasViewer / Blizzard UI source (`wow-ui-source`) FlipBook XML for that atlas, (2) other retail addons that already call `SetFlipBookRows` / `SetFlipBookColumns` / `SetFlipBookFrames` + duration on the same atlas name, (3) confirm visually in-game. Do **not** vendor wow-ui-source trees or atlas catalogs into this repo.
 - **Options preview:** tab `onSelect`/`onDeselect`; Crosshair → `CM.SetCrosshairOptionsPreview`; Party Radial → `CM.PartyRadial.SetOptionsPreview` (layout-only). Do not reuse mouselook-gated Show/Hide.
+- **Function Profiler (`Core/Dev/FunctionProfiler.lua`):** lightweight wrapper around `C_AddOnProfiler.MeasureCall`. Toggle Debug Mode ON in the options panel to start profiling, OFF to dump report + CPU stats to chat. `CM.Profile(key, func, ...)` wraps individual calls; when profiling is off (`CM.profilingEnabled == nil`) the wrapper is a transparent pass-through with zero overhead. `CM.StartProfiling()` / `CM.StopAndReportProfiling()` available as public APIs. Keep wrappers in production code — disabled path is free, and leaving them in avoids needing a code change to re-profile.
 - **Options theme:** monochrome via `UI.StripColors`; gold accent (`#E0B847`) for headers / selected tab; toggle tracks use green on / grey off (`UI.Colors.toggleOn` / `trackOff`).
 
 ## Change expectations

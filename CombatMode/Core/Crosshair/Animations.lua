@@ -57,35 +57,37 @@ function CM.InitializeCursorPulse()
 end
 
 local function UpdatePulse(_, elapsed)
-  if PULSE_TOTAL_ELAPSED == -1 then
-    return
-  end
+  CM.Profile("Anim:PulseFrame", function()
+    if PULSE_TOTAL_ELAPSED == -1 then
+      return
+    end
 
-  PULSE_TOTAL_ELAPSED = PULSE_TOTAL_ELAPSED + elapsed
-  if PULSE_TOTAL_ELAPSED > PULSE_DURATION then
-    PULSE_TOTAL_ELAPSED = -1
-    PulseFrame:Hide()
-    return
-  end
+    PULSE_TOTAL_ELAPSED = PULSE_TOTAL_ELAPSED + elapsed
+    if PULSE_TOTAL_ELAPSED > PULSE_DURATION then
+      PULSE_TOTAL_ELAPSED = -1
+      PulseFrame:Hide()
+      return
+    end
 
-  local progress = PULSE_TOTAL_ELAPSED / PULSE_DURATION
-  local invertedProgress = 1 - progress * progress
+    local progress = PULSE_TOTAL_ELAPSED / PULSE_DURATION
+    local invertedProgress = 1 - progress * progress
 
-  local alpha = invertedProgress * PULSE_STARTING_ALPHA
-  PulseTexture:SetAlpha(alpha)
+    local alpha = invertedProgress * PULSE_STARTING_ALPHA
+    PulseTexture:SetAlpha(alpha)
 
-  local size = invertedProgress * PULSE_STARTING_SIZE
-  PulseFrame:SetSize(size, size)
+    local size = invertedProgress * PULSE_STARTING_SIZE
+    PulseFrame:SetSize(size, size)
 
-  local cursorX, cursorY = GetCursorPosition()
-  local scale = UIParent:GetEffectiveScale()
-  PulseFrame:SetPoint(
-    "BOTTOMLEFT",
-    UIParent,
-    "BOTTOMLEFT",
-    (cursorX / scale) - size / 2,
-    (cursorY / scale) - size / 2
-  )
+    local cursorX, cursorY = GetCursorPosition()
+    local scale = UIParent:GetEffectiveScale()
+    PulseFrame:SetPoint(
+      "BOTTOMLEFT",
+      UIParent,
+      "BOTTOMLEFT",
+      (cursorX / scale) - size / 2,
+      (cursorY / scale) - size / 2
+    )
+  end)
 end
 
 function CM.ShowCursorPulse()
@@ -461,10 +463,12 @@ local motionUpdaters = {
 }
 
 local function OnCrosshairMotionUpdate(_, elapsed)
-  local updater = motionUpdaters[motionState]
-  if updater then
-    updater(elapsed)
-  end
+  CM.Profile("Anim:CrosshairMotion", function()
+    local updater = motionUpdaters[motionState]
+    if updater then
+      updater(elapsed)
+    end
+  end)
 end
 
 function CM.InitCrosshairAnimations(opts)

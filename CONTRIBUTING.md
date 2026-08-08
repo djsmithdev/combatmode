@@ -58,8 +58,9 @@ Policy: `.cursor/rules/combatmode-docs-and-headers-stay-in-sync.mdc`. Do **not**
    - Bump `## Version` in `CombatMode/CombatMode.toc` (SemVer).
    - Update `CombatMode/CHANGELOG.md` (Keep a Changelog; match TOC version).
    - Run `pwsh ./scripts/sync-changelog-to-lua.ps1` so `CombatMode/UI/Changelog/ChangelogData.lua` matches the in-game viewer.
-4. Run focused runtime checks from `TESTING.md` for touched features.
-5. Open your PR.
+4. **Profile performance (optional):** toggle the Debug Mode ON in the options panel to start the built-in profiler, play your scenario, toggle it OFF to dump the report (see `TESTING.md`).
+5. Run focused runtime checks from `TESTING.md` for touched features.
+6. Open your PR.
 
 ## When to run full-repo checks
 

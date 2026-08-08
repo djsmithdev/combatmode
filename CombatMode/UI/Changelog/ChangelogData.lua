@@ -16,6 +16,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.2.0] - 2026-08-08
+
+### Added
+
+- In-game function-level profiler (`Core/Dev/FunctionProfiler.lua`): lightweight wrapper around `C_AddOnProfiler.MeasureCall` with per-key cumulative CPU and memory stats. Access via the Debug Mode toggle in the options panel — toggle ON to start profiling, toggle OFF to print a sorted report + CPU stats to chat.
+- `CM.StartProfiling()` and `CM.StopAndReportProfiling()` public APIs for automated performance testing.
+
+### Changed
+
+- Debug Mode toggle now also drives profiling: on → start, off → report + reset.
+- Optimised several hot paths:
+  - `ShouldFreeLookBeOff` early-exit short circuit (-14% avg, -42% alloc per call).
+  - `C_AssistedCombat.GetNextCastSpell` cached for 1 second (-31% alloc per assist tick).
+  - Consolidated duplicate `IsMouselooking()` calls in the root OnUpdate (-19% root tick time).
+  - Party Radial `TrackMousePosition` slice refresh throttled to 0.15s (-11% avg, -10% alloc per call).
+  - Binding fingerprint uses a numeric hash instead of string allocation.
+  - `UpdateFocusCycleWheelBindings` and `UpdateAllHealthBarGlowPulses` use local caching and batch operations.
+
 ## [4.1.6] - 2026-08-06
 
 ### Added
@@ -286,7 +304,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.1.6...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.2.0...HEAD
+[4.2.0]: https://github.com/djsmithdev/combatmode/compare/4.1.6...4.2.0
 [4.1.6]: https://github.com/djsmithdev/combatmode/compare/4.1.5...4.1.6
 [4.1.5]: https://github.com/djsmithdev/combatmode/compare/4.1.4...4.1.5
 [4.1.4]: https://github.com/djsmithdev/combatmode/compare/4.1.3...4.1.4

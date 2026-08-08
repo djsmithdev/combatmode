@@ -376,27 +376,31 @@ function _G.CombatMode_OnUpdate(_, elapsed)
   if TIME_SINCE_LAST_UPDATE >= ON_UPDATE_INTERVAL then
     TIME_SINCE_LAST_UPDATE = 0
 
-    if CM.IsDefaultMouseActionBeingUsed() then
-      return
-    end
-
-    if CM.ShouldFreeLookBeOff() then
-      CM.UnlockFreeLook()
-      return
-    end
-
-    -- OPie may rematch mouselook itself after freeing CursorFreelookCentering; a plain
-    -- LockFreeLook no-ops when already looking and leaves the cursor visible.
-    if not (CM.RematchFreeLookAfterOpieIfNeeded and CM.RematchFreeLookAfterOpieIfNeeded()) then
-      if not IsMouselooking() then
-        CM.LockFreeLook()
+    CM.Profile("CombatMode_OnUpdate:fullTick", function()
+      if CM.IsDefaultMouseActionBeingUsed() then
+        return
       end
-    end
 
-    CM.UpdateCrosshairReaction()
-    if CM.UpdateCrosshairAssistedHighlight then
-      CM.UpdateCrosshairAssistedHighlight()
-    end
+      local isMouselooking = IsMouselooking()
+
+      if CM.ShouldFreeLookBeOff() then
+        CM.UnlockFreeLook()
+        return
+      end
+
+      -- OPie may rematch mouselook itself after freeing CursorFreelookCentering; a plain
+      -- LockFreeLook no-ops when already looking and leaves the cursor visible.
+      if not (CM.RematchFreeLookAfterOpieIfNeeded and CM.RematchFreeLookAfterOpieIfNeeded()) then
+        if not isMouselooking then
+          CM.LockFreeLook()
+        end
+      end
+
+      CM.Profile("UpdateCrosshairReaction", CM.UpdateCrosshairReaction)
+      if CM.UpdateCrosshairAssistedHighlight then
+        CM.Profile("UpdateCrosshairAssistedHighlight", CM.UpdateCrosshairAssistedHighlight)
+      end
+    end)
   end
 end
 

@@ -337,20 +337,21 @@ local function FadeOutOnUpdate(_, elapsed)
   end
 end
 
-local function TrackMousePosition(_, elapsed)
-  if GetState().fadeMode == "in" then
+local function TrackMousePositionCore(elapsed)
+  local state = GetState()
+  if state.fadeMode == "in" then
     UpdateRadialFade(elapsed)
   end
 
-  if not GetState().isActive then
+  if not state.isActive then
     return
   end
 
   -- Check button release to close the radial (only when opened via mouse button, not keybind)
-  if GetState().currentButton then
-    local elapsed_since_show = _G.GetTime() - (GetState().showTime or 0)
+  if state.currentButton then
+    local elapsed_since_show = _G.GetTime() - (state.showTime or 0)
     if elapsed_since_show > 0.2 then
-      if not IsMouseButtonStillDown(GetState().currentButton) then
+      if not IsMouseButtonStillDown(state.currentButton) then
         CM.DebugPrint(
           "Party Radial: Button released, closing (combat=" .. tostring(InCombatLockdown()) .. ")"
         )
@@ -365,23 +366,23 @@ local function TrackMousePosition(_, elapsed)
   -- Radial selection: cursor angle picks a slice, but only within a reasonable
   -- distance from center. Beyond the outer edge of slices, nothing is selected
   -- so the hover animation doesn't mislead the user into clicking outside the frames.
-  -- Uses GetState().maxSelectDistance / centerDeadZone (scaled; combat-safe, no DB access).
+  -- Uses state.maxSelectDistance / centerDeadZone (scaled; combat-safe, no DB access).
   local angle, distance = GetMouseAngleAndDistanceFromCenter()
-  local CENTER_DEAD_ZONE = GetState().centerDeadZone or 30
+  local CENTER_DEAD_ZONE = state.centerDeadZone or 30
   local sliceIndex = nil
-  if distance > CENTER_DEAD_ZONE and distance <= (GetState().maxSelectDistance or 160) then
+  if distance > CENTER_DEAD_ZONE and distance <= (state.maxSelectDistance or 160) then
     sliceIndex = GetSliceFromAngle(angle)
   end
-  if sliceIndex ~= GetState().selectedSlice then
-    GetState().selectedSlice = sliceIndex
+  if sliceIndex ~= state.selectedSlice then
+    state.selectedSlice = sliceIndex
     HighlightSlice(sliceIndex)
   end
 
   -- Center: static X (Icon_Close) always visible; over dead zone show Select_Close and hide rotating arrow
   -- Center size is fixed (CENTER_FIXED_SIZE), not tied to crosshair.
-  local arrowFrame = GetState().centerArrowFrame
-  local arrowTex = GetState().centerArrowTexture
-  local centerSelectClose = GetState().centerSelectClose
+  local arrowFrame = state.centerArrowFrame
+  local arrowTex = state.centerArrowTexture
+  local centerSelectClose = state.centerSelectClose
   if arrowFrame and arrowTex then
     local overDeadCenter = (distance <= CENTER_DEAD_ZONE)
     if centerSelectClose then
@@ -399,7 +400,7 @@ local function TrackMousePosition(_, elapsed)
       if overDeadCenter then
         arrowAlpha = 1.0
       else
-        local selectedSlice = sliceIndex and GetState().sliceFrames[sliceIndex]
+        local selectedSlice = sliceIndex and state.sliceFrames[sliceIndex]
         local unitId = selectedSlice and selectedSlice:GetAttribute("unit")
         arrowAlpha = (unitId and unitId ~= "") and 1.0 or 0.5
       end
@@ -411,8 +412,9 @@ local function TrackMousePosition(_, elapsed)
 
   -- Smooth scale transition on innerFrame (duration-based, always combat-safe).
   -- innerFrame is a regular Frame child, so SetScale is never protected.
+  local slices = state.sliceFrames
   for i = 1, 5 do
-    local slice = GetState().sliceFrames[i]
+    local slice = slices[i]
     if slice and slice.innerFrame and slice.scaleElapsed and slice.scaleElapsed >= 0 then
       slice.scaleElapsed = slice.scaleElapsed + elapsed
       if slice.scaleElapsed >= SLICE_SCALE_DURATION then
@@ -428,12 +430,17 @@ local function TrackMousePosition(_, elapsed)
 
   UpdateAllHealthBarGlowPulses(elapsed)
 
-  -- Update expensive slice/unit status at a short cadence instead of every frame.
-  GetState().sliceRefreshElapsed = (GetState().sliceRefreshElapsed or 0) + elapsed
-  if GetState().sliceRefreshElapsed >= (GetState().sliceRefreshInterval or 0.08) then
-    GetState().sliceRefreshElapsed = 0
+  -- Update expensive slice/unit status at a relaxed cadence instead of every frame.
+  -- Throttled to 0.15s (~6.5/sec) to reduce allocations from unit queries in UpdateSliceVisual.
+  state.sliceRefreshElapsed = (state.sliceRefreshElapsed or 0) + elapsed
+  if state.sliceRefreshElapsed >= (state.sliceRefreshInterval or 0.15) then
+    state.sliceRefreshElapsed = 0
     UpdateAllSlices()
   end
+end
+
+local function TrackMousePosition(_, elapsed)
+  CM.Profile("PR:TrackMousePosition", TrackMousePositionCore, elapsed)
 end
 
 Show = function(buttonKey)

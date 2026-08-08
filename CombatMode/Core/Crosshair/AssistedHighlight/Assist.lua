@@ -32,6 +32,12 @@ local C_Spell = _G.C_Spell
 local math = _G.math
 local pcall = _G.pcall
 local tonumber = _G.tonumber
+local GetTime = _G.GetTime
+
+-- Suggested spell cache: avoids pcall(C_AssistedCombat.GetNextCastSpell) on every tick.
+-- Invalidated by InvalidateSuggestedSpellCache() on ASSISTED_HIGHLIGHT_EVENTS.
+local suggestedSpellID
+local suggestedSpellCacheTime
 
 local Keybinds = CM.AssistedHighlightKeybinds
 local Motion = CM.AssistedHighlightMotion
@@ -254,12 +260,16 @@ local function EnsureAssistedHighlight()
   AssistedHighlightFrame.cornerKeybindText:Hide()
 
   AssistedHighlightAnimDriver:SetScript("OnUpdate", function(_, elapsed)
-    if Feedback and Feedback.Tick and Feedback.Tick(elapsed) then
-      return
-    end
-    if Motion and Motion.Tick then
-      Motion.Tick(elapsed)
-    end
+    CM.Profile("Assist:AnimDriver", function()
+      CM.ProfileEvent("Feedback.Tick")
+      if Feedback and Feedback.Tick and Feedback.Tick(elapsed) then
+        return
+      end
+      if Motion and Motion.Tick then
+        CM.ProfileEvent("Motion.Tick")
+        Motion.Tick(elapsed)
+      end
+    end)
   end)
 end
 
@@ -283,13 +293,35 @@ local function GetSuggestedAssistedSpellID()
   if not (C_AssistedCombat and C_AssistedCombat.GetNextCastSpell) then
     return nil
   end
+  -- Cache the result for ~1 second since the suggested spell doesn't change every
+  -- throttle tick (0.15s). The cache is invalidated on ASSISTED_HIGHLIGHT_EVENTS
+  -- via InvalidateSuggestedSpellCache. This avoids a pcall + GetNextCastSpell
+  -- on every tick (the largest single cost in UpdateCrosshairAssistedHighlight).
+  local now = GetTime()
+  if
+    suggestedSpellCacheTime
+    and now - suggestedSpellCacheTime < 1.0
+    and suggestedSpellID ~= nil
+  then
+    return suggestedSpellID
+  end
+  suggestedSpellCacheTime = now
   local ok, spellID = pcall(C_AssistedCombat.GetNextCastSpell)
   spellID = ok and spellID or nil
   spellID = spellID and tonumber(spellID) or nil
   if not spellID or spellID <= 0 then
+    suggestedSpellID = nil
     return nil
   end
+  suggestedSpellID = spellID
   return spellID
+end
+
+--- Invalidate the suggested spell cache so the next call re-queries the game API.
+--- Fired from ASSISTED_HIGHLIGHT_EVENTS when the assisted combat rotation changes.
+function CM.InvalidateSuggestedSpellCache()
+  suggestedSpellCacheTime = nil
+  suggestedSpellID = nil
 end
 
 local function ShouldShowAssistedHighlightIcon()

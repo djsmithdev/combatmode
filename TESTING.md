@@ -68,6 +68,16 @@ Use this checklist for feature work and regressions.
 - Options → Party Radial tab: live Visual Settings preview (including dead / mind-controlled / low-health role states); no Lua errors on open.
 - Role icons: dead uses Disabled atlas; mind-controlled shows fading Decline X; low health shows icon glow; dead health bars are greyed (no glow).
 
+## Profiling (Function Profiler)
+
+Built-in `Core/Dev/FunctionProfiler.lua` provides per-function CPU + memory profiling via `C_AddOnProfiler.MeasureCall`.
+
+- Open the options panel (`/cm`), toggle **Debug Mode** ON → profiling starts automatically, data resets.
+- Play your scenario.
+- Toggle **Debug Mode** OFF → full sorted profile report + CPU stats prints to chat.
+- The profiler wraps hot-path functions with `CM.Profile(key, func, ...)`. When profiling is off the wrapper is a transparent pass-through with no overhead, so wrappers stay in production code.
+- `CM.StartProfiling()` and `CM.StopAndReportProfiling()` public APIs are available for automated testing.
+
 ## Config and persistence
 
 - Change options in each category and verify immediate apply/refresh behavior.

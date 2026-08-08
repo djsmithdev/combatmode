@@ -12,6 +12,8 @@
     <Script file="Constants\PartyRadial.lua"/>
     <Script file="Constants\FrameWatch.lua"/>
     <Script file="Constants\Reticle.lua"/>
+    <!-- DEV: profiling tools (gated by Debug Mode toggle; no production impact when off) -->
+    <Script file="Core\Dev\FunctionProfiler.lua"/>
     <!-- RUNTIME support (events, CVars, deferred bindings, bootstrap) -->
     <Script file="Core\Runtime\EventRouter.lua"/>
     <Script file="Core\Runtime\CVarManager.lua"/>
