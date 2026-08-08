@@ -1,19 +1,11 @@
 # CombatMode add-on layout
 
 High-level domain map: [README — Architecture](README.md#architecture).
+Detailed folder map and ownership: [architecture rule](.cursor/rules/combatmode-architecture-and-style.mdc).
 Load order is defined in [`CombatMode/Embeds.xml`](CombatMode/Embeds.xml) (included
 from [`CombatMode/CombatMode.toc`](CombatMode/CombatMode.toc)).
 
-When you move or rename modules, update this file, `Embeds.xml`, the architecture rule, and touched Lua headers in the same change (see [CONTRIBUTING.md](CONTRIBUTING.md#keep-docs-cold)).
-
-## Folders
-
-| Folder | Role |
-|--------|------|
-| **CombatMode/Constants/** | Static tables consumed by runtime modules (`Namespace.lua` first, then CVars, Assets, Gameplay, DatabaseDefaults, PartyRadial, FrameWatch, Reticle). |
-| **CombatMode/Core/** | Runtime behavior, grouped by domain: `Runtime/` (shell, events, CVars, binding queue, bootstrap), `FreeLook/` (mouselook + auto cursor unlock), `Crosshair/` (reticle, `InteractionHUD/` Target→Visual→HUD, `AssistedHighlight/` Keybinds→Motion→CastProgress→Feedback→Assist, `FocusNameplateMarker`, animations for crosshair cast feedback), `ClickCasting/` (binding overrides, macro builder, addon bar resolver), `PartyRadial/` (`PartyData`→`SecureBindings`→`HealthBars`→`RoleIcons`→`Visual`→`Lifecycle`→`PartyRadial` façade; `CM.PartyRadial` API). |
-| **CombatMode/UI/** | Custom client UI. `UI/Options/` is the standalone options window: `Draw.lua` (theme tokens + primitives), `Widgets.lua` (control factories), `SpellMultiSelect.lua` (spell pill multi-select for Reticle Targeting lists), `OptionsPanel.lua` (window shell + layout + `CM.OpenOptions`), and `Tabs/Tab*.lua` (per-category builders including Crosshair). `UI/Changelog/` is the in-game changelog viewer (`ChangelogNamespace.lua` → `CM.Config`, `ChangelogData.lua` body synced from `CombatMode/CHANGELOG.md` via `scripts/sync-changelog-to-lua.ps1`, `ChangelogPanel.lua` window). `UI/Editors/` holds standalone secondary editor windows built on the `CM.UI` toolkit: Reticle CVar (`ReticleCVarEditorData.lua`, `ReticleCVarEditorPanel.lua`; account overrides in `CM.DB.global.reticleTargetingCVarOverrides`, merged at runtime via `Core/Runtime/CVarManager.lua`) and Targeting Macro Prelines (`TargetingMacroPrelinesEditor.lua`). |
-| **CombatMode/assets/** | Art and title textures referenced by the TOC and UI. |
+When you move or rename modules, update this file, `Embeds.xml`, the architecture rule, and touched Lua headers in the same change (see [docs-sync rule](.cursor/rules/combatmode-docs-and-headers-stay-in-sync.mdc)).
 
 ## Load order (scripts)
 
