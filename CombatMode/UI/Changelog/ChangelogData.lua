@@ -14,7 +14,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [4.2.1] - 2026-08-12
+
+### Added
+
+- Target Lock marker now flashes red when the locked unit is casting, making it easier to track interrupt windows at a glance.
+
+### Fixed
+
+- Party Radial no longer produces "Unknown Unit" red errors when changing zones while in a party, even when the radial is not open. The fix disarms slice secure buttons on every zone transition so they cannot intercept stray clicks or binding-resolution events with stale/out-of-zone unit tokens.
+- Settings CVar snapshot is no longer overwritten on every login, ensuring the Uninstall button correctly restores the user's pre-Combat Mode camera and targeting CVars.
 
 ## [4.2.0] - 2026-08-08
 
@@ -304,7 +313,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.2.0...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.2.1...HEAD
+[4.2.1]: https://github.com/djsmithdev/combatmode/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/djsmithdev/combatmode/compare/4.1.6...4.2.0
 [4.1.6]: https://github.com/djsmithdev/combatmode/compare/4.1.5...4.1.6
 [4.1.5]: https://github.com/djsmithdev/combatmode/compare/4.1.4...4.1.5
