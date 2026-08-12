@@ -8,8 +8,10 @@
 --  FreeLook + Crosshair.
 --  Architecture / how it works:
 --    • Always calls live `_G.C_CVar.SetCVar` so Reticle CVar editor attribution hooks see CM.
---    • CapturePriorCVarSnapshot / EnsurePriorCVarSnapshot once per login over ManagedCVarNames;
+--    • CapturePriorCVarSnapshot / EnsurePriorCVarSnapshot once per install over ManagedCVarNames;
 --      RestorePriorCVars used by Uninstall; restoringCVars suppresses re-snapshot.
+--      N.B. a populated priorCVarSnapshot in the DB is never overwritten (prevents
+--      contaminating the snapshot with CM's own CVar values on subsequent logins).
 --    • GetEffectiveReticleTargetingCVarValues = preset ∪ global.reticleTargetingCVarOverrides.
 --    • ConfigReticleTargeting / ConfigInteractionHUDSoftTarget / ConfigActionCamera /
 --      ConfigStickyCrosshair / SetMouseLookSpeed / SetShoulderOffset / HandleSoftTargetFriend.
@@ -74,6 +76,12 @@ function CM.CapturePriorCVarSnapshot()
   if not globalDB then
     return
   end
+  -- Once a populated snapshot exists, never overwrite it. On subsequent logins CM's own
+  -- CVar values are already live, so re-capturing would contaminate the snapshot with
+  -- CM values and break Uninstall (the reported SoftTargetIconInteract / GameObject bug).
+  if SnapshotIsPopulated(globalDB.priorCVarSnapshot) then
+    return
+  end
 
   local snap = {}
   local names = CM.Constants.ManagedCVarNames
@@ -113,6 +121,12 @@ function CM.RestorePriorCVars()
     -- Freelook centering must never linger after uninstall; force off even if missing.
     SetCVar("CursorFreelookCentering", snap.CursorFreelookCentering or 0)
     CM.DebugPrint("Restored prior CVar snapshot (" .. CountKeys(snap) .. " keys).")
+    -- SoftTarget icon CVars are always forced to Blizzard defaults (0) on uninstall.
+    -- These are set exclusively by CM; existing snapshots may be contaminated with CM's own
+    -- values from a previous login, leaving icons on after uninstall (reported bug).
+    -- Always reset to 0 regardless of snapshot contents.
+    SetCVar("SoftTargetIconInteract", 0)
+    SetCVar("SoftTargetIconGameObject", 0)
   else
     CM.DebugPrint("No prior CVar snapshot — falling back to Blizzard preset tables.")
     CM.ConfigReticleTargeting("blizzard")

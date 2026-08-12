@@ -110,6 +110,7 @@ CM.Constants.BlizzardReticleTargetingCVarValues = {
   ["SoftTargetInteractRange"] = 10,
   ["SoftTargetIconEnemy"] = 0,
   ["SoftTargetIconGameObject"] = 0,
+  ["SoftTargetIconInteract"] = 0,
   ["CursorStickyCentering"] = 0,
 }
 
