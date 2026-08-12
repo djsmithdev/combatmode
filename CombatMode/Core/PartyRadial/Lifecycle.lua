@@ -98,6 +98,18 @@ DismissOnLoad = function()
   if GetState().optionsPreviewActive then
     SetOptionsPreview(false)
   end
+
+  -- Disarm slices so invisible secure buttons cannot intercept stray clicks or
+  -- binding-resolution events during/after zone transitions. Slices may still
+  -- have EnableMouse(true) from a prior combat session; without this, a
+  -- type="target" + unit="partyN" slice button could fire TargetUnit() with a
+  -- stale/out-of-zone unit token and produce the "Unknown Unit" red error.
+  -- SetSliceMouseEnabled is safe here: PLAYER_ENTERING_WORLD always fires
+  -- out of combat (InCombatLockdown is false), so EnableMouse / SetHitRectInsets
+  -- are not protected. OnCombatStart / Show / ShowFromKeybind re-enable when
+  -- needed.
+  SetSliceMouseEnabled(false)
+
   if not GetState().isActive then
     if GetState().mainFrame then
       GetState().fadeMode = nil
@@ -111,7 +123,6 @@ DismissOnLoad = function()
     GetState().mainFrame:SetScript("OnUpdate", nil)
     GetState().mainFrame:SetAlpha(0)
   end
-  SetSliceMouseEnabled(false)
   GetState().isActive = false
   GetState().selectedSlice = nil
   GetState().currentButton = nil
