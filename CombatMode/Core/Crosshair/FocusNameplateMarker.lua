@@ -4,7 +4,9 @@
 --  What it does: On Target Lock (when showTargetLockMarker is on), switches the center
 --  reticle to a static base-colored Dot (unreactive) and reverse-explodes a hostile-red
 --  hit marker (user's crosshair Appearance Active/-hit texture) onto the focus nameplate
---  health bar center. Unlock or toggle-off hides the marker and restores the reactive reticle.
+--  health bar center. When the locked unit is casting, the marker smoothly oscillates
+--  between hostile red and white at 0.8s intervals — a visual cue without protected APIs. Unlock or toggle-off hides
+--  the marker and restores the reactive reticle.
 --  Architecture / how it works:
 --    • CM.UpdateFocusNameplateMarker / ClearFocusNameplateMarker / OnFocusNameplateMarkerEvent.
 --    • Gated by CM.IsTargetLockEnabled (char.reticleTargeting) and
@@ -18,6 +20,9 @@
 --    • Plate GetWidth/GetAlpha/GetScale probes are secret-safe (issecretvalue) so instance
 --      taint cannot error while scanning StatusBars.
 --    • Driven by PLAYER_FOCUS_CHANGED + NAME_PLATE_UNIT_ADDED/REMOVED via EventRouter.
+--    • Casting flash: OnDriverUpdate checks UnitCastingInfo("focus") per frame during
+--      SETTLED. If casting, the marker smoothly oscillates between hostile red and
+--      white on a 0.8s cosine wave. If not casting, restores the focus color.
 --  Does not: Own focus macros, Target Lock keybind, sounds, or third-party nameplate restyles.
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/Animations.lua,
 --  Core/Runtime/EventRouter.lua, Constants/Assets.lua, UI/Options/Tabs/TabGeneral.lua
@@ -27,6 +32,8 @@ local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
+local UnitCastingInfo = _G.UnitCastingInfo
+local UnitChannelInfo = _G.UnitChannelInfo
 local UnitExists = _G.UnitExists
 local UnitIsUnit = _G.UnitIsUnit
 local UIParent = _G.UIParent
@@ -55,6 +62,9 @@ end
 local MARKER_SIZE = 24
 local ARRIVE_DURATION = 0.25
 local ARRIVE_START_SCALE = 1.4
+
+-- Casting pulse: rhythmic color flash between hostile red and dim inactive while focus casts.
+local CASTING_FLASH_PERIOD = 0.8
 
 local PLATE_ADD_DEFER_SEC = 0.05
 local SIZE_RETRY_SEC = 0.12
@@ -359,7 +369,7 @@ local function OnDriverUpdate(_, elapsed)
         marker:SetAlpha(1)
         state = STATE_SETTLED
         motionElapsed = 0
-        StopDriver()
+        -- Don't stop — let SETTLED decide if driver stays.
         return
       end
       local t = EaseOutQuad(Clamp01(motionElapsed / ARRIVE_DURATION))
@@ -367,6 +377,41 @@ local function OnDriverUpdate(_, elapsed)
       local alpha = t
       marker:SetScale(math.max(0.01, scale))
       marker:SetAlpha(alpha)
+      return
+    end
+
+    if state == STATE_SETTLED then
+      local marker = EnsureMarkerFrame()
+      -- Check if focus is casting. If the API returns a value (even a secret
+      -- one in instances), the unit IS casting — we don't need issecretvalue here.
+      local isCasting = false
+      local ok, name = pcall(UnitCastingInfo, "focus")
+      if ok and name then
+        isCasting = true
+      end
+      if not isCasting then
+        local ok2, channelName = pcall(UnitChannelInfo, "focus")
+        if ok2 and channelName then
+          isCasting = true
+        end
+      end
+
+      if isCasting then
+        -- Smooth oscillation between hostile red and white.
+        local t = Clamp01((motionElapsed % CASTING_FLASH_PERIOD) / CASTING_FLASH_PERIOD)
+        -- Cosine: 1 at t=0, 0 at t=0.5, 1 at t=1.
+        local phase = 0.5 + 0.5 * math.cos(t * 2 * math.pi)
+        -- phase=1 (t=0): hostile red (1, 0.2, 0.3). phase=0 (t=0.5): white (1, 1, 1).
+        local g = 1 - 0.8 * phase
+        local b = 1 - 0.7 * phase
+        marker.icon:SetVertexColor(1, g, b, 1)
+        -- Keep driver running for continuous flash.
+        return
+      end
+
+      -- Not casting: restore full focus color.
+      local wantR, wantG, wantB, wantA = GetFocusColor()
+      marker.icon:SetVertexColor(wantR, wantG, wantB, wantA)
       return
     end
   end)
