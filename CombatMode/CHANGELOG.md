@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Friendly Target Lock no longer hijacks abilities when Enemies Only is on: offensive spells skip the friendly focus and target hostile units instead.
+- Fixed experimental camera features popup/warning on login when Action Camera preset is enabled.
 
 ## [4.2.1] - 2026-08-12
 
