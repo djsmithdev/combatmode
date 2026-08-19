@@ -8,7 +8,7 @@
 --  defaults only).
 --  Architecture / how it works:
 --    • BootstrapFeatureModules() is the enable-time sequence Runtime calls.
---    • CreateTargetMacros from Constants.Macros if missing.
+--    • CreateTargetMacros from Constants.Macros — creates missing, updates existing.
 --    • UnbindMoveAndSteer via TryApplyBindingChange + SaveBindings.
 --  Does not: Own ongoing freelook OnUpdate or EventRouter dispatch.
 --  Related: Core/Runtime/Runtime.lua, Core/Runtime/CVarManager.lua,
@@ -21,8 +21,10 @@ local _G = _G
 
 -- WoW API
 local CreateMacro = _G.CreateMacro
+local EditMacro = _G.EditMacro
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
+local GetMacroInfo = _G.GetMacroInfo
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
 
@@ -30,16 +32,15 @@ local SetBinding = _G.SetBinding
 local pairs = _G.pairs
 
 local function CreateTargetMacros()
-  local function createMacroIfNotExists(macroName, icon, macroText)
-    if not CM.MacroExists(macroName) then
-      CreateMacro(macroName, icon, macroText, false)
-    end
-  end
-
   local macroIcon = "ability_hisek_aim"
 
   for macroName, macroText in pairs(CM.Constants.Macros) do
-    createMacroIfNotExists(macroName, macroIcon, macroText)
+    if CM.MacroExists(macroName) then
+      local _, existingIcon = GetMacroInfo(macroName)
+      EditMacro(macroName, macroName, existingIcon or macroIcon, macroText)
+    else
+      CreateMacro(macroName, macroIcon, macroText, false)
+    end
   end
 end
 

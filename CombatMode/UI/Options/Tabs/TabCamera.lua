@@ -3,10 +3,11 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Wires Action Camera preset toggle (reload), actionCamMouselookDisable,
 --  stickyCrosshair, shoulderOffset, mouseLookSpeed, and the Additional Features section
---  (vignette toggle). Shows a DynamicCam watermark / disable when that addon is present.
+--  (vignette toggle). The vignette always fades with Mouse Look. Shows a DynamicCam
+--  watermark / disable when that addon is present.
 --  Architecture / how it works:
---    • DB: global.actionCamera, actionCamMouselookDisable, mouseLookSpeed;
---      char.shoulderOffset, stickyCrosshair.
+--    • DB: global.actionCamera, actionCamMouselookDisable, mouseLookSpeed,
+--      vignette; char.shoulderOffset, stickyCrosshair.
 --    • set() → ConfigActionCamera / ConfigStickyCrosshair / SetShoulderOffset /
 --      SetMouseLookSpeed (CVarManager).
 --  Does not: Own CVar preset tables (Constants/CVars) or freelook lock.
@@ -143,7 +144,7 @@ UI.Options.AddTab({
     ctx:Header("ADDITIONAL FEATURES")
     ctx:Toggle({
       label = "Vignette Effect",
-      desc = "Darkens the edges of the screen to reduce visual distractions.",
+      desc = "Darkens the edges of the screen while in Mouse Look to reduce visual distractions.",
       get = function()
         return CM.DB.global.vignette
       end,

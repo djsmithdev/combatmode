@@ -247,11 +247,8 @@ local function UpdateToggleFocusTargetMacroText()
   end
   local char_config = CM.DB.char
   local macros_const = CM.Constants.Macros
-  local macroFocusCrosshair = char_config.reticleTargetingEnemyOnly
-      and macros_const.CM_ToggleFocusEnemy
+  local macroText = char_config.reticleTargetingEnemyOnly and macros_const.CM_ToggleFocusEnemy
     or macros_const.CM_ToggleFocusAny
-  local macroText = char_config.focusCurrentTargetNotCrosshair and macros_const.CM_ToggleFocusTarget
-    or macroFocusCrosshair
   ToggleFocusTargetButton:SetAttribute("macrotext", macroText)
 end
 

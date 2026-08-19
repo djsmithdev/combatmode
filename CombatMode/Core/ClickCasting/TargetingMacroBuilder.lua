@@ -7,7 +7,9 @@
 --  Architecture / how it works:
 --    • BuildClickCastMacroText(bindingValue) — no-op text when reticleTargeting off.
 --    • Default prelines in TargetingMacroPrelinesDefaults; overrides from
---      global.targetingMacroPrelineAnyOverride / EnemyOverride.
+--      global.targetingMacroPrelineAnyOverride / EnemyOverride. The enemy-only
+--      preline gates the focus branch on harm, so a friendly Target Lock does
+--      not hijack hostile casts; the any-unit preline still targets any focus.
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists.
 --    • GetEffectiveBarButtonFrameName uses AddonActionBarResolver for third-party bars.
 --  Does not: Own SecureActionButton frames or SetOverrideBinding (BindingOverrides).
@@ -257,9 +259,9 @@ function CM.GetEffectiveBarButtonFrameName(bindingValue)
 end
 
 local CLICKCAST_PRE_LINE_ANY =
-  "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,exists] mouseover" -- used if reticleTargetingEnemyOnly is OFF- Targets any mouseover unit if it exists.
+  "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,exists] mouseover" -- used if reticleTargetingEnemyOnly is OFF - Targets any mouseover unit if it exists.
 local CLICKCAST_PRE_LINE_ENEMY =
-  "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - This preline will first try to cast the spell at the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
+  "/target [@focus,exists,nodead,harm] focus; [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - The focus branch is gated on harm so a friendly Target Lock (e.g. a party member) is ignored for hostile casts. Otherwise: first try the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
 
 -- Export defaults so the prelines editor can show a starting point even when no override exists.
 CM.TargetingMacroPrelinesDefaults = CM.TargetingMacroPrelinesDefaults

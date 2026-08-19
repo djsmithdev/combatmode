@@ -5,8 +5,8 @@
 --  BLIZZARD_EVENTS category lists for EventRouter, ActionsToProcess / OverrideActions /
 --  ButtonsToOverride for click-cast UI and secure overrides.
 --  Architecture / how it works:
---    • Macros: CM_ClearTarget/Focus, CM_ToggleFocus{Any,Enemy,Target},
---      CM_CycleFocusEnemy{Next,Prev} (wheel Target Lock cycle).
+--    • Macros: CM_ClearTarget/Focus, CM_ToggleFocus{Any,Enemy}
+--      (target-first-then-mouseover priority), CM_CycleFocusEnemy{Next,Prev}
 --    • BLIZZARD_EVENTS groups: UNLOCK/LOCK/REMATCH, FRIENDLY_TARGETING,
 --      UNCATEGORIZED, REFRESH_BINDINGS (bars/vehicles/CVAR_UPDATE), FOCUS_LOCK,
 --      CAST_FEEDBACK (player cast/channel), ASSISTED_HIGHLIGHT
@@ -26,9 +26,8 @@ local _, CM = ...
 CM.Constants.Macros = {
   CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",
   CM_ClearFocus = "/stopmacro [noexists]\n/clearfocus",
-  CM_ToggleFocusAny = "/focus [@focus,exists] none; [@mouseover,exists][]",
-  CM_ToggleFocusEnemy = "/focus [@focus,exists] none; [@mouseover,exists,harm,nodead][]",
-  CM_ToggleFocusTarget = "/focus [@focus,exists] none; [@target,exists][]",
+  CM_ToggleFocusAny = "/focus [@focus,exists] none; [@target,exists]; [@mouseover,exists][]",
+  CM_ToggleFocusEnemy = "/focus [@focus,exists] none; [@target,exists,harm,nodead]; [@mouseover,exists,harm,nodead][]",
   -- Mouse-wheel Target Lock cycle (nearest / previous enemy, then focus).
   CM_CycleFocusEnemyNext = "/targetenemy [@focus,exists]\n/focus [@target,exists]",
   CM_CycleFocusEnemyPrev = "/targetenemy [@focus,exists] 1\n/focus [@target,exists]",

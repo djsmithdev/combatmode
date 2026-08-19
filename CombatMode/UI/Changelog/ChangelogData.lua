@@ -14,6 +14,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.0] - 2026-08-19
+
+### Added
+
+- Vignette Effect option under Action Camera > Additional Features: Darkens the edges of the screen while in Mouse Look to reduce visual distractions. On by default.
+
+### Changed
+
+- Crosshair while mounted now shows an inactive dot texture instead of being hidden; the "Hide While Mounted" option was removed.
+- Target Lock now always prefers your current target, falling back to the unit under the crosshair when no target exists. The "Lock Selected Target" option was removed; both the Target Lock keybind and the click-cast Toggle Focus bindings share this behavior.
+- Target Lock sound cues are now always on; the sound cue toggle was removed from the options.
+- Toggle Focus Any / Toggle Focus Enemy bindable actions now use the same target-first macros as the Target Lock keybind, and CM macros are refreshed on every load so existing installs pick up the updated behavior.
+- Reticle Targeting in Enemies Only mode now ignores a friendly Target Lock for hostile casts, so locking a party member as focus no longer redirects your attacks; the friendly focus is still honored when Enemies Only is off.
+- Default click-cast binds for Alt+Left / Alt+Right mouse now use Toggle Focus (Enemy / Any) instead of Focus Target / Clear Focus.
+
+### Removed
+
+- "Hide While Mounted" crosshair option (new mounted crosshair state).
+- "Target Lock Sound Cues" option (always on now).
+- "Lock Selected Target" option (target-first behavior is now the default).
+
+### Fixed
+
+- Friendly Target Lock no longer hijacks abilities when Enemies Only is on: offensive spells skip the friendly focus and target hostile units instead.
+
 ## [4.2.1] - 2026-08-12
 
 ### Added
@@ -313,7 +338,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.2.1...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.3.0...HEAD
+[4.3.0]: https://github.com/djsmithdev/combatmode/compare/4.2.1...4.3.0
 [4.2.1]: https://github.com/djsmithdev/combatmode/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/djsmithdev/combatmode/compare/4.1.6...4.2.0
 [4.1.6]: https://github.com/djsmithdev/combatmode/compare/4.1.5...4.1.6

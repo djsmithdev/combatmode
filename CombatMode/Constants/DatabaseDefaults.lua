@@ -9,11 +9,11 @@
 --      mouseLookSpeed, pulseCursor, interactUnit, cycleFocusWithMouseWheel; crosshair*
 --      (crosshairScale, opacity, Y, cast feedback), interactionHUD / Side / Scale,
 --      assistedHighlightEnabled / Side / Scale; vignette; partyRadial (enabled,
---      showHealthBars, showBackground, scale; layout/fade fixed in Constants/PartyRadial.lua).
+--      showHealthBars, showBackground, scale; layout/fade fixed in Constants/PartyRadial.lua);
 --      reticleTargetingCVarOverrides, priorCVarSnapshot, targetingMacroPreline*Override;
 --      bindings.
 --    • char: useGlobalBindings, shoulderOffset, reticleTargeting / enemyOnly /
---      macroInjectionClickCastOnly, focusCurrentTargetNotCrosshair, castAtCursorSpells,
+--      macroInjectionClickCastOnly, castAtCursorSpells,
 --      excludeFromTargetingSpells, stickyCrosshair, bindings.
 --    • DefaultBindings seeds button1/2 + shift/ctrl/alt mouse slots and Mouse Look toggle.
 --  Does not: Migrate saved data or apply CVars/bindings at runtime.
@@ -139,7 +139,6 @@ CM.Constants.DatabaseDefaults = {
   },
   char = {
     -- reticle targeting
-    focusCurrentTargetNotCrosshair = true,
     reticleTargeting = true,
     reticleTargetingEnemyOnly = true,
     macroInjectionClickCastOnly = false,

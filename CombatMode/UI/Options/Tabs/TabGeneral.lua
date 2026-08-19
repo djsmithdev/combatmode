@@ -4,13 +4,11 @@
 --  What it does: Wires General-tab controls to freelook and interact/focus binds:
 --  Mouse Look keybind, pulseCursor, hideTooltip, Interact keybind + interactUnit
 --  (mouseover vs soft target, with ALT+key on the alternate command), Target Lock keybind,
---  cycleFocusWithMouseWheel, showTargetLockMarker, and
---  focusCurrentTargetNotCrosshair. Target Lock sound cues are now always on
---  (the DB key is retired — no config toggle).
+--  cycleFocusWithMouseWheel, showTargetLockMarker. Target Lock sound cues are now always on
+--  and focus current target then mouseover is the default behavior
 --  Architecture / how it works:
 --    • DB: global.pulseCursor, hideTooltip, interactUnit, cycleFocusWithMouseWheel,
---      showTargetLockMarker; char.focusCurrentTargetNotCrosshair.
---        targetLockSounds retired — always true.
+--      showTargetLockMarker. targetLockSounds and focusCurrentTargetNotCrosshair retired —
 --    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
 --      orphans on the stolen key and refreshes Target Lock override). Cycle Lock with
 --      Mouse Wheel also uses TryApplyBindingChange → UpdateFocusCycleWheelBindings.
@@ -28,7 +26,6 @@ local _G = _G
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
 local IsMacClient = _G.IsMacClient
-local ReloadUI = _G.ReloadUI
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
 
@@ -37,8 +34,6 @@ local ipairs = _G.ipairs
 local strfind = _G.string.find
 
 local UI = CM.UI
-
-local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed?"
 
 local INTERACT_MOUSEOVER = "INTERACTMOUSEOVER"
 local INTERACT_TARGET = "INTERACTTARGET"
@@ -198,7 +193,7 @@ UI.Options.AddTab({
 
     ctx:Keybind({
       label = "Target Lock Keybind",
-      desc = "Tap to lock your target, preventing the reticle from swapping it. Tap again to unlock.",
+      desc = "Tap to lock your target, preventing the reticle from swapping it. Tap again to unlock.\nTarget Lock adheres to Reticle Targeting settings.",
       get = function()
         return (GetBindingKey("Combat Mode - Toggle Focus Target"))
       end,
@@ -212,25 +207,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Lock Selected Target",
-      desc = "Lock your selected target instead of the unit under the crosshair.",
-      charSpecific = true,
-      confirm = true,
-      confirmText = RELOAD_CONFIRM,
-      get = function()
-        return CM.DB.char.focusCurrentTargetNotCrosshair
-      end,
-      set = function(value)
-        CM.DB.char.focusCurrentTargetNotCrosshair = value
-        ReloadUI()
-      end,
-      disabled = function()
-        return not CM.DB.char.reticleTargeting
-      end,
-    })
-    ctx:Toggle({
       label = "Cycle Lock with Mouse Wheel",
-      desc = "While a Target Lock is set, mouse wheel cycles nearby enemies and moves the lock, facilitating prioritization on stacked targets.",
+      desc = "While a Target Lock is set, mouse wheel moves the lock to nearby targets, facilitating prioritization when units are stacked.",
       get = function()
         return CM.DB.global.cycleFocusWithMouseWheel ~= false
       end,
@@ -246,7 +224,7 @@ UI.Options.AddTab({
     })
     ctx:Toggle({
       label = "Target Lock Nameplate Marker",
-      desc = "When a Target Lock is set, show a crosshair marker on the nameplate of the target.",
+      desc = "Show a crosshair marker on the nameplate of the target-locked unit.",
       get = function()
         return CM.DB.global.showTargetLockMarker ~= false
       end,
