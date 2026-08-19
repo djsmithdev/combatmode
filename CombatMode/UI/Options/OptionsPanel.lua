@@ -141,6 +141,9 @@ local function NewLayout(content, width)
   function ctx:SpellMultiSelect(o)
     return self:Place(UI.MakeSpellMultiSelect(self.content, o))
   end
+  function ctx:MountMultiSelect(o)
+    return self:Place(UI.MakeMountMultiSelect(self.content, o))
+  end
   function ctx:Button(o)
     local control = UI.MakeButton(self.content, o)
     -- Row spans the content width so under-button descriptions can wrap; the button

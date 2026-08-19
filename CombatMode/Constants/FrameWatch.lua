@@ -9,7 +9,8 @@
 --      CombatMode dialogs, etc.).
 --    • Wildcard / group tables — prefix matches for dynamic frames; OPie rings feed the
 --      FreeLook OPie rematch latch when visible.
---    • MountsToCheck — spell IDs for vendor mounts when mountCheck is enabled.
+--    • MountsToCheck — spell IDs for vendor mounts. Used as a fallback default when
+--      seeding the user's mountsToUnlock DB list on first install.
 --  Does not: Evaluate visibility, call MouselookStop, or own ShouldFreeLookBeOff.
 --  Related: Core/FreeLook/AutoCursorUnlock.lua, Core/FreeLook/FreeLookController.lua,
 --  UI/Options/Tabs/TabAutoCursorUnlock.lua, Constants/DatabaseDefaults.lua

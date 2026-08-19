@@ -122,16 +122,14 @@ function CM.IsCustomConditionTrue()
 end
 
 function CM.IsVendorMountOut()
-  if not CM.DB.global.mountCheck then
+  local csv = CM.DB.global.mountsToUnlock
+  if not csv or csv == "" then
     return false
   end
 
-  local function checkMount(mount)
-    return GetPlayerAuraBySpellID(mount) ~= nil
-  end
-
-  for _, mount in ipairs(CM.Constants.MountsToCheck) do
-    if checkMount(mount) then
+  for part in csv:gmatch("[^,]+") do
+    local id = tonumber(part:match("^%s*(.-)%s*$"))
+    if id and GetPlayerAuraBySpellID(id) then
       return true
     end
   end

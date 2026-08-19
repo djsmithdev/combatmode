@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Toggle Focus Any / Toggle Focus Enemy bindable actions now use the same target-first macros as the Target Lock keybind, and CM macros are refreshed on every load so existing installs pick up the updated behavior.
 - Reticle Targeting in Enemies Only mode now ignores a friendly Target Lock for hostile casts, so locking a party member as focus no longer redirects your attacks; the friendly focus is still honored when Enemies Only is off.
 - Default click-cast binds for Alt+Left / Alt+Right mouse now use Toggle Focus (Enemy / Any) instead of Focus Target / Clear Focus.
+- Vendor Mount auto-unlock renamed to Unlock Mounts. It is now a customizable multi-select field, pre-populated with the current vendor mount list so users can add their own mounts that force a cursor unlock.
 
 ### Removed
 

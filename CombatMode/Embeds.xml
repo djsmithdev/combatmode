@@ -54,6 +54,7 @@
     <Script file="UI\Options\Draw.lua"/>
     <Script file="UI\Options\Widgets.lua"/>
     <Script file="UI\Options\SpellMultiSelect.lua"/>
+    <Script file="UI\Options\MountMultiSelect.lua"/>
     <Script file="UI\Options\OptionsPanel.lua"/>
     <!-- Blizzard AddOns panel bridge (Open Options → CM.OpenOptions); after OptionsPanel. -->
     <Script file="UI\Options\BlizzardSettingsBridge.lua"/>

@@ -109,7 +109,7 @@ CM.Constants.DatabaseDefaults = {
     bindings = DefaultBindings,
     -- auto  unlock
     frameWatching = true,
-    mountCheck = true,
+    mountsToUnlock = "61447, 122708, 264058, 465235, 457485",
     watchlist = {
       "PawnUIFrame",
       "SortedPrimaryFrame",

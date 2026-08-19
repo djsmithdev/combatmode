@@ -866,16 +866,18 @@ local function WireThumbScroll(scroll, bar, thumb)
   end)
 end
 
-function UI.CreateScrollFrame(parent)
+function UI.CreateScrollFrame(parent, thickness)
   local scroll = CreateFrame("ScrollFrame", nil, parent)
   local content = CreateFrame("Frame", nil, scroll)
   content:SetSize(1, 1)
   scroll:SetScrollChild(content)
 
-  local bar, thumb = StyleThumbBar(parent, 6)
+  thickness = thickness or 6
+  local bar, thumb = StyleThumbBar(parent, thickness)
   WireThumbScroll(scroll, bar, thumb)
 
   scroll.cmScrollBar = bar
+  bar.cmThumb = thumb
   return scroll, content, bar
 end
 

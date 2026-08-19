@@ -1,11 +1,13 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabAutoCursorUnlock.lua — OPTIONS TAB — frame watch / conditions
 ---------------------------------------------------------------------------------------
---  What it does: DB-only wiring for Auto Unlock: frameWatching, mountCheck, extra
+--  What it does: DB-only wiring for Auto Unlock: frameWatching, mount multi-select, extra
 --  watchlist frame names, and customCondition expression. No direct freelook calls —
 --  predicates read these keys each update.
 --  Architecture / how it works:
---    • DB.global.frameWatching, mountCheck, watchlist (CSV → table), customCondition.
+--    • DB.global.frameWatching, mountsToUnlock (CSV → table), watchlist, customCondition.
+--    • Vendor Mounts now uses the mount multi-select instead of a toggle. The default
+--      list is seeded with known vendor mounts; users can add any mount they own.
 --    • Extra Frames disabled when frameWatching is off.
 --  Does not: Evaluate visibility or call MouselookStop.
 --  Related: Core/FreeLook/AutoCursorUnlock.lua, Constants/FrameWatch.lua,
@@ -36,16 +38,17 @@ UI.Options.AddTab({
         CM.DB.global.frameWatching = value
       end,
     })
-    ctx:Toggle({
-      label = "Vendor Mounts",
-      desc = "Keep the cursor unlocked on vendor mounts.",
+    ctx:MountMultiSelect({
+      label = "Unlock Mounts",
+      desc = "Mounts that force a cursor unlock while mounted.",
       get = function()
-        return CM.DB.global.mountCheck
+        return CM.DB.global.mountsToUnlock
       end,
       set = function(value)
-        CM.DB.global.mountCheck = value
+        CM.DB.global.mountsToUnlock = value
       end,
     })
+    ctx:Gap()
     ctx:TextInput({
       label = "Extra Frames",
       desc = "Extra frame names that trigger an auto unlock.\nUse "
