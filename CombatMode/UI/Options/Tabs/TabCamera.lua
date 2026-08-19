@@ -2,8 +2,8 @@
 --  UI/Options/Tabs/TabCamera.lua — OPTIONS TAB — Action Camera / sticky / speeds
 ---------------------------------------------------------------------------------------
 --  What it does: Wires Action Camera preset toggle (reload), actionCamMouselookDisable,
---  stickyCrosshair, shoulderOffset, mouseLookSpeed. Shows a DynamicCam watermark / disable
---  when that addon is present.
+--  stickyCrosshair, shoulderOffset, mouseLookSpeed, and the Additional Features section
+--  (vignette toggle). Shows a DynamicCam watermark / disable when that addon is present.
 --  Architecture / how it works:
 --    • DB: global.actionCamera, actionCamMouselookDisable, mouseLookSpeed;
 --      char.shoulderOffset, stickyCrosshair.
@@ -11,7 +11,8 @@
 --      SetMouseLookSpeed (CVarManager).
 --  Does not: Own CVar preset tables (Constants/CVars) or freelook lock.
 --  Related: Core/Runtime/CVarManager.lua, Constants/CVars.lua,
---  Core/Crosshair/Crosshair.lua, Constants/DatabaseDefaults.lua
+--  Core/Crosshair/Crosshair.lua, Constants/DatabaseDefaults.lua,
+--  Core/Vignette.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -136,5 +137,19 @@ UI.Options.AddTab({
     if CM.DynamicCam then
       UI.CreateWatermark(host, "Control relinquished to DynamicCam"):Show()
     end
+
+    -- Additional Features section (always visible, independent from DynamicCam).
+    ctx:Gap(4)
+    ctx:Header("ADDITIONAL FEATURES")
+    ctx:Toggle({
+      label = "Vignette Effect",
+      desc = "Darkens the edges of the screen to reduce visual distractions.",
+      get = function()
+        return CM.DB.global.vignette
+      end,
+      set = function(value)
+        CM.SetVignetteEnabled(value)
+      end,
+    })
   end,
 })

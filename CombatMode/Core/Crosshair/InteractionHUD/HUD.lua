@@ -300,7 +300,7 @@ local function RefreshInteractionHUD()
     HideInteractionHUD()
     return
   end
-  if not CM.IsCrosshairEnabled() or CM.HideCrosshairWhileMounted() then
+  if not CM.IsCrosshairEnabled() or CM.IsCrosshairMounted() then
     HideInteractionHUD()
     return
   end

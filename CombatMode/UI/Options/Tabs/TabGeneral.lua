@@ -4,11 +4,13 @@
 --  What it does: Wires General-tab controls to freelook and interact/focus binds:
 --  Mouse Look keybind, pulseCursor, hideTooltip, Interact keybind + interactUnit
 --  (mouseover vs soft target, with ALT+key on the alternate command), Target Lock keybind,
---  cycleFocusWithMouseWheel, targetLockSounds, showTargetLockMarker, and
---  focusCurrentTargetNotCrosshair.
+--  cycleFocusWithMouseWheel, showTargetLockMarker, and
+--  focusCurrentTargetNotCrosshair. Target Lock sound cues are now always on
+--  (the DB key is retired — no config toggle).
 --  Architecture / how it works:
 --    • DB: global.pulseCursor, hideTooltip, interactUnit, cycleFocusWithMouseWheel,
---      targetLockSounds, showTargetLockMarker; char.focusCurrentTargetNotCrosshair.
+--      showTargetLockMarker; char.focusCurrentTargetNotCrosshair.
+--        targetLockSounds retired — always true.
 --    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
 --      orphans on the stolen key and refreshes Target Lock override). Cycle Lock with
 --      Mouse Wheel also uses TryApplyBindingChange → UpdateFocusCycleWheelBindings.
@@ -256,19 +258,6 @@ UI.Options.AddTab({
         if value and CM.UpdateFocusNameplateMarker then
           CM.UpdateFocusNameplateMarker()
         end
-      end,
-      disabled = function()
-        return not CM.DB.char.reticleTargeting
-      end,
-    })
-    ctx:Toggle({
-      label = "Target Lock Sound Cues",
-      desc = "Play sound cues when a Target Lock is set, cleared, or cycled.",
-      get = function()
-        return CM.DB.global.targetLockSounds ~= false
-      end,
-      set = function(value)
-        CM.DB.global.targetLockSounds = value
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting

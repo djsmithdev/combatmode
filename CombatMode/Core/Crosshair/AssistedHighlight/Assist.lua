@@ -338,7 +338,7 @@ local function ShouldShowAssistedHighlightIcon()
   if CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive() then
     return true
   end
-  if not CM.IsCrosshairEnabled() or CM.HideCrosshairWhileMounted() then
+  if not CM.IsCrosshairEnabled() or CM.IsCrosshairMounted() then
     return false
   end
   if not (crosshairTexture and crosshairTexture.IsShown and crosshairTexture:IsShown()) then

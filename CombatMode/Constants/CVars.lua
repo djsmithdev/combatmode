@@ -49,8 +49,8 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["SoftTargetNameplateEnemy"] = 0, -- Always show nameplates  for soft target enemy.
   -- SoftTarget Icon
   ["SoftTargetIconEnemy"] = 0,
-  ["SoftTargetIconInteract"] = 1, -- We need this to be enabled for the interaction HUD to work properly.
-  ["SoftTargetIconGameObject"] = 1, -- We need this to be enabled for the interaction HUD to work properly.
+  ["SoftTargetIconInteract"] = 0, -- We need this to be enabled for the interaction HUD to work properly.
+  ["SoftTargetIconGameObject"] = 0, -- We need this to be enabled for the interaction HUD to work properly.
   -- cursor centering
   ["CursorFreelookCentering"] = 0, -- !BUG: needs to be set to 0 initially because Blizzard broke something in 10.2, otherwise it wll cause the camera to jolt the equivalent vector to the centered cursor position from where your cursor was before locking.
   ["CursorStickyCentering"] = 1, -- !BUG: we can't use it due to the issue described above. Fore more info, see: https://github.com/Stanzilla/WoWUIBugs/issues/504
@@ -74,20 +74,16 @@ CM.Constants.InteractionHUDSoftTargetCVarValues = {
   ["SoftTargetInteract"] = 3,
   ["SoftTargetInteractArc"] = 1,
   ["SoftTargetInteractRange"] = 15,
-  ["SoftTargetIconInteract"] = 1,
-  ["SoftTargetIconGameObject"] = 1,
+  ["SoftTargetIconInteract"] = 0,
+  ["SoftTargetIconGameObject"] = 0,
 }
 
 -- CVARS FOR ACTION CAMERA
 -- https://warcraft.wiki.gg/wiki/CVar_ActionCam
 CM.Constants.ActionCameraCVarValues = {
-  ["test_cameraDynamicPitch"] = 1, -- Vertical Pitch
-  ["test_cameraDynamicPitchBaseFovPad"] = 0, -- Pitch (ground)
-  ["test_cameraDynamicPitchBaseFovPadFlying"] = 0.5, -- Pitch (flying)
-  ["test_cameraDynamicPitchBaseFovPadDownScale"] = 0.25, -- Down Scale
-  ["test_cameraDynamicPitchSmartPivotCutoffDist"] = 10, -- Smart Pivot Cutoff Distance
-  ["test_cameraHeadMovementStrength"] = 0, -- Head Tracking
-  ["test_cameraOverShoulder"] = 1.0, -- Shoulder horizontal offset
+  ["test_cameraDynamicPitch"] = 0, -- Vertical Pitch
+  ["test_cameraHeadMovementStrength"] = 1, -- Head Tracking
+  ["test_cameraOverShoulder"] = 1.4, -- Shoulder horizontal offset
   ["CameraKeepCharacterCentered"] = 0, -- Disable Motion Sickness
   ["CameraReduceUnexpectedMovement"] = 0, -- Disable Motion Sickness
 }

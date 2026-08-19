@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabCrosshair.lua — OPTIONS TAB — Crosshair + HUD + Assist
 ---------------------------------------------------------------------------------------
---  What it does: Wires crosshair enable/mounted/cast feedback/appearance/scale/opacity/Y,
+--  What it does: Wires crosshair enable/cast feedback/appearance/scale/opacity/Y,
 --  Interaction HUD enable + side + scale, and Combat Assist enable + side + scale. Live
 --  preview via SetCrosshairOptionsPreview onSelect/onDeselect; when HUD turns on without
 --  reticle targeting, applies ConfigInteractionHUDSoftTarget.
@@ -12,7 +12,7 @@
 --      ApplyInteractionHUDLayout / RefreshInteractionHUD /
 --      ApplyCrosshairAssistedHighlightOptions / UpdateCrosshairAssistedHighlight;
 --      also PartyRadial.UpdateMainFramePosition when Y changes.
---  Does not: Implement HUD/Assist widgets (companion modules own them).
+--  Does not: Own freelook state machine or click-cast slot table UI.
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD/HUD.lua,
 --  Core/Crosshair/AssistedHighlight/Assist.lua, Core/Crosshair/Animations.lua,
 --  Core/Runtime/CVarManager.lua, Constants/Assets.lua, Constants/DatabaseDefaults.lua
@@ -68,7 +68,7 @@ UI.Options.AddTab({
     ctx:Header("CROSSHAIR")
 
     ctx:Toggle({
-      label = "Show Crosshair",
+      label = "Enable Crosshair",
       desc = "Show the crosshair during Mouse Look.",
       get = function()
         return CM.DB.global.crosshair
@@ -78,17 +78,6 @@ UI.Options.AddTab({
         CM.DisplayCrosshair(value)
         CM.CreateCrosshair()
       end,
-    })
-    ctx:Toggle({
-      label = "Hide While Mounted",
-      desc = "Hide the crosshair while mounted.",
-      get = function()
-        return CM.DB.global.crosshairMounted
-      end,
-      set = function(value)
-        CM.DB.global.crosshairMounted = value
-      end,
-      disabled = CrosshairOff,
     })
     ctx:Toggle({
       label = "Cast Feedback",
@@ -169,7 +158,7 @@ UI.Options.AddTab({
     ctx:Gap()
     ctx:Header("INTERACTION HUD")
     ctx:Toggle({
-      label = "Show Interaction HUD",
+      label = "Enable Interaction HUD",
       desc = "Show a prompt outside of combat for nearby interactables.",
       get = function()
         return CM.DB.global.interactionHUD
@@ -238,7 +227,7 @@ UI.Options.AddTab({
     ctx:Gap()
     ctx:Header("COMBAT ASSIST")
     ctx:Toggle({
-      label = "Show Combat Assist",
+      label = "Enable Combat Assist",
       desc = "Show Blizzard's next-spell suggestion during combat.",
       get = function()
         return CM.DB.global.assistedHighlightEnabled

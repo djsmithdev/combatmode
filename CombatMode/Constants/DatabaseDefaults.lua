@@ -8,8 +8,8 @@
 --  Architecture / how it works:
 --      mouseLookSpeed, pulseCursor, interactUnit, cycleFocusWithMouseWheel; crosshair*
 --      (crosshairScale, opacity, Y, cast feedback), interactionHUD / Side / Scale,
---      assistedHighlightEnabled / Side / Scale; partyRadial (enabled, showHealthBars,
---      showBackground, scale; layout/fade fixed in Constants/PartyRadial.lua).
+--      assistedHighlightEnabled / Side / Scale; vignette; partyRadial (enabled,
+--      showHealthBars, showBackground, scale; layout/fade fixed in Constants/PartyRadial.lua).
 --      reticleTargetingCVarOverrides, priorCVarSnapshot, targetingMacroPreline*Override;
 --      bindings.
 --    • char: useGlobalBindings, shoulderOffset, reticleTargeting / enemyOnly /
@@ -64,13 +64,13 @@ local DefaultBindings = {
   altbutton1 = {
     enabled = true,
     key = "ALT-BUTTON1",
-    value = "FOCUSTARGET",
+    value = "TOGGLEFOCUSENEMY",
     macroName = "",
   },
   altbutton2 = {
     enabled = true,
     key = "ALT-BUTTON2",
-    value = "CLEARFOCUS",
+    value = "TOGGLEFOCUSANY",
     macroName = "",
   },
   toggle = { key = "Combat Mode - Mouse Look", value = "BUTTON3" },
@@ -78,64 +78,78 @@ local DefaultBindings = {
 
 CM.Constants.DatabaseDefaults = {
   global = {
+    -- general
+    pulseCursor = true,
+    hideTooltip = true,
+    sheathWeaponsWithMouselook = false,
+    interactUnit = "mouseover",
+    cycleFocusWithMouseWheel = true,
+    showTargetLockMarker = true,
+    -- crosshair
+    crosshair = true,
+    crosshairCastFeedback = true,
+    crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
+    crosshairScale = 1.0,
+    crosshairOpacity = 1.0,
+    crosshairY = 100,
+    -- interaction HUD
+    interactionHUD = true,
+    interactionHUDSide = "LEFT",
+    interactionHUDScale = 1.0,
+    -- combat assist
+    assistedHighlightEnabled = true,
+    assistedHighlightSide = "RIGHT",
+    assistedHighlightScale = 1.0,
+    -- reticle targeting
+    reticleTargetingCVarOverrides = {},
+    priorCVarSnapshot = nil,
+    targetingMacroPrelineAnyOverride = nil,
+    targetingMacroPrelineEnemyOverride = nil,
+    -- click casting
+    bindings = DefaultBindings,
+    -- auto  unlock
     frameWatching = true,
+    mountCheck = true,
     watchlist = {
       "PawnUIFrame",
       "SortedPrimaryFrame",
       "WeakAurasOptions",
       "DUIQuestFrame",
       "Narci_Vignette",
+      "EnhanceQoLConfigCenterFrame",
+      "LWDialogFrame",
+      "EQOLQuickCastVisual",
     },
-    actionCamera = false,
-    actionCamMouselookDisable = false,
-    mouseLookSpeed = 120,
-    pulseCursor = true,
-    sheathWeaponsWithMouselook = true,
-    cycleFocusWithMouseWheel = true,
-    targetLockSounds = true,
-    showTargetLockMarker = true,
-    interactUnit = "mouseover",
-    mountCheck = false,
     customCondition = "",
-    crosshair = true,
-    crosshairMounted = false,
-    hideTooltip = true,
-    crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
-    -- Base reticle is 64px; scale 1.0 = legacy default size.
-    crosshairScale = 1.0,
-    crosshairOpacity = 1.0,
-    crosshairCastFeedback = true,
-    interactionHUD = true,
-    interactionHUDSide = "LEFT",
-    interactionHUDScale = 1.0,
-    assistedHighlightEnabled = true,
-    assistedHighlightSide = "RIGHT",
-    assistedHighlightScale = 1.0,
-    crosshairY = 100,
-    silenceAlerts = false,
-    debugMode = false,
-    reticleTargetingCVarOverrides = {},
-    priorCVarSnapshot = nil,
-    targetingMacroPrelineAnyOverride = nil,
-    targetingMacroPrelineEnemyOverride = nil,
-    bindings = DefaultBindings,
+    -- action camera
+    actionCamera = true,
+    actionCamMouselookDisable = true,
+    mouseLookSpeed = 120,
+    vignette = true,
+    -- radial
     partyRadial = {
-      enabled = false,
+      enabled = true,
       showHealthBars = true,
       showBackground = true,
       scale = 1.0,
     },
+    -- dev
+    silenceAlerts = true,
+    debugMode = false,
   },
   char = {
-    useGlobalBindings = false,
-    shoulderOffset = 1.0,
+    -- reticle targeting
+    focusCurrentTargetNotCrosshair = true,
     reticleTargeting = true,
     reticleTargetingEnemyOnly = true,
     macroInjectionClickCastOnly = false,
-    focusCurrentTargetNotCrosshair = false,
-    castAtCursorSpells = "6544, 204596, 189110, 1234796, 190356", -- Heroic Leap, Sigil of Flame, Infernal Strike, Shift, Blizzard
-    excludeFromTargetingSpells = "871, 45438, 642, 198589", -- Shield Wall, Ice Block, Divine Shield, Blur
-    stickyCrosshair = false,
+    excludeFromTargetingSpells = "871, 45438, 642, 198589",
+    castAtCursorSpells = "6544, 204596, 189110, 1234796, 190356, 207684",
+    -- click casting
+    useGlobalBindings = false,
     bindings = DefaultBindings,
+    -- action camera
+    stickyCrosshair = false,
+    shoulderOffset = 1.4,
   },
 }

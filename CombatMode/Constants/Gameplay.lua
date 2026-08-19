@@ -248,8 +248,8 @@ CM.Constants.ActionsToProcess = {
 }
 
 CM.Constants.OverrideActions = {
-  CLEARFOCUS = "|cff69ccf0Clear Focus|r",
   CLEARTARGET = "|cff69ccf0Clear Target|r",
+  CLEARFOCUS = "|cff69ccf0Clear Focus|r",
   TOGGLEFOCUSANY = "|cff69ccf0Toggle Focus Any|r",
   TOGGLEFOCUSENEMY = "|cff69ccf0Toggle Focus Enemy|r",
   MACRO = "|cff69ccf0Run MACRO|r",

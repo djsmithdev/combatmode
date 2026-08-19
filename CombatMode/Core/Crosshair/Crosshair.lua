@@ -7,7 +7,10 @@
 --  Inits InteractionHUD, AssistedHighlight, and Animations; routes cast terminals to
 --  Animations (SUCCEEDED also notifies AssistedHighlight via EventRouter).
 --  Architecture / how it works:
---    • DB.global.crosshair / crosshairMounted / appearance / crosshairScale / opacity / Y.
+--    • DB.global.crosshair / appearance / crosshairScale / opacity / Y.
+--    • IsCrosshairMounted — returns IsMounted() (always-on; no DB toggle). When mounted,
+--      UpdateCrosshairReaction sets a static base appearance (inactive dot) instead of
+--      reacting to targets, but the crosshair remains visible.
 --    • UpdateCrosshairReaction — hostile/friendly/dead/gameobject under mouse or soft
 --      target; drives texture + Animations reaction scale. Presence via UnitExists;
 --      reaction/booleans are secret-safe (issecretvalue / PublicBool — no UnitGUID
@@ -76,8 +79,8 @@ if CM.InitAssistedHighlight then
   CM.InitAssistedHighlight({ crosshairFrame = CrosshairFrame, crosshairTexture = CrosshairTexture })
 end
 
-function CM.HideCrosshairWhileMounted()
-  return CM.DB.global.crosshairMounted and IsMounted()
+function CM.IsCrosshairMounted()
+  return IsMounted()
 end
 
 -- SavedVariables may store 1/0; use this anywhere UI enablement must match "crosshair on"
@@ -182,11 +185,7 @@ local function ApplyFocusLockIdleReticle()
   CrosshairTexture:SetTexture(GetFocusLockIdleTexturePath())
   local r, g, b, a = GetFocusLockIdleColor()
   CrosshairTexture:SetVertexColor(r, g, b, a)
-  if
-    CM.IsCrosshairEnabled()
-    and not CM.HideCrosshairWhileMounted()
-    and (IsMouselooking() or CM.IsCrosshairPreviewActive())
-  then
+  if CM.IsCrosshairEnabled() and (IsMouselooking() or CM.IsCrosshairPreviewActive()) then
     CrosshairTexture:Show()
   end
 end
@@ -208,7 +207,7 @@ function CM.SetFocusLockReticleSuppressed(suppressed)
   local UserConfig = CM.DB.global or {}
   local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
   CrosshairVisualFrame:SetAlpha(crosshairOpacity)
-  if CM.IsCrosshairEnabled() and not CM.HideCrosshairWhileMounted() and IsMouselooking() then
+  if CM.IsCrosshairEnabled() and IsMouselooking() then
     CrosshairTexture:Show()
     lastKnownAppearanceState = nil
     CM.UpdateCrosshairReaction()
@@ -268,12 +267,7 @@ end
 function CM.DisplayCrosshair(shouldShow)
   -- While previewing, ignore hide requests from the free-look/unlock paths so tweaking
   -- options with the cursor free still shows the reticle.
-  if
-    not shouldShow
-    and CM.IsCrosshairPreviewActive()
-    and CM.IsCrosshairEnabled()
-    and not CM.HideCrosshairWhileMounted()
-  then
+  if not shouldShow and CM.IsCrosshairPreviewActive() and CM.IsCrosshairEnabled() then
     shouldShow = true
   end
   if shouldShow then
@@ -451,7 +445,16 @@ local function GetUnitUnderCursor()
 end
 
 function CM.UpdateCrosshairReaction()
-  if not CM.IsCrosshairEnabled() or CM.HideCrosshairWhileMounted() then
+  if not CM.IsCrosshairEnabled() then
+    return
+  end
+
+  -- While mounted, show a static Dot texture (inactive, base-colored) instead of reacting.
+  if CM.IsCrosshairMounted() then
+    if lastKnownAppearanceState ~= "mounted" then
+      lastKnownAppearanceState = "mounted"
+      ApplyFocusLockIdleReticle()
+    end
     return
   end
 
@@ -478,11 +481,7 @@ function CM.OnRematchCrosshair()
     CM.CancelCrosshairLockIn()
     CM.CancelCrosshairCastFeedback()
     CM.CreateCrosshair()
-    if CM.HideCrosshairWhileMounted() then
-      SetCrosshairAppearance("mounted")
-    else
-      CM.UpdateCrosshairReaction()
-    end
+    CM.UpdateCrosshairReaction()
 
     if CM.DB.char.stickyCrosshair then
       CM.ConfigStickyCrosshair("combatmode")
@@ -494,21 +493,13 @@ function CM.OnRematchCrosshair()
 end
 
 function CM.OnCrosshairUncategorizedEvent()
-  if CM.HideCrosshairWhileMounted() then
-    SetCrosshairAppearance("mounted")
-    lastKnownAppearanceState = "mounted"
-    if IsMouselooking() then
+  lastKnownAppearanceState = nil
+  CM.UpdateCrosshairReaction()
+  if IsMouselooking() then
+    if CM.IsCrosshairEnabled() then
+      CM.DisplayCrosshair(true)
+    else
       CM.DisplayCrosshair(false)
-    end
-  else
-    lastKnownAppearanceState = nil
-    CM.UpdateCrosshairReaction()
-    if IsMouselooking() then
-      if CM.IsCrosshairEnabled() then
-        CM.DisplayCrosshair(true)
-      else
-        CM.DisplayCrosshair(false)
-      end
     end
   end
 end
@@ -518,7 +509,7 @@ local function PlayFocusLockSounds(hasFocus)
     return
   end
   local g = CM.DB and CM.DB.global
-  if not g or g.targetLockSounds == false then
+  if not g then
     return
   end
   if not PlaySound then
@@ -552,7 +543,6 @@ local function CastFeedbackAllowed()
     and CM.DB.global
     and CM.DB.global.crosshairCastFeedback
     and CM.IsCrosshairEnabled()
-    and not CM.HideCrosshairWhileMounted()
     and (IsMouselooking() or CM.IsCrosshairPreviewActive())
 end
 
@@ -590,7 +580,7 @@ function CM.SetCrosshairOptionsPreview(enabled)
   if enabled then
     lastKnownAppearanceState = nil
     CM.CreateCrosshair()
-    if CM.IsCrosshairEnabled() and not CM.HideCrosshairWhileMounted() then
+    if CM.IsCrosshairEnabled() then
       CM.DisplayCrosshair(true)
     end
     return
@@ -599,7 +589,7 @@ function CM.SetCrosshairOptionsPreview(enabled)
   CM.CancelCrosshairLockIn()
   CM.CancelCrosshairCastFeedback()
   lastKnownAppearanceState = nil
-  if CM.IsCrosshairEnabled() and not CM.HideCrosshairWhileMounted() then
+  if CM.IsCrosshairEnabled() then
     CM.DisplayCrosshair(IsMouselooking())
   else
     CM.DisplayCrosshair(false)
