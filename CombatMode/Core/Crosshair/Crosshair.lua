@@ -37,7 +37,6 @@ local CreateFrame = _G.CreateFrame
 local GetCursorPosition = _G.GetCursorPosition
 local InCombatLockdown = _G.InCombatLockdown
 local IsMounted = _G.IsMounted
-local IsMouselooking = _G.IsMouselooking
 local UIParent = _G.UIParent
 local UnitCanAttack = _G.UnitCanAttack
 local UnitExists = _G.UnitExists
@@ -185,7 +184,7 @@ local function ApplyFocusLockIdleReticle()
   CrosshairTexture:SetTexture(GetFocusLockIdleTexturePath())
   local r, g, b, a = GetFocusLockIdleColor()
   CrosshairTexture:SetVertexColor(r, g, b, a)
-  if CM.IsCrosshairEnabled() and (IsMouselooking() or CM.IsCrosshairPreviewActive()) then
+  if CM.IsCrosshairEnabled() and (CM.IsMouselooking() or CM.IsCrosshairPreviewActive()) then
     CrosshairTexture:Show()
   end
 end
@@ -207,7 +206,7 @@ function CM.SetFocusLockReticleSuppressed(suppressed)
   local UserConfig = CM.DB.global or {}
   local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
   CrosshairVisualFrame:SetAlpha(crosshairOpacity)
-  if CM.IsCrosshairEnabled() and IsMouselooking() then
+  if CM.IsCrosshairEnabled() and CM.IsMouselooking() then
     CrosshairTexture:Show()
     lastKnownAppearanceState = nil
     CM.UpdateCrosshairReaction()
@@ -252,7 +251,7 @@ end
 
 local function SetCrosshairAppearance(state)
   -- Visual is centered in CrosshairFrame; screen Y offset is on the container, so local offset is 0.
-  -- Preview mode bypasses the IsMouselooking() gate so the reticle stays visible while the
+  -- Preview mode bypasses the CM.IsMouselooking() gate so the reticle stays visible while the
   -- Crosshair options tab is open.
   CM.ApplyCrosshairAppearanceToWidget(
     CrosshairVisualFrame,
@@ -340,7 +339,7 @@ DebugCrosshairUpdater:SetScript("OnUpdate", function()
     DebugCrosshairFrame:Hide()
     return
   end
-  if IsMouselooking() then
+  if CM.IsMouselooking() then
     local x, y = GetCursorPosition()
     local scale = UIParent:GetEffectiveScale()
     DebugCrosshairFrame:ClearAllPoints()
@@ -486,7 +485,7 @@ function CM.OnRematchCrosshair()
     if CM.DB.char.stickyCrosshair then
       CM.ConfigStickyCrosshair("combatmode")
     end
-    CM.DisplayCrosshair(IsMouselooking())
+    CM.DisplayCrosshair(CM.IsMouselooking())
   else
     CM.DisplayCrosshair(false)
   end
@@ -495,7 +494,7 @@ end
 function CM.OnCrosshairUncategorizedEvent()
   lastKnownAppearanceState = nil
   CM.UpdateCrosshairReaction()
-  if IsMouselooking() then
+  if CM.IsMouselooking() then
     if CM.IsCrosshairEnabled() then
       CM.DisplayCrosshair(true)
     else
@@ -543,7 +542,7 @@ local function CastFeedbackAllowed()
     and CM.DB.global
     and CM.DB.global.crosshairCastFeedback
     and CM.IsCrosshairEnabled()
-    and (IsMouselooking() or CM.IsCrosshairPreviewActive())
+    and (CM.IsMouselooking() or CM.IsCrosshairPreviewActive())
 end
 
 --- Player cast/channel events → grow / explode / break (see Animations.lua).
@@ -590,7 +589,7 @@ function CM.SetCrosshairOptionsPreview(enabled)
   CM.CancelCrosshairCastFeedback()
   lastKnownAppearanceState = nil
   if CM.IsCrosshairEnabled() then
-    CM.DisplayCrosshair(IsMouselooking())
+    CM.DisplayCrosshair(CM.IsMouselooking())
   else
     CM.DisplayCrosshair(false)
   end

@@ -144,12 +144,26 @@ UI.Options.AddTab({
     ctx:Header("ADDITIONAL FEATURES")
     ctx:Toggle({
       label = "Vignette Effect",
-      desc = "Darkens the edges of the screen while in Mouse Look to reduce visual distractions.",
+      desc = "Darkens the edges of the screen to reduce visual distractions.",
       get = function()
         return CM.DB.global.vignette
       end,
       set = function(value)
         CM.SetVignetteEnabled(value)
+      end,
+    })
+    ctx:Toggle({
+      label = "Vignette Tied To Mouse Look",
+      desc = "Vignette fades out when Mouse Look is off and fades in when engaged.",
+      get = function()
+        return CM.DB.global.vignetteFadeWithMouselook
+      end,
+      set = function(value)
+        CM.DB.global.vignetteFadeWithMouselook = value
+        CM.SetVignetteEnabled(CM.DB.global.vignette) -- Re-apply to pick up new setting
+      end,
+      disabled = function()
+        return CM.DB.global.vignette ~= true
       end,
     })
   end,

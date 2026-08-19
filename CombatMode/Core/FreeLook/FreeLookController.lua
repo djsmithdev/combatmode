@@ -48,6 +48,7 @@ local ToggleSheath = _G.ToggleSheath
 local string = _G.string
 
 -- INITIAL STATE VARIABLES
+local cmMouselookActive = false -- Tracks Combat Mode's own intentional mouselook. Used in conjunction with _G.IsMouselooking() to handle external mouselook properly.
 local FreeLookOverride = false -- Changes when Free Look state is modified through user input ("Toggle / Hold" keybind and "/cm" cmd)
 local CursorModeShowTime = 0 -- GetTime() when cursor was unlocked via keybind (for spurious key-up filter)
 local opieUnlockSeen = false -- Latched while an OPie ring was reported visible
@@ -325,6 +326,7 @@ end
 local function StartFreeLookFresh()
   CM.SetCursorFreelookCenteringCVar(false)
   MouselookStart()
+  cmMouselookActive = true
   RunLockFreeLookDeferredUI()
   CM.ShowCrosshairLockIn()
   if CM.PartyRadial and CM.PartyRadial.OnMouselookChanged then
@@ -348,6 +350,7 @@ function CM.UnlockFreeLook()
   if not IsMouselooking() then
     return
   end
+  cmMouselookActive = false
   RunUnlockFreeLookDeferredUI(false)
   MouselookStop()
 
@@ -371,6 +374,7 @@ local function UnlockFreeLookPermanent()
   if not IsMouselooking() then
     return
   end
+  cmMouselookActive = false
   RunUnlockFreeLookDeferredUI(true)
   MouselookStop()
 
@@ -469,4 +473,14 @@ function _G.CombatMode_ResetMouseLook()
   else
     settle()
   end
+end
+
+-- Returns whether Combat Mode's own intentional mouselook is active.
+-- Combines our internal flag with Blizzard's IsMouselooking so that external
+-- addons starting/stopping mouselook safely short-circuit both directions:
+--   • Right-click-drag camera turn: cmMouselookActive=false, IsMouselooking=false → false
+--   • External addon starts mouselook: cmMouselookActive=false, IsMouselooking=true → false
+--   • External addon stops CM's mouselook: cmMouselookActive=true, IsMouselooking=false → false
+function CM.IsMouselooking()
+  return cmMouselookActive and IsMouselooking()
 end

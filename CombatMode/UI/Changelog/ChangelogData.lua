@@ -18,7 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Vignette Effect option under Action Camera > Additional Features: Darkens the edges of the screen while in Mouse Look to reduce visual distractions. On by default.
+- Vignette Effect option under Action Camera > Additional Features: Darkens the edges of the screen to reduce visual distractions. On by default.
+- Vignette Fade with Mouse Look toggle: Vignette fades out when Mouse Look is off and fades in when engaged. On by default.
+- `CM.IsMouselooking()` public API: tracks Combat Mode's own intentional mouselook, distinct from Blizzard's `IsMouselooking`. Combines an internal flag with the Blizzard API so external addons starting or stopping mouselook are also handled safely.
 
 ### Changed
 
@@ -29,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reticle Targeting in Enemies Only mode now ignores a friendly Target Lock for hostile casts, so locking a party member as focus no longer redirects your attacks; the friendly focus is still honored when Enemies Only is off.
 - Default click-cast binds for Alt+Left / Alt+Right mouse now use Toggle Focus (Enemy / Any) instead of Focus Target / Clear Focus.
 - Vendor Mount auto-unlock renamed to Unlock Mounts. It is now a customizable multi-select field, pre-populated with the current vendor mount list so users can add their own mounts that force a cursor unlock.
+- Vignette, crosshair, animations, assisted highlight, and party radial now use `CM.IsMouselooking()` instead of the raw Blizzard API, so they only respond to Combat Mode's intentional mouselook — not right-click-drag camera turn or other addon mouselook.
 
 ### Removed
 
@@ -39,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Friendly Target Lock no longer hijacks abilities when Enemies Only is on: offensive spells skip the friendly focus and target hostile units instead.
-- Fixed experimental camera features popup/warning on login when Action Camera preset is enabled.
+- Experimental camera features popup no longer appears when applying Action Camera CVars — the `EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED` unregister now runs before the CVar writes.
 
 ## [4.2.1] - 2026-08-12
 

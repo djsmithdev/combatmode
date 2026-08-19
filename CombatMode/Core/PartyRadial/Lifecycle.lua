@@ -463,7 +463,7 @@ Show = function(buttonKey)
   end
 
   -- Only allow activation when mouselook is active
-  if not _G.IsMouselooking() then
+  if not CM.IsMouselooking() then
     return false
   end
 
@@ -474,7 +474,7 @@ Show = function(buttonKey)
   -- Store state
   GetState().isActive = true
   GetState().currentButton = buttonKey
-  GetState().wasMouselooking = _G.IsMouselooking()
+  GetState().wasMouselooking = CM.IsMouselooking()
   GetState().showTime = _G.GetTime()
   -- Cache max selection distance for TrackMousePosition (matches mainFrame scale).
   if Visual.CacheHitDistances then
@@ -636,7 +636,7 @@ ShowFromKeybind = function()
   end
 
   -- Only allow activation when mouselook is active
-  if not _G.IsMouselooking() then
+  if not CM.IsMouselooking() then
     return false
   end
 
@@ -652,7 +652,7 @@ ShowFromKeybind = function()
   GetState().currentButton = nil
   GetState().boundKey = boundKey
   GetState().keyUpCount = 0
-  GetState().wasMouselooking = _G.IsMouselooking()
+  GetState().wasMouselooking = CM.IsMouselooking()
   GetState().showTime = _G.GetTime()
   -- Cache max selection distance for TrackMousePosition (matches mainFrame scale).
   if Visual.CacheHitDistances then

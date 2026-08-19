@@ -124,8 +124,9 @@ CM.Constants.DatabaseDefaults = {
     -- action camera
     actionCamera = true,
     actionCamMouselookDisable = true,
-    mouseLookSpeed = 120,
+    mouseLookSpeed = 100,
     vignette = true,
+    vignetteFadeWithMouselook = true,
     -- radial
     partyRadial = {
       enabled = true,

@@ -22,7 +22,6 @@ local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
-local IsMouselooking = _G.IsMouselooking
 local UnitAffectingCombat = _G.UnitAffectingCombat
 
 local C_AssistedCombat = _G.C_AssistedCombat
@@ -344,7 +343,7 @@ local function ShouldShowAssistedHighlightIcon()
   if not (crosshairTexture and crosshairTexture.IsShown and crosshairTexture:IsShown()) then
     return false
   end
-  if not IsMouselooking() then
+  if not CM.IsMouselooking() then
     return false
   end
   if not (UnitAffectingCombat and UnitAffectingCombat("player")) then

@@ -25,7 +25,6 @@ local _G = _G
 local CreateFrame = _G.CreateFrame
 local GetCursorPosition = _G.GetCursorPosition
 local GetTime = _G.GetTime
-local IsMouselooking = _G.IsMouselooking
 local UIParent = _G.UIParent
 local UnitCastingInfo = _G.UnitCastingInfo
 local UnitChannelInfo = _G.UnitChannelInfo
@@ -149,7 +148,7 @@ local function ApplyCrosshairAppearanceToWidget(
 
   targetTexture:SetTexture(textureToUse)
   targetTexture:SetVertexColor(r, g, b, a)
-  if previewMode or (state ~= "mounted" and IsMouselooking()) then
+  if previewMode or (state ~= "mounted" and CM.IsMouselooking()) then
     targetTexture:Show()
   end
 
