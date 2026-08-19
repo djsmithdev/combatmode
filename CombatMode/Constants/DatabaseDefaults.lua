@@ -149,6 +149,6 @@ CM.Constants.DatabaseDefaults = {
     bindings = DefaultBindings,
     -- action camera
     stickyCrosshair = false,
-    shoulderOffset = 1.4,
+    shoulderOffset = 1.2,
   },
 }

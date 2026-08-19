@@ -83,9 +83,14 @@ CM.Constants.InteractionHUDSoftTargetCVarValues = {
 CM.Constants.ActionCameraCVarValues = {
   ["test_cameraDynamicPitch"] = 0, -- Vertical Pitch
   ["test_cameraHeadMovementStrength"] = 1, -- Head Tracking
-  ["test_cameraOverShoulder"] = 1.4, -- Shoulder horizontal offset
+  ["test_cameraOverShoulder"] = 1.2, -- Shoulder horizontal offset
   ["CameraKeepCharacterCentered"] = 0, -- Disable Motion Sickness
   ["CameraReduceUnexpectedMovement"] = 0, -- Disable Motion Sickness
+  ["cameraDistanceMaxZoomFactor"] = 1.0, -- Max zoom distance (1.0 = 15 yards)
+  ["cameraZoomSpeed"] = 20, -- Zoom scroll speed
+  ["cameraYawMoveSpeed"] = 100, -- Horizontal turn speed
+  ["cameraPitchMoveSpeed"] = 50, -- Vertical turn speed
+  ["cameraFov"] = 90, -- Field of view
 }
 
 -- CVARS FOR STICKY CROSSHAIR
@@ -120,6 +125,11 @@ CM.Constants.BlizzardActionCameraCVarValues = {
   ["test_cameraOverShoulder"] = 0,
   ["CameraKeepCharacterCentered"] = 1,
   ["CameraReduceUnexpectedMovement"] = 1,
+  ["cameraDistanceMaxZoomFactor"] = 1.9,
+  ["cameraZoomSpeed"] = 20,
+  ["cameraYawMoveSpeed"] = 180,
+  ["cameraPitchMoveSpeed"] = 90,
+  ["cameraFov"] = 90,
 }
 
 CM.Constants.BlizzardTargetFocusCVarValues = {
