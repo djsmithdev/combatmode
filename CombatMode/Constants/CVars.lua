@@ -79,16 +79,35 @@ CM.Constants.InteractionHUDSoftTargetCVarValues = {
 -- CVARS FOR ACTION CAMERA
 -- https://warcraft.wiki.gg/wiki/CVar_ActionCam
 CM.Constants.ActionCameraCVarValues = {
-  ["test_cameraDynamicPitch"] = 0, -- Vertical Pitch
-  ["test_cameraHeadMovementStrength"] = 1, -- Head Tracking
-  ["test_cameraOverShoulder"] = 1.2, -- Shoulder horizontal offset
   ["CameraKeepCharacterCentered"] = 0, -- Disable Motion Sickness
   ["CameraReduceUnexpectedMovement"] = 0, -- Disable Motion Sickness
+  ["test_cameraDynamicPitch"] = 0, -- Vertical Pitch
+  ["test_cameraOverShoulder"] = 1.2, -- Shoulder horizontal offset
+  ["test_cameraHeadMovementStrength"] = 1, -- Head Tracking
   ["cameraDistanceMaxZoomFactor"] = 1.0, -- Max zoom distance (1.0 = 15 yards)
   ["cameraZoomSpeed"] = 20, -- Zoom scroll speed
   ["cameraYawMoveSpeed"] = 100, -- Horizontal turn speed
   ["cameraPitchMoveSpeed"] = 50, -- Vertical turn speed
   ["cameraFov"] = 90, -- Field of view
+}
+
+-- Subset of Action Camera CVars toggled by "Disable with Mouse Look".
+-- Preference CVars (zoom distance, FOV, zoom speed, turn speed) are excluded
+-- so the camera does not jump when mouse look is turned off and on.
+CM.Constants.ActionCameraMouselookDisableCMValues = {
+  ["CameraKeepCharacterCentered"] = 0,
+  ["CameraReduceUnexpectedMovement"] = 0,
+  ["test_cameraDynamicPitch"] = 0,
+  ["test_cameraOverShoulder"] = 1.2,
+  ["test_cameraHeadMovementStrength"] = 1,
+}
+
+CM.Constants.BlizzardActionCameraMouselookDisableValues = {
+  ["CameraKeepCharacterCentered"] = 1,
+  ["CameraReduceUnexpectedMovement"] = 1,
+  ["test_cameraDynamicPitch"] = 0,
+  ["test_cameraOverShoulder"] = 0,
+  ["test_cameraHeadMovementStrength"] = 0,
 }
 
 -- CVARS FOR STICKY CROSSHAIR

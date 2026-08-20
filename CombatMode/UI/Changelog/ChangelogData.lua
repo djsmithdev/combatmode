@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Experimental camera features popup now reliably suppressed on every login/reload. Replaced `UIParent:UnregisterEvent` with a `StaticPopup_Show` hook so the popup is intercepted before it can appear — works regardless of addon load timing.
+- Camera no longer jumps or zooms erratically when "Disable with Mouse Look" toggles mouse look on and off. Added `ConfigActionCameraMouselookDisable` which only toggles behavioral Action Camera CVars (shoulder offset, head tracking, pitch, motion sickness); preference CVars (zoom, FOV, zoom speed, turn speed) are left unchanged so zoom/fov survive mouse look toggles.
 
 ### Changed
 

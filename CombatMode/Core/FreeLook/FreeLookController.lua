@@ -271,10 +271,19 @@ local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
     HideTooltip(isLocking)
   end
 
-  -- Only reset Action Camera settings on permanent unlocks (user-initiated), not temporary ones (UI panels)
+  -- Toggle only behavioral Action Camera CVars (shoulder offset, head tracking,
+  -- pitch dynamics, motion sickness) when "Disable with Mouse Look" is on.
+  -- Preference CVars (zoom, FOV, zoom speed, turn speed) are left alone so the
+  -- camera does not jump when mouse look is turned off and on.
   if CM.DB.global.actionCamera and CM.DB.global.actionCamMouselookDisable then
-    if isLocking or (not isLocking and isPermanentUnlock) then
-      CM.ConfigActionCamera(isLocking and "combatmode" or "blizzard")
+    if isLocking then
+      if CM.ConfigActionCameraMouselookDisable then
+        CM.ConfigActionCameraMouselookDisable(false)
+      end
+    elseif isPermanentUnlock then
+      if CM.ConfigActionCameraMouselookDisable then
+        CM.ConfigActionCameraMouselookDisable(true)
+      end
     end
   end
 

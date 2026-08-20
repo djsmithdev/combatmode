@@ -95,8 +95,24 @@ UI.Options.AddTab({
       end,
     })
     layout:Slider({
+      label = "Head Tracking Strength",
+      desc = "Controls how strongly the camera follows your character's head movement.",
+      min = 0,
+      max = 2,
+      step = 0.1,
+      get = function()
+        return CM.DB.global.actionCameraHeadTracking
+      end,
+      set = function(value)
+        CM.SetActionCameraHeadTracking(value)
+      end,
+      disabled = function()
+        return CM.DynamicCam or CM.DB.global.actionCamera ~= true
+      end,
+    })
+    layout:Slider({
       label = "Field of View",
-      desc = "Sets how wide your view is while using the Action Camera.",
+      desc = "Sets how wide your view of the screen is.",
       min = 50,
       max = 90,
       step = 1,
@@ -137,22 +153,6 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.SetActionCameraZoomSpeed(value)
-      end,
-      disabled = function()
-        return CM.DynamicCam or CM.DB.global.actionCamera ~= true
-      end,
-    })
-    layout:Slider({
-      label = "Head Tracking Strength",
-      desc = "Controls how strongly the camera follows your character's head movement.",
-      min = 0,
-      max = 2,
-      step = 0.1,
-      get = function()
-        return CM.DB.global.actionCameraHeadTracking
-      end,
-      set = function(value)
-        CM.SetActionCameraHeadTracking(value)
       end,
       disabled = function()
         return CM.DynamicCam or CM.DB.global.actionCamera ~= true

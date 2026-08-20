@@ -307,6 +307,25 @@ function CM.ConfigActionCamera(CVarType)
   end
 end
 
+-- Toggle behavioral Action Camera CVars when "Disable with Mouse Look" changes
+-- mouse look state. Only toggles shoulder offset, head tracking, pitch dynamics,
+-- and motion sickness CVars — NOT preference CVars (zoom, FOV, zoom speed, turn
+-- speed) — so zoom/fov/speed survive mouse look toggles.
+function CM.ConfigActionCameraMouselookDisable(actionCamOff)
+  if CM.DynamicCam then
+    return
+  end
+  local values = actionCamOff and CM.Constants.BlizzardActionCameraMouselookDisableValues
+    or CM.Constants.ActionCameraMouselookDisableCMValues
+  for name, value in pairs(values) do
+    CM.SetCVar(name, value)
+  end
+  -- Always apply the user's shoulder offset when in CM mode.
+  if not actionCamOff then
+    CM.SetShoulderOffset()
+  end
+end
+
 function CM.SetActionCameraFov(value)
   CM.DB.global.actionCameraFov = value
   CM.SetCVar("cameraFov", value)
