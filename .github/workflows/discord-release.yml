@@ -2,51 +2,119 @@ name: Discord Release Notification
 
 on:
   release:
-    types:
-      - published
+    types: [published]
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+
     steps:
-      - name: Fetch release with populated body
+      - name: Checkout released tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 1
+
+      - name: Extract changelog for this version
         env:
-          GH_TOKEN: ${{ github.token }}
+          CM_VERSION: ${{ github.event.release.tag_name }}
+        shell: bash
         run: |
-          # Fetch the release from the API rather than reading the event payload.
-          # The Release Package workflow (triggered by the same event) populates
-          # the release body after creation. By the time the runner boots (~15-30s)
-          # and this API call runs, the packager has already set the body.
-          TAG="${{ github.event.release.tag_name }}"
-          gh api "repos/${{ github.repository }}/releases/tags/$TAG" \
-            --jq '{tag_name, html_url, body: (.body // "" | .[0:4000])}' \
-            > /tmp/release.json
+          set -euo pipefail
+
+          python3 <<'PY' > /tmp/changelog.txt
+          import os
+          import re
+          import sys
+
+          changelog = "CombatMode/CHANGELOG.md"
+          version = os.environ["CM_VERSION"].lstrip("v")
+
+          try:
+              with open(changelog, encoding="utf-8") as f:
+                  text = f.read()
+          except FileNotFoundError:
+              print(f"Changelog not found: {changelog}", file=sys.stderr)
+              sys.exit(1)
+
+          # Match:
+          #   ## [1.2.3]
+          #   ## [v1.2.3]
+          # and stop at the next version heading.
+          pattern = (
+              r"^##\s+\[v?"
+              + re.escape(version)
+              + r"\].*?(?=^##\s+\[|\Z)"
+          )
+
+          match = re.search(pattern, text, re.MULTILINE | re.DOTALL)
+
+          if not match:
+              print(
+                  f"No changelog section found for version {version}",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          section = match.group(0).strip()
+
+          # Discord embed descriptions are limited to 4096 characters.
+          # Leave plenty of room below that limit.
+          max_length = 3000
+          if len(section) > max_length:
+              section = section[:max_length].rsplit("\n", 1)[0]
+              section += "\n\n[... truncated]"
+
+          print(section)
+          PY
 
       - name: Send Discord embed
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VERSION: ${{ github.event.release.tag_name }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+          RELEASED_AT: ${{ github.event.release.published_at }}
+        shell: bash
         run: |
-          VERSION=$(jq -r '.tag_name' /tmp/release.json)
-          URL=$(jq -r '.html_url' /tmp/release.json)
-          BODY=$(jq -r '.body // ""' /tmp/release.json)
+          set -euo pipefail
+
+          if [[ -z "${DISCORD_WEBHOOK:-}" ]]; then
+            echo "::error::DISCORD_WEBHOOK_URL secret is not configured"
+            exit 1
+          fi
+
+          BODY=$(cat /tmp/changelog.txt)
 
           jq -n \
-            --arg title "🚀 Combat Mode $VERSION" \
-            --arg url "$URL" \
+            --arg title "🚀 Combat Mode ${VERSION}" \
+            --arg url "$RELEASE_URL" \
             --arg desc "$BODY" \
+            --arg timestamp "$RELEASED_AT" \
             '{
-              embeds: [{
-                title: $title,
-                url: $url,
-                color: 14729472,
-                description: ($desc | if . == "" then null else . end),
-                footer: { text: "djsmithdev/combatmode" },
-                timestamp: (now | todate)
-              }]
+              embeds: [
+                {
+                  title: $title,
+                  url: $url,
+                  color: 14729472,
+                  description: $desc,
+                  footer: {
+                    text: "djsmithdev/combatmode"
+                  },
+                  timestamp: $timestamp
+                }
+              ]
             }' > /tmp/payload.json
 
-          curl -sf -X POST "$DISCORD_WEBHOOK" \
+          echo "Sending release notification for ${VERSION}..."
+
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --retry 3 \
+            --retry-delay 2 \
+            -X POST "$DISCORD_WEBHOOK" \
             -H "Content-Type: application/json" \
-            -d @/tmp/payload.json
+            --data-binary @/tmp/payload.json
