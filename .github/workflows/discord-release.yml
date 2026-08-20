@@ -1,0 +1,52 @@
+name: Discord Release Notification
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Fetch release with populated body
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Fetch the release from the API rather than reading the event payload.
+          # The Release Package workflow (triggered by the same event) populates
+          # the release body after creation. By the time the runner boots (~15-30s)
+          # and this API call runs, the packager has already set the body.
+          TAG="${{ github.event.release.tag_name }}"
+          gh api "repos/${{ github.repository }}/releases/tags/$TAG" \
+            --jq '{tag_name, html_url, body: (.body // "" | .[0:4000])}' \
+            > /tmp/release.json
+
+      - name: Send Discord embed
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          VERSION=$(jq -r '.tag_name' /tmp/release.json)
+          URL=$(jq -r '.html_url' /tmp/release.json)
+          BODY=$(jq -r '.body // ""' /tmp/release.json)
+
+          jq -n \
+            --arg title "🚀 Combat Mode $VERSION" \
+            --arg url "$URL" \
+            --arg desc "$BODY" \
+            '{
+              embeds: [{
+                title: $title,
+                url: $url,
+                color: 14729472,
+                description: ($desc | if . == "" then null else . end),
+                footer: { text: "djsmithdev/combatmode" },
+                timestamp: (now | todate)
+              }]
+            }' > /tmp/payload.json
+
+          curl -sf -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d @/tmp/payload.json
