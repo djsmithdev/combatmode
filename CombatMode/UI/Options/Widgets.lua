@@ -1020,6 +1020,13 @@ function UI.MakeToggle(parent, opts)
     SetDescAlpha(control, a)
     ClearHoverIfDisabled(row, disabled)
     row:SetEnabled(not disabled)
+    if control.watermark then
+      if disabled then
+        control.watermark:Show()
+      else
+        control.watermark:Hide()
+      end
+    end
   end
 
   row:SetScript("OnClick", function()
@@ -1042,6 +1049,11 @@ function UI.MakeToggle(parent, opts)
   end)
   AddRowHover(row, opts)
   AttachOptionText(control, row, opts, 20)
+
+  -- DynamicCam-style stamp over the whole row while this field is disabled by DynamicCam.
+  if opts.watermarkWhenDisabled and opts.watermarkWhenDisabled ~= "" then
+    control.watermark = UI.CreateWatermark(row, opts.watermarkWhenDisabled, UI.Fonts.nav)
+  end
 
   return Register(control)
 end
@@ -1248,10 +1260,23 @@ function UI.MakeSlider(parent, opts)
     slider:SetAlpha(a)
     SetDescAlpha(control, a)
     ClearHoverIfDisabled(row, disabled)
+    if control.watermark then
+      if disabled then
+        control.watermark:Show()
+      else
+        control.watermark:Hide()
+      end
+    end
   end
 
   AddRowHover(row, opts, slider)
   AttachOptionText(control, row, opts, 22)
+
+  -- DynamicCam-style stamp over the whole row while this field is disabled by DynamicCam.
+  if opts.watermarkWhenDisabled and opts.watermarkWhenDisabled ~= "" then
+    control.watermark = UI.CreateWatermark(row, opts.watermarkWhenDisabled, UI.Fonts.nav)
+  end
+
   return Register(control)
 end
 

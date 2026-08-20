@@ -1,16 +1,16 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Tabs/TabCamera.lua — OPTIONS TAB — Action Camera / sticky / speeds
+--  UI/Options/Tabs/TabCamera.lua — OPTIONS TAB — Action Camera + additional features
 ---------------------------------------------------------------------------------------
 --  What it does: Wires Action Camera preset toggle (reload), actionCamMouselookDisable,
---  stickyCrosshair, shoulderOffset, mouseLookSpeed, and the Additional Features section
---  (vignette toggle). Also exposes four adjustable Action Camera CVars (FOV, max zoom,
---  zoom scroll speed, head tracking strength) via immediate-apply sliders.
+--  shoulderOffset, and the Additional Features section (vignette toggle). Also exposes
+--  four adjustable Action Camera CVars (FOV, max zoom, zoom scroll speed, head tracking
+--  strength) via immediate-apply sliders.
 --  Architecture / how it works:
---    • DB: global.actionCamera, actionCamMouselookDisable, mouseLookSpeed,
+--    • DB: global.actionCamera, actionCamMouselookDisable,
 --      actionCamera{Fov,MaxZoom,ZoomSpeed,HeadTracking},
---      vignette; char.shoulderOffset, stickyCrosshair.
---    • set() → ConfigActionCamera / ConfigStickyCrosshair / SetShoulderOffset /
---      SetMouseLookSpeed / SetActionCamera{Fov,MaxZoom,ZoomSpeed,HeadTracking} (CVarManager).
+--      vignette; char.shoulderOffset.
+--    • set() → ConfigActionCamera / SetShoulderOffset /
+--      SetActionCamera{Fov,MaxZoom,ZoomSpeed,HeadTracking} (CVarManager).
 --  Does not: Own CVar preset tables (Constants/CVars) or freelook lock.
 --  Related: Core/Runtime/CVarManager.lua, Constants/CVars.lua,
 --  Core/Crosshair/Crosshair.lua, Constants/DatabaseDefaults.lua,
@@ -74,42 +74,6 @@ UI.Options.AddTab({
       end,
       disabled = function()
         return CM.DynamicCam or CM.DB.global.actionCamera ~= true
-      end,
-    })
-    layout:Toggle({
-      label = "Sticky Targeting",
-      desc = "Reticle slightly sticks to enemies so they're harder to lose by accident.",
-      charSpecific = true,
-      get = function()
-        return CM.DB.char.stickyCrosshair
-      end,
-      set = function(value)
-        CM.DB.char.stickyCrosshair = value
-        if value then
-          CM.ConfigStickyCrosshair("combatmode")
-        else
-          CM.ConfigStickyCrosshair("blizzard")
-        end
-      end,
-      disabled = function()
-        return CM.DynamicCam or not CM.IsCrosshairEnabled()
-      end,
-    })
-    layout:Slider({
-      label = "Turn Speed",
-      desc = "Controls how quickly the camera turns while using Mouse Look.",
-      min = 10,
-      max = 180,
-      step = 10,
-      get = function()
-        return CM.DB.global.mouseLookSpeed
-      end,
-      set = function(value)
-        CM.DB.global.mouseLookSpeed = value
-        CM.SetMouseLookSpeed()
-      end,
-      disabled = function()
-        return CM.DynamicCam
       end,
     })
     layout:Slider({

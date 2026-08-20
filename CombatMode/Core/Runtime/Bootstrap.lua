@@ -31,6 +31,28 @@ local SetBinding = _G.SetBinding
 -- Lua stdlib
 local pairs = _G.pairs
 
+-- Suppress the experimental CVar confirmation popup so Action Camera CVars
+-- don't trigger a dialog on every login/reload. CM sets experimental CVars
+-- (e.g. test_cameraHeadMovementStrength) intentionally for the Action Camera
+-- feature, so the warning is noise. We hook StaticPopup_Show directly because
+-- UIParent registers for EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED during Blizzard
+-- init and its OnEvent fires before any addon-created frame can react.
+local origShow = _G.StaticPopup_Show
+_G.StaticPopup_Show = function(which, ...)
+  if which == "EXPERIMENTAL_CVAR_WARNING" then
+    return nil
+  end
+  return origShow(which, ...)
+end
+-- Dismiss any popup already on screen from earlier in this session (edge case:
+-- e.g. a previous /reload where the popup was already queued).
+for i = 1, _G.STATICPOPUP_NUMDIALOGS or 20 do
+  local popup = _G["StaticPopup" .. i]
+  if popup and popup:IsShown() and popup.which == "EXPERIMENTAL_CVAR_WARNING" then
+    popup:Hide()
+  end
+end
+
 local function CreateTargetMacros()
   local macroIcon = "ability_hisek_aim"
 

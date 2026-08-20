@@ -2,12 +2,13 @@
 --  UI/Options/Tabs/TabReticleTargeting.lua — OPTIONS TAB — reticle targeting
 ---------------------------------------------------------------------------------------
 --  What it does: Wires Reticle Targeting enable (reload + ConfigReticleTargeting),
---  enemy-only preline mode, macroInjectionClickCastOnly, exclude / cast-at-crosshair
---  spell multi-selects, and Advanced buttons that open the Reticle CVar editor and
---  Targeting Macro Prelines editor.
+--  enemy-only preline mode, macroInjectionClickCastOnly, sticky targetting
+--  (under Click Casting Only), exclude / cast-at-crosshair spell multi-selects,
+--  and Advanced buttons that open the Reticle CVar editor and Targeting Macro
+--  Prelines editor.
 --  Architecture / how it works:
 --    • DB.char: reticleTargeting, reticleTargetingEnemyOnly, macroInjectionClickCastOnly,
---      excludeFromTargetingSpells, castAtCursorSpells.
+--      stickyCrosshair, excludeFromTargetingSpells, castAtCursorSpells.
 --    • macroInjectionClickCastOnly disabled/forced when ThirdPartyActionBarsActive.
 --    • Spell lists stored as spell-ID CSV; membership in TargetingMacroBuilder.
 --  Does not: Own CVar override table UI (ReticleCVarEditor*) or secure proxies.
@@ -85,6 +86,27 @@ UI.Options.AddTab({
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting or CM.ThirdPartyActionBarsActive == true
+      end,
+    })
+    ctx:Gap()
+    ctx:Toggle({
+      label = "Sticky Targeting",
+      desc = "Slightly pulls the reticle toward units, making it easier to maintain your target.",
+      charSpecific = true,
+      watermarkWhenDisabled = "Control relinquished to DynamicCam",
+      get = function()
+        return CM.DB.char.stickyCrosshair
+      end,
+      set = function(value)
+        CM.DB.char.stickyCrosshair = value
+        if value then
+          CM.ConfigStickyCrosshair("combatmode")
+        else
+          CM.ConfigStickyCrosshair("blizzard")
+        end
+      end,
+      disabled = function()
+        return CM.DynamicCam or not CM.DB.char.reticleTargeting
       end,
     })
     ctx:Gap()

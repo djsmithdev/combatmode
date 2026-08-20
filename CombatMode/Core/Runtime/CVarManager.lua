@@ -28,7 +28,6 @@ local _G = _G
 -- WoW API
 local GetCVar = _G.C_CVar.GetCVar
 local GetCVarDefault = _G.C_CVar.GetCVarDefault
-local UIParent = _G.UIParent
 
 -- Always resolve through the live C_CVar.SetCVar so hooksecurefunc consumers
 -- (e.g. Reticle CVar editor attribution) see Combat Mode writes. A load-time
@@ -291,9 +290,8 @@ function CM.ConfigActionCamera(CVarType)
     return
   end
 
-  -- Disable the Action Cam warning message BEFORE writing CVars, since SetCVar
-  -- fires EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED synchronously.
-  UIParent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
+  -- Apply CVars
+  -- (popup suppression is handled in Bootstrap.lua via a StaticPopup_Show hook)
 
   local info = {
     CVarType = CVarType,

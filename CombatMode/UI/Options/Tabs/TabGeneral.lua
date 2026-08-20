@@ -2,13 +2,14 @@
 --  UI/Options/Tabs/TabGeneral.lua — OPTIONS TAB — Mouse Look / Interact / Target Lock
 ---------------------------------------------------------------------------------------
 --  What it does: Wires General-tab controls to freelook and interact/focus binds:
---  Mouse Look keybind, pulseCursor, hideTooltip, Interact keybind + interactUnit
---  (mouseover vs soft target, with ALT+key on the alternate command), Target Lock keybind,
---  cycleFocusWithMouseWheel, showTargetLockMarker. Target Lock sound cues are now always on
---  and focus current target then mouseover is the default behavior
+--  Mouse Look keybind, pulseCursor, hideTooltip, turn speed, sheath weapons,
+--  Interact keybind + interactUnit (mouseover vs soft target, with ALT+key on the
+--  alternate command), Target Lock keybind, cycleFocusWithMouseWheel,
+--  showTargetLockMarker.
 --  Architecture / how it works:
---    • DB: global.pulseCursor, hideTooltip, interactUnit, cycleFocusWithMouseWheel,
---      showTargetLockMarker. targetLockSounds and focusCurrentTargetNotCrosshair retired —
+--    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed,
+--      sheathWeaponsWithMouselook, interactUnit,
+--      cycleFocusWithMouseWheel, showTargetLockMarker.
 --    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
 --      orphans on the stolen key and refreshes Target Lock override). Cycle Lock with
 --      Mouse Wheel also uses TryApplyBindingChange → UpdateFocusCycleWheelBindings.
@@ -155,6 +156,24 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.global.sheathWeaponsWithMouselook = value
+      end,
+    })
+    ctx:Slider({
+      label = "Mouse Look Turn Speed",
+      desc = "Controls how quickly the camera turns while using Mouse Look.",
+      min = 10,
+      max = 180,
+      step = 10,
+      watermarkWhenDisabled = "Control relinquished to DynamicCam",
+      get = function()
+        return CM.DB.global.mouseLookSpeed
+      end,
+      set = function(value)
+        CM.DB.global.mouseLookSpeed = value
+        CM.SetMouseLookSpeed()
+      end,
+      disabled = function()
+        return CM.DynamicCam
       end,
     })
 
