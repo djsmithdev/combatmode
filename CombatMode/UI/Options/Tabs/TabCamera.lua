@@ -3,13 +3,14 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Wires Action Camera preset toggle (reload), actionCamMouselookDisable,
 --  stickyCrosshair, shoulderOffset, mouseLookSpeed, and the Additional Features section
---  (vignette toggle). The vignette always fades with Mouse Look. Shows a DynamicCam
---  watermark / disable when that addon is present.
+--  (vignette toggle). Also exposes four adjustable Action Camera CVars (FOV, max zoom,
+--  zoom scroll speed, head tracking strength) via immediate-apply sliders.
 --  Architecture / how it works:
 --    • DB: global.actionCamera, actionCamMouselookDisable, mouseLookSpeed,
+--      actionCamera{Fov,MaxZoom,ZoomSpeed,HeadTracking},
 --      vignette; char.shoulderOffset, stickyCrosshair.
 --    • set() → ConfigActionCamera / ConfigStickyCrosshair / SetShoulderOffset /
---      SetMouseLookSpeed (CVarManager).
+--      SetMouseLookSpeed / SetActionCamera{Fov,MaxZoom,ZoomSpeed,HeadTracking} (CVarManager).
 --  Does not: Own CVar preset tables (Constants/CVars) or freelook lock.
 --  Related: Core/Runtime/CVarManager.lua, Constants/CVars.lua,
 --  Core/Crosshair/Crosshair.lua, Constants/DatabaseDefaults.lua,
@@ -40,7 +41,7 @@ UI.Options.AddTab({
 
     layout:Toggle({
       label = "Enable Preset",
-      desc = "Apply Combat Mode's Action Camera preset.",
+      desc = "Use Combat Mode's Action Camera settings for a more dynamic, immersive camera.",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = function()
@@ -61,7 +62,7 @@ UI.Options.AddTab({
     })
     layout:Toggle({
       label = "Disable with Mouse Look",
-      desc = "Turn Action Camera off when Mouse Look is off.",
+      desc = "Automatically disable the Action Camera preset when Mouse Look is off.",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = function()
@@ -95,8 +96,25 @@ UI.Options.AddTab({
       end,
     })
     layout:Slider({
+      label = "Turn Speed",
+      desc = "Controls how quickly the camera turns while using Mouse Look.",
+      min = 10,
+      max = 180,
+      step = 10,
+      get = function()
+        return CM.DB.global.mouseLookSpeed
+      end,
+      set = function(value)
+        CM.DB.global.mouseLookSpeed = value
+        CM.SetMouseLookSpeed()
+      end,
+      disabled = function()
+        return CM.DynamicCam
+      end,
+    })
+    layout:Slider({
       label = "Shoulder Offset",
-      desc = "Horizontal camera offset with the Action Camera preset.",
+      desc = "Adjusts how far the camera sits to the left or right of your character.",
       charSpecific = true,
       min = -2,
       max = 2,
@@ -113,20 +131,67 @@ UI.Options.AddTab({
       end,
     })
     layout:Slider({
-      label = "Turn Speed",
-      desc = "Camera turn speed during Mouse Look.",
-      min = 10,
-      max = 180,
-      step = 10,
+      label = "Field of View",
+      desc = "Sets how wide your view is while using the Action Camera.",
+      min = 50,
+      max = 90,
+      step = 1,
       get = function()
-        return CM.DB.global.mouseLookSpeed
+        return CM.DB.global.actionCameraFov
       end,
       set = function(value)
-        CM.DB.global.mouseLookSpeed = value
-        CM.SetMouseLookSpeed()
+        CM.SetActionCameraFov(value)
       end,
       disabled = function()
-        return CM.DynamicCam
+        return CM.DynamicCam or CM.DB.global.actionCamera ~= true
+      end,
+    })
+    layout:Slider({
+      label = "Max Zoom Distance",
+      desc = "Sets how far you can zoom the camera away from your character.",
+      min = 15,
+      max = 39,
+      step = 1,
+      get = function()
+        return CM.DB.global.actionCameraMaxZoom
+      end,
+      set = function(value)
+        CM.SetActionCameraMaxZoom(value)
+      end,
+      disabled = function()
+        return CM.DynamicCam or CM.DB.global.actionCamera ~= true
+      end,
+    })
+    layout:Slider({
+      label = "Zoom Scroll Speed",
+      desc = "Controls how quickly the camera zooms when scrolling the mouse wheel.",
+      min = 1,
+      max = 50,
+      step = 1,
+      get = function()
+        return CM.DB.global.actionCameraZoomSpeed
+      end,
+      set = function(value)
+        CM.SetActionCameraZoomSpeed(value)
+      end,
+      disabled = function()
+        return CM.DynamicCam or CM.DB.global.actionCamera ~= true
+      end,
+    })
+    layout:Slider({
+      label = "Head Tracking Strength",
+      desc = "Controls how strongly the camera follows your character's head movement.",
+      min = 0,
+      max = 2,
+      step = 0.1,
+      get = function()
+        return CM.DB.global.actionCameraHeadTracking
+      end,
+      set = function(value)
+        CM.SetActionCameraHeadTracking(value)
+      end,
+      disabled = function()
+        return CM.DynamicCam or CM.DB.global.actionCamera ~= true
       end,
     })
 
@@ -144,7 +209,7 @@ UI.Options.AddTab({
     ctx:Header("ADDITIONAL FEATURES")
     ctx:Toggle({
       label = "Vignette Effect",
-      desc = "Darkens the edges of the screen to reduce visual distractions.",
+      desc = "Darkens the edges of the screen for a more focused, cinematic view.",
       get = function()
         return CM.DB.global.vignette
       end,
@@ -154,7 +219,7 @@ UI.Options.AddTab({
     })
     ctx:Toggle({
       label = "Vignette Tied To Mouse Look",
-      desc = "Vignette fades out when Mouse Look is off and fades in when engaged.",
+      desc = "Fades the vignette out when Mouse Look is off and back in when it's on.",
       get = function()
         return CM.DB.global.vignetteFadeWithMouselook
       end,

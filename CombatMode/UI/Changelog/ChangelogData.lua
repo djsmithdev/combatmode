@@ -14,6 +14,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.1] - 2026-08-20
+
+### Added
+
+- Four new adjustable Action Camera CVars in the Action Camera options tab: Field of View (50–90°), Max Zoom Distance (15–39 yards), Zoom Scroll Speed (1–50 inc/s), and Head Tracking Strength (0–2). Each slider applies immediately and only shows when the Action Camera preset is on (disabled when DynamicCam is loaded).
+- Frame name to Vignette effect: `CombatModeVignetteFrame`.
+- Added Alliance's version of Traveler's Tundra Mammoth to the Unlock Mount list.
+
+### Changed
+
+- Camera presets now apply adjustable CVars (FOV, max zoom, scroll speed, head tracking) on top of the base Action Camera preset values at enable time.
+
 ## [4.3.0] - 2026-08-19
 
 ### Added
@@ -343,7 +355,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.3.0...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.3.1...HEAD
+[4.3.1]: https://github.com/djsmithdev/combatmode/compare/4.3.0...4.3.1
 [4.3.0]: https://github.com/djsmithdev/combatmode/compare/4.2.1...4.3.0
 [4.2.1]: https://github.com/djsmithdev/combatmode/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/djsmithdev/combatmode/compare/4.1.6...4.2.0

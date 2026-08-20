@@ -262,6 +262,30 @@ function CM.ConfigInteractionHUDSoftTarget()
   CM.DebugPrint("Interaction HUD SoftTarget CVars applied")
 end
 
+local CAMERA_DISTANCE_BASE_YARDS = 15
+
+local function ApplyActionCameraAdjustableCVars()
+  local g = CM.DB and CM.DB.global
+  if not g then
+    return
+  end
+  CM.SetCVar("cameraFov", g.actionCameraFov)
+  CM.SetCVar("cameraDistanceMaxZoomFactor", g.actionCameraMaxZoom / CAMERA_DISTANCE_BASE_YARDS)
+  CM.SetCVar("cameraZoomSpeed", g.actionCameraZoomSpeed)
+  CM.SetCVar("test_cameraHeadMovementStrength", g.actionCameraHeadTracking)
+  CM.DebugPrint(
+    "Action Camera adjustable CVars applied (FOV="
+      .. tostring(g.actionCameraFov)
+      .. " zoom="
+      .. tostring(g.actionCameraMaxZoom)
+      .. " scroll="
+      .. tostring(g.actionCameraZoomSpeed)
+      .. " headTracking="
+      .. tostring(g.actionCameraHeadTracking)
+      .. ")"
+  )
+end
+
 function CM.ConfigActionCamera(CVarType)
   if CM.DynamicCam then
     return
@@ -281,7 +305,28 @@ function CM.ConfigActionCamera(CVarType)
   CM.ApplyCVarConfig(info)
   if CVarType == "combatmode" then
     CM.SetShoulderOffset()
+    ApplyActionCameraAdjustableCVars()
   end
+end
+
+function CM.SetActionCameraFov(value)
+  CM.DB.global.actionCameraFov = value
+  CM.SetCVar("cameraFov", value)
+end
+
+function CM.SetActionCameraMaxZoom(yards)
+  CM.DB.global.actionCameraMaxZoom = yards
+  CM.SetCVar("cameraDistanceMaxZoomFactor", yards / CAMERA_DISTANCE_BASE_YARDS)
+end
+
+function CM.SetActionCameraZoomSpeed(value)
+  CM.DB.global.actionCameraZoomSpeed = value
+  CM.SetCVar("cameraZoomSpeed", value)
+end
+
+function CM.SetActionCameraHeadTracking(value)
+  CM.DB.global.actionCameraHeadTracking = value
+  CM.SetCVar("test_cameraHeadMovementStrength", value)
 end
 
 function CM.ConfigStickyCrosshair(CVarType)

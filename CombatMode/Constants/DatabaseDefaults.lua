@@ -125,6 +125,10 @@ CM.Constants.DatabaseDefaults = {
     actionCamera = true,
     actionCamMouselookDisable = true,
     mouseLookSpeed = 100,
+    actionCameraFov = 90,
+    actionCameraMaxZoom = 15, -- cameraDistanceMaxZoomFactor: 1.0 multiplier = 15 yards base. UI stores yards (15–39).
+    actionCameraZoomSpeed = 20,
+    actionCameraHeadTracking = 1,
     vignette = true,
     vignetteFadeWithMouselook = true,
     -- radial
