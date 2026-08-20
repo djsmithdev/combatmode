@@ -118,7 +118,7 @@ function CM.InitializeVignette()
     return
   end
 
-  vignetteFrame = CreateFrame("Frame", nil, UIParent)
+  vignetteFrame = CreateFrame("Frame", "CombatModeVignetteFrame", UIParent)
   vignetteFrame:SetFrameStrata("BACKGROUND")
   vignetteFrame:SetAllPoints(UIParent)
   vignetteFrame:EnableMouse(false)
