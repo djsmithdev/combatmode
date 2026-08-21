@@ -14,6 +14,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.3] - 2026-08-20
+
+### Fixed
+
+- Fixed issue where upgrading items would cause a Lua error due to `StaticPopup_Show` hook + dismiss loop.
+
 ## [4.3.2] - 2026-08-20
 
 ### Fixed
@@ -367,7 +373,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.3.2...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.3.3...HEAD
+[4.3.3]: https://github.com/djsmithdev/combatmode/compare/4.3.2...4.3.3
 [4.3.2]: https://github.com/djsmithdev/combatmode/compare/4.3.1...4.3.2
 [4.3.1]: https://github.com/djsmithdev/combatmode/compare/4.3.0...4.3.1
 [4.3.0]: https://github.com/djsmithdev/combatmode/compare/4.2.1...4.3.0
