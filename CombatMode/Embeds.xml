@@ -40,6 +40,7 @@
     <Script file="Core\Crosshair\AssistedHighlight\Assist.lua"/>
     <Script file="Core\Crosshair\FocusNameplateMarker.lua"/>
     <Script file="Core\Crosshair\Crosshair.lua"/>
+    <Script file="Core\Crosshair\CrosshairImprovements.lua"/>
     <!-- PARTY RADIAL: PartyData → SecureBindings → HealthBars → RoleIcons → Visual →
          Lifecycle → PartyRadial (façade / CM.PartyRadial public API). -->
     <Script file="Core\PartyRadial\PartyData.lua"/>
