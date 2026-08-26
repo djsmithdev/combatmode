@@ -4,25 +4,28 @@
 --  What it does: On Target Lock (when showTargetLockMarker is on), switches the center
 --  reticle to a static base-colored Dot (unreactive) and reverse-explodes a hostile-red
 --  hit marker (user's crosshair Appearance Active/-hit texture) onto the focus nameplate
---  health bar center. When the locked unit is casting, the marker smoothly oscillates
---  between hostile red and white at 0.8s intervals — a visual cue without protected APIs. Unlock or toggle-off hides
---  the marker and restores the reactive reticle.
+--  health bar center. Once settled, the marker color-pulses between hostile red and white.
+--  Unlock or toggle-off hides the marker and restores the reactive reticle.
 --  Architecture / how it works:
 --    • CM.UpdateFocusNameplateMarker / ClearFocusNameplateMarker / OnFocusNameplateMarkerEvent.
 --    • Gated by CM.IsTargetLockEnabled (char.reticleTargeting) and
 --      CM.DB.global.showTargetLockMarker (default true; ~= false). Off → Clear.
 --    • State machine: IDLE → PLATE_ARRIVE → SETTLED (instant clear on unlock).
+--      Phases are sequential and own different channels: arrive = scale/alpha only
+--      (fixed hostile color); settled = vertex-color pulse only (scale/alpha held at 1).
+--    • Marker parents to the nameplate root with SetIgnoreParentAlpha so Platynator/
+--      Blizzard health-bar alpha does not multiply with our arrive fade or color pulse.
 --    • While focus exists and the marker option is on, center stays on the static Dot
---      even if no nameplate is visible (user feedback that Target Lock is held). Plate
---      arrive still shows the hit marker; unlock / marker-off Clears and restores.
+--      even if no nameplate is visible. Unlock / marker-off Clears and restores.
 --    • Own OnUpdate (does not use Animations.lua reticle motion channel).
 --    • Anchors centered on Blizzard/Platynator health bar (IsVisible + under-plate).
+--      Platynator is preferred over UnitFrame.healthBar; widgets iterated with pairs
+--      (array or map). Secret bar sizes are treated as plausible, not rejected.
 --    • Plate GetWidth/GetAlpha/GetScale probes are secret-safe (issecretvalue) so instance
 --      taint cannot error while scanning StatusBars.
 --    • Driven by PLAYER_FOCUS_CHANGED + NAME_PLATE_UNIT_ADDED/REMOVED via EventRouter.
---    • Casting flash: OnDriverUpdate checks UnitCastingInfo("focus") per frame during
---      SETTLED. If casting, the marker smoothly oscillates between hostile red and
---      white on a 0.8s cosine wave. If not casting, restores the focus color.
+--    • Arrive runs once per lock session; plate recycle ResumeSettled (no re-arrive).
+--      flashElapsed also survives recycle. True unlock clears the session.
 --  Does not: Own focus macros, Target Lock keybind, sounds, or third-party nameplate restyles.
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/Animations.lua,
 --  Core/Runtime/EventRouter.lua, Constants/Assets.lua, UI/Options/Tabs/TabGeneral.lua
@@ -32,8 +35,6 @@ local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
-local UnitCastingInfo = _G.UnitCastingInfo
-local UnitChannelInfo = _G.UnitChannelInfo
 local UnitExists = _G.UnitExists
 local UnitIsUnit = _G.UnitIsUnit
 local UIParent = _G.UIParent
@@ -63,15 +64,17 @@ local MARKER_SIZE = 24
 local ARRIVE_DURATION = 0.25
 local ARRIVE_START_SCALE = 1.4
 
--- Casting pulse: rhythmic color flash between hostile red and dim inactive while focus casts.
-local CASTING_FLASH_PERIOD = 0.8
+-- Settled idle: color pulse only (arrive owns scale/alpha; never overlap those channels).
+local MARKER_FLASH_PERIOD = 0.8
 
 local PLATE_ADD_DEFER_SEC = 0.05
 local SIZE_RETRY_SEC = 0.12
 local SIZE_RETRY_MAX = 4
 
 local state = STATE_IDLE
-local motionElapsed = 0
+local motionElapsed = 0 -- arrive progress only
+local flashElapsed = 0 -- survives plate recycle while still locked
+local lockSessionActive = false -- true after first plate show until unlock/clear
 local activePlate
 local activeAnchor
 local pendingPlateAdd
@@ -125,7 +128,7 @@ local function GetMarkerTexturePath()
   return "Interface\\AddOns\\CombatMode\\assets\\crosshairDefault-hit.blp"
 end
 
-local function ApplyTexture(tex)
+local function ApplyTexture(tex, resetColor)
   if not tex then
     return false
   end
@@ -134,8 +137,11 @@ local function ApplyTexture(tex)
   if not ok then
     return false
   end
-  local r, g, b, a = GetFocusColor()
-  tex:SetVertexColor(r, g, b, a)
+  -- Skip color reset while the settled flash owns vertex color (reanchor mid-combat).
+  if resetColor ~= false then
+    local r, g, b, a = GetFocusColor()
+    tex:SetVertexColor(r, g, b, a)
+  end
   return true
 end
 
@@ -187,17 +193,30 @@ local function IsUnderPlate(region, plate)
 end
 
 local function GetVisualSize(region)
-  -- Secret width/height/scale → 0 so the candidate fails IsPlausibleHealthBarSize.
-  local w = PublicNumber(region.GetWidth and region:GetWidth(), 0)
-  local h = PublicNumber(region.GetHeight and region:GetHeight(), 0)
-  local scale = PublicNumber(region.GetScale and region:GetScale(), 1)
-  return w * scale, h * scale
+  -- Secret width/height/scale: do not coerce to 0 (that falsely fails size checks on
+  -- third-party plates under taint). Treat unknown as a mid-range bar so Platynator
+  -- / custom StatusBars can still be accepted when other heuristics match.
+  local rawW = region.GetWidth and region:GetWidth()
+  local rawH = region.GetHeight and region:GetHeight()
+  local rawScale = region.GetScale and region:GetScale()
+  local secretSize = (issecretvalue and (issecretvalue(rawW) or issecretvalue(rawH))) and true
+    or false
+  local w = PublicNumber(rawW, secretSize and 40 or 0)
+  local h = PublicNumber(rawH, secretSize and 8 or 0)
+  local scale = PublicNumber(rawScale, 1)
+  return w * scale, h * scale, secretSize
 end
 
-local function IsPlausibleHealthBarSize(w, h)
+local function IsPlausibleHealthBarSize(w, h, secretSize)
+  if secretSize then
+    return true
+  end
   return w >= 16 and h >= 2 and h <= 64
 end
 
+-- Platynator hangs a display frame (with .widgets) under the nameplate. Widgets may be
+-- an array or a map — always iterate with pairs. Returns: statusBarOrWidget | nil.
+-- nil = not a Platynator plate or no usable health widget (caller should fall through).
 local function FindPlatynatorHealthWidget(plate)
   local children = { plate:GetChildren() }
   for i = 1, #children do
@@ -205,8 +224,7 @@ local function FindPlatynatorHealthWidget(plate)
     local widgets = display and display.widgets
     if type(widgets) == "table" then
       local best, bestArea = nil, 0
-      for j = 1, #widgets do
-        local widget = widgets[j]
+      for _, widget in pairs(widgets) do
         if
           widget
           and widget.UpdateHealth
@@ -214,8 +232,8 @@ local function FindPlatynatorHealthWidget(plate)
           and IsUsableRegion(widget)
           and IsUnderPlate(widget, plate)
         then
-          local w, h = GetVisualSize(widget)
-          if IsPlausibleHealthBarSize(w, h) then
+          local w, h, secretSize = GetVisualSize(widget)
+          if IsPlausibleHealthBarSize(w, h, secretSize) then
             local area = w * h
             if area > bestArea then
               best = widget
@@ -230,7 +248,8 @@ local function FindPlatynatorHealthWidget(plate)
         end
         return best
       end
-      return false
+      -- Widgets table present but no match yet — do not block StatusBar fallback.
+      return nil
     end
   end
   return nil
@@ -240,9 +259,17 @@ local function FindBestVisibleStatusBar(frame, depth, best, bestArea)
   if not frame or depth > 6 then
     return best, bestArea
   end
-  if frame.IsObjectType and frame:IsObjectType("StatusBar") and IsUsableRegion(frame) then
-    local w, h = GetVisualSize(frame)
-    if IsPlausibleHealthBarSize(w, h) then
+  -- Aura/buff containers and other addon widgets under the plate can be forbidden;
+  -- touching them (IsObjectType, GetChildren) errors under addon taint.
+  if frame.IsForbidden and frame:IsForbidden() then
+    return best, bestArea
+  end
+  local okType, isStatusBar = pcall(function()
+    return frame.IsObjectType and frame:IsObjectType("StatusBar")
+  end)
+  if okType and isStatusBar and IsUsableRegion(frame) then
+    local w, h, secretSize = GetVisualSize(frame)
+    if IsPlausibleHealthBarSize(w, h, secretSize) then
       local area = w * h
       if area > bestArea then
         best = frame
@@ -250,50 +277,54 @@ local function FindBestVisibleStatusBar(frame, depth, best, bestArea)
       end
     end
   end
-  local children = { frame:GetChildren() }
-  for i = 1, #children do
-    best, bestArea = FindBestVisibleStatusBar(children[i], depth + 1, best, bestArea)
+  local okKids, children = pcall(function()
+    return { frame:GetChildren() }
+  end)
+  if okKids and children then
+    for i = 1, #children do
+      best, bestArea = FindBestVisibleStatusBar(children[i], depth + 1, best, bestArea)
+    end
   end
   return best, bestArea
 end
 
---- Returns health-bar anchor, needsRetry.
+--- Returns health-bar anchor (or nil).
 local function GetIconAnchor(plate)
   if not plate then
-    return nil, false
+    return nil
   end
   if plate.IsForbidden and plate:IsForbidden() then
-    return nil, false
+    return nil
+  end
+
+  -- Prefer Platynator (and other custom plates) before Blizzard UnitFrame: with
+  -- nameplate addons loaded, UnitFrame.healthBar may still exist but be the wrong
+  -- (hidden/unused) bar — anchoring there makes the marker invisible.
+  local platWidget = FindPlatynatorHealthWidget(plate)
+  if platWidget then
+    return platWidget
   end
 
   local unitFrame = plate.UnitFrame
   if unitFrame and not (unitFrame.IsForbidden and unitFrame:IsForbidden()) then
     local healthBar = unitFrame.healthBar
     if healthBar and IsUsableRegion(healthBar) and IsUnderPlate(healthBar, plate) then
-      local w, h = GetVisualSize(healthBar)
-      if IsPlausibleHealthBarSize(w, h) then
-        return healthBar, false
+      local w, h, secretSize = GetVisualSize(healthBar)
+      if IsPlausibleHealthBarSize(w, h, secretSize) then
+        return healthBar
       end
     end
   end
 
-  local platWidget = FindPlatynatorHealthWidget(plate)
-  if platWidget then
-    return platWidget, false
-  end
-  if platWidget == false then
-    return nil, true
-  end
-
   local scanned = FindBestVisibleStatusBar(plate, 0, nil, 0)
   if scanned then
-    return scanned, false
+    return scanned
   end
 
   if IsUsableRegion(plate) then
-    return plate, false
+    return plate
   end
-  return nil, false
+  return nil
 end
 
 local function EnsureMarkerFrame()
@@ -330,11 +361,17 @@ local function HideMarkerInstant()
   end
 end
 
-local function AnchorMarkerCentered(anchor)
+-- Parent to nameplate root (not the health StatusBar): bar alpha fades from
+-- Platynator/Blizzard would otherwise multiply with our color pulse.
+local function AnchorMarkerCentered(plate, anchor, resetColor)
   local marker = EnsureMarkerFrame()
-  marker:SetParent(anchor)
+  local parent = plate or UIParent
+  marker:SetParent(parent)
   if marker.SetIgnoreParentScale then
     marker:SetIgnoreParentScale(true)
+  end
+  if marker.SetIgnoreParentAlpha then
+    marker:SetIgnoreParentAlpha(true)
   end
   local strata = anchor.GetFrameStrata and anchor:GetFrameStrata() or "BACKGROUND"
   if strata == "BACKGROUND" then
@@ -345,74 +382,61 @@ local function AnchorMarkerCentered(anchor)
   marker:ClearAllPoints()
   marker:SetPoint("CENTER", anchor, "CENTER", 0, 0)
   marker:SetSize(MARKER_SIZE, MARKER_SIZE)
-  ApplyTexture(marker.icon)
+  ApplyTexture(marker.icon, resetColor)
   return marker
 end
 
-local BeginPlateArrive
-local StartTransfer
-
-local function SetIdle()
+local function SetIdle(resetFlash)
   state = STATE_IDLE
   motionElapsed = 0
+  if resetFlash then
+    flashElapsed = 0
+    lockSessionActive = false
+  end
   StopDriver()
+end
+
+local function ApplyFocusColor(marker)
+  local r, g, b, a = GetFocusColor()
+  marker.icon:SetVertexColor(r, g, b, a)
+end
+
+local function ApplyFlashColor(marker)
+  local t = Clamp01((flashElapsed % MARKER_FLASH_PERIOD) / MARKER_FLASH_PERIOD)
+  -- Cosine: 1 at t=0, 0 at t=0.5, 1 at t=1.
+  local phase = 0.5 + 0.5 * math.cos(t * 2 * math.pi)
+  -- phase=1 (t=0): hostile red (1, 0.2, 0.3). phase=0 (t=0.5): white (1, 1, 1).
+  local g = 1 - 0.8 * phase
+  local b = 1 - 0.7 * phase
+  marker.icon:SetVertexColor(1, g, b, 1)
 end
 
 local function OnDriverUpdate(_, elapsed)
   CM.Profile("FNM:OnDriverUpdate", function()
-    motionElapsed = motionElapsed + elapsed
-
     if state == STATE_PLATE_ARRIVE then
+      motionElapsed = motionElapsed + elapsed
       local marker = EnsureMarkerFrame()
       if motionElapsed >= ARRIVE_DURATION then
         marker:SetScale(1)
         marker:SetAlpha(1)
         state = STATE_SETTLED
         motionElapsed = 0
-        -- Don't stop — let SETTLED decide if driver stays.
+        flashElapsed = 0
+        ApplyFlashColor(marker)
         return
       end
       local t = EaseOutQuad(Clamp01(motionElapsed / ARRIVE_DURATION))
       local scale = ARRIVE_START_SCALE + (1 - ARRIVE_START_SCALE) * t
-      local alpha = t
       marker:SetScale(math.max(0.01, scale))
-      marker:SetAlpha(alpha)
+      marker:SetAlpha(t)
+      -- Fixed color during arrive — pulse starts only after settle.
+      ApplyFocusColor(marker)
       return
     end
 
     if state == STATE_SETTLED then
-      local marker = EnsureMarkerFrame()
-      -- Check if focus is casting. If the API returns a value (even a secret
-      -- one in instances), the unit IS casting — we don't need issecretvalue here.
-      local isCasting = false
-      local ok, name = pcall(UnitCastingInfo, "focus")
-      if ok and name then
-        isCasting = true
-      end
-      if not isCasting then
-        local ok2, channelName = pcall(UnitChannelInfo, "focus")
-        if ok2 and channelName then
-          isCasting = true
-        end
-      end
-
-      if isCasting then
-        -- Smooth oscillation between hostile red and white.
-        local t = Clamp01((motionElapsed % CASTING_FLASH_PERIOD) / CASTING_FLASH_PERIOD)
-        -- Cosine: 1 at t=0, 0 at t=0.5, 1 at t=1.
-        local phase = 0.5 + 0.5 * math.cos(t * 2 * math.pi)
-        -- phase=1 (t=0): hostile red (1, 0.2, 0.3). phase=0 (t=0.5): white (1, 1, 1).
-        local g = 1 - 0.8 * phase
-        local b = 1 - 0.7 * phase
-        marker.icon:SetVertexColor(1, g, b, 1)
-        -- Keep driver running for continuous flash.
-        return
-      end
-
-      -- Not casting: restore full focus color.
-      local wantR, wantG, wantB, wantA = GetFocusColor()
-      marker.icon:SetVertexColor(wantR, wantG, wantB, wantA)
-      return
+      flashElapsed = flashElapsed + elapsed
+      ApplyFlashColor(EnsureMarkerFrame())
     end
   end)
 end
@@ -422,17 +446,37 @@ local function StartDriver()
   driver:SetScript("OnUpdate", OnDriverUpdate)
 end
 
-BeginPlateArrive = function()
-  if not activeAnchor then
-    SetIdle()
-    return
-  end
-  local marker = AnchorMarkerCentered(activeAnchor)
+local function BeginPlateArrive(plate, anchor)
+  activePlate = plate
+  activeAnchor = anchor
+  waitingForPlate = false
+  sizeRetryCount = 0
+  local marker = AnchorMarkerCentered(plate, anchor, true)
   marker:SetScale(ARRIVE_START_SCALE)
   marker:SetAlpha(0)
   marker:Show()
   state = STATE_PLATE_ARRIVE
   motionElapsed = 0
+  flashElapsed = 0
+  lockSessionActive = true
+  ApplyFocusColor(marker)
+  StartDriver()
+end
+
+-- Plate recycled while still locked: snap settled without replaying arrive.
+local function ResumeSettled(plate, anchor)
+  activePlate = plate
+  activeAnchor = anchor
+  waitingForPlate = false
+  sizeRetryCount = 0
+  local marker = AnchorMarkerCentered(plate, anchor, false)
+  marker:SetScale(1)
+  marker:SetAlpha(1)
+  marker:Show()
+  state = STATE_SETTLED
+  motionElapsed = 0
+  lockSessionActive = true
+  ApplyFlashColor(marker)
   StartDriver()
 end
 
@@ -456,7 +500,7 @@ local function DismissMarkerInstant()
   HideMarkerInstant()
   activePlate = nil
   activeAnchor = nil
-  SetIdle()
+  SetIdle(true)
 end
 
 local function ScheduleSizeRetry()
@@ -477,17 +521,17 @@ local function ScheduleSizeRetry()
   end)
 end
 
-StartTransfer = function(plate, anchor)
-  waitingForPlate = false
-  sizeRetryCount = 0
-  activePlate = plate
-  activeAnchor = anchor
+local function StartTransfer(plate, anchor)
   SuppressCenterReticle()
-  BeginPlateArrive()
+  if lockSessionActive then
+    ResumeSettled(plate, anchor)
+    return
+  end
+  BeginPlateArrive(plate, anchor)
 end
 
-local function ReanchorSettledIfNeeded(plate, anchor)
-  if state ~= STATE_SETTLED then
+local function ReanchorIfNeeded(plate, anchor)
+  if state ~= STATE_PLATE_ARRIVE and state ~= STATE_SETTLED then
     return
   end
   if activeAnchor == anchor and activePlate == plate then
@@ -495,9 +539,8 @@ local function ReanchorSettledIfNeeded(plate, anchor)
   end
   activePlate = plate
   activeAnchor = anchor
-  local marker = AnchorMarkerCentered(anchor)
-  marker:SetScale(1)
-  marker:SetAlpha(1)
+  -- Preserve current scale/alpha mid-arrive; only re-parent/point.
+  local marker = AnchorMarkerCentered(plate, anchor, false)
   marker:Show()
 end
 
@@ -525,49 +568,42 @@ function CM.UpdateFocusNameplateMarker()
       HideMarkerInstant()
       activePlate = nil
       activeAnchor = nil
-      SetIdle()
+      -- Keep lockSessionActive + flashElapsed; plate ADD will ResumeSettled.
+      state = STATE_IDLE
+      motionElapsed = 0
+      StopDriver()
     end
     return
   end
 
-  local anchor, needsRetry = GetIconAnchor(plate)
+  local anchor = GetIconAnchor(plate)
   if not anchor then
     waitingForPlate = true
     SuppressCenterReticle()
-    if needsRetry then
+    return
+  end
+
+  local rawW = anchor.GetWidth and anchor:GetWidth()
+  -- Secret width: accept and continue (same as GetVisualSize secretSize path).
+  if not (issecretvalue and issecretvalue(rawW)) then
+    local w = PublicNumber(rawW, 0)
+    if w < 8 then
+      waitingForPlate = true
+      SuppressCenterReticle()
       if sizeRetryCount >= SIZE_RETRY_MAX then
         return
       end
       ScheduleSizeRetry()
       return
     end
-    return
-  end
-
-  local w = PublicNumber(anchor.GetWidth and anchor:GetWidth(), 0)
-  if w < 8 then
-    waitingForPlate = true
-    SuppressCenterReticle()
-    if sizeRetryCount >= SIZE_RETRY_MAX then
-      return
-    end
-    ScheduleSizeRetry()
-    return
   end
 
   waitingForPlate = false
 
   -- Same plate identity (not GUID — UnitGUID is secret under dungeon taint).
-  if state == STATE_SETTLED and activePlate == plate then
+  if (state == STATE_SETTLED or state == STATE_PLATE_ARRIVE) and activePlate == plate then
     SuppressCenterReticle()
-    ReanchorSettledIfNeeded(plate, anchor)
-    return
-  end
-
-  if state == STATE_PLATE_ARRIVE and activePlate == plate then
-    SuppressCenterReticle()
-    activePlate = plate
-    activeAnchor = anchor
+    ReanchorIfNeeded(plate, anchor)
     return
   end
 
@@ -580,29 +616,38 @@ function CM.OnFocusNameplateMarkerEvent(event, unitToken)
   end
 
   if event == "NAME_PLATE_UNIT_REMOVED" then
-    if unitToken and UnitIsUnit and UnitIsUnit(unitToken, "focus") then
+    local focusStillLocked = UnitExists and UnitExists("focus")
+    local isFocusPlate = unitToken and UnitIsUnit and UnitIsUnit(unitToken, "focus")
+    if
+      not isFocusPlate
+      and activePlate
+      and C_NamePlate
+      and C_NamePlate.GetNamePlateForUnit
+      and unitToken
+    then
+      local ok, plate = pcall(C_NamePlate.GetNamePlateForUnit, unitToken)
+      if ok and plate and plate == activePlate then
+        isFocusPlate = true
+      end
+    end
+    if isFocusPlate then
       HideMarkerInstant()
       activePlate = nil
       activeAnchor = nil
-      waitingForPlate = true
-      SetIdle()
-      SuppressCenterReticle()
-      return
-    end
-    if activePlate and C_NamePlate and C_NamePlate.GetNamePlateForUnit and unitToken then
-      local ok, plate = pcall(C_NamePlate.GetNamePlateForUnit, unitToken)
-      if ok and plate and plate == activePlate then
-        HideMarkerInstant()
-        activePlate = nil
-        activeAnchor = nil
-        waitingForPlate = UnitExists and UnitExists("focus")
-        SetIdle()
-        if waitingForPlate then
-          SuppressCenterReticle()
-        else
-          RestoreCenterReticle()
-        end
+      waitingForPlate = focusStillLocked and true or false
+      -- Keep flashElapsed / lockSessionActive while still locked so plate recycle
+      -- does not replay arrive or restart the pulse phase.
+      state = STATE_IDLE
+      motionElapsed = 0
+      StopDriver()
+      if waitingForPlate then
+        SuppressCenterReticle()
+      else
+        RestoreCenterReticle()
+        lockSessionActive = false
+        flashElapsed = 0
       end
+      return
     end
     return
   end
