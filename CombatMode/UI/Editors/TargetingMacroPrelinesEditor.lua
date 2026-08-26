@@ -2,12 +2,14 @@
 --  UI/Editors/TargetingMacroPrelinesEditor.lua — EDITOR — targeting macro prelines
 ---------------------------------------------------------------------------------------
 --  What it does: Standalone editor (CM.OpenTargetingMacroPrelinesEditor) for customizing
---  the any-unit and enemy-only targeting prelines injected into click-cast macros.
---  Persists targetingMacroPrelineAnyOverride / EnemyOverride; reload confirm on save.
+--  the targeting prelines injected into click-cast macros. Shows either the normal
+--  any/enemy pair or the Auto Target Lock pair, based on char.autoTargetLockOnAttack.
 --  Architecture / how it works:
 --    • Defaults from TargetingMacroBuilder.TargetingMacroPrelinesDefaults.
+--    • Override keys: targetingMacroPrelineAnyOverride / EnemyOverride, plus
+--      AutoLockAnyOverride / AutoLockEnemyOverride when Auto Target Lock is on.
 --    • Enemy-only field relevance follows char.reticleTargetingEnemyOnly.
---    • Combat-guarded open; uses CM.UI CreateWindow.
+--    • Reset clears all four overrides. Combat-guarded open; uses CM.UI CreateWindow.
 --  Does not: Rebuild secure macrotext until reload / RefreshClickCastMacros path runs.
 --  Related: Core/ClickCasting/TargetingMacroBuilder.lua,
 --  UI/Options/Tabs/TabReticleTargeting.lua, Constants/DatabaseDefaults.lua,
@@ -43,8 +45,13 @@ local function EnemyOnly()
   return CM.DB and CM.DB.char and CM.DB.char.reticleTargetingEnemyOnly == true
 end
 
+local function AutoTargetLock()
+  return CM.DB and CM.DB.char and CM.DB.char.autoTargetLockOnAttack == true
+end
+
 local function Build()
   local defaults = CM.TargetingMacroPrelinesDefaults or {}
+  local autoLock = AutoTargetLock()
   local ctx
   window, ctx = UI.CreateWindow(
     "CombatModeTargetingMacroPrelinesEditor",
@@ -55,37 +62,72 @@ local function Build()
   )
 
   ctx:Description(
-    "Edit the targeting macro preline inserted before actions when Reticle Targeting is on. Which field is active depends on Enemies Only."
+    "Edit the targeting macro preline inserted before actions when Reticle Targeting is enabled. "
+      .. "\n- Which prelines are shown depends on the Auto Target Lock configuration."
+      .. "\n- Which field is active depends on the Enemies Only configuration."
   )
 
-  ctx:TextInput({
-    label = "Any Unit — used when Enemies Only is OFF",
-    multiline = 4,
-    get = function()
-      return CM.DB.global.targetingMacroPrelineAnyOverride or defaults.any or ""
-    end,
-    set = function(value)
-      CM.DB.global.targetingMacroPrelineAnyOverride = NormalizeInput(value)
-    end,
-    disabled = function()
-      return EnemyOnly()
-    end,
-    watermarkWhenDisabled = "Inactive — Enemies Only is ON",
-  })
-  ctx:TextInput({
-    label = "Enemies Only — used when Enemies Only is ON",
-    multiline = 4,
-    get = function()
-      return CM.DB.global.targetingMacroPrelineEnemyOverride or defaults.enemy or ""
-    end,
-    set = function(value)
-      CM.DB.global.targetingMacroPrelineEnemyOverride = NormalizeInput(value)
-    end,
-    disabled = function()
-      return not EnemyOnly()
-    end,
-    watermarkWhenDisabled = "Inactive — Enemies Only is OFF",
-  })
+  if autoLock then
+    ctx:TextInput({
+      label = "Auto Lock — Any Unit (Enemies Only OFF)",
+      multiline = 5,
+      get = function()
+        return CM.DB.global.targetingMacroPrelineAutoLockAnyOverride or defaults.autoLockAny or ""
+      end,
+      set = function(value)
+        CM.DB.global.targetingMacroPrelineAutoLockAnyOverride = NormalizeInput(value)
+      end,
+      disabled = function()
+        return EnemyOnly()
+      end,
+      watermarkWhenDisabled = "Inactive — Enemies Only is ON",
+    })
+    ctx:TextInput({
+      label = "Auto Lock — Enemies Only (Enemies Only ON)",
+      multiline = 5,
+      get = function()
+        return CM.DB.global.targetingMacroPrelineAutoLockEnemyOverride
+          or defaults.autoLockEnemy
+          or ""
+      end,
+      set = function(value)
+        CM.DB.global.targetingMacroPrelineAutoLockEnemyOverride = NormalizeInput(value)
+      end,
+      disabled = function()
+        return not EnemyOnly()
+      end,
+      watermarkWhenDisabled = "Inactive — Enemies Only is OFF",
+    })
+  else
+    ctx:TextInput({
+      label = "Any Unit — used when Enemies Only is OFF",
+      multiline = 4,
+      get = function()
+        return CM.DB.global.targetingMacroPrelineAnyOverride or defaults.any or ""
+      end,
+      set = function(value)
+        CM.DB.global.targetingMacroPrelineAnyOverride = NormalizeInput(value)
+      end,
+      disabled = function()
+        return EnemyOnly()
+      end,
+      watermarkWhenDisabled = "Inactive — Enemies Only is ON",
+    })
+    ctx:TextInput({
+      label = "Enemies Only — used when Enemies Only is ON",
+      multiline = 4,
+      get = function()
+        return CM.DB.global.targetingMacroPrelineEnemyOverride or defaults.enemy or ""
+      end,
+      set = function(value)
+        CM.DB.global.targetingMacroPrelineEnemyOverride = NormalizeInput(value)
+      end,
+      disabled = function()
+        return not EnemyOnly()
+      end,
+      watermarkWhenDisabled = "Inactive — Enemies Only is OFF",
+    })
+  end
 
   ctx:Gap()
   ctx:ButtonRow({
@@ -96,6 +138,8 @@ local function Build()
       func = function()
         CM.DB.global.targetingMacroPrelineAnyOverride = nil
         CM.DB.global.targetingMacroPrelineEnemyOverride = nil
+        CM.DB.global.targetingMacroPrelineAutoLockAnyOverride = nil
+        CM.DB.global.targetingMacroPrelineAutoLockEnemyOverride = nil
         ReloadUI()
       end,
     },

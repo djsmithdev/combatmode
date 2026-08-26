@@ -2,14 +2,17 @@
 --  Core/ClickCasting/TargetingMacroBuilder.lua — CLICKCAST — reticle macro text
 ---------------------------------------------------------------------------------------
 --  What it does: Builds the macrotext injected into click-cast proxies: targeting prelines
---  (any vs enemy-only, with DB overrides), /click bar button or /cast [@cursor] for
---  ground spells, and membership tests for cast-at-cursor / exclude lists (spell IDs).
+--  (any vs enemy-only, optional Auto Target Lock variants, with DB overrides), /click bar
+--  button or /cast [@cursor] for ground spells, and membership tests for cast-at-cursor /
+--  exclude lists (spell IDs).
 --  Architecture / how it works:
 --    • BuildClickCastMacroText(bindingValue) — no-op text when reticleTargeting off.
---    • Default prelines in TargetingMacroPrelinesDefaults; overrides from
---      global.targetingMacroPrelineAnyOverride / EnemyOverride. The enemy-only
---      preline gates the focus branch on harm, so a friendly Target Lock does
---      not hijack hostile casts; the any-unit preline still targets any focus.
+--    • Default prelines clear dead focus, then /target (any/enemy + autoLockAny/
+--      autoLockEnemy). Overrides from global.targetingMacroPreline*Override keys.
+--      char.autoTargetLockOnAttack selects the auto-lock pair. Enemy-only gates the
+--      focus branch on harm so a friendly Target Lock does not hijack hostile casts.
+--    • Auto-lock prelines: /target then /focus target when unlocked (cycle-macro
+--      pattern). Kept short for the 255-char SecureActionButton macrotext limit.
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists.
 --    • GetEffectiveBarButtonFrameName uses AddonActionBarResolver for third-party bars.
 --  Does not: Own SecureActionButton frames or SetOverrideBinding (BindingOverrides).
@@ -258,14 +261,44 @@ function CM.GetEffectiveBarButtonFrameName(bindingValue)
   return base
 end
 
-local CLICKCAST_PRE_LINE_ANY =
-  "/target [@focus,exists,nodead] focus; [nomounted,@mouseover,exists] mouseover" -- used if reticleTargetingEnemyOnly is OFF - Targets any mouseover unit if it exists.
-local CLICKCAST_PRE_LINE_ENEMY =
-  "/target [@focus,exists,nodead,harm] focus; [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]" --  used if reticleTargetingEnemyOnly is ON - The focus branch is gated on harm so a friendly Target Lock (e.g. a party member) is ignored for hostile casts. Otherwise: first try the unit under the crosshair (mouseover) that is hostile (harm) and alive (nodead). If no unit matches that condition, it tries to find a locked target through the "target" portion of the anyenemy UnitId. If no target exists, it falls back to the "softenemy" UnitId, which is Action Targeting.
+-- Shared note: focus branches use nodead (not exists,nodead) — redundant with
+-- nodead/harm, and saves chars under the 255-char SecureActionButton macrotext cap.
+
+-- Regular (Auto Target Lock OFF), Enemies Only OFF:
+-- Clear dead focus, then target any mouseover unit if it exists.
+local CLICKCAST_PRE_LINE_ANY = "/clearfocus [@focus,dead]\n"
+  .. "/target [@focus,nodead] focus; [nomounted,@mouseover,exists] mouseover"
+
+-- Regular (Auto Target Lock OFF), Enemies Only ON:
+-- Clear dead focus. Focus branch gated on harm so a friendly Target Lock (e.g. a party
+-- member) is ignored for hostile casts. Otherwise: mouseover hostile+alive under the
+-- crosshair; else anyenemy (hard target, then softenemy / Action Targeting).
+local CLICKCAST_PRE_LINE_ENEMY = "/clearfocus [@focus,dead]\n"
+  .. "/target [@focus,nodead,harm] focus; [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]"
+
+-- Auto Target Lock ON — shared behavior:
+-- Must leave room for the longest /click cast line under the 255-char macrotext cap
+-- (no macro chaining). Pattern matches CM_CycleFocusEnemy*: /target first, then
+-- /focus when unlocked. [@focus,dead] target re-locks after a corpse;
+-- [@focus,noexists] target locks when empty; alive focus is left alone.
+-- Targeting priority matches the regular prelines, then auto-writes focus.
+-- Slightly trimmed (no nomounted; looser nodead on mouseover/anyenemy) for char budget.
+
+-- Auto Target Lock ON, Enemies Only OFF:
+local CLICKCAST_PRE_LINE_AUTO_LOCK_ANY = "/target [@focus,nodead] focus; [@mouseover,exists] mouseover\n"
+  .. "/focus [@focus,dead] target; [@focus,noexists] target"
+
+-- Auto Target Lock ON, Enemies Only ON:
+local CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY = "/target [@focus,nodead,harm] focus; [@mouseover,harm][@anyenemy,harm]\n"
+  .. "/focus [@focus,dead] target; [@focus,noexists] target"
 
 -- Export defaults so the prelines editor can show a starting point even when no override exists.
-CM.TargetingMacroPrelinesDefaults = CM.TargetingMacroPrelinesDefaults
-  or { any = CLICKCAST_PRE_LINE_ANY, enemy = CLICKCAST_PRE_LINE_ENEMY }
+CM.TargetingMacroPrelinesDefaults = {
+  any = CLICKCAST_PRE_LINE_ANY,
+  enemy = CLICKCAST_PRE_LINE_ENEMY,
+  autoLockAny = CLICKCAST_PRE_LINE_AUTO_LOCK_ANY,
+  autoLockEnemy = CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY,
+}
 
 --- Builds a set of numeric spell IDs from a CSV list. Numeric tokens are used as-is;
 --- legacy name tokens are resolved via C_Spell.GetSpellInfo when possible.
@@ -359,8 +392,17 @@ local function GetClickCastPreLine()
     return v
   end
 
+  local autoLock = CM.DB.char.autoTargetLockOnAttack == true
   if CM.DB.char.reticleTargetingEnemyOnly then
+    if autoLock then
+      return GetOverride("targetingMacroPrelineAutoLockEnemyOverride")
+        or CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY
+    end
     return GetOverride("targetingMacroPrelineEnemyOverride") or CLICKCAST_PRE_LINE_ENEMY
+  end
+  if autoLock then
+    return GetOverride("targetingMacroPrelineAutoLockAnyOverride")
+      or CLICKCAST_PRE_LINE_AUTO_LOCK_ANY
   end
   return GetOverride("targetingMacroPrelineAnyOverride") or CLICKCAST_PRE_LINE_ANY
 end

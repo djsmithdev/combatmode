@@ -10,10 +10,11 @@
 --      (crosshairScale, opacity, Y, cast feedback), interactionHUD / Side / Scale,
 --      assistedHighlightEnabled / Side / Scale; vignette; partyRadial (enabled,
 --      showHealthBars, showBackground, scale; layout/fade fixed in Constants/PartyRadial.lua);
---      reticleTargetingCVarOverrides, priorCVarSnapshot, targetingMacroPreline*Override;
+--      reticleTargetingCVarOverrides, priorCVarSnapshot, targetingMacroPreline*Override
+--      (any/enemy + autoLockAny/autoLockEnemy);
 --      bindings.
 --    • char: useGlobalBindings, shoulderOffset, reticleTargeting / enemyOnly /
---      macroInjectionClickCastOnly, castAtCursorSpells,
+--      autoTargetLockOnAttack, macroInjectionClickCastOnly, castAtCursorSpells,
 --      excludeFromTargetingSpells, stickyCrosshair, bindings.
 --    • DefaultBindings seeds button1/2 + shift/ctrl/alt mouse slots and Mouse Look toggle.
 --  Does not: Migrate saved data or apply CVars/bindings at runtime.
@@ -105,6 +106,8 @@ CM.Constants.DatabaseDefaults = {
     priorCVarSnapshot = nil,
     targetingMacroPrelineAnyOverride = nil,
     targetingMacroPrelineEnemyOverride = nil,
+    targetingMacroPrelineAutoLockAnyOverride = nil,
+    targetingMacroPrelineAutoLockEnemyOverride = nil,
     -- click casting
     bindings = DefaultBindings,
     -- auto  unlock
@@ -146,6 +149,7 @@ CM.Constants.DatabaseDefaults = {
     -- reticle targeting
     reticleTargeting = true,
     reticleTargetingEnemyOnly = true,
+    autoTargetLockOnAttack = false,
     macroInjectionClickCastOnly = false,
     excludeFromTargetingSpells = "871, 45438, 642, 198589",
     castAtCursorSpells = "6544, 204596, 189110, 1234796, 190356, 207684",

@@ -2,13 +2,14 @@
 --  UI/Options/Tabs/TabReticleTargeting.lua — OPTIONS TAB — reticle targeting
 ---------------------------------------------------------------------------------------
 --  What it does: Wires Reticle Targeting enable (reload + ConfigReticleTargeting),
---  enemy-only preline mode, macroInjectionClickCastOnly, sticky targetting
---  (under Click Casting Only), exclude / cast-at-crosshair spell multi-selects,
---  and Advanced buttons that open the Reticle CVar editor and Targeting Macro
---  Prelines editor.
+--  enemy-only preline mode, Auto Target Lock (swaps preline pair),
+--  macroInjectionClickCastOnly, sticky targetting (under Click Casting Only),
+--  exclude / cast-at-crosshair spell multi-selects, and Advanced buttons that open
+--  the Reticle CVar editor and Targeting Macro Prelines editor.
 --  Architecture / how it works:
---    • DB.char: reticleTargeting, reticleTargetingEnemyOnly, macroInjectionClickCastOnly,
---      stickyCrosshair, excludeFromTargetingSpells, castAtCursorSpells.
+--    • DB.char: reticleTargeting, reticleTargetingEnemyOnly, autoTargetLockOnAttack,
+--      macroInjectionClickCastOnly, stickyCrosshair, excludeFromTargetingSpells,
+--      castAtCursorSpells.
 --    • macroInjectionClickCastOnly disabled/forced when ThirdPartyActionBarsActive.
 --    • Spell lists stored as spell-ID CSV; membership in TargetingMacroBuilder.
 --  Does not: Own CVar override table UI (ReticleCVarEditor*) or secure proxies.
@@ -65,6 +66,23 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.char.reticleTargetingEnemyOnly = value
+        ReloadUI()
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Toggle({
+      label = "Auto Target Lock",
+      desc = "Target Lock engages automatically when attacking units.",
+      charSpecific = true,
+      confirm = true,
+      confirmText = RELOAD_CONFIRM,
+      get = function()
+        return CM.DB.char.autoTargetLockOnAttack
+      end,
+      set = function(value)
+        CM.DB.char.autoTargetLockOnAttack = value
         ReloadUI()
       end,
       disabled = function()
