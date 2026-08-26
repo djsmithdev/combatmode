@@ -2,13 +2,17 @@
 --  UI/Editors/TargetingMacroPrelinesEditor.lua — EDITOR — targeting macro prelines
 ---------------------------------------------------------------------------------------
 --  What it does: Standalone editor (CM.OpenTargetingMacroPrelinesEditor) for customizing
---  the targeting prelines injected into click-cast macros. Shows either the normal
---  any/enemy pair or the Auto Target Lock pair, based on char.autoTargetLockOnAttack.
+--  the targeting prelines injected into click-cast macros. Shows all four preline fields
+--  (normal any/enemy + Auto Target Lock any/enemy); inactive fields use the disabled
+--  watermark overlay based on Auto Target Lock and Enemies Only.
 --  Architecture / how it works:
 --    • Defaults from TargetingMacroBuilder.TargetingMacroPrelinesDefaults.
---    • Override keys: targetingMacroPrelineAnyOverride / EnemyOverride, plus
---      AutoLockAnyOverride / AutoLockEnemyOverride when Auto Target Lock is on.
---    • Enemy-only field relevance follows char.reticleTargetingEnemyOnly.
+--    • Override keys: targetingMacroPrelineAnyOverride / EnemyOverride,
+--      AutoLockAnyOverride / AutoLockEnemyOverride.
+--    • Active field = Auto Target Lock mode × Enemies Only; others stay visible but
+--      stamped Inactive (same pattern as the Enemies Only pair overlay).
+--    • Max length = CM.TargetingMacroPrelineMaxLen (255 − worst /click − newline);
+--      EditBox SetMaxLetters + validate refuse oversized input.
 --    • Reset clears all four overrides. Combat-guarded open; uses CM.UI CreateWindow.
 --  Does not: Rebuild secure macrotext until reload / RefreshClickCastMacros path runs.
 --  Related: Core/ClickCasting/TargetingMacroBuilder.lua,
@@ -33,12 +37,27 @@ local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed
 
 local window
 
+local function PrelineMaxLen()
+  return CM.TargetingMacroPrelineMaxLen or 129
+end
+
 local function NormalizeInput(value)
   value = type(value) == "string" and strtrim(value) or ""
   if value == "" then
     return nil
   end
   return value
+end
+
+local function ValidatePreline(value)
+  value = type(value) == "string" and value or ""
+  local maxLen = PrelineMaxLen()
+  if #value > maxLen then
+    return "Preline must be "
+      .. maxLen
+      .. " characters or fewer (room for /click under the 255 macro limit)."
+  end
+  return true
 end
 
 local function EnemyOnly()
@@ -49,9 +68,46 @@ local function AutoTargetLock()
   return CM.DB and CM.DB.char and CM.DB.char.autoTargetLockOnAttack == true
 end
 
+-- forAutoLock / forEnemyOnly describe which mode this field belongs to.
+local function FieldDisabled(forAutoLock, forEnemyOnly)
+  return function()
+    if forAutoLock then
+      if not AutoTargetLock() then
+        return true
+      end
+    elseif AutoTargetLock() then
+      return true
+    end
+    if forEnemyOnly then
+      return not EnemyOnly()
+    end
+    return EnemyOnly()
+  end
+end
+
+local function FieldWatermark(forAutoLock, forEnemyOnly)
+  return function()
+    if forAutoLock then
+      if not AutoTargetLock() then
+        return "Inactive — Auto Target Lock is OFF"
+      end
+    elseif AutoTargetLock() then
+      return "Inactive — Auto Target Lock is ON"
+    end
+    if forEnemyOnly then
+      if not EnemyOnly() then
+        return "Inactive — Enemies Only is OFF"
+      end
+    elseif EnemyOnly() then
+      return "Inactive — Enemies Only is ON"
+    end
+    return "Inactive"
+  end
+end
+
 local function Build()
   local defaults = CM.TargetingMacroPrelinesDefaults or {}
-  local autoLock = AutoTargetLock()
+  local maxLen = PrelineMaxLen()
   local ctx
   window, ctx = UI.CreateWindow(
     "CombatModeTargetingMacroPrelinesEditor",
@@ -63,71 +119,77 @@ local function Build()
 
   ctx:Description(
     "Edit the targeting macro preline inserted before actions when Reticle Targeting is enabled. "
-      .. "\n- Which prelines are shown depends on the Auto Target Lock configuration."
-      .. "\n- Which field is active depends on the Enemies Only configuration."
+      .. "\n- All four prelines are listed; only the one matching your current settings is active."
+      .. "\n- Max "
+      .. maxLen
+      .. " characters per preline (SecureActionButton 255-char limit minus the /click line)."
   )
 
-  if autoLock then
+  local function AddPrelineField(opts)
     ctx:TextInput({
-      label = "Auto Lock — Any Unit (Enemies Only OFF)",
-      multiline = 5,
-      get = function()
-        return CM.DB.global.targetingMacroPrelineAutoLockAnyOverride or defaults.autoLockAny or ""
-      end,
-      set = function(value)
-        CM.DB.global.targetingMacroPrelineAutoLockAnyOverride = NormalizeInput(value)
-      end,
-      disabled = function()
-        return EnemyOnly()
-      end,
-      watermarkWhenDisabled = "Inactive — Enemies Only is ON",
-    })
-    ctx:TextInput({
-      label = "Auto Lock — Enemies Only (Enemies Only ON)",
-      multiline = 5,
-      get = function()
-        return CM.DB.global.targetingMacroPrelineAutoLockEnemyOverride
-          or defaults.autoLockEnemy
-          or ""
-      end,
-      set = function(value)
-        CM.DB.global.targetingMacroPrelineAutoLockEnemyOverride = NormalizeInput(value)
-      end,
-      disabled = function()
-        return not EnemyOnly()
-      end,
-      watermarkWhenDisabled = "Inactive — Enemies Only is OFF",
-    })
-  else
-    ctx:TextInput({
-      label = "Any Unit — used when Enemies Only is OFF",
+      label = opts.label,
       multiline = 4,
-      get = function()
-        return CM.DB.global.targetingMacroPrelineAnyOverride or defaults.any or ""
-      end,
-      set = function(value)
-        CM.DB.global.targetingMacroPrelineAnyOverride = NormalizeInput(value)
-      end,
-      disabled = function()
-        return EnemyOnly()
-      end,
-      watermarkWhenDisabled = "Inactive — Enemies Only is ON",
-    })
-    ctx:TextInput({
-      label = "Enemies Only — used when Enemies Only is ON",
-      multiline = 4,
-      get = function()
-        return CM.DB.global.targetingMacroPrelineEnemyOverride or defaults.enemy or ""
-      end,
-      set = function(value)
-        CM.DB.global.targetingMacroPrelineEnemyOverride = NormalizeInput(value)
-      end,
-      disabled = function()
-        return not EnemyOnly()
-      end,
-      watermarkWhenDisabled = "Inactive — Enemies Only is OFF",
+      maxLetters = maxLen,
+      get = opts.get,
+      set = opts.set,
+      validate = ValidatePreline,
+      disabled = opts.disabled,
+      watermarkWhenDisabled = opts.watermarkWhenDisabled,
     })
   end
+
+  AddPrelineField({
+    label = "Preline: Target Enemies Only + No Auto Lock"
+      .. "\nEnemies Only: ON"
+      .. "\nAuto Target Lock: OFF",
+    get = function()
+      return CM.DB.global.targetingMacroPrelineEnemyOverride or defaults.enemy or ""
+    end,
+    set = function(value)
+      CM.DB.global.targetingMacroPrelineEnemyOverride = NormalizeInput(value)
+    end,
+    disabled = FieldDisabled(false, true),
+    watermarkWhenDisabled = FieldWatermark(false, true),
+  })
+  AddPrelineField({
+    label = "Preline: Target Enemies Only + Auto Lock"
+      .. "\nEnemies Only: ON"
+      .. "\nAuto Target Lock: ON",
+    get = function()
+      return CM.DB.global.targetingMacroPrelineAutoLockEnemyOverride or defaults.autoLockEnemy or ""
+    end,
+    set = function(value)
+      CM.DB.global.targetingMacroPrelineAutoLockEnemyOverride = NormalizeInput(value)
+    end,
+    disabled = FieldDisabled(true, true),
+    watermarkWhenDisabled = FieldWatermark(true, true),
+  })
+  AddPrelineField({
+    label = "Preline: Target Any Unit + No Auto Lock"
+      .. "\nEnemies Only: OFF"
+      .. "\nAuto Target Lock: OFF",
+    get = function()
+      return CM.DB.global.targetingMacroPrelineAnyOverride or defaults.any or ""
+    end,
+    set = function(value)
+      CM.DB.global.targetingMacroPrelineAnyOverride = NormalizeInput(value)
+    end,
+    disabled = FieldDisabled(false, false),
+    watermarkWhenDisabled = FieldWatermark(false, false),
+  })
+  AddPrelineField({
+    label = "Preline: Target Any Unit + Auto Lock"
+      .. "\nEnemies Only: OFF"
+      .. "\nAuto Target Lock: ON",
+    get = function()
+      return CM.DB.global.targetingMacroPrelineAutoLockAnyOverride or defaults.autoLockAny or ""
+    end,
+    set = function(value)
+      CM.DB.global.targetingMacroPrelineAutoLockAnyOverride = NormalizeInput(value)
+    end,
+    disabled = FieldDisabled(true, false),
+    watermarkWhenDisabled = FieldWatermark(true, false),
+  })
 
   ctx:Gap()
   ctx:ButtonRow({

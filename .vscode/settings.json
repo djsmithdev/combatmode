@@ -56,7 +56,8 @@
     "EditModeManagerFrame",
     "CreateColor",
     "EventRegistry",
-    "CopyTable"
+    "CopyTable",
+    "OFF"
   ],
   "Lua.diagnostics.disable": [
     "undefined-field",

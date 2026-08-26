@@ -1211,6 +1211,7 @@ function UI.CreateWatermark(parent, text, fontSize)
   stamp:SetShadowColor(0, 0, 0, 1)
   stamp:SetShadowOffset(1, -1)
 
+  overlay.stamp = stamp
   overlay:Hide()
   return overlay
 end

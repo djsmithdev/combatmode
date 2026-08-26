@@ -2,7 +2,7 @@
 --  UI/Options/Tabs/TabReticleTargeting.lua — OPTIONS TAB — reticle targeting
 ---------------------------------------------------------------------------------------
 --  What it does: Wires Reticle Targeting enable (reload + ConfigReticleTargeting),
---  enemy-only preline mode, Auto Target Lock (swaps preline pair),
+--  enemy-only preline mode, Auto Target Lock (selects auto-lock preline pair),
 --  macroInjectionClickCastOnly, sticky targetting (under Click Casting Only),
 --  exclude / cast-at-crosshair spell multi-selects, and Advanced buttons that open
 --  the Reticle CVar editor and Targeting Macro Prelines editor.

@@ -11,8 +11,9 @@
 --      autoLockEnemy). Overrides from global.targetingMacroPreline*Override keys.
 --      char.autoTargetLockOnAttack selects the auto-lock pair. Enemy-only gates the
 --      focus branch on harm so a friendly Target Lock does not hijack hostile casts.
---    • Auto-lock prelines: /target then /focus target when unlocked (cycle-macro
---      pattern). Kept short for the 255-char SecureActionButton macrotext limit.
+--    • Auto-lock prelines: clear dead focus, /target, then /focus target when empty
+--      (cycle-macro pattern). Kept short for the 255-char SecureActionButton limit.
+--    • CM.TargetingMacroPrelineMaxLen = 255 − worst /click cast − newline; editor enforces.
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists.
 --    • GetEffectiveBarButtonFrameName uses AddonActionBarResolver for third-party bars.
 --  Does not: Own SecureActionButton frames or SetOverrideBinding (BindingOverrides).
@@ -261,13 +262,22 @@ function CM.GetEffectiveBarButtonFrameName(bindingValue)
   return base
 end
 
--- Shared note: focus branches use nodead (not exists,nodead) — redundant with
--- nodead/harm, and saves chars under the 255-char SecureActionButton macrotext cap.
+-- Shared note: @unit already implies exists — skip ,exists on @focus/@mouseover.
+-- Focus branches use nodead (not exists,nodead); saves chars under the 255-char cap.
+
+-- Full macrotext = preline + "\n" + /click cast line. Hard engine limit is 255.
+local SECURE_MACROTEXT_MAX = 255
+-- Longest cast line BuildClickCastMacroText emits today: ACTIONBUTTON conditional
+-- /click with ElvUI primary bar (ElvUI_Bar1Button12) + ActionButtonUseKeyDown suffix.
+local CLICKCAST_WORST_CAST_LINE_LEN = 125
+-- Max editable preline so pre + newline + worst cast stays within SECURE_MACROTEXT_MAX.
+CM.TargetingMacroPrelineMaxLen = SECURE_MACROTEXT_MAX - CLICKCAST_WORST_CAST_LINE_LEN - 1
 
 -- Regular (Auto Target Lock OFF), Enemies Only OFF:
 -- Clear dead focus, then target any mouseover unit if it exists.
+-- (@mouseover already implies exists — no need for ,exists.)
 local CLICKCAST_PRE_LINE_ANY = "/clearfocus [@focus,dead]\n"
-  .. "/target [@focus,nodead] focus; [nomounted,@mouseover,exists] mouseover"
+  .. "/target [@focus,nodead] focus; [nomounted,@mouseover] mouseover"
 
 -- Regular (Auto Target Lock OFF), Enemies Only ON:
 -- Clear dead focus. Focus branch gated on harm so a friendly Target Lock (e.g. a party
@@ -279,18 +289,20 @@ local CLICKCAST_PRE_LINE_ENEMY = "/clearfocus [@focus,dead]\n"
 -- Auto Target Lock ON — shared behavior:
 -- Must leave room for the longest /click cast line under the 255-char macrotext cap
 -- (no macro chaining). Pattern matches CM_CycleFocusEnemy*: /target first, then
--- /focus when unlocked. [@focus,dead] target re-locks after a corpse;
--- [@focus,noexists] target locks when empty; alive focus is left alone.
+-- /focus when unlocked. Clear dead focus (unlock on death), then [@focus,noexists]
+-- target re-locks when empty; alive focus is left alone.
 -- Targeting priority matches the regular prelines, then auto-writes focus.
 -- Slightly trimmed (no nomounted; looser nodead on mouseover/anyenemy) for char budget.
 
 -- Auto Target Lock ON, Enemies Only OFF:
-local CLICKCAST_PRE_LINE_AUTO_LOCK_ANY = "/target [@focus,nodead] focus; [@mouseover,exists] mouseover\n"
-  .. "/focus [@focus,dead] target; [@focus,noexists] target"
+local CLICKCAST_PRE_LINE_AUTO_LOCK_ANY = "/clearfocus [@focus,dead]\n"
+  .. "/target [@focus,nodead] focus; [@mouseover] mouseover\n"
+  .. "/focus [@focus,noexists] target"
 
 -- Auto Target Lock ON, Enemies Only ON:
-local CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY = "/target [@focus,nodead,harm] focus; [@mouseover,harm][@anyenemy,harm]\n"
-  .. "/focus [@focus,dead] target; [@focus,noexists] target"
+local CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY = "/clearfocus [@focus,dead]\n"
+  .. "/target [@focus,nodead,harm] focus; [@mouseover,harm][@anyenemy,harm]\n"
+  .. "/focus [@focus,noexists] target"
 
 -- Export defaults so the prelines editor can show a starting point even when no override exists.
 CM.TargetingMacroPrelinesDefaults = {
@@ -387,6 +399,11 @@ local function GetClickCastPreLine()
     end
     v = strtrim(v)
     if v == "" then
+      return nil
+    end
+    -- Oversized saved overrides would truncate the trailing /click; ignore them.
+    local maxLen = CM.TargetingMacroPrelineMaxLen
+    if maxLen and #v > maxLen then
       return nil
     end
     return v

@@ -1863,6 +1863,10 @@ function UI.MakeTextInput(parent, opts)
     edit:SetScript("OnEnterPressed", edit.ClearFocus)
   end
 
+  if type(opts.maxLetters) == "number" and opts.maxLetters > 0 and edit.SetMaxLetters then
+    edit:SetMaxLetters(opts.maxLetters)
+  end
+
   local control = {
     frame = row,
     height = boxHeight + (2 * ROW_PAD_Y),
@@ -1941,6 +1945,13 @@ function UI.MakeTextInput(parent, opts)
     ClearHoverIfDisabled(row, disabled)
     if control.watermark then
       if disabled then
+        local mark = opts.watermarkWhenDisabled
+        if type(mark) == "function" then
+          mark = mark()
+        end
+        if type(mark) == "string" and mark ~= "" and control.watermark.stamp then
+          control.watermark.stamp:SetText(UI.StripColors(mark) or "")
+        end
         control.watermark:Show()
       else
         control.watermark:Hide()
@@ -1949,9 +1960,13 @@ function UI.MakeTextInput(parent, opts)
   end
 
   -- Optional DynamicCam-style stamp over the whole row while this field is inactive
-  -- (e.g. preline editor: only one of the two fields is active at a time).
-  if opts.watermarkWhenDisabled and opts.watermarkWhenDisabled ~= "" then
-    control.watermark = UI.CreateWatermark(row, opts.watermarkWhenDisabled, UI.Fonts.nav)
+  -- (e.g. preline editor: only the active Auto Lock / Enemies Only field is editable).
+  local markOpt = opts.watermarkWhenDisabled
+  local markInitial = type(markOpt) == "function" and markOpt() or markOpt
+  if type(markInitial) == "string" and markInitial ~= "" then
+    control.watermark = UI.CreateWatermark(row, markInitial, UI.Fonts.nav)
+  elseif type(markOpt) == "function" then
+    control.watermark = UI.CreateWatermark(row, "Inactive", UI.Fonts.nav)
   end
 
   -- Box chrome must accept mouse so hover fires over padding; edit covers the inner area.
