@@ -8,6 +8,8 @@
 --    • CM.AssistedHighlightKeybinds table: GetClickCastDisplayForSpell,
 --      FormatKeybindText / GetFirstBindingKeyForSpell, ApplyClickCast/Keyboard styles,
 --      STYLE_CLICKCAST / STYLE_KEYBOARD, preview icon markups.
+--    • ActionSlotToBindingName uses CM.Constants.ClickCastBars actionBase ranges
+--      (incl. MultiBar5–7 slots 145–180).
 --    • CM.InvalidateAssistedHighlightKeybindCache clears slot maps (EventRouter bars).
 --  Does not: Own IconMask chrome, ProcLoop/fade, cast swipe/press/break (sibling modules).
 --  Related: Core/Crosshair/AssistedHighlight/Assist.lua, Core/Runtime/EventRouter.lua,
@@ -291,18 +293,15 @@ local function ActionSlotToBindingName(actionSlot)
   if not slot or slot < 1 then
     return nil
   end
-  local index = ((slot - 1) % 12) + 1
-  local group = math.floor((slot - 1) / 12)
-  if group == 0 then
-    return "ACTIONBUTTON" .. index
-  elseif group == 1 then
-    return "MULTIACTIONBAR1BUTTON" .. index
-  elseif group == 2 then
-    return "MULTIACTIONBAR2BUTTON" .. index
-  elseif group == 3 then
-    return "MULTIACTIONBAR3BUTTON" .. index
-  elseif group == 4 then
-    return "MULTIACTIONBAR4BUTTON" .. index
+  local bars = CM.Constants and CM.Constants.ClickCastBars
+  if bars then
+    for _, bar in ipairs(bars) do
+      local base = bar.actionBase
+      local count = bar.count or 12
+      if base and slot >= base and slot < base + count then
+        return bar.bind .. (slot - base + 1)
+      end
+    end
   end
   return nil
 end
@@ -353,21 +352,7 @@ local function GetBindingCommandForActionSlot(slot)
     return actionSlotCommandMap[actionSlot]
   end
 
-  local index = ((actionSlot - 1) % 12) + 1
-  local group = math.floor((actionSlot - 1) / 12)
-  if group == 0 then
-    return "ACTIONBUTTON" .. index
-  elseif group == 1 then
-    return "MULTIACTIONBAR1BUTTON" .. index
-  elseif group == 2 then
-    return "MULTIACTIONBAR2BUTTON" .. index
-  elseif group == 3 then
-    return "MULTIACTIONBAR3BUTTON" .. index
-  elseif group == 4 then
-    return "MULTIACTIONBAR4BUTTON" .. index
-  end
-
-  return nil
+  return ActionSlotToBindingName(actionSlot)
 end
 
 function Keybinds.GetFirstBindingKeyForSpell(spellID)

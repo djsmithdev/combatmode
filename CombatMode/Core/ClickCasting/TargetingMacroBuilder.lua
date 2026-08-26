@@ -16,6 +16,7 @@
 --    • CM.TargetingMacroPrelineMaxLen = 255 − worst /click cast − newline; editor enforces.
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists.
 --    • GetEffectiveBarButtonFrameName uses AddonActionBarResolver for third-party bars.
+--    • Click frame map from CM.Constants.ClickCastBars (ACTIONBUTTON + MultiBar 1–7).
 --  Does not: Own SecureActionButton frames or SetOverrideBinding (BindingOverrides).
 --  Related: Core/ClickCasting/BindingOverrides.lua,
 --  UI/Editors/TargetingMacroPrelinesEditor.lua,
@@ -42,14 +43,15 @@ local tonumber = _G.tonumber
 local type = _G.type
 
 -- Click-cast macro wrapper: binding value (e.g. ACTIONBUTTON1) -> frame name.
--- This mirrors the mapping in BindingOverrides.lua (used for ACTIONBUTTON vs multibars).
-local CLICKCAST_BARS = {
-  { bind = "ACTIONBUTTON", frame = "ActionButton", count = 12 },
-  { bind = "MULTIACTIONBAR1BUTTON", frame = "MultiBarBottomLeftButton", count = 12 },
-  { bind = "MULTIACTIONBAR2BUTTON", frame = "MultiBarBottomRightButton", count = 12 },
-  { bind = "MULTIACTIONBAR3BUTTON", frame = "MultiBarRightButton", count = 12 },
-  { bind = "MULTIACTIONBAR4BUTTON", frame = "MultiBarLeftButton", count = 12 },
-}
+-- Shared map includes ACTIONBUTTON + MULTIACTIONBAR1–7 (MultiBar5–7 = DF+ bars).
+local CLICKCAST_BARS = CM.Constants.ClickCastBars
+  or {
+    { bind = "ACTIONBUTTON", frame = "ActionButton", count = 12 },
+    { bind = "MULTIACTIONBAR1BUTTON", frame = "MultiBarBottomLeftButton", count = 12 },
+    { bind = "MULTIACTIONBAR2BUTTON", frame = "MultiBarBottomRightButton", count = 12 },
+    { bind = "MULTIACTIONBAR3BUTTON", frame = "MultiBarRightButton", count = 12 },
+    { bind = "MULTIACTIONBAR4BUTTON", frame = "MultiBarLeftButton", count = 12 },
+  }
 
 local BindingToClickFrame = {}
 for _, bar in ipairs(CLICKCAST_BARS) do

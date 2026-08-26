@@ -9,7 +9,8 @@
 --      when true), and GetBindingsLocation() for which bindings table to read.
 --    • SetNewBinding / OverrideDefaultButtons / ResetBindingOverride — per-slot secure
 --      attributes + SetMouselookOverrideBinding / SetOverrideBindingClick.
---    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run.
+--    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run
+--      for ACTIONBUTTON + MULTIACTIONBAR1–7 (CM.Constants.ClickCastBars).
 --    • ApplyToggleFocusTargetBinding — Combat Mode Target Lock keybind (always clears
 --      override owner first so stolen keys cannot leave a stale click override). No-ops
 --      install when char.reticleTargeting is off (CM.IsTargetLockEnabled).
@@ -57,17 +58,19 @@ local tostring = _G.tostring
 local type = _G.type
 
 -- Click-cast macro wrapper: binding value (e.g. ACTIONBUTTON1) -> pre-line + /click frameName.
-local CLICKCAST_BARS = {
-  { bind = "ACTIONBUTTON", frame = "ActionButton", count = 12 },
-  { bind = "MULTIACTIONBAR1BUTTON", frame = "MultiBarBottomLeftButton", count = 12 },
-  { bind = "MULTIACTIONBAR2BUTTON", frame = "MultiBarBottomRightButton", count = 12 },
-  { bind = "MULTIACTIONBAR3BUTTON", frame = "MultiBarRightButton", count = 12 },
-  { bind = "MULTIACTIONBAR4BUTTON", frame = "MultiBarLeftButton", count = 12 },
-}
+-- Shared map includes ACTIONBUTTON + MULTIACTIONBAR1–7 (MultiBar5–7 = DF+ bars).
+local CLICKCAST_BARS = CM.Constants.ClickCastBars
+  or {
+    { bind = "ACTIONBUTTON", frame = "ActionButton", count = 12 },
+    { bind = "MULTIACTIONBAR1BUTTON", frame = "MultiBarBottomLeftButton", count = 12 },
+    { bind = "MULTIACTIONBAR2BUTTON", frame = "MultiBarBottomRightButton", count = 12 },
+    { bind = "MULTIACTIONBAR3BUTTON", frame = "MultiBarRightButton", count = 12 },
+    { bind = "MULTIACTIONBAR4BUTTON", frame = "MultiBarLeftButton", count = 12 },
+  }
 
 -- Reticle targeting macro text helpers live in TargetingMacroBuilder.lua.
 
--- Ordered list of all binding names (ACTIONBUTTON1..12, MULTIACTIONBAR1BUTTON1..12, etc.)
+-- Ordered list of all binding names (ACTIONBUTTON1..12, MULTIACTIONBAR1–7BUTTON1..12).
 local OrderedBindingNames = {}
 for _, bar in ipairs(CLICKCAST_BARS) do
   for i = 1, bar.count do

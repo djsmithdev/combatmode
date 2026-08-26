@@ -2,8 +2,8 @@
 --  Constants/Gameplay.lua — CONSTANTS — macros, event groups, bindable actions
 ---------------------------------------------------------------------------------------
 --  What it does: Central static gameplay tables: account macros Combat Mode creates,
---  BLIZZARD_EVENTS category lists for EventRouter, ActionsToProcess / OverrideActions /
---  ButtonsToOverride for click-cast UI and secure overrides.
+--  BLIZZARD_EVENTS category lists for EventRouter, ClickCastBars / ActionsToProcess /
+--  OverrideActions / ButtonsToOverride for click-cast UI and secure overrides.
 --  Architecture / how it works:
 --    • Macros: CM_ClearTarget/Focus, CM_ToggleFocus{Any,Enemy}
 --      (target-first-then-mouseover priority), CM_CycleFocusEnemy{Next,Prev}
@@ -12,8 +12,13 @@
 --      CAST_FEEDBACK (player cast/channel), ASSISTED_HIGHLIGHT
 --      (ASSISTED_COMBAT_ACTION_SPELL_CAST), FOCUS_NAMEPLATE (nameplate add/remove for
 --      Target Lock nameplate marker).
---    • ActionsToProcess enumerates bindable Blizzard actions; OverrideActions labels
---      CM-specific clear/toggle/macro choices; ButtonsToOverride lists the 8 mouse slots.
+--    • ClickCastBars: ACTIONBUTTON + MULTIACTIONBAR1–7 (MultiBar5–7 = Dragonflight+
+--      Edit Mode bars) with Blizzard frame prefixes and action-slot bases. Shared by
+--      BindingOverrides, TargetingMacroBuilder, AddonActionBarResolver, Assist keybinds.
+--    • ActionsToProcess = ClickCastBars slots + other bindable Blizzard actions
+--      (pings, arena target/focus, vehicles, party pets, sit/sheath/run, pitch, …);
+--      OverrideActions labels CM-specific clear/toggle/macro choices;
+--      ButtonsToOverride lists the 8 mouse slots.
 --  Does not: Register events, create macros, or SetOverrideBinding (Bootstrap /
 --  EventRouter / BindingOverrides do).
 --  Related: Core/Runtime/EventRouter.lua, Core/ClickCasting/BindingOverrides.lua,
@@ -22,6 +27,9 @@
 --  Core/Crosshair/Animations.lua, Core/Crosshair/FocusNameplateMarker.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+
+-- Lua stdlib
+local ipairs = _G.ipairs
 
 CM.Constants.Macros = {
   CM_ClearTarget = "/stopmacro [noexists]\n/cleartarget",
@@ -103,67 +111,33 @@ CM.Constants.BLIZZARD_EVENTS = {
   },
 }
 
-CM.Constants.ActionsToProcess = {
-  "ACTIONBUTTON1",
-  "ACTIONBUTTON2",
-  "ACTIONBUTTON3",
-  "ACTIONBUTTON4",
-  "ACTIONBUTTON5",
-  "ACTIONBUTTON6",
-  "ACTIONBUTTON7",
-  "ACTIONBUTTON8",
-  "ACTIONBUTTON9",
-  "ACTIONBUTTON10",
-  "ACTIONBUTTON11",
-  "ACTIONBUTTON12",
-  "MULTIACTIONBAR1BUTTON1",
-  "MULTIACTIONBAR1BUTTON2",
-  "MULTIACTIONBAR1BUTTON3",
-  "MULTIACTIONBAR1BUTTON4",
-  "MULTIACTIONBAR1BUTTON5",
-  "MULTIACTIONBAR1BUTTON6",
-  "MULTIACTIONBAR1BUTTON7",
-  "MULTIACTIONBAR1BUTTON8",
-  "MULTIACTIONBAR1BUTTON9",
-  "MULTIACTIONBAR1BUTTON10",
-  "MULTIACTIONBAR1BUTTON11",
-  "MULTIACTIONBAR1BUTTON12",
-  "MULTIACTIONBAR2BUTTON1",
-  "MULTIACTIONBAR2BUTTON2",
-  "MULTIACTIONBAR2BUTTON3",
-  "MULTIACTIONBAR2BUTTON4",
-  "MULTIACTIONBAR2BUTTON5",
-  "MULTIACTIONBAR2BUTTON6",
-  "MULTIACTIONBAR2BUTTON7",
-  "MULTIACTIONBAR2BUTTON8",
-  "MULTIACTIONBAR2BUTTON9",
-  "MULTIACTIONBAR2BUTTON10",
-  "MULTIACTIONBAR2BUTTON11",
-  "MULTIACTIONBAR2BUTTON12",
-  "MULTIACTIONBAR3BUTTON1",
-  "MULTIACTIONBAR3BUTTON2",
-  "MULTIACTIONBAR3BUTTON3",
-  "MULTIACTIONBAR3BUTTON4",
-  "MULTIACTIONBAR3BUTTON5",
-  "MULTIACTIONBAR3BUTTON6",
-  "MULTIACTIONBAR3BUTTON7",
-  "MULTIACTIONBAR3BUTTON8",
-  "MULTIACTIONBAR3BUTTON9",
-  "MULTIACTIONBAR3BUTTON10",
-  "MULTIACTIONBAR3BUTTON11",
-  "MULTIACTIONBAR3BUTTON12",
-  "MULTIACTIONBAR4BUTTON1",
-  "MULTIACTIONBAR4BUTTON2",
-  "MULTIACTIONBAR4BUTTON3",
-  "MULTIACTIONBAR4BUTTON4",
-  "MULTIACTIONBAR4BUTTON5",
-  "MULTIACTIONBAR4BUTTON6",
-  "MULTIACTIONBAR4BUTTON7",
-  "MULTIACTIONBAR4BUTTON8",
-  "MULTIACTIONBAR4BUTTON9",
-  "MULTIACTIONBAR4BUTTON10",
-  "MULTIACTIONBAR4BUTTON11",
-  "MULTIACTIONBAR4BUTTON12",
+-- Action-bar bindings for click-cast dropdown + reticle /click injection.
+-- actionBase = Blizzard action slot for button 1 (Retail MultiBar5–7 = 145/157/169).
+CM.Constants.ClickCastBars = {
+  { bind = "ACTIONBUTTON", frame = "ActionButton", count = 12, actionBase = 1 },
+  {
+    bind = "MULTIACTIONBAR1BUTTON",
+    frame = "MultiBarBottomLeftButton",
+    count = 12,
+    actionBase = 61,
+  },
+  {
+    bind = "MULTIACTIONBAR2BUTTON",
+    frame = "MultiBarBottomRightButton",
+    count = 12,
+    actionBase = 49,
+  },
+  { bind = "MULTIACTIONBAR3BUTTON", frame = "MultiBarRightButton", count = 12, actionBase = 25 },
+  { bind = "MULTIACTIONBAR4BUTTON", frame = "MultiBarLeftButton", count = 12, actionBase = 37 },
+  { bind = "MULTIACTIONBAR5BUTTON", frame = "MultiBar5Button", count = 12, actionBase = 145 },
+  { bind = "MULTIACTIONBAR6BUTTON", frame = "MultiBar6Button", count = 12, actionBase = 157 },
+  { bind = "MULTIACTIONBAR7BUTTON", frame = "MultiBar7Button", count = 12, actionBase = 169 },
+}
+
+-- Non-bar bindable actions shown in the Click Casting action dropdown.
+-- Includes high-value Retail IDs (pings, arena target/focus, vehicles, party pets,
+-- sit/sheath/run, pitch) that older BindingID wiki lists omitted.
+local ACTIONS_TO_PROCESS_EXTRA = {
   "FOCUSTARGET",
   "FOLLOWTARGET",
   "INTERACTTARGET",
@@ -172,6 +146,13 @@ CM.Constants.ActionsToProcess = {
   "MOVEANDSTEER",
   "MOVEBACKWARD",
   "MOVEFORWARD",
+  "PITCHUP",
+  "PITCHDOWN",
+  "SITORSTAND",
+  "TOGGLESHEATH",
+  "TOGGLERUN",
+  "STARTAUTORUN",
+  "STOPAUTORUN",
   "TARGETFOCUS",
   "TARGETLASTHOSTILE",
   "TARGETLASTTARGET",
@@ -241,10 +222,42 @@ CM.Constants.ActionsToProcess = {
   "TARGETPARTYMEMBER2",
   "TARGETPARTYMEMBER3",
   "TARGETPARTYMEMBER4",
+  "TARGETPARTYPET1",
+  "TARGETPARTYPET2",
+  "TARGETPARTYPET3",
+  "TARGETPARTYPET4",
+  "TARGETARENA1",
+  "TARGETARENA2",
+  "TARGETARENA3",
+  "TARGETARENA4",
+  "TARGETARENA5",
+  "FOCUSARENA1",
+  "FOCUSARENA2",
+  "FOCUSARENA3",
+  "FOCUSARENA4",
+  "FOCUSARENA5",
   "TOGGLEAUTORUN",
   "TURNLEFT",
   "TURNRIGHT",
+  "VEHICLEEXIT",
+  "VEHICLENEXTSEAT",
+  "VEHICLEPREVSEAT",
+  "TOGGLEPINGLISTENER",
+  "PINGATTACK",
+  "PINGWARNING",
+  "PINGONMYWAY",
+  "PINGASSIST",
 }
+
+CM.Constants.ActionsToProcess = {}
+for _, bar in ipairs(CM.Constants.ClickCastBars) do
+  for i = 1, bar.count do
+    CM.Constants.ActionsToProcess[#CM.Constants.ActionsToProcess + 1] = bar.bind .. i
+  end
+end
+for _, id in ipairs(ACTIONS_TO_PROCESS_EXTRA) do
+  CM.Constants.ActionsToProcess[#CM.Constants.ActionsToProcess + 1] = id
+end
 
 CM.Constants.OverrideActions = {
   CLEARTARGET = "|cff69ccf0Clear Target|r",
