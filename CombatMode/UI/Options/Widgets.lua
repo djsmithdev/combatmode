@@ -591,13 +591,14 @@ local function PlaceCharScopeMark(scopeTag, label, labelW)
   scopeTag:SetPoint("LEFT", label, "LEFT", markX, 0)
 end
 
-local function AddRowLabel(row, text)
+local function AddRowLabel(row, text, allowColors)
   local label = UI.CreateFontString(row, "OVERLAY", UI.Fonts.base, "GameFontHighlight")
   label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X, -ROW_PAD_Y)
   label:SetJustifyH("LEFT")
   label:SetJustifyV("TOP")
   label:SetWordWrap(true)
-  label:SetText(UI.StripColors(text) or "")
+  local display = allowColors and text or UI.StripColors(text)
+  label:SetText(display or "")
   label:SetTextColor(C.text[1], C.text[2], C.text[3])
   row.label = label
   return label
@@ -1827,7 +1828,7 @@ function UI.MakeTextInput(parent, opts)
   local lines = type(multiline) == "number" and multiline or (multiline and 6 or 1)
   local boxHeight = multiline and (lines * 16 + 12) or 24
   local row = CreateFrame("Frame", nil, parent)
-  AddRowLabel(row, opts.label)
+  AddRowLabel(row, opts.label, opts.labelAllowColors and true or false)
 
   local box = CreateFrame("Frame", nil, row, "BackdropTemplate")
   box:SetHeight(boxHeight)
@@ -2105,10 +2106,14 @@ function UI.MakeDescription(parent, textOrOpts)
   local color = C.textDim
   local warningText
   local warningColor = C.warning
+  local allowColors = false
   if type(textOrOpts) == "table" then
     text = textOrOpts.text
     if textOrOpts.color then
       color = textOrOpts.color
+    end
+    if textOrOpts.allowColors then
+      allowColors = true
     end
     if textOrOpts.warning and textOrOpts.warning ~= "" then
       warningText = textOrOpts.warning
@@ -2123,7 +2128,8 @@ function UI.MakeDescription(parent, textOrOpts)
   fs:SetPoint("TOPLEFT", frame, "TOPLEFT", 4, 0)
   fs:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -4, 0)
   fs:SetJustifyH("LEFT")
-  fs:SetText(UI.StripColors(text) or "")
+  local display = allowColors and text or UI.StripColors(text)
+  fs:SetText(display or "")
   fs:SetTextColor(color[1], color[2], color[3], color[4] or 1)
 
   local warningFs

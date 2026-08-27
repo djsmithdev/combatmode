@@ -14,6 +14,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.1] - 2026-08-27
+
+### Fixed
+
+- Auto Target Lock no longer re-locks a dead hostile hard target after the lock dies (clears dead hostile targets before retarget/re-lock), which was causing invalid-target casts until you aimed at a new unit.
+
+### Changed
+
+- Default targeting prelines tightened for the 255-character macro limit. If you've modified the Macro Prelines, it's advised to reset them to defaults to pick up the new revised versions.
+
 ## [4.4.0] - 2026-08-27
 
 ### Added
@@ -391,7 +401,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.4.0...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.4.1...HEAD
+[4.4.1]: https://github.com/djsmithdev/combatmode/compare/4.4.0...4.4.1
 [4.4.0]: https://github.com/djsmithdev/combatmode/compare/4.3.3...4.4.0
 [4.3.3]: https://github.com/djsmithdev/combatmode/compare/4.3.2...4.3.3
 [4.3.2]: https://github.com/djsmithdev/combatmode/compare/4.3.1...4.3.2

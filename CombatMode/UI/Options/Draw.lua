@@ -108,6 +108,18 @@ function UI.SlashWrap(text)
   return UI.Colors.slashMarkup .. (text or "") .. "|r"
 end
 
+-- Toggle-track green / dim grey for ON·OFF state chips in labels and descriptions.
+UI.Colors.onMarkup =
+  RgbToCffMarkup(UI.Colors.toggleOn[1], UI.Colors.toggleOn[2], UI.Colors.toggleOn[3])
+UI.Colors.offMarkup =
+  RgbToCffMarkup(UI.Colors.textDim[1], UI.Colors.textDim[2], UI.Colors.textDim[3])
+
+--- Wraps ON/OFF (or custom text) in green (on) or dim grey (off) |cff…|r markup.
+function UI.OnOffWrap(isOn, text)
+  local mark = isOn and UI.Colors.onMarkup or UI.Colors.offMarkup
+  return mark .. (text or (isOn and "ON" or "OFF")) .. "|r"
+end
+
 -- Fixed type scale: `base` for option rows, `nav` for the left sidebar tabs,
 -- `header` for section titles, `desc` for muted under-option helpers.
 UI.Fonts = {

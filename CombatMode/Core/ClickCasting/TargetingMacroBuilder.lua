@@ -7,12 +7,15 @@
 --  exclude lists (spell IDs).
 --  Architecture / how it works:
 --    • BuildClickCastMacroText(bindingValue) — no-op text when reticleTargeting off.
---    • Default prelines clear dead focus, then /target (any/enemy + autoLockAny/
---      autoLockEnemy). Overrides from global.targetingMacroPreline*Override keys.
+--    • Default prelines clear dead focus + dead hostile hard target (friendly corpses
+--      kept for res), then /tar (any/enemy + autoLockAny/autoLockEnemy). Overrides from
+--      global.targetingMacroPreline*Override keys.
 --      char.autoTargetLockOnAttack selects the auto-lock pair. Enemy-only gates the
 --      focus branch on harm so a friendly Target Lock does not hijack hostile casts.
---    • Auto-lock prelines: clear dead focus, /target, then /focus target when empty
---      (cycle-macro pattern). Kept short for the 255-char SecureActionButton limit.
+--    • Auto-lock prelines: clear dead focus + dead hard target, /tar, then /focus
+--      when empty (cycle-macro pattern). Cleartarget prevents corpse re-lock. Kept
+--      short for the 255-char SecureActionButton limit (/tar alias; no redundant
+--      ,harm on @anyenemy; [dead] defaults to target).
 --    • CM.TargetingMacroPrelineMaxLen = 255 − worst /click cast − newline; editor enforces.
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists.
 --    • GetEffectiveBarButtonFrameName uses AddonActionBarResolver for third-party bars.
@@ -264,8 +267,12 @@ function CM.GetEffectiveBarButtonFrameName(bindingValue)
   return base
 end
 
--- Shared note: @unit already implies exists — skip ,exists on @focus/@mouseover.
--- Focus branches use nodead (not exists,nodead); saves chars under the 255-char cap.
+-- Shared note: a condition group with ONLY @unit (no boolean) is ALWAYS true — use
+-- ,exists / harm / nodead / nomounted / etc. so fallthrough works. @unit still implies
+-- exists when paired with those booleans (harm/nodead already require exists).
+-- After /clearfocus [@focus,dead], focus retarget need not repeat ,nodead.
+-- /tar is a valid alias for /target. Do not use /f — that is /follow, not /focus.
+-- @anyenemy is hostile-only — ,harm is redundant on it.
 
 -- Full macrotext = preline + "\n" + /click cast line. Hard engine limit is 255.
 local SECURE_MACROTEXT_MAX = 255
@@ -276,35 +283,41 @@ local CLICKCAST_WORST_CAST_LINE_LEN = 125
 CM.TargetingMacroPrelineMaxLen = SECURE_MACROTEXT_MAX - CLICKCAST_WORST_CAST_LINE_LEN - 1
 
 -- Regular (Auto Target Lock OFF), Enemies Only OFF:
--- Clear dead focus, then target any mouseover unit if it exists.
--- (@mouseover already implies exists — no need for ,exists.)
+-- Clear dead focus + dead *hostile* hard target (keep friendly corpses for res).
 local CLICKCAST_PRE_LINE_ANY = "/clearfocus [@focus,dead]\n"
-  .. "/target [@focus,nodead] focus; [nomounted,@mouseover] mouseover"
+  .. "/cleartarget [dead,harm]\n"
+  .. "/tar [@focus,exists];[nomounted,@mouseover]"
 
 -- Regular (Auto Target Lock OFF), Enemies Only ON:
--- Clear dead focus. Focus branch gated on harm so a friendly Target Lock (e.g. a party
--- member) is ignored for hostile casts. Otherwise: mouseover hostile+alive under the
--- crosshair; else anyenemy (hard target, then softenemy / Action Targeting).
+-- Clear dead focus + dead hostile hard target. Focus branch gated on harm so a friendly
+-- Target Lock (e.g. a party member) is ignored for hostile casts. Otherwise: mouseover
+-- hostile+alive under the crosshair; else anyenemy (hard target, then softenemy /
+-- Action Targeting). Soft ,nodead kept on mouseover; dropped on @anyenemy (hostile
+-- corpse already cleared).
 local CLICKCAST_PRE_LINE_ENEMY = "/clearfocus [@focus,dead]\n"
-  .. "/target [@focus,nodead,harm] focus; [nomounted,@mouseover,harm,nodead][nomounted,@anyenemy,harm,nodead]"
+  .. "/cleartarget [dead,harm]\n"
+  .. "/tar [@focus,harm];[nomounted,@mouseover,harm,nodead][nomounted,@anyenemy]"
 
 -- Auto Target Lock ON — shared behavior:
 -- Must leave room for the longest /click cast line under the 255-char macrotext cap
--- (no macro chaining). Pattern matches CM_CycleFocusEnemy*: /target first, then
--- /focus when unlocked. Clear dead focus (unlock on death), then [@focus,noexists]
--- target re-locks when empty; alive focus is left alone.
--- Targeting priority matches the regular prelines, then auto-writes focus.
--- Slightly trimmed (no nomounted; looser nodead on mouseover/anyenemy) for char budget.
+-- (no macro chaining). Clear dead focus AND dead hostile hard target — otherwise a
+-- hostile corpse stays selected and [@focus,noexists] can re-lock it. Friendly dead
+-- targets are left alone (battle res). Then retarget; re-lock when empty.
+-- [dead,harm] on /cleartarget defaults to @target.
 
 -- Auto Target Lock ON, Enemies Only OFF:
+-- Attack-driven: soft-target harm only. [@focus,exists] required (bare @focus is
+-- always-true). nomounted omitted here so [dead,harm] fits; regular any keeps it.
 local CLICKCAST_PRE_LINE_AUTO_LOCK_ANY = "/clearfocus [@focus,dead]\n"
-  .. "/target [@focus,nodead] focus; [@mouseover] mouseover\n"
+  .. "/cleartarget [dead,harm]\n"
+  .. "/tar [@focus,exists];[@mouseover,harm]\n"
   .. "/focus [@focus,noexists] target"
 
 -- Auto Target Lock ON, Enemies Only ON:
 local CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY = "/clearfocus [@focus,dead]\n"
-  .. "/target [@focus,nodead,harm] focus; [@mouseover,harm][@anyenemy,harm]\n"
-  .. "/focus [@focus,noexists] target"
+  .. "/cleartarget [dead,harm]\n"
+  .. "/tar [@focus,harm];[@mouseover,harm][@anyenemy]\n"
+  .. "/focus [@focus,noexists]target"
 
 -- Export defaults so the prelines editor can show a starting point even when no override exists.
 CM.TargetingMacroPrelinesDefaults = {

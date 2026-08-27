@@ -121,7 +121,9 @@ CM.Constants.DatabaseDefaults = {
       "Narci_Vignette",
       "EnhanceQoLConfigCenterFrame",
       "LWDialogFrame",
+      "TAV_CoreFrame",
       "EQOLQuickCastVisual",
+      "WeakTextures_MainFrame",
     },
     customCondition = "",
     -- action camera
