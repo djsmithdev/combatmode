@@ -14,6 +14,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.0] - 2026-08-27
+
+### Added
+
+- Auto Target Lock option under Reticle Targeting: Target Lock engages automatically when attacking units (clears when the unit dies and re-locks onto a new crosshair target).
+- Support for new Click Casting bindings for MultiBar 5 to 7.
+- More bindable actions in the Click Casting action dropdown: pings, arena target/focus (1–5), vehicle exit/seats, party pets (1–4), sit/sheath/run, pitch up/down, and Toggle Ping Listener.
+
+### Changed
+
+- Targeting Macro Prelines editor always shows all four preline fields; inactive combinations show a watermark (Auto Target Lock × Enemies Only). Labels include the active Enemies Only / Auto Target Lock state.
+- Default reticle targeting prelines adjusted for Auto Target Lock behavior and the 255-character SecureActionButton `macrotext` limit (auto-lock variants keep death-unlock + re-lock; soft-target conditions are trimmed where needed to leave room for the longest `/click` cast line).
+- Targeting Macro Prelines editor enforces a max length (`CM.TargetingMacroPrelineMaxLen`, 129) so custom prelines cannot truncate the trailing `/click` on the worst-case primary-bar path; oversized saved overrides are ignored at runtime.
+
+### Fixed
+
+- Target Lock nameplate marker now appears reliably with nameplate addons (e.g. Platynator): marker parents to the nameplate root with ignore-parent-alpha so health-bar fades no longer hide it; animations (scale/alpha + color pulse) phases no longer fight each other; plate recycle resumes settled without a second flash.
+
 ## [4.3.3] - 2026-08-20
 
 ### Fixed
@@ -373,7 +391,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.3.3...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.4.0...HEAD
+[4.4.0]: https://github.com/djsmithdev/combatmode/compare/4.3.3...4.4.0
 [4.3.3]: https://github.com/djsmithdev/combatmode/compare/4.3.2...4.3.3
 [4.3.2]: https://github.com/djsmithdev/combatmode/compare/4.3.1...4.3.2
 [4.3.1]: https://github.com/djsmithdev/combatmode/compare/4.3.0...4.3.1
