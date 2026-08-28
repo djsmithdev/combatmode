@@ -6,7 +6,9 @@
 --  and cast-at-crosshair lists.
 --  Architecture / how it works:
 --    • Suggestion popup capped (MAX_MATCHES / visible rows); migrates legacy name tokens
---      when resolving.
+--      when resolving. Spellbook index build skips when C_SpellBook.GetSpellBookItemInfo
+--      is unavailable (pet-spell scan is guarded — warlock pet books could otherwise
+--      crash options open).
 --    • Runtime membership tests live in TargetingMacroBuilder, not here.
 --  Does not: Build click-cast macros or write CVars.
 --  Related: UI/Options/Widgets.lua, UI/Options/Tabs/TabReticleTargeting.lua,
@@ -84,6 +86,12 @@ local function RebuildSpellIndex()
     return
   end
 
+  local GetSpellBookItemInfo = C_SpellBook.GetSpellBookItemInfo
+  if not GetSpellBookItemInfo then
+    indexDirty = false
+    return
+  end
+
   local playerBank = Enum.SpellBookSpellBank.Player
   local petBank = Enum.SpellBookSpellBank.Pet
   local spellType = Enum.SpellBookItemType and Enum.SpellBookItemType.Spell
@@ -91,10 +99,10 @@ local function RebuildSpellIndex()
   local numLines = C_SpellBook.GetNumSpellBookSkillLines and C_SpellBook.GetNumSpellBookSkillLines()
     or 0
   for i = 1, numLines do
-    local line = C_SpellBook.GetSpellBookSkillLineInfo(i)
+    local line = C_SpellBook.GetSpellBookSkillLineInfo and C_SpellBook.GetSpellBookSkillLineInfo(i)
     if line and not line.offSpecID and line.numSpellBookItems and line.itemIndexOffset then
       for slot = line.itemIndexOffset + 1, line.itemIndexOffset + line.numSpellBookItems do
-        local info = C_SpellBook.GetSpellBookItemInfo(slot, playerBank)
+        local info = GetSpellBookItemInfo(slot, playerBank)
         if info and (not spellType or info.itemType == spellType) then
           local spellId = info.spellID or info.actionID
           if not IsPassiveSpell(spellId, slot, playerBank) then
@@ -115,9 +123,9 @@ local function RebuildSpellIndex()
   end
 
   local numPet = C_SpellBook.HasPetSpells and C_SpellBook.HasPetSpells()
-  if numPet and numPet > 0 then
+  if numPet and numPet > 0 and petBank then
     for slot = 1, numPet do
-      local info = C_SpellBook.GetSpellBookItemInfo(slot, petBank)
+      local info = GetSpellBookItemInfo(slot, petBank)
       if info then
         local spellId = info.spellID or info.actionID
         if not IsPassiveSpell(spellId, slot, petBank) then

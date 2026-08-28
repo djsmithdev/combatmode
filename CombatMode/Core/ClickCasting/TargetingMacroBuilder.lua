@@ -12,10 +12,10 @@
 --      global.targetingMacroPreline*Override keys.
 --      char.autoTargetLockOnAttack selects the auto-lock pair. Enemy-only gates the
 --      focus branch on harm so a friendly Target Lock does not hijack hostile casts.
---    • Auto-lock prelines: clear dead focus + dead hard target, /tar, then /focus
---      when empty (cycle-macro pattern). Cleartarget prevents corpse re-lock. Kept
---      short for the 255-char SecureActionButton limit (/tar alias; no redundant
---      ,harm on @anyenemy; [dead] defaults to target).
+--    • Auto-lock prelines: clear dead focus + dead hard target, /tar (soft ,nodead on
+--      focus/mouseover branches — harm alone matches corpses), then /focus resync
+--      ([nodead] any / [nodead,harm] enemy) so sticky empty-focus cannot leave a dead
+--      lock. Cleartarget prevents corpse re-lock on hard target.
 --    • CM.TargetingMacroPrelineMaxLen = 255 − worst /click cast − newline; editor enforces.
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists.
 --    • GetEffectiveBarButtonFrameName uses AddonActionBarResolver for third-party bars.
@@ -274,7 +274,9 @@ end
 -- /tar is a valid alias for /target. Do not use /f — that is /follow, not /focus.
 -- @anyenemy is hostile-only — ,harm is redundant on it.
 
--- Full macrotext = preline + "\n" + /click cast line. Hard engine limit is 255.
+-- Full macrotext = preline + "\n" + /click cast line. Hard engine limit is 255
+-- (patch 11.0.2). Same patch: macrotext cannot /click another macro-executing
+-- button — do not split preline onto a second type=macro SecureActionButton.
 local SECURE_MACROTEXT_MAX = 255
 -- Longest cast line BuildClickCastMacroText emits today: ACTIONBUTTON conditional
 -- /click with ElvUI primary bar (ElvUI_Bar1Button12) + ActionButtonUseKeyDown suffix.
@@ -299,25 +301,27 @@ local CLICKCAST_PRE_LINE_ENEMY = "/clearfocus [@focus,dead]\n"
   .. "/tar [@focus,harm];[nomounted,@mouseover,harm,nodead][nomounted,@anyenemy]"
 
 -- Auto Target Lock ON — shared behavior:
--- Must leave room for the longest /click cast line under the 255-char macrotext cap
--- (no macro chaining). Clear dead focus AND dead hostile hard target — otherwise a
--- hostile corpse stays selected and [@focus,noexists] can re-lock it. Friendly dead
--- targets are left alone (battle res). Then retarget; re-lock when empty.
--- [dead,harm] on /cleartarget defaults to @target.
+-- Must leave room for the longest /click cast line under the 255-char macrotext cap.
+-- Clear dead focus AND dead hostile hard target — otherwise a hostile corpse stays
+-- selected and [@focus,noexists] can re-lock it. Friendly dead targets are left alone
+-- (battle res). Then retarget; resync focus each click ([nodead] / [nodead,harm]) so
+-- a dead lock cannot persist when clearfocus misses. [dead,harm] on /cleartarget
+-- defaults to @target. Focus branches must include ,nodead — ,harm / ,exists alone
+-- still match corpses.
 
 -- Auto Target Lock ON, Enemies Only OFF:
--- Attack-driven: soft-target harm only. [@focus,exists] required (bare @focus is
--- always-true). nomounted omitted here so [dead,harm] fits; regular any keeps it.
+-- Attack-driven: soft-target harm+alive. [@focus,nodead] skips a dead lock for /tar.
 local CLICKCAST_PRE_LINE_AUTO_LOCK_ANY = "/clearfocus [@focus,dead]\n"
   .. "/cleartarget [dead,harm]\n"
-  .. "/tar [@focus,exists];[@mouseover,harm]\n"
-  .. "/focus [@focus,noexists] target"
+  .. "/tar [@focus,nodead];[@mouseover,harm,nodead]\n"
+  .. "/focus [nodead]"
 
 -- Auto Target Lock ON, Enemies Only ON:
+-- ,nodead on focus branch; resync /focus [nodead,harm] (replaces sticky noexists).
 local CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY = "/clearfocus [@focus,dead]\n"
   .. "/cleartarget [dead,harm]\n"
-  .. "/tar [@focus,harm];[@mouseover,harm][@anyenemy]\n"
-  .. "/focus [@focus,noexists]target"
+  .. "/tar [@focus,harm,nodead][@mouseover,harm][@anyenemy]\n"
+  .. "/focus [nodead,harm]"
 
 -- Export defaults so the prelines editor can show a starting point even when no override exists.
 CM.TargetingMacroPrelinesDefaults = {

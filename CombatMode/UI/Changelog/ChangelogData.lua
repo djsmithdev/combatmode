@@ -14,6 +14,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.2] - 2026-08-28
+
+### Fixed
+
+- Auto Target Lock no longer leaves focus stuck on a dead corpse: auto-lock prelines add `,nodead` on focus targeting branches (`,harm` / `,exists` alone still match corpses) and resync focus each cast (`/focus [nodead]` or `/focus [nodead,harm]`) instead of sticky `[@focus,noexists]`.
+- Enemies Only + Auto Target Lock: `/focus [nodead,harm]` no longer auto-focuses friendly targets when you hard-target them, so hostile casts do not require manually clearing focus or cycling Target Lock.
+- Opening options no longer errors on characters whose spellbook exposes pet spells when `C_SpellBook.GetSpellBookItemInfo` is unavailable.
+
+### Changed
+
+- Default auto-lock prelines updated again; reset Macro Prelines to defaults and `/reload` if you customized them under 4.4.0–4.4.1.
+
 ## [4.4.1] - 2026-08-27
 
 ### Fixed
@@ -401,7 +413,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.4.1...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.4.2...HEAD
+[4.4.2]: https://github.com/djsmithdev/combatmode/compare/4.4.1...4.4.2
 [4.4.1]: https://github.com/djsmithdev/combatmode/compare/4.4.0...4.4.1
 [4.4.0]: https://github.com/djsmithdev/combatmode/compare/4.3.3...4.4.0
 [4.3.3]: https://github.com/djsmithdev/combatmode/compare/4.3.2...4.3.3
