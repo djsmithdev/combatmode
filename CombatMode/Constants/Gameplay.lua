@@ -36,8 +36,8 @@ CM.Constants.Macros = {
   CM_ClearFocus = "/stopmacro [noexists]\n/clearfocus",
   -- A condition group with only @unit (no boolean) is ALWAYS true — need ,exists
   -- (or harm/nodead/etc.) so unlock / fallthrough works. [] = focus player last.
-  CM_ToggleFocusAny = "/focus [@focus,exists] none; [@target,exists]; [@mouseover,exists][]",
-  CM_ToggleFocusEnemy = "/focus [@focus,exists] none; [@target,harm,nodead]; [@mouseover,harm,nodead][]",
+  CM_ToggleFocusAny = "/focus [@focus,exists] none; [@target,exists]; [@mouseover,exists][]\n/tar [@focus,exists]",
+  CM_ToggleFocusEnemy = "/focus [@focus,exists] none; [@target,harm,nodead]; [@mouseover,harm,nodead][]\n/tar [@focus,exists]",
   -- Mouse-wheel Target Lock cycle (nearest / previous enemy, then focus).
   CM_CycleFocusEnemyNext = "/targetenemy [@focus,exists]\n/focus [@target,exists]",
   CM_CycleFocusEnemyPrev = "/targetenemy [@focus,exists] 1\n/focus [@target,exists]",
