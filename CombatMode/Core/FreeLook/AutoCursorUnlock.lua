@@ -13,7 +13,7 @@
 --    • OPie path may free centering + hide crosshair via FreeLook helpers.
 --  Does not: Own Lock/Unlock or ShouldFreeLookBeOff aggregation.
 --  Related: Constants/FrameWatch.lua, Core/FreeLook/FreeLookController.lua,
---  UI/Options/Tabs/TabAutoCursorUnlock.lua, Constants/DatabaseDefaults.lua,
+--  Core/Runtime/UserLuaCondition.lua, UI/Options/Tabs/TabAutoCursorUnlock.lua,
 --  Core/Crosshair/Crosshair.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -22,14 +22,12 @@ local _G = _G
 -- WoW API
 local GetPlayerAuraBySpellID = _G.C_UnitAuras.GetPlayerAuraBySpellID
 local GetUIPanel = _G.GetUIPanel
-local loadstring = _G.loadstring
-local tinsert = _G.table.insert
 
 -- Lua stdlib
 local ipairs = _G.ipairs
 local pairs = _G.pairs
-local pcall = _G.pcall
 local string = _G.string
+local tinsert = _G.table.insert
 
 local ON_RETAIL_CLIENT = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
 
@@ -85,40 +83,14 @@ end
 
 -- Cache compiled custom-condition Lua; OnUpdate calls this often and empty/default
 -- strings must not recompile every tick.
-local cachedCustomConditionSource
-local cachedCustomConditionFunc
+local customConditionCache = {}
 
 function CM.IsCustomConditionTrue()
-  local source = CM.DB.global.customCondition
-  if not source or source == "" then
-    cachedCustomConditionSource = source
-    cachedCustomConditionFunc = nil
-    return false
-  end
-
-  if source ~= cachedCustomConditionSource then
-    cachedCustomConditionSource = source
-    local func, err = loadstring(source)
-    if not func then
-      CM.DebugPrint("Invalid custom condition " .. tostring(err))
-      cachedCustomConditionFunc = nil
-      return false
-    end
-    cachedCustomConditionFunc = func
-  end
-
-  if not cachedCustomConditionFunc then
-    return false
-  end
-
-  local success, result = pcall(cachedCustomConditionFunc)
-
-  if not success then
-    CM.DebugPrint("Error executing custom condition: " .. tostring(result))
-    return false
-  end
-
-  return result
+  return CM.EvaluateUserLuaCondition(
+    CM.DB.global.customCondition,
+    customConditionCache,
+    "Invalid custom condition"
+  )
 end
 
 function CM.IsVendorMountOut()

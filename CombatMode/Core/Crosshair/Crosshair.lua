@@ -10,9 +10,11 @@
 --    • DB.global.crosshair / appearance / crosshairScale / opacity / Y;
 --      crosshairReactionColors optional overrides; CM.GetCrosshairReactionColor resolves
 --      tints (mounted = defaults; focus → hostile).
+--    • crosshairSituationalCondition — user Lua; when true, Animations uses X textures
+--      while reaction tint/scale stay normal (mounted / Target Lock still override).
 --    • IsCrosshairMounted — returns IsMounted() (always-on; no DB toggle). When mounted,
---      UpdateCrosshairReaction sets a static base appearance (inactive dot) instead of
---      reacting to targets, but the crosshair remains visible.
+--      UpdateCrosshairReaction sets a static base appearance (inactive dot) unless
+--      crosshairSituationalCondition is true (then full reaction + X texture).
 --    • UpdateCrosshairReaction — hostile/friendly/dead/gameobject under mouse or soft
 --      target; drives texture + Animations reaction scale. Presence via UnitExists;
 --      reaction/booleans are secret-safe (issecretvalue / PublicBool — no UnitGUID
@@ -28,7 +30,7 @@
 --  Related: Core/Crosshair/Animations.lua, Core/Crosshair/InteractionHUD/HUD.lua
 --  (and sibling Target/Visual), Core/Crosshair/AssistedHighlight/Assist.lua
 --  (and sibling Keybinds/Motion/CastProgress/Feedback), Core/Crosshair/FocusNameplateMarker.lua,
---  Core/Runtime/CVarManager.lua, Core/Runtime/EventRouter.lua, UI/Options/Tabs/TabCrosshair.lua,
+--  Core/Runtime/CVarManager.lua, Core/Runtime/EventRouter.lua, Core/Runtime/UserLuaCondition.lua, UI/Options/Tabs/TabCrosshair.lua,
 --  UI/Editors/CrosshairColorsEditor.lua, Constants/Assets.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -181,6 +183,20 @@ CM.IsCrosshairOptionsPreviewActive = false
 -- Nameplate marker uses hostile reaction tint; assist/HUD stay on CrosshairFrame.
 local focusLockReticleSuppressed = false
 local lastKnownAppearanceState = nil
+local lastKnownSituationalActive = nil
+local situationalConditionCache = {}
+
+function CM.IsCrosshairSituationalActive()
+  local g = CM.DB and CM.DB.global
+  if not g then
+    return false
+  end
+  return CM.EvaluateUserLuaCondition(
+    g.crosshairSituationalCondition,
+    situationalConditionCache,
+    "Crosshair situational condition"
+  )
+end
 
 function CM.IsFocusLockReticleSuppressed()
   return focusLockReticleSuppressed
@@ -510,10 +526,13 @@ function CM.UpdateCrosshairReaction()
     return
   end
 
-  -- While mounted, show a static Dot texture (inactive, base-colored) instead of reacting.
-  if CM.IsCrosshairMounted() then
-    if lastKnownAppearanceState ~= "mounted" then
+  local situationalActive = CM.IsCrosshairSituationalActive()
+
+  -- Inactive Dot while mounted unless situational condition overrides (full reaction).
+  if CM.IsCrosshairMounted() and not situationalActive then
+    if lastKnownAppearanceState ~= "mounted" or lastKnownSituationalActive then
       lastKnownAppearanceState = "mounted"
+      lastKnownSituationalActive = false
       ApplyFocusLockIdleReticle()
     end
     return
@@ -528,8 +547,12 @@ function CM.UpdateCrosshairReaction()
   local currentUnit, currentReaction = GetUnitUnderCursor()
   local appearanceState = currentUnit and (currentReaction or "base") or "base"
 
-  if appearanceState ~= lastKnownAppearanceState then
+  if
+    appearanceState ~= lastKnownAppearanceState
+    or situationalActive ~= lastKnownSituationalActive
+  then
     lastKnownAppearanceState = appearanceState
+    lastKnownSituationalActive = situationalActive
     SetCrosshairAppearance(appearanceState)
   end
 end
@@ -555,6 +578,7 @@ end
 
 function CM.OnCrosshairUncategorizedEvent()
   lastKnownAppearanceState = nil
+  lastKnownSituationalActive = nil
   CM.UpdateCrosshairReaction()
   if CM.IsMouselooking() then
     if CM.IsCrosshairEnabled() then
@@ -640,6 +664,7 @@ function CM.SetCrosshairOptionsPreview(enabled)
 
   if enabled then
     lastKnownAppearanceState = nil
+    lastKnownSituationalActive = nil
     CM.CreateCrosshair()
     if CM.IsCrosshairEnabled() then
       CM.DisplayCrosshair(true)
@@ -650,6 +675,7 @@ function CM.SetCrosshairOptionsPreview(enabled)
   CM.CancelCrosshairLockIn()
   CM.CancelCrosshairCastFeedback()
   lastKnownAppearanceState = nil
+  lastKnownSituationalActive = nil
   if CM.IsCrosshairEnabled() then
     CM.DisplayCrosshair(CM.IsMouselooking())
   else

@@ -11,7 +11,8 @@
 --      CAST_FEEDBACK path; CancelCrosshairCastFeedback / CancelCrosshairLockIn.
 --    • Cast GUID match is secret-safe (issecretvalue): cannot == under instance taint.
 --    • ApplyCrosshairAppearanceToWidget uses CM.GetCrosshairReactionColor; cast-break
---      hostile flash resolves at flash time (not module load).
+--      hostile flash resolves at flash time (not module load). Situational condition
+--      swaps to CrosshairTextureObj.X textures while keeping reaction colors/scale.
 --  Does not: Own Assisted Combat ProcLoop FlipBook (AssistedHighlight/Motion.lua) /
 --  interrupt cast break (AssistedHighlight/CastProgress.lua) or mouselook / CVar writes.
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight/Assist.lua,
@@ -131,6 +132,14 @@ local function ApplyCrosshairAppearanceToWidget(
     return
   end
 
+  local appearance = CrosshairAppearance
+  if CM.IsCrosshairSituationalActive and CM.IsCrosshairSituationalActive() then
+    local xAppearance = CM.Constants.CrosshairTextureObj and CM.Constants.CrosshairTextureObj.X
+    if xAppearance then
+      appearance = xAppearance
+    end
+  end
+
   local parent = targetFrame:GetParent()
 
   -- Target Lock idle Dot: Crosshair.lua owns texture/tint; skip all reaction changes.
@@ -145,7 +154,7 @@ local function ApplyCrosshairAppearanceToWidget(
 
   local color = CM.GetCrosshairReactionColor(state)
   local r, g, b, a = color[1], color[2], color[3], color[4]
-  local textureToUse = state == "base" and CrosshairAppearance.Base or CrosshairAppearance.Active
+  local textureToUse = state == "base" and appearance.Base or appearance.Active
   local reverseAnimation = state == "base" and true or false
 
   targetTexture:SetTexture(textureToUse)

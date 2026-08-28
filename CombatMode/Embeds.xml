@@ -18,6 +18,7 @@
     <Script file="Core\Runtime\EventRouter.lua"/>
     <Script file="Core\Runtime\CVarManager.lua"/>
     <Script file="Core\Runtime\BindingQueue.lua"/>
+    <Script file="Core\Runtime\UserLuaCondition.lua"/>
     <Script file="Core\Runtime\Bootstrap.lua"/>
     <!-- VIGNETTE: Screen edge darkening overlay (independent from Action Camera) -->
     <Script file="Core\Vignette.lua"/>

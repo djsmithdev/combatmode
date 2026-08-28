@@ -13,6 +13,7 @@
 --      reticleTargetingCVarOverrides, priorCVarSnapshot, targetingMacroPreline*Override
 --      (any/enemy + autoLockAny/autoLockEnemy); crosshairReactionColors (optional
 --      per-state RGBA overrides — empty table = defaults from Assets);
+--      crosshairSituationalCondition (user Lua → X texture override when true);
 --      bindings.
 --    • char: useGlobalBindings, shoulderOffset, reticleTargeting / enemyOnly /
 --      autoTargetLockOnAttack, macroInjectionClickCastOnly, castAtCursorSpells,
@@ -110,6 +111,12 @@ CM.Constants.DatabaseDefaults = {
     targetingMacroPrelineAutoLockAnyOverride = nil,
     targetingMacroPrelineAutoLockEnemyOverride = nil,
     crosshairReactionColors = {},
+    crosshairSituationalCondition = [[
+local isPlayerDead = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
+if isPlayerDead or isStealthed() then
+  return true end
+return false
+]],
     -- click casting
     bindings = DefaultBindings,
     -- auto  unlock

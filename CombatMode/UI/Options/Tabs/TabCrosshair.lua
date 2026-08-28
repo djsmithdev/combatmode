@@ -6,7 +6,8 @@
 --  preview via SetCrosshairOptionsPreview onSelect/onDeselect; when HUD turns on without
 --  reticle targeting, applies ConfigInteractionHUDSoftTarget.
 --  Architecture / how it works:
---    • DB.global: crosshair*, crosshairScale, crosshairReactionColors, interactionHUD / Side / Scale,
+--    • DB.global: crosshair*, crosshairScale, crosshairReactionColors,
+--      crosshairSituationalCondition, interactionHUD / Side / Scale,
 --      assistedHighlightEnabled / Side / Scale.
 --    • set() → DisplayCrosshair / CreateCrosshair / CancelCrosshairCastFeedback /
 --      ApplyInteractionHUDLayout / RefreshInteractionHUD /
@@ -164,6 +165,30 @@ UI.Options.AddTab({
       func = function()
         CM.OpenCrosshairColorsEditor()
       end,
+    })
+    ctx:Gap()
+    ctx:TextInput({
+      label = "Situational Condition",
+      desc = "Custom Lua code checked during Mouse Look. While returning true, forces the crosshair to change its appearance.",
+      placeholder = [[
+local isPlayerDead = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
+if isPlayerDead or isStealthed() then
+  return true end
+return false
+]],
+      multiline = 4,
+      get = function()
+        return CM.DB.global.crosshairSituationalCondition
+          or CM.Constants.DatabaseDefaults.global.crosshairSituationalCondition
+          or ""
+      end,
+      set = function(input)
+        CM.DB.global.crosshairSituationalCondition = input
+        if CM.RefreshCrosshairAppearance then
+          CM.RefreshCrosshairAppearance()
+        end
+      end,
+      disabled = CrosshairOff,
     })
 
     ctx:Gap()

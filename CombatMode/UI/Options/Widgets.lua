@@ -1996,12 +1996,33 @@ local function MakeOptionRowButton(parent, opts)
   local button = CreateFrame("Button", nil, row)
   button:SetHeight(btnH)
   button:EnableMouse(true)
-  UI.StylePill(button, C.trackOff, { 0, 0, 0, 0 })
+  local IDLE = { C.trackOff[1], C.trackOff[2], C.trackOff[3], 1 }
+  local HOVER = { 0.30, 0.30, 0.30, 1 }
+  UI.StylePill(button, IDLE, { 0, 0, 0, 0 })
 
   local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
   text:SetPoint("CENTER")
   text:SetText(UI.StripColors(buttonText) or "Edit")
   text:SetTextColor(C.text[1], C.text[2], C.text[3])
+
+  local function applyButtonIdle()
+    button:cmSetFill(IDLE[1], IDLE[2], IDLE[3], 1)
+    text:SetTextColor(C.text[1], C.text[2], C.text[3])
+  end
+
+  button:SetScript("OnEnter", function(self)
+    if IsDisabled(opts) then
+      return
+    end
+    self:cmSetFill(HOVER[1], HOVER[2], HOVER[3], 1)
+    text:SetTextColor(1, 1, 1)
+  end)
+  button:SetScript("OnLeave", function(self)
+    if self:IsMouseOver() then
+      return
+    end
+    applyButtonIdle()
+  end)
 
   button:SetScript("OnClick", function()
     if IsDisabled(opts) then
@@ -2036,6 +2057,9 @@ local function MakeOptionRowButton(parent, opts)
       text:SetAlpha(a)
       SetDescAlpha(control, a)
       ClearHoverIfDisabled(row, disabled)
+      if disabled then
+        applyButtonIdle()
+      end
     end
     Register(control)
     control.Refresh()

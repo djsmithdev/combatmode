@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Crosshair **Reaction Colors** editor (Crosshair tab → Edit): customize reticle tint and alpha per reaction — Hostile, Friendly NPC, Friendly Player, Object, and Base (idle).
+- Crosshair **Situational Condition** (Crosshair tab): optional custom Lua checked during Mouse Look. Return `true` to swap the reticle to the **X** texture while keeping your reaction colors. Default covers player dead/ghost and stealth; clear the field to disable.
 
 ### Changed
 

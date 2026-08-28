@@ -17,6 +17,7 @@ When you move or rename modules, update this file, `Embeds.xml`, the architectur
    - **EventRouter.lua** (event routing + `_G.CombatMode_OnEvent`)
    - **CVarManager.lua** (all CVar-writing helpers; reticle preset + `reticleTargetingCVarOverrides` → `CM.GetEffectiveReticleTargetingCVarValues`)
    - **BindingQueue.lua** (combat-safe deferred binding updates)
+   - **UserLuaCondition.lua** (cached `loadstring` evaluator for user-authored Lua conditions)
    - **Bootstrap.lua** (startup sequence)
 5. **CombatMode/Core/ClickCasting/**, **FreeLook/**, **Crosshair/**, **PartyRadial/** — feature modules (see `Embeds.xml` for exact order).
 6. **CombatMode/UI/Options/** — options window toolkit: **Draw.lua** then **Widgets.lua** then **SpellMultiSelect.lua** (all define `CM.UI` pieces), then **OptionsPanel.lua** (defines `CM.UI.Options.AddTab` / `CM.UI.CreateWindow` / `CM.OpenOptions`), then **ColorPickerDialog.lua** (themed `ColorSelect` picker for swatches), then **BlizzardSettingsBridge.lua** (AddOns panel shortcut), then **Tabs/Tab*.lua** (each registers a tab via `AddTab`).
