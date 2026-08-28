@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crosshair reaction **scale** pop now plays only when acquiring or losing a target (base ↔ active). Switching between active reactions (e.g. hostile → friendly NPC) keeps the settled scale and no longer restarts the animation on every flick.
 - Crosshair reaction **colors** smoothly transition when swapping between active target types while aimed on target.
 
+### Fixed
+
+- Default **Situational Condition** called `isStealthed()` (undefined) instead of `IsStealthed()`, spamming errors every update tick while Debug Mode was on and causing stutter. Saved copies auto-correct on login; user-Lua condition errors are now throttled in debug output.
+
 ### Removed
 
 - Crosshair **Opacity** slider on the Crosshair tab; adjust transparency per reaction in **Reaction Colors** instead.

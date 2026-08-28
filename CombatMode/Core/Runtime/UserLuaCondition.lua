@@ -6,7 +6,7 @@
 --  situational texture override.
 --  Architecture / how it works:
 --    • CM.EvaluateUserLuaCondition(source, cache, errorLabel) — empty source → false;
---      compile errors and runtime errors log via CM.DebugPrint and return false.
+--      compile/runtime errors log via throttled CM.DebugPrintThrottled and return false.
 --    • `cache` is a caller-owned table { source, func } reused across hot-path calls.
 --  Does not: Own DB keys or feature-specific semantics (callers supply source strings).
 --  Related: Core/FreeLook/AutoCursorUnlock.lua, Core/Crosshair/Crosshair.lua,
@@ -18,6 +18,12 @@ local _G = _G
 local loadstring = _G.loadstring
 local pcall = _G.pcall
 local tostring = _G.tostring
+
+local function LogUserLuaConditionError(errorLabel, message)
+  local label = errorLabel or "User condition"
+  local throttleKey = label .. ":" .. message
+  CM.DebugPrintThrottled(throttleKey, label .. ": " .. message, 10)
+end
 
 --- @param source string|nil User Lua; empty/nil → false.
 --- @param cache table Caller-owned { source, func } for compile cache.
@@ -33,7 +39,7 @@ function CM.EvaluateUserLuaCondition(source, cache, errorLabel)
     cache.source = source
     local func, err = loadstring(source)
     if not func then
-      CM.DebugPrint((errorLabel or "User condition") .. ": " .. tostring(err))
+      LogUserLuaConditionError(errorLabel, tostring(err))
       cache.func = nil
       return false
     end
@@ -46,7 +52,7 @@ function CM.EvaluateUserLuaCondition(source, cache, errorLabel)
 
   local success, result = pcall(cache.func)
   if not success then
-    CM.DebugPrint((errorLabel or "User condition") .. ": " .. tostring(result))
+    LogUserLuaConditionError(errorLabel, tostring(result))
     return false
   end
 

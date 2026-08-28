@@ -238,6 +238,27 @@ local function BindDatabaseViews(sv, charKey)
   }
 end
 
+--- One-time fixes for bad defaults already merged into SavedVariables.
+local function MigrateSavedDatabase(sv)
+  local g = sv.global
+  if type(g) ~= "table" then
+    return
+  end
+  local cond = g.crosshairSituationalCondition
+  if type(cond) ~= "string" then
+    return
+  end
+  local fixed = cond
+  if fixed:find("isStealthed%(%)", 1, true) then
+    fixed = fixed:gsub("isStealthed%(%)", "(IsStealthed and IsStealthed())")
+  end
+  fixed = fixed:gsub("\r?\nlocal isStealthed = IsStealthed and IsStealthed%(%)\r?\n", "\n")
+  fixed = fixed:gsub("or isStealthed then", "or (IsStealthed and IsStealthed()) then")
+  if fixed ~= cond then
+    g.crosshairSituationalCondition = fixed
+  end
+end
+
 function CM.InitDatabase()
   local defaults = CM.Constants.DatabaseDefaults
   _G.CombatModeDB = _G.CombatModeDB or {}
@@ -252,6 +273,7 @@ function CM.InitDatabase()
   sv.char[charKey] = MergeDefaults(sv.char[charKey] or {}, defaults.char or {})
 
   BindDatabaseViews(sv, charKey)
+  MigrateSavedDatabase(sv)
 end
 
 function CM:OnResetDB()

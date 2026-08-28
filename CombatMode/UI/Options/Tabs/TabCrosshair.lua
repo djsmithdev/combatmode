@@ -157,7 +157,7 @@ UI.Options.AddTab({
       desc = "Custom Lua code checked during Mouse Look. While returning true, forces the crosshair to change its appearance.",
       placeholder = [[
 local isPlayerDead = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
-if isPlayerDead or isStealthed() then
+if isPlayerDead or (IsStealthed and IsStealthed()) then
   return true end
 return false
 ]],
