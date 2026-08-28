@@ -12,7 +12,7 @@
 --    • CM.OnAssistedHighlightCastProgress — EventRouter CAST_FEEDBACK path.
 --    • CastGuidsCompatible skips == when either GUID is secret; pending cancel uses a
 --      public token (not GUID ~=) so deferred STOP cannot taint-error.
---  Does not: Own press/pulse, recent-suggestion cache, chrome, ProcLoop (siblings).
+--    • Cast-break hostile flash reads CM.GetCrosshairReactionColor at flash time.
 --  Related: Core/Crosshair/AssistedHighlight/Feedback.lua,
 --  Core/Runtime/EventRouter.lua, Constants/Assets.lua, Constants/Gameplay.lua
 ---------------------------------------------------------------------------------------
@@ -55,7 +55,6 @@ local CastBreak = CM.Constants.CrosshairCastBreak
 local CAST_BREAK_DURATION = CastBreak.duration
 local CAST_BREAK_SHAKE_PX = CastBreak.shakePx
 local CAST_BREAK_FLASH_HZ = CastBreak.flashHz
-local CAST_BREAK_COLOR_RED = CM.Constants.CrosshairReactionColors.hostile
 local CAST_BREAK_COLOR_GREY = CastBreak.grey
 
 local breakActive = false
@@ -450,7 +449,8 @@ function CastProgress.TickBreak(elapsed)
   local oy = (random() * 2 - 1) * CAST_BREAK_SHAKE_PX * decay
   local flicker = (math.floor(breakElapsed * 40) % 2 == 0) and 1 or 0.55
   local alpha = flicker * (0.65 + 0.35 * progress)
-  local flash = ((math.floor(breakElapsed * CAST_BREAK_FLASH_HZ) % 2) == 0) and CAST_BREAK_COLOR_RED
+  local hostile = CM.GetCrosshairReactionColor("hostile")
+  local flash = ((math.floor(breakElapsed * CAST_BREAK_FLASH_HZ) % 2) == 0) and hostile
     or CAST_BREAK_COLOR_GREY
   ApplyBreakFlashColor(flash)
   visual:ClearAllPoints()

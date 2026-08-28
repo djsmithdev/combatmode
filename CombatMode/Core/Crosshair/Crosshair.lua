@@ -7,7 +7,9 @@
 --  Inits InteractionHUD, AssistedHighlight, and Animations; routes cast terminals to
 --  Animations (SUCCEEDED also notifies AssistedHighlight via EventRouter).
 --  Architecture / how it works:
---    • DB.global.crosshair / appearance / crosshairScale / opacity / Y.
+--    • DB.global.crosshair / appearance / crosshairScale / opacity / Y;
+--      crosshairReactionColors optional overrides; CM.GetCrosshairReactionColor resolves
+--      tints (mounted = defaults; focus → hostile).
 --    • IsCrosshairMounted — returns IsMounted() (always-on; no DB toggle). When mounted,
 --      UpdateCrosshairReaction sets a static base appearance (inactive dot) instead of
 --      reacting to targets, but the crosshair remains visible.
@@ -27,7 +29,7 @@
 --  (and sibling Target/Visual), Core/Crosshair/AssistedHighlight/Assist.lua
 --  (and sibling Keybinds/Motion/CastProgress/Feedback), Core/Crosshair/FocusNameplateMarker.lua,
 --  Core/Runtime/CVarManager.lua, Core/Runtime/EventRouter.lua, UI/Options/Tabs/TabCrosshair.lua,
---  Constants/Assets.lua
+--  UI/Editors/CrosshairColorsEditor.lua, Constants/Assets.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -92,6 +94,43 @@ function CM.IsCrosshairEnabled()
   return not not c
 end
 
+local function CopyColorArray(source)
+  if type(source) ~= "table" then
+    return nil
+  end
+  local r = source[1] or source.r
+  local g = source[2] or source.g
+  local b = source[3] or source.b
+  local a = source[4] or source.a
+  if type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number" or type(a) ~= "number" then
+    return nil
+  end
+  return { r, g, b, a }
+end
+
+--- Reaction tint for crosshair, Target Lock idle Dot, nameplate marker, and cast-break flash.
+--- `mounted` always uses constants; `focus` resolves as hostile (no separate swatch).
+function CM.GetCrosshairReactionColor(state)
+  local constants = CM.Constants and CM.Constants.CrosshairReactionColors
+  local effectiveState = state
+  if state == "focus" then
+    effectiveState = "hostile"
+  end
+
+  if effectiveState == "mounted" then
+    return CopyColorArray(constants and constants.mounted) or { 1, 1, 1, 0 }
+  end
+
+  local overrides = CM.DB and CM.DB.global and CM.DB.global.crosshairReactionColors
+  local override = overrides and overrides[effectiveState]
+  local fromDb = CopyColorArray(override)
+  if fromDb then
+    return fromDb
+  end
+
+  return CopyColorArray(constants and constants[effectiveState]) or { 1, 1, 1, 1 }
+end
+
 local CROSSHAIR_BASE_SIZE = 64
 
 local function ClampUserScale(scale)
@@ -139,7 +178,7 @@ end
 CM.IsCrosshairOptionsPreviewActive = false
 
 -- While Target Lock is held: center reticle becomes a static base-colored Dot (unreactive).
--- Nameplate marker uses hostile red; assist/HUD stay on CrosshairFrame.
+-- Nameplate marker uses hostile reaction tint; assist/HUD stay on CrosshairFrame.
 local focusLockReticleSuppressed = false
 local lastKnownAppearanceState = nil
 
@@ -158,9 +197,7 @@ local function GetFocusLockIdleTexturePath()
 end
 
 local function GetFocusLockIdleColor()
-  local c = CM.Constants
-    and CM.Constants.CrosshairReactionColors
-    and CM.Constants.CrosshairReactionColors.base
+  local c = CM.GetCrosshairReactionColor("base")
   if type(c) == "table" then
     return c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 0.5
   end
@@ -211,6 +248,31 @@ function CM.SetFocusLockReticleSuppressed(suppressed)
     lastKnownAppearanceState = nil
     CM.UpdateCrosshairReaction()
   end
+end
+
+function CM.RefreshCrosshairAppearance()
+  lastKnownAppearanceState = nil
+  if focusLockReticleSuppressed then
+    ApplyFocusLockIdleReticle()
+  elseif CM.IsCrosshairEnabled() then
+    CM.UpdateCrosshairReaction()
+  end
+  if CM.UpdateFocusNameplateMarker then
+    CM.UpdateFocusNameplateMarker()
+  end
+end
+
+--- Clears the DB override for one reaction state; runtime falls back to constants.
+function CM.ResetCrosshairReactionColor(state)
+  if not (CM.DB and CM.DB.global and state) then
+    return
+  end
+  local colors = CM.DB.global.crosshairReactionColors
+  if not colors then
+    return
+  end
+  colors[state] = nil
+  CM.RefreshCrosshairAppearance()
 end
 
 -- True while the Crosshair options tab is open and forcing the reticle (and HUD /

@@ -146,8 +146,11 @@ local function NewLayout(content, width)
   end
   function ctx:Button(o)
     local control = UI.MakeButton(self.content, o)
-    -- Row spans the content width so under-button descriptions can wrap; the button
-    -- itself stays compact unless width = "full".
+    -- Row-style option buttons share the toggle/dropdown layout (title left, control right).
+    if o.layout == "row" then
+      return self:Place(control)
+    end
+    -- Full-width footer-style buttons span the content width; compact pills keep a fixed width.
     if o.width == "full" then
       if control.SetWidthTo then
         control.SetWidthTo(self.width)

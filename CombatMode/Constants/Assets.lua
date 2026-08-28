@@ -10,14 +10,15 @@
 --      ModifierKey{Ctrl,Shift,Alt} BLPs under Interface\AddOns\CombatMode\assets\.
 --    • CrosshairTextureObj entries pair active/inactive BLPs; AppearanceSelectValues
 --      drives the Crosshair options dropdown.
---    • CrosshairReactionColors, CrosshairCastBreak (shared interrupt VFX), and
+--    • CrosshairReactionColors (defaults only — runtime tints use
+--      CM.GetCrosshairReactionColor), CrosshairCastBreak (shared interrupt VFX), and
 --      CrosshairCompanionOffsetX (Assist + Interaction HUD gap past reticle edge).
 --  Does not: Draw widgets, own frame lifecycle, apply appearance at runtime, or
 --  own Blizzard atlas FlipBook/VFX names (those stay local to the owning module).
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight/Assist.lua,
 --  Core/Crosshair/AssistedHighlight/{Keybinds,CastProgress,Feedback}.lua,
---  Core/Crosshair/Animations.lua, UI/Options/Tabs/TabCrosshair.lua,
---  UI/Options/Widgets.lua, UI/Options/OptionsPanel.lua
+--  Core/Crosshair/Animations.lua, UI/Editors/CrosshairColorsEditor.lua,
+--  UI/Options/Tabs/TabCrosshair.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -100,7 +101,7 @@ CM.Constants.CrosshairReactionColors = {
   object = { 1, 0.8, 0.2, 0.8 }, -- yellow
   base = { 1, 1, 1, 0.5 }, -- white
   mounted = { 1, 1, 1, 0 }, -- transparent
-  focus = { 1, 0.2, 0.3, 1 }, -- Target Lock nameplate: same as hostile
+  --  focus = { 1, 0.2, 0.3, 1 }, -- defaults only; runtime focus tint uses hostile via getter
 }
 
 -- Interrupt/cancel cast-break VFX (crosshair cast feedback + Assist CastProgress).

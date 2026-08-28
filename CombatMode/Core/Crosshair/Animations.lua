@@ -10,7 +10,8 @@
 --    • StartCrosshairCastGrow / Explode / Break + NotifyCrosshairCastTerminal — EventRouter
 --      CAST_FEEDBACK path; CancelCrosshairCastFeedback / CancelCrosshairLockIn.
 --    • Cast GUID match is secret-safe (issecretvalue): cannot == under instance taint.
---    • Shared scale animation constructors used by options preview appearance apply.
+--    • ApplyCrosshairAppearanceToWidget uses CM.GetCrosshairReactionColor; cast-break
+--      hostile flash resolves at flash time (not module load).
 --  Does not: Own Assisted Combat ProcLoop FlipBook (AssistedHighlight/Motion.lua) /
 --  interrupt cast break (AssistedHighlight/CastProgress.lua) or mouselook / CVar writes.
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight/Assist.lua,
@@ -142,7 +143,8 @@ local function ApplyCrosshairAppearanceToWidget(
     return
   end
 
-  local r, g, b, a = unpack(CM.Constants.CrosshairReactionColors[state])
+  local color = CM.GetCrosshairReactionColor(state)
+  local r, g, b, a = color[1], color[2], color[3], color[4]
   local textureToUse = state == "base" and CrosshairAppearance.Base or CrosshairAppearance.Active
   local reverseAnimation = state == "base" and true or false
 
@@ -195,7 +197,6 @@ local CastBreak = CM.Constants.CrosshairCastBreak
 local CAST_BREAK_DURATION = CastBreak.duration
 local CAST_BREAK_SHAKE_PX = CastBreak.shakePx
 local CAST_BREAK_FLASH_HZ = CastBreak.flashHz
-local CAST_BREAK_COLOR_RED = CM.Constants.CrosshairReactionColors.hostile
 local CAST_BREAK_COLOR_GREY = CastBreak.grey
 
 local motionState = MOTION_IDLE
@@ -440,7 +441,8 @@ local function UpdateBreak(elapsed)
   local flicker = (math.floor(motionElapsed * 40) % 2 == 0) and 1 or 0.55
   local alpha = GetConfiguredOpacity() * flicker * (0.65 + 0.35 * progress)
   if crosshairTexture then
-    local c = ((math.floor(motionElapsed * CAST_BREAK_FLASH_HZ) % 2) == 0) and CAST_BREAK_COLOR_RED
+    local hostile = CM.GetCrosshairReactionColor("hostile")
+    local c = ((math.floor(motionElapsed * CAST_BREAK_FLASH_HZ) % 2) == 0) and hostile
       or CAST_BREAK_COLOR_GREY
     crosshairTexture:SetVertexColor(c[1], c[2], c[3], c[4])
   end

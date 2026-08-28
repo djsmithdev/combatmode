@@ -9,9 +9,11 @@
 --    • Layout helpers (NewLayout) used by tabs and nested hosts (e.g. Camera/DynamicCam).
 --    • charSpecific badge + tooltips for per-character settings.
 --  Does not: Call CM feature apply functions except via tab-provided set() callbacks.
---  Related: UI/Options/Draw.lua, UI/Options/SpellMultiSelect.lua,
---  UI/Options/OptionsPanel.lua, UI/Options/Tabs/TabGeneral.lua,
---  UI/Options/Tabs/TabCrosshair.lua, UI/Options/Tabs/TabClickCasting.lua
+--  Related: UI/Options/Draw.lua, UI/Options/ColorPickerDialog.lua,
+--  UI/Options/SpellMultiSelect.lua, UI/Options/OptionsPanel.lua,
+--  UI/Options/Tabs/TabGeneral.lua, UI/Options/Tabs/TabCrosshair.lua,
+--  UI/Options/Tabs/TabClickCasting.lua
+--  MakeButton `layout = "row"` — title left, action pill right (e.g. Reaction Colors).
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -882,6 +884,7 @@ local function AttachOptionText(control, row, opts, widgetH)
       end
     end
 
+    row:SetWidth(width)
     row:SetHeight(h)
     control.height = h
     control._layouting = false
@@ -1980,7 +1983,74 @@ end
 ---------------------------------------------------------------------------------------
 --                                    BUTTON                                         --
 ---------------------------------------------------------------------------------------
+--- Default: label on the pill. `layout = "row"` matches toggles/dropdowns (title left,
+--- `buttonLabel` pill right, optional `desc` under the title).
+local function MakeOptionRowButton(parent, opts)
+  local btnH = opts.height or 22
+  local buttonText = opts.buttonLabel or "Edit"
+
+  local row = CreateFrame("Frame", nil, parent)
+  row:SetHeight(ROW_H)
+  AddRowLabel(row, opts.label)
+
+  local button = CreateFrame("Button", nil, row)
+  button:SetHeight(btnH)
+  button:EnableMouse(true)
+  UI.StylePill(button, C.trackOff, { 0, 0, 0, 0 })
+
+  local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
+  text:SetPoint("CENTER")
+  text:SetText(UI.StripColors(buttonText) or "Edit")
+  text:SetTextColor(C.text[1], C.text[2], C.text[3])
+
+  button:SetScript("OnClick", function()
+    if IsDisabled(opts) then
+      return
+    end
+    if not opts.func then
+      return
+    end
+    if opts.confirm then
+      UI.Confirm(opts.confirmText or "Are you sure?", opts.func)
+    else
+      opts.func()
+    end
+  end)
+
+  local control = {
+    frame = row,
+    height = ROW_H,
+    button = button,
+    widget = button,
+    widgetH = btnH,
+    widgetFill = true,
+  }
+
+  if opts.disabled then
+    function control.Refresh()
+      local disabled = IsDisabled(opts)
+      button:SetEnabled(not disabled)
+      local a = disabled and DISABLED_A or 1
+      row.label:SetAlpha(a)
+      button:SetAlpha(a)
+      text:SetAlpha(a)
+      SetDescAlpha(control, a)
+      ClearHoverIfDisabled(row, disabled)
+    end
+    Register(control)
+    control.Refresh()
+  end
+
+  AddRowHover(row, opts, button)
+  AttachOptionText(control, row, opts, btnH)
+  return control
+end
+
 function UI.MakeButton(parent, opts)
+  if opts.layout == "row" then
+    return MakeOptionRowButton(parent, opts)
+  end
+
   local btnH = opts.height or 24
   local btnW = opts.pixelWidth or 200
   local row = CreateFrame("Frame", nil, parent)

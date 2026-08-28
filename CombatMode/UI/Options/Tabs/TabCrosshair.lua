@@ -6,7 +6,7 @@
 --  preview via SetCrosshairOptionsPreview onSelect/onDeselect; when HUD turns on without
 --  reticle targeting, applies ConfigInteractionHUDSoftTarget.
 --  Architecture / how it works:
---    • DB.global: crosshair*, crosshairScale, interactionHUD / Side / Scale,
+--    • DB.global: crosshair*, crosshairScale, crosshairReactionColors, interactionHUD / Side / Scale,
 --      assistedHighlightEnabled / Side / Scale.
 --    • set() → DisplayCrosshair / CreateCrosshair / CancelCrosshairCastFeedback /
 --      ApplyInteractionHUDLayout / RefreshInteractionHUD /
@@ -15,7 +15,8 @@
 --  Does not: Own freelook state machine or click-cast slot table UI.
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD/HUD.lua,
 --  Core/Crosshair/AssistedHighlight/Assist.lua, Core/Crosshair/Animations.lua,
---  Core/Runtime/CVarManager.lua, Constants/Assets.lua, Constants/DatabaseDefaults.lua
+--  Core/Runtime/CVarManager.lua, UI/Editors/CrosshairColorsEditor.lua,
+--  Constants/Assets.lua, Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -153,6 +154,16 @@ UI.Options.AddTab({
         UpdatePartyRadialAnchor()
       end,
       disabled = CrosshairOff,
+    })
+    ctx:Button({
+      layout = "row",
+      label = "Reaction Colors",
+      buttonLabel = "Edit",
+      desc = "Customize the colors used by the crosshair when targeting different types of units.",
+      disabled = CrosshairOff,
+      func = function()
+        CM.OpenCrosshairColorsEditor()
+      end,
     })
 
     ctx:Gap()

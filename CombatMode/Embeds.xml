@@ -56,6 +56,7 @@
     <Script file="UI\Options\SpellMultiSelect.lua"/>
     <Script file="UI\Options\MountMultiSelect.lua"/>
     <Script file="UI\Options\OptionsPanel.lua"/>
+    <Script file="UI\Options\ColorPickerDialog.lua"/>
     <!-- Blizzard AddOns panel bridge (Open Options → CM.OpenOptions); after OptionsPanel. -->
     <Script file="UI\Options\BlizzardSettingsBridge.lua"/>
     <Script file="UI\Options\Tabs\TabGeneral.lua"/>
@@ -74,6 +75,7 @@
     <Script file="UI\Editors\ReticleCVarEditorData.lua"/>
     <Script file="UI\Editors\ReticleCVarEditorPanel.lua"/>
     <Script file="UI\Editors\TargetingMacroPrelinesEditor.lua"/>
+    <Script file="UI\Editors\CrosshairColorsEditor.lua"/>
     <!-- FRAME -->
     <Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
         <Scripts>

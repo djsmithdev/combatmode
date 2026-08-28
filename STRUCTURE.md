@@ -19,8 +19,8 @@ When you move or rename modules, update this file, `Embeds.xml`, the architectur
    - **BindingQueue.lua** (combat-safe deferred binding updates)
    - **Bootstrap.lua** (startup sequence)
 5. **CombatMode/Core/ClickCasting/**, **FreeLook/**, **Crosshair/**, **PartyRadial/** — feature modules (see `Embeds.xml` for exact order).
-6. **CombatMode/UI/Options/** — options window toolkit: **Draw.lua** then **Widgets.lua** then **SpellMultiSelect.lua** (all define `CM.UI` pieces), then **OptionsPanel.lua** (defines `CM.UI.Options.AddTab` / `CM.UI.CreateWindow` / `CM.OpenOptions`), then **BlizzardSettingsBridge.lua** (AddOns panel shortcut), then **Tabs/Tab*.lua** (each registers a tab via `AddTab`).
-7. **CombatMode/UI/Changelog/** — **ChangelogNamespace.lua** first (defines `CM.Config`), then **ChangelogData.lua** + **ChangelogPanel.lua**; and **CombatMode/UI/Editors/** — the standalone editors (**ReticleCVarEditorData/Panel.lua**, **TargetingMacroPrelinesEditor.lua**). Both load after the `UI/Options` toolkit they consume.
+6. **CombatMode/UI/Options/** — options window toolkit: **Draw.lua** then **Widgets.lua** then **SpellMultiSelect.lua** (all define `CM.UI` pieces), then **OptionsPanel.lua** (defines `CM.UI.Options.AddTab` / `CM.UI.CreateWindow` / `CM.OpenOptions`), then **ColorPickerDialog.lua** (themed `ColorSelect` picker for swatches), then **BlizzardSettingsBridge.lua** (AddOns panel shortcut), then **Tabs/Tab*.lua** (each registers a tab via `AddTab`).
+7. **CombatMode/UI/Changelog/** — **ChangelogNamespace.lua** first (defines `CM.Config`), then **ChangelogData.lua** + **ChangelogPanel.lua**; and **CombatMode/UI/Editors/** — the standalone editors (**ReticleCVarEditorData/Panel.lua**, **TargetingMacroPrelinesEditor.lua**, **CrosshairColorsEditor.lua**). Both load after the `UI/Options` toolkit they consume.
 8. **Frame** — `CombatModeFrame` XML in `CombatMode/Embeds.xml`; `OnEvent` / `OnUpdate` call globals defined in Core. Events are registered on this frame during `CM:OnEnable()`.
 
 ## Public entry points

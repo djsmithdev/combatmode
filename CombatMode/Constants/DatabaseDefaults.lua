@@ -11,7 +11,8 @@
 --      assistedHighlightEnabled / Side / Scale; vignette; partyRadial (enabled,
 --      showHealthBars, showBackground, scale; layout/fade fixed in Constants/PartyRadial.lua);
 --      reticleTargetingCVarOverrides, priorCVarSnapshot, targetingMacroPreline*Override
---      (any/enemy + autoLockAny/autoLockEnemy);
+--      (any/enemy + autoLockAny/autoLockEnemy); crosshairReactionColors (optional
+--      per-state RGBA overrides — empty table = defaults from Assets);
 --      bindings.
 --    • char: useGlobalBindings, shoulderOffset, reticleTargeting / enemyOnly /
 --      autoTargetLockOnAttack, macroInjectionClickCastOnly, castAtCursorSpells,
@@ -108,6 +109,7 @@ CM.Constants.DatabaseDefaults = {
     targetingMacroPrelineEnemyOverride = nil,
     targetingMacroPrelineAutoLockAnyOverride = nil,
     targetingMacroPrelineAutoLockEnemyOverride = nil,
+    crosshairReactionColors = {},
     -- click casting
     bindings = DefaultBindings,
     -- auto  unlock

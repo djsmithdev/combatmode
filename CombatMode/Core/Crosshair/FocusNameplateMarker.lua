@@ -4,20 +4,21 @@
 --  What it does: On Target Lock (when showTargetLockMarker is on), switches the center
 --  reticle to a static base-colored Dot (unreactive) and reverse-explodes a hostile-red
 --  hit marker (user's crosshair Appearance Active/-hit texture) onto the focus nameplate
---  health bar center. Once settled, the marker color-pulses between hostile red and white.
---  Unlock or toggle-off hides the marker and restores the reactive reticle.
+--  health bar center. Once settled, the marker color-pulses between the hostile
+--  reaction tint and white. Unlock or toggle-off hides the marker and restores the reactive reticle.
 --  Architecture / how it works:
 --    • CM.UpdateFocusNameplateMarker / ClearFocusNameplateMarker / OnFocusNameplateMarkerEvent.
 --    • Gated by CM.IsTargetLockEnabled (char.reticleTargeting) and
 --      CM.DB.global.showTargetLockMarker (default true; ~= false). Off → Clear.
 --    • State machine: IDLE → PLATE_ARRIVE → SETTLED (instant clear on unlock).
 --      Phases are sequential and own different channels: arrive = scale/alpha only
---      (fixed hostile color); settled = vertex-color pulse only (scale/alpha held at 1).
+--      (focus/hostile tint from GetCrosshairReactionColor); settled = vertex-color pulse
+--      between that tint and white (scale/alpha held at 1).
 --    • Marker parents to the nameplate root with SetIgnoreParentAlpha so Platynator/
 --      Blizzard health-bar alpha does not multiply with our arrive fade or color pulse.
 --    • While focus exists and the marker option is on, center stays on the static Dot
 --      even if no nameplate is visible. Unlock / marker-off Clears and restores.
---    • Own OnUpdate (does not use Animations.lua reticle motion channel).
+--    • Marker tint uses CM.GetCrosshairReactionColor("focus") → effective hostile.
 --    • Anchors centered on Blizzard/Platynator health bar (IsVisible + under-plate).
 --      Platynator is preferred over UnitFrame.healthBar; widgets iterated with pairs
 --      (array or map). Secret bar sizes are treated as plausible, not rejected.
@@ -106,8 +107,7 @@ local function EaseOutQuad(progress)
 end
 
 local function GetFocusColor()
-  local colors = CM.Constants and CM.Constants.CrosshairReactionColors
-  local c = colors and colors.focus
+  local c = CM.GetCrosshairReactionColor("focus")
   if type(c) == "table" then
     return c[1] or 1, c[2] or 0, c[3] or 1, c[4] or 1
   end
@@ -405,10 +405,10 @@ local function ApplyFlashColor(marker)
   local t = Clamp01((flashElapsed % MARKER_FLASH_PERIOD) / MARKER_FLASH_PERIOD)
   -- Cosine: 1 at t=0, 0 at t=0.5, 1 at t=1.
   local phase = 0.5 + 0.5 * math.cos(t * 2 * math.pi)
-  -- phase=1 (t=0): hostile red (1, 0.2, 0.3). phase=0 (t=0.5): white (1, 1, 1).
-  local g = 1 - 0.8 * phase
-  local b = 1 - 0.7 * phase
-  marker.icon:SetVertexColor(1, g, b, 1)
+  local fr, fg, fb, fa = GetFocusColor()
+  -- phase=1: focus (hostile) tint; phase=0: white highlight.
+  local mix = 1 - phase
+  marker.icon:SetVertexColor(fr + (1 - fr) * mix, fg + (1 - fg) * mix, fb + (1 - fb) * mix, fa)
 end
 
 local function OnDriverUpdate(_, elapsed)

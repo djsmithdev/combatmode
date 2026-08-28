@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.5.0] - 2026-08-28
+
+### Added
+
+- Crosshair **Reaction Colors** editor (Crosshair tab → Edit): customize reticle tint and alpha per reaction — Hostile, Friendly NPC, Friendly Player, Object, and Base (idle).
+
+### Changed
+
+- Reticle reaction tints, Target Lock nameplate marker (arrive + settled pulse), and cast-break / cast-feedback hostile flashes now use your customized colors (Target Lock and cast feedback use **Hostile**).
+
 ## [4.4.2] - 2026-08-28
 
 ### Fixed
@@ -404,7 +414,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.4.2...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.5.0...HEAD
+[4.5.0]: https://github.com/djsmithdev/combatmode/compare/4.4.2...4.5.0
 [4.4.2]: https://github.com/djsmithdev/combatmode/compare/4.4.1...4.4.2
 [4.4.1]: https://github.com/djsmithdev/combatmode/compare/4.4.0...4.4.1
 [4.4.0]: https://github.com/djsmithdev/combatmode/compare/4.3.3...4.4.0
@@ -425,18 +436,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [4.0.2]: https://github.com/djsmithdev/combatmode/compare/4.0.1...4.0.2
 [4.0.1]: https://github.com/djsmithdev/combatmode/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/djsmithdev/combatmode/compare/3.3.1...4.0.0
-[3.3.1]: https://github.com/djsmithdev/combatmode/compare/3.3.0...3.3.1
-[3.3.0]: https://github.com/djsmithdev/combatmode/compare/3.2.2...3.3.0
-[3.2.2]: https://github.com/djsmithdev/combatmode/compare/3.2.1...3.2.2
-[3.2.1]: https://github.com/djsmithdev/combatmode/compare/3.2.0...3.2.1
-[3.2.0]: https://github.com/djsmithdev/combatmode/compare/3.1.10...3.2.0
-[3.1.10]: https://github.com/djsmithdev/combatmode/compare/3.1.9...3.1.10
-[3.1.9]: https://github.com/djsmithdev/combatmode/compare/3.1.8...3.1.9
-[3.1.8]: https://github.com/djsmithdev/combatmode/compare/3.1.7...3.1.8
-[3.1.7]: https://github.com/djsmithdev/combatmode/compare/3.1.6...3.1.7
-[3.1.6]: https://github.com/djsmithdev/combatmode/compare/3.1.5...3.1.6
-[3.1.5]: https://github.com/djsmithdev/combatmode/compare/3.1.4...3.1.5
-[3.1.4]: https://github.com/djsmithdev/combatmode/compare/3.1.3...3.1.4
-[3.1.3]: https://github.com/djsmithdev/combatmode/compare/3.1.2...3.1.3
-[3.1.2]: https://github.com/djsmithdev/combatmode/compare/3.1.1...3.1.2
-[3.1.1]: https://github.com/djsmithdev/combatmode/releases/tag/3.1.1
