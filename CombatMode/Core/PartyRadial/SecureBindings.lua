@@ -10,7 +10,8 @@
 --  Does not: Own roster data, visuals, show/hide lifecycle, or mouselook overrides
 --  (Party Radial opens via keybind only).
 --  Related: Core/PartyRadial/PartyData.lua, PartyRadial.lua,
---  Core/ClickCasting/BindingOverrides.lua, Constants/Gameplay.lua
+--  Core/ClickCasting/AddonActionBarResolver.lua, Core/ClickCasting/BindingOverrides.lua,
+--  Constants/Gameplay.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -66,18 +67,16 @@ local BINDING_KEY_TO_ATTR = {
 }
 
 -- Build the button→slot map from the user's current binding settings.
--- Only ACTIONBUTTON bindings produce a slot; other values (FOCUSTARGET, etc.) yield nil.
+-- ACTIONBUTTON and MULTIACTIONBAR1–7 bindings resolve to canonical action slots;
+-- other values (FOCUSTARGET, etc.) yield nil.
 local function BuildButtonAttrMap()
   local bindings = CM.DB[CM.GetBindingsLocation()].bindings
   local map = {}
   for _, entry in ipairs(BINDING_KEY_TO_ATTR) do
     local binding = bindings[entry.dbKey]
     local slot = nil
-    if binding and binding.enabled and binding.value then
-      local num = binding.value:match("^ACTIONBUTTON(%d+)$")
-      if num then
-        slot = tonumber(num)
-      end
+    if binding and binding.enabled and binding.value and CM.ResolveClickCastBindingToActionSlot then
+      slot = CM.ResolveClickCastBindingToActionSlot(binding.value)
     end
     map[#map + 1] = {
       prefix = entry.prefix,
@@ -124,17 +123,19 @@ local function UpdateSecureButtonTargets()
   GetState().pendingUpdate = false
 end
 
--- Resolve the effective action slot for a button index (1-8).
+-- Resolve the effective action slot for primary-bar button indices (1–12).
 -- Blizzard's ActionButton frames compute the current slot based on bar page, bonus bar
 -- (druid form, rogue stealth), vehicle bar, and override bar.
--- We try multiple resolution strategies in priority order.
 local function ResolveActionSlot(buttonIndex)
+  if buttonIndex < 1 or buttonIndex > 12 then
+    return buttonIndex
+  end
+
   local frame = _G["ActionButton" .. buttonIndex]
   if not frame then
     return buttonIndex
   end
 
-  -- 1. Try .action field (set by CalculateAction on Blizzard action button mixin)
   if frame.action and type(frame.action) == "number" and frame.action > 0 then
     return frame.action
   end
@@ -251,7 +252,7 @@ local function UpdateSliceActionAttributes()
         slice:SetAttribute(p .. "type" .. s, "macro")
         slice:SetAttribute(p .. "macrotext" .. s, macrotext)
       elseif unitId then
-        -- Empty ACTIONBUTTON slot or non-spell binding: hard-target the party member.
+        -- Empty slot or non-action-bar binding: hard-target the party member.
         slice:SetAttribute(p .. "type" .. s, "target")
         slice:SetAttribute(p .. "macrotext" .. s, nil)
       else

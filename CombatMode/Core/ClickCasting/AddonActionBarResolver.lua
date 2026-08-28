@@ -11,6 +11,7 @@
 --    • ResolveAddonMultiBarButtonFrameByBase — BT4 non-sequential bar ids + dynamic scan.
 --    • ApplyThirdPartyActionBarPolicy — sets ThirdPartyActionBarsActive + forces
 --      click-cast-only injection when needed.
+--    • CM.ResolveClickCastBindingToActionSlot — ACTIONBUTTON / MULTIACTIONBAR* → slot id.
 --  Does not: SetOverrideBinding or build macrotext.
 --  Related: Core/ClickCasting/BindingOverrides.lua,
 --  Core/ClickCasting/TargetingMacroBuilder.lua,
@@ -133,6 +134,26 @@ local function ComputeMultiActionBarActionId(prefix, btnIdx)
     return nil
   end
   return base + (btnIdx - 1)
+end
+
+--- Binding value (ACTIONBUTTON / MULTIACTIONBAR*) → canonical action slot id, or nil.
+function CM.ResolveClickCastBindingToActionSlot(bindingValue)
+  if not bindingValue or bindingValue == "" then
+    return nil
+  end
+  local num = bindingValue:match("^ACTIONBUTTON(%d+)$")
+  if num then
+    local idx = tonumber(num)
+    if idx and idx >= 1 and idx <= 12 then
+      return idx
+    end
+    return nil
+  end
+  local prefix, idxStr = bindingValue:match("^(MULTIACTIONBAR%d+BUTTON)(%d+)$")
+  if prefix and idxStr then
+    return ComputeMultiActionBarActionId(prefix, tonumber(idxStr))
+  end
+  return nil
 end
 
 -- Scan ElvUI_Bar1..12 × Button1..12 for a button whose action slot matches actionId.
