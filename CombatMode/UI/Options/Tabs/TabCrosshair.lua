@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabCrosshair.lua — OPTIONS TAB — Crosshair + HUD + Assist
 ---------------------------------------------------------------------------------------
---  What it does: Wires crosshair enable/cast feedback/appearance/scale/opacity/Y,
+--  What it does: Wires crosshair enable/cast feedback/appearance/scale/Y,
 --  Interaction HUD enable + side + scale, and Combat Assist enable + side + scale. Live
 --  preview via SetCrosshairOptionsPreview onSelect/onDeselect; when HUD turns on without
 --  reticle targeting, applies ConfigInteractionHUDSoftTarget.
@@ -97,7 +97,7 @@ UI.Options.AddTab({
     })
     ctx:Dropdown({
       label = "Appearance",
-      desc = "Crosshair texture.",
+      desc = "Texture utilized by the crosshair. For most options, there's an active and inactive variant.",
       values = CM.Constants.CrosshairAppearanceSelectValues,
       order = appearanceOrder,
       get = function()
@@ -121,21 +121,6 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.global.crosshairScale = value
-        CM.CreateCrosshair()
-      end,
-      disabled = CrosshairOff,
-    })
-    ctx:Slider({
-      label = "Opacity",
-      desc = "Crosshair transparency.",
-      min = 0.1,
-      max = 1,
-      step = 0.1,
-      get = function()
-        return CM.DB.global.crosshairOpacity
-      end,
-      set = function(value)
-        CM.DB.global.crosshairOpacity = value
         CM.CreateCrosshair()
       end,
       disabled = CrosshairOff,

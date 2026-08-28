@@ -7,7 +7,7 @@
 --  and party radial.
 --  Architecture / how it works:
 --      mouseLookSpeed, pulseCursor, interactUnit, cycleFocusWithMouseWheel; crosshair*
---      (crosshairScale, opacity, Y, cast feedback), interactionHUD / Side / Scale,
+--      (crosshairScale, Y, cast feedback), interactionHUD / Side / Scale,
 --      assistedHighlightEnabled / Side / Scale; vignette; partyRadial (enabled,
 --      showHealthBars, showBackground, scale; layout/fade fixed in Constants/PartyRadial.lua);
 --      reticleTargetingCVarOverrides, priorCVarSnapshot, targetingMacroPreline*Override
@@ -93,7 +93,6 @@ CM.Constants.DatabaseDefaults = {
     crosshairCastFeedback = true,
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
     crosshairScale = 1.0,
-    crosshairOpacity = 1.0,
     crosshairY = 100,
     -- interaction HUD
     interactionHUD = true,

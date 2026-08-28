@@ -7,7 +7,7 @@
 --  Inits InteractionHUD, AssistedHighlight, and Animations; routes cast terminals to
 --  Animations (SUCCEEDED also notifies AssistedHighlight via EventRouter).
 --  Architecture / how it works:
---    • DB.global.crosshair / appearance / crosshairScale / opacity / Y;
+--    • DB.global.crosshair / appearance / crosshairScale / Y;
 --      crosshairReactionColors optional overrides; CM.GetCrosshairReactionColor resolves
 --      tints (mounted = defaults; focus → hostile).
 --    • crosshairSituationalCondition — user Lua; when true, Animations uses X textures
@@ -224,16 +224,16 @@ local function ApplyFocusLockIdleReticle()
   if CM.CancelCrosshairLockIn then
     CM.CancelCrosshairLockIn()
   end
+  if CM.CancelCrosshairReactionColorTween then
+    CM.CancelCrosshairReactionColorTween()
+  end
   if CrosshairAnimation and CrosshairAnimation.Stop then
     CrosshairAnimation:Stop()
   end
   CrosshairVisualFrame:SetScale(1)
   CrosshairVisualFrame:SetPoint("CENTER", CrosshairFrame, "CENTER", 0, 0)
-  local DefaultConfig = CM.Constants.DatabaseDefaults.global
-  local UserConfig = CM.DB.global or {}
-  local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
   CrosshairFrame:SetAlpha(1)
-  CrosshairVisualFrame:SetAlpha(crosshairOpacity)
+  CrosshairVisualFrame:SetAlpha(1)
   CrosshairTexture:SetTexture(GetFocusLockIdleTexturePath())
   local r, g, b, a = GetFocusLockIdleColor()
   CrosshairTexture:SetVertexColor(r, g, b, a)
@@ -255,10 +255,7 @@ function CM.SetFocusLockReticleSuppressed(suppressed)
     ApplyFocusLockIdleReticle()
     return
   end
-  local DefaultConfig = CM.Constants.DatabaseDefaults.global
-  local UserConfig = CM.DB.global or {}
-  local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
-  CrosshairVisualFrame:SetAlpha(crosshairOpacity)
+  CrosshairVisualFrame:SetAlpha(1)
   if CM.IsCrosshairEnabled() and CM.IsMouselooking() then
     CrosshairTexture:Show()
     lastKnownAppearanceState = nil
@@ -348,11 +345,8 @@ function CM.DisplayCrosshair(shouldShow)
     shouldShow = true
   end
   if shouldShow then
-    local DefaultConfig = CM.Constants.DatabaseDefaults.global
-    local UserConfig = CM.DB.global or {}
-    local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
     CrosshairFrame:SetAlpha(1)
-    CrosshairVisualFrame:SetAlpha(crosshairOpacity)
+    CrosshairVisualFrame:SetAlpha(1)
     if focusLockReticleSuppressed then
       ApplyFocusLockIdleReticle()
     else
@@ -372,10 +366,7 @@ function CM.DisplayCrosshair(shouldShow)
 end
 
 function CM.CreateCrosshair()
-  local DefaultConfig = CM.Constants.DatabaseDefaults.global
-  local UserConfig = CM.DB.global or {}
   local crosshairSize = CM.GetCrosshairPixelSize()
-  local crosshairOpacity = UserConfig.crosshairOpacity or DefaultConfig.crosshairOpacity
 
   CrosshairTexture:SetAllPoints(CrosshairVisualFrame)
   CrosshairTexture:SetBlendMode("BLEND")
@@ -383,7 +374,7 @@ function CM.CreateCrosshair()
   CrosshairFrame:SetAlpha(1)
   CrosshairVisualFrame:SetSize(crosshairSize, crosshairSize)
   CrosshairVisualFrame:SetPoint("CENTER", CrosshairFrame, "CENTER", 0, 0)
-  CrosshairVisualFrame:SetAlpha(crosshairOpacity)
+  CrosshairVisualFrame:SetAlpha(1)
 
   CM.InitCrosshairAnimations({
     outerFrame = CrosshairFrame,

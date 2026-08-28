@@ -10,9 +10,10 @@
 --    • StartCrosshairCastGrow / Explode / Break + NotifyCrosshairCastTerminal — EventRouter
 --      CAST_FEEDBACK path; CancelCrosshairCastFeedback / CancelCrosshairLockIn.
 --    • Cast GUID match is secret-safe (issecretvalue): cannot == under instance taint.
---    • ApplyCrosshairAppearanceToWidget uses CM.GetCrosshairReactionColor; cast-break
---      hostile flash resolves at flash time (not module load). Situational condition
---      swaps to CrosshairTextureObj.X textures while keeping reaction colors/scale.
+--    • ApplyCrosshairAppearanceToWidget uses CM.GetCrosshairReactionColor; scale tween on
+--      base ↔ active; active ↔ active lerps RGBA over REACTION_COLOR_DURATION. Cast-break
+--      hostile flash resolves at flash time. Situational condition swaps to X textures while
+--      keeping reaction colors/scale.
 --  Does not: Own Assisted Combat ProcLoop FlipBook (AssistedHighlight/Motion.lua) /
 --  interrupt cast break (AssistedHighlight/CastProgress.lua) or mouselook / CVar writes.
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight/Assist.lua,
@@ -104,6 +105,114 @@ PulseFrame:SetScript("OnUpdate", UpdatePulse)
 local STARTING_SCALE = 1
 local ENDING_SCALE = 0.9
 local SCALE_DURATION = 0.15
+local REACTION_COLOR_DURATION = 0.12
+
+local lastReactionAppearanceState = nil
+local reactionAnimToken = 0
+local reactionColorToken = 0
+local reactionColorCurrent = nil
+local reactionColorTween = nil
+
+local function Lerp(a, b, t)
+  return a + (b - a) * t
+end
+
+local function Clamp01(value)
+  return math.max(0, math.min(1, value))
+end
+
+local function EaseOutQuad(progress)
+  local inv = 1 - progress
+  return 1 - inv * inv
+end
+
+local function IsActiveReactionState(state)
+  return state ~= nil and state ~= "base" and state ~= "mounted"
+end
+
+local function CancelReactionColorTween()
+  reactionColorTween = nil
+end
+
+function CM.CancelCrosshairReactionColorTween()
+  CancelReactionColorTween()
+end
+
+local function SetReactionVertexColor(texture, r, g, b, a)
+  if not texture then
+    return
+  end
+  texture:SetVertexColor(r, g, b, a)
+  reactionColorCurrent = { r, g, b, a }
+end
+
+local function StartReactionColorTween(texture, toR, toG, toB, toA)
+  if not texture then
+    return
+  end
+
+  local from = reactionColorCurrent
+  if not from and texture.GetVertexColor then
+    local r, g, b, a = texture:GetVertexColor()
+    from = { r, g, b, a or 1 }
+  end
+  from = from or { toR, toG, toB, toA }
+
+  if
+    math.abs(from[1] - toR) < 0.001
+    and math.abs(from[2] - toG) < 0.001
+    and math.abs(from[3] - toB) < 0.001
+    and math.abs((from[4] or 1) - toA) < 0.001
+  then
+    SetReactionVertexColor(texture, toR, toG, toB, toA)
+    return
+  end
+
+  reactionColorToken = reactionColorToken + 1
+  reactionColorTween = {
+    texture = texture,
+    from = { from[1], from[2], from[3], from[4] or 1 },
+    to = { toR, toG, toB, toA },
+    elapsed = 0,
+    token = reactionColorToken,
+  }
+end
+
+local function UpdateReactionColorTween(elapsed)
+  local tween = reactionColorTween
+  if not tween then
+    return
+  end
+
+  tween.elapsed = tween.elapsed + elapsed
+  local t = Clamp01(tween.elapsed / REACTION_COLOR_DURATION)
+  t = EaseOutQuad(t)
+
+  local f = tween.from
+  local to = tween.to
+  local r = Lerp(f[1], to[1], t)
+  local g = Lerp(f[2], to[2], t)
+  local b = Lerp(f[3], to[3], t)
+  local a = Lerp(f[4], to[4], t)
+
+  tween.texture:SetVertexColor(r, g, b, a)
+  reactionColorCurrent = { r, g, b, a }
+
+  if t >= 1 then
+    reactionColorTween = nil
+    reactionColorCurrent = { to[1], to[2], to[3], to[4] }
+  end
+end
+
+local function ApplyReactionScale(targetFrame, parent, state, verticalOffset)
+  if state == "base" then
+    targetFrame:SetScale(STARTING_SCALE)
+    targetFrame:SetPoint("CENTER", parent, "CENTER", 0, verticalOffset)
+  else
+    targetFrame:SetScale(ENDING_SCALE)
+    targetFrame:SetPoint("CENTER", parent, "CENTER", 0, verticalOffset / ENDING_SCALE)
+  end
+end
 
 local function CreateCrosshairScaleAnimation(animGroup)
   local scaleAnim = animGroup:CreateAnimation("Scale")
@@ -147,31 +256,64 @@ local function ApplyCrosshairAppearanceToWidget(
     if animGroup and animGroup.Stop then
       animGroup:Stop()
     end
+    CancelReactionColorTween()
+    lastReactionAppearanceState = nil
     targetFrame:SetScale(STARTING_SCALE)
     targetFrame:SetPoint("CENTER", parent, "CENTER", 0, verticalOffset)
     return
   end
 
   local color = CM.GetCrosshairReactionColor(state)
-  local r, g, b, a = color[1], color[2], color[3], color[4]
+  local targetR, targetG, targetB, targetA = color[1], color[2], color[3], color[4]
   local textureToUse = state == "base" and appearance.Base or appearance.Active
   local reverseAnimation = state == "base" and true or false
 
   targetTexture:SetTexture(textureToUse)
-  targetTexture:SetVertexColor(r, g, b, a)
   if previewMode or (state ~= "mounted" and CM.IsMouselooking()) then
     targetTexture:Show()
   end
 
   -- Cast feedback owns visual scale/offset; skip reaction Scale anim while active.
   if CM.IsCrosshairCastFeedbackActive and CM.IsCrosshairCastFeedbackActive() then
+    CancelReactionColorTween()
+    SetReactionVertexColor(targetTexture, targetR, targetG, targetB, targetA)
+    lastReactionAppearanceState = state
     return
   end
 
+  local prevState = lastReactionAppearanceState
+  local activeToActive = IsActiveReactionState(state) and IsActiveReactionState(prevState)
+  lastReactionAppearanceState = state
+
+  if activeToActive then
+    StartReactionColorTween(targetTexture, targetR, targetG, targetB, targetA)
+  else
+    CancelReactionColorTween()
+    SetReactionVertexColor(targetTexture, targetR, targetG, targetB, targetA)
+  end
+
+  local playScaleAnim = not activeToActive
+  reactionAnimToken = reactionAnimToken + 1
+  local token = reactionAnimToken
+
+  if not playScaleAnim then
+    if animGroup and animGroup.Stop then
+      animGroup:Stop()
+    end
+    ApplyReactionScale(targetFrame, parent, state, verticalOffset)
+    return
+  end
+
+  if animGroup and animGroup.Stop then
+    animGroup:Stop()
+  end
+
   animGroup:SetScript("OnFinished", function()
+    if token ~= reactionAnimToken then
+      return
+    end
     if state ~= "base" then
-      targetFrame:SetScale(ENDING_SCALE)
-      targetFrame:SetPoint("CENTER", parent, "CENTER", 0, verticalOffset / ENDING_SCALE)
+      ApplyReactionScale(targetFrame, parent, state, verticalOffset)
     end
   end)
 
@@ -231,21 +373,6 @@ local crosshairVisualFrame
 local crosshairTexture
 local onCrosshairLockInComplete
 
-local function Clamp01(value)
-  return math.max(0, math.min(1, value))
-end
-
-local function EaseOutQuad(progress)
-  local inv = 1 - progress
-  return 1 - inv * inv
-end
-
-local function GetConfiguredOpacity()
-  local defaults = CM.Constants.DatabaseDefaults.global
-  local cfg = CM.DB.global or {}
-  return cfg.crosshairOpacity or defaults.crosshairOpacity
-end
-
 local function CenterVisual()
   if crosshairVisualFrame and crosshairOuterFrame then
     crosshairVisualFrame:SetPoint("CENTER", crosshairOuterFrame, "CENTER", 0, 0)
@@ -258,6 +385,7 @@ local function RestoreBreakVertexColor()
   end
   local c = breakSavedVertexColor
   crosshairTexture:SetVertexColor(c[1], c[2], c[3], c[4])
+  reactionColorCurrent = { c[1], c[2], c[3], c[4] }
   breakSavedVertexColor = nil
 end
 
@@ -266,7 +394,7 @@ local function ResetVisualToBase()
     return
   end
   crosshairVisualFrame:SetScale(CAST_BASE_SCALE)
-  crosshairVisualFrame:SetAlpha(GetConfiguredOpacity())
+  crosshairVisualFrame:SetAlpha(1)
   CenterVisual()
   RestoreBreakVertexColor()
 end
@@ -311,6 +439,7 @@ function CM.CancelCrosshairCastFeedback()
     castIsChannel = false
     return
   end
+  CancelReactionColorTween()
   SetMotionIdle()
   ResetVisualToBase()
 end
@@ -418,7 +547,7 @@ end
 
 local function UpdateRestore(elapsed)
   motionElapsed = motionElapsed + elapsed
-  local opacity = GetConfiguredOpacity()
+  local opacity = 1
   if motionElapsed >= CAST_RESTORE_DURATION then
     SetMotionIdle()
     if crosshairVisualFrame then
@@ -448,7 +577,7 @@ local function UpdateBreak(elapsed)
   local oy = (random() * 2 - 1) * CAST_BREAK_SHAKE_PX * decay
   local scale = motionStartScale + (CAST_BASE_SCALE - motionStartScale) * progress
   local flicker = (math.floor(motionElapsed * 40) % 2 == 0) and 1 or 0.55
-  local alpha = GetConfiguredOpacity() * flicker * (0.65 + 0.35 * progress)
+  local alpha = flicker * (0.65 + 0.35 * progress)
   if crosshairTexture then
     local hostile = CM.GetCrosshairReactionColor("hostile")
     local c = ((math.floor(motionElapsed * CAST_BREAK_FLASH_HZ) % 2) == 0) and hostile
@@ -474,6 +603,7 @@ local motionUpdaters = {
 
 local function OnCrosshairMotionUpdate(_, elapsed)
   CM.Profile("Anim:CrosshairMotion", function()
+    UpdateReactionColorTween(elapsed)
     local updater = motionUpdaters[motionState]
     if updater then
       updater(elapsed)
@@ -506,12 +636,13 @@ function CM.ShowCrosshairLockIn()
   end
 
   CM.CancelCrosshairCastFeedback()
+  CancelReactionColorTween()
   crosshairTexture:Show()
 
   lockInStartScale = crosshairVisualFrame:GetScale() * 1.3
   lockInStartAlpha = 0.0
   lockInTargetScale = CAST_BASE_SCALE
-  lockInTargetAlpha = GetConfiguredOpacity()
+  lockInTargetAlpha = 1
 
   CenterVisual()
   crosshairVisualFrame:SetScale(lockInStartScale)
@@ -526,6 +657,7 @@ function CM.StartCrosshairCastGrow(eventGUID, isChannel)
   end
 
   CM.CancelCrosshairLockIn()
+  CancelReactionColorTween()
   if
     motionState == MOTION_EXPLODE
     or motionState == MOTION_BREAK
@@ -544,7 +676,7 @@ function CM.StartCrosshairCastGrow(eventGUID, isChannel)
 
   CenterVisual()
   crosshairVisualFrame:SetScale(CAST_BASE_SCALE)
-  crosshairVisualFrame:SetAlpha(GetConfiguredOpacity())
+  crosshairVisualFrame:SetAlpha(1)
 end
 
 local function BeginExplode(eventGUID)
@@ -552,7 +684,7 @@ local function BeginExplode(eventGUID)
     return false
   end
   motionStartScale = crosshairVisualFrame:GetScale() or CAST_GROW_MAX_SCALE
-  motionStartAlpha = crosshairVisualFrame:GetAlpha() or GetConfiguredOpacity()
+  motionStartAlpha = crosshairVisualFrame:GetAlpha() or 1
   motionExplodePeak = motionStartScale + CAST_EXPLODE_EXTRA_SCALE
   motionState = MOTION_EXPLODE
   motionElapsed = 0
@@ -568,6 +700,7 @@ local function BeginBreak(eventGUID)
     local r, g, b, a = crosshairTexture:GetVertexColor()
     breakSavedVertexColor = { r, g, b, a }
   end
+  CancelReactionColorTween()
   motionStartScale = crosshairVisualFrame:GetScale() or CAST_BASE_SCALE
   motionState = MOTION_BREAK
   motionElapsed = 0
