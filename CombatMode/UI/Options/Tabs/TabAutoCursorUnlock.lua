@@ -75,12 +75,13 @@ UI.Options.AddTab({
       label = "Custom Condition",
       desc = "Custom Lua code checked during Mouse Look. Return true to trigger an auto unlock.",
       placeholder = [[
-local isStill = GetUnitSpeed('player') == 0
-if isStill and not IsMounted() then
+local isPlayerStill = GetUnitSpeed and GetUnitSpeed("player") == 0
+local isPlayerMounted = IsMounted and IsMounted() or false
+if isPlayerStill and not isPlayerMounted then
   return true end
 return false
 ]],
-      multiline = 4,
+      multiline = 5,
       get = function()
         return CM.DB.global.customCondition
       end,

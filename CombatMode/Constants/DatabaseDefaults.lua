@@ -112,7 +112,8 @@ CM.Constants.DatabaseDefaults = {
     crosshairReactionColors = {},
     crosshairSituationalCondition = [[
 local isPlayerDead = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
-if isPlayerDead or (IsStealthed and IsStealthed()) then
+local isPlayerStealthed = IsStealthed and IsStealthed()
+if isPlayerDead or isPlayerStealthed then
   return true end
 return false
 ]],
