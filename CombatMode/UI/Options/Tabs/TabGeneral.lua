@@ -227,7 +227,7 @@ UI.Options.AddTab({
     })
     ctx:Toggle({
       label = "Cycle Lock with Mouse Wheel",
-      desc = "While a Target Lock is set, mouse wheel moves the lock to nearby targets, facilitating prioritization when units are stacked.",
+      desc = "While a Target Lock is set, Shift + Mouse Wheel moves the lock to nearby targets, facilitating prioritization when units are stacked.",
       get = function()
         return CM.DB.global.cycleFocusWithMouseWheel ~= false
       end,

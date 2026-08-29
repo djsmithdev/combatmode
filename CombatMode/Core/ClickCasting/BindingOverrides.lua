@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Creates SecureActionButtonTemplate proxy frames, applies mouselook and
 --  keyboard override bindings for click-cast slots, ground @cursor casts, the
---  toggle-focus bind, and focus-gated mouse-wheel Target Lock cycling.
+--  toggle-focus bind, and Shift+mouse-wheel Target Lock cycling.
 --  Architecture / how it works:
 --    • Honors char.reticleTargeting, macroInjectionClickCastOnly (skip keyboard overrides
 --      when true), and GetBindingsLocation() for which bindings table to read.
@@ -18,9 +18,10 @@
 --      ApplyToggleFocusTargetBinding set a pending flag; EventRouter flushes on
 --      PLAYER_REGEN_ENABLED via FlushPendingClickCastRefresh (silent; BindingQueue
 --      remains for options UI deferred applies).
---    • UpdateFocusCycleWheelBindings — SetMouselookOverrideBinding for MOUSEWHEEL while
---      Target Lock is enabled and cycleFocusWithMouseWheel is on (mouselook only).
---      Secure PreClick uses UnitExists("focus") for cycle macros; zoom fallback via CallMethod.
+--    • UpdateFocusCycleWheelBindings — SetMouselookOverrideBinding for
+--      SHIFT-MOUSEWHEEL while Target Lock is enabled and cycleFocusWithMouseWheel is on
+--      (mouselook only). Bare wheel is left alone (user zoom / remaps). Secure PreClick
+--      runs cycle macros only when UnitExists("focus"); otherwise no-op.
 --    • AssignNamedKeybind / ClearInteractOrphansOnKey — shared options keybind helpers.
 --    • Combat-safe via BindingQueue when options change mid-combat.
 --  Does not: Resolve ElvUI/BT4 frame names (AddonActionBarResolver) or build preline text
@@ -123,14 +124,13 @@ ToggleFocusTargetButton:SetAttribute("type", "macro")
 -- macrotext set by UpdateToggleFocusTargetMacroText() based on reticleTargetingEnemyOnly
 ToggleFocusTargetButton:RegisterForClicks("AnyUp", "AnyDown")
 
--- Mouse-wheel Target Lock cycle (nearest / previous enemy → focus).
+-- Shift+mouse-wheel Target Lock cycle (nearest / previous enemy → focus).
 -- Uses SetMouselookOverrideBinding so bindings only apply during Mouse Look.
--- Secure PreClick: UnitExists("focus") → cycle macro; else CallMethod CMZoom
--- (CameraZoomIn/Out are not in the restricted environment). Option toggles go
--- through BindingQueue (TryApplyBindingChange) so mid-combat changes flush on REGEN.
+-- Bare MOUSEWHEEL* is never overridden — zoom / user remaps keep working.
+-- Secure PreClick: UnitExists("focus") → cycle macro; else no-op.
+-- Option toggles go through BindingQueue (TryApplyBindingChange) so mid-combat
+-- changes flush on REGEN.
 local SecureHandlerWrapScript = _G.SecureHandlerWrapScript
-local CameraZoomIn = _G.CameraZoomIn
-local CameraZoomOut = _G.CameraZoomOut
 
 local CycleFocusEnemyNextButton = CreateFrame(
   "Button",
@@ -150,19 +150,6 @@ local CycleFocusEnemyPrevButton = CreateFrame(
 CycleFocusEnemyPrevButton:SetAttribute("type", "macro")
 CycleFocusEnemyPrevButton:RegisterForClicks("AnyUp", "AnyDown")
 
--- Insecure zoom only — never call these on the cycle path (CallMethod taints macros).
-function CycleFocusEnemyNextButton:CMZoom()
-  if CameraZoomIn then
-    CameraZoomIn(1)
-  end
-end
-
-function CycleFocusEnemyPrevButton:CMZoom()
-  if CameraZoomOut then
-    CameraZoomOut(1)
-  end
-end
-
 if SecureHandlerWrapScript then
   SecureHandlerWrapScript(
     CycleFocusEnemyNextButton,
@@ -173,7 +160,6 @@ if SecureHandlerWrapScript then
         self:SetAttribute("type", "macro")
       else
         self:SetAttribute("type", nil)
-        self:CallMethod("CMZoom")
       end
     ]]
   )
@@ -186,7 +172,6 @@ if SecureHandlerWrapScript then
         self:SetAttribute("type", "macro")
       else
         self:SetAttribute("type", nil)
-        self:CallMethod("CMZoom")
       end
     ]]
   )
@@ -206,18 +191,24 @@ local function EnsureFocusCycleWheelMacroText()
 end
 
 local function ClearFocusCycleWheelMouselookBindings()
+  -- Clear Shift+wheel cycle binds and legacy bare-wheel overrides from older builds.
+  SetMouselookOverrideBinding("SHIFT-MOUSEWHEELUP", nil)
+  SetMouselookOverrideBinding("SHIFT-MOUSEWHEELDOWN", nil)
   SetMouselookOverrideBinding("MOUSEWHEELUP", nil)
   SetMouselookOverrideBinding("MOUSEWHEELDOWN", nil)
 end
 
 local function ApplyFocusCycleWheelMouselookBindings()
   EnsureFocusCycleWheelMacroText()
+  -- Drop legacy bare-wheel overrides so remapped scroll is not stolen after upgrade.
+  SetMouselookOverrideBinding("MOUSEWHEELUP", nil)
+  SetMouselookOverrideBinding("MOUSEWHEELDOWN", nil)
   SetMouselookOverrideBinding(
-    "MOUSEWHEELUP",
+    "SHIFT-MOUSEWHEELUP",
     "CLICK " .. CycleFocusEnemyNextButton:GetName() .. ":LeftButton"
   )
   SetMouselookOverrideBinding(
-    "MOUSEWHEELDOWN",
+    "SHIFT-MOUSEWHEELDOWN",
     "CLICK " .. CycleFocusEnemyPrevButton:GetName() .. ":LeftButton"
   )
 end
@@ -227,7 +218,7 @@ function CM.IsTargetLockEnabled()
   return CM.DB and CM.DB.char and CM.DB.char.reticleTargeting and true or false
 end
 
---- Install/clear mouselook-only wheel overrides. Call out of combat (BindingQueue
+--- Install/clear mouselook-only Shift+wheel overrides. Call out of combat (BindingQueue
 --- defers option toggles). PreClick reads UnitExists("focus") at click time.
 function CM.UpdateFocusCycleWheelBindings()
   CM.Profile("Bind:WheelCycle", function()

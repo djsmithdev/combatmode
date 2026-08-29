@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.5.3] - 2026-08-29
 
+### Changed
+
+- **Cycle Lock with Mouse Wheel** now uses **Shift + mouse wheel** instead of overriding bare scroll. Plain mouse wheel keeps your normal binds (zoom by default, or whatever you remapped).
+
 ### Fixed
 
 - Skyriding abilities have been hard-coded to no longer run reticle targeting prelines, so they do not soft-target or auto-lock enemies while flying.
