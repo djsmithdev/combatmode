@@ -17,14 +17,16 @@
 --      ([nodead] any / [nodead,harm] enemy) so sticky empty-focus cannot leave a dead
 --      lock. Cleartarget prevents corpse re-lock on hard target.
 --    • CM.TargetingMacroPrelineMaxLen = 255 − worst /click cast − newline; editor enforces.
---    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists.
+--    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists;
+--      builtin skyriding IDs from Constants.ReticleTargetingBuiltinExcludeSpellIds.
 --    • GetEffectiveBarButtonFrameName uses AddonActionBarResolver for third-party bars.
 --    • Click frame map from CM.Constants.ClickCastBars (ACTIONBUTTON + MultiBar 1–7).
 --  Does not: Own SecureActionButton frames or SetOverrideBinding (BindingOverrides).
 --  Related: Core/ClickCasting/BindingOverrides.lua,
 --  UI/Editors/TargetingMacroPrelinesEditor.lua,
 --  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/SpellMultiSelect.lua,
---  Constants/DatabaseDefaults.lua, Core/ClickCasting/AddonActionBarResolver.lua
+--  Constants/DatabaseDefaults.lua, Constants/Gameplay.lua,
+--  Core/ClickCasting/AddonActionBarResolver.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -401,9 +403,24 @@ function CM.IsCastAtCursorSpell(spellId)
   return SpellListContains(CM.DB.char.castAtCursorSpells, spellId)
 end
 
--- Returns true if spellId is in the exclude-from-targeting list (CSV of spell IDs).
+local function BuiltinExcludeContains(spellId)
+  local builtin = CM.Constants and CM.Constants.ReticleTargetingBuiltinExcludeSpellIds
+  if not builtin or not spellId or spellId <= 0 then
+    return false
+  end
+  for id in pairs(RelatedSpellIds(spellId)) do
+    if builtin[id] then
+      return true
+    end
+  end
+  return false
+end
+
+-- Returns true if spellId is in the exclude-from-targeting list (CSV of spell IDs)
+-- or the builtin skyriding set (not shown in options).
 function CM.IsExcludedFromTargetingSpell(spellId)
-  return SpellListContains(CM.DB.char.excludeFromTargetingSpells, spellId)
+  return BuiltinExcludeContains(spellId)
+    or SpellListContains(CM.DB.char.excludeFromTargetingSpells, spellId)
 end
 
 local function GetClickCastPreLine()

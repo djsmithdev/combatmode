@@ -14,6 +14,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.5.3] - 2026-08-29
+
+### Fixed
+
+- Skyriding abilities have been hard-coded to no longer run reticle targeting prelines, so they do not soft-target or auto-lock enemies while flying.
+
 ## [4.5.2] - 2026-08-28
 
 ### Fixed
@@ -445,7 +451,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.5.2...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.5.3...HEAD
+[4.5.3]: https://github.com/djsmithdev/combatmode/compare/4.5.2...4.5.3
 [4.5.2]: https://github.com/djsmithdev/combatmode/compare/4.5.1...4.5.2
 [4.5.1]: https://github.com/djsmithdev/combatmode/compare/4.5.0...4.5.1
 [4.5.0]: https://github.com/djsmithdev/combatmode/compare/4.4.2...4.5.0

@@ -15,6 +15,8 @@
 --    • ClickCastBars: ACTIONBUTTON + MULTIACTIONBAR1–7 (MultiBar5–7 = Dragonflight+
 --      Edit Mode bars) with Blizzard frame prefixes and action-slot bases. Shared by
 --      BindingOverrides, TargetingMacroBuilder, AddonActionBarResolver, Assist keybinds.
+--    • ReticleTargetingBuiltinExcludeSpellIds: skyriding spells that skip preline injection
+--      (not shown in the Excluded Spells options UI).
 --    • ActionsToProcess = ClickCastBars slots + other bindable Blizzard actions
 --      (pings, arena target/focus, vehicles, party pets, sit/sheath/run, pitch, …);
 --      OverrideActions labels CM-specific clear/toggle/macro choices;
@@ -134,6 +136,15 @@ CM.Constants.ClickCastBars = {
   { bind = "MULTIACTIONBAR5BUTTON", frame = "MultiBar5Button", count = 12, actionBase = 145 },
   { bind = "MULTIACTIONBAR6BUTTON", frame = "MultiBar6Button", count = 12, actionBase = 157 },
   { bind = "MULTIACTIONBAR7BUTTON", frame = "MultiBar7Button", count = 12, actionBase = 169 },
+}
+
+-- Skyriding abilities: always skip reticle targeting preline (not editable in Excluded Spells).
+CM.Constants.ReticleTargetingBuiltinExcludeSpellIds = {
+  [372608] = true, -- Surge Forward
+  [372610] = true, -- Skyward Ascent
+  [361584] = true, -- Whirling Surge
+  [425782] = true, -- Second Wind
+  [403092] = true, -- Aerial Halt
 }
 
 -- Non-bar bindable actions shown in the Click Casting action dropdown.
