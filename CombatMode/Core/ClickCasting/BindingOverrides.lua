@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Creates SecureActionButtonTemplate proxy frames, applies mouselook and
 --  keyboard override bindings for click-cast slots, ground @cursor casts, the
---  toggle-focus bind, and Shift+mouse-wheel Target Lock cycling.
+--  toggle-focus bind, and configurable Target Lock cycle keybinds.
 --  Architecture / how it works:
 --    • Honors char.reticleTargeting, macroInjectionClickCastOnly (skip keyboard overrides
 --      when true), and GetBindingsLocation() for which bindings table to read.
@@ -18,10 +18,9 @@
 --      ApplyToggleFocusTargetBinding set a pending flag; EventRouter flushes on
 --      PLAYER_REGEN_ENABLED via FlushPendingClickCastRefresh (silent; BindingQueue
 --      remains for options UI deferred applies).
---    • UpdateFocusCycleWheelBindings — SetMouselookOverrideBinding for
---      SHIFT-MOUSEWHEEL while Target Lock is enabled and cycleFocusWithMouseWheel is on
---      (mouselook only). Bare wheel is left alone (user zoom / remaps). Secure PreClick
---      runs cycle macros only when UnitExists("focus"); otherwise no-op.
+--    • ApplyCycleFocusBindings — dedicated Bindings.xml cycle keys via
+--      SetOverrideBindingClick (user assigns keys in options or Key Bindings UI).
+--    • UpdateFocusCycleWheelBindings — alias for ApplyCycleFocusBindings.
 --    • AssignNamedKeybind / ClearInteractOrphansOnKey — shared options keybind helpers.
 --    • Combat-safe via BindingQueue when options change mid-combat.
 --  Does not: Resolve ElvUI/BT4 frame names (AddonActionBarResolver) or build preline text
@@ -57,6 +56,12 @@ local select = _G.select
 local tonumber = _G.tonumber
 local tostring = _G.tostring
 local type = _G.type
+
+local pendingClickCastRefresh = false
+
+local function MarkPendingClickCastRefresh()
+  pendingClickCastRefresh = true
+end
 
 -- Click-cast macro wrapper: binding value (e.g. ACTIONBUTTON1) -> pre-line + /click frameName.
 -- Shared map includes ACTIONBUTTON + MULTIACTIONBAR1–7 (MultiBar5–7 = DF+ bars).
@@ -124,18 +129,18 @@ ToggleFocusTargetButton:SetAttribute("type", "macro")
 -- macrotext set by UpdateToggleFocusTargetMacroText() based on reticleTargetingEnemyOnly
 ToggleFocusTargetButton:RegisterForClicks("AnyUp", "AnyDown")
 
--- Shift+mouse-wheel Target Lock cycle (nearest / previous enemy → focus).
--- Uses SetMouselookOverrideBinding so bindings only apply during Mouse Look.
--- Bare MOUSEWHEEL* is never overridden — zoom / user remaps keep working.
+-- Configurable Target Lock cycle (nearest / previous enemy → focus).
+-- Dedicated Bindings.xml keys + SetOverrideBindingClick (same model as Target Lock).
+-- Duplicate keys are resolved by the engine when the user assigns binds in options.
 -- Secure PreClick: UnitExists("focus") → cycle macro; else no-op.
--- Option toggles go through BindingQueue (TryApplyBindingChange) so mid-combat
--- changes flush on REGEN.
 local SecureHandlerWrapScript = _G.SecureHandlerWrapScript
+
+local CycleFocusOverrideOwner = CreateFrame("Frame", nil, UIParent)
 
 local CycleFocusEnemyNextButton = CreateFrame(
   "Button",
   "CombatModeCycleFocusEnemyNext",
-  UIParent,
+  CycleFocusOverrideOwner,
   "SecureActionButtonTemplate, SecureHandlerBaseTemplate"
 )
 CycleFocusEnemyNextButton:SetAttribute("type", "macro")
@@ -144,7 +149,7 @@ CycleFocusEnemyNextButton:RegisterForClicks("AnyUp", "AnyDown")
 local CycleFocusEnemyPrevButton = CreateFrame(
   "Button",
   "CombatModeCycleFocusEnemyPrev",
-  UIParent,
+  CycleFocusOverrideOwner,
   "SecureActionButtonTemplate, SecureHandlerBaseTemplate"
 )
 CycleFocusEnemyPrevButton:SetAttribute("type", "macro")
@@ -177,7 +182,7 @@ if SecureHandlerWrapScript then
   )
 end
 
-local function EnsureFocusCycleWheelMacroText()
+local function EnsureFocusCycleMacroText()
   local macros_const = CM.Constants and CM.Constants.Macros
   if not macros_const or InCombatLockdown() then
     return
@@ -190,49 +195,50 @@ local function EnsureFocusCycleWheelMacroText()
   end
 end
 
-local function ClearFocusCycleWheelMouselookBindings()
-  -- Clear Shift+wheel cycle binds and legacy bare-wheel overrides from older builds.
-  SetMouselookOverrideBinding("SHIFT-MOUSEWHEELUP", nil)
-  SetMouselookOverrideBinding("SHIFT-MOUSEWHEELDOWN", nil)
-  SetMouselookOverrideBinding("MOUSEWHEELUP", nil)
-  SetMouselookOverrideBinding("MOUSEWHEELDOWN", nil)
-end
-
-local function ApplyFocusCycleWheelMouselookBindings()
-  EnsureFocusCycleWheelMacroText()
-  -- Drop legacy bare-wheel overrides so remapped scroll is not stolen after upgrade.
-  SetMouselookOverrideBinding("MOUSEWHEELUP", nil)
-  SetMouselookOverrideBinding("MOUSEWHEELDOWN", nil)
-  SetMouselookOverrideBinding(
-    "SHIFT-MOUSEWHEELUP",
-    "CLICK " .. CycleFocusEnemyNextButton:GetName() .. ":LeftButton"
-  )
-  SetMouselookOverrideBinding(
-    "SHIFT-MOUSEWHEELDOWN",
-    "CLICK " .. CycleFocusEnemyPrevButton:GetName() .. ":LeftButton"
-  )
-end
-
 --- Target Lock (focus toggle, wheel cycle, marker, sounds) requires Reticle Targeting.
 function CM.IsTargetLockEnabled()
   return CM.DB and CM.DB.char and CM.DB.char.reticleTargeting and true or false
 end
 
---- Install/clear mouselook-only Shift+wheel overrides. Call out of combat (BindingQueue
---- defers option toggles). PreClick reads UnitExists("focus") at click time.
+--- Install/clear SetOverrideBindingClick for cycle binds. Call out of combat
+--- (BindingQueue defers option toggles). PreClick reads UnitExists("focus") at click time.
+function CM.ApplyCycleFocusBindings()
+  if InCombatLockdown() then
+    MarkPendingClickCastRefresh()
+    return
+  end
+  ClearOverrideBindings(CycleFocusOverrideOwner)
+  if not CM.IsTargetLockEnabled() then
+    CM.DebugPrint("Cycle Focus bindings override cleared (Reticle Targeting off)")
+    return
+  end
+  EnsureFocusCycleMacroText()
+  local nextKey = GetBindingKey("Combat Mode - Cycle Focus Next")
+  if nextKey then
+    SetOverrideBindingClick(
+      CycleFocusOverrideOwner,
+      false,
+      nextKey,
+      CycleFocusEnemyNextButton:GetName(),
+      "LeftButton"
+    )
+    CM.DebugPrint("Cycle Focus Next binding applied to " .. tostring(nextKey))
+  end
+  local prevKey = GetBindingKey("Combat Mode - Cycle Focus Previous")
+  if prevKey then
+    SetOverrideBindingClick(
+      CycleFocusOverrideOwner,
+      false,
+      prevKey,
+      CycleFocusEnemyPrevButton:GetName(),
+      "LeftButton"
+    )
+    CM.DebugPrint("Cycle Focus Previous binding applied to " .. tostring(prevKey))
+  end
+end
+
 function CM.UpdateFocusCycleWheelBindings()
-  CM.Profile("Bind:WheelCycle", function()
-    if InCombatLockdown() then
-      return
-    end
-    local g = CM.DB and CM.DB.global
-    if CM.IsTargetLockEnabled() and (not g or g.cycleFocusWithMouseWheel ~= false) then
-      ApplyFocusCycleWheelMouselookBindings()
-      CM.DebugPrint("Focus cycle mouse-wheel mouselook overrides applied")
-    else
-      ClearFocusCycleWheelMouselookBindings()
-    end
-  end)
+  CM.ApplyCycleFocusBindings()
 end
 
 local function UpdateToggleFocusTargetMacroText()
@@ -366,11 +372,6 @@ end
 
 -- Override keyboard keys (Q, E, etc.) to click our slot frame so the same macro logic runs (pre-line + /click or /cast [@cursor] for ground spells). No per-spell macros.
 -- When macroInjectionClickCastOnly is true, skip keyboard overrides so only the 8 click-cast mouse bindings get the injection.
-local pendingClickCastRefresh = false
-
-local function MarkPendingClickCastRefresh()
-  pendingClickCastRefresh = true
-end
 
 function CM.FlushPendingClickCastRefresh()
   if InCombatLockdown() or not pendingClickCastRefresh then
@@ -380,6 +381,9 @@ function CM.FlushPendingClickCastRefresh()
   CM.RefreshClickCastMacros()
   if CM.ApplyToggleFocusTargetBinding then
     CM.ApplyToggleFocusTargetBinding()
+  end
+  if CM.ApplyCycleFocusBindings then
+    CM.ApplyCycleFocusBindings()
   end
 end
 
@@ -585,7 +589,7 @@ function CM.ClearInteractOrphansOnKey(key)
 end
 
 --- Assign (or clear) a named binding command, clear Interact orphans on the new key,
---- save bindings, and refresh the Target Lock override layer.
+--- save bindings, and refresh Target Lock + Cycle Lock override layers.
 function CM.AssignNamedKeybind(command, key)
   if not command or command == "" then
     return
@@ -603,9 +607,20 @@ function CM.AssignNamedKeybind(command, key)
     SaveBindings(GetCurrentBindingSet())
   end
   CM.ApplyToggleFocusTargetBinding()
+  if CM.ApplyCycleFocusBindings then
+    CM.ApplyCycleFocusBindings()
+  end
 end
 
 -- Handler for toggle focus target keybinding (fallback - should be overridden)
 function _G.CombatMode_ToggleFocusTarget()
   -- Nothing inside here will work as it will be overriden by ApplyToggleFocusTargetBinding calling UpdateToggleFocusTargetMacroText
+end
+
+function _G.CombatMode_CycleFocusNext()
+  -- Overridden by ApplyCycleFocusBindings via SetOverrideBindingClick.
+end
+
+function _G.CombatMode_CycleFocusPrevious()
+  -- Overridden by ApplyCycleFocusBindings via SetOverrideBindingClick.
 end

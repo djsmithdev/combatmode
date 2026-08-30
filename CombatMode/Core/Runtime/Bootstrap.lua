@@ -108,7 +108,7 @@ function CM.BootstrapFeatureModules()
   CM.InitializeVignette()
   CreateTargetMacros()
   CM.ApplyToggleFocusTargetBinding()
-  CM.UpdateFocusCycleWheelBindings()
+  CM.ApplyCycleFocusBindings()
   if CM.PartyRadial and CM.PartyRadial.Initialize then
     CM.PartyRadial.Initialize()
   end

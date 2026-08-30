@@ -6,7 +6,7 @@
 --  for new-install defaults across free-look, crosshair companions, click-cast, reticle,
 --  and party radial.
 --  Architecture / how it works:
---      mouseLookSpeed, pulseCursor, interactUnit, cycleFocusWithMouseWheel; crosshair*
+--      mouseLookSpeed, pulseCursor, interactUnit; crosshair*
 --      (crosshairScale, Y, cast feedback), interactionHUD / Side / Scale,
 --      assistedHighlightEnabled / Side / Scale; vignette; partyRadial (enabled,
 --      showHealthBars, showBackground, scale; layout/fade fixed in Constants/PartyRadial.lua);
@@ -86,7 +86,6 @@ CM.Constants.DatabaseDefaults = {
     hideTooltip = true,
     sheathWeaponsWithMouselook = false,
     interactUnit = "mouseover",
-    cycleFocusWithMouseWheel = true,
     showTargetLockMarker = true,
     -- crosshair
     crosshair = true,

@@ -14,6 +14,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.5.4] - 2026-08-30
+
+### Added
+
+- **Cycle Lock - Next** and **Cycle Lock - Previous** as dedicated Combat Mode keybinds (General → Target Lock). You're no longer locked to using `SHIFT + MOUSEWHEEL*` to cycle Target Lock.
+
+### Changed
+
+- Cycle Lock no longer uses mouselook-only overrides, so it cannot silently eat mouse wheel (or other keys) without taking over the binding. Assigning a key to Cycle Lock replaces that key's previous action; clear the bind to disable cycling on that key.
+
 ## [4.5.3] - 2026-08-29
 
 ### Changed
@@ -344,118 +354,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-## [3.3.1] - 2026-07-18
-
-### Changed
-
-- Improved cursor unlock performance by caching compiled custom conditions and checking open Blizzard UI panels before scanning watched frames.
-
-## [3.3.0] - 2026-04-24
-
-### Added
-
-- Combat Assist spell icon suggestion on the Crosshair (Retail Assisted Combat highlight).
-- Edit Mode controls for the assisted highlight widget: enable/disable, size, position (X/Y), keybind display, and keybind anchor.
-
-## [3.2.2] - 2026-03-28
-
-### Added
-
-- Changelog popup on first login after updating the addon.
-
-## [3.2.1] - 2026-03-27
-
-### Fixed
-
-- Cast @cursor whitelist not applying correctly.
-
-## [3.2.0] - 2026-03-27
-
-### Added
-
-- Reticle Targeting CVar editor for customizing Combat Mode Reticle Targeting CVars.
-- Targeting macro prelines editor for customizing injected prelines when Reticle Targeting is enabled.
-
-## [3.1.10] - 2026-03-26
-
-### Added
-
-- Third-party action bar policy: when Bartender4, Dominos, or ElvUI is detected, Combat Mode forces `macroInjectionClickCastOnly=true` and locks that toggle; Blizzard default bars keep full reticle targeting macro injection.
-
-## [3.1.9] - 2026-03-26
-
-### Changed
-
-- Action bar binding overrides now derive the canonical action-slot id from the binding prefix and button index instead of `MultiBar*ButtonN` frames, whose `action` attribute can be ambiguous with Bartender4, Dominos, ElvUI, and similar addons.
-
-## [3.1.8] - 2026-03-25
-
-### Fixed
-
-- Reticle Targeting with ElvUI and Bartender4.
-
-## [3.1.7] - 2026-03-24
-
-### Fixed
-
-- Sticky crosshair table name.
-
-## [3.1.6] - 2026-03-24
-
-### Added
-
-- GitHub package release workflow.
-
-## [3.1.5] - 2026-03-23
-
-### Changed
-
-- Cursor freelook centering is tied to the Crosshair being active, not Reticle Targeting.
-- Crosshair reactivity no longer requires Reticle Targeting.
-- Interaction HUD range check adjusted so the Crosshair and Interaction HUD can be used independently of Reticle Targeting configuration.
-
-## [3.1.4] - 2026-03-23
-
-### Changed
-
-- Performance improvements.
-- Split `Constants.lua` into smaller files under `/Constants`.
-
-## [3.1.3] - 2026-03-23
-
-### Fixed
-
-- Interaction HUD errors from secret values in dungeons.
-
-### Changed
-
-- Interaction HUD and Healing Radial fonts are no longer tied to a specific client language.
-- Updated LibEditMode.
-
-## [3.1.2] - 2026-03-22
-
-### Added
-
-- LibEditMode in the `Libs` folder.
-
-## [3.1.1] - 2026-03-22
-
-### Added
-
-- Edit Mode support: adjust the Crosshair from Blizzard’s Edit Mode.
-- Interaction HUD option for the crosshair: shows interactable NPCs and objects to the right of the crosshair when enabled.
-
-### Changed
-
-- Crosshair vertical positioning limit removed.
-- Crosshair behavior aligns more closely with config options, including more reliable cursor centering.
-- Reorganized project structure into smaller, easier-to-maintain files.
-
-### Fixed
-
-- Reticle Targeting blacklist not excluding spells from targeting macro injection, which broke Hold To Cast and empowered spell options (e.g. Hold & Release). Excluding a spell by name on the list now restores expected behavior.
-
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.5.3...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.5.4...HEAD
+[4.5.4]: https://github.com/djsmithdev/combatmode/compare/4.5.3...4.5.4
 [4.5.3]: https://github.com/djsmithdev/combatmode/compare/4.5.2...4.5.3
 [4.5.2]: https://github.com/djsmithdev/combatmode/compare/4.5.1...4.5.2
 [4.5.1]: https://github.com/djsmithdev/combatmode/compare/4.5.0...4.5.1

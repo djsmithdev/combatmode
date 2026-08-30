@@ -106,6 +106,9 @@ local function RunClickCastBindingRefresh()
       )
     then
       CM.ApplyToggleFocusTargetBinding()
+      if CM.ApplyCycleFocusBindings then
+        CM.ApplyCycleFocusBindings()
+      end
     end
     if CM.PartyRadial and CM.PartyRadial.OnActionBarChanged then
       if clickCastRefreshReason == "GROUP_ROSTER_UPDATE" then

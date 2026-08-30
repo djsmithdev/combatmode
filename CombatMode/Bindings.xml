@@ -15,4 +15,10 @@
 	<Binding name="Combat Mode - Toggle Focus Target" description="Tap to focus target, tap again to clear focus" header="Reticle Targeting" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
 		CombatMode_ToggleFocusTarget()
 	</Binding>
+	<Binding name="Combat Mode - Cycle Focus Next" description="Cycle Target Lock to the next nearby enemy" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
+		CombatMode_CycleFocusNext()
+	</Binding>
+	<Binding name="Combat Mode - Cycle Focus Previous" description="Cycle Target Lock to the previous nearby enemy" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
+		CombatMode_CycleFocusPrevious()
+	</Binding>
 </Bindings>

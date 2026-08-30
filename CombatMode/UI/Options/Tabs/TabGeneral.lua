@@ -4,15 +4,13 @@
 --  What it does: Wires General-tab controls to freelook and interact/focus binds:
 --  Mouse Look keybind, pulseCursor, hideTooltip, turn speed, sheath weapons,
 --  Interact keybind + interactUnit (mouseover vs soft target, with ALT+key on the
---  alternate command), Target Lock keybind, cycleFocusWithMouseWheel,
+--  alternate command), Target Lock keybind, Cycle Lock Next/Previous keybinds,
 --  showTargetLockMarker.
 --  Architecture / how it works:
 --    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed,
---      sheathWeaponsWithMouselook, interactUnit,
---      cycleFocusWithMouseWheel, showTargetLockMarker.
+--      sheathWeaponsWithMouselook, interactUnit, showTargetLockMarker.
 --    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
---      orphans on the stolen key and refreshes Target Lock override). Cycle Lock with
---      Mouse Wheel also uses TryApplyBindingChange → UpdateFocusCycleWheelBindings.
+--      orphans on the stolen key and refreshes Target Lock / Cycle Lock override layers).
 --    • Interact rebind clears both INTERACTMOUSEOVER and INTERACTTARGET then assigns
 --      primary + ALT alternate (skipped ALT dual-bind when the chosen key already has ALT-).
 --  Does not: Own freelook state machine or click-cast slot table UI.
@@ -212,7 +210,8 @@ UI.Options.AddTab({
 
     ctx:Keybind({
       label = "Target Lock Keybind",
-      desc = "Tap to lock your target, preventing the reticle from swapping it. Tap again to unlock.\nTarget Lock adheres to Reticle Targeting settings.",
+      desc = "Tap to lock the reticle to your target, preventing it from swapping. Tap again to unlock.\n"
+        .. "Follows Reticle Targeting settings.",
       get = function()
         return (GetBindingKey("Combat Mode - Toggle Focus Target"))
       end,
@@ -225,16 +224,30 @@ UI.Options.AddTab({
         return not CM.DB.char.reticleTargeting
       end,
     })
-    ctx:Toggle({
-      label = "Cycle Lock with Mouse Wheel",
-      desc = "While a Target Lock is set, Shift + Mouse Wheel moves the lock to nearby targets, facilitating prioritization when units are stacked.",
+    ctx:Keybind({
+      label = "Cycle Lock - Next",
+      desc = "Move Target Lock to the next valid nearby target.",
       get = function()
-        return CM.DB.global.cycleFocusWithMouseWheel ~= false
+        return GetBindingKey("Combat Mode - Cycle Focus Next")
       end,
-      set = function(value)
-        CM.DB.global.cycleFocusWithMouseWheel = value
-        CM.TryApplyBindingChange("focus cycle mouse wheel", function()
-          CM.UpdateFocusCycleWheelBindings()
+      set = function(key)
+        CM.TryApplyBindingChange("cycle focus next keybinding", function()
+          CM.AssignNamedKeybind("Combat Mode - Cycle Focus Next", key)
+        end)
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Keybind({
+      label = "Cycle Lock - Previous",
+      desc = "Move Target Lock to the previous valid nearby target.",
+      get = function()
+        return GetBindingKey("Combat Mode - Cycle Focus Previous")
+      end,
+      set = function(key)
+        CM.TryApplyBindingChange("cycle focus previous keybinding", function()
+          CM.AssignNamedKeybind("Combat Mode - Cycle Focus Previous", key)
         end)
       end,
       disabled = function()
@@ -242,8 +255,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Target Lock Nameplate Marker",
-      desc = "Show a crosshair marker on the nameplate of the target-locked unit.",
+      label = "Enable Target Lock Marker",
+      desc = "Show a crosshair marker on the nameplate of the locked target.",
       get = function()
         return CM.DB.global.showTargetLockMarker ~= false
       end,
