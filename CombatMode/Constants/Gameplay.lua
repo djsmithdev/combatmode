@@ -6,7 +6,8 @@
 --  OverrideActions / ButtonsToOverride for click-cast UI and secure overrides.
 --  Architecture / how it works:
 --    • Macros: CM_ClearTarget/Focus, CM_ToggleFocus{Any,Enemy}
---      (target-first-then-mouseover priority), CM_CycleFocusEnemy{Next,Prev}
+--      (target-first-then-mouseover on lock; clear focus + target on unlock),
+--      CM_CycleFocusEnemy{Next,Prev}
 --    • BLIZZARD_EVENTS groups: UNLOCK/LOCK/REMATCH, FRIENDLY_TARGETING,
 --      UNCATEGORIZED, REFRESH_BINDINGS (bars/vehicles/CVAR_UPDATE), FOCUS_LOCK,
 --      CAST_FEEDBACK (player cast/channel), ASSISTED_HIGHLIGHT
@@ -38,8 +39,8 @@ CM.Constants.Macros = {
   CM_ClearFocus = "/stopmacro [noexists]\n/clearfocus",
   -- A condition group with only @unit (no boolean) is ALWAYS true — need ,exists
   -- (or harm/nodead/etc.) so unlock / fallthrough works. [] = focus player last.
-  CM_ToggleFocusAny = "/focus [@focus,exists] none; [@target,exists]; [@mouseover,exists][]\n/tar [@focus,exists]",
-  CM_ToggleFocusEnemy = "/focus [@focus,exists] none; [@target,harm,nodead]; [@mouseover,harm,nodead][]\n/tar [@focus,exists]",
+  CM_ToggleFocusAny = "/cleartarget [@focus,exists]\n/focus [@focus,exists] none; [@target,exists]; [@mouseover,exists][]\n/tar [@focus,exists]",
+  CM_ToggleFocusEnemy = "/cleartarget [@focus,exists]\n/focus [@focus,exists] none; [@target,harm,nodead]; [@mouseover,harm,nodead][]\n/tar [@focus,exists]",
   -- Mouse-wheel Target Lock cycle (nearest / previous enemy, then focus).
   CM_CycleFocusEnemyNext = "/targetenemy [@focus,exists]\n/focus [@target,exists]",
   CM_CycleFocusEnemyPrev = "/targetenemy [@focus,exists] 1\n/focus [@target,exists]",
