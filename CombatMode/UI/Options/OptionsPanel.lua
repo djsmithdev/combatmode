@@ -2,7 +2,7 @@
 --  UI/Options/OptionsPanel.lua — OPTIONS — standalone options shell
 ---------------------------------------------------------------------------------------
 --  What it does: Owns CombatModeOptionsFrame — sidebar tabs, content host, left-of-center
---  dock, fade between tabs, and footer actions (View Changelog / Reset / Uninstall).
+--  dock, fade between tabs, and footer actions (Changelog / Reset / Uninstall).
 --  Exposes CM.OpenOptions / Close / Toggle / GetOptionsFrame and UI.Options.AddTab.
 --  Architecture / how it works:
 --    • AddTab({id, label, build, onSelect, onDeselect}) — tabs register at load;
@@ -613,7 +613,7 @@ local function BuildSidebarFooter()
   })
   fctx:Gap(6)
   fctx:Button({
-    label = "View Changelog",
+    label = "Changelog",
     width = "full",
     func = function()
       CM.Config.ShowChangelog()

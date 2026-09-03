@@ -54,13 +54,10 @@ UI.Options.AddTab({
   end,
   build = function(ctx)
     ctx:Header("PARTY RADIAL")
-    ctx:Description(
-      "During Mouse Look, use the Party Radial to quickly cast spells and target party members."
-    )
 
     ctx:Toggle({
       label = "Enable Party Radial",
-      desc = "Radial menu for quickly casting spells at party members.",
+      desc = "Radial menu for quickly casting spells & targeting party members.",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       get = RadialEnabled,

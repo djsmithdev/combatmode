@@ -323,11 +323,12 @@ local function Rematch()
     CM.EnsurePriorCVarSnapshot()
   end
   IsDCLoaded()
-  CM.SetMouseLookSpeed()
 
   if CM.DB.global.actionCamera then
     CM.ConfigActionCamera("combatmode")
   end
+  -- Apply after Action Camera: turn speed is owned by mouseLookSpeed, not the AC preset.
+  CM.SetMouseLookSpeed()
 
   if CM.DB.char.reticleTargeting then
     CM.ConfigReticleTargeting("combatmode")

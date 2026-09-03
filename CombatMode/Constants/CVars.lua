@@ -10,6 +10,7 @@
 --    • InteractionHUDSoftTargetCVarValues — SoftTargetInteract + icon CVars when HUD is on
 --      without full reticle targeting.
 --    • ActionCameraCVarValues / TargetFocusCVarValues (+ Blizzard* counterparts).
+--      Action Camera presets omit turn speed (owned by mouseLookSpeed / SetMouseLookSpeed).
 --    • ManagedCVarNames also includes cameraYaw/PitchMoveSpeed and CursorCenteredYPos.
 --  Does not: Call SetCVar or merge DB overrides (CVarManager owns writes + effective values).
 --  Related: Core/Runtime/CVarManager.lua, UI/Editors/ReticleCVarEditorData.lua,
@@ -78,6 +79,8 @@ CM.Constants.InteractionHUDSoftTargetCVarValues = {
 
 -- CVARS FOR ACTION CAMERA
 -- https://warcraft.wiki.gg/wiki/CVar_ActionCam
+-- Turn speed (cameraYaw/PitchMoveSpeed) is owned by SetMouseLookSpeed / mouseLookSpeed —
+-- not listed here so ConfigActionCamera cannot overwrite the General slider after Rematch.
 CM.Constants.ActionCameraCVarValues = {
   ["CameraKeepCharacterCentered"] = 0, -- Disable Motion Sickness
   ["CameraReduceUnexpectedMovement"] = 0, -- Disable Motion Sickness
@@ -86,8 +89,6 @@ CM.Constants.ActionCameraCVarValues = {
   ["test_cameraHeadMovementStrength"] = 1, -- Head Tracking
   ["cameraDistanceMaxZoomFactor"] = 1.0, -- Max zoom distance (1.0 = 15 yards)
   ["cameraZoomSpeed"] = 20, -- Zoom scroll speed
-  ["cameraYawMoveSpeed"] = 100, -- Horizontal turn speed
-  ["cameraPitchMoveSpeed"] = 50, -- Vertical turn speed
   ["cameraFov"] = 90, -- Field of view
 }
 
@@ -144,8 +145,6 @@ CM.Constants.BlizzardActionCameraCVarValues = {
   ["CameraReduceUnexpectedMovement"] = 1,
   ["cameraDistanceMaxZoomFactor"] = 1.9,
   ["cameraZoomSpeed"] = 20,
-  ["cameraYawMoveSpeed"] = 180,
-  ["cameraPitchMoveSpeed"] = 90,
   ["cameraFov"] = 90,
 }
 

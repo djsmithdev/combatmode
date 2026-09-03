@@ -6,7 +6,7 @@ Use this checklist for feature work and regressions.
 
 - Use Retail client with addon enabled and fresh `/reload`.
 - Confirm `CombatModeDB` loads and settings panel opens (`/cm`).
-- **Changelog viewer:** open sidebar → **View Changelog**; confirm markdown renders (headings, bullets, links). After a version bump, confirm auto-popup once per version (`lastSeenChangelogVersion` in saved vars). If `CHANGELOG.md` was edited, confirm **`scripts/sync-changelog-to-lua.ps1`** was run so in-game text matches.
+- **Changelog viewer:** open sidebar → **Changelog**; confirm markdown renders (headings, bullets, links). After a version bump, confirm auto-popup once per version (`lastSeenChangelogVersion` in saved vars). If `CHANGELOG.md` was edited, confirm **`scripts/sync-changelog-to-lua.ps1`** was run so in-game text matches.
 - If testing bindings, verify keybinds are set as expected.
 - For API-sensitive changes, verify WoW API/event signatures via MCP tools first (or manual fallback in `RELEASE.md`).
 
