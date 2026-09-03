@@ -3,9 +3,9 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Single owner of Combat Mode CVar writes. Captures/restores
 --  priorCVarSnapshot, merges reticleTargetingCVarOverrides into effective reticle
---  values, applies Action Camera / sticky / shoulder / mouselook speed, Interaction HUD
---  SoftTarget subset, and CursorFreelookCentering / CursorCenteredYPos helpers for
---  FreeLook + Crosshair.
+--  values, applies Action Camera behavioral preset / mouselook-disable subset /
+--  mouselook speed, Interaction HUD SoftTarget subset, and CursorFreelookCentering /
+--  CursorCenteredYPos helpers for FreeLook + Crosshair.
 --  Architecture / how it works:
 --    • Always calls live `_G.C_CVar.SetCVar` so Reticle CVar editor attribution hooks see CM.
 --    • CapturePriorCVarSnapshot / EnsurePriorCVarSnapshot once per install over ManagedCVarNames;
@@ -14,10 +14,15 @@
 --      contaminating the snapshot with CM's own CVar values on subsequent logins).
 --    • GetEffectiveReticleTargetingCVarValues = preset ∪ global.reticleTargetingCVarOverrides.
 --    • ConfigReticleTargeting / ConfigInteractionHUDSoftTarget / ConfigActionCamera /
---      ConfigStickyCrosshair / SetMouseLookSpeed / SetShoulderOffset / HandleSoftTargetFriend.
+--      SetMouseLookSpeed / HandleSoftTargetFriend.
+--    • ConfigStickyCrosshair: kept as a Blizzard-reset helper for Uninstall only;
+--      per-situation Target Focus is owned by Core/ActionCamera/SituationDriver.
+--    • ApplyActionCameraAdjustableCVars / SetShoulderOffset / SetActionCamera* removed:
+--      per-situation profiles in SituationDriver now own those CVars.
 --    • SetCursorFreelookCenteringCVar + SetCursorCenteredYPos — FreeLook bounce + Y sync.
---  Does not: Own SoftTarget UI widgets or freelook state machine.
+--  Does not: Own SoftTarget UI widgets, freelook state machine, or per-situation camera CVars.
 --  Related: Constants/CVars.lua, Constants/DatabaseDefaults.lua,
+--  Core/ActionCamera/SituationDriver.lua, Core/ActionCamera/Transition.lua,
 --  Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD/HUD.lua,
 --  UI/Editors/ReticleCVarEditorData.lua, UI/Options/Tabs/TabReticleTargeting.lua,
 --  UI/Options/Tabs/TabCamera.lua, Core/FreeLook/FreeLookController.lua
@@ -261,36 +266,14 @@ function CM.ConfigInteractionHUDSoftTarget()
   CM.DebugPrint("Interaction HUD SoftTarget CVars applied")
 end
 
-local CAMERA_DISTANCE_BASE_YARDS = 15
-
-local function ApplyActionCameraAdjustableCVars()
-  local g = CM.DB and CM.DB.global
-  if not g then
-    return
-  end
-  CM.SetCVar("cameraFov", g.actionCameraFov)
-  CM.SetCVar("cameraDistanceMaxZoomFactor", g.actionCameraMaxZoom / CAMERA_DISTANCE_BASE_YARDS)
-  CM.SetCVar("cameraZoomSpeed", g.actionCameraZoomSpeed)
-  CM.SetCVar("test_cameraHeadMovementStrength", g.actionCameraHeadTracking)
-  CM.DebugPrint(
-    "Action Camera adjustable CVars applied (FOV="
-      .. tostring(g.actionCameraFov)
-      .. " zoom="
-      .. tostring(g.actionCameraMaxZoom)
-      .. " scroll="
-      .. tostring(g.actionCameraZoomSpeed)
-      .. " headTracking="
-      .. tostring(g.actionCameraHeadTracking)
-      .. ")"
-  )
-end
-
 function CM.ConfigActionCamera(CVarType)
   if CM.DynamicCam then
     return
   end
 
-  -- Apply CVars
+  -- Apply only the behavioral/motion-sickness preset. Per-situation adjustable CVars
+  -- (FOV, zoom, shoulder, head tracking, Target Focus, pitch) are owned by
+  -- Core/ActionCamera/SituationDriver and applied via Transition.lua.
   -- (popup suppression is handled in Bootstrap.lua via a StaticPopup_Show hook)
 
   local info = {
@@ -301,16 +284,14 @@ function CM.ConfigActionCamera(CVarType)
   }
 
   CM.ApplyCVarConfig(info)
-  if CVarType == "combatmode" then
-    CM.SetShoulderOffset()
-    ApplyActionCameraAdjustableCVars()
-  end
 end
 
 -- Toggle behavioral Action Camera CVars when "Disable with Mouse Look" changes
--- mouse look state. Only toggles shoulder offset, head tracking, pitch dynamics,
--- and motion sickness CVars — NOT preference CVars (zoom, FOV, zoom speed, turn
--- speed) — so zoom/fov/speed survive mouse look toggles.
+-- mouse look state. Only toggles motion sickness and head tracking —
+-- NOT preference CVars (zoom, FOV, zoom speed, shoulder, turn speed, Target Focus)
+-- so the camera does not jump when mouse look is toggled.
+-- Pitch is cleared on unlock; SituationDriver.Resume restores it from the active profile.
+-- Per-situation adjustable CVars are owned by Core/ActionCamera/SituationDriver.
 function CM.ConfigActionCameraMouselookDisable(actionCamOff)
   if CM.DynamicCam then
     return
@@ -320,45 +301,28 @@ function CM.ConfigActionCameraMouselookDisable(actionCamOff)
   for name, value in pairs(values) do
     CM.SetCVar(name, value)
   end
-  -- Always apply the user's shoulder offset when in CM mode.
-  if not actionCamOff then
-    CM.SetShoulderOffset()
-  end
+  -- Shoulder offset and per-situation CVars are restored by SituationDriver.Resume.
 end
 
-function CM.SetActionCameraFov(value)
-  CM.DB.global.actionCameraFov = value
-  CM.SetCVar("cameraFov", value)
-end
-
-function CM.SetActionCameraMaxZoom(yards)
-  CM.DB.global.actionCameraMaxZoom = yards
-  CM.SetCVar("cameraDistanceMaxZoomFactor", yards / CAMERA_DISTANCE_BASE_YARDS)
-end
-
-function CM.SetActionCameraZoomSpeed(value)
-  CM.DB.global.actionCameraZoomSpeed = value
-  CM.SetCVar("cameraZoomSpeed", value)
-end
-
-function CM.SetActionCameraHeadTracking(value)
-  CM.DB.global.actionCameraHeadTracking = value
-  CM.SetCVar("test_cameraHeadMovementStrength", value)
-end
-
+--- Blizzard-reset helper for Uninstall only.
+--- Per-situation Target Focus is owned by Core/ActionCamera/SituationDriver.
 function CM.ConfigStickyCrosshair(CVarType)
   if CM.DynamicCam then
     return
   end
-
   local info = {
     CVarType = CVarType,
     CMValues = CM.Constants.TargetFocusCVarValues,
     BlizzValues = CM.Constants.BlizzardTargetFocusCVarValues,
-    FeatureName = "Sticky Crosshair",
+    FeatureName = "Sticky Crosshair (uninstall reset)",
   }
-
   CM.ApplyCVarConfig(info)
+end
+
+--- SetShoulderOffset: per-situation profiles now own shoulder. Kept as no-op so
+--- any remaining callers do not error; SituationDriver writes the actual CVar.
+function CM.SetShoulderOffset()
+  -- Intentionally empty: shoulder is applied via SituationDriver / Transition.lua.
 end
 
 function CM.SetMouseLookSpeed()

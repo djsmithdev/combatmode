@@ -106,6 +106,9 @@ function CM.BootstrapFeatureModules()
   CM.CreateCrosshair()
   CM.InitializeCursorPulse()
   CM.InitializeVignette()
+  if CM.ReactiveZoom then
+    CM.ReactiveZoom.Apply()
+  end
   CreateTargetMacros()
   CM.ApplyToggleFocusTargetBinding()
   CM.ApplyCycleFocusBindings()

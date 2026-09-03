@@ -329,6 +329,11 @@ local function Rematch()
   end
   -- Apply after Action Camera: turn speed is owned by mouseLookSpeed, not the AC preset.
   CM.SetMouseLookSpeed()
+  -- Initialise situation profiles (migration + snap to active situation).
+  -- Must run after ConfigActionCamera so behavioral CVars are already set.
+  if CM.ActionCamera and CM.ActionCamera.Init then
+    CM.ActionCamera.Init()
+  end
 
   if CM.DB.char.reticleTargeting then
     CM.ConfigReticleTargeting("combatmode")
@@ -370,6 +375,11 @@ This is (in most cases) extremely excessive, hence why we're adding a throttle.
 local ON_UPDATE_INTERVAL = 0.15
 local TIME_SINCE_LAST_UPDATE = 0
 function _G.CombatMode_OnUpdate(_, elapsed)
+  -- Action Camera transition easing runs every frame (not throttled) so blends are smooth.
+  if CM.ActionCamera and CM.ActionCamera.OnUpdate then
+    CM.ActionCamera.OnUpdate(elapsed)
+  end
+
   -- Making this thread-safe by keeping track of the last update cycle
   TIME_SINCE_LAST_UPDATE = TIME_SINCE_LAST_UPDATE + elapsed
 

@@ -32,7 +32,7 @@ local REACTION_STATES = {
 
 local TAB_BAR_W = 330
 local EDITOR_W = TAB_BAR_W + 32
-local EDITOR_H = 370
+local EDITOR_H = 376
 local PICKER_CARD_PAD = 10
 local RESET_BTN_H = 28
 local PICKER_BODY_H = UI.PickerBodyHeight
@@ -144,12 +144,20 @@ local function Build()
     MakeTabButton(tabBar, state, i)
   end
 
+  -- Hairline under the reaction tabs (same treatment as Click Casting / Action Camera).
+  local sepGap = 8
+  local sep = content:CreateTexture(nil, "ARTWORK")
+  sep:SetColorTexture(1, 1, 1, 0.06)
+  sep:SetHeight(1)
+  sep:SetPoint("TOPLEFT", tabBar, "BOTTOMLEFT", 0, -sepGap)
+  sep:SetPoint("TOPRIGHT", tabBar, "BOTTOMRIGHT", 0, -sepGap)
+
   local pickerCard = CreateFrame("Frame", nil, content, "BackdropTemplate")
   pickerCard:SetSize(
     TAB_BAR_W,
     PICKER_CARD_PAD + PICKER_BODY_H + PICKER_CARD_PAD + RESET_BTN_H + PICKER_CARD_PAD
   )
-  pickerCard:SetPoint("TOPLEFT", tabBar, "BOTTOMLEFT", 0, -12)
+  pickerCard:SetPoint("TOPLEFT", sep, "BOTTOMLEFT", 0, -sepGap)
   UI.StyleRounded(pickerCard, C.cardBg, C.cardBorder, UI.Radius.card)
   pickerCard:SetClipsChildren(true)
 

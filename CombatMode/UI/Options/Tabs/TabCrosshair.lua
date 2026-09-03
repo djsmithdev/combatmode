@@ -180,7 +180,7 @@ return false
     ctx:Gap()
     ctx:Header("INTERACTION HUD")
     ctx:Toggle({
-      label = "Enable Interaction HUD",
+      label = "Interaction HUD",
       desc = "Show a prompt outside of combat for nearby interactables.",
       get = function()
         return CM.DB.global.interactionHUD
@@ -249,7 +249,7 @@ return false
     ctx:Gap()
     ctx:Header("COMBAT ASSIST")
     ctx:Toggle({
-      label = "Enable Combat Assist",
+      label = "Combat Assist",
       desc = "Show Blizzard's next-spell suggestion during combat.",
       get = function()
         return CM.DB.global.assistedHighlightEnabled

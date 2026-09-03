@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.0] - 2026-09-03
+
+### Added
+
+- **Action Camera situations** — Base / Combat / Mounted profiles with priority (Mounted > Combat > Base), smooth CVar cross-fades between situations, and per-situation Field of View, Initial Zoom, Shoulder Offset, and Head Tracking Strength.
+- **Reactive zoom** while Action Camera is enabled.
+- **Vertical Pitch** shared toggle for Action Camera dynamic pitch.
+- **Autofocus Locked Target** (General → Target Lock): pulls the camera toward your locked target via the Target Focus Enemy CVar while focus exists.
+
+### Changed
+
+- Action Camera options rebuilt around shared controls (Preset, Disable with Mouse Look, Max Zoom, Vertical Pitch, Vignette) plus a Base / Combat / Mounted segment panel instead of a single flat slider set.
+- Default Max Zoom raised to **20**; situation defaults: Base FOV 75 / zoom 7 / shoulder 1.2, Combat FOV 80 / zoom 10 / shoulder 1.2, Mounted FOV 85 / zoom 15 / shoulder 0.
+- Vignette fade-with-Mouse-Look is now driven by Action Camera’s **Disable with Mouse Look** (no separate vignette fade toggle).
+- Flat Action Camera DB keys (`actionCameraFov`, `actionCameraZoomSpeed`, `actionCameraHeadTracking`, `char.shoulderOffset`, `char.stickyCrosshair`) migrate into `actionCameraProfiles` on load.
+
+### Removed
+
+- Flat Action Camera FOV / Zoom Scroll Speed / Head Tracking Strength sliders (replaced by per-situation controls; zoom speed and transition duration are fixed).
+
 ## [4.5.6] - 2026-09-03
 
 ### Fixed
@@ -357,7 +377,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.5.6...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.6.0...HEAD
+[4.6.0]: https://github.com/djsmithdev/combatmode/compare/4.5.6...4.6.0
 [4.5.6]: https://github.com/djsmithdev/combatmode/compare/4.5.5...4.5.6
 [4.5.5]: https://github.com/djsmithdev/combatmode/compare/4.5.4...4.5.5
 [4.5.4]: https://github.com/djsmithdev/combatmode/compare/4.5.3...4.5.4

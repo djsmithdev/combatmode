@@ -114,6 +114,16 @@ CM.Constants.BLIZZARD_EVENTS = {
   ASSISTED_HIGHLIGHT_EVENTS = {
     "ASSISTED_COMBAT_ACTION_SPELL_CAST",
   },
+  -- Action Camera situation evaluation (Mounted / Combat / Base).
+  -- PLAYER_REGEN_DISABLED is evaluated immediately in EventRouter (entering combat).
+  -- UNIT_AURA is filtered to player unit in CM.ActionCamera.OnEvent.
+  ACTION_CAMERA_EVENTS = {
+    "PLAYER_REGEN_DISABLED",
+    "PLAYER_REGEN_ENABLED",
+    "PLAYER_MOUNT_DISPLAY_CHANGED",
+    "UNIT_AURA",
+    "ZONE_CHANGED_NEW_AREA",
+  },
 }
 
 -- Action-bar bindings for click-cast dropdown + reticle /click injection.

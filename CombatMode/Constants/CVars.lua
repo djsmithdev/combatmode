@@ -77,29 +77,25 @@ CM.Constants.InteractionHUDSoftTargetCVarValues = {
   ["SoftTargetIconGameObject"] = 0,
 }
 
--- CVARS FOR ACTION CAMERA
+-- CVARS FOR ACTION CAMERA (behavioral / motion-sickness only)
 -- https://warcraft.wiki.gg/wiki/CVar_ActionCam
--- Turn speed (cameraYaw/PitchMoveSpeed) is owned by SetMouseLookSpeed / mouseLookSpeed —
--- not listed here so ConfigActionCamera cannot overwrite the General slider after Rematch.
+-- Preference CVars (FOV, zoom, shoulder, head tracking, turn speed, Target Focus,
+-- dynamic pitch pads) are owned by per-situation profiles (Core/ActionCamera) so
+-- ConfigActionCamera cannot overwrite user values after Rematch.
 CM.Constants.ActionCameraCVarValues = {
   ["CameraKeepCharacterCentered"] = 0, -- Disable Motion Sickness
   ["CameraReduceUnexpectedMovement"] = 0, -- Disable Motion Sickness
-  ["test_cameraDynamicPitch"] = 0, -- Vertical Pitch
-  ["test_cameraOverShoulder"] = 1.2, -- Shoulder horizontal offset
-  ["test_cameraHeadMovementStrength"] = 1, -- Head Tracking
-  ["cameraDistanceMaxZoomFactor"] = 1.0, -- Max zoom distance (1.0 = 15 yards)
-  ["cameraZoomSpeed"] = 20, -- Zoom scroll speed
-  ["cameraFov"] = 90, -- Field of view
 }
 
 -- Subset of Action Camera CVars toggled by "Disable with Mouse Look".
--- Preference CVars (zoom distance, FOV, zoom speed, turn speed) are excluded
--- so the camera does not jump when mouse look is turned off and on.
+-- Preference CVars (zoom, FOV, zoom speed, shoulder, turn speed, Target Focus) are excluded —
+-- they are owned by per-situation profiles (Core/ActionCamera/SituationDriver) and must
+-- not be stomped when mouse look is toggled. Only behavioral/motion-sickness CVars change.
+-- Pitch is turned off in the Blizzard (unlock) table; it is restored by SituationDriver.Resume
+-- from the active profile — do not force it to 0 in the CM (relock) table.
 CM.Constants.ActionCameraMouselookDisableCMValues = {
   ["CameraKeepCharacterCentered"] = 0,
   ["CameraReduceUnexpectedMovement"] = 0,
-  ["test_cameraDynamicPitch"] = 0,
-  ["test_cameraOverShoulder"] = 1.2,
   ["test_cameraHeadMovementStrength"] = 1,
 }
 
@@ -107,7 +103,6 @@ CM.Constants.BlizzardActionCameraMouselookDisableValues = {
   ["CameraKeepCharacterCentered"] = 1,
   ["CameraReduceUnexpectedMovement"] = 1,
   ["test_cameraDynamicPitch"] = 0,
-  ["test_cameraOverShoulder"] = 0,
   ["test_cameraHeadMovementStrength"] = 0,
 }
 

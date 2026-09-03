@@ -287,8 +287,18 @@ local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
     end
   end
 
-  if CM.IsCrosshairEnabled() and CM.DB.char.stickyCrosshair then
-    CM.ConfigStickyCrosshair(isLocking and "combatmode" or "blizzard")
+  -- Action Camera situation driver: pause when permanently unlocked (MouseLook off),
+  -- resume when locking so the situation re-applies its profile CVars.
+  if CM.ActionCamera then
+    if isLocking then
+      if CM.ActionCamera.Resume then
+        CM.ActionCamera.Resume()
+      end
+    elseif isPermanentUnlock then
+      if CM.ActionCamera.Pause then
+        CM.ActionCamera.Pause()
+      end
+    end
   end
 end
 

@@ -6,6 +6,7 @@
     <!-- CONSTANTS (must load before feature consumers) -->
     <Script file="Constants\Namespace.lua"/>
     <Script file="Constants\CVars.lua"/>
+    <Script file="Constants\ActionCamera.lua"/>
     <Script file="Constants\Assets.lua"/>
     <Script file="Constants\Gameplay.lua"/>
     <Script file="Constants\DatabaseDefaults.lua"/>
@@ -20,6 +21,10 @@
     <Script file="Core\Runtime\BindingQueue.lua"/>
     <Script file="Core\Runtime\UserLuaCondition.lua"/>
     <Script file="Core\Runtime\Bootstrap.lua"/>
+    <!-- ACTION CAMERA: situation profiles + CVar cross-fade (loads before FreeLook) -->
+    <Script file="Core\ActionCamera\Transition.lua"/>
+    <Script file="Core\ActionCamera\SituationDriver.lua"/>
+    <Script file="Core\ActionCamera\ReactiveZoom.lua"/>
     <!-- VIGNETTE: Screen edge darkening overlay (independent from Action Camera) -->
     <Script file="Core\Vignette.lua"/>
     <!-- CLICK CASTING -->

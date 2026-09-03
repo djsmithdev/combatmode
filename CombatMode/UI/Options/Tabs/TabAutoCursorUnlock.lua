@@ -29,7 +29,7 @@ UI.Options.AddTab({
   build = function(ctx)
     ctx:Header("AUTO UNLOCK")
     ctx:Toggle({
-      label = "Enable Auto Unlock",
+      label = "Auto Unlock",
       desc = "Release the cursor when UI panels open.",
       get = function()
         return CM.DB.global.frameWatching

@@ -1025,7 +1025,17 @@ function UI.MakeToggle(parent, opts)
     ClearHoverIfDisabled(row, disabled)
     row:SetEnabled(not disabled)
     if control.watermark then
-      if disabled then
+      -- Only stamp when watermarkWhenDisabled resolves to a non-empty string so composite
+      -- disabled() reasons (e.g. Reticle Targeting off) can grey the row without a false
+      -- "DynamicCam" overlay.
+      local mark = opts.watermarkWhenDisabled
+      if type(mark) == "function" then
+        mark = mark()
+      end
+      if disabled and type(mark) == "string" and mark ~= "" then
+        if control.watermark.stamp then
+          control.watermark.stamp:SetText(UI.StripColors(mark) or "")
+        end
         control.watermark:Show()
       else
         control.watermark:Hide()
@@ -1054,9 +1064,13 @@ function UI.MakeToggle(parent, opts)
   AddRowHover(row, opts)
   AttachOptionText(control, row, opts, 20)
 
-  -- DynamicCam-style stamp over the whole row while this field is disabled by DynamicCam.
-  if opts.watermarkWhenDisabled and opts.watermarkWhenDisabled ~= "" then
-    control.watermark = UI.CreateWatermark(row, opts.watermarkWhenDisabled, UI.Fonts.nav)
+  -- Optional stamp over the row while disabled (string or function returning string/nil).
+  local markOpt = opts.watermarkWhenDisabled
+  local markInitial = type(markOpt) == "function" and markOpt() or markOpt
+  if type(markInitial) == "string" and markInitial ~= "" then
+    control.watermark = UI.CreateWatermark(row, markInitial, UI.Fonts.nav)
+  elseif type(markOpt) == "function" then
+    control.watermark = UI.CreateWatermark(row, "Inactive", UI.Fonts.nav)
   end
 
   return Register(control)

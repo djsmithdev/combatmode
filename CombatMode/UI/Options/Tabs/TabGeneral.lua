@@ -5,10 +5,11 @@
 --  Mouse Look keybind, pulseCursor, hideTooltip, turn speed, sheath weapons,
 --  Interact keybind + interactUnit (mouseover vs soft target, with ALT+key on the
 --  alternate command), Target Lock keybind, Cycle Lock Next/Previous keybinds,
---  showTargetLockMarker.
+--  showTargetLockMarker, autofocusLockedTarget.
 --  Architecture / how it works:
 --    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed,
---      sheathWeaponsWithMouselook, interactUnit, showTargetLockMarker.
+--      sheathWeaponsWithMouselook, interactUnit, showTargetLockMarker,
+--      autofocusLockedTarget.
 --    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
 --      orphans on the stolen key and refreshes Target Lock / Cycle Lock override layers).
 --    • Interact rebind clears both INTERACTMOUSEOVER and INTERACTTARGET then assigns
@@ -255,7 +256,7 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Enable Target Lock Marker",
+      label = "Target Lock Marker",
       desc = "Show a crosshair marker on the nameplate of the locked target.",
       get = function()
         return CM.DB.global.showTargetLockMarker ~= false
@@ -271,6 +272,28 @@ UI.Options.AddTab({
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Toggle({
+      label = "Autofocus Locked Target",
+      desc = "Pulls the camera toward your locked target.",
+      get = function()
+        return CM.DB.global.autofocusLockedTarget ~= false
+      end,
+      set = function(value)
+        CM.DB.global.autofocusLockedTarget = value
+        if CM.ActionCamera and CM.ActionCamera.SyncTargetFocusFromFocusUnit then
+          CM.ActionCamera.SyncTargetFocusFromFocusUnit()
+        end
+      end,
+      watermarkWhenDisabled = function()
+        if CM.DynamicCam then
+          return "Control relinquished to DynamicCam"
+        end
+        return nil
+      end,
+      disabled = function()
+        return CM.DynamicCam or not CM.DB.char.reticleTargeting
       end,
     })
   end,

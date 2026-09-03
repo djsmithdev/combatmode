@@ -17,7 +17,8 @@
 --    • ASSISTED_HIGHLIGHT_EVENTS → OnAssistedHighlightAssistedActionCast.
 --    • FRIENDLY_TARGETING_EVENTS double as Party Radial combat start/end +
 --      FlushDeferredBindingChanges / FlushPendingClickCastRefresh on PLAYER_REGEN_ENABLED.
---    • FOCUS_LOCK_EVENTS → UpdateFocusNameplateMarker + OnCrosshairFocusLockEvent.
+--    • FOCUS_LOCK_EVENTS → UpdateFocusNameplateMarker + OnCrosshairFocusLockEvent +
+--      ActionCamera.SyncTargetFocusFromFocusUnit.
 --    • FOCUS_NAMEPLATE_EVENTS → OnFocusNameplateMarkerEvent (ADD/REMOVE).
 --  Does not: RegisterEvent itself (root frame / Bootstrap) or own feature logic.
 --  Related: Constants/Gameplay.lua, Core/FreeLook/FreeLookController.lua,
@@ -228,6 +229,10 @@ local function HandleEventByCategory(category, event, ...)
         CM.UpdateFocusNameplateMarker()
       end
       CM.OnCrosshairFocusLockEvent(event)
+      -- Action Camera Target Focus Enemy: on while focus exists (Target Lock / cycle).
+      if CM.ActionCamera and CM.ActionCamera.SyncTargetFocusFromFocusUnit then
+        CM.ActionCamera.SyncTargetFocusFromFocusUnit()
+      end
     end,
     FOCUS_NAMEPLATE_EVENTS = function(...)
       if CM.OnFocusNameplateMarkerEvent then
@@ -254,6 +259,11 @@ local function HandleEventByCategory(category, event, ...)
       end
       if CM.OnAssistedHighlightAssistedActionCast then
         CM.OnAssistedHighlightAssistedActionCast()
+      end
+    end,
+    ACTION_CAMERA_EVENTS = function(...)
+      if CM.ActionCamera and CM.ActionCamera.OnEvent then
+        CM.ActionCamera.OnEvent(event, ...)
       end
     end,
   }

@@ -107,27 +107,6 @@ UI.Options.AddTab({
       end,
     })
     ctx:Gap()
-    ctx:Toggle({
-      label = "Sticky Targeting",
-      desc = "Slightly pulls the reticle toward units, making it easier to maintain your target.",
-      charSpecific = true,
-      watermarkWhenDisabled = "Control relinquished to DynamicCam",
-      get = function()
-        return CM.DB.char.stickyCrosshair
-      end,
-      set = function(value)
-        CM.DB.char.stickyCrosshair = value
-        if value then
-          CM.ConfigStickyCrosshair("combatmode")
-        else
-          CM.ConfigStickyCrosshair("blizzard")
-        end
-      end,
-      disabled = function()
-        return CM.DynamicCam or not CM.DB.char.reticleTargeting
-      end,
-    })
-    ctx:Gap()
     ctx:SpellMultiSelect({
       label = "Excluded Spells",
       desc = "Spells to skip the reticle targeting logic.",

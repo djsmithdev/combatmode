@@ -3,9 +3,10 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Creates a full-screen vignette overlay (darkened edges) using
 --  Blizzard's Artifacts-BG-Shadow atlas at BACKGROUND strata with 60% opacity.
---  Toggled on/off via CM.DB.global.vignette. When vignetteFadeWithMouselook is ON
---  (default), the vignette fades in/out with CM's mouselook state. When OFF, the
---  vignette stays at full opacity at all times.
+--  Toggled on/off via CM.DB.global.vignette. Fade behaviour is tied to Action Camera's
+--  "Disable with Mouse Look" setting (actionCamMouselookDisable): when that is ON,
+--  the vignette fades out when Mouse Look is off and fades back in when it is on.
+--  When it is OFF (or Action Camera is disabled), the vignette stays at full opacity.
 --  Architecture / how it works:
 --    • Frame parented to UIParent at BACKGROUND strata, non-interactive.
 --    • Resolves the atlas via C_Texture.GetAtlasInfo then applies via
@@ -19,6 +20,7 @@
 --      mouselook, not Blizzard's raw IsMouselooking which also fires on right-click-drag
 --      camera turn) — "faded out" is alpha 0, not Hide(). When disabled, the frame is
 --      hidden with no script.
+--    • VignetteShouldFadeWithMouselook() — true when actionCamera + actionCamMouselookDisable.
 --    • SetVignetteEnabled(value) updates DB and re-applies from options.
 --  Does not: Own any UI chrome, options tab wiring, or event handlers.
 --  Related: Core/Runtime/Bootstrap.lua, UI/Options/Tabs/TabCamera.lua,
@@ -50,8 +52,14 @@ local fadeFromAlpha = 0
 local fadeToAlpha = 0
 local fadeElapsed = 0
 
+-- Fade with mouselook when Action Camera is on AND "Disable with Mouse Look" is on.
+local function VignetteShouldFadeWithMouselook()
+  local g = CM.DB and CM.DB.global
+  return g and g.actionCamera == true and g.actionCamMouselookDisable == true
+end
+
 local function TargetAlpha()
-  if not CM.DB.global.vignetteFadeWithMouselook then
+  if not VignetteShouldFadeWithMouselook() then
     return VIGNETTE_OPACITY
   end
   return mouselooking and VIGNETTE_OPACITY or 0
@@ -102,11 +110,8 @@ local function ApplyVignette()
   -- Keep the frame shown so OnUpdate fires every frame (WoW does not run OnUpdate
   -- on hidden frames); "faded out" is expressed as alpha 0.
   mouselooking = CM.IsMouselooking()
-  currentAlpha = mouselooking and VIGNETTE_OPACITY or 0
-  -- When fade is disabled, show full opacity regardless of mouselook.
-  if not CM.DB.global.vignetteFadeWithMouselook then
-    currentAlpha = VIGNETTE_OPACITY
-  end
+  currentAlpha = VignetteShouldFadeWithMouselook() and (mouselooking and VIGNETTE_OPACITY or 0)
+    or VIGNETTE_OPACITY
   vignetteTexture:SetAlpha(currentAlpha)
   fadeActive = false
   vignetteFrame:Show()

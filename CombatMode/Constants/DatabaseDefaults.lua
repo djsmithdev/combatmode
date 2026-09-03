@@ -6,21 +6,17 @@
 --  for new-install defaults across free-look, crosshair companions, click-cast, reticle,
 --  and party radial.
 --  Architecture / how it works:
---      mouseLookSpeed, pulseCursor, interactUnit; crosshair*
---      (crosshairScale, Y, cast feedback), interactionHUD / Side / Scale,
---      assistedHighlightEnabled / Side / Scale; vignette; partyRadial (enabled,
---      showHealthBars, showBackground, scale; layout/fade fixed in Constants/PartyRadial.lua);
---      reticleTargetingCVarOverrides, priorCVarSnapshot, targetingMacroPreline*Override
---      (any/enemy + autoLockAny/autoLockEnemy); crosshairReactionColors (optional
---      per-state RGBA overrides — empty table = defaults from Assets);
---      crosshairSituationalCondition (user Lua → X texture override when true);
---      bindings.
---    • char: useGlobalBindings, shoulderOffset, reticleTargeting / enemyOnly /
---      autoTargetLockOnAttack, macroInjectionClickCastOnly, castAtCursorSpells,
---      excludeFromTargetingSpells, stickyCrosshair, bindings.
+--    • global: free-look / crosshair / Interaction HUD / Assisted Combat / reticle /
+--      click-cast bindings / auto-unlock / Action Camera (actionCamera,
+--      actionCamMouselookDisable, actionCameraProfiles, actionCameraMaxZoom,
+--      actionCameraDynamicPitch) / vignette / partyRadial / debug.
+--    • char: reticle targeting, click-cast bindings, useGlobalBindings.
+--    • Per-situation Action Camera values live in Constants/ActionCamera.lua
+--      (ActionCameraProfileDefaults); SituationDriver seeds actionCameraProfiles on first load.
 --    • DefaultBindings seeds button1/2 + shift/ctrl/alt mouse slots and Mouse Look toggle.
 --  Does not: Migrate saved data or apply CVars/bindings at runtime.
 --  Related: Core/Runtime/Runtime.lua, Core/Runtime/CVarManager.lua,
+--  Core/ActionCamera/SituationDriver.lua, Constants/ActionCamera.lua,
 --  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/Tabs/TabCrosshair.lua,
 --  UI/Editors/TargetingMacroPrelinesEditor.lua, Core/PartyRadial/PartyRadial.lua,
 --  UI/Options/Tabs/TabClickCasting.lua
@@ -87,6 +83,7 @@ CM.Constants.DatabaseDefaults = {
     sheathWeaponsWithMouselook = false,
     interactUnit = "mouseover",
     showTargetLockMarker = true,
+    autofocusLockedTarget = true, -- Action Camera Target Focus Enemy while focus exists
     -- crosshair
     crosshair = true,
     crosshairCastFeedback = true,
@@ -118,7 +115,7 @@ return false
 ]],
     -- click casting
     bindings = DefaultBindings,
-    -- auto  unlock
+    -- auto unlock
     frameWatching = true,
     mountsToUnlock = "61447, 122708, 264058, 465235, 457485, 61425",
     watchlist = {
@@ -138,12 +135,12 @@ return false
     actionCamera = true,
     actionCamMouselookDisable = true,
     mouseLookSpeed = 100,
-    actionCameraFov = 90,
-    actionCameraMaxZoom = 15, -- cameraDistanceMaxZoomFactor: 1.0 multiplier = 15 yards base. UI stores yards (15–39).
-    actionCameraZoomSpeed = 20,
-    actionCameraHeadTracking = 1,
+    -- Per-situation profiles seeded by SituationDriver from ActionCameraProfileDefaults.
+    actionCameraProfiles = nil,
+    actionCameraMaxZoom = 20,
+    actionCameraDynamicPitch = true,
+    -- vignette
     vignette = true,
-    vignetteFadeWithMouselook = true,
     -- radial
     partyRadial = {
       enabled = true,
@@ -166,8 +163,5 @@ return false
     -- click casting
     useGlobalBindings = false,
     bindings = DefaultBindings,
-    -- action camera
-    stickyCrosshair = false,
-    shoulderOffset = 1.2,
   },
 }
