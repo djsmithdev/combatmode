@@ -12,8 +12,8 @@
 --    • Cast GUID match is secret-safe (issecretvalue): cannot == under instance taint.
 --    • ApplyCrosshairAppearanceToWidget uses CM.GetCrosshairReactionColor; scale tween on
 --      base ↔ active; active ↔ active lerps RGBA over REACTION_COLOR_DURATION. Cast-break
---      hostile flash resolves at flash time. Situational condition swaps to X textures while
---      keeping reaction colors/scale.
+--      hostile flash resolves at flash time. Situational condition swaps to
+--      crosshairSituationalAppearance (default Arrows) while keeping reaction colors/scale.
 --  Does not: Own Assisted Combat ProcLoop FlipBook (AssistedHighlight/Motion.lua) /
 --  interrupt cast break (AssistedHighlight/CastProgress.lua) or mouselook / CVar writes.
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight/Assist.lua,
@@ -243,9 +243,18 @@ local function ApplyCrosshairAppearanceToWidget(
 
   local appearance = CrosshairAppearance
   if CM.IsCrosshairSituationalActive and CM.IsCrosshairSituationalActive() then
-    local xAppearance = CM.Constants.CrosshairTextureObj and CM.Constants.CrosshairTextureObj.X
-    if xAppearance then
-      appearance = xAppearance
+    local situational = CM.DB.global.crosshairSituationalAppearance
+    if type(situational) ~= "table" or not situational.Base then
+      local name = (type(situational) == "table" and situational.Name)
+        or (type(situational) == "string" and situational)
+        or "Arrows"
+      situational = CM.Constants.CrosshairTextureObj and CM.Constants.CrosshairTextureObj[name]
+    end
+    if not situational then
+      situational = CM.Constants.CrosshairTextureObj and CM.Constants.CrosshairTextureObj.Arrows
+    end
+    if situational then
+      appearance = situational
     end
   end
 

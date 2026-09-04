@@ -10,6 +10,7 @@
 --      click-cast bindings / auto-unlock / Action Camera (actionCamera,
 --      actionCamMouselookDisable, actionCameraProfiles, actionCameraMaxZoom,
 --      actionCameraDynamicPitch) / vignette / partyRadial / debug.
+--      Crosshair also stores crosshairSituationalCondition + crosshairSituationalAppearance.
 --    • char: reticle targeting, click-cast bindings, useGlobalBindings.
 --    • Per-situation Action Camera values live in Constants/ActionCamera.lua
 --      (ActionCameraProfileDefaults); SituationDriver seeds actionCameraProfiles on first load.
@@ -113,6 +114,7 @@ if isPlayerDead or isPlayerStealthed then
   return true end
 return false
 ]],
+    crosshairSituationalAppearance = CM.Constants.CrosshairTextureObj.Arrows,
     -- click casting
     bindings = DefaultBindings,
     -- auto unlock
@@ -133,7 +135,7 @@ return false
     customCondition = "",
     -- action camera
     actionCamera = true,
-    actionCamMouselookDisable = true,
+    actionCamMouselookDisable = false,
     mouseLookSpeed = 100,
     -- Per-situation profiles seeded by SituationDriver from ActionCameraProfileDefaults.
     actionCameraProfiles = nil,

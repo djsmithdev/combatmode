@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.1] - 2026-09-03
+
+### Added
+
+- **Situational Appearance** (Crosshair tab): choose which reticle texture to use while the Situational Condition returns true (default **Arrows**).
+
+### Fixed
+
+- Action Camera no longer re-applies zoom / max-zoom when Mouse Look toggles or the map opens — including when the Action Camera preset is **off** (FreeLook was still calling situation Resume).
+- Turning the Action Camera preset off now shuts down the situation driver and reactive zoom, and restores max zoom / FOV from your pre–Combat Mode CVar snapshot when available (avoids being stuck at ~20 yards).
+- **Disable with Mouse Look** no longer yanks camera distance on re-lock (Resume restores pitch/shoulder without forcing setZoom) and clears shoulder offset while Mouse Look is off.
+
+### Changed
+
+- **Disable with Mouse Look** defaults to **off** for new installs / reset defaults.
+- **Vignette Effect** is gated on the Action Camera preset (options + runtime); it cannot stay on as a standalone effect with the preset disabled.
+
 ## [4.6.0] - 2026-09-03
 
 ### Added
@@ -377,7 +394,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.6.0...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.6.1...HEAD
+[4.6.1]: https://github.com/djsmithdev/combatmode/compare/4.6.0...4.6.1
 [4.6.0]: https://github.com/djsmithdev/combatmode/compare/4.5.6...4.6.0
 [4.5.6]: https://github.com/djsmithdev/combatmode/compare/4.5.5...4.5.6
 [4.5.5]: https://github.com/djsmithdev/combatmode/compare/4.5.4...4.5.5

@@ -20,10 +20,14 @@
 --      flash sheath/unsheath; unsheath and re-lock cancel any pending sheath.
 --    • OPie: when a ring is visible, unlock path may free centering; Rematch after
 --      the ring closes re-bounces freelook if still desired.
+--    • Action Camera + "Disable with Mouse Look": permanent unlock pauses the situation
+--      driver and clears behavioral CVars; lock resumes without re-forcing setZoom.
+--      Pause/Resume are never called when the Action Camera preset is off.
 --  Does not: Own frame-watch lists/predicates (AutoCursorUnlock) or CVar preset tables.
 --  Related: Core/FreeLook/AutoCursorUnlock.lua, Core/Runtime/CVarManager.lua,
---  Core/Runtime/Runtime.lua, Core/PartyRadial/PartyRadial.lua,
---  Core/Crosshair/Animations.lua, Core/Crosshair/Crosshair.lua
+--  Core/ActionCamera/SituationDriver.lua, Core/Runtime/Runtime.lua,
+--  Core/PartyRadial/PartyRadial.lua, Core/Crosshair/Animations.lua,
+--  Core/Crosshair/Crosshair.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -271,31 +275,23 @@ local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
     HideTooltip(isLocking)
   end
 
-  -- Toggle only behavioral Action Camera CVars (shoulder offset, head tracking,
-  -- pitch dynamics, motion sickness) when "Disable with Mouse Look" is on.
-  -- Preference CVars (zoom, FOV, zoom speed, turn speed) are left alone so the
-  -- camera does not jump when mouse look is turned off and on.
+  -- "Disable with Mouse Look": only when Action Camera preset is on. Pause the
+  -- situation driver on permanent unlock; resume on lock without re-forcing zoom
+  -- (Resume skips setZoom — see SituationDriver). Do not call Pause/Resume when
+  -- Action Camera is off — that was re-applying profiles after disable / map open.
   if CM.DB.global.actionCamera and CM.DB.global.actionCamMouselookDisable then
     if isLocking then
       if CM.ConfigActionCameraMouselookDisable then
         CM.ConfigActionCameraMouselookDisable(false)
       end
+      if CM.ActionCamera and CM.ActionCamera.Resume then
+        CM.ActionCamera.Resume()
+      end
     elseif isPermanentUnlock then
       if CM.ConfigActionCameraMouselookDisable then
         CM.ConfigActionCameraMouselookDisable(true)
       end
-    end
-  end
-
-  -- Action Camera situation driver: pause when permanently unlocked (MouseLook off),
-  -- resume when locking so the situation re-applies its profile CVars.
-  if CM.ActionCamera then
-    if isLocking then
-      if CM.ActionCamera.Resume then
-        CM.ActionCamera.Resume()
-      end
-    elseif isPermanentUnlock then
-      if CM.ActionCamera.Pause then
+      if CM.ActionCamera and CM.ActionCamera.Pause then
         CM.ActionCamera.Pause()
       end
     end

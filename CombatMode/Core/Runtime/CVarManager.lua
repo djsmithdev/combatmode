@@ -284,6 +284,28 @@ function CM.ConfigActionCamera(CVarType)
   }
 
   CM.ApplyCVarConfig(info)
+
+  if CVarType == "blizzard" then
+    -- Prefer the player's pre-CM zoom/FOV when disabling the preset so Max Zoom 20
+    -- (factor ~1.33) does not leave them stuck close after turning Action Camera off.
+    local snap = CM.DB and CM.DB.global and CM.DB.global.priorCVarSnapshot
+    if type(snap) == "table" then
+      local prefer = {
+        "cameraDistanceMaxZoomFactor",
+        "cameraFov",
+        "cameraZoomSpeed",
+      }
+      for i = 1, #prefer do
+        local name = prefer[i]
+        if snap[name] ~= nil then
+          CM.SetCVar(name, snap[name])
+        end
+      end
+    end
+    if CM.ActionCamera and CM.ActionCamera.Shutdown then
+      CM.ActionCamera.Shutdown()
+    end
+  end
 end
 
 -- Toggle behavioral Action Camera CVars when "Disable with Mouse Look" changes
@@ -335,16 +357,6 @@ function CM.SetMouseLookSpeed()
   CM.SetCVar("cameraYawMoveSpeed", XSpeed)
   CM.SetCVar("cameraPitchMoveSpeed", YSpeed)
   CM.DebugPrint("Setting Camera Turn Speed X to " .. XSpeed .. " and Y to " .. YSpeed)
-end
-
-function CM.SetShoulderOffset()
-  if CM.DynamicCam then
-    return
-  end
-
-  local offset = CM.DB.char.shoulderOffset
-  CM.SetCVar("test_cameraOverShoulder", offset)
-  CM.DebugPrint("Setting Shoulder Offset to " .. offset)
 end
 
 --- Restore the player's pre-Combat Mode CVars (snapshot preferred; Blizzard tables fallback).

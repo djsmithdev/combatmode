@@ -10,11 +10,12 @@
 --    • DB.global.crosshair / appearance / crosshairScale / Y;
 --      crosshairReactionColors optional overrides; CM.GetCrosshairReactionColor resolves
 --      tints (mounted = defaults; focus → hostile).
---    • crosshairSituationalCondition — user Lua; when true, Animations uses X textures
---      while reaction tint/scale stay normal (mounted / Target Lock still override).
+--    • crosshairSituationalCondition — user Lua; when true, Animations uses
+--      crosshairSituationalAppearance (default Arrows) while reaction tint/scale stay normal
+--      (mounted / Target Lock still override).
 --    • IsCrosshairMounted — returns IsMounted() (always-on; no DB toggle). When mounted,
 --      UpdateCrosshairReaction sets a static base appearance (inactive dot) unless
---      crosshairSituationalCondition is true (then full reaction + X texture).
+--      crosshairSituationalCondition is true (then full reaction + situational appearance).
 --    • UpdateCrosshairReaction — hostile/friendly/dead/gameobject under mouse or soft
 --      target; drives texture + Animations reaction scale. Presence via UnitExists;
 --      reaction/booleans are secret-safe (issecretvalue / PublicBool — no UnitGUID

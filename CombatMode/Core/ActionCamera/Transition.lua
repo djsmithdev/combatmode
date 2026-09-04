@@ -7,8 +7,9 @@
 --  instant-toggle semantics for test_cameraDynamicPitch, and exposes StartTransition /
 --  SyncTargetFocusFromFocusUnit for SituationDriver and EventRouter.
 --  Architecture / how it works:
---    • CM.ActionCamera.StartTransition(profile, instant) — begin or interrupt. If a
---      transition is in progress, snapshots the current blended values as new starts.
+--    • CM.ActionCamera.StartTransition(profile, instant[, dur[, skipZoom]]) — begin or
+--      interrupt. If a transition is in progress, snapshots the current blended values
+--      as new starts. skipZoom=true restores CVars without CameraZoomIn/Out (mouselook Resume).
 --    • CM.ActionCamera.OnTransitionUpdate(elapsed) — called by the root frame OnUpdate
 --      in SituationDriver (not Embeds.xml OnUpdate) so it stays idle when AC is off.
 --    • InOutQuad easing: t in [0,1] → 2t² for t<0.5, else 1-(-2t+2)²/2.
@@ -153,7 +154,8 @@ local function ApplySharedCVars()
 end
 
 -- Snap all CVars to profile immediately (no easing). Used on login / instant apply.
-local function SnapToProfile(profile)
+-- @param skipZoom boolean|nil  If true, do not issue CameraZoomIn/Out (mouselook resume).
+local function SnapToProfile(profile, skipZoom)
   active = false
   elapsed_total = 0
 
@@ -169,7 +171,9 @@ local function SnapToProfile(profile)
   currentPitch = wantPitch
   SyncTargetFocusFromFocusUnit()
 
-  ZoomToDistance(profile.setZoom)
+  if not skipZoom then
+    ZoomToDistance(profile.setZoom)
+  end
 end
 
 -- -----------------------------------------------------------------------
@@ -180,13 +184,14 @@ end
 --- @param profile table  The target profile from DB.actionCameraProfiles[id].
 --- @param instant boolean  If true, snap immediately with no easing.
 --- @param dur number|nil  Override duration in seconds (uses DB/constants default if nil).
-function AC.StartTransition(profile, instant, dur)
+--- @param skipZoom boolean|nil  If true, restore CVars without forcing setZoom (Pause/Resume).
+function AC.StartTransition(profile, instant, dur, skipZoom)
   if not profile then
     return
   end
 
   if instant then
-    SnapToProfile(profile)
+    SnapToProfile(profile, skipZoom)
     return
   end
 
@@ -208,7 +213,7 @@ function AC.StartTransition(profile, instant, dur)
   starts = newStarts
   targets = newTargets
   targetPitch = WantDynamicPitch()
-  targetSetZoom = profile.setZoom
+  targetSetZoom = skipZoom and nil or profile.setZoom
   -- Re-read live pitch CVar: Pause + mouselook-disable can zero pitch while
   -- currentPitch is still true in memory, which would skip re-enable below.
   currentPitch = ReadCVar("test_cameraDynamicPitch") ~= 0

@@ -10,9 +10,8 @@
 --      call ChangeSituation when it differs from the current one.
 --    • CM.ActionCamera.GetActiveId() — current situation id.
 --    • CM.ActionCamera.ApplyProfile(id, instant) — apply a profile immediately (used by
---      options live preview and Rematch).
---    • CM.ActionCamera.GetProfile(id) — return a defensive copy of the live DB profile
---      for the given id, with defaults filling any nil field.
+--      options live preview and Rematch); no-op when Action Camera preset is off.
+--    • CM.ActionCamera.Shutdown() — clear state + disable reactive zoom (preset off).
 --    • Migration: MigrateActionCameraDB() runs once if actionCameraProfiles is nil,
 --      seeding from old flat keys and char.shoulderOffset / char.stickyCrosshair.
 --    • EventRouter integration: CM.Constants.BLIZZARD_EVENTS.ACTION_CAMERA_EVENTS added
@@ -20,7 +19,7 @@
 --    • Safety poll: ~1s C_Timer loop while Action Camera is enabled (mount takeoff etc.).
 --    • Pauses situation transitions when actionCamMouselookDisable is on and freelook
 --      is permanently off (ConfigActionCameraMouselookDisable owns those CVars then).
---      Resumes and re-evaluates when freelook is locked again.
+--      Resumes and re-applies CVars without setZoom when freelook is locked again.
 --  Does not: Implement easing math (Transition.lua), register WoW events on the root
 --    frame (Embeds.xml/Bootstrap), or own options sliders.
 --  Related: Core/ActionCamera/Transition.lua, Constants/ActionCamera.lua,
@@ -194,13 +193,13 @@ local function FindBestSituation()
   return bestId
 end
 
-local function ApplyCurrentProfile(instant)
+local function ApplyCurrentProfile(instant, skipZoom)
   if not currentId then
     return
   end
   local profile = AC.GetProfile(currentId)
   if CM.ActionCamera.StartTransition then
-    CM.ActionCamera.StartTransition(profile, instant)
+    CM.ActionCamera.StartTransition(profile, instant, nil, skipZoom)
   end
 end
 
@@ -257,6 +256,9 @@ end
 --- @param id string  "base", "mounted", or "combat".
 --- @param instant boolean
 function AC.ApplyProfile(id, instant)
+  if not IsDriverEnabled() then
+    return
+  end
   local profile = AC.GetProfile(id)
   if CM.ActionCamera.StartTransition then
     CM.ActionCamera.StartTransition(profile, instant)
@@ -270,27 +272,54 @@ end
 --- Called by FreeLookController when ActionCamera + mouselock-disable mode kicks in.
 --- While paused, situation changes are suppressed to avoid fighting ConfigActionCameraMouselookDisable.
 function AC.Pause()
+  if not IsDriverEnabled() then
+    return
+  end
   paused = true
   if CM.ActionCamera.StopTransition then
     CM.ActionCamera.StopTransition()
   end
 end
 
---- Resume situation tracking and re-apply the active profile.
---- Evaluate(false) alone is a no-op when the situation did not change, so pitch / focus
---- CVars stomped by ConfigActionCameraMouselookDisable would stay off.
+--- Resume situation tracking and re-apply the active profile CVars.
+--- Skips setZoom so toggling Mouse Look does not yank camera distance.
+--- Evaluate(false) alone is a no-op when the situation did not change, so pitch /
+--- shoulder stomped by ConfigActionCameraMouselookDisable would stay off.
 function AC.Resume()
+  if not IsDriverEnabled() then
+    return
+  end
   paused = false
   local best = FindBestSituation()
+  local skipZoom = true
   if currentId == nil or best ~= currentId then
-    ChangeSituation(best, false)
+    local prev = currentId
+    currentId = best
+    CM.DebugPrint(
+      "ActionCamera: situation " .. tostring(prev) .. " → " .. tostring(best) .. " (resume)"
+    )
+    ApplyCurrentProfile(false, skipZoom)
   else
-    ApplyCurrentProfile(false)
+    ApplyCurrentProfile(false, skipZoom)
   end
 end
 
 function AC.IsPaused()
   return paused
+end
+
+--- Stop the driver and reactive zoom. Called when Action Camera preset is turned off
+--- so freelook unlock/lock cannot re-apply profiles after disable.
+function AC.Shutdown()
+  paused = false
+  currentId = nil
+  if CM.ActionCamera.StopTransition then
+    CM.ActionCamera.StopTransition()
+  end
+  if CM.ReactiveZoom and CM.ReactiveZoom.Disable then
+    CM.ReactiveZoom.Disable()
+  end
+  CM.DebugPrint("ActionCamera: shutdown")
 end
 
 -- -----------------------------------------------------------------------
@@ -331,11 +360,13 @@ end
 
 function AC.Init()
   MigrateActionCameraDB()
+  if not IsDriverEnabled() then
+    AC.Shutdown()
+    return
+  end
   if CM.ReactiveZoom then
     CM.ReactiveZoom.Apply()
   end
-  if IsDriverEnabled() then
-    AC.Evaluate(true)
-    SchedulePoll()
-  end
+  AC.Evaluate(true)
+  SchedulePoll()
 end

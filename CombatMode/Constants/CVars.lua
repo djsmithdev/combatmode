@@ -104,6 +104,8 @@ CM.Constants.BlizzardActionCameraMouselookDisableValues = {
   ["CameraReduceUnexpectedMovement"] = 1,
   ["test_cameraDynamicPitch"] = 0,
   ["test_cameraHeadMovementStrength"] = 0,
+  -- Clear shoulder so the camera does not stay offset while Mouse Look is off.
+  ["test_cameraOverShoulder"] = 0,
 }
 
 -- CVARS FOR STICKY CROSSHAIR

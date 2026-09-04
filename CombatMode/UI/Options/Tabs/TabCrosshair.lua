@@ -2,13 +2,14 @@
 --  UI/Options/Tabs/TabCrosshair.lua — OPTIONS TAB — Crosshair + HUD + Assist
 ---------------------------------------------------------------------------------------
 --  What it does: Wires crosshair enable/cast feedback/appearance/scale/Y,
---  Interaction HUD enable + side + scale, and Combat Assist enable + side + scale. Live
---  preview via SetCrosshairOptionsPreview onSelect/onDeselect; when HUD turns on without
---  reticle targeting, applies ConfigInteractionHUDSoftTarget.
+--  situational condition + situational appearance, Interaction HUD enable + side + scale,
+--  and Combat Assist enable + side + scale. Live preview via SetCrosshairOptionsPreview
+--  onSelect/onDeselect; when HUD turns on without reticle targeting, applies
+--  ConfigInteractionHUDSoftTarget.
 --  Architecture / how it works:
 --    • DB.global: crosshair*, crosshairScale, crosshairReactionColors,
---      crosshairSituationalCondition, interactionHUD / Side / Scale,
---      assistedHighlightEnabled / Side / Scale.
+--      crosshairSituationalCondition, crosshairSituationalAppearance,
+--      interactionHUD / Side / Scale, assistedHighlightEnabled / Side / Scale.
 --    • set() → DisplayCrosshair / CreateCrosshair / CancelCrosshairCastFeedback /
 --      ApplyInteractionHUDLayout / RefreshInteractionHUD /
 --      ApplyCrosshairAssistedHighlightOptions / UpdateCrosshairAssistedHighlight;
@@ -71,7 +72,7 @@ UI.Options.AddTab({
 
     ctx:Toggle({
       label = "Enable Crosshair",
-      desc = "Show the crosshair during Mouse Look.",
+      desc = "While in Mouse Look, display a dynamic & reactive crosshair on your screen.",
       get = function()
         return CM.DB.global.crosshair
       end,
@@ -151,10 +152,29 @@ UI.Options.AddTab({
         CM.OpenCrosshairColorsEditor()
       end,
     })
-    ctx:Gap()
+    ctx:Dropdown({
+      label = "Situational Appearance",
+      desc = "Texture used while the Situational Condition returns true. Reaction colors still apply.",
+      values = CM.Constants.CrosshairAppearanceSelectValues,
+      order = appearanceOrder,
+      get = function()
+        return CM.DB.global.crosshairSituationalAppearance
+            and CM.DB.global.crosshairSituationalAppearance.Name
+          or "Arrows"
+      end,
+      set = function(value)
+        CM.DB.global.crosshairSituationalAppearance = CM.Constants.CrosshairTextureObj[value]
+        if CM.RefreshCrosshairAppearance then
+          CM.RefreshCrosshairAppearance()
+        else
+          CM.CreateCrosshair()
+        end
+      end,
+      disabled = CrosshairOff,
+    })
     ctx:TextInput({
       label = "Situational Condition",
-      desc = "Custom Lua code checked during Mouse Look. While returning true, forces the crosshair to change its appearance.",
+      desc = "Custom Lua code checked during Mouse Look. While returning true, forces the crosshair to use the Situational Appearance.",
       placeholder = [[
 local isPlayerDead = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
 local isPlayerStealthed = IsStealthed and IsStealthed()

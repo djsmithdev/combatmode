@@ -10,7 +10,8 @@
 --    • When DynamicCam is loaded, a single host watermark covers the whole Action Camera
 --      block (no per-control greying or row stamps).
 --    • Shared controls (Enable Preset, Disable with Mouse Look, Max Zoom, Vertical Pitch,
---      Vignette) sit above the Base / Combat / Mounted segment bar.
+--      Vignette) sit above the Base / Combat / Mounted segment bar. Vignette is gated on
+--      the Action Camera preset (UI + runtime); it is not a standalone effect.
 --    • Vignette fade-with-mouselook is derived from actionCamMouselookDisable — no separate
 --      toggle; Vignette.lua reads actionCamera + actionCamMouselookDisable at runtime.
 --    • Segment bar pattern matches TabClickCasting (BuildSegmentBar / StyleSegment / ShowGroup
@@ -291,6 +292,9 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.SetVignetteEnabled(value)
+      end,
+      disabled = function()
+        return IsACDisabled()
       end,
     })
     topLayout:Toggle({

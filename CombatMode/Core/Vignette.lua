@@ -3,17 +3,18 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Creates a full-screen vignette overlay (darkened edges) using
 --  Blizzard's Artifacts-BG-Shadow atlas at BACKGROUND strata with 60% opacity.
---  Toggled on/off via CM.DB.global.vignette. Fade behaviour is tied to Action Camera's
---  "Disable with Mouse Look" setting (actionCamMouselookDisable): when that is ON,
---  the vignette fades out when Mouse Look is off and fades back in when it is on.
---  When it is OFF (or Action Camera is disabled), the vignette stays at full opacity.
+--  Part of the Action Camera preset: only shows when actionCamera and vignette are
+--  both on. Fade behaviour is tied to Action Camera's "Disable with Mouse Look"
+--  setting (actionCamMouselookDisable): when that is ON, the vignette fades out when
+--  Mouse Look is off and fades back in when it is on. When Disable with Mouse Look
+--  is OFF, the vignette stays at full opacity while Action Camera is enabled.
 --  Architecture / how it works:
 --    • Frame parented to UIParent at BACKGROUND strata, non-interactive.
 --    • Resolves the atlas via C_Texture.GetAtlasInfo then applies via
 --      SetTexture(FileID) + SetTexCoord — the canonical equivalent of SetAtlas
 --      but with explicit control over the region and screen sizing.
 --    • InitializeVignette() called from Bootstrap on startup.
---    • ApplyVignette() re-evaluates the enabled flag and reconfigures the
+--    • ApplyVignette() re-evaluates actionCamera + vignette and reconfigures the
 --      OnUpdate script. When enabled, the frame stays shown at all times so
 --      OnUpdate fires every frame (WoW does not run OnUpdate on hidden frames)
 --      and tweens alpha against CM.IsMouselooking() state (CM's own intentional
@@ -96,7 +97,9 @@ local function VignetteOnUpdate(_, elapsed)
 end
 
 local function ApplyVignette()
-  vignetteEnabled = CM.DB.global.vignette == true
+  local g = CM.DB and CM.DB.global
+  -- Vignette is part of the Action Camera preset — never show with the preset off.
+  vignetteEnabled = g and g.actionCamera == true and g.vignette == true
   if not vignetteFrame then
     return
   end
