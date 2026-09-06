@@ -558,9 +558,6 @@ function CM.OnRematchCrosshair()
     CM.CancelCrosshairCastFeedback()
     CM.CreateCrosshair()
     CM.UpdateCrosshairReaction()
-
-    -- Target Focus (sticky crosshair) is now owned by Action Camera situation profiles.
-    -- SituationDriver.Init() is called from Rematch and handles this CVar.
     CM.DisplayCrosshair(CM.IsMouselooking())
   else
     CM.DisplayCrosshair(false)

@@ -144,7 +144,7 @@ local function Build()
     MakeTabButton(tabBar, state, i)
   end
 
-  -- Hairline under the reaction tabs (same treatment as Click Casting / Action Camera).
+  -- Hairline under the reaction tabs (same treatment as other segmented option hosts).
   local sepGap = 8
   local sep = content:CreateTexture(nil, "ARTWORK")
   sep:SetColorTexture(1, 1, 1, 0.06)

@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.2] - 2026-09-06
+
+### Added
+
+- **Mouse Look camera** prefs on General → Mouse Look: **Shoulder Offset**, **Dynamic Pitch**, and **Vignette Effect**. Shoulder and motion-sickness CVars apply while Mouse Look is locked and clear on permanent unlock; **Dynamic Pitch** follows the option (sticky, not freelook-gated).
+
+### Changed
+
+- Camera chrome is owned by Mouse Look lock/unlock instead of a separate Action Camera preset. Turn speed, shoulder, and dynamic pitch relinquish to **DynamicCam** when that addon is loaded.
+- **Vignette Effect** lives on General and always fades with Mouse Look (no separate fade toggle or Action Camera gate).
+- Legacy Action Camera DB keys migrate once into flat Mouse Look prefs (`char.shoulderOffset`, `global.dynamicPitch`), then are cleared.
+- **Target Lock** controls (keybinds, Cycle Lock, Marker, Autofocus) moved from General to Reticle Targeting (above Advanced).
+- **Shoulder Offset** is forced to **0** while mounted (restores your setting on dismount while Mouse Look is on).
+
+### Removed
+
+- **Action Camera** tab and preset (situations / Base / Combat / Mounted profiles, reactive zoom, FOV, initial zoom, max zoom, head tracking, **Disable with Mouse Look**). Dev note: I was trying to reinvent the wheel; use DynamicCam instead.
+
 ## [4.6.1] - 2026-09-03
 
 ### Added
@@ -13,7 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Action Camera no longer re-applies zoom / max-zoom when Mouse Look toggles or the map opens — including when the Action Camera preset is **off** (FreeLook was still calling situation Resume).
+- Action Camera situation **Initial Zoom** / FOV no longer drift across situation changes. Zoom now follows DynamicCam/LibCamera: full transition duration (not a short distance/speed burst that overshot to 0), InOutQuad MoveView, and a CVar miss-correction; numeric CVars snap exactly to their targets when the blend completes.
+- Action Camera no longer re-applies zoom / max-zoom when Mouse Look re-locks after a toggle or **Auto Cursor Unlock** (map, bags, vendors, etc.) — including when the Action Camera preset is **off** (FreeLook was still calling situation Resume).
 - Turning the Action Camera preset off now shuts down the situation driver and reactive zoom, and restores max zoom / FOV from your pre–Combat Mode CVar snapshot when available (avoids being stuck at ~20 yards).
 - **Disable with Mouse Look** no longer yanks camera distance on re-lock (Resume restores pitch/shoulder without forcing setZoom) and clears shoulder offset while Mouse Look is off.
 
@@ -394,7 +413,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.6.1...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.6.2...HEAD
+[4.6.2]: https://github.com/djsmithdev/combatmode/compare/4.6.1...4.6.2
 [4.6.1]: https://github.com/djsmithdev/combatmode/compare/4.6.0...4.6.1
 [4.6.0]: https://github.com/djsmithdev/combatmode/compare/4.5.6...4.6.0
 [4.5.6]: https://github.com/djsmithdev/combatmode/compare/4.5.5...4.5.6

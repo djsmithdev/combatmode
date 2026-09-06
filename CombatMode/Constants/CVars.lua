@@ -2,21 +2,23 @@
 --  Constants/CVars.lua — CONSTANTS — CVar presets / editor exclusions
 ---------------------------------------------------------------------------------------
 --  What it does: Declares every named CVar preset Combat Mode may apply: reticle targeting,
---  Interaction HUD SoftTarget subset, Action Camera, sticky crosshair (TargetFocus), and
---  matching Blizzard reset tables. Builds ManagedCVarNames as the union used for prior
---  snapshots. Also lists ReticleTargetingCVarEditorExcluded keys the editor must not show.
+--  Interaction HUD SoftTarget subset, Mouse Look camera (shoulder / dynamic pitch /
+--  motion sickness), Target Focus, and matching Blizzard reset tables. Builds
+--  ManagedCVarNames as the union used for prior snapshots. Also lists
+--  ReticleTargetingCVarEditorExcluded keys the editor must not show.
 --  Architecture / how it works:
 --    • ReticleTargetingCVarValues — SoftTarget*, deselectOnClick, CursorStickyCentering, etc.
 --    • InteractionHUDSoftTargetCVarValues — SoftTargetInteract + icon CVars when HUD is on
 --      without full reticle targeting.
---    • ActionCameraCVarValues / TargetFocusCVarValues (+ Blizzard* counterparts).
---      Action Camera presets omit turn speed (owned by mouseLookSpeed / SetMouseLookSpeed).
+--    • MouseLookCameraLockedValues / UnlockedValues — MS off while locked; unlock clears
+--      shoulder only (MS gated separately so sticky Dynamic Pitch keeps working).
+--    • TargetFocusCVarValues (+ Blizzard* counterparts).
 --    • ManagedCVarNames also includes cameraYaw/PitchMoveSpeed and CursorCenteredYPos.
 --  Does not: Call SetCVar or merge DB overrides (CVarManager owns writes + effective values).
 --  Related: Core/Runtime/CVarManager.lua, UI/Editors/ReticleCVarEditorData.lua,
 --  UI/Editors/ReticleCVarEditorPanel.lua, Constants/DatabaseDefaults.lua,
 --  Core/Crosshair/InteractionHUD/HUD.lua, UI/Options/Tabs/TabReticleTargeting.lua,
---  UI/Options/Tabs/TabCamera.lua
+--  UI/Options/Tabs/TabGeneral.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 
@@ -77,38 +79,30 @@ CM.Constants.InteractionHUDSoftTargetCVarValues = {
   ["SoftTargetIconGameObject"] = 0,
 }
 
--- CVARS FOR ACTION CAMERA (behavioral / motion-sickness only)
+-- CVARS FOR MOUSE LOOK CAMERA (shoulder, dynamic pitch pads, motion sickness)
+-- Shoulder + MS toggle with Mouse Look lock/unlock. Dynamic pitch is sticky with the
+-- option (SetDynamicPitch) — not cleared on unlock (flying snaps if the master CVar
+-- flips mid-air). No FOV/zoom ownership.
 -- https://warcraft.wiki.gg/wiki/CVar_ActionCam
--- Preference CVars (FOV, zoom, shoulder, head tracking, turn speed, Target Focus,
--- dynamic pitch pads) are owned by per-situation profiles (Core/ActionCamera) so
--- ConfigActionCamera cannot overwrite user values after Rematch.
-CM.Constants.ActionCameraCVarValues = {
-  ["CameraKeepCharacterCentered"] = 0, -- Disable Motion Sickness
-  ["CameraReduceUnexpectedMovement"] = 0, -- Disable Motion Sickness
-}
+CM.Constants.MouseLookCameraPitchBase = 0.4
+CM.Constants.MouseLookCameraPitchFlying = 0.75
+CM.Constants.MouseLookCameraPitchDownScale = 0.25
+CM.Constants.MouseLookCameraPitchSmartPivotCutoff = 39
 
--- Subset of Action Camera CVars toggled by "Disable with Mouse Look".
--- Preference CVars (zoom, FOV, zoom speed, shoulder, turn speed, Target Focus) are excluded —
--- they are owned by per-situation profiles (Core/ActionCamera/SituationDriver) and must
--- not be stomped when mouse look is toggled. Only behavioral/motion-sickness CVars change.
--- Pitch is turned off in the Blizzard (unlock) table; it is restored by SituationDriver.Resume
--- from the active profile — do not force it to 0 in the CM (relock) table.
-CM.Constants.ActionCameraMouselookDisableCMValues = {
+-- Motion-sickness off while locked (required for shoulder offset to take effect).
+-- Dynamic Pitch / Target Focus also need these at 0; see ApplyActionCamMotionSicknessGate.
+CM.Constants.MouseLookCameraLockedValues = {
   ["CameraKeepCharacterCentered"] = 0,
   ["CameraReduceUnexpectedMovement"] = 0,
-  ["test_cameraHeadMovementStrength"] = 1,
 }
 
-CM.Constants.BlizzardActionCameraMouselookDisableValues = {
-  ["CameraKeepCharacterCentered"] = 1,
-  ["CameraReduceUnexpectedMovement"] = 1,
-  ["test_cameraDynamicPitch"] = 0,
-  ["test_cameraHeadMovementStrength"] = 0,
-  -- Clear shoulder so the camera does not stay offset while Mouse Look is off.
+-- Shoulder only while unlocked. Do not force MS on here — that suppresses sticky
+-- Dynamic Pitch (CameraKeepCharacterCentered overrides ActionCam).
+CM.Constants.MouseLookCameraUnlockedValues = {
   ["test_cameraOverShoulder"] = 0,
 }
 
--- CVARS FOR STICKY CROSSHAIR
+-- CVARS FOR TARGET FOCUS (Autofocus Locked Target)
 CM.Constants.TargetFocusCVarValues = {
   ["test_cameraTargetFocusEnemyEnable"] = 1,
   ["test_cameraTargetFocusEnemyStrengthYaw"] = 0.7, -- horizontal strength
@@ -130,19 +124,17 @@ CM.Constants.BlizzardReticleTargetingCVarValues = {
   ["CursorStickyCentering"] = 0,
 }
 
-CM.Constants.BlizzardActionCameraCVarValues = {
+-- Full Blizzard reset for Mouse Look camera-related CVars (uninstall fallback).
+-- Only CVars CM still owns: shoulder, dynamic pitch (+ pads), motion sickness.
+CM.Constants.BlizzardMouseLookCameraCVarValues = {
   ["test_cameraDynamicPitch"] = 0,
   ["test_cameraDynamicPitchBaseFovPad"] = 0.4,
   ["test_cameraDynamicPitchBaseFovPadFlying"] = 0.75,
   ["test_cameraDynamicPitchBaseFovPadDownScale"] = 0.25,
   ["test_cameraDynamicPitchSmartPivotCutoffDist"] = 10,
-  ["test_cameraHeadMovementStrength"] = 0,
   ["test_cameraOverShoulder"] = 0,
   ["CameraKeepCharacterCentered"] = 1,
   ["CameraReduceUnexpectedMovement"] = 1,
-  ["cameraDistanceMaxZoomFactor"] = 1.9,
-  ["cameraZoomSpeed"] = 20,
-  ["cameraFov"] = 90,
 }
 
 CM.Constants.BlizzardTargetFocusCVarValues = {
@@ -169,15 +161,20 @@ do
   end
   addTable(CM.Constants.ReticleTargetingCVarValues)
   addTable(CM.Constants.InteractionHUDSoftTargetCVarValues)
-  addTable(CM.Constants.ActionCameraCVarValues)
+  addTable(CM.Constants.MouseLookCameraLockedValues)
+  addTable(CM.Constants.MouseLookCameraUnlockedValues)
   addTable(CM.Constants.TargetFocusCVarValues)
   addTable(CM.Constants.BlizzardReticleTargetingCVarValues)
-  addTable(CM.Constants.BlizzardActionCameraCVarValues)
+  addTable(CM.Constants.BlizzardMouseLookCameraCVarValues)
   addTable(CM.Constants.BlizzardTargetFocusCVarValues)
   for _, name in ipairs({
     "cameraYawMoveSpeed",
     "cameraPitchMoveSpeed",
     "CursorCenteredYPos",
+    "test_cameraDynamicPitchBaseFovPad",
+    "test_cameraDynamicPitchBaseFovPadFlying",
+    "test_cameraDynamicPitchBaseFovPadDownScale",
+    "test_cameraDynamicPitchSmartPivotCutoffDist",
   }) do
     if not seen[name] then
       seen[name] = true

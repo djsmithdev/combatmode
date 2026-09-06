@@ -3,24 +3,28 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Wires Reticle Targeting enable (reload + ConfigReticleTargeting),
 --  enemy-only preline mode, Auto Target Lock (selects auto-lock preline pair),
---  macroInjectionClickCastOnly, sticky targetting (under Click Casting Only),
---  exclude / cast-at-crosshair spell multi-selects, and Advanced buttons that open
+--  macroInjectionClickCastOnly, exclude / cast-at-crosshair spell multi-selects,
+--  Target Lock keybinds / marker / autofocus, and Advanced buttons that open
 --  the Reticle CVar editor and Targeting Macro Prelines editor.
 --  Architecture / how it works:
 --    • DB.char: reticleTargeting, reticleTargetingEnemyOnly, autoTargetLockOnAttack,
 --      macroInjectionClickCastOnly, stickyCrosshair, excludeFromTargetingSpells,
 --      castAtCursorSpells.
+--    • DB.global: showTargetLockMarker, autofocusLockedTarget.
 --    • macroInjectionClickCastOnly disabled/forced when ThirdPartyActionBarsActive.
 --    • Spell lists stored as spell-ID CSV; membership in TargetingMacroBuilder.
+--    • Target Lock keybinds go through TryApplyBindingChange + AssignNamedKeybind.
 --  Does not: Own CVar override table UI (ReticleCVarEditor*) or secure proxies.
 --  Related: Core/Runtime/CVarManager.lua, Core/ClickCasting/BindingOverrides.lua,
---  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/SpellMultiSelect.lua,
---  UI/Editors/ReticleCVarEditorPanel.lua, UI/Editors/TargetingMacroPrelinesEditor.lua
+--  Core/ClickCasting/TargetingMacroBuilder.lua, Core/Crosshair/FocusNameplateMarker.lua,
+--  UI/Options/SpellMultiSelect.lua, UI/Editors/ReticleCVarEditorPanel.lua,
+--  UI/Editors/TargetingMacroPrelinesEditor.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
 
 -- WoW API
+local GetBindingKey = _G.GetBindingKey
 local ReloadUI = _G.ReloadUI
 
 -- Lua stdlib
@@ -139,6 +143,97 @@ UI.Options.AddTab({
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting
+      end,
+    })
+
+    ctx:Gap()
+    ctx:Header("TARGET LOCK")
+
+    ctx:Keybind({
+      label = "Target Lock Keybind",
+      desc = "Tap to lock the reticle to your target, preventing it from swapping. Tap again to unlock.\n"
+        .. "Follows Reticle Targeting settings.",
+      get = function()
+        return (GetBindingKey("Combat Mode - Toggle Focus Target"))
+      end,
+      set = function(key)
+        CM.TryApplyBindingChange("target lock keybinding", function()
+          CM.AssignNamedKeybind("Combat Mode - Toggle Focus Target", key)
+        end)
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Keybind({
+      label = "Cycle Lock - Next",
+      desc = "Move Target Lock to the next valid nearby target.",
+      get = function()
+        return GetBindingKey("Combat Mode - Cycle Focus Next")
+      end,
+      set = function(key)
+        CM.TryApplyBindingChange("cycle focus next keybinding", function()
+          CM.AssignNamedKeybind("Combat Mode - Cycle Focus Next", key)
+        end)
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Keybind({
+      label = "Cycle Lock - Previous",
+      desc = "Move Target Lock to the previous valid nearby target.",
+      get = function()
+        return GetBindingKey("Combat Mode - Cycle Focus Previous")
+      end,
+      set = function(key)
+        CM.TryApplyBindingChange("cycle focus previous keybinding", function()
+          CM.AssignNamedKeybind("Combat Mode - Cycle Focus Previous", key)
+        end)
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Toggle({
+      label = "Target Lock Marker",
+      desc = "Show a crosshair marker on the nameplate of the locked target.",
+      get = function()
+        return CM.DB.global.showTargetLockMarker ~= false
+      end,
+      set = function(value)
+        CM.DB.global.showTargetLockMarker = value
+        if CM.ClearFocusNameplateMarker then
+          CM.ClearFocusNameplateMarker()
+        end
+        if value and CM.UpdateFocusNameplateMarker then
+          CM.UpdateFocusNameplateMarker()
+        end
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Toggle({
+      label = "Autofocus Locked Target",
+      desc = "Pulls the camera toward your locked target.",
+      get = function()
+        return CM.DB.global.autofocusLockedTarget ~= false
+      end,
+      set = function(value)
+        CM.DB.global.autofocusLockedTarget = value
+        if CM.SyncTargetFocusFromFocusUnit then
+          CM.SyncTargetFocusFromFocusUnit()
+        end
+      end,
+      watermarkWhenDisabled = function()
+        if CM.DynamicCam then
+          return "Control relinquished to DynamicCam"
+        end
+        return nil
+      end,
+      disabled = function()
+        return CM.DynamicCam or not CM.DB.char.reticleTargeting
       end,
     })
 

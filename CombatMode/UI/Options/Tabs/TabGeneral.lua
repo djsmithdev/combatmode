@@ -1,23 +1,22 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Tabs/TabGeneral.lua — OPTIONS TAB — Mouse Look / Interact / Target Lock
+--  UI/Options/Tabs/TabGeneral.lua — OPTIONS TAB — Mouse Look / Interact
 ---------------------------------------------------------------------------------------
---  What it does: Wires General-tab controls to freelook and interact/focus binds:
+--  What it does: Wires General-tab controls to freelook and interact binds:
 --  Mouse Look keybind, pulseCursor, hideTooltip, turn speed, sheath weapons,
---  Interact keybind + interactUnit (mouseover vs soft target, with ALT+key on the
---  alternate command), Target Lock keybind, Cycle Lock Next/Previous keybinds,
---  showTargetLockMarker, autofocusLockedTarget.
+--  shoulder offset, dynamic pitch, vignette, Interact keybind + interactUnit.
 --  Architecture / how it works:
---    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed,
---      sheathWeaponsWithMouselook, interactUnit, showTargetLockMarker,
---      autofocusLockedTarget.
+--    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed, dynamicPitch, vignette,
+--      sheathWeaponsWithMouselook, interactUnit; char.shoulderOffset.
 --    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
 --      orphans on the stolen key and refreshes Target Lock / Cycle Lock override layers).
 --    • Interact rebind clears both INTERACTMOUSEOVER and INTERACTTARGET then assigns
---      primary + ALT alternate (skipped ALT dual-bind when the chosen key already has ALT-).
---  Does not: Own freelook state machine or click-cast slot table UI.
---  Related: Core/FreeLook/FreeLookController.lua,
---  Core/ClickCasting/BindingOverrides.lua, Core/Runtime/BindingQueue.lua,
---  Core/Crosshair/Crosshair.lua, UI/Options/OptionsPanel.lua
+--      primary + ALT alternate (skip ALT dual-bind when the chosen key already has ALT-).
+--  Does not: Own freelook state machine, Target Lock UI (TabReticleTargeting), or
+--      click-cast slot table UI.
+--  Related: Core/FreeLook/FreeLookController.lua, Core/Runtime/CVarManager.lua,
+--  Core/Vignette.lua, Core/ClickCasting/BindingOverrides.lua,
+--  Core/Runtime/BindingQueue.lua, Core/Crosshair/Crosshair.lua,
+--  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -125,8 +124,8 @@ UI.Options.AddTab({
       })
     end
     ctx:Toggle({
-      label = "Pulse Cursor on Unlock",
-      desc = "Flash the cursor when Mouse Look ends.",
+      label = "Cursor Pulse",
+      desc = "Flash the cursor when Mouse Look is turned off.",
       get = function()
         return CM.DB.global.pulseCursor
       end,
@@ -135,8 +134,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Hide Tooltip in Mouse Look",
-      desc = "Hide the crosshair tooltip while Mouse Look is on.",
+      label = "Hide Tooltips",
+      desc = "Hide tooltips while Mouse Look is on.",
       get = function()
         return CM.DB.global.hideTooltip
       end,
@@ -148,8 +147,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Sheath Weapons with Mouse Look",
-      desc = "Unsheath weapons when Mouse Look turns on. Sheath when it turns off.",
+      label = "Auto Sheath",
+      desc = "Sheath weapons automatically with Mouse Look.",
       get = function()
         return CM.DB.global.sheathWeaponsWithMouselook
       end,
@@ -157,8 +156,39 @@ UI.Options.AddTab({
         CM.DB.global.sheathWeaponsWithMouselook = value
       end,
     })
+    ctx:Toggle({
+      label = "Vignette Effect",
+      desc = "Darkens the edges of the screen for a more focused view while in Mouse Look.",
+      get = function()
+        return CM.DB.global.vignette == true
+      end,
+      set = function(value)
+        if CM.SetVignetteEnabled then
+          CM.SetVignetteEnabled(value)
+        else
+          CM.DB.global.vignette = value
+        end
+      end,
+    })
+    ctx:Toggle({
+      label = "Dynamic Pitch",
+      desc = "Dynamically tilt the camera up and down as you move it.",
+      watermarkWhenDisabled = "Control relinquished to DynamicCam",
+      get = function()
+        return CM.DB.global.dynamicPitch ~= false
+      end,
+      set = function(value)
+        CM.DB.global.dynamicPitch = value
+        if CM.SetDynamicPitch then
+          CM.SetDynamicPitch()
+        end
+      end,
+      disabled = function()
+        return CM.DynamicCam
+      end,
+    })
     ctx:Slider({
-      label = "Mouse Look Turn Speed",
+      label = "Turn Speed",
       desc = "Controls how quickly the camera turns while using Mouse Look.",
       min = 10,
       max = 180,
@@ -170,6 +200,27 @@ UI.Options.AddTab({
       set = function(value)
         CM.DB.global.mouseLookSpeed = value
         CM.SetMouseLookSpeed()
+      end,
+      disabled = function()
+        return CM.DynamicCam
+      end,
+    })
+    ctx:Slider({
+      label = "Shoulder Offset",
+      desc = "Camera's horizontal position relative to character while in Mouse Look. Forced to 0 while mounted.",
+      charSpecific = true,
+      min = -2,
+      max = 2,
+      step = 0.1,
+      watermarkWhenDisabled = "Control relinquished to DynamicCam",
+      get = function()
+        return CM.DB.char.shoulderOffset or 1.2
+      end,
+      set = function(value)
+        CM.DB.char.shoulderOffset = value
+        if CM.IsMouselooking and CM.IsMouselooking() then
+          CM.SetShoulderOffset()
+        end
       end,
       disabled = function()
         return CM.DynamicCam
@@ -203,97 +254,6 @@ UI.Options.AddTab({
         if key then
           ApplyInteractKeybind(key)
         end
-      end,
-    })
-
-    ctx:Gap()
-    ctx:Header("TARGET LOCK")
-
-    ctx:Keybind({
-      label = "Target Lock Keybind",
-      desc = "Tap to lock the reticle to your target, preventing it from swapping. Tap again to unlock.\n"
-        .. "Follows Reticle Targeting settings.",
-      get = function()
-        return (GetBindingKey("Combat Mode - Toggle Focus Target"))
-      end,
-      set = function(key)
-        CM.TryApplyBindingChange("target lock keybinding", function()
-          CM.AssignNamedKeybind("Combat Mode - Toggle Focus Target", key)
-        end)
-      end,
-      disabled = function()
-        return not CM.DB.char.reticleTargeting
-      end,
-    })
-    ctx:Keybind({
-      label = "Cycle Lock - Next",
-      desc = "Move Target Lock to the next valid nearby target.",
-      get = function()
-        return GetBindingKey("Combat Mode - Cycle Focus Next")
-      end,
-      set = function(key)
-        CM.TryApplyBindingChange("cycle focus next keybinding", function()
-          CM.AssignNamedKeybind("Combat Mode - Cycle Focus Next", key)
-        end)
-      end,
-      disabled = function()
-        return not CM.DB.char.reticleTargeting
-      end,
-    })
-    ctx:Keybind({
-      label = "Cycle Lock - Previous",
-      desc = "Move Target Lock to the previous valid nearby target.",
-      get = function()
-        return GetBindingKey("Combat Mode - Cycle Focus Previous")
-      end,
-      set = function(key)
-        CM.TryApplyBindingChange("cycle focus previous keybinding", function()
-          CM.AssignNamedKeybind("Combat Mode - Cycle Focus Previous", key)
-        end)
-      end,
-      disabled = function()
-        return not CM.DB.char.reticleTargeting
-      end,
-    })
-    ctx:Toggle({
-      label = "Target Lock Marker",
-      desc = "Show a crosshair marker on the nameplate of the locked target.",
-      get = function()
-        return CM.DB.global.showTargetLockMarker ~= false
-      end,
-      set = function(value)
-        CM.DB.global.showTargetLockMarker = value
-        if CM.ClearFocusNameplateMarker then
-          CM.ClearFocusNameplateMarker()
-        end
-        if value and CM.UpdateFocusNameplateMarker then
-          CM.UpdateFocusNameplateMarker()
-        end
-      end,
-      disabled = function()
-        return not CM.DB.char.reticleTargeting
-      end,
-    })
-    ctx:Toggle({
-      label = "Autofocus Locked Target",
-      desc = "Pulls the camera toward your locked target.",
-      get = function()
-        return CM.DB.global.autofocusLockedTarget ~= false
-      end,
-      set = function(value)
-        CM.DB.global.autofocusLockedTarget = value
-        if CM.ActionCamera and CM.ActionCamera.SyncTargetFocusFromFocusUnit then
-          CM.ActionCamera.SyncTargetFocusFromFocusUnit()
-        end
-      end,
-      watermarkWhenDisabled = function()
-        if CM.DynamicCam then
-          return "Control relinquished to DynamicCam"
-        end
-        return nil
-      end,
-      disabled = function()
-        return CM.DynamicCam or not CM.DB.char.reticleTargeting
       end,
     })
   end,

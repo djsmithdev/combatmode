@@ -171,8 +171,8 @@ function CM.MacroExists(name)
 end
 
 --[[
-  Checking if DynamicCam is loaded so we can relinquish control of a few camera features
-  as DynamicCam allows fine-grained control of Mouselook Speed & Target Focus
+  Checking if DynamicCam is loaded so we can relinquish Mouse Look camera prefs
+  (turn speed, shoulder, dynamic pitch, Target Focus) to DynamicCam.
 ]]
 --
 local function IsDCLoaded()
@@ -181,7 +181,7 @@ local function IsDCLoaded()
   if CM.DynamicCam and not CM.DB.global.silenceAlerts then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over control of |cffE37527• Action Camera|r.|r"
+        .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over Mouse Look camera prefs.|r"
     )
   end
 end
@@ -252,6 +252,9 @@ function CM.InitDatabase()
   sv.char[charKey] = MergeDefaults(sv.char[charKey] or {}, defaults.char or {})
 
   BindDatabaseViews(sv, charKey)
+  if CM.MigrateMouseLookCameraDB then
+    CM.MigrateMouseLookCameraDB()
+  end
 end
 
 function CM:OnResetDB()
@@ -324,16 +327,16 @@ local function Rematch()
   end
   IsDCLoaded()
 
-  if CM.DB.global.actionCamera then
-    CM.ConfigActionCamera("combatmode")
-  end
-  -- Apply after Action Camera: turn speed is owned by mouseLookSpeed, not the AC preset.
+  IsDCLoaded()
+
   CM.SetMouseLookSpeed()
-  -- Initialise situation profiles (migration + snap to active situation).
-  -- Must run after ConfigActionCamera so behavioral CVars are already set.
-  if CM.ActionCamera and CM.ActionCamera.Init then
-    CM.ActionCamera.Init()
+  if CM.SetDynamicPitch then
+    CM.SetDynamicPitch()
   end
+  if CM.SyncTargetFocusFromFocusUnit then
+    CM.SyncTargetFocusFromFocusUnit()
+  end
+  -- ApplyMouseLookCamera (shoulder + MS) runs from LockFreeLook when freelook starts.
 
   if CM.DB.char.reticleTargeting then
     CM.ConfigReticleTargeting("combatmode")
@@ -375,11 +378,6 @@ This is (in most cases) extremely excessive, hence why we're adding a throttle.
 local ON_UPDATE_INTERVAL = 0.15
 local TIME_SINCE_LAST_UPDATE = 0
 function _G.CombatMode_OnUpdate(_, elapsed)
-  -- Action Camera transition easing runs every frame (not throttled) so blends are smooth.
-  if CM.ActionCamera and CM.ActionCamera.OnUpdate then
-    CM.ActionCamera.OnUpdate(elapsed)
-  end
-
   -- Making this thread-safe by keeping track of the last update cycle
   TIME_SINCE_LAST_UPDATE = TIME_SINCE_LAST_UPDATE + elapsed
 

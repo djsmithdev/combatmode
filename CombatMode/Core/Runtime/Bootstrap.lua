@@ -32,10 +32,8 @@ local UIParent = _G.UIParent
 -- Lua stdlib
 local pairs = _G.pairs
 
--- Suppress the experimental CVar confirmation popup so Action Camera CVars
--- don't trigger a dialog on every login/reload. CM sets experimental CVars
--- (e.g. test_cameraHeadMovementStrength) intentionally for the Action Camera
--- feature, so the warning is noise.
+-- Suppress the experimental CVar confirmation popup so Mouse Look camera CVars
+-- (shoulder, dynamic pitch) don't trigger a dialog on every login/reload.
 -- WoW 12.1 moved this event out of UIParent into Blizzard_Game's internal
 -- event router. Use GameEvent.UnregisterInternalEvent when available.
 if _G.GameEvent and _G.GameEvent.UnregisterInternalEvent then
@@ -106,9 +104,6 @@ function CM.BootstrapFeatureModules()
   CM.CreateCrosshair()
   CM.InitializeCursorPulse()
   CM.InitializeVignette()
-  if CM.ReactiveZoom then
-    CM.ReactiveZoom.Apply()
-  end
   CreateTargetMacros()
   CM.ApplyToggleFocusTargetBinding()
   CM.ApplyCycleFocusBindings()

@@ -20,14 +20,12 @@
 --      flash sheath/unsheath; unsheath and re-lock cancel any pending sheath.
 --    • OPie: when a ring is visible, unlock path may free centering; Rematch after
 --      the ring closes re-bounces freelook if still desired.
---    • Action Camera + "Disable with Mouse Look": permanent unlock pauses the situation
---      driver and clears behavioral CVars; lock resumes without re-forcing setZoom.
---      Pause/Resume are never called when the Action Camera preset is off.
+--    • Mouse Look camera: permanent unlock clears shoulder/MS via ClearMouseLookCamera;
+--      lock re-applies ApplyMouseLookCamera. Dynamic Pitch is sticky (SetDynamicPitch).
 --  Does not: Own frame-watch lists/predicates (AutoCursorUnlock) or CVar preset tables.
 --  Related: Core/FreeLook/AutoCursorUnlock.lua, Core/Runtime/CVarManager.lua,
---  Core/ActionCamera/SituationDriver.lua, Core/Runtime/Runtime.lua,
---  Core/PartyRadial/PartyRadial.lua, Core/Crosshair/Animations.lua,
---  Core/Crosshair/Crosshair.lua
+--  Core/Runtime/Runtime.lua, Core/PartyRadial/PartyRadial.lua,
+--  Core/Crosshair/Animations.lua, Core/Crosshair/Crosshair.lua, Core/Vignette.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -275,25 +273,15 @@ local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
     HideTooltip(isLocking)
   end
 
-  -- "Disable with Mouse Look": only when Action Camera preset is on. Pause the
-  -- situation driver on permanent unlock; resume on lock without re-forcing zoom
-  -- (Resume skips setZoom — see SituationDriver). Do not call Pause/Resume when
-  -- Action Camera is off — that was re-applying profiles after disable / map open.
-  if CM.DB.global.actionCamera and CM.DB.global.actionCamMouselookDisable then
-    if isLocking then
-      if CM.ConfigActionCameraMouselookDisable then
-        CM.ConfigActionCameraMouselookDisable(false)
-      end
-      if CM.ActionCamera and CM.ActionCamera.Resume then
-        CM.ActionCamera.Resume()
-      end
-    elseif isPermanentUnlock then
-      if CM.ConfigActionCameraMouselookDisable then
-        CM.ConfigActionCameraMouselookDisable(true)
-      end
-      if CM.ActionCamera and CM.ActionCamera.Pause then
-        CM.ActionCamera.Pause()
-      end
+  -- Mouse Look camera chrome: apply on lock; clear shoulder/MS on permanent unlock.
+  -- Dynamic Pitch is sticky via SetDynamicPitch (not toggled here).
+  if isLocking then
+    if CM.ApplyMouseLookCamera then
+      CM.ApplyMouseLookCamera()
+    end
+  elseif isPermanentUnlock then
+    if CM.ClearMouseLookCamera then
+      CM.ClearMouseLookCamera()
     end
   end
 end

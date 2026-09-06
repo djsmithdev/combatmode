@@ -3,9 +3,10 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Single owner of Combat Mode CVar writes. Captures/restores
 --  priorCVarSnapshot, merges reticleTargetingCVarOverrides into effective reticle
---  values, applies Action Camera behavioral preset / mouselook-disable subset /
---  mouselook speed, Interaction HUD SoftTarget subset, and CursorFreelookCentering /
---  CursorCenteredYPos helpers for FreeLook + Crosshair.
+--  values, applies Mouse Look camera prefs (shoulder + MS on lock/unlock; sticky
+--  dynamic pitch via SetDynamicPitch), Target Focus sync, mouselook turn speed,
+--  Interaction HUD SoftTarget subset, and CursorFreelookCentering / CursorCenteredYPos
+--  helpers for FreeLook + Crosshair.
 --  Architecture / how it works:
 --    • Always calls live `_G.C_CVar.SetCVar` so Reticle CVar editor attribution hooks see CM.
 --    • CapturePriorCVarSnapshot / EnsurePriorCVarSnapshot once per install over ManagedCVarNames;
@@ -13,19 +14,19 @@
 --      N.B. a populated priorCVarSnapshot in the DB is never overwritten (prevents
 --      contaminating the snapshot with CM's own CVar values on subsequent logins).
 --    • GetEffectiveReticleTargetingCVarValues = preset ∪ global.reticleTargetingCVarOverrides.
---    • ConfigReticleTargeting / ConfigInteractionHUDSoftTarget / ConfigActionCamera /
---      SetMouseLookSpeed / HandleSoftTargetFriend.
---    • ConfigStickyCrosshair: kept as a Blizzard-reset helper for Uninstall only;
---      per-situation Target Focus is owned by Core/ActionCamera/SituationDriver.
---    • ApplyActionCameraAdjustableCVars / SetShoulderOffset / SetActionCamera* removed:
---      per-situation profiles in SituationDriver now own those CVars.
+--    • ApplyMouseLookCamera / ClearMouseLookCamera — lock vs unlock (shoulder; MS via gate).
+--    • SetDynamicPitch — sticky with the option; ApplyActionCamMotionSicknessGate keeps
+--      CameraKeepCharacterCentered / CameraReduceUnexpectedMovement at 0 while pitch (or
+--      freelook / autofocus) needs ActionCam, otherwise Blizzard suppresses pitch.
+--    • SetShoulderOffset / SyncTargetFocusFromFocusUnit / SetMouseLookSpeed.
+--      SetShoulderOffset forces 0 while IsMounted(); EventRouter refreshes on mount change.
+--    • ConfigStickyCrosshair: Blizzard-reset helper for Uninstall only.
 --    • SetCursorFreelookCenteringCVar + SetCursorCenteredYPos — FreeLook bounce + Y sync.
---  Does not: Own SoftTarget UI widgets, freelook state machine, or per-situation camera CVars.
+--  Does not: Own SoftTarget UI widgets or freelook state machine.
 --  Related: Constants/CVars.lua, Constants/DatabaseDefaults.lua,
---  Core/ActionCamera/SituationDriver.lua, Core/ActionCamera/Transition.lua,
---  Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD/HUD.lua,
---  UI/Editors/ReticleCVarEditorData.lua, UI/Options/Tabs/TabReticleTargeting.lua,
---  UI/Options/Tabs/TabCamera.lua, Core/FreeLook/FreeLookController.lua
+--  Core/FreeLook/FreeLookController.lua, Core/Crosshair/Crosshair.lua,
+--  Core/Crosshair/InteractionHUD/HUD.lua, UI/Editors/ReticleCVarEditorData.lua,
+--  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/Tabs/TabGeneral.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -33,6 +34,8 @@ local _G = _G
 -- WoW API
 local GetCVar = _G.C_CVar.GetCVar
 local GetCVarDefault = _G.C_CVar.GetCVarDefault
+local IsMounted = _G.IsMounted
+local UnitExists = _G.UnitExists
 
 -- Always resolve through the live C_CVar.SetCVar so hooksecurefunc consumers
 -- (e.g. Reticle CVar editor attribution) see Combat Mode writes. A load-time
@@ -134,7 +137,7 @@ function CM.RestorePriorCVars()
   else
     CM.DebugPrint("No prior CVar snapshot — falling back to Blizzard preset tables.")
     CM.ConfigReticleTargeting("blizzard")
-    CM.ConfigActionCamera("blizzard")
+    CM.SetCVars(CM.Constants.BlizzardMouseLookCameraCVarValues)
     CM.ConfigStickyCrosshair("blizzard")
     CM.HandleSoftTargetFriend(false)
     SetCVar("CursorFreelookCentering", 0)
@@ -266,68 +269,161 @@ function CM.ConfigInteractionHUDSoftTarget()
   CM.DebugPrint("Interaction HUD SoftTarget CVars applied")
 end
 
-function CM.ConfigActionCamera(CVarType)
-  if CM.DynamicCam then
+--- One-shot migration from Action Camera situation profiles / legacy flat keys
+--- into flat Mouse Look camera prefs (char.shoulderOffset, global.dynamicPitch).
+function CM.MigrateMouseLookCameraDB()
+  local g = CM.DB and CM.DB.global
+  local c = CM.DB and CM.DB.char
+  if not g or not c then
     return
   end
 
-  -- Apply only the behavioral/motion-sickness preset. Per-situation adjustable CVars
-  -- (FOV, zoom, shoulder, head tracking, Target Focus, pitch) are owned by
-  -- Core/ActionCamera/SituationDriver and applied via Transition.lua.
-  -- (popup suppression is handled in Bootstrap.lua via a StaticPopup_Show hook)
-
-  local info = {
-    CVarType = CVarType,
-    CMValues = CM.Constants.ActionCameraCVarValues,
-    BlizzValues = CM.Constants.BlizzardActionCameraCVarValues,
-    FeatureName = "Action Camera",
-  }
-
-  CM.ApplyCVarConfig(info)
-
-  if CVarType == "blizzard" then
-    -- Prefer the player's pre-CM zoom/FOV when disabling the preset so Max Zoom 20
-    -- (factor ~1.33) does not leave them stuck close after turning Action Camera off.
-    local snap = CM.DB and CM.DB.global and CM.DB.global.priorCVarSnapshot
-    if type(snap) == "table" then
-      local prefer = {
-        "cameraDistanceMaxZoomFactor",
-        "cameraFov",
-        "cameraZoomSpeed",
-      }
-      for i = 1, #prefer do
-        local name = prefer[i]
-        if snap[name] ~= nil then
-          CM.SetCVar(name, snap[name])
-        end
+  if type(c.shoulderOffset) ~= "number" then
+    local shoulder = 1.2
+    local profiles = g.actionCameraProfiles
+    if type(profiles) == "table" and type(profiles.base) == "table" then
+      if type(profiles.base.shoulder) == "number" then
+        shoulder = profiles.base.shoulder
       end
     end
-    if CM.ActionCamera and CM.ActionCamera.Shutdown then
-      CM.ActionCamera.Shutdown()
+    c.shoulderOffset = shoulder
+  end
+
+  if g.dynamicPitch == nil then
+    if g.actionCameraDynamicPitch ~= nil then
+      g.dynamicPitch = g.actionCameraDynamicPitch ~= false
+    else
+      g.dynamicPitch = true
     end
   end
+
+  -- Stop reading obsolete Action Camera keys (leave them nil so they do not linger).
+  g.actionCamera = nil
+  g.actionCamMouselookDisable = nil
+  g.actionCameraProfiles = nil
+  g.actionCameraMaxZoom = nil
+  g.actionCameraDynamicPitch = nil
+  g.actionCameraFov = nil
+  g.actionCameraZoomSpeed = nil
+  g.actionCameraHeadTracking = nil
 end
 
--- Toggle behavioral Action Camera CVars when "Disable with Mouse Look" changes
--- mouse look state. Only toggles motion sickness and head tracking —
--- NOT preference CVars (zoom, FOV, zoom speed, shoulder, turn speed, Target Focus)
--- so the camera does not jump when mouse look is toggled.
--- Pitch is cleared on unlock; SituationDriver.Resume restores it from the active profile.
--- Per-situation adjustable CVars are owned by Core/ActionCamera/SituationDriver.
-function CM.ConfigActionCameraMouselookDisable(actionCamOff)
+--- Apply configured shoulder while freelook can use it; force 0 while mounted
+--- (matches old Mounted Action Camera profile — offset looks wrong on mounts).
+function CM.SetShoulderOffset()
   if CM.DynamicCam then
     return
   end
-  local values = actionCamOff and CM.Constants.BlizzardActionCameraMouselookDisableValues
-    or CM.Constants.ActionCameraMouselookDisableCMValues
-  for name, value in pairs(values) do
-    CM.SetCVar(name, value)
+  local offset = 0
+  if not (IsMounted and IsMounted()) then
+    offset = CM.DB and CM.DB.char and CM.DB.char.shoulderOffset
+    if type(offset) ~= "number" then
+      offset = 1.2
+    end
   end
-  -- Shoulder offset and per-situation CVars are restored by SituationDriver.Resume.
+  CM.SetCVar("test_cameraOverShoulder", offset)
+  CM.DebugPrint("Setting Shoulder Offset to " .. tostring(offset))
+end
+
+local function ApplyDynamicPitchPads()
+  local CONSTS = CM.Constants
+  CM.SetCVar("test_cameraDynamicPitchBaseFovPad", CONSTS.MouseLookCameraPitchBase or 0.4)
+  CM.SetCVar("test_cameraDynamicPitchBaseFovPadFlying", CONSTS.MouseLookCameraPitchFlying or 0.75)
+  CM.SetCVar(
+    "test_cameraDynamicPitchBaseFovPadDownScale",
+    CONSTS.MouseLookCameraPitchDownScale or 0.25
+  )
+  CM.SetCVar(
+    "test_cameraDynamicPitchSmartPivotCutoffDist",
+    CONSTS.MouseLookCameraPitchSmartPivotCutoff or 39
+  )
+end
+
+--- ActionCam features (dynamic pitch, shoulder, target focus) are no-ops while
+--- CameraKeepCharacterCentered / CameraReduceUnexpectedMovement are 1.
+local function NeedActionCamMotionSicknessOff()
+  if CM.IsMouselooking and CM.IsMouselooking() then
+    return true
+  end
+  local g = CM.DB and CM.DB.global
+  if g and g.dynamicPitch ~= false then
+    return true
+  end
+  if g and g.autofocusLockedTarget ~= false and UnitExists and UnitExists("focus") == true then
+    return true
+  end
+  return false
+end
+
+function CM.ApplyActionCamMotionSicknessGate()
+  if CM.DynamicCam then
+    return
+  end
+  local off = NeedActionCamMotionSicknessOff()
+  local v = off and 0 or 1
+  CM.SetCVar("CameraKeepCharacterCentered", v)
+  CM.SetCVar("CameraReduceUnexpectedMovement", v)
+end
+
+--- Sticky Dynamic Pitch (option-gated, not freelook). Pads + master CVar + MS gate
+--- so unlock / option toggles actually take effect.
+function CM.SetDynamicPitch()
+  if CM.DynamicCam then
+    return
+  end
+  local wantPitch = CM.DB and CM.DB.global and CM.DB.global.dynamicPitch ~= false
+  if wantPitch then
+    ApplyDynamicPitchPads()
+  end
+  CM.SetCVar("test_cameraDynamicPitch", wantPitch and 1 or 0)
+  CM.ApplyActionCamMotionSicknessGate()
+  CM.DebugPrint("Dynamic Pitch " .. (wantPitch and "on" or "off"))
+end
+
+--- Apply Mouse Look camera chrome while freelook is locked (MS off, shoulder).
+function CM.ApplyMouseLookCamera()
+  if CM.DynamicCam then
+    return
+  end
+  CM.ApplyActionCamMotionSicknessGate()
+  CM.SetShoulderOffset()
+  CM.DebugPrint("Mouse Look camera applied")
+end
+
+--- Clear Mouse Look camera chrome while freelook is unlocked (shoulder 0; MS follows gate).
+function CM.ClearMouseLookCamera()
+  if CM.DynamicCam then
+    return
+  end
+  CM.SetCVars(CM.Constants.MouseLookCameraUnlockedValues)
+  CM.ApplyActionCamMotionSicknessGate()
+  CM.DebugPrint("Mouse Look camera cleared")
+end
+
+--- Enable enemy Target Focus when autofocusLockedTarget is on and UnitExists("focus").
+function CM.SyncTargetFocusFromFocusUnit()
+  if CM.DynamicCam then
+    return
+  end
+  local g = CM.DB and CM.DB.global
+  local optOn = g and g.autofocusLockedTarget ~= false
+  local want = optOn and UnitExists and UnitExists("focus") == true
+  local strengths = CM.Constants.TargetFocusCVarValues
+  if strengths then
+    CM.SetCVar(
+      "test_cameraTargetFocusEnemyStrengthYaw",
+      strengths["test_cameraTargetFocusEnemyStrengthYaw"] or 0.7
+    )
+    CM.SetCVar(
+      "test_cameraTargetFocusEnemyStrengthPitch",
+      strengths["test_cameraTargetFocusEnemyStrengthPitch"] or 0.2
+    )
+  end
+  CM.SetCVar("test_cameraTargetFocusEnemyEnable", want and 1 or 0)
+  CM.ApplyActionCamMotionSicknessGate()
 end
 
 --- Blizzard-reset helper for Uninstall only.
---- Per-situation Target Focus is owned by Core/ActionCamera/SituationDriver.
 function CM.ConfigStickyCrosshair(CVarType)
   if CM.DynamicCam then
     return
@@ -339,12 +435,6 @@ function CM.ConfigStickyCrosshair(CVarType)
     FeatureName = "Sticky Crosshair (uninstall reset)",
   }
   CM.ApplyCVarConfig(info)
-end
-
---- SetShoulderOffset: per-situation profiles now own shoulder. Kept as no-op so
---- any remaining callers do not error; SituationDriver writes the actual CVar.
-function CM.SetShoulderOffset()
-  -- Intentionally empty: shoulder is applied via SituationDriver / Transition.lua.
 end
 
 function CM.SetMouseLookSpeed()

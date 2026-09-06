@@ -78,15 +78,6 @@ Mouse Look automatically disengages whenever you open bags, the map, your charac
   <img src="media/auto_unlock.gif">
 </p>
 
-### Action Camera
-Enhance immersion with an optional, fully customizable action camera that delivers a more dynamic third-person perspective, making combat feel faster, weightier, and more cinematic.
-
-<p align="center">
-  <img src="media/action_camera.gif">
-</p>
-
-<br />
-
 ## <img width="20" height="20" src="media/cmlogo.svg"> DOWNLOAD
 
 Grab it on [**CurseForge**](https://www.curseforge.com/wow/addons/combat-mode) or [**Wago Addons**](https://addons.wago.io/addons/combat-mode).

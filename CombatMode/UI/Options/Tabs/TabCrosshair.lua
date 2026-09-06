@@ -111,6 +111,16 @@ UI.Options.AddTab({
       end,
       disabled = CrosshairOff,
     })
+    ctx:Button({
+      layout = "row",
+      label = "Reaction Colors",
+      buttonLabel = "Edit",
+      desc = "Customize the colors used by the crosshair when targeting different types of units.",
+      disabled = CrosshairOff,
+      func = function()
+        CM.OpenCrosshairColorsEditor()
+      end,
+    })
     ctx:Slider({
       label = "Scale",
       desc = "Scales the size of the crosshair.",
@@ -141,16 +151,6 @@ UI.Options.AddTab({
         UpdatePartyRadialAnchor()
       end,
       disabled = CrosshairOff,
-    })
-    ctx:Button({
-      layout = "row",
-      label = "Reaction Colors",
-      buttonLabel = "Edit",
-      desc = "Customize the colors used by the crosshair when targeting different types of units.",
-      disabled = CrosshairOff,
-      func = function()
-        CM.OpenCrosshairColorsEditor()
-      end,
     })
     ctx:Dropdown({
       label = "Situational Appearance",

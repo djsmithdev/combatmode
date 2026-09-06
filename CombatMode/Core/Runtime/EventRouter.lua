@@ -18,14 +18,16 @@
 --    • FRIENDLY_TARGETING_EVENTS double as Party Radial combat start/end +
 --      FlushDeferredBindingChanges / FlushPendingClickCastRefresh on PLAYER_REGEN_ENABLED.
 --    • FOCUS_LOCK_EVENTS → UpdateFocusNameplateMarker + OnCrosshairFocusLockEvent +
---      ActionCamera.SyncTargetFocusFromFocusUnit.
+--      SyncTargetFocusFromFocusUnit.
 --    • FOCUS_NAMEPLATE_EVENTS → OnFocusNameplateMarkerEvent (ADD/REMOVE).
+--    • UNCATEGORIZED PLAYER_MOUNT_DISPLAY_CHANGED → SetShoulderOffset while freelook
+--      (mounted forces shoulder 0).
 --  Does not: RegisterEvent itself (root frame / Bootstrap) or own feature logic.
 --  Related: Constants/Gameplay.lua, Core/FreeLook/FreeLookController.lua,
 --  Core/ClickCasting/BindingOverrides.lua, Core/Crosshair/Crosshair.lua,
 --  Core/Crosshair/AssistedHighlight/{Keybinds,CastProgress,Feedback,Assist}.lua,
 --  Core/Crosshair/FocusNameplateMarker.lua, Core/PartyRadial/PartyRadial.lua,
---  Core/Runtime/BindingQueue.lua
+--  Core/Runtime/BindingQueue.lua, Core/Runtime/CVarManager.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -178,6 +180,12 @@ local function HandleEventByCategory(category, event, ...)
     end,
     UNCATEGORIZED_EVENTS = function()
       CM.OnCrosshairUncategorizedEvent()
+      -- Refresh shoulder on mount/dismount while Mouse Look is locked (mounted → 0).
+      if event == "PLAYER_MOUNT_DISPLAY_CHANGED" and CM.SetShoulderOffset then
+        if CM.IsMouselooking and CM.IsMouselooking() then
+          CM.SetShoulderOffset()
+        end
+      end
     end,
     REFRESH_BINDINGS_EVENTS = function()
       if event == "CVAR_UPDATE" and cvarName ~= "ActionButtonUseKeyDown" then
@@ -229,9 +237,9 @@ local function HandleEventByCategory(category, event, ...)
         CM.UpdateFocusNameplateMarker()
       end
       CM.OnCrosshairFocusLockEvent(event)
-      -- Action Camera Target Focus Enemy: on while focus exists (Target Lock / cycle).
-      if CM.ActionCamera and CM.ActionCamera.SyncTargetFocusFromFocusUnit then
-        CM.ActionCamera.SyncTargetFocusFromFocusUnit()
+      -- Target Focus Enemy: on while focus exists (Target Lock / cycle).
+      if CM.SyncTargetFocusFromFocusUnit then
+        CM.SyncTargetFocusFromFocusUnit()
       end
     end,
     FOCUS_NAMEPLATE_EVENTS = function(...)
@@ -259,11 +267,6 @@ local function HandleEventByCategory(category, event, ...)
       end
       if CM.OnAssistedHighlightAssistedActionCast then
         CM.OnAssistedHighlightAssistedActionCast()
-      end
-    end,
-    ACTION_CAMERA_EVENTS = function(...)
-      if CM.ActionCamera and CM.ActionCamera.OnEvent then
-        CM.ActionCamera.OnEvent(event, ...)
       end
     end,
   }

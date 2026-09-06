@@ -7,20 +7,18 @@
 --  and party radial.
 --  Architecture / how it works:
 --    • global: free-look / crosshair / Interaction HUD / Assisted Combat / reticle /
---      click-cast bindings / auto-unlock / Action Camera (actionCamera,
---      actionCamMouselookDisable, actionCameraProfiles, actionCameraMaxZoom,
---      actionCameraDynamicPitch) / vignette / partyRadial / debug.
+--      click-cast bindings / auto-unlock / Mouse Look camera (mouseLookSpeed,
+--      dynamicPitch, vignette, autofocusLockedTarget) / partyRadial / debug.
 --      Crosshair also stores crosshairSituationalCondition + crosshairSituationalAppearance.
---    • char: reticle targeting, click-cast bindings, useGlobalBindings.
---    • Per-situation Action Camera values live in Constants/ActionCamera.lua
---      (ActionCameraProfileDefaults); SituationDriver seeds actionCameraProfiles on first load.
+--    • char: reticle targeting, click-cast bindings, useGlobalBindings, shoulderOffset.
+--    • MigrateMouseLookCameraDB (CVarManager) seeds shoulder/dynamicPitch from legacy
+--      Action Camera profile keys once after merge.
 --    • DefaultBindings seeds button1/2 + shift/ctrl/alt mouse slots and Mouse Look toggle.
---  Does not: Migrate saved data or apply CVars/bindings at runtime.
+--  Does not: Migrate saved data or apply CVars/bindings at runtime (CVarManager does).
 --  Related: Core/Runtime/Runtime.lua, Core/Runtime/CVarManager.lua,
---  Core/ActionCamera/SituationDriver.lua, Constants/ActionCamera.lua,
 --  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/Tabs/TabCrosshair.lua,
 --  UI/Editors/TargetingMacroPrelinesEditor.lua, Core/PartyRadial/PartyRadial.lua,
---  UI/Options/Tabs/TabClickCasting.lua
+--  UI/Options/Tabs/TabClickCasting.lua, UI/Options/Tabs/TabGeneral.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 
@@ -84,7 +82,7 @@ CM.Constants.DatabaseDefaults = {
     sheathWeaponsWithMouselook = false,
     interactUnit = "mouseover",
     showTargetLockMarker = true,
-    autofocusLockedTarget = true, -- Action Camera Target Focus Enemy while focus exists
+    autofocusLockedTarget = true, -- Target Focus Enemy while focus exists
     -- crosshair
     crosshair = true,
     crosshairCastFeedback = true,
@@ -133,15 +131,9 @@ return false
       "WeakTextures_MainFrame",
     },
     customCondition = "",
-    -- action camera
-    actionCamera = true,
-    actionCamMouselookDisable = false,
+    -- mouse look camera
     mouseLookSpeed = 100,
-    -- Per-situation profiles seeded by SituationDriver from ActionCameraProfileDefaults.
-    actionCameraProfiles = nil,
-    actionCameraMaxZoom = 20,
-    actionCameraDynamicPitch = true,
-    -- vignette
+    dynamicPitch = true,
     vignette = true,
     -- radial
     partyRadial = {
@@ -155,6 +147,8 @@ return false
     debugMode = false,
   },
   char = {
+    -- mouse look camera
+    shoulderOffset = 1.2,
     -- reticle targeting
     reticleTargeting = true,
     reticleTargetingEnemyOnly = true,
