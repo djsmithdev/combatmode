@@ -62,7 +62,7 @@ local DefaultBindings = {
   altbutton1 = {
     enabled = true,
     key = "ALT-BUTTON1",
-    value = "TOGGLEFOCUSENEMY",
+    value = "TOGGLEPINGLISTENER",
     macroName = "",
   },
   altbutton2 = {

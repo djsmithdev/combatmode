@@ -18,8 +18,10 @@
 --    • SetDynamicPitch — sticky with the option; ApplyActionCamMotionSicknessGate keeps
 --      CameraKeepCharacterCentered / CameraReduceUnexpectedMovement at 0 while pitch (or
 --      freelook / autofocus) needs ActionCam, otherwise Blizzard suppresses pitch.
---    • SetShoulderOffset / SyncTargetFocusFromFocusUnit / SetMouseLookSpeed.
---      SetShoulderOffset forces 0 while IsMounted(); EventRouter refreshes on mount change.
+--    • SetShoulderOffset — tweens test_cameraOverShoulder with Vignette duration.
+--      Intent (slider / DC snapshot) is separate from the live blend. DynamicCam: drive
+--      only unlock→0 and optional restore; otherwise relinquish. Mid-tween toggles
+--      retarget; never treat a mid-blend CVar sample as intent.
 --    • ConfigStickyCrosshair: Blizzard-reset helper for Uninstall only.
 --    • SetCursorFreelookCenteringCVar + SetCursorCenteredYPos — FreeLook bounce + Y sync.
 --  Does not: Own SoftTarget UI widgets or freelook state machine.
@@ -32,6 +34,7 @@ local _, CM = ...
 local _G = _G
 
 -- WoW API
+local CreateFrame = _G.CreateFrame
 local GetCVar = _G.C_CVar.GetCVar
 local GetCVarDefault = _G.C_CVar.GetCVarDefault
 local IsMounted = _G.IsMounted
@@ -47,8 +50,10 @@ end
 -- Lua stdlib
 local ipairs = _G.ipairs
 local math = _G.math
+local min = math.min
 local next = _G.next
 local pairs = _G.pairs
+local tonumber = _G.tonumber
 local type = _G.type
 local tostring = _G.tostring
 
@@ -308,21 +313,222 @@ function CM.MigrateMouseLookCameraDB()
   g.actionCameraHeadTracking = nil
 end
 
---- Apply configured shoulder while freelook can use it; force 0 while mounted
---- (matches old Mounted Action Camera profile — offset looks wrong on mounts).
-function CM.SetShoulderOffset()
+-- ---------------------------------------------------------------------------
+-- Shoulder offset (test_cameraOverShoulder)
+-- Intent vs display: desired target is configured slider or a DynamicCam snapshot;
+-- shoulderCurrent is the tween output. Duration matches Vignette.
+--
+-- DynamicCam ownership: drive only unlock→0 and zero→restore; nil desired = relinquish.
+--   unlock → snapshot intent → fade to 0
+--   re-lock → if live CVar already non-zero, relinquish; else fade to snapshot
+--   mid-tween toggle → retarget from shoulderCurrent (never sample mid-CVar as intent)
+-- ---------------------------------------------------------------------------
+local SHOULDER_CVAR = "test_cameraOverShoulder"
+local SHOULDER_EPS = 0.001
+
+local dcRestore = nil -- pending restore after unlock→0; nil while relinquished
+local dcFadingToZero = false
+
+local shoulderFrame
+local shoulderCurrent = nil
+local fadeActive = false
+local fadeFrom = 0
+local fadeTo = 0
+local fadeElapsed = 0
+
+local function NearlyEqual(a, b)
+  return math.abs(a - b) <= SHOULDER_EPS
+end
+
+local function IsCameraChromeOn()
+  return CM.IsMouseLookCameraChromeActive and CM.IsMouseLookCameraChromeActive()
+end
+
+local function ShoulderFadeDuration()
+  return (CM.Constants and CM.Constants.MouseLookCameraFadeDuration) or 0.35
+end
+
+local function ReadShoulderCVar()
+  return tonumber(GetCVar(SHOULDER_CVAR)) or 0
+end
+
+local function SyncShoulderCurrentFromLive()
+  if shoulderCurrent == nil or not fadeActive then
+    shoulderCurrent = ReadShoulderCVar()
+  end
+end
+
+local function RelinquishShoulderToLive()
+  fadeActive = false
+  shoulderCurrent = ReadShoulderCVar()
+end
+
+local function ConfiguredShoulderOffset()
+  if IsMounted and IsMounted() then
+    return 0
+  end
+  local offset = CM.DB and CM.DB.char and CM.DB.char.shoulderOffset
+  if type(offset) ~= "number" then
+    return 1.2
+  end
+  return offset
+end
+
+--- Desired shoulder, or nil to stop writing (DynamicCam owns the CVar).
+local function DesiredShoulderOffset()
+  if not IsCameraChromeOn() then
+    if CM.DynamicCam then
+      return dcFadingToZero and 0 or nil
+    end
+    return 0
+  end
   if CM.DynamicCam then
+    return dcRestore
+  end
+  return ConfiguredShoulderOffset()
+end
+
+local function StartShoulderFade(from, to)
+  shoulderCurrent = from
+  fadeTo = to
+  if NearlyEqual(from, to) then
+    fadeActive = false
+    CM.SetCVar(SHOULDER_CVAR, to)
+  else
+    fadeFrom = from
+    fadeElapsed = 0
+    fadeActive = true
+  end
+  -- Retargeting away from unlock→0 must clear the latch so live-DC adopt can run later.
+  if CM.DynamicCam and dcFadingToZero and not NearlyEqual(to, 0) then
+    dcFadingToZero = false
+  end
+end
+
+--- Keep / start a fade toward desired; settle DynamicCam latches when already there.
+local function EnsureShoulderAtDesired(desired)
+  if desired == nil then
+    RelinquishShoulderToLive()
     return
   end
-  local offset = 0
-  if not (IsMounted and IsMounted()) then
-    offset = CM.DB and CM.DB.char and CM.DB.char.shoulderOffset
-    if type(offset) ~= "number" then
-      offset = 1.2
+  if not fadeActive then
+    if not NearlyEqual(shoulderCurrent, desired) then
+      StartShoulderFade(shoulderCurrent, desired)
+    elseif CM.DynamicCam and dcFadingToZero and NearlyEqual(desired, 0) then
+      dcFadingToZero = false
+    elseif CM.DynamicCam and dcRestore ~= nil and NearlyEqual(desired, dcRestore) then
+      dcRestore = nil
+    end
+  elseif not NearlyEqual(fadeTo, desired) then
+    StartShoulderFade(shoulderCurrent, desired)
+  end
+end
+
+--- Unlock snapshot: fade goal / prior restore / fade origin — never a mid-tween sample.
+local function IntendedShoulderForUnlockSnapshot()
+  if fadeActive then
+    if not NearlyEqual(fadeTo, 0) then
+      return fadeTo
+    end
+    if dcRestore ~= nil then
+      return dcRestore
+    end
+    if not NearlyEqual(fadeFrom, 0) then
+      return fadeFrom
     end
   end
-  CM.SetCVar("test_cameraOverShoulder", offset)
-  CM.DebugPrint("Setting Shoulder Offset to " .. tostring(offset))
+  return ReadShoulderCVar()
+end
+
+--- Called from FreeLook while chrome is still active, before it clears.
+function CM.SnapshotShoulderBeforeChromeClear()
+  if not CM.DynamicCam then
+    return
+  end
+  dcRestore = IntendedShoulderForUnlockSnapshot()
+  dcFadingToZero = true
+  SyncShoulderCurrentFromLive()
+  CM.DebugPrint("Shoulder snapshot intent: " .. tostring(dcRestore))
+end
+
+--- Settled chrome-on: if DC already wrote a non-zero shoulder, drop snapshot and relinquish.
+local function TryAdoptLiveDynamicCamShoulder()
+  if not CM.DynamicCam or not IsCameraChromeOn() then
+    return false
+  end
+  if fadeActive or dcFadingToZero then
+    return false
+  end
+  local live = ReadShoulderCVar()
+  if NearlyEqual(live, 0) then
+    return false
+  end
+  dcRestore = nil
+  RelinquishShoulderToLive()
+  return true
+end
+
+local function OnShoulderFadeCompleted(desired)
+  if not CM.DynamicCam then
+    return
+  end
+  if dcFadingToZero and NearlyEqual(desired, 0) then
+    dcFadingToZero = false
+  end
+  if dcRestore ~= nil and NearlyEqual(fadeTo, dcRestore) then
+    dcRestore = nil
+  end
+end
+
+local function ShoulderOnUpdate(_, elapsed)
+  if shoulderCurrent == nil then
+    shoulderCurrent = ReadShoulderCVar()
+  end
+  local desired = DesiredShoulderOffset()
+  if desired == nil then
+    RelinquishShoulderToLive()
+    return
+  end
+  EnsureShoulderAtDesired(desired)
+  if not fadeActive then
+    return
+  end
+  fadeElapsed = fadeElapsed + (elapsed or 0)
+  local t = min(1, fadeElapsed / ShoulderFadeDuration())
+  shoulderCurrent = fadeFrom + (fadeTo - fadeFrom) * t
+  CM.SetCVar(SHOULDER_CVAR, shoulderCurrent)
+  if t >= 1 then
+    fadeActive = false
+    shoulderCurrent = fadeTo
+    OnShoulderFadeCompleted(desired)
+  end
+end
+
+local function EnsureShoulderOffsetDriver()
+  if not shoulderFrame then
+    shoulderFrame = CreateFrame("Frame", "CombatModeShoulderOffsetFrame")
+  end
+  if shoulderCurrent == nil then
+    shoulderCurrent = ReadShoulderCVar()
+  end
+  shoulderFrame:SetScript("OnUpdate", ShoulderOnUpdate)
+end
+
+--- Apply / retarget shoulder (tweens over vignette fade duration).
+function CM.SetShoulderOffset()
+  EnsureShoulderOffsetDriver()
+  SyncShoulderCurrentFromLive()
+  if TryAdoptLiveDynamicCamShoulder() then
+    CM.DebugPrint("Shoulder Offset relinquished to DynamicCam (live)")
+    return
+  end
+  local desired = DesiredShoulderOffset()
+  EnsureShoulderAtDesired(desired)
+  if desired == nil then
+    CM.DebugPrint("Shoulder Offset relinquished to DynamicCam")
+  else
+    CM.DebugPrint("Shoulder Offset target " .. tostring(desired))
+  end
 end
 
 local function ApplyDynamicPitchPads()
@@ -380,23 +586,21 @@ function CM.SetDynamicPitch()
   CM.DebugPrint("Dynamic Pitch " .. (wantPitch and "on" or "off"))
 end
 
---- Apply Mouse Look camera chrome while freelook is locked (MS off, shoulder).
+--- Apply Mouse Look camera chrome while freelook is locked (MS off when we own it, shoulder).
 function CM.ApplyMouseLookCamera()
-  if CM.DynamicCam then
-    return
+  if not CM.DynamicCam then
+    CM.ApplyActionCamMotionSicknessGate()
   end
-  CM.ApplyActionCamMotionSicknessGate()
   CM.SetShoulderOffset()
   CM.DebugPrint("Mouse Look camera applied")
 end
 
---- Clear Mouse Look camera chrome while freelook is unlocked (shoulder 0; MS follows gate).
+--- Clear Mouse Look camera chrome while freelook is unlocked (tween shoulder to 0; MS gate).
 function CM.ClearMouseLookCamera()
-  if CM.DynamicCam then
-    return
+  CM.SetShoulderOffset()
+  if not CM.DynamicCam then
+    CM.ApplyActionCamMotionSicknessGate()
   end
-  CM.SetCVars(CM.Constants.MouseLookCameraUnlockedValues)
-  CM.ApplyActionCamMotionSicknessGate()
   CM.DebugPrint("Mouse Look camera cleared")
 end
 

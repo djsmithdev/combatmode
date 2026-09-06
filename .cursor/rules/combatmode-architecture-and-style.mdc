@@ -18,7 +18,7 @@ Ownership detail lives in **Lua file headers**. Load order: **`STRUCTURE.md`** +
 
 ## Watch-outs (read the file header for full ownership)
 
-- **CVarManager** — all addon `SetCVar` writes; prior snapshot capture/restore; reticle presets + overrides; Interaction HUD SoftTarget subset; Mouse Look camera (`ApplyMouseLookCamera` / `ClearMouseLookCamera` for shoulder; `SetDynamicPitch` sticky; `ApplyActionCamMotionSicknessGate` so MS CVars do not suppress ActionCam); `SyncTargetFocusFromFocusUnit`; `MigrateMouseLookCameraDB` from legacy Action Camera keys. `ConfigStickyCrosshair` kept only as a Blizzard-reset uninstall helper.
+- **CVarManager** — all addon `SetCVar` writes; prior snapshot capture/restore; reticle presets + overrides; Interaction HUD SoftTarget subset; Mouse Look camera (`ApplyMouseLookCamera` / `ClearMouseLookCamera`; shoulder tweens with vignette duration — intent vs blend; DynamicCam: unlock→0 + optional restore from live/snapshot, else relinquish; `SetDynamicPitch` sticky; `ApplyActionCamMotionSicknessGate`); `SyncTargetFocusFromFocusUnit`; `MigrateMouseLookCameraDB`. `ConfigStickyCrosshair` uninstall helper only.
 - **FreeLookController** — mouselook lock/unlock; centering `0 → MouselookStart → deferred 1`; OPie rematch latch; sheath debounce; Apply/Clear Mouse Look camera on lock / permanent unlock.
 - **Vignette** — edge darkening while Mouse Look is on; smooth fade with `CM.IsMouselooking()`; options on General tab.
 - **BindingOverrides** — click-cast / Target Lock secure buttons; Cycle Lock Next/Previous as dedicated Bindings.xml keys (`ApplyCycleFocusBindings` + `SetOverrideBindingClick`; defaults Shift+mouse-wheel).

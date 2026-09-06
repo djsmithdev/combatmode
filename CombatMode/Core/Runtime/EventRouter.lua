@@ -180,9 +180,9 @@ local function HandleEventByCategory(category, event, ...)
     end,
     UNCATEGORIZED_EVENTS = function()
       CM.OnCrosshairUncategorizedEvent()
-      -- Refresh shoulder on mount/dismount while Mouse Look is locked (mounted → 0).
+      -- Refresh shoulder on mount/dismount while camera chrome is on (mounted → 0).
       if event == "PLAYER_MOUNT_DISPLAY_CHANGED" and CM.SetShoulderOffset then
-        if CM.IsMouselooking and CM.IsMouselooking() then
+        if CM.IsMouseLookCameraChromeActive and CM.IsMouseLookCameraChromeActive() then
           CM.SetShoulderOffset()
         end
       end

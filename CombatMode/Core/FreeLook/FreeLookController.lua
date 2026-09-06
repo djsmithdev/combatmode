@@ -20,8 +20,10 @@
 --      flash sheath/unsheath; unsheath and re-lock cancel any pending sheath.
 --    • OPie: when a ring is visible, unlock path may free centering; Rematch after
 --      the ring closes re-bounces freelook if still desired.
---    • Mouse Look camera: permanent unlock clears shoulder/MS via ClearMouseLookCamera;
---      lock re-applies ApplyMouseLookCamera. Dynamic Pitch is sticky (SetDynamicPitch).
+--    • Mouse Look camera chrome (shoulder + vignette): active while locked and through
+--      temp unlock; cleared only on permanent unlock via IsMouseLookCameraChromeActive.
+--      Shoulder tweens with Vignette over MouseLookCameraFadeDuration. Dynamic Pitch is
+--      sticky (SetDynamicPitch).
 --  Does not: Own frame-watch lists/predicates (AutoCursorUnlock) or CVar preset tables.
 --  Related: Core/FreeLook/AutoCursorUnlock.lua, Core/Runtime/CVarManager.lua,
 --  Core/Runtime/Runtime.lua, Core/PartyRadial/PartyRadial.lua,
@@ -51,6 +53,8 @@ local string = _G.string
 
 -- INITIAL STATE VARIABLES
 local cmMouselookActive = false -- Tracks Combat Mode's own intentional mouselook. Used in conjunction with _G.IsMouselooking() to handle external mouselook properly.
+-- Shoulder + vignette stay up through temp (hold) unlock; cleared only on permanent unlock.
+local mouseLookCameraChromeActive = false
 local FreeLookOverride = false -- Changes when Free Look state is modified through user input ("Toggle / Hold" keybind and "/cm" cmd)
 local CursorModeShowTime = 0 -- GetTime() when cursor was unlocked via keybind (for spurious key-up filter)
 local opieUnlockSeen = false -- Latched while an OPie ring was reported visible
@@ -165,8 +169,24 @@ local function CancelPendingTapSheath()
   CancelPendingSheath()
 end
 
+--- Drop shoulder/vignette chrome (permanent unlock / tap confirmed). Safe if already off.
+local function ClearMouseLookCameraChrome()
+  if not mouseLookCameraChromeActive then
+    return
+  end
+  -- Capture DC shoulder intent before chrome clears (fade goal / settled, not mid-tween).
+  if CM.SnapshotShoulderBeforeChromeClear then
+    CM.SnapshotShoulderBeforeChromeClear()
+  end
+  mouseLookCameraChromeActive = false
+  if CM.ClearMouseLookCamera then
+    CM.ClearMouseLookCamera()
+  end
+end
+
 -- Never sheath on unlock press (hold would flash). Poll until the binding is up
--- (tap → sheath) or the hold threshold elapses while still down (hold → no sheath).
+-- (tap → sheath + clear camera chrome) or the hold threshold elapses while still
+-- down (hold → no sheath, chrome stays).
 local function ScheduleTapSheathPoll()
   pendingTapSheath = true
   if not (C_Timer and C_Timer.After) then
@@ -186,7 +206,7 @@ local function ScheduleTapSheathPoll()
     local elapsed = GetTime() - CursorModeShowTime
     if IsMouseLookBindingKeyDown() then
       if elapsed >= CURSOR_MODE_HOLD_THRESHOLD then
-        -- Hold confirmed: keep weapons drawn.
+        -- Hold confirmed: keep weapons drawn; chrome stays (temp unlock).
         pendingTapSheath = false
         return
       end
@@ -200,8 +220,10 @@ local function ScheduleTapSheathPoll()
       return
     end
 
+    -- Tap confirmed: stay unlocked and drop shoulder/vignette chrome.
     pendingTapSheath = false
     ApplyWeaponsSheathed(true)
+    ClearMouseLookCameraChrome()
   end
 
   C_Timer.After(CURSOR_MODE_SPURIOUS_KEY_UP, poll)
@@ -264,7 +286,7 @@ function CM.ShouldFreeLookBeOff()
 end
 
 -- Helper function to handle UI state changes when toggling free look
-local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
+local function HandleFreeLookUIState(isLocking)
   if CM.IsCrosshairEnabled() then
     CM.DisplayCrosshair(isLocking)
   end
@@ -273,15 +295,12 @@ local function HandleFreeLookUIState(isLocking, isPermanentUnlock)
     HideTooltip(isLocking)
   end
 
-  -- Mouse Look camera chrome: apply on lock; clear shoulder/MS on permanent unlock.
-  -- Dynamic Pitch is sticky via SetDynamicPitch (not toggled here).
+  -- Shoulder + vignette chrome turns on with lock. Clearing is explicit via
+  -- ClearMouseLookCameraChrome (tap confirmed), not on every unlock.
   if isLocking then
+    mouseLookCameraChromeActive = true
     if CM.ApplyMouseLookCamera then
       CM.ApplyMouseLookCamera()
-    end
-  elseif isPermanentUnlock then
-    if CM.ClearMouseLookCamera then
-      CM.ClearMouseLookCamera()
     end
   end
 end
@@ -303,23 +322,23 @@ local function RunLockFreeLookDeferredUI()
   if C_Timer and C_Timer.After then
     C_Timer.After(0, function()
       CM.SetCursorFreelookCentering(true)
-      HandleFreeLookUIState(true, false)
+      HandleFreeLookUIState(true)
     end)
   else
     CM.SetCursorFreelookCentering(true)
-    HandleFreeLookUIState(true, false)
+    HandleFreeLookUIState(true)
   end
 end
 
-local function RunUnlockFreeLookDeferredUI(isPermanentUnlock)
+local function RunUnlockFreeLookDeferredUI()
   if C_Timer and C_Timer.After then
     C_Timer.After(0, function()
       CM.SetCursorFreelookCentering(false)
-      HandleFreeLookUIState(false, isPermanentUnlock)
+      HandleFreeLookUIState(false)
     end)
   else
     CM.SetCursorFreelookCentering(false)
-    HandleFreeLookUIState(false, isPermanentUnlock)
+    HandleFreeLookUIState(false)
   end
 end
 
@@ -354,7 +373,7 @@ function CM.UnlockFreeLook()
     return
   end
   cmMouselookActive = false
-  RunUnlockFreeLookDeferredUI(false)
+  RunUnlockFreeLookDeferredUI()
   MouselookStop()
 
   if CM.DB.global.pulseCursor then
@@ -371,25 +390,6 @@ function CM.UnlockFreeLook()
   end
 
   CM.DebugPrint("Free Look Disabled")
-end
-
-local function UnlockFreeLookPermanent()
-  if not IsMouselooking() then
-    return
-  end
-  cmMouselookActive = false
-  RunUnlockFreeLookDeferredUI(true)
-  MouselookStop()
-
-  if CM.DB.global.pulseCursor then
-    CM.ShowCursorPulse()
-  end
-
-  if CM.PartyRadial and CM.PartyRadial.OnMouselookChanged then
-    CM.PartyRadial.OnMouselookChanged(false)
-  end
-
-  CM.DebugPrint("Free Look Disabled (Permanent)")
 end
 
 -- Called from AutoCursorUnlock while an OPie ring frame is visible.
@@ -416,8 +416,9 @@ end
 -- Unified cursor mode keybind: tap to toggle, hold to temporarily unlock.
 -- Uses the same spurious key-up filter as the Party Radial keybind.
 -- MouselookStop() fires spurious key-up events for held keys, so we ignore
--- key-ups within 0.3s of unlocking. A quick tap leaves the cursor free (toggle);
--- holding longer than 0.3s re-locks on release (hold).
+-- key-ups within 0.3s of unlocking. A quick tap leaves the cursor free (toggle)
+-- and clears shoulder/vignette chrome once the tap is confirmed; holding longer
+-- than 0.3s re-locks on release (hold) and keeps chrome.
 -- Sheath polls the binding: tap sheaths after release; hold never sheaths.
 function _G.CombatMode_CursorModeKey(keystate)
   if CM.IsDefaultMouseActionBeingUsed() then
@@ -434,10 +435,11 @@ function _G.CombatMode_CursorModeKey(keystate)
       CursorModeShowTime = 0 -- No spurious filter needed for lock
       ApplyWeaponsSheathed(false)
     elseif IsMouselooking() then
-      -- Currently mouselooking — unlock cursor (tap or hold; sheath only if tap)
+      -- Unlock cursor; tap vs hold is decided after the hold threshold.
+      -- Use temp unlock so chrome stays until a tap is confirmed (or re-lock on hold).
       CursorModeShowTime = GetTime()
-      UnlockFreeLookPermanent()
       FreeLookOverride = true
+      CM.UnlockFreeLook()
       ScheduleTapSheathPoll()
     end
   elseif keystate == "up" then
@@ -486,4 +488,9 @@ end
 --   • External addon stops CM's mouselook: cmMouselookActive=true, IsMouselooking=false → false
 function CM.IsMouselooking()
   return cmMouselookActive and IsMouselooking()
+end
+
+--- Shoulder + vignette stay active through temp (hold) unlock; false after permanent unlock.
+function CM.IsMouseLookCameraChromeActive()
+  return mouseLookCameraChromeActive
 end

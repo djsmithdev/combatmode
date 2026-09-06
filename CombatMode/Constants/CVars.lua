@@ -10,8 +10,8 @@
 --    • ReticleTargetingCVarValues — SoftTarget*, deselectOnClick, CursorStickyCentering, etc.
 --    • InteractionHUDSoftTargetCVarValues — SoftTargetInteract + icon CVars when HUD is on
 --      without full reticle targeting.
---    • MouseLookCameraLockedValues / UnlockedValues — MS off while locked; unlock clears
---      shoulder only (MS gated separately so sticky Dynamic Pitch keeps working).
+--    • MouseLookCameraLockedValues — MS off while locked. Shoulder unlock is tweened
+--      (SetShoulderOffset), not a snap table.
 --    • TargetFocusCVarValues (+ Blizzard* counterparts).
 --    • ManagedCVarNames also includes cameraYaw/PitchMoveSpeed and CursorCenteredYPos.
 --  Does not: Call SetCVar or merge DB overrides (CVarManager owns writes + effective values).
@@ -88,6 +88,8 @@ CM.Constants.MouseLookCameraPitchBase = 0.4
 CM.Constants.MouseLookCameraPitchFlying = 0.75
 CM.Constants.MouseLookCameraPitchDownScale = 0.25
 CM.Constants.MouseLookCameraPitchSmartPivotCutoff = 39
+-- Shared with Vignette fade so shoulder ease matches edge darkening.
+CM.Constants.MouseLookCameraFadeDuration = 0.35
 
 -- Motion-sickness off while locked (required for shoulder offset to take effect).
 -- Dynamic Pitch / Target Focus also need these at 0; see ApplyActionCamMotionSicknessGate.
@@ -96,11 +98,7 @@ CM.Constants.MouseLookCameraLockedValues = {
   ["CameraReduceUnexpectedMovement"] = 0,
 }
 
--- Shoulder only while unlocked. Do not force MS on here — that suppresses sticky
--- Dynamic Pitch (CameraKeepCharacterCentered overrides ActionCam).
-CM.Constants.MouseLookCameraUnlockedValues = {
-  ["test_cameraOverShoulder"] = 0,
-}
+-- Unlock no longer snaps shoulder here — SetShoulderOffset tweens to 0 with the fade duration.
 
 -- CVARS FOR TARGET FOCUS (Autofocus Locked Target)
 CM.Constants.TargetFocusCVarValues = {
@@ -162,7 +160,6 @@ do
   addTable(CM.Constants.ReticleTargetingCVarValues)
   addTable(CM.Constants.InteractionHUDSoftTargetCVarValues)
   addTable(CM.Constants.MouseLookCameraLockedValues)
-  addTable(CM.Constants.MouseLookCameraUnlockedValues)
   addTable(CM.Constants.TargetFocusCVarValues)
   addTable(CM.Constants.BlizzardReticleTargetingCVarValues)
   addTable(CM.Constants.BlizzardMouseLookCameraCVarValues)

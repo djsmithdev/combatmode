@@ -9,19 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Mouse Look camera** prefs on General → Mouse Look: **Shoulder Offset**, **Dynamic Pitch**, and **Vignette Effect**. Shoulder and motion-sickness CVars apply while Mouse Look is locked and clear on permanent unlock; **Dynamic Pitch** follows the option (sticky, not freelook-gated).
+- **Mouse Look camera** on General → Mouse Look: **Shoulder Offset**, **Dynamic Pitch**, and **Vignette Effect**.
+- Shoulder and vignette ease together with Mouse Look camera chrome (stay up through hold-to-unlock; clear only on permanent unlock). Shoulder is forced to **0** while mounted.
+- **Dynamic Pitch** follows its option (sticky), independent of freelook lock/unlock.
 
 ### Changed
 
-- Camera chrome is owned by Mouse Look lock/unlock instead of a separate Action Camera preset. Turn speed, shoulder, and dynamic pitch relinquish to **DynamicCam** when that addon is loaded.
-- **Vignette Effect** lives on General and always fades with Mouse Look (no separate fade toggle or Action Camera gate).
-- Legacy Action Camera DB keys migrate once into flat Mouse Look prefs (`char.shoulderOffset`, `global.dynamicPitch`), then are cleared.
-- **Target Lock** controls (keybinds, Cycle Lock, Marker, Autofocus) moved from General to Reticle Targeting (above Advanced).
-- **Shoulder Offset** is forced to **0** while mounted (restores your setting on dismount while Mouse Look is on).
+- Camera chrome is owned by Mouse Look instead of a separate Action Camera preset.
+- With **DynamicCam** loaded, turn speed, shoulder, dynamic pitch, and Target Focus relinquish to that addon; permanent unlock still eases shoulder to **0** and restores the prior value on re-lock.
+- **Target Lock** controls moved from General to Reticle Targeting (above Advanced).
+- Legacy Action Camera DB keys migrate once into `char.shoulderOffset` / `global.dynamicPitch`, then are cleared.
 
 ### Removed
 
-- **Action Camera** tab and preset (situations / Base / Combat / Mounted profiles, reactive zoom, FOV, initial zoom, max zoom, head tracking, **Disable with Mouse Look**). Dev note: I was trying to reinvent the wheel; use DynamicCam instead.
+- **Action Camera** tab and preset. Dev note: I was trying to reinvent the wheel; use **DynamicCam** instead.
 
 ## [4.6.1] - 2026-09-03
 

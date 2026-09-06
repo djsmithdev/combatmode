@@ -158,7 +158,7 @@ UI.Options.AddTab({
     })
     ctx:Toggle({
       label = "Vignette Effect",
-      desc = "Darkens the edges of the screen for a more focused view while in Mouse Look.",
+      desc = "Darkens the edges of the screen while Mouse Look is on.",
       get = function()
         return CM.DB.global.vignette == true
       end,
@@ -207,7 +207,7 @@ UI.Options.AddTab({
     })
     ctx:Slider({
       label = "Shoulder Offset",
-      desc = "Camera's horizontal position relative to character while in Mouse Look. Forced to 0 while mounted.",
+      desc = "Camera's horizontal position relative to character while in Mouse Look.",
       charSpecific = true,
       min = -2,
       max = 2,
@@ -218,7 +218,7 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.char.shoulderOffset = value
-        if CM.IsMouselooking and CM.IsMouselooking() then
+        if CM.SetShoulderOffset then
           CM.SetShoulderOffset()
         end
       end,

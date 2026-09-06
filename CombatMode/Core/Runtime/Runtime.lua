@@ -171,8 +171,8 @@ function CM.MacroExists(name)
 end
 
 --[[
-  Checking if DynamicCam is loaded so we can relinquish Mouse Look camera prefs
-  (turn speed, shoulder, dynamic pitch, Target Focus) to DynamicCam.
+  Checking if DynamicCam is loaded so we can relinquish turn speed, shoulder slider,
+  dynamic pitch, and Target Focus. Permanent unlock still eases shoulder to 0.
 ]]
 --
 local function IsDCLoaded()
@@ -181,7 +181,7 @@ local function IsDCLoaded()
   if CM.DynamicCam and not CM.DB.global.silenceAlerts then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over Mouse Look camera prefs.|r"
+        .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over turn speed, shoulder, dynamic pitch, and Target Focus.|r"
     )
   end
 end
@@ -333,10 +333,13 @@ local function Rematch()
   if CM.SetDynamicPitch then
     CM.SetDynamicPitch()
   end
+  if CM.SetShoulderOffset then
+    CM.SetShoulderOffset()
+  end
   if CM.SyncTargetFocusFromFocusUnit then
     CM.SyncTargetFocusFromFocusUnit()
   end
-  -- ApplyMouseLookCamera (shoulder + MS) runs from LockFreeLook when freelook starts.
+  -- ApplyMouseLookCamera (MS + shoulder retarget) also runs from LockFreeLook.
 
   if CM.DB.char.reticleTargeting then
     CM.ConfigReticleTargeting("combatmode")
