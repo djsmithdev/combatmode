@@ -19,9 +19,11 @@
 --      CameraKeepCharacterCentered / CameraReduceUnexpectedMovement at 0 while pitch (or
 --      freelook / autofocus) needs ActionCam, otherwise Blizzard suppresses pitch.
 --    • SetShoulderOffset — tweens test_cameraOverShoulder with Vignette duration.
---      Intent (slider / DC snapshot) is separate from the live blend. DynamicCam: drive
---      only unlock→0 and optional restore; otherwise relinquish. Mid-tween toggles
---      retarget; never treat a mid-blend CVar sample as intent.
+--      Intent (slider / DC snapshot) is separate from the live blend. Optional
+--      global.shoulderFollowsMouseLook (default off): when on, ease with Mouse Look
+--      chrome; when off, keep configured offset always. DynamicCam + follow: drive only
+--      unlock→0 / restore; otherwise relinquish.
+--      Mid-tween toggles retarget; never treat a mid-blend CVar sample as intent.
 --    • ConfigStickyCrosshair: Blizzard-reset helper for Uninstall only.
 --    • SetCursorFreelookCenteringCVar + SetCursorCenteredYPos — FreeLook bounce + Y sync.
 --  Does not: Own SoftTarget UI widgets or freelook state machine.
@@ -318,9 +320,12 @@ end
 -- Intent vs display: desired target is configured slider or a DynamicCam snapshot;
 -- shoulderCurrent is the tween output. Duration matches Vignette.
 --
--- DynamicCam ownership: drive only unlock→0 and zero→restore; nil desired = relinquish.
---   unlock → snapshot intent → fade to 0
---   re-lock → if live CVar already non-zero, relinquish; else fade to snapshot
+-- global.shoulderFollowsMouseLook (default false): when on, shoulder tracks Mouse Look
+-- chrome (configured while locked → 0 on permanent unlock). When off, keep the
+-- configured offset at all times (mounted still forces 0).
+--
+-- DynamicCam + follow on: drive only unlock→0 and zero→restore; nil desired = relinquish.
+-- DynamicCam + follow off: never write (full relinquish).
 --   mid-tween toggle → retarget from shoulderCurrent (never sample mid-CVar as intent)
 -- ---------------------------------------------------------------------------
 local SHOULDER_CVAR = "test_cameraOverShoulder"
@@ -342,6 +347,12 @@ end
 
 local function IsCameraChromeOn()
   return CM.IsMouseLookCameraChromeActive and CM.IsMouseLookCameraChromeActive()
+end
+
+--- Default false: keep configured offset. True = ease with Mouse Look.
+local function ShoulderFollowsMouseLook()
+  local g = CM.DB and CM.DB.global
+  return g and g.shoulderFollowsMouseLook == true
 end
 
 local function ShoulderFadeDuration()
@@ -376,6 +387,12 @@ end
 
 --- Desired shoulder, or nil to stop writing (DynamicCam owns the CVar).
 local function DesiredShoulderOffset()
+  if not ShoulderFollowsMouseLook() then
+    if CM.DynamicCam then
+      return nil
+    end
+    return ConfiguredShoulderOffset()
+  end
   if not IsCameraChromeOn() then
     if CM.DynamicCam then
       return dcFadingToZero and 0 or nil
@@ -442,7 +459,7 @@ end
 
 --- Called from FreeLook while chrome is still active, before it clears.
 function CM.SnapshotShoulderBeforeChromeClear()
-  if not CM.DynamicCam then
+  if not CM.DynamicCam or not ShoulderFollowsMouseLook() then
     return
   end
   dcRestore = IntendedShoulderForUnlockSnapshot()
@@ -453,7 +470,7 @@ end
 
 --- Settled chrome-on: if DC already wrote a non-zero shoulder, drop snapshot and relinquish.
 local function TryAdoptLiveDynamicCamShoulder()
-  if not CM.DynamicCam or not IsCameraChromeOn() then
+  if not CM.DynamicCam or not ShoulderFollowsMouseLook() or not IsCameraChromeOn() then
     return false
   end
   if fadeActive or dcFadingToZero then
@@ -518,6 +535,11 @@ end
 function CM.SetShoulderOffset()
   EnsureShoulderOffsetDriver()
   SyncShoulderCurrentFromLive()
+  -- Drop unlock/restore latches when not following Mouse Look (option toggled off).
+  if not ShoulderFollowsMouseLook() then
+    dcFadingToZero = false
+    dcRestore = nil
+  end
   if TryAdoptLiveDynamicCamShoulder() then
     CM.DebugPrint("Shoulder Offset relinquished to DynamicCam (live)")
     return

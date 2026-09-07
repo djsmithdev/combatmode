@@ -3,10 +3,12 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Wires General-tab controls to freelook and interact binds:
 --  Mouse Look keybind, pulseCursor, hideTooltip, turn speed, sheath weapons,
---  shoulder offset, dynamic pitch, vignette, Interact keybind + interactUnit.
+--  shoulder offset (+ optional link to Mouse Look), dynamic pitch, vignette,
+--  Interact keybind + interactUnit.
 --  Architecture / how it works:
 --    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed, dynamicPitch, vignette,
---      sheathWeaponsWithMouselook, interactUnit; char.shoulderOffset.
+--      shoulderFollowsMouseLook, sheathWeaponsWithMouselook, interactUnit;
+--      char.shoulderOffset.
 --    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
 --      orphans on the stolen key and refreshes Target Lock / Cycle Lock override layers).
 --    • Interact rebind clears both INTERACTMOUSEOVER and INTERACTTARGET then assigns
@@ -170,23 +172,6 @@ UI.Options.AddTab({
         end
       end,
     })
-    ctx:Toggle({
-      label = "Dynamic Pitch",
-      desc = "Dynamically tilt the camera up and down as you move it.",
-      watermarkWhenDisabled = "Control relinquished to DynamicCam",
-      get = function()
-        return CM.DB.global.dynamicPitch ~= false
-      end,
-      set = function(value)
-        CM.DB.global.dynamicPitch = value
-        if CM.SetDynamicPitch then
-          CM.SetDynamicPitch()
-        end
-      end,
-      disabled = function()
-        return CM.DynamicCam
-      end,
-    })
     ctx:Slider({
       label = "Turn Speed",
       desc = "Controls how quickly the camera turns while using Mouse Look.",
@@ -205,9 +190,26 @@ UI.Options.AddTab({
         return CM.DynamicCam
       end,
     })
+    ctx:Toggle({
+      label = "Dynamic Pitch",
+      desc = "Dynamically tilt the camera up and down as you move it.",
+      watermarkWhenDisabled = "Control relinquished to DynamicCam",
+      get = function()
+        return CM.DB.global.dynamicPitch ~= false
+      end,
+      set = function(value)
+        CM.DB.global.dynamicPitch = value
+        if CM.SetDynamicPitch then
+          CM.SetDynamicPitch()
+        end
+      end,
+      disabled = function()
+        return CM.DynamicCam
+      end,
+    })
     ctx:Slider({
       label = "Shoulder Offset",
-      desc = "Camera's horizontal position relative to character while in Mouse Look.",
+      desc = "Camera's horizontal position relative to character. Forced to 0 while mounted.",
       charSpecific = true,
       min = -2,
       max = 2,
@@ -224,6 +226,20 @@ UI.Options.AddTab({
       end,
       disabled = function()
         return CM.DynamicCam
+      end,
+    })
+    ctx:Toggle({
+      label = "Disable Offset With Mouselook",
+      desc = "Eases Shoulder Offset to 0 when disabling Mouse Look."
+        .. "\nWhen off, Shoulder Offset stays constant at all times.",
+      get = function()
+        return CM.DB.global.shoulderFollowsMouseLook == true
+      end,
+      set = function(value)
+        CM.DB.global.shoulderFollowsMouseLook = value
+        if CM.SetShoulderOffset then
+          CM.SetShoulderOffset()
+        end
       end,
     })
 

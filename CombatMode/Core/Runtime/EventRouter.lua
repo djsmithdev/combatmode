@@ -20,8 +20,8 @@
 --    • FOCUS_LOCK_EVENTS → UpdateFocusNameplateMarker + OnCrosshairFocusLockEvent +
 --      SyncTargetFocusFromFocusUnit.
 --    • FOCUS_NAMEPLATE_EVENTS → OnFocusNameplateMarkerEvent (ADD/REMOVE).
---    • UNCATEGORIZED PLAYER_MOUNT_DISPLAY_CHANGED → SetShoulderOffset while freelook
---      (mounted forces shoulder 0).
+--    • UNCATEGORIZED PLAYER_MOUNT_DISPLAY_CHANGED → SetShoulderOffset (mounted → 0
+--      when Combat Mode owns shoulder; no-op when DynamicCam fully owns it).
 --  Does not: RegisterEvent itself (root frame / Bootstrap) or own feature logic.
 --  Related: Constants/Gameplay.lua, Core/FreeLook/FreeLookController.lua,
 --  Core/ClickCasting/BindingOverrides.lua, Core/Crosshair/Crosshair.lua,
@@ -180,11 +180,9 @@ local function HandleEventByCategory(category, event, ...)
     end,
     UNCATEGORIZED_EVENTS = function()
       CM.OnCrosshairUncategorizedEvent()
-      -- Refresh shoulder on mount/dismount while camera chrome is on (mounted → 0).
+      -- Refresh shoulder on mount/dismount (mounted → 0 when Combat Mode owns the CVar).
       if event == "PLAYER_MOUNT_DISPLAY_CHANGED" and CM.SetShoulderOffset then
-        if CM.IsMouseLookCameraChromeActive and CM.IsMouseLookCameraChromeActive() then
-          CM.SetShoulderOffset()
-        end
+        CM.SetShoulderOffset()
       end
     end,
     REFRESH_BINDINGS_EVENTS = function()

@@ -172,7 +172,8 @@ end
 
 --[[
   Checking if DynamicCam is loaded so we can relinquish turn speed, shoulder slider,
-  dynamic pitch, and Target Focus. Permanent unlock still eases shoulder to 0.
+  dynamic pitch, and Target Focus. When shoulderFollowsMouseLook is on, permanent
+  unlock still eases shoulder to 0 (then restores on re-lock).
 ]]
 --
 local function IsDCLoaded()
