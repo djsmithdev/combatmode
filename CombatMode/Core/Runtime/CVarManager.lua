@@ -24,6 +24,8 @@
 --      chrome; when off, keep configured offset always. DynamicCam + follow: drive only
 --      unlock→0 / restore; otherwise relinquish.
 --      Mid-tween toggles retarget; never treat a mid-blend CVar sample as intent.
+--    • SyncTargetFocusFromFocusUnit — Autofocus Locked Target (kept with DynamicCam;
+--      forces MS ActionCam gates off while focus+option active so Target Focus works).
 --    • ConfigStickyCrosshair: Blizzard-reset helper for Uninstall only.
 --    • SetCursorFreelookCenteringCVar + SetCursorCenteredYPos — FreeLook bounce + Y sync.
 --  Does not: Own SoftTarget UI widgets or freelook state machine.
@@ -627,10 +629,10 @@ function CM.ClearMouseLookCamera()
 end
 
 --- Enable enemy Target Focus when autofocusLockedTarget is on and UnitExists("focus").
+--- Kept even with DynamicCam: Target Lock autofocus is a Combat Mode feature, not a
+--- camera-preset handoff. When active, force motion-sickness ActionCam gates off —
+--- Target Focus is a no-op while those CVars are 1. When inactive with DC, leave MS alone.
 function CM.SyncTargetFocusFromFocusUnit()
-  if CM.DynamicCam then
-    return
-  end
   local g = CM.DB and CM.DB.global
   local optOn = g and g.autofocusLockedTarget ~= false
   local want = optOn and UnitExists and UnitExists("focus") == true
@@ -646,7 +648,12 @@ function CM.SyncTargetFocusFromFocusUnit()
     )
   end
   CM.SetCVar("test_cameraTargetFocusEnemyEnable", want and 1 or 0)
-  CM.ApplyActionCamMotionSicknessGate()
+  if want then
+    CM.SetCVar("CameraKeepCharacterCentered", 0)
+    CM.SetCVar("CameraReduceUnexpectedMovement", 0)
+  elseif not CM.DynamicCam then
+    CM.ApplyActionCamMotionSicknessGate()
+  end
 end
 
 --- Blizzard-reset helper for Uninstall only.

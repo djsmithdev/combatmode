@@ -172,8 +172,9 @@ end
 
 --[[
   Checking if DynamicCam is loaded so we can relinquish turn speed, shoulder slider,
-  dynamic pitch, and Target Focus. When shoulderFollowsMouseLook is on, permanent
-  unlock still eases shoulder to 0 (then restores on re-lock).
+  and dynamic pitch. Autofocus Locked Target stays with Combat Mode. When
+  shoulderFollowsMouseLook is on, permanent unlock still eases shoulder to 0
+  (then restores on re-lock).
 ]]
 --
 local function IsDCLoaded()
@@ -182,7 +183,7 @@ local function IsDCLoaded()
   if CM.DynamicCam and not CM.DB.global.silenceAlerts then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over turn speed, shoulder, dynamic pitch, and Target Focus.|r"
+        .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over turn speed, shoulder, and dynamic pitch.|r"
     )
   end
 end

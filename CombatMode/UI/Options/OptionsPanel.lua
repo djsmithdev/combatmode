@@ -262,6 +262,7 @@ function UI.CreateBareWindow(globalName, titleText, width, height)
   win:SetFrameStrata("DIALOG")
   win:SetToplevel(true)
   UI.StyleRounded(win, C.windowBg, C.windowBorder, UI.Radius.window)
+  UI.BlockBehindTooltips(win)
   win:SetPoint("CENTER")
 
   local titleBar = CreateFrame("Frame", nil, win)
@@ -673,6 +674,7 @@ local function BuildShell()
   -- the bar permanently invisible until the next tab switch.
   frame:Hide()
   UI.StyleRounded(frame, C.windowBg, C.windowBorder, UI.Radius.window)
+  UI.BlockBehindTooltips(frame)
   Options.DockWindowLeft()
 
   -- Title bar (drag handle)

@@ -3,8 +3,8 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Boots `CM.UI` with the options theme (gold accent for headers/selection;
 --  green-on / grey-off toggles), StripColors, surface/card helpers,
---  config tooltips, scroll thumbs, FadeAlpha, and watermark helpers shared by options,
---  changelog, and editors.
+--  config tooltips, scroll thumbs, FadeAlpha, watermark helpers, and
+--  BlockBehindTooltips for top-level windows shared by options, changelog, and editors.
 --  Architecture / how it works:
 --    • UI.Colors / Fonts / Radius — single palette; accentMarkup derived from accent RGB;
 --      toggleOn is separate from accent (off uses trackOff).
@@ -20,6 +20,7 @@ local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
+local GameTooltip = _G.GameTooltip
 local GetCursorPosition = _G.GetCursorPosition
 local UIParent = _G.UIParent
 
@@ -266,6 +267,29 @@ function UI.StyleRounded(frame, fill, border, radius, fillInset)
     borderSlice.SetColor(r, g, b, a)
   end
   return frame
+end
+
+--- Consume mouse over a top-level window so action bars / units / world behind it
+--- do not receive hover (and their GameTooltip does not poke through).
+function UI.BlockBehindTooltips(frame)
+  if not frame then
+    return
+  end
+  frame:EnableMouse(true)
+  if frame.EnableMouseMotion then
+    frame:EnableMouseMotion(true)
+  end
+  if frame.SetPropagateMouseMotion then
+    frame:SetPropagateMouseMotion(false)
+  end
+  if frame.SetPropagateMouseClicks then
+    frame:SetPropagateMouseClicks(false)
+  end
+  frame:HookScript("OnEnter", function()
+    if GameTooltip and GameTooltip:IsShown() then
+      GameTooltip:Hide()
+    end
+  end)
 end
 
 --- Rounded BACKGROUND hover wash for option rows. Textures are parented to `frame` (so

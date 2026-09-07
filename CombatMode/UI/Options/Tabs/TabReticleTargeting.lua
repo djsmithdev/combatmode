@@ -2,10 +2,10 @@
 --  UI/Options/Tabs/TabReticleTargeting.lua — OPTIONS TAB — reticle targeting
 ---------------------------------------------------------------------------------------
 --  What it does: Wires Reticle Targeting enable (reload + ConfigReticleTargeting),
---  enemy-only preline mode, Auto Target Lock (selects auto-lock preline pair),
---  macroInjectionClickCastOnly, exclude / cast-at-crosshair spell multi-selects,
---  Target Lock keybinds / marker / autofocus, and Advanced buttons that open
---  the Reticle CVar editor and Targeting Macro Prelines editor.
+--  enemy-only preline mode, macroInjectionClickCastOnly, exclude / cast-at-crosshair
+--  spell multi-selects, Target Lock (keybinds, Auto Target Lock, marker, autofocus),
+--  and Advanced buttons that open the Reticle CVar editor and Targeting Macro
+--  Prelines editor.
 --  Architecture / how it works:
 --    • DB.char: reticleTargeting, reticleTargetingEnemyOnly, autoTargetLockOnAttack,
 --      macroInjectionClickCastOnly, stickyCrosshair, excludeFromTargetingSpells,
@@ -70,23 +70,6 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.char.reticleTargetingEnemyOnly = value
-        ReloadUI()
-      end,
-      disabled = function()
-        return not CM.DB.char.reticleTargeting
-      end,
-    })
-    ctx:Toggle({
-      label = "Auto Target Lock",
-      desc = "Target Lock engages automatically when attacking units.",
-      charSpecific = true,
-      confirm = true,
-      confirmText = RELOAD_CONFIRM,
-      get = function()
-        return CM.DB.char.autoTargetLockOnAttack
-      end,
-      set = function(value)
-        CM.DB.char.autoTargetLockOnAttack = value
         ReloadUI()
       end,
       disabled = function()
@@ -196,6 +179,23 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
+      label = "Auto Target Lock",
+      desc = "Target Lock engages automatically when attacking units.",
+      charSpecific = true,
+      confirm = true,
+      confirmText = RELOAD_CONFIRM,
+      get = function()
+        return CM.DB.char.autoTargetLockOnAttack
+      end,
+      set = function(value)
+        CM.DB.char.autoTargetLockOnAttack = value
+        ReloadUI()
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Toggle({
       label = "Target Lock Marker",
       desc = "Show a crosshair marker on the nameplate of the locked target.",
       get = function()
@@ -215,8 +215,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Autofocus Locked Target",
-      desc = "Pulls the camera toward your locked target.",
+      label = "Focus Locked Target",
+      desc = "Pulls the camera toward your locked target, keeping it in focus.",
       get = function()
         return CM.DB.global.autofocusLockedTarget ~= false
       end,
@@ -226,14 +226,8 @@ UI.Options.AddTab({
           CM.SyncTargetFocusFromFocusUnit()
         end
       end,
-      watermarkWhenDisabled = function()
-        if CM.DynamicCam then
-          return "Control relinquished to DynamicCam"
-        end
-        return nil
-      end,
       disabled = function()
-        return CM.DynamicCam or not CM.DB.char.reticleTargeting
+        return not CM.DB.char.reticleTargeting
       end,
     })
 
