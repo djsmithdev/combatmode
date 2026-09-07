@@ -8,8 +8,9 @@
 --  ReticleTargetingCVarEditorExcluded keys the editor must not show.
 --  Architecture / how it works:
 --    • ReticleTargetingCVarValues — SoftTarget*, deselectOnClick, CursorStickyCentering, etc.
---    • InteractionHUDSoftTargetCVarValues — SoftTargetInteract + icon CVars when HUD is on
---      without full reticle targeting.
+--    • InteractionHUDSoftTargetCVarValues — SoftTargetInteract subset when HUD is on
+--      without full reticle targeting. SoftTargetIconInteract/GameObject are never written.
+--      SoftTargetIconEnemy stays in the full reticle preset only.
 --    • MouseLookCameraLockedValues — MS off while locked. Shoulder unlock is tweened
 --      (SetShoulderOffset), not a snap table.
 --    • TargetFocusCVarValues (+ Blizzard* counterparts).
@@ -50,10 +51,8 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["SoftTargetFriendRange"] = 60,
   -- SoftTarget Nameplate
   ["SoftTargetNameplateEnemy"] = 0, -- Always show nameplates  for soft target enemy.
-  -- SoftTarget Icon
+  -- SoftTarget Icon (enemy only — Interact/GameObject left to Accessibility / player).
   ["SoftTargetIconEnemy"] = 0,
-  ["SoftTargetIconInteract"] = 0, -- We don't seem to need this to be enabled for the interaction HUD to work properly.
-  ["SoftTargetIconGameObject"] = 0, -- Wedon't seem to need this to be enabled for the interaction HUD to work properly.
   -- cursor centering
   ["CursorFreelookCentering"] = 0, -- !BUG: needs to be set to 0 initially because Blizzard broke something in 10.2, otherwise it wll cause the camera to jolt the equivalent vector to the centered cursor position from where your cursor was before locking.
   ["CursorStickyCentering"] = 1, -- !BUG: we can't use it due to the issue described above. Fore more info, see: https://github.com/Stanzilla/WoWUIBugs/issues/504
@@ -70,13 +69,12 @@ CM.Constants.ReticleTargetingCVarEditorExcluded = {
 
 -- Minimal SoftTarget CVars so the Interaction HUD (softinteract) works when Reticle Targeting
 -- is off; full stack remains CM.ConfigReticleTargeting("combatmode").
+-- SoftTargetIconInteract/GameObject are never written by Combat Mode.
 CM.Constants.InteractionHUDSoftTargetCVarValues = {
   ["interactKeyWarningTutorial"] = 1,
   ["SoftTargetInteract"] = 3,
   ["SoftTargetInteractArc"] = 1,
   ["SoftTargetInteractRange"] = 15,
-  ["SoftTargetIconInteract"] = 0,
-  ["SoftTargetIconGameObject"] = 0,
 }
 
 -- CVARS FOR MOUSE LOOK CAMERA (shoulder, dynamic pitch pads, motion sickness)
@@ -118,8 +116,6 @@ CM.Constants.BlizzardReticleTargetingCVarValues = {
   ["SoftTargetInteractArc"] = 0,
   ["SoftTargetInteractRange"] = 10,
   ["SoftTargetIconEnemy"] = 0,
-  ["SoftTargetIconGameObject"] = 0,
-  ["SoftTargetIconInteract"] = 0,
   ["CursorStickyCentering"] = 0,
 }
 

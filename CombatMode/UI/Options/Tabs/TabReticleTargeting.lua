@@ -217,8 +217,14 @@ UI.Options.AddTab({
     ctx:Toggle({
       label = "Focus Locked Target",
       desc = "Pulls the camera toward your locked target, keeping it in focus.",
+      watermarkWhenDisabled = function()
+        if CM.DB.global.respectMotionSickness == true then
+          return "Disabled while Motion Sickness Protection is on"
+        end
+        return nil
+      end,
       get = function()
-        return CM.DB.global.autofocusLockedTarget ~= false
+        return CM.DB.global.autofocusLockedTarget == true
       end,
       set = function(value)
         CM.DB.global.autofocusLockedTarget = value
@@ -227,7 +233,7 @@ UI.Options.AddTab({
         end
       end,
       disabled = function()
-        return not CM.DB.char.reticleTargeting
+        return not CM.DB.char.reticleTargeting or CM.DB.global.respectMotionSickness == true
       end,
     })
 

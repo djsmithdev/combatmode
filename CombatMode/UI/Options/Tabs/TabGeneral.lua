@@ -1,14 +1,16 @@
 ---------------------------------------------------------------------------------------
---  UI/Options/Tabs/TabGeneral.lua — OPTIONS TAB — Mouse Look / Interact
+--  UI/Options/Tabs/TabGeneral.lua — OPTIONS TAB — Mouse Look / Camera / Interact
 ---------------------------------------------------------------------------------------
 --  What it does: Wires General-tab controls to freelook and interact binds:
 --  Mouse Look keybind, pulseCursor, hideTooltip, turn speed, sheath weapons,
---  shoulder offset (+ optional link to Mouse Look), dynamic pitch, vignette,
---  Interact keybind + interactUnit.
+--  vignette; Camera Features (respectMotionSickness, dynamic pitch, shoulder offset,
+--  disable offset with mouselook); Interact keybind + interactUnit.
 --  Architecture / how it works:
 --    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed, dynamicPitch, vignette,
---      shoulderFollowsMouseLook, sheathWeaponsWithMouselook, interactUnit;
---      char.shoulderOffset.
+--      respectMotionSickness, shoulderFollowsMouseLook, sheathWeaponsWithMouselook,
+--      interactUnit; char.shoulderOffset.
+--    • Motion Sickness Protection disables ActionCam-owned Camera Features (pitch /
+--      shoulder / focus). Disable Offset With Mouselook stays editable under DynamicCam.
 --    • Keybind sets go through TryApplyBindingChange + AssignNamedKeybind (clears Interact
 --      orphans on the stolen key and refreshes Target Lock / Cycle Lock override layers).
 --    • Interact rebind clears both INTERACTMOUSEOVER and INTERACTTARGET then assigns
@@ -44,6 +46,25 @@ local INTERACT_UNIT_VALUES = {
   target = "Soft Targeted Unit - More forgiving",
 }
 local INTERACT_UNIT_ORDER = { "mouseover", "target" }
+
+local function RespectMotionSicknessOn()
+  return CM.DB.global.respectMotionSickness == true
+end
+
+--- Watermark when camera ActionCam controls are locked by DynamicCam or Respect MS.
+local function CameraFeatureWatermark()
+  if CM.DynamicCam then
+    return "Control relinquished to DynamicCam"
+  end
+  if RespectMotionSicknessOn() then
+    return "Disabled while Motion Sickness Protection is on"
+  end
+  return nil
+end
+
+local function CameraFeatureDisabled()
+  return CM.DynamicCam or RespectMotionSicknessOn()
+end
 
 --- Primary + alternate interact binding commands from CM.DB.global.interactUnit.
 local function GetInteractCommands()
@@ -125,6 +146,24 @@ UI.Options.AddTab({
         end,
       })
     end
+    ctx:Slider({
+      label = "Turn Speed",
+      desc = "Controls how quickly the camera turns while using Mouse Look.",
+      min = 10,
+      max = 180,
+      step = 10,
+      watermarkWhenDisabled = "Control relinquished to DynamicCam",
+      get = function()
+        return CM.DB.global.mouseLookSpeed
+      end,
+      set = function(value)
+        CM.DB.global.mouseLookSpeed = value
+        CM.SetMouseLookSpeed()
+      end,
+      disabled = function()
+        return CM.DynamicCam
+      end,
+    })
     ctx:Toggle({
       label = "Cursor Pulse",
       desc = "Flash the cursor when Mouse Look is turned off.",
@@ -133,6 +172,20 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.global.pulseCursor = value
+      end,
+    })
+    ctx:Toggle({
+      label = "Vignette Effect",
+      desc = "Darkens the edges of the screen while Mouse Look is on.",
+      get = function()
+        return CM.DB.global.vignette == true
+      end,
+      set = function(value)
+        if CM.SetVignetteEnabled then
+          CM.SetVignetteEnabled(value)
+        else
+          CM.DB.global.vignette = value
+        end
       end,
     })
     ctx:Toggle({
@@ -158,42 +211,27 @@ UI.Options.AddTab({
         CM.DB.global.sheathWeaponsWithMouselook = value
       end,
     })
+
+    ctx:Gap()
+    ctx:Header("CAMERA FEATURES")
+
     ctx:Toggle({
-      label = "Vignette Effect",
-      desc = "Darkens the edges of the screen while Mouse Look is on.",
+      label = "Motion Sickness Protection",
+      desc = "Prevents Combat Mode from overriding Blizzard's Motion Sickness settings.",
       get = function()
-        return CM.DB.global.vignette == true
+        return RespectMotionSicknessOn()
       end,
       set = function(value)
-        if CM.SetVignetteEnabled then
-          CM.SetVignetteEnabled(value)
-        else
-          CM.DB.global.vignette = value
+        CM.DB.global.respectMotionSickness = value
+        if CM.ApplyMotionSicknessProtectionState then
+          CM.ApplyMotionSicknessProtectionState()
         end
-      end,
-    })
-    ctx:Slider({
-      label = "Turn Speed",
-      desc = "Controls how quickly the camera turns while using Mouse Look.",
-      min = 10,
-      max = 180,
-      step = 10,
-      watermarkWhenDisabled = "Control relinquished to DynamicCam",
-      get = function()
-        return CM.DB.global.mouseLookSpeed
-      end,
-      set = function(value)
-        CM.DB.global.mouseLookSpeed = value
-        CM.SetMouseLookSpeed()
-      end,
-      disabled = function()
-        return CM.DynamicCam
       end,
     })
     ctx:Toggle({
       label = "Dynamic Pitch",
       desc = "Dynamically tilt the camera up and down as you move it.",
-      watermarkWhenDisabled = "Control relinquished to DynamicCam",
+      watermarkWhenDisabled = CameraFeatureWatermark,
       get = function()
         return CM.DB.global.dynamicPitch ~= false
       end,
@@ -203,18 +241,16 @@ UI.Options.AddTab({
           CM.SetDynamicPitch()
         end
       end,
-      disabled = function()
-        return CM.DynamicCam
-      end,
+      disabled = CameraFeatureDisabled,
     })
     ctx:Slider({
       label = "Shoulder Offset",
-      desc = "Camera's horizontal position relative to character. Forced to 0 while mounted.",
+      desc = "Camera's horizontal position relative to the character.",
       charSpecific = true,
       min = -2,
       max = 2,
       step = 0.1,
-      watermarkWhenDisabled = "Control relinquished to DynamicCam",
+      watermarkWhenDisabled = CameraFeatureWatermark,
       get = function()
         return CM.DB.char.shoulderOffset or 1.2
       end,
@@ -224,14 +260,19 @@ UI.Options.AddTab({
           CM.SetShoulderOffset()
         end
       end,
-      disabled = function()
-        return CM.DynamicCam
-      end,
+      disabled = CameraFeatureDisabled,
     })
     ctx:Toggle({
       label = "Disable Offset With Mouselook",
-      desc = "Eases Shoulder Offset to 0 when disabling Mouse Look."
+      desc = "Shoulder Offset eases to 0 when disabling Mouse Look."
         .. "\nWhen off, Shoulder Offset stays constant at all times.",
+      -- Still editable with DynamicCam (unlock→0 / restore path); only MS Protection locks it.
+      watermarkWhenDisabled = function()
+        if RespectMotionSicknessOn() then
+          return "Disabled while Motion Sickness Protection is on"
+        end
+        return nil
+      end,
       get = function()
         return CM.DB.global.shoulderFollowsMouseLook == true
       end,
@@ -241,6 +282,7 @@ UI.Options.AddTab({
           CM.SetShoulderOffset()
         end
       end,
+      disabled = RespectMotionSicknessOn,
     })
 
     ctx:Gap()

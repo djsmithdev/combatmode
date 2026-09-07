@@ -8,8 +8,8 @@
 --  Architecture / how it works:
 --    • global: free-look / crosshair / Interaction HUD / Assisted Combat / reticle /
 --      click-cast bindings / auto-unlock / Mouse Look camera (mouseLookSpeed,
---      dynamicPitch, vignette, shoulderFollowsMouseLook, autofocusLockedTarget) /
---      partyRadial / debug.
+--      dynamicPitch, vignette, shoulderFollowsMouseLook, respectMotionSickness,
+--      autofocusLockedTarget) / partyRadial / debug.
 --      Crosshair also stores crosshairSituationalCondition + crosshairSituationalAppearance.
 --    • char: reticle targeting, click-cast bindings, useGlobalBindings, shoulderOffset.
 --    • MigrateMouseLookCameraDB (CVarManager) seeds shoulder/dynamicPitch from legacy
@@ -83,7 +83,7 @@ CM.Constants.DatabaseDefaults = {
     sheathWeaponsWithMouselook = false,
     interactUnit = "mouseover",
     showTargetLockMarker = true,
-    autofocusLockedTarget = true, -- Target Focus Enemy while focus exists
+    autofocusLockedTarget = false, -- Target Focus Enemy while focus exists
     -- crosshair
     crosshair = true,
     crosshairCastFeedback = true,
@@ -138,6 +138,8 @@ return false
     vignette = true,
     -- Ease shoulder with Mouse Look chrome when on (default off = keep configured offset).
     shoulderFollowsMouseLook = false,
+    -- When true, never force Motion Sickness ActionCam gates off (Accessibility honored).
+    respectMotionSickness = false,
     -- radial
     partyRadial = {
       enabled = true,

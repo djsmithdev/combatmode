@@ -1280,7 +1280,18 @@ function UI.MakeSlider(parent, opts)
     ClearHoverIfDisabled(row, disabled)
     if control.watermark then
       if disabled then
-        control.watermark:Show()
+        local mark = opts.watermarkWhenDisabled
+        if type(mark) == "function" then
+          mark = mark()
+        end
+        if type(mark) == "string" and mark ~= "" then
+          if control.watermark.stamp then
+            control.watermark.stamp:SetText(UI.StripColors(mark) or "")
+          end
+          control.watermark:Show()
+        else
+          control.watermark:Hide()
+        end
       else
         control.watermark:Hide()
       end
@@ -1290,9 +1301,13 @@ function UI.MakeSlider(parent, opts)
   AddRowHover(row, opts, slider)
   AttachOptionText(control, row, opts, 22)
 
-  -- DynamicCam-style stamp over the whole row while this field is disabled by DynamicCam.
-  if opts.watermarkWhenDisabled and opts.watermarkWhenDisabled ~= "" then
-    control.watermark = UI.CreateWatermark(row, opts.watermarkWhenDisabled, UI.Fonts.nav)
+  -- Optional stamp over the row while disabled (string or function returning string/nil).
+  local markOpt = opts.watermarkWhenDisabled
+  local markInitial = type(markOpt) == "function" and markOpt() or markOpt
+  if type(markInitial) == "string" and markInitial ~= "" then
+    control.watermark = UI.CreateWatermark(row, markInitial, UI.Fonts.nav)
+  elseif type(markOpt) == "function" then
+    control.watermark = UI.CreateWatermark(row, "Unavailable", UI.Fonts.nav)
   end
 
   return Register(control)

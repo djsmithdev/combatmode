@@ -19,6 +19,9 @@
 --      CameraKeepCharacterCentered / CameraReduceUnexpectedMovement at 0 while pitch,
 --      autofocus, or owned shoulder needs ActionCam (not freelook alone — toggling MS
 --      with Mouse Look snaps skyriding FOV/zoom). Never re-enable MS while flying.
+--      global.respectMotionSickness (Motion Sickness Protection): restore MS from snapshot
+--      and suppress Dynamic Pitch / Shoulder Offset / Target Focus CVar writes (options stay
+--      saved; turning Protection off re-applies them).
 --    • SetShoulderOffset — tweens test_cameraOverShoulder with Vignette duration.
 --      Intent (slider / DC snapshot) is separate from the live blend. Optional
 --      global.shoulderFollowsMouseLook (default off): when on, ease with Mouse Look
@@ -26,7 +29,7 @@
 --      unlock→0 / restore; otherwise relinquish.
 --      Mid-tween toggles retarget; never treat a mid-blend CVar sample as intent.
 --    • SyncTargetFocusFromFocusUnit — Autofocus Locked Target (kept with DynamicCam;
---      forces MS ActionCam gates off while focus+option active so Target Focus works).
+--      forces MS off while focus+option active unless Motion Sickness Protection).
 --    • ConfigStickyCrosshair: Blizzard-reset helper for Uninstall only.
 --    • SetCursorFreelookCenteringCVar + SetCursorCenteredYPos — FreeLook bounce + Y sync.
 --  Does not: Own SoftTarget UI widgets or freelook state machine.
@@ -96,7 +99,7 @@ function CM.CapturePriorCVarSnapshot()
   end
   -- Once a populated snapshot exists, never overwrite it. On subsequent logins CM's own
   -- CVar values are already live, so re-capturing would contaminate the snapshot with
-  -- CM values and break Uninstall (the reported SoftTargetIconInteract / GameObject bug).
+  -- CM values and break Uninstall.
   if SnapshotIsPopulated(globalDB.priorCVarSnapshot) then
     return
   end
@@ -139,12 +142,6 @@ function CM.RestorePriorCVars()
     -- Freelook centering must never linger after uninstall; force off even if missing.
     SetCVar("CursorFreelookCentering", snap.CursorFreelookCentering or 0)
     CM.DebugPrint("Restored prior CVar snapshot (" .. CountKeys(snap) .. " keys).")
-    -- SoftTarget icon CVars are always forced to Blizzard defaults (0) on uninstall.
-    -- These are set exclusively by CM; existing snapshots may be contaminated with CM's own
-    -- values from a previous login, leaving icons on after uninstall (reported bug).
-    -- Always reset to 0 regardless of snapshot contents.
-    SetCVar("SoftTargetIconInteract", 0)
-    SetCVar("SoftTargetIconGameObject", 0)
   else
     CM.DebugPrint("No prior CVar snapshot — falling back to Blizzard preset tables.")
     CM.ConfigReticleTargeting("blizzard")
@@ -359,6 +356,12 @@ local function ShoulderFollowsMouseLook()
   return g and g.shoulderFollowsMouseLook == true
 end
 
+--- Motion Sickness Protection: do not drive ActionCam feature CVars / leave MS alone.
+local function RespectMotionSickness()
+  local g = CM.DB and CM.DB.global
+  return g and g.respectMotionSickness == true
+end
+
 local function ShoulderFadeDuration()
   return (CM.Constants and CM.Constants.MouseLookCameraFadeDuration) or 0.35
 end
@@ -391,6 +394,13 @@ end
 
 --- Desired shoulder, or nil to stop writing (DynamicCam owns the CVar).
 local function DesiredShoulderOffset()
+  -- Protection clears CM-owned shoulder; with DynamicCam, stop writing entirely.
+  if RespectMotionSickness() then
+    if CM.DynamicCam then
+      return nil
+    end
+    return 0
+  end
   if not ShoulderFollowsMouseLook() then
     if CM.DynamicCam then
       return nil
@@ -586,11 +596,14 @@ local function ShoulderNeedsActionCam()
 end
 
 local function NeedActionCamMotionSicknessOff()
+  if RespectMotionSickness() then
+    return false
+  end
   local g = CM.DB and CM.DB.global
   if g and g.dynamicPitch ~= false then
     return true
   end
-  if g and g.autofocusLockedTarget ~= false and UnitExists and UnitExists("focus") == true then
+  if g and g.autofocusLockedTarget == true and UnitExists and UnitExists("focus") == true then
     return true
   end
   if ShoulderNeedsActionCam() then
@@ -599,32 +612,70 @@ local function NeedActionCamMotionSicknessOff()
   return false
 end
 
+local function MotionSicknessReleaseValues()
+  local snap = CM.DB and CM.DB.global and CM.DB.global.priorCVarSnapshot
+  if type(snap) == "table" then
+    local keep = tonumber(snap.CameraKeepCharacterCentered)
+    local reduce = tonumber(snap.CameraReduceUnexpectedMovement)
+    if keep ~= nil and reduce ~= nil then
+      return keep, reduce
+    end
+  end
+  return 1, 1
+end
+
+local function WriteMotionSicknessCVars(keep, reduce)
+  local curKeep = tonumber(GetCVar("CameraKeepCharacterCentered"))
+  local curReduce = tonumber(GetCVar("CameraReduceUnexpectedMovement"))
+  if curKeep == keep and curReduce == reduce then
+    return
+  end
+  CM.SetCVar("CameraKeepCharacterCentered", keep)
+  CM.SetCVar("CameraReduceUnexpectedMovement", reduce)
+end
+
+--- Restore MS CVars from prior snapshot (or Blizzard-on defaults). Used when enabling
+--- respectMotionSickness or when ActionCam no longer needs MS off.
+function CM.RestoreMotionSicknessFromSnapshot()
+  if CM.DynamicCam then
+    return
+  end
+  local keep, reduce = MotionSicknessReleaseValues()
+  WriteMotionSicknessCVars(keep, reduce)
+end
+
 function CM.ApplyActionCamMotionSicknessGate()
   if CM.DynamicCam then
     return
   end
+  if RespectMotionSickness() then
+    CM.RestoreMotionSicknessFromSnapshot()
+    return
+  end
   local off = NeedActionCamMotionSicknessOff()
-  local v = off and 0 or 1
-  -- Re-enabling MS (1) mid-air snaps skyriding camera; leave CVars alone until grounded.
-  if v == 1 and IsFlying and IsFlying() then
-    return
+  local keep, reduce
+  if off then
+    keep, reduce = 0, 0
+  else
+    -- Re-enabling MS mid-air snaps skyriding camera; leave CVars alone until grounded.
+    if IsFlying and IsFlying() then
+      return
+    end
+    keep, reduce = MotionSicknessReleaseValues()
   end
-  local keep = tonumber(GetCVar("CameraKeepCharacterCentered"))
-  local reduce = tonumber(GetCVar("CameraReduceUnexpectedMovement"))
-  if keep == v and reduce == v then
-    return
-  end
-  CM.SetCVar("CameraKeepCharacterCentered", v)
-  CM.SetCVar("CameraReduceUnexpectedMovement", v)
+  WriteMotionSicknessCVars(keep, reduce)
 end
 
 --- Sticky Dynamic Pitch (option-gated, not freelook). Pads + master CVar + MS gate
---- so unlock / option toggles actually take effect.
+--- so unlock / option toggles actually take effect. Forced off under Motion Sickness Protection.
 function CM.SetDynamicPitch()
   if CM.DynamicCam then
     return
   end
-  local wantPitch = CM.DB and CM.DB.global and CM.DB.global.dynamicPitch ~= false
+  local wantPitch = CM.DB
+    and CM.DB.global
+    and CM.DB.global.dynamicPitch ~= false
+    and not RespectMotionSickness()
   if wantPitch then
     ApplyDynamicPitchPads()
   end
@@ -655,9 +706,10 @@ end
 --- Kept even with DynamicCam: Target Lock autofocus is a Combat Mode feature, not a
 --- camera-preset handoff. When active, force motion-sickness ActionCam gates off —
 --- Target Focus is a no-op while those CVars are 1. When inactive with DC, leave MS alone.
+--- Motion Sickness Protection forces Target Focus off (option value preserved).
 function CM.SyncTargetFocusFromFocusUnit()
   local g = CM.DB and CM.DB.global
-  local optOn = g and g.autofocusLockedTarget ~= false
+  local optOn = g and g.autofocusLockedTarget == true and not RespectMotionSickness()
   local want = optOn and UnitExists and UnitExists("focus") == true
   local strengths = CM.Constants.TargetFocusCVarValues
   if strengths then
@@ -672,9 +724,24 @@ function CM.SyncTargetFocusFromFocusUnit()
   end
   CM.SetCVar("test_cameraTargetFocusEnemyEnable", want and 1 or 0)
   if want then
-    CM.SetCVar("CameraKeepCharacterCentered", 0)
-    CM.SetCVar("CameraReduceUnexpectedMovement", 0)
+    WriteMotionSicknessCVars(0, 0)
   elseif not CM.DynamicCam then
+    CM.ApplyActionCamMotionSicknessGate()
+  end
+end
+
+--- Re-apply ActionCam feature CVars after Motion Sickness Protection toggles (or login).
+function CM.ApplyMotionSicknessProtectionState()
+  if CM.SetDynamicPitch then
+    CM.SetDynamicPitch()
+  end
+  if CM.SetShoulderOffset then
+    CM.SetShoulderOffset()
+  end
+  if CM.SyncTargetFocusFromFocusUnit then
+    CM.SyncTargetFocusFromFocusUnit()
+  end
+  if not CM.DynamicCam then
     CM.ApplyActionCamMotionSicknessGate()
   end
 end

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.6] - 2026-09-07
+
+### Added
+
+- **Motion Sickness Protection** (General → Camera Features, default off): when on, Combat Mode never overrides Blizzard's Motion Sickness settings. Dynamic Pitch, Shoulder Offset, and Focus Locked Target will not take effect while this is on.
+
+### Changed
+
+- General → **Camera Features** groups Motion Sickness Protection, Dynamic Pitch, Shoulder Offset, and Disable Offset With Mouselook. Those ActionCam controls grey out while Motion Sickness Protection is on (or DynamicCam owns them).
+- **Focus Locked Target** defaults to off.
+- Combat Mode no longer writes `SoftTargetIconInteract` / `SoftTargetIconGameObject` (including uninstall). Blizzard's Accessibility Interaction Key Icons setting can now stick after a reload. `SoftTargetIconEnemy` remains forced off so it does not stack with the reticle.
+
 ## [4.6.5] - 2026-09-07
 
 ### Fixed
@@ -442,6 +454,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
 [Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.6.5...HEAD
+[4.6.6]: https://github.com/djsmithdev/combatmode/compare/4.6.5...4.6.6
 [4.6.5]: https://github.com/djsmithdev/combatmode/compare/4.6.4...4.6.5
 [4.6.4]: https://github.com/djsmithdev/combatmode/compare/4.6.3...4.6.4
 [4.6.3]: https://github.com/djsmithdev/combatmode/compare/4.6.2...4.6.3
