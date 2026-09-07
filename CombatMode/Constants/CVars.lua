@@ -80,9 +80,10 @@ CM.Constants.InteractionHUDSoftTargetCVarValues = {
 }
 
 -- CVARS FOR MOUSE LOOK CAMERA (shoulder, dynamic pitch pads, motion sickness)
--- Shoulder + MS toggle with Mouse Look lock/unlock. Dynamic pitch is sticky with the
--- option (SetDynamicPitch) — not cleared on unlock (flying snaps if the master CVar
--- flips mid-air). No FOV/zoom ownership.
+-- Dynamic pitch is sticky with the option (SetDynamicPitch) — not cleared on unlock
+-- (flying snaps if the master CVar flips mid-air). MS ActionCam gates follow pitch /
+-- autofocus / owned shoulder — not freelook alone (that also snaps skyriding).
+-- No FOV/zoom ownership.
 -- https://warcraft.wiki.gg/wiki/CVar_ActionCam
 CM.Constants.MouseLookCameraPitchBase = 0.4
 CM.Constants.MouseLookCameraPitchFlying = 0.75
@@ -91,8 +92,8 @@ CM.Constants.MouseLookCameraPitchSmartPivotCutoff = 39
 -- Shared with Vignette fade so shoulder ease matches edge darkening.
 CM.Constants.MouseLookCameraFadeDuration = 0.35
 
--- Motion-sickness off while locked (required for shoulder offset to take effect).
--- Dynamic Pitch / Target Focus also need these at 0; see ApplyActionCamMotionSicknessGate.
+-- Motion-sickness off while ActionCam features need it (shoulder / pitch / autofocus).
+-- See ApplyActionCamMotionSicknessGate — not toggled by freelook alone.
 CM.Constants.MouseLookCameraLockedValues = {
   ["CameraKeepCharacterCentered"] = 0,
   ["CameraReduceUnexpectedMovement"] = 0,

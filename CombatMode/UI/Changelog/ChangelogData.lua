@@ -14,6 +14,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.5] - 2026-09-07
+
+### Fixed
+
+- With **Dynamic Pitch** off (no DynamicCam), toggling Mouse Look while skyriding no longer snaps the camera (motion-sickness ActionCam gates are no longer flipped by freelook alone).
+
 ## [4.6.4] - 2026-09-07
 
 ### Changed
@@ -23,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Autofocus Locked Target** works when **DynamicCam** is loaded (no longer relinquished; Target Focus CVars sync with focus, and motion-sickness gates are forced off while autofocus is active).
-- Options / editor windows block mouse so action-bar and unit tooltips behind the panel no longer show through.
+- Options / editor windows block mouse so tooltips behind the panel no longer show through.
 
 ## [4.6.3] - 2026-09-07
 
@@ -444,7 +450,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.6.4...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.6.5...HEAD
+[4.6.5]: https://github.com/djsmithdev/combatmode/compare/4.6.4...4.6.5
 [4.6.4]: https://github.com/djsmithdev/combatmode/compare/4.6.3...4.6.4
 [4.6.3]: https://github.com/djsmithdev/combatmode/compare/4.6.2...4.6.3
 [4.6.2]: https://github.com/djsmithdev/combatmode/compare/4.6.1...4.6.2

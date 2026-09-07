@@ -16,8 +16,9 @@
 --    • GetEffectiveReticleTargetingCVarValues = preset ∪ global.reticleTargetingCVarOverrides.
 --    • ApplyMouseLookCamera / ClearMouseLookCamera — lock vs unlock (shoulder; MS via gate).
 --    • SetDynamicPitch — sticky with the option; ApplyActionCamMotionSicknessGate keeps
---      CameraKeepCharacterCentered / CameraReduceUnexpectedMovement at 0 while pitch (or
---      freelook / autofocus) needs ActionCam, otherwise Blizzard suppresses pitch.
+--      CameraKeepCharacterCentered / CameraReduceUnexpectedMovement at 0 while pitch,
+--      autofocus, or owned shoulder needs ActionCam (not freelook alone — toggling MS
+--      with Mouse Look snaps skyriding FOV/zoom). Never re-enable MS while flying.
 --    • SetShoulderOffset — tweens test_cameraOverShoulder with Vignette duration.
 --      Intent (slider / DC snapshot) is separate from the live blend. Optional
 --      global.shoulderFollowsMouseLook (default off): when on, ease with Mouse Look
@@ -41,6 +42,7 @@ local _G = _G
 local CreateFrame = _G.CreateFrame
 local GetCVar = _G.C_CVar.GetCVar
 local GetCVarDefault = _G.C_CVar.GetCVarDefault
+local IsFlying = _G.IsFlying
 local IsMounted = _G.IsMounted
 local UnitExists = _G.UnitExists
 
@@ -571,15 +573,27 @@ end
 
 --- ActionCam features (dynamic pitch, shoulder, target focus) are no-ops while
 --- CameraKeepCharacterCentered / CameraReduceUnexpectedMovement are 1.
-local function NeedActionCamMotionSicknessOff()
-  if CM.IsMouselooking and CM.IsMouselooking() then
-    return true
+--- Do not key this off freelook alone: flipping MS with Mouse Look lock/unlock snaps
+--- skyriding FOV/zoom when Dynamic Pitch is off (pitch-on keeps MS sticky at 0).
+local function ShoulderNeedsActionCam()
+  if CM.DynamicCam then
+    return false
   end
+  if ShoulderFollowsMouseLook() then
+    return IsCameraChromeOn()
+  end
+  return not NearlyEqual(ConfiguredShoulderOffset(), 0)
+end
+
+local function NeedActionCamMotionSicknessOff()
   local g = CM.DB and CM.DB.global
   if g and g.dynamicPitch ~= false then
     return true
   end
   if g and g.autofocusLockedTarget ~= false and UnitExists and UnitExists("focus") == true then
+    return true
+  end
+  if ShoulderNeedsActionCam() then
     return true
   end
   return false
@@ -591,6 +605,15 @@ function CM.ApplyActionCamMotionSicknessGate()
   end
   local off = NeedActionCamMotionSicknessOff()
   local v = off and 0 or 1
+  -- Re-enabling MS (1) mid-air snaps skyriding camera; leave CVars alone until grounded.
+  if v == 1 and IsFlying and IsFlying() then
+    return
+  end
+  local keep = tonumber(GetCVar("CameraKeepCharacterCentered"))
+  local reduce = tonumber(GetCVar("CameraReduceUnexpectedMovement"))
+  if keep == v and reduce == v then
+    return
+  end
   CM.SetCVar("CameraKeepCharacterCentered", v)
   CM.SetCVar("CameraReduceUnexpectedMovement", v)
 end
