@@ -9,6 +9,9 @@
 --    • GetCursorDim applies softinteract cursor art onto the host icon and returns
 --      (dimAlpha, inRange) — unable art dims to 0.5 / out of range. Texture path/id
 --      probes skip secrets (no strfind / table-key under taint).
+--    • includeLowPriority=true so quest/loot soft icons still resolve when world quest
+--      effects already decorate the NPC (otherwise SetUnitCursorTexture fails and the
+--      HUD fell back to the mechagon-projects gear atlas).
 --  Does not: Own cluster chrome, fade/range motion, SoftTarget CVar writes.
 --  Related: Core/Crosshair/InteractionHUD/{Visual,HUD}.lua, Constants/Reticle.lua
 ---------------------------------------------------------------------------------------
@@ -102,7 +105,9 @@ function Target.GetCursorDim(icon)
   if not icon then
     return 0.9, true
   end
-  if not SetUnitCursorTexture(icon, "softinteract") then
+  -- includeLowPriority: quest/loot soft icons are suppressed when world quest effects
+  -- already show; without this the call fails and we wrongly stamp the gear fallback.
+  if not SetUnitCursorTexture(icon, "softinteract", nil, true) then
     icon:SetAtlas("mechagon-projects")
   end
   icon:SetSize(IH_ICON, IH_ICON)
