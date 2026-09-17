@@ -304,7 +304,7 @@ UI.Options.AddTab({
       values = INTERACT_UNIT_VALUES,
       order = INTERACT_UNIT_ORDER,
       get = function()
-        return CM.DB.global.interactUnit or "mouseover"
+        return CM.DB.global.interactUnit or "target"
       end,
       set = function(value)
         local key = GetInteractBindingKey()

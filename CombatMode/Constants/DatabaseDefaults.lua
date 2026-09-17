@@ -81,7 +81,7 @@ CM.Constants.DatabaseDefaults = {
     pulseCursor = true,
     hideTooltip = true,
     sheathWeaponsWithMouselook = false,
-    interactUnit = "mouseover",
+    interactUnit = "target",
     showTargetLockMarker = true,
     autofocusLockedTarget = false, -- Target Focus Enemy while focus exists
     -- crosshair

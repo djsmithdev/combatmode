@@ -34,9 +34,9 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["deselectOnClick"] = 1, -- Disables Sticky Targeting. We never want this w/ soft targeting, as it interferes w/ SoftTargetForce
   ["enableMouseoverCast"] = 0, -- Disabling to avoid issues with targeting macro preline priority
   -- SoftTarget General
-  ["SoftTargetForce"] = 0, -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends
-  ["SoftTargetMatchLocked"] = 0, -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack
-  ["SoftTargetWithLocked"] = 0, -- Allows soft target selection while player has a locked target. 2 = always do soft targeting
+  ["SoftTargetForce"] = 0, -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends | 0 = soft targets are not auto-promoted to hard target
+  ["SoftTargetMatchLocked"] = 0, -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack | 0 = soft target is not forced to match the locked target
+  ["SoftTargetWithLocked"] = 2, -- Allows soft target selection while player has a locked target | 2 = soft selection is not suppressed while locked target is present
   -- SoftTarget Enemy
   ["SoftTargetEnemy"] = 3, -- Sets when enemy soft targeting should be enabled. 0=off, 1=gamepad, 2=KBM, 3=always
   ["SoftTargetEnemyArc"] = 0, -- 0 = No yaw arc allowed, must be directly in front (More precise. Harder to target far away enemies but better for prioritizing stacked targets). 1 = Must be in front of arc (Less precise. Makes targeting far away enemies easier but prioritizing gets messy with stacked mobs).
