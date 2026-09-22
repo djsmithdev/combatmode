@@ -2,8 +2,8 @@
 --  Constants/DatabaseDefaults.lua — CONSTANTS — CombatModeDB defaults
 ---------------------------------------------------------------------------------------
 --  What it does: Defines `CM.Constants.DatabaseDefaults` (global + char) merged by
---  `CM.InitDatabase` into AceDB-shaped CombatModeDB. This is the single source of truth
---  for new-install defaults across free-look, crosshair companions, click-cast, reticle,
+--  `CM.InitDatabase` into AceDB-shaped CombatModeDB. Single source of truth for
+--  new-install defaults across free-look, crosshair companions, click-cast, reticle,
 --  and Ally Cycle.
 --  Architecture / how it works:
 --    • global: free-look / crosshair / Interaction HUD / Assisted Combat / reticle /
@@ -12,6 +12,8 @@
 --      autofocusLockedTarget) / allyCycle / debug.
 --      Crosshair also stores crosshairSituationalCondition + crosshairSituationalAppearance.
 --    • char: reticle targeting, click-cast bindings, useGlobalBindings, shoulderOffset.
+--    • InitDatabase merges missing keys, then coerces Forever-style 1/0 flags to real
+--      booleans wherever these defaults declare a boolean (CM.DbBool / NormalizeBools).
 --    • MigrateMouseLookCameraDB (CVarManager) seeds shoulder/dynamicPitch from legacy
 --      Action Camera profile keys once after merge.
 --    • DefaultBindings seeds button1/2 + shift/ctrl/alt mouse slots and Mouse Look toggle.

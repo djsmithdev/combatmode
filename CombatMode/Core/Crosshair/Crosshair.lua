@@ -90,14 +90,10 @@ function CM.IsCrosshairMounted()
   return IsMounted()
 end
 
--- SavedVariables may store 1/0; use this anywhere UI enablement must match "crosshair on"
--- (not strict `== true`).
+-- SavedVariables may store Forever-style 1/0; InitDatabase normalizes, DbBool is belt+suspenders.
 function CM.IsCrosshairEnabled()
   local c = CM.DB and CM.DB.global and CM.DB.global.crosshair
-  if c == nil then
-    return CM.Constants.DatabaseDefaults.global.crosshair
-  end
-  return not not c
+  return CM.DbBool(c, CM.Constants.DatabaseDefaults.global.crosshair)
 end
 
 local function CopyColorArray(source)
@@ -172,13 +168,10 @@ function CM.GetCrosshairScale()
   return CM.GetCrosshairPixelSize() / CROSSHAIR_BASE_SIZE
 end
 
--- SavedVariables may store 1/0; match "Show Interaction HUD" / DatabaseDefaults.
+-- SavedVariables may store Forever-style 1/0; match "Show Interaction HUD" / DatabaseDefaults.
 function CM.IsInteractionHUDEnabled()
   local v = CM.DB and CM.DB.global and CM.DB.global.interactionHUD
-  if v == nil then
-    return CM.Constants.DatabaseDefaults.global.interactionHUD
-  end
-  return not not v
+  return CM.DbBool(v, CM.Constants.DatabaseDefaults.global.interactionHUD)
 end
 
 CM.IsCrosshairOptionsPreviewActive = false

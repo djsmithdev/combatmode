@@ -133,7 +133,13 @@ function Visual.Tick(elapsed)
   local icon = HostIcon()
   local label = HostLabel()
   local shadow = HostShadow()
-  if not g or g.interactionHUD ~= true or not CM.IsCrosshairEnabled() or not icon or not label then
+  if
+    not g
+    or not CM.IsInteractionHUDEnabled()
+    or not CM.IsCrosshairEnabled()
+    or not icon
+    or not label
+  then
     return
   end
   -- Preview keeps the placeholder art: SetUnitCursorTexture would clear it without a target.

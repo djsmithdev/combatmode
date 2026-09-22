@@ -40,7 +40,7 @@ Ownership detail lives in **Lua file headers**. Load order: **`STRUCTURE.md`** +
 Record non-obvious fixes here (or in `combatmode-lua-safety.mdc`) — one place.
 
 - **Root frame events:** `CombatMode_OnEvent(self, event, ...)` — first arg is the frame, not the event name.
-- **DB shape:** AceDB-compatible (`CombatModeDB.global` + `char["Name - Realm"]`); defaults merge in `CM.InitDatabase`.
+- **DB shape:** AceDB-compatible (`CombatModeDB.global` + `char["Name - Realm"]`); defaults merge in `CM.InitDatabase`. Forever may store toggles as `1`/`0` — `InitDatabase` coerces those to real booleans via `CM.DbBool` / `NormalizeBools` wherever defaults declare a boolean.
 - **Cast feedback:** Animations outer `OnUpdate` (one motion); terminals via `CM.NotifyCrosshairCastTerminal`; gated by `crosshairCastFeedback`.
 - **Assisted Combat matching:** short recent-suggestion cache — `GetNextCastSpell` often advances before `UNIT_SPELLCAST_SUCCEEDED`.
 - **FlipBook / atlas VFX:** Ship rows/cols/frames/duration next to the atlas constant in the owning Lua file (see `AssistedHighlight/Motion.lua` for `UF-RogueCP-Slash-Blue`). `C_Texture.GetAtlasInfo` does **not** return FlipBook grid layout. To discover or verify: (1) TextureAtlasViewer / Blizzard UI source (`wow-ui-source`) FlipBook XML for that atlas, (2) other retail addons that already call `SetFlipBookRows` / `SetFlipBookColumns` / `SetFlipBookFrames` + duration on the same atlas name, (3) confirm visually in-game. Do **not** vendor wow-ui-source trees or atlas catalogs into this repo.

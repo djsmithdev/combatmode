@@ -7,7 +7,9 @@
 --  coordination, throttled CombatMode_OnUpdate (free-look + crosshair reaction),
 --  welcome/changelog scheduling, and UninstallCombatMode.
 --  Architecture / how it works:
---    • InitDatabase merges Constants.DatabaseDefaults into global + char["Name - Realm"].
+--    • InitDatabase merges Constants.DatabaseDefaults into global + char["Name - Realm"],
+--      then coerces Forever-style 1/0 flags to real booleans (CM.DbBool / NormalizeBools)
+--      wherever defaults declare a boolean — so == true / ~= false / if x stay correct.
 --    • GetBindingsLocation → "global" vs "char" from useGlobalBindings.
 --    • RuntimeRematch reapplies CVars/bindings/crosshair after PEW / rematch events.
 --    • OnEnable registers root-frame events (via Bootstrap path) and starts freelook.
@@ -205,6 +207,38 @@ local function DeepCopy(src)
   return copy
 end
 
+--- Coerce SavedVariables truthy flags. Forever may store 1/0 instead of true/false;
+--- Lua treats 0 as truthy, and `x == true` fails for 1 — both break feature gates.
+function CM.DbBool(value, default)
+  if value == nil then
+    return default and true or false
+  end
+  if value == false or value == 0 then
+    return false
+  end
+  if value == true or value == 1 then
+    return true
+  end
+  return not not value
+end
+
+--- Where defaults declare a boolean, rewrite Forever 1/0 (and keep real bools) in place.
+local function NormalizeBools(dest, defaults)
+  if type(dest) ~= "table" or type(defaults) ~= "table" then
+    return
+  end
+  for k, def in pairs(defaults) do
+    local cur = dest[k]
+    if type(def) == "boolean" then
+      if cur ~= nil then
+        dest[k] = CM.DbBool(cur, def)
+      end
+    elseif type(def) == "table" and type(cur) == "table" then
+      NormalizeBools(cur, def)
+    end
+  end
+end
+
 --- Fill missing keys from defaults (nested). Does not overwrite existing user values.
 local function MergeDefaults(dest, defaults)
   if type(defaults) ~= "table" then
@@ -246,12 +280,14 @@ function CM.InitDatabase()
   local sv = _G.CombatModeDB
 
   sv.global = MergeDefaults(sv.global or {}, defaults.global or {})
+  NormalizeBools(sv.global, defaults.global or {})
 
   if type(sv.char) ~= "table" then
     sv.char = {}
   end
   local charKey = GetCharKey()
   sv.char[charKey] = MergeDefaults(sv.char[charKey] or {}, defaults.char or {})
+  NormalizeBools(sv.char[charKey], defaults.char or {})
 
   BindDatabaseViews(sv, charKey)
   if CM.MigrateMouseLookCameraDB then

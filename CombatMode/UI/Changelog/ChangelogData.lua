@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Simultaneous attack + assist**: while an ally is selected, helpful Click Casting spells go to that ally; harmful spells still prefer your hostile Crosshair / Target Lock target.
 - **Ally HUD** (dedicated options tab): companion beside the crosshair for the selected ally — class-colored name, role icon, health bar, and raid marker. Configurable position (default above the reticle) and scale.
 
+### Fixed
+
+- Settings toggles on **WoW Forever** now load correctly. Forever can persist booleans as `1`/`0`; Combat Mode coerces those back to real `true`/`false` on load wherever defaults declare a boolean (Mainline unchanged).
+
 ### Removed
 
 - **Party Radial** has been removed in favour of the new Ally Cycle feature.

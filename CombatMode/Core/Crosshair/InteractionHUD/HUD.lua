@@ -296,7 +296,7 @@ end
 local function RefreshInteractionHUD()
   EnsureInteractionHUD()
   local g = CM.DB and CM.DB.global
-  if not g or g.interactionHUD ~= true then
+  if not g or not CM.IsInteractionHUDEnabled() then
     HideInteractionHUD()
     return
   end
