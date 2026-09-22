@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Settings toggles on **WoW Forever** now load correctly. Forever can persist booleans as `1`/`0`; Combat Mode coerces those back to real `true`/`false` on load wherever defaults declare a boolean (Mainline unchanged).
 
+### Changed
+
+- Declared **WoW Forever** support (`## Interface` includes `16001` alongside Mainline) so the Forever client no longer marks the addon out of date.
+
 ### Removed
 
 - **Party Radial** has been removed in favour of the new Ally Cycle feature.
