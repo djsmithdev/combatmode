@@ -6,7 +6,9 @@
 --  Changelog / Reset / Uninstall).
 --  Exposes CM.OpenOptions / Close / Toggle / GetOptionsFrame and UI.Options.AddTab.
 --  Architecture / how it works:
---    • AddTab({id, label, build, onSelect, onDeselect}) — tabs register at load;
+--    • AddTab({id, label, newFeatureFlag?, build, onSelect, onDeselect}) — tabs register
+--      at load; newFeatureFlag draws the Horde "NEW" badge on the tab button (far right).
+--      In-content headers/options use Alliance via Widgets `newFeatureFlag`.
 --      onSelect/onDeselect drive Crosshair / Ally Cycle preview.
 --    • Layout ctx passed to build() wraps Widgets factories.
 --    • Combat-guarded open where needed; not a Blizzard Settings host.
@@ -86,7 +88,7 @@ function Options.DockWindowLeft()
 end
 
 --- Tab registration entry point for UI/Options/Tabs/*.lua.
---- def = { id, label, build = function(ctx) end,
+--- def = { id, label, newFeatureFlag?, build = function(ctx) end,
 ---         onSelect = function() end, onDeselect = function() end }
 --- onSelect/onDeselect also fire when the window is shown/hidden on that tab, so tabs can
 --- own transient side effects (e.g. the Crosshair tab's live reticle preview).
@@ -526,6 +528,8 @@ local function SelectTab(tab)
   end
 end
 
+local NEW_FEATURE_BADGE_MAX_H = (UI.NewFeatureBadge and UI.NewFeatureBadge.tabMaxH) or 32
+
 local function BuildSidebarButton(def, index)
   local button = CreateFrame("Button", nil, frame)
   button:SetSize(SIDEBAR_W - 24, 28)
@@ -536,6 +540,16 @@ local function BuildSidebarButton(def, index)
   label:SetPoint("LEFT", button, "LEFT", 10, 0)
   label:SetText(UI.StripColors(def.label) or "")
   button.label = label
+
+  -- Shared "NEW" badge — Horde atlas, far right of the tab button.
+  if def.newFeatureFlag and UI.CreateNewFeatureBadge then
+    local atlas = (UI.NewFeatureBadge and UI.NewFeatureBadge.tabAtlas) or "NewCharacter-Horde"
+    local badge = UI.CreateNewFeatureBadge(button, atlas, NEW_FEATURE_BADGE_MAX_H)
+    badge:ClearAllPoints()
+    badge:SetPoint("RIGHT", button, "RIGHT", 4, 0)
+    button.badge = badge
+  end
+
   return button
 end
 

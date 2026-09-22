@@ -50,6 +50,7 @@ end
 UI.Options.AddTab({
   id = "allycycle",
   label = "Ally Cycle",
+  newFeatureFlag = true,
   onSelect = function()
     if CM.SetAllyCycleOptionsPreview then
       CM.SetAllyCycleOptionsPreview(true)
@@ -61,7 +62,7 @@ UI.Options.AddTab({
     end
   end,
   build = function(ctx)
-    ctx:Header("ALLY CYCLE")
+    ctx:Header({ text = "ALLY CYCLE", newFeatureFlag = true })
 
     ctx:Description({
       text = "Ally Cycle lets you attack enemies and assist allies simultaneously by allowing selection of group members while in Mouse Look.\n"
@@ -69,7 +70,7 @@ UI.Options.AddTab({
     })
 
     ctx:Keybind({
-      label = "Ally Cycle - Up",
+      label = "Ally Cycle - Next",
       desc = "Target the next group member.",
       get = function()
         return GetBindingKey(CM.AllyCycleBindUp or "Combat Mode - Ally Cycle Up")
@@ -87,7 +88,7 @@ UI.Options.AddTab({
       end,
     })
     ctx:Keybind({
-      label = "Ally Cycle - Down",
+      label = "Ally Cycle - Previous",
       desc = "Target the previous group member.",
       get = function()
         return GetBindingKey(CM.AllyCycleBindDown or "Combat Mode - Ally Cycle Down")
@@ -106,7 +107,7 @@ UI.Options.AddTab({
     })
 
     ctx:Gap()
-    ctx:Header("ALLY HUD")
+    ctx:Header({ text = "ALLY HUD", newFeatureFlag = true })
 
     ctx:Toggle({
       label = "Show Ally HUD",

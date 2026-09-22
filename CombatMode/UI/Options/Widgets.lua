@@ -8,6 +8,8 @@
 --    • UI.Options.controls registry; Options.Sync() refreshes values + disabled state.
 --    • Layout helpers (NewLayout) used by tabs and nested hosts (e.g. Camera/DynamicCam).
 --    • charSpecific badge + tooltips for per-character settings.
+--    • newFeatureFlag — shared "NEW" atlas badge (Alliance) beside section/option titles;
+--      sidebar tabs use the Horde atlas via OptionsPanel.
 --  Does not: Call CM feature apply functions except via tab-provided set() callbacks.
 --  Related: UI/Options/Draw.lua, UI/Options/ColorPickerDialog.lua,
 --  UI/Options/SpellMultiSelect.lua, UI/Options/OptionsPanel.lua,
@@ -576,6 +578,56 @@ local CHAR_SCOPE_MARK_GAP = 3
 local CHAR_SCOPE_MARK_COLOR = { 0.412, 0.800, 0.941 }
 local CHAR_SCOPE_TOOLTIP = "Character-specific option."
 
+-- Character-create "NEW" badge (Interface/Glues/CharacterCreate/NewCharacterNotification).
+-- Tabs use Horde; in-content headers/options use Alliance.
+UI.NewFeatureBadge = {
+  tabAtlas = "NewCharacter-Horde",
+  contentAtlas = "NewCharacter-Alliance",
+  tabMaxH = 28,
+  contentMaxH = 18,
+  headerMaxH = 28,
+  gap = 6,
+  headerGap = -4,
+}
+
+--- Sized NEW atlas texture. Caller places it (PlaceNewFeatureBadge / tab far-right).
+function UI.CreateNewFeatureBadge(parent, atlas, maxH)
+  atlas = atlas or UI.NewFeatureBadge.contentAtlas
+  maxH = maxH or UI.NewFeatureBadge.contentMaxH
+  local badge = parent:CreateTexture(nil, "OVERLAY")
+  badge:SetAtlas(atlas, true)
+  local h = badge:GetHeight() or maxH
+  local w = badge:GetWidth() or maxH
+  if h > maxH and h > 0 then
+    local scale = maxH / h
+    badge:SetSize(w * scale, maxH)
+  end
+  return badge
+end
+
+--- Sit immediately after title glyphs (same idea as the © char-scope mark).
+--- When `afterRegion` is shown (e.g. the © hit frame), place after that instead.
+--- Optional `gapOverride` (e.g. headerGap) tightens spacing for section titles.
+function UI.PlaceNewFeatureBadge(badge, label, labelW, afterRegion, gapOverride)
+  if not badge or not label then
+    return
+  end
+  badge:ClearAllPoints()
+  local gap = gapOverride
+  if gap == nil then
+    gap = UI.NewFeatureBadge.gap or 6
+  end
+  if afterRegion and afterRegion.IsShown and afterRegion:IsShown() then
+    badge:SetPoint("LEFT", afterRegion, "RIGHT", gap, 0)
+    return
+  end
+  local titleW = label:GetStringWidth() or 0
+  if labelW and titleW > labelW then
+    titleW = labelW
+  end
+  badge:SetPoint("LEFT", label, "LEFT", titleW + gap, 0)
+end
+
 --- Place the © immediately after the title glyphs (not at the right edge of the
 --- label's wrap box), vertically centered on the title line.
 local function PlaceCharScopeMark(scopeTag, label, labelW)
@@ -625,6 +677,7 @@ end
 --- icons grow to the title+helper block height (width scales with aspect) and are
 --- vertically centered against that whole column.
 --- `opts.charSpecific` places a blue © to the right of the title (bool or function).
+--- `opts.newFeatureFlag` places the Alliance "NEW" badge to the right of the title.
 --- `control.widgetH` / `control.widgetFill` / `control.textFrac` behave as elsewhere
 --- (multiline inputs use textFrac 0.40 so the box gets ~60%).
 local function AttachOptionText(control, row, opts, widgetH)
@@ -677,6 +730,11 @@ local function AttachOptionText(control, row, opts, widgetH)
     if not CharSpecificEnabled(opts) then
       hit:Hide()
     end
+  end
+
+  if opts.newFeatureFlag then
+    control.newFeatureBadge =
+      UI.CreateNewFeatureBadge(row, UI.NewFeatureBadge.contentAtlas, UI.NewFeatureBadge.contentMaxH)
   end
 
   local raw = opts.desc
@@ -786,8 +844,16 @@ local function AttachOptionText(control, row, opts, widgetH)
       PlaceIconColumn(ROW_PAD_Y + floor((bandH - iconsHeight) / 2), iconsHeight)
       row.label:ClearAllPoints()
       row.label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X + iconLead, -labelTop)
+      if control.newFeatureBadge then
+        UI.PlaceNewFeatureBadge(control.newFeatureBadge, row.label, labelW)
+      end
       if scopeShown then
-        PlaceCharScopeMark(scopeTag, row.label, labelW)
+        if control.newFeatureBadge then
+          scopeTag:ClearAllPoints()
+          scopeTag:SetPoint("LEFT", control.newFeatureBadge, "RIGHT", CHAR_SCOPE_MARK_GAP, 0)
+        else
+          PlaceCharScopeMark(scopeTag, row.label, labelW)
+        end
       end
       if widget then
         widget:ClearAllPoints()
@@ -861,8 +927,16 @@ local function AttachOptionText(control, row, opts, widgetH)
       PlaceIconColumn(textTop, textH)
       row.label:ClearAllPoints()
       row.label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X + iconLead, -textTop)
+      if control.newFeatureBadge then
+        UI.PlaceNewFeatureBadge(control.newFeatureBadge, row.label, textW)
+      end
       if scopeShown then
-        PlaceCharScopeMark(scopeTag, row.label, textW)
+        if control.newFeatureBadge then
+          scopeTag:ClearAllPoints()
+          scopeTag:SetPoint("LEFT", control.newFeatureBadge, "RIGHT", CHAR_SCOPE_MARK_GAP, 0)
+        else
+          PlaceCharScopeMark(scopeTag, row.label, textW)
+        end
       end
       if control.desc then
         control.desc:ClearAllPoints()
@@ -2242,20 +2316,48 @@ end
 ---------------------------------------------------------------------------------------
 --                              HEADER & DESCRIPTION                                 --
 ---------------------------------------------------------------------------------------
---- Section title: the one place with a larger font, always in the theme accent (yellow).
-function UI.MakeHeader(parent, text)
+--- Section title: larger font, theme accent (yellow). Accepts a string or
+--- `{ text = "...", newFeatureFlag = true }` for the Alliance "NEW" badge.
+function UI.MakeHeader(parent, textOrOpts)
+  local text = textOrOpts
+  local newFeature = false
+  if type(textOrOpts) == "table" then
+    text = textOrOpts.text or textOrOpts.label
+    newFeature = textOrOpts.newFeatureFlag and true or false
+  end
+
   local frame = CreateFrame("Frame", nil, parent)
   frame:SetHeight(26)
   local fs = UI.CreateFontString(frame, "OVERLAY", UI.Fonts.header, "GameFontNormalLarge")
   fs:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 2, 2)
   fs:SetText(UI.StripColors(text) or "")
   fs:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+
+  local badge
+  if newFeature then
+    badge = UI.CreateNewFeatureBadge(
+      frame,
+      UI.NewFeatureBadge.contentAtlas,
+      UI.NewFeatureBadge.headerMaxH or UI.NewFeatureBadge.contentMaxH
+    )
+    UI.PlaceNewFeatureBadge(badge, fs, nil, nil, UI.NewFeatureBadge.headerGap)
+  end
+
   local line = frame:CreateTexture(nil, "ARTWORK")
   line:SetColorTexture(1, 1, 1, 0.07)
   line:SetHeight(1)
   line:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
   line:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
-  return { frame = frame, height = 26 }
+
+  local control = { frame = frame, height = 26, label = fs, badge = badge }
+  -- Re-seat the badge after layout width is known (string width is reliable then).
+  function control.SetWidthTo(_width)
+    if badge then
+      UI.PlaceNewFeatureBadge(badge, fs, nil, nil, UI.NewFeatureBadge.headerGap)
+    end
+    return control.height
+  end
+  return control
 end
 
 function UI.MakeDescription(parent, textOrOpts)
