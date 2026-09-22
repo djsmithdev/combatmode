@@ -82,6 +82,9 @@ CM.InitInteractionHUD({ crosshairFrame = CrosshairFrame, crosshairTexture = Cros
 if CM.InitAssistedHighlight then
   CM.InitAssistedHighlight({ crosshairFrame = CrosshairFrame, crosshairTexture = CrosshairTexture })
 end
+if CM.InitAllyCycleHUD then
+  CM.InitAllyCycleHUD({ crosshairFrame = CrosshairFrame, crosshairTexture = CrosshairTexture })
+end
 
 function CM.IsCrosshairMounted()
   return IsMounted()
@@ -364,6 +367,9 @@ function CM.DisplayCrosshair(shouldShow)
     CM.UpdateCrosshairAssistedHighlight()
   end
   CM.RefreshInteractionHUD()
+  if CM.RefreshAllyCycleHUD then
+    CM.RefreshAllyCycleHUD()
+  end
 end
 
 function CM.CreateCrosshair()

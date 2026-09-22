@@ -13,7 +13,7 @@ Apply these guardrails for all Lua changes in this addon.
 - Guard protected paths with `InCombatLockdown()` and defer changes until safe when needed.
 - Keep secure action setup deterministic; avoid dynamic attribute churn during combat.
 - Prefer existing secure patterns already used by the addon (`SecureActionButtonTemplate`, macrotext attributes, override bindings).
-- When a refresh hits lockdown, **queue and flush on `PLAYER_REGEN_ENABLED`** (Party Radial `pendingUpdate`, `CM.FlushPendingClickCastRefresh` / BindingQueue). Do not silently drop mid-combat bar/bind updates.
+- When a refresh hits lockdown, **queue and flush on `PLAYER_REGEN_ENABLED`** (Ally Cycle `pendingRoster`, `CM.FlushPendingClickCastRefresh` / BindingQueue). Do not silently drop mid-combat bar/bind updates.
 - Do not assume `EnableMouse`, `SetPoint`, `SetAttribute`, or `SetHitRectInsets` work on secure frames in combat — they are protected (may error or silently no-op).
 
 ## Secret values and instance taint (Mainline)
@@ -30,7 +30,7 @@ Unit identity and many measures can be **secret** in instances while execution i
 ### Do this instead
 
 - **`issecretvalue(v)` before** any branch/compare; treat secret as **unknown** and fail soft (base tint, skip filter, placeholder `"…"`, accept in-flight anim).
-- **Booleans:** `PublicBool` pattern — if secret → `nil`; only branch on public `true`/`false` (see Party Radial `RoleIcons` / HealthBars, Crosshair).
+- **Booleans:** `PublicBool` pattern — if secret → `nil`; only branch on public `true`/`false` (see Ally Cycle HUD, Crosshair).
 - **Numbers (width/alpha/scale):** `PublicNumber(v, fallback)` before compare/arithmetic (see `FocusNameplateMarker`).
 - **Identity:** prefer `UnitExists`, `UnitIsUnit`, plate/frame identity — not GUID string equality. Focus lock sounds use existence + event order, not GUID diffs.
 - **Cast GUID match:** if either side is secret, treat as compatible for the single in-flight cast; deferred cancel uses a **public generation token**, not `pendingGUID ~= castGUID` (see `Animations`, `AssistedHighlight/CastProgress`).
@@ -39,7 +39,7 @@ Unit identity and many measures can be **secret** in instances while execution i
 
 ### Reference modules
 
-`Core/Crosshair/Crosshair.lua`, `FocusNameplateMarker.lua`, `InteractionHUD/Target.lua` + `HUD.lua`, `AssistedHighlight/CastProgress.lua`, `Animations.lua`, `Core/PartyRadial/{HealthBars,RoleIcons,Visual,PartyData}.lua`.
+`Core/Crosshair/Crosshair.lua`, `FocusNameplateMarker.lua`, `InteractionHUD/Target.lua` + `HUD.lua`, `AssistedHighlight/CastProgress.lua`, `Animations.lua`, `Core/AllyCycle/HUD.lua`.
 
 ## Taint-avoidance practices
 

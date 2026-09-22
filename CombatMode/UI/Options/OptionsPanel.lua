@@ -7,14 +7,14 @@
 --  Exposes CM.OpenOptions / Close / Toggle / GetOptionsFrame and UI.Options.AddTab.
 --  Architecture / how it works:
 --    • AddTab({id, label, build, onSelect, onDeselect}) — tabs register at load;
---      onSelect/onDeselect drive Crosshair / Party Radial preview.
+--      onSelect/onDeselect drive Crosshair / Ally Cycle preview.
 --    • Layout ctx passed to build() wraps Widgets factories.
 --    • Combat-guarded open where needed; not a Blizzard Settings host.
 --  Does not: Own per-feature option wiring (Tabs/*) or changelog body text.
 --  Related: UI/Options/Draw.lua, UI/Options/Widgets.lua,
 --  UI/Options/BlizzardSettingsBridge.lua, UI/Changelog/ChangelogPanel.lua,
 --  Core/Runtime/Runtime.lua, UI/Options/Tabs/TabCrosshair.lua,
---  UI/Options/Tabs/TabPartyRadial.lua
+--  UI/Options/Tabs/TabAllyCycle.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -787,11 +787,6 @@ end
 function CM.OpenOptions()
   if CombatBlocked() then
     return
-  end
-  -- Mouselook auto-disables via the frame watcher: CombatModeOptionsFrame is registered
-  -- in CM.Constants.FramesToCheck, so the cursor unlocks while this window is shown.
-  if CM.PartyRadial and CM.PartyRadial.IsActive and CM.PartyRadial.IsActive() then
-    CM.PartyRadial.Hide()
   end
   Options.Initialize()
   Options.DockWindowLeft()

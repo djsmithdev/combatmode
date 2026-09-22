@@ -4,12 +4,12 @@
 --  What it does: Defines `CM.Constants.DatabaseDefaults` (global + char) merged by
 --  `CM.InitDatabase` into AceDB-shaped CombatModeDB. This is the single source of truth
 --  for new-install defaults across free-look, crosshair companions, click-cast, reticle,
---  and party radial.
+--  and Ally Cycle.
 --  Architecture / how it works:
 --    • global: free-look / crosshair / Interaction HUD / Assisted Combat / reticle /
 --      click-cast bindings / auto-unlock / Mouse Look camera (mouseLookSpeed,
 --      dynamicPitch, vignette, shoulderFollowsMouseLook, respectMotionSickness,
---      autofocusLockedTarget) / partyRadial / debug.
+--      autofocusLockedTarget) / allyCycle / debug.
 --      Crosshair also stores crosshairSituationalCondition + crosshairSituationalAppearance.
 --    • char: reticle targeting, click-cast bindings, useGlobalBindings, shoulderOffset.
 --    • MigrateMouseLookCameraDB (CVarManager) seeds shoulder/dynamicPitch from legacy
@@ -18,7 +18,7 @@
 --  Does not: Migrate saved data or apply CVars/bindings at runtime (CVarManager does).
 --  Related: Core/Runtime/Runtime.lua, Core/Runtime/CVarManager.lua,
 --  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/Tabs/TabCrosshair.lua,
---  UI/Editors/TargetingMacroPrelinesEditor.lua, Core/PartyRadial/PartyRadial.lua,
+--  UI/Editors/TargetingMacroPrelinesEditor.lua, Core/AllyCycle/AllyCycle.lua,
 --  UI/Options/Tabs/TabClickCasting.lua, UI/Options/Tabs/TabGeneral.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -140,11 +140,10 @@ return false
     shoulderFollowsMouseLook = false,
     -- When true, never force Motion Sickness ActionCam gates off (Accessibility honored).
     respectMotionSickness = false,
-    -- radial
-    partyRadial = {
-      enabled = true,
-      showHealthBars = true,
-      showBackground = true,
+    -- Ally Cycle HUD (enable = Up/Down keybinds bound; no master toggle)
+    allyCycle = {
+      showHud = true,
+      hudSide = "TOP",
       scale = 1.0,
     },
     -- dev

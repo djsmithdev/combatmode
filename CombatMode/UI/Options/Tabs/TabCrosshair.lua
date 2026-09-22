@@ -12,8 +12,7 @@
 --      interactionHUD / Side / Scale, assistedHighlightEnabled / Side / Scale.
 --    • set() → DisplayCrosshair / CreateCrosshair / CancelCrosshairCastFeedback /
 --      ApplyInteractionHUDLayout / RefreshInteractionHUD /
---      ApplyCrosshairAssistedHighlightOptions / UpdateCrosshairAssistedHighlight;
---      also PartyRadial.UpdateMainFramePosition when Y changes.
+--      ApplyCrosshairAssistedHighlightOptions / UpdateCrosshairAssistedHighlight.
 --  Does not: Own freelook state machine or click-cast slot table UI.
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD/HUD.lua,
 --  Core/Crosshair/AssistedHighlight/Assist.lua, Core/Crosshair/Animations.lua,
@@ -49,12 +48,6 @@ local function RefreshAssist()
   end
   if CM.UpdateCrosshairAssistedHighlight then
     CM.UpdateCrosshairAssistedHighlight()
-  end
-end
-
-local function UpdatePartyRadialAnchor()
-  if CM.PartyRadial and CM.PartyRadial.UpdateMainFramePosition then
-    CM.PartyRadial.UpdateMainFramePosition()
   end
 end
 
@@ -148,7 +141,6 @@ UI.Options.AddTab({
       set = function(value)
         CM.DB.global.crosshairY = value
         CM.CreateCrosshair()
-        UpdatePartyRadialAnchor()
       end,
       disabled = CrosshairOff,
     })

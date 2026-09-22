@@ -4,7 +4,7 @@
 --  What it does: Ordered startup for feature modules after DB is ready: CVar snapshot,
 --  apply overrides, wildcard frame tracking, crosshair + cursor pulse, account macros,
 --  MOVEANDSTEER → Mouse Look rebind, toggle-focus bind, focus-cycle wheel refresh,
---  Party Radial init. Also RestorePriorBindings for uninstall (BUTTON1/BUTTON2 camera
+--  Ally Cycle init. Also RestorePriorBindings for uninstall (BUTTON1/BUTTON2 camera
 --  defaults only).
 --  Architecture / how it works:
 --    • BootstrapFeatureModules() is the enable-time sequence Runtime calls.
@@ -13,7 +13,7 @@
 --  Does not: Own ongoing freelook OnUpdate or EventRouter dispatch.
 --  Related: Core/Runtime/Runtime.lua, Core/Runtime/CVarManager.lua,
 --  Core/ClickCasting/BindingOverrides.lua, Core/Crosshair/Crosshair.lua,
---  Core/FreeLook/AutoCursorUnlock.lua, Core/PartyRadial/PartyRadial.lua,
+--  Core/FreeLook/AutoCursorUnlock.lua, Core/AllyCycle/AllyCycle.lua,
 --  Constants/Gameplay.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -66,7 +66,7 @@ local function UnbindMoveAndSteer()
 end
 
 --- Reset left/right click to Blizzard camera defaults (click-drag camera / turn).
---- Does not clear Combat Mode keybind names (Mouse Look, Party Radial, etc.).
+--- Does not clear Combat Mode keybind names (Mouse Look, Ally Cycle, etc.).
 function CM.RestorePriorBindings()
   CM.TryApplyBindingChange("restore default mouse camera bindings", function()
     SetBinding("BUTTON1", "CAMERAORSELECTORMOVE")
@@ -107,7 +107,7 @@ function CM.BootstrapFeatureModules()
   CreateTargetMacros()
   CM.ApplyToggleFocusTargetBinding()
   CM.ApplyCycleFocusBindings()
-  if CM.PartyRadial and CM.PartyRadial.Initialize then
-    CM.PartyRadial.Initialize()
+  if CM.InitializeAllyCycle then
+    CM.InitializeAllyCycle()
   end
 end

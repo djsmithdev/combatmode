@@ -7,10 +7,10 @@
 --  Architecture / how it works:
 --    • Reads/writes CM.DB[GetBindingsLocation()].bindings[slot].
 --    • char.useGlobalBindings toggles whether char or global bindings table is edited.
---    • Modifier segment UI groups slots; Party Radial notes may appear when enabled.
+--    • Modifier segment UI groups slots.
 --  Does not: Build targeting prelines or resolve third-party bar frames.
 --  Related: Core/ClickCasting/BindingOverrides.lua, Constants/Gameplay.lua,
---  Core/PartyRadial/PartyRadial.lua, UI/Options/Widgets.lua,
+--  UI/Options/Widgets.lua,
 --  Constants/DatabaseDefaults.lua, Core/Runtime/Runtime.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -79,12 +79,6 @@ local function Binding(slot)
   return CM.DB[CM.GetBindingsLocation()].bindings[slot]
 end
 
-local function OnBindingChanged()
-  if CM.PartyRadial and CM.PartyRadial.OnBindingChanged then
-    CM.PartyRadial.OnBindingChanged()
-  end
-end
-
 local function CharScopedBindings()
   return not CM.DB.char.useGlobalBindings
 end
@@ -112,7 +106,6 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas, leadingIconText
       else
         CM.ResetBindingOverride(Binding(slot))
       end
-      OnBindingChanged()
     end,
     disabled = function()
       return modifier == nil
@@ -130,7 +123,6 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas, leadingIconText
     set = function(value)
       Binding(slot).value = value
       CM.SetNewBinding(Binding(slot))
-      OnBindingChanged()
     end,
     disabled = function()
       return not Binding(slot).enabled

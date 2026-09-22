@@ -16,6 +16,8 @@
 --      focus/mouseover branches — harm alone matches corpses), then /focus resync
 --      ([nodead] any / [nodead,harm] enemy) so sticky empty-focus cannot leave a dead
 --      lock. Cleartarget prevents corpse re-lock on hard target.
+--    • Ally Cycle (keys bound + in group): helpful → sticky ally preline; harmful →
+--      existing ENEMY / AUTO_LOCK_ENEMY templates (coexists with Target Lock focus).
 --    • CM.TargetingMacroPrelineMaxLen = 255 − worst /click cast − newline; editor enforces.
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists;
 --      builtin skyriding IDs from Constants.ReticleTargetingBuiltinExcludeSpellIds.
@@ -23,6 +25,7 @@
 --    • Click frame map from CM.Constants.ClickCastBars (ACTIONBUTTON + MultiBar 1–7).
 --  Does not: Own SecureActionButton frames or SetOverrideBinding (BindingOverrides).
 --  Related: Core/ClickCasting/BindingOverrides.lua,
+--  Core/AllyCycle/Cycle.lua,
 --  UI/Editors/TargetingMacroPrelinesEditor.lua,
 --  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/SpellMultiSelect.lua,
 --  Constants/DatabaseDefaults.lua, Constants/Gameplay.lua,
@@ -37,6 +40,7 @@ local C_CVar = _G.C_CVar
 local C_Spell = _G.C_Spell
 local C_SpellBook = _G.C_SpellBook
 local GetActionInfo = _G.GetActionInfo
+local IsInGroup = _G.IsInGroup
 
 -- Lua stdlib
 local ipairs = _G.ipairs
@@ -423,9 +427,52 @@ function CM.IsExcludedFromTargetingSpell(spellId)
     or SpellListContains(CM.DB.char.excludeFromTargetingSpells, spellId)
 end
 
-local function GetClickCastPreLine()
+-- Helpful spells while Ally Cycle is enabled: stick to friendly hard target (no soft /tar).
+local CLICKCAST_PRE_LINE_ALLY_HELP = "/clearfocus [@focus,dead]"
+
+local function GetAllyCycleHarmPreLine()
+  local autoLock = CM.DB.char.autoTargetLockOnAttack == true
+  if autoLock then
+    return CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY
+  end
+  return CLICKCAST_PRE_LINE_ENEMY
+end
+
+--- Classify spell for Ally Cycle routing. Dual help+harm → help (stick to ally).
+local function GetAllyCycleSpellRoute(spellId)
+  if not spellId or type(spellId) ~= "number" or spellId <= 0 then
+    return nil
+  end
+  if not (C_Spell and C_Spell.IsSpellHelpful and C_Spell.IsSpellHarmful) then
+    return nil
+  end
+  local okHelp, isHelp = pcall(C_Spell.IsSpellHelpful, spellId)
+  local okHarm, isHarm = pcall(C_Spell.IsSpellHarmful, spellId)
+  isHelp = okHelp and isHelp
+  isHarm = okHarm and isHarm
+  if isHelp then
+    return "help"
+  end
+  if isHarm then
+    return "harm"
+  end
+  return nil
+end
+
+local function GetClickCastPreLine(spellId)
   if not CM.DB.char.reticleTargeting then
     return nil
+  end
+
+  -- Ally Cycle: per-spell helpful vs harmful templates (bindings + in group).
+  if CM.IsAllyCycleEnabled and CM.IsAllyCycleEnabled() and IsInGroup and IsInGroup() then
+    local route = GetAllyCycleSpellRoute(spellId)
+    if route == "help" then
+      return CLICKCAST_PRE_LINE_ALLY_HELP
+    end
+    if route == "harm" then
+      return GetAllyCycleHarmPreLine()
+    end
   end
 
   local function GetOverride(key)
@@ -523,6 +570,7 @@ function CM.BuildClickCastMacroText(bindingValue)
   local ok, actionFrame = pcall(function()
     return _G[effectiveFrame]
   end)
+  local spellIdForPreline
   if ok and actionFrame then
     local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action")
       or actionFrame.action
@@ -542,34 +590,27 @@ function CM.BuildClickCastMacroText(bindingValue)
         if isSpecialBarButton then
           return castLine
         end
+        if atype == "spell" and id and type(id) == "number" and id > 0 then
+          spellIdForPreline = id
+        end
         -- Spell in blacklist (e.g. self-cast defensives): don't apply targeting pre-line.
-        if
-          atype == "spell"
-          and id
-          and type(id) == "number"
-          and id > 0
-          and CM.IsExcludedFromTargetingSpell(id)
-        then
+        if spellIdForPreline and CM.IsExcludedFromTargetingSpell(spellIdForPreline) then
           return castLine
         end
         -- Ground-targeted spell from whitelist: use /cast [@cursor] only (no pre-line).
         -- Must run before ShouldInjectTargetingForSpell: many ground spells are neither helpful nor harmful per C_Spell API.
-        if
-          atype == "spell"
-          and id
-          and type(id) == "number"
-          and id > 0
-          and CM.IsCastAtCursorSpell(id)
-        then
-          local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(id)
+        if spellIdForPreline and CM.IsCastAtCursorSpell(spellIdForPreline) then
+          local spellInfo = C_Spell
+            and C_Spell.GetSpellInfo
+            and C_Spell.GetSpellInfo(spellIdForPreline)
           local spellName = spellInfo and spellInfo.name
           if spellName and spellName ~= "" then
             return "/cast [@cursor] " .. spellName
           end
-          return "/cast [@cursor] spell:" .. id
+          return "/cast [@cursor] spell:" .. spellIdForPreline
         end
         -- Non-combat spells (e.g. mounts) shouldn't get the targeting pre-line.
-        if not ShouldInjectTargetingForSpell(id) then
+        if not ShouldInjectTargetingForSpell(spellIdForPreline) then
           return castLine
         end
       end
@@ -581,7 +622,7 @@ function CM.BuildClickCastMacroText(bindingValue)
     return castLine
   end
 
-  local pre = GetClickCastPreLine()
+  local pre = GetClickCastPreLine(spellIdForPreline)
   -- Do not prefix pre-line with [nooverridebar]; that can be misinterpreted in combat and echo to chat.
   return pre and (pre .. "\n" .. castLine) or castLine
 end

@@ -9,7 +9,7 @@
     <Script file="Constants\Assets.lua"/>
     <Script file="Constants\Gameplay.lua"/>
     <Script file="Constants\DatabaseDefaults.lua"/>
-    <Script file="Constants\PartyRadial.lua"/>
+    <Script file="Constants\AllyCycle.lua"/>
     <Script file="Constants\FrameWatch.lua"/>
     <Script file="Constants\Reticle.lua"/>
     <!-- DEV: profiling tools (gated by Debug Mode toggle; no production impact when off) -->
@@ -40,16 +40,11 @@
     <Script file="Core\Crosshair\AssistedHighlight\Feedback.lua"/>
     <Script file="Core\Crosshair\AssistedHighlight\Assist.lua"/>
     <Script file="Core\Crosshair\FocusNameplateMarker.lua"/>
+    <!-- ALLY CYCLE chrome before Crosshair (InitAllyCycleHUD); Cycle secure button first. -->
+    <Script file="Core\AllyCycle\Cycle.lua"/>
+    <Script file="Core\AllyCycle\HUD.lua"/>
     <Script file="Core\Crosshair\Crosshair.lua"/>
-    <!-- PARTY RADIAL: PartyData → SecureBindings → HealthBars → RoleIcons → Visual →
-         Lifecycle → PartyRadial (façade / CM.PartyRadial public API). -->
-    <Script file="Core\PartyRadial\PartyData.lua"/>
-    <Script file="Core\PartyRadial\SecureBindings.lua"/>
-    <Script file="Core\PartyRadial\HealthBars.lua"/>
-    <Script file="Core\PartyRadial\RoleIcons.lua"/>
-    <Script file="Core\PartyRadial\Visual.lua"/>
-    <Script file="Core\PartyRadial\Lifecycle.lua"/>
-    <Script file="Core\PartyRadial\PartyRadial.lua"/>
+    <Script file="Core\AllyCycle\AllyCycle.lua"/>
     <!-- OPTIONS UI: custom standalone window. Draw + Widgets before
          OptionsPanel (defines AddTab/CreateWindow); Tabs register after OptionsPanel. -->
     <Script file="UI\Options\Draw.lua"/>
@@ -65,7 +60,7 @@
     <Script file="UI\Options\Tabs\TabReticleTargeting.lua"/>
     <Script file="UI\Options\Tabs\TabClickCasting.lua"/>
     <Script file="UI\Options\Tabs\TabAutoCursorUnlock.lua"/>
-    <Script file="UI\Options\Tabs\TabPartyRadial.lua"/>
+    <Script file="UI\Options\Tabs\TabAllyCycle.lua"/>
     <!-- CHANGELOG: in-game viewer. ChangelogNamespace first (defines CM.Config);
          panel uses the OPTIONS UI toolkit loaded above. -->
     <Script file="UI\Changelog\ChangelogNamespace.lua"/>

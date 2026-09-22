@@ -571,7 +571,7 @@ local function IsInteractAction(action)
 end
 
 --- Clears Interact on `key` and `ALT-key` when those chords still hold INTERACT*.
---- Mouse Look / Party Radial / Target Lock steal only the base key; Interact's intentional
+--- Mouse Look / Ally Cycle / Target Lock steal only the base key; Interact's intentional
 --- dual-bind otherwise leaves ALT-<key> behind and the Interact option shows Alt+key.
 --- Always try ALT-<key> too — including when `key` is already ALT-* — so a leftover
 --- ALT-ALT-* orphan (from an older dual-bind bug) is cleared when the chord is stolen.

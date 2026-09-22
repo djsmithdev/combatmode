@@ -23,7 +23,7 @@ Start here before large refactors. Prefer the owning module over new files.
 
 ### Add a constant
 
-1. Put static tables in `CombatMode/Constants/` (the domain file that already owns that concern: Assets, CVars, PartyRadial, …).
+1. Put static tables in `CombatMode/Constants/` (the domain file that already owns that concern: Assets, CVars, AllyCycle, …).
 2. Consume via `CM.Constants.*` from feature code — avoid magic numbers in hot paths.
 3. New files must be listed in `CombatMode/Embeds.xml` **before** their consumers.
 

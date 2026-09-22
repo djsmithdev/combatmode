@@ -2,7 +2,7 @@
 --  Core/Runtime/BindingQueue.lua — RUNTIME — combat-deferred binding applies
 ---------------------------------------------------------------------------------------
 --  What it does: Queues binding/protected apply functions while InCombatLockdown and
---  flushes them when combat ends so click-cast / interact / party-radial keybind changes
+--  flushes them when combat ends so click-cast / interact / Ally Cycle keybind changes
 --  never violate lockdown.
 --  Architecture / how it works:
 --    • TryApplyBindingChange(context, applyFn) — runs immediately out of combat; else
@@ -12,7 +12,7 @@
 --  Does not: Build macros or call SetOverrideBinding itself (callers pass closures).
 --  Related: Core/ClickCasting/BindingOverrides.lua, Core/Runtime/EventRouter.lua,
 --  Core/Runtime/Bootstrap.lua, UI/Options/Tabs/TabGeneral.lua,
---  UI/Options/Tabs/TabClickCasting.lua, UI/Options/Tabs/TabPartyRadial.lua
+--  UI/Options/Tabs/TabClickCasting.lua, UI/Options/Tabs/TabAllyCycle.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

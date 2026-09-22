@@ -4,18 +4,17 @@
 --  What it does: Builds eventCategoryMap from Constants.BLIZZARD_EVENTS and implements
 --  global CombatMode_OnEvent(self, event, ...) — first arg is the root frame. Dispatches
 --  free-look lock/unlock, Rematch, deferred binding flush, click-cast refresh,
---  crosshair cast feedback, Assisted Highlight cast hooks, and Party Radial combat/roster.
+--  crosshair cast feedback, Assisted Highlight cast hooks, and Ally Cycle roster/bindings.
 --  Architecture / how it works:
 --    • BuildEventCategoryMap / GetEventCategoryMap used at enable time.
 --    • REFRESH_BINDINGS_EVENTS coalesced via C_Timer so one RefreshClickCastMacros runs
---      after bursts (also Toggle Focus + Party Radial side effects). Self-echo events
+--      after bursts (also Toggle Focus + Ally Cycle side effects). Self-echo events
 --      during apply are suppressed; Assisted Combat suggestion slots and unchanged
 --      ACTIONBAR_SLOT_CHANGED are skipped.
 --    • CAST_FEEDBACK_EVENTS → OnCrosshairCastFeedbackEvent; player casts also
 --      OnAssistedHighlightCastProgress (dark swipe) and SUCCEEDED →
 --      OnAssistedHighlightSpellCast(spellID).
---    • ASSISTED_HIGHLIGHT_EVENTS → OnAssistedHighlightAssistedActionCast.
---    • FRIENDLY_TARGETING_EVENTS double as Party Radial combat start/end +
+--    • FRIENDLY_TARGETING_EVENTS: Ally Cycle combat end flush +
 --      FlushDeferredBindingChanges / FlushPendingClickCastRefresh on PLAYER_REGEN_ENABLED.
 --    • FOCUS_LOCK_EVENTS → UpdateFocusNameplateMarker + OnCrosshairFocusLockEvent +
 --      SyncTargetFocusFromFocusUnit.
@@ -26,7 +25,7 @@
 --  Related: Constants/Gameplay.lua, Core/FreeLook/FreeLookController.lua,
 --  Core/ClickCasting/BindingOverrides.lua, Core/Crosshair/Crosshair.lua,
 --  Core/Crosshair/AssistedHighlight/{Keybinds,CastProgress,Feedback,Assist}.lua,
---  Core/Crosshair/FocusNameplateMarker.lua, Core/PartyRadial/PartyRadial.lua,
+--  Core/Crosshair/FocusNameplateMarker.lua, Core/AllyCycle/AllyCycle.lua,
 --  Core/Runtime/BindingQueue.lua, Core/Runtime/CVarManager.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -40,6 +39,8 @@ local GetTime = _G.GetTime
 local ipairs = _G.ipairs
 local pairs = _G.pairs
 local select = _G.select
+local type = _G.type
+local tostring = _G.tostring
 
 local eventCategoryMap = {}
 
@@ -112,15 +113,12 @@ local function RunClickCastBindingRefresh()
       if CM.ApplyCycleFocusBindings then
         CM.ApplyCycleFocusBindings()
       end
-    end
-    if CM.PartyRadial and CM.PartyRadial.OnActionBarChanged then
-      if clickCastRefreshReason == "GROUP_ROSTER_UPDATE" then
-        if CM.PartyRadial.OnGroupRosterUpdate then
-          CM.PartyRadial.OnGroupRosterUpdate()
-        end
-      elseif clickCastRefreshReason ~= "UPDATE_BINDINGS" then
-        CM.PartyRadial.OnActionBarChanged()
+      if CM.ApplyAllyCycleBindings then
+        CM.ApplyAllyCycleBindings()
       end
+    end
+    if clickCastRefreshReason == "GROUP_ROSTER_UPDATE" and CM.OnAllyCycleGroupRosterUpdate then
+      CM.OnAllyCycleGroupRosterUpdate()
     end
     RememberActionBarFingerprint()
   end)
@@ -164,14 +162,10 @@ local function HandleEventByCategory(category, event, ...)
       end
     end,
     FRIENDLY_TARGETING_EVENTS = function()
-      if CM.PartyRadial then
-        if event == "PLAYER_REGEN_DISABLED" and CM.PartyRadial.OnCombatStart then
-          CM.PartyRadial.OnCombatStart()
-        elseif event == "PLAYER_REGEN_ENABLED" and CM.PartyRadial.OnCombatEnd then
-          CM.PartyRadial.OnCombatEnd()
-        end
-      end
       if event == "PLAYER_REGEN_ENABLED" then
+        if CM.OnAllyCycleCombatEnd then
+          CM.OnAllyCycleCombatEnd()
+        end
         CM.FlushDeferredBindingChanges()
         if CM.FlushPendingClickCastRefresh then
           CM.FlushPendingClickCastRefresh()
@@ -196,7 +190,7 @@ local function HandleEventByCategory(category, event, ...)
       end
 
       -- Assisted Combat suggestion buttons rewrite their slot spell often; that must not
-      -- rebuild click-cast overrides / Party Radial attrs.
+      -- rebuild click-cast overrides.
       if event == "ACTIONBAR_SLOT_CHANGED" and CM.IsAssistedCombatActionSlot then
         if CM.IsAssistedCombatActionSlot(cvarName) then
           return

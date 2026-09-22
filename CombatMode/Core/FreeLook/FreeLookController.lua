@@ -15,7 +15,7 @@
 --      cinematics, FreeLookOverride, default LMB/RMB held.
 --    • SheathWeaponsWithMouselook: unsheath on intentional Mouse Look; sheath on
 --      tap unlock (poll detects binding release) and Auto Cursor Unlock. Hold
---      never sheaths. Party Radial, ground targeting, and OPie keep weapons drawn.
+--      never sheaths. Ground targeting and OPie keep weapons drawn.
 --      Sheath requests are debounced (~1.5s) so rapid Mouse Look toggle does not
 --      flash sheath/unsheath; unsheath and re-lock cancel any pending sheath.
 --    • OPie: when a ring is visible, unlock path may free centering; Rematch after
@@ -26,8 +26,8 @@
 --      sticky (SetDynamicPitch).
 --  Does not: Own frame-watch lists/predicates (AutoCursorUnlock) or CVar preset tables.
 --  Related: Core/FreeLook/AutoCursorUnlock.lua, Core/Runtime/CVarManager.lua,
---  Core/Runtime/Runtime.lua, Core/PartyRadial/PartyRadial.lua,
---  Core/Crosshair/Animations.lua, Core/Crosshair/Crosshair.lua, Core/Vignette.lua
+--  Core/Runtime/Runtime.lua, Core/Crosshair/Animations.lua, Core/Crosshair/Crosshair.lua,
+--  Core/Vignette.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -74,10 +74,6 @@ local MOUSE_BINDING_BUTTON = {
   BUTTON4 = "Button4",
   BUTTON5 = "Button5",
 }
-
-local function IsPartyRadialActive()
-  return CM.PartyRadial and CM.PartyRadial.IsActive and CM.PartyRadial.IsActive()
-end
 
 local function CancelPendingSheath()
   pendingSheathToken = pendingSheathToken + 1
@@ -129,9 +125,6 @@ end
 -- Temporary gameplay unlocks keep weapons drawn; Auto Cursor Unlock / etc. may sheath.
 local function ShouldKeepWeaponsDrawnOnTempUnlock()
   if FreeLookOverride then
-    return true
-  end
-  if IsPartyRadialActive() then
     return true
   end
   if SpellIsTargeting() then
@@ -260,9 +253,6 @@ function CM.ShouldFreeLookBeOff()
     if FreeLookOverride then
       return true
     end
-    if IsPartyRadialActive() then
-      return true
-    end
     if CM.IsFeignDeathActive() then
       return true
     end
@@ -351,9 +341,6 @@ local function StartFreeLookFresh()
   cmMouselookActive = true
   RunLockFreeLookDeferredUI()
   CM.ShowCrosshairLockIn()
-  if CM.PartyRadial and CM.PartyRadial.OnMouselookChanged then
-    CM.PartyRadial.OnMouselookChanged(true)
-  end
   CM.DebugPrint("Free Look Enabled")
 end
 
@@ -380,11 +367,7 @@ function CM.UnlockFreeLook()
     CM.ShowCursorPulse()
   end
 
-  if CM.PartyRadial and CM.PartyRadial.OnMouselookChanged then
-    CM.PartyRadial.OnMouselookChanged(false)
-  end
-
-  -- Auto Cursor Unlock / mount / pet battle / etc. sheath; hold/radial/ground/OPie do not.
+  -- Auto Cursor Unlock / mount / pet battle / etc. sheath; hold/ground/OPie do not.
   if not ShouldKeepWeaponsDrawnOnTempUnlock() then
     ApplyWeaponsSheathed(true)
   end
@@ -414,7 +397,7 @@ function CM.RematchFreeLookAfterOpieIfNeeded()
 end
 
 -- Unified cursor mode keybind: tap to toggle, hold to temporarily unlock.
--- Uses the same spurious key-up filter as the Party Radial keybind.
+-- Uses the same spurious key-up filter as other hold/tap keybinds.
 -- MouselookStop() fires spurious key-up events for held keys, so we ignore
 -- key-ups within 0.3s of unlocking. A quick tap leaves the cursor free (toggle)
 -- and clears shoulder/vignette chrome once the tap is confirmed; holding longer

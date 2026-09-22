@@ -171,7 +171,7 @@ local function EnsureAssistedHighlight()
   AssistedHighlightVisual:SetPoint("CENTER", AssistedHighlightFrame, "CENTER", 0, 0)
   AssistedHighlightVisual:Hide()
 
-  -- Backdrop shadow (same atlas as Party Radial role icons; larger so soft edge extends).
+  -- Backdrop shadow (same atlas as LFG role icons; larger so soft edge extends).
   AssistedHighlightFrame.shadow = AssistedHighlightVisual:CreateTexture(nil, "BACKGROUND")
   AssistedHighlightFrame.shadow:SetDrawLayer("BACKGROUND", -1)
   AssistedHighlightFrame.shadow:SetAtlas("Radial_Wheel_BG_Small")

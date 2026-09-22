@@ -355,12 +355,6 @@ local function Rematch()
 
   CM.OnRematchCrosshair()
 
-  -- Dismiss party radial so it is not considered "active" after load (fixes crosshair
-  -- not showing when party radial is enabled, since IsPartyRadialActive() would block)
-  if CM.PartyRadial and CM.PartyRadial.DismissOnLoad then
-    CM.PartyRadial.DismissOnLoad()
-  end
-
   -- Early OnUpdate can start mouselook before Rematch; CursorFreelookCentering only
   -- hides the cursor across a fresh start (force 0 → Start → deferred 1). Bounce so
   -- LockFreeLook is not a no-op when already looking.
@@ -422,26 +416,6 @@ end
 --                            KEYBIND FUNCTIONS & COMMANDS                           --
 ---------------------------------------------------------------------------------------
 -- FUNCTIONS CALLED FROM BINDINGS.XML
-
-function _G.CombatMode_PartyRadialKey(keystate)
-  if not CM.PartyRadial then
-    return
-  end
-  local HR = CM.PartyRadial
-  CM.DebugPrint(
-    "PartyRadialKey: keystate=" .. tostring(keystate) .. " isActive=" .. tostring(HR.IsActive())
-  )
-  if keystate == "down" then
-    if HR.IsActive() then
-      -- Already open (tap-to-toggle: second press closes)
-      HR.Hide()
-    else
-      HR.ShowFromKeybind()
-    end
-  elseif keystate == "up" then
-    HR.HideFromKeybind()
-  end
-end
 
 -- CREATING /CM CHAT COMMAND — opens the standalone options window.
 function CM:OpenConfigCMD()

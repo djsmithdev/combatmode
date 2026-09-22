@@ -64,12 +64,8 @@ When your reticle passes over an NPC, quest object, or other interactable, a con
   <img src="media/interaction_hud.gif">
 </p>
 
-### Party Radial
-Hold a key during Mouse Look to instantly open a radial menu for your party. Select a teammate to target and cast supportive abilities without ever leaving Mouse Look. Integrated health, range, and status indicators help you react quickly when every second counts.
-
-<p align="center">
-  <img src="media/party_radial.gif">
-</p>
+### Ally Cycle
+Bind Cycle Up/Down to step through party or raid members under the crosshair without unlocking the mouse. Helpful spells stick to your friendly hard target; harmful spells still prefer hostile focus / soft targets (works with Target Lock). The Ally HUD shows the current ally's name, class-colored health, and role beside the crosshair while a friendly is targeted.
 
 ### Auto Unlock
 Mouse Look automatically disengages whenever you open bags, the map, your character panel, or other interface windows, then seamlessly resumes when you're finished. You can even define your own UI frames and custom conditions to trigger Auto Unlock.
@@ -115,7 +111,7 @@ Combat Mode is organized by **domain**. Runtime lives under `CombatMode/Core/`; 
 | **FreeLook** | Mouse look / mouselook state + auto cursor unlock |
 | **Crosshair** | Reticle, Interaction HUD, Combat Assist, Target Lock focus marker, cast animations |
 | **ClickCasting** | Mouse override bindings + targeting macro builder |
-| **PartyRadial** | Hold-to-open party radial (secure slices, health, roles) |
+| **AllyCycle** | Party/raid ally cycling + Ally HUD (secure UP/DOWN, help/harm macros) |
 | **Options toolkit** | Standalone options window + editors (`UI/Options/`, `UI/Editors/`) |
 
 Load order and public entry points: **[STRUCTURE.md](STRUCTURE.md)**. Agent/contributor rules: **[AGENTS.md](AGENTS.md)**.

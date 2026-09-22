@@ -15,7 +15,7 @@ Use this checklist for feature work and regressions.
 - Toggle CombatMode on/off and verify mouselook enters/exits correctly.
 - Verify no stuck mouselook after opening/closing common UI panels.
 - Test transitions in and out of combat; no protected-action errors.
-- **Sheath Weapons with Mouse Look:** rapid Mouse Look toggles (e.g. single-pull) should not flash sheath/unsheath; unsheath on lock remains immediate; temporary unlocks (hold, Party Radial, ground spells, OPie) keep weapons drawn.
+- **Sheath Weapons with Mouse Look:** rapid Mouse Look toggles (e.g. single-pull) should not flash sheath/unsheath; unsheath on lock remains immediate; temporary unlocks (hold, ground spells, OPie) keep weapons drawn.
 
 ## Reticle and targeting CVars
 
@@ -30,7 +30,7 @@ Use this checklist for feature work and regressions.
 - Validate modifier variants (Shift/Ctrl/Alt) map to expected spells/macros.
 - Verify behavior remains stable in combat (no insecure action taint/errors).
 - Binding refresh must not loop when Single-Button Assistant rewrites its action slot.
-- Rebinding Mouse Look / Party Radial / Target Lock clears leftover Interact Alt+key chords without a reload.
+- Rebinding Mouse Look / Ally Cycle / Target Lock clears leftover Interact Alt+key chords without a reload.
 
 ## Interact key
 
@@ -65,7 +65,8 @@ Use this checklist for feature work and regressions.
 - Cast valid spells from radial targets and verify target routing + hard-target on slice click.
 - Center close (X) clears the current target.
 - Check combat behavior for secure restrictions and graceful fallback.
-- Options → Party Radial tab: live Visual Settings preview (including dead / mind-controlled / low-health role states); no Lua errors on open.
+- Options → Ally Cycle tab: bind Up/Down, toggle Ally HUD / side / scale; no Lua errors on open.
+- Ally Cycle in party/raid: Up/Down cycles members in combat; HUD shows only with friendly hard target; unbound keys = inert.
 - Role icons: dead uses Disabled atlas; mind-controlled shows fading Decline X; low health shows icon glow; dead health bars are greyed (no glow).
 
 ## Profiling (Function Profiler)

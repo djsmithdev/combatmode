@@ -6,11 +6,11 @@
 --  file needing to create it.
 --  Architecture / how it works:
 --    • Must be the first script under Constants/ in Embeds.xml (before CVars, Assets,
---      Gameplay, DatabaseDefaults, PartyRadial, FrameWatch, Reticle).
+--      Gameplay, DatabaseDefaults, AllyCycle, FrameWatch, Reticle).
 --    • Consumers read `CM.Constants.*`; nothing here registers events or touches DB.
 --  Does not: Define any constant data, defaults, or runtime APIs.
 --  Related: Constants/CVars.lua, Constants/Assets.lua, Constants/Gameplay.lua,
---  Constants/DatabaseDefaults.lua, Constants/FrameWatch.lua, Constants/PartyRadial.lua,
+--  Constants/DatabaseDefaults.lua, Constants/FrameWatch.lua, Constants/AllyCycle.lua,
 --  Constants/Reticle.lua, Core/Runtime/Runtime.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
