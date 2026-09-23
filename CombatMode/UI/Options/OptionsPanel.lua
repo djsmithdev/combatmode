@@ -64,7 +64,7 @@ local function FadeAlpha(frameObj, toAlpha, gen, onDone)
   end)
 end
 
---- Parks the window left of screen center so the crosshair and party radial stay clear
+--- Parks the window left of screen center so the crosshair and companions stay clear
 --- for live options previews. On wide displays it sits farther in from the left edge;
 --- on narrower ones it clamps to a small left inset. Called on every OpenOptions; drag is
 --- still allowed during the session but the next open re-docks (position is not persisted).
@@ -76,7 +76,7 @@ function Options.DockWindowLeft()
   local parentW = parent:GetWidth() or 0
   local panelW = frame:GetWidth() or WINDOW_W
   local leftPad = 24
-  -- Party radial outer reach is ~fixed radius(120)+half slice; keep a little air past that.
+  -- Keep clearance past the crosshair + Ally HUD / companion chrome.
   local clearFromCenter = 280
   local maxRight = (parentW * 0.5) - clearFromCenter
   local x = maxRight - panelW

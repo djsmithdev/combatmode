@@ -51,7 +51,7 @@ Version bumps are opt-in during day-to-day work (agents ask; see `AGENTS.md`). F
   - core mouselook toggle/lock/unlock flow
   - reticle + targeting CVar behavior
   - click-casting base/modifier paths
-  - party radial open/cast flow
+  - Ally Cycle bind/cycle + HUD flow
   - slash commands and keybind sanity
 - Confirm no combat-lockdown errors and no new Lua errors.
 - If MCP was unavailable during implementation, run an additional manual API spot-check for each changed WoW API call before tagging release.

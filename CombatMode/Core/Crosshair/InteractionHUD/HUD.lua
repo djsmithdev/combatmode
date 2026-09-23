@@ -44,7 +44,7 @@ local IH_GAP = 7
 local IH_LABEL_MAX_W = 280
 local IH_TEXT_PAD = 4 -- shadow bleed past glyphs
 local IH_ICON = (Target and Target.IH_ICON) or 26
-local IH_FONT = 13 -- matches party radial slice name size
+local IH_FONT = 13
 local IH_SHADOW_ATLAS = "PetJournal-BattleSlot-Shadow"
 local IH_OFFSET_X = CM.Constants.CrosshairCompanionOffsetX
 

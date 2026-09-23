@@ -59,15 +59,12 @@ Use this checklist for feature work and regressions.
 - Confirm mouselook unlocks when expected and relocks when expected.
 - Confirm pulse appears after unlock and does not persist unexpectedly.
 
-## Party radial
+## Ally Cycle
 
-- Open/close radial through the configured keybind (Mouse Look on).
-- Cast valid spells from radial targets and verify target routing + hard-target on slice click.
-- Center close (X) clears the current target.
-- Check combat behavior for secure restrictions and graceful fallback.
-- Options → Ally Cycle tab: bind Up/Down, toggle Ally HUD / side / scale; no Lua errors on open.
+- Options → Ally Cycle tab: bind Up/Down, toggle Keep Ally After Harm / Ally HUD / side / scale; no Lua errors on open.
 - Ally Cycle in party/raid: Up/Down cycles members in combat; HUD shows only with friendly hard target; unbound keys = inert.
 - Role icons: dead uses Disabled atlas; mind-controlled shows fading Decline X; low health shows icon glow; dead health bars are greyed (no glow).
+- Keep Ally After Harm: with a cycled ally selected, a harmful click-cast retargets the enemy then restores the ally; stamp overlay while Auto Target Lock is on.
 
 ## Profiling (Function Profiler)
 

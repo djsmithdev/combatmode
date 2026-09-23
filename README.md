@@ -50,6 +50,13 @@ Lock onto a target with a single tap to prevent the reticle from switching unexp
   <img src="media/target_lock.gif">
 </p>
 
+### Ally Cycle
+Ally Cycle lets you attack enemies and assist allies simultaneously by allowing selection of group members while in Mouse Look. Bind Cycle Up/Down to quickly step through the roster. When an ally is selected, helpful spells are cast on them, while harmful spells continue to target your hostile Crosshair target.
+
+<p align="center">
+  <img src="media/ally_cycle.gif">
+</p>
+
 ### Combat Assist
 Displays Blizzard's Assisted Combat next-cast suggestion directly beside the crosshair, complete with satisfying cast-success feedback. Keep your rotation readable without staring at the action bar.
 
@@ -63,9 +70,6 @@ When your reticle passes over an NPC, quest object, or other interactable, a con
 <p align="center">
   <img src="media/interaction_hud.gif">
 </p>
-
-### Ally Cycle
-Bind Cycle Up/Down to step through party or raid members under the crosshair without unlocking the mouse. Helpful spells stick to your friendly hard target; harmful spells still prefer hostile focus / soft targets (works with Target Lock). The Ally HUD shows the current ally's name, class-colored health, and role beside the crosshair while a friendly is targeted.
 
 ### Auto Unlock
 Mouse Look automatically disengages whenever you open bags, the map, your character panel, or other interface windows, then seamlessly resumes when you're finished. You can even define your own UI frames and custom conditions to trigger Auto Unlock.

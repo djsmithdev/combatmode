@@ -23,7 +23,7 @@ Start here before large refactors. Prefer the owning module over new files.
 
 ### Add a constant
 
-1. Put static tables in `CombatMode/Constants/` (the domain file that already owns that concern: Assets, CVars, AllyCycle, …).
+1. Put static tables in `CombatMode/Constants/` (the domain file that already owns that concern: Assets, CVars, …). Colocate feature-only numbers in the owning module when they are not shared.
 2. Consume via `CM.Constants.*` from feature code — avoid magic numbers in hot paths.
 3. New files must be listed in `CombatMode/Embeds.xml` **before** their consumers.
 
@@ -31,7 +31,7 @@ Start here before large refactors. Prefer the owning module over new files.
 
 Retail can return **secret** values. Comparing them with `==` / using them as table keys / truncating them for display can error or taint.
 
-- Prefer `UnitExists("unit")`, plate identity (`GetNamePlateForUnit`), and `issecretvalue` / `canaccessvalue` / `PublicBool`-style helpers already used in Crosshair / Party Radial / Focus marker.
+- Prefer `UnitExists("unit")`, plate identity (`GetNamePlateForUnit`), and `issecretvalue` / `canaccessvalue` / `PublicBool`-style helpers already used in Crosshair / Ally Cycle HUD / Focus marker.
 - Full guardrails: `.cursor/rules/combatmode-lua-safety.mdc` (Secret values section).
 - When unsure, look at nearby code in the same module rather than inventing a new pattern.
 

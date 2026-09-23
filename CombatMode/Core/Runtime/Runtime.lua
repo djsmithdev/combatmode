@@ -10,6 +10,7 @@
 --    • InitDatabase merges Constants.DatabaseDefaults into global + char["Name - Realm"],
 --      then coerces Forever-style 1/0 flags to real booleans (CM.DbBool / NormalizeBools)
 --      wherever defaults declare a boolean — so == true / ~= false / if x stay correct.
+--      Also drops leftover global.partyRadial (feature removed in 4.7.0).
 --    • GetBindingsLocation → "global" vs "char" from useGlobalBindings.
 --    • RuntimeRematch reapplies CVars/bindings/crosshair after PEW / rematch events.
 --    • OnEnable registers root-frame events (via Bootstrap path) and starts freelook.
@@ -122,8 +123,8 @@ function CM.SetFontStringFromTemplate(fontString, pixelSize, templateFontObject)
 end
 
 local function OpenConfigPanel()
-  -- Standalone options window (UI/Options/OptionsPanel.lua). Combat guard and healing
-  -- radial dismiss are handled inside CM.OpenOptions.
+  -- Standalone options window (UI/Options/OptionsPanel.lua). Combat guard is
+  -- handled inside CM.OpenOptions.
   if CM.OpenOptions then
     CM.OpenOptions()
   end
@@ -290,6 +291,10 @@ function CM.InitDatabase()
   NormalizeBools(sv.char[charKey], defaults.char or {})
 
   BindDatabaseViews(sv, charKey)
+  -- Party Radial removed in 4.7.0; drop leftover settings so they do not linger in SV.
+  if sv.global then
+    sv.global.partyRadial = nil
+  end
   if CM.MigrateMouseLookCameraDB then
     CM.MigrateMouseLookCameraDB()
   end
