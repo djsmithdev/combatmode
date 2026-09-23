@@ -150,7 +150,7 @@ UI.Options.AddTab({
     ctx:Header({ text = "ALLY HUD", newFeatureFlag = true })
 
     ctx:Toggle({
-      label = "Show Ally HUD",
+      label = "Ally HUD",
       desc = "Show a unit frame for the currently selected group member.",
       get = function()
         return AllyCycleDb().showHud ~= false
@@ -161,7 +161,7 @@ UI.Options.AddTab({
       end,
     })
     ctx:Dropdown({
-      label = "HUD Position",
+      label = "Position",
       desc = "Where the Ally HUD sits relative to the crosshair.",
       values = HUD_SIDE_VALUES,
       order = HUD_SIDE_ORDER,
@@ -174,7 +174,7 @@ UI.Options.AddTab({
       end,
     })
     ctx:Slider({
-      label = "HUD Scale",
+      label = "Scale",
       desc = "Scales the size of the Ally HUD.",
       min = 0.5,
       max = 1.5,
