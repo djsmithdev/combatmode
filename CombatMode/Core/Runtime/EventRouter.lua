@@ -183,6 +183,10 @@ local function HandleEventByCategory(category, event, ...)
       if event == "CVAR_UPDATE" and cvarName ~= "ActionButtonUseKeyDown" then
         return
       end
+      -- Payload is unitTarget; only the player's spec changes restore-after-harm defaults.
+      if event == "PLAYER_SPECIALIZATION_CHANGED" and cvarName ~= "player" then
+        return
+      end
 
       -- Our own override / attribute writes echo as UPDATE_BINDINGS or ACTIONBAR_SLOT_CHANGED.
       if IsSelfBindingEventSuppressed() then

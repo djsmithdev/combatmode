@@ -1,12 +1,14 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabAllyCycle.lua — OPTIONS TAB — Ally Cycle + HUD
 ---------------------------------------------------------------------------------------
---  What it does: Up/Down keybinds and Ally HUD show/side/scale. Unbound keys disable.
+--  What it does: Up/Down keybinds, Keep Ally After Harm, and Ally HUD show/side/scale.
+--  Unbound keys disable.
 --  Architecture / how it works:
 --    • DB.global.allyCycle; onSelect/onDeselect → SetAllyCycleOptionsPreview.
---  Does not: Own secure roster or macro prelines.
+--    • Keep Ally After Harm → SetAllyCycleRestoreAfterHarm + RefreshClickCastMacros.
+--  Does not: Own secure roster or build click-cast macrotext.
 --  Related: Core/AllyCycle/{Cycle,HUD,AllyCycle}.lua, Constants/DatabaseDefaults.lua,
---  UI/Options/OptionsPanel.lua
+--  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -39,6 +41,8 @@ local function AllyCycleDb()
       showHud = true,
       hudSide = "TOP",
       scale = 1.0,
+      restoreAllyAfterHarm = false,
+      restoreAllyAfterHarmSet = false,
     }
   end
   return CM.DB.global.allyCycle
@@ -62,7 +66,7 @@ UI.Options.AddTab({
     ctx:Header({ text = "ALLY CYCLE", newFeatureFlag = true })
 
     ctx:Description({
-      text = "Ally Cycle lets you attack enemies and assist allies simultaneously by allowing selection of group members while in Mouse Look.\n"
+      text = "Ally Cycle lets you attack enemies and assist allies simultaneously by allowing selection of group members while in Mouse Look."
         .. "When an ally is selected, helpful spells are cast on them, while harmful spells continue to target your hostile Crosshair target.",
     })
 
@@ -100,6 +104,30 @@ UI.Options.AddTab({
             CM.RefreshClickCastMacros()
           end
         end)
+      end,
+    })
+    ctx:Toggle({
+      label = "Keep Ally After Harm",
+      desc = "After a harmful spell targets the reticle enemy, restore the previous ally. On by default for Healer specs until changed.",
+      get = function()
+        return CM.IsAllyCycleRestoreAfterHarm and CM.IsAllyCycleRestoreAfterHarm()
+      end,
+      set = function(value)
+        if CM.SetAllyCycleRestoreAfterHarm then
+          CM.SetAllyCycleRestoreAfterHarm(value)
+        end
+        if CM.RefreshClickCastMacros then
+          CM.RefreshClickCastMacros()
+        end
+      end,
+      disabled = function()
+        return CM.DB.char.autoTargetLockOnAttack == true
+      end,
+      watermarkWhenDisabled = function()
+        if CM.DB.char.autoTargetLockOnAttack == true then
+          return "Disabled while Auto Target Lock is on"
+        end
+        return nil
       end,
     })
 

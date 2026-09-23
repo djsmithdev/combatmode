@@ -2,9 +2,9 @@
 --  Core/ClickCasting/TargetingMacroBuilder.lua — CLICKCAST — reticle macro text
 ---------------------------------------------------------------------------------------
 --  What it does: Builds the macrotext injected into click-cast proxies: targeting prelines
---  (any vs enemy-only, optional Auto Target Lock variants, with DB overrides), /click bar
---  button or /cast [@cursor] for ground spells, and membership tests for cast-at-cursor /
---  exclude lists (spell IDs).
+--  (any vs enemy-only, optional Auto Target Lock variants, with DB overrides), optional
+--  Ally Cycle restore post-line, /click bar button or /cast [@cursor] for ground spells,
+--  and membership tests for cast-at-cursor / exclude lists (spell IDs).
 --  Architecture / how it works:
 --    • BuildClickCastMacroText(bindingValue) — no-op text when reticleTargeting off.
 --    • Default prelines clear dead focus + dead hostile hard target (friendly corpses
@@ -16,8 +16,9 @@
 --      focus/mouseover branches — harm alone matches corpses), then /focus resync
 --      ([nodead] any / [nodead,harm] enemy) so sticky empty-focus cannot leave a dead
 --      lock. Cleartarget prevents corpse re-lock on hard target.
---    • Ally Cycle (keys bound + in group): helpful → sticky ally preline; harmful →
---      existing ENEMY / AUTO_LOCK_ENEMY templates (coexists with Target Lock focus).
+--    • Ally Cycle (keys bound + in group): helpful → sticky ally preline; unclassified
+--      treated as help. Harmful → ENEMY / AUTO_LOCK_ENEMY, or a shorter /tar +
+--      /targetlasttarget [harm] post-line when restore-after-harm is on (not Auto Lock).
 --    • CM.TargetingMacroPrelineMaxLen = 255 − worst /click cast − newline; editor enforces.
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists;
 --      builtin skyriding IDs from Constants.ReticleTargetingBuiltinExcludeSpellIds.
@@ -25,7 +26,7 @@
 --    • Click frame map from CM.Constants.ClickCastBars (ACTIONBUTTON + MultiBar 1–7).
 --  Does not: Own SecureActionButton frames or SetOverrideBinding (BindingOverrides).
 --  Related: Core/ClickCasting/BindingOverrides.lua,
---  Core/AllyCycle/Cycle.lua,
+--  Core/AllyCycle/{AllyCycle,Cycle}.lua,
 --  UI/Editors/TargetingMacroPrelinesEditor.lua,
 --  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/SpellMultiSelect.lua,
 --  Constants/DatabaseDefaults.lua, Constants/Gameplay.lua,
@@ -280,9 +281,9 @@ end
 -- /tar is a valid alias for /target. Do not use /f — that is /follow, not /focus.
 -- @anyenemy is hostile-only — ,harm is redundant on it.
 
--- Full macrotext = preline + "\n" + /click cast line. Hard engine limit is 255
--- (patch 11.0.2). Same patch: macrotext cannot /click another macro-executing
--- button — do not split preline onto a second type=macro SecureActionButton.
+-- Full macrotext = preline + "\n" + /click [+ optional post-line]. Hard engine
+-- limit is 255 (patch 11.0.2). Same patch: macrotext cannot /click another
+-- macro-executing button — do not split onto a second type=macro SecureActionButton.
 local SECURE_MACROTEXT_MAX = 255
 -- Longest cast line BuildClickCastMacroText emits today: ACTIONBUTTON conditional
 -- /click with ElvUI primary bar (ElvUI_Bar1Button12) + ActionButtonUseKeyDown suffix.
@@ -430,12 +431,35 @@ end
 -- Helpful spells while Ally Cycle is enabled: stick to friendly hard target (no soft /tar).
 local CLICKCAST_PRE_LINE_ALLY_HELP = "/clearfocus [@focus,dead]"
 
+-- Slimmer than ENEMY (no dead-focus clear) so pre + /click + /targetlasttarget
+-- fits the 255-char cap. Keeps [@focus,harm] so hostile Target Lock still wins /tar.
+local CLICKCAST_PRE_LINE_ALLY_HARM_RESTORE = "/cleartarget [dead,harm]\n"
+  .. "/tar [@focus,harm];[nomounted,@mouseover,harm,nodead][nomounted,@anyenemy]"
+local CLICKCAST_POST_LINE_ALLY_HARM_RESTORE = "/targetlasttarget [harm]"
+
+local function AllyCycleRestoreAfterHarm()
+  return CM.IsAllyCycleRestoreAfterHarm and CM.IsAllyCycleRestoreAfterHarm()
+end
+
 local function GetAllyCycleHarmPreLine()
   local autoLock = CM.DB.char.autoTargetLockOnAttack == true
   if autoLock then
     return CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY
   end
+  if AllyCycleRestoreAfterHarm() then
+    return CLICKCAST_PRE_LINE_ALLY_HARM_RESTORE
+  end
   return CLICKCAST_PRE_LINE_ENEMY
+end
+
+local function GetAllyCycleHarmPostLine()
+  if CM.DB.char.autoTargetLockOnAttack == true then
+    return nil
+  end
+  if not AllyCycleRestoreAfterHarm() then
+    return nil
+  end
+  return CLICKCAST_POST_LINE_ALLY_HARM_RESTORE
 end
 
 --- Classify spell for Ally Cycle routing. Dual help+harm → help (stick to ally).
@@ -467,12 +491,11 @@ local function GetClickCastPreLine(spellId)
   -- Ally Cycle: per-spell helpful vs harmful templates (bindings + in group).
   if CM.IsAllyCycleEnabled and CM.IsAllyCycleEnabled() and IsInGroup and IsInGroup() then
     local route = GetAllyCycleSpellRoute(spellId)
-    if route == "help" then
-      return CLICKCAST_PRE_LINE_ALLY_HELP
-    end
     if route == "harm" then
       return GetAllyCycleHarmPreLine()
     end
+    -- Helpful or unclassified: do not /tar (unclassified would steal the ally).
+    return CLICKCAST_PRE_LINE_ALLY_HELP
   end
 
   local function GetOverride(key)
@@ -505,6 +528,19 @@ local function GetClickCastPreLine(spellId)
       or CLICKCAST_PRE_LINE_AUTO_LOCK_ANY
   end
   return GetOverride("targetingMacroPrelineAnyOverride") or CLICKCAST_PRE_LINE_ANY
+end
+
+local function GetClickCastPostLine(spellId)
+  if not CM.DB.char.reticleTargeting then
+    return nil
+  end
+  if not (CM.IsAllyCycleEnabled and CM.IsAllyCycleEnabled() and IsInGroup and IsInGroup()) then
+    return nil
+  end
+  if GetAllyCycleSpellRoute(spellId) ~= "harm" then
+    return nil
+  end
+  return GetAllyCycleHarmPostLine()
 end
 
 function CM.BuildClickCastMacroText(bindingValue)
@@ -623,6 +659,14 @@ function CM.BuildClickCastMacroText(bindingValue)
   end
 
   local pre = GetClickCastPreLine(spellIdForPreline)
+  local post = GetClickCastPostLine(spellIdForPreline)
   -- Do not prefix pre-line with [nooverridebar]; that can be misinterpreted in combat and echo to chat.
-  return pre and (pre .. "\n" .. castLine) or castLine
+  local text = castLine
+  if pre then
+    text = pre .. "\n" .. text
+  end
+  if post then
+    text = text .. "\n" .. post
+  end
+  return text
 end

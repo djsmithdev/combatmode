@@ -147,6 +147,9 @@ return false
       showHud = true,
       hudSide = "TOP",
       scale = 1.0,
+      -- false + Set=false → follow healer spec until the user toggles.
+      restoreAllyAfterHarm = false,
+      restoreAllyAfterHarmSet = false,
     },
     -- dev
     silenceAlerts = true,

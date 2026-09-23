@@ -89,6 +89,7 @@ CM.Constants.BLIZZARD_EVENTS = {
     "UNIT_ENTERED_VEHICLE", -- Player entered a vehicle (alternative)
     "UNIT_EXITED_VEHICLE", -- Player exited a vehicle (alternative)
     "CVAR_UPDATE", -- ActionButtonUseKeyDown etc.; click-cast macro LeftButton phase must stay in sync
+    "PLAYER_SPECIALIZATION_CHANGED", -- Ally Cycle restore-after-harm follows healer spec until toggled
   },
   -- Events for focus lock detection
   FOCUS_LOCK_EVENTS = {
