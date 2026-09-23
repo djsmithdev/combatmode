@@ -1,5 +1,6 @@
 ## Interface: 120100, 16001
-## Version: 4.7.0
+## Interface-Forever: 16001
+## Version: 4.7.1
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
 ## Notes: Combat Mode brings modern action-game controls to World of Warcraft, replacing traditional tab-targeting with intuitive aiming, more engaging controls, and immersive combat.

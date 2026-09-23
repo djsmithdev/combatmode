@@ -29,7 +29,6 @@ jobs:
           GIT_DIR: ${{ github.workspace }}/.git
         with:
           args: >-
-            -g retail
             -p "${{ vars.CURSEFORGE_PROJECT_ID }}"
             -a "${{ vars.WAGO_PROJECT_ID }}"
             -n "CombatMode-{project-version}"

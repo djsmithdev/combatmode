@@ -7,7 +7,8 @@ Use this checklist when preparing a release build.
 Version bumps are opt-in during day-to-day work (agents ask; see `AGENTS.md`). For a release tag, confirm the bump happened:
 
 - Addon version in `CombatMode/CombatMode.toc` matches the latest dated section in `CombatMode/CHANGELOG.md`.
-- Verify `## Interface` targets current Mainline and Forever builds (comma-delimited; see warcraft.wiki.gg TOC format).
+- Verify `## Interface` targets current Mainline and Forever builds (comma-delimited so both clients accept the unsuffixed TOC).
+- Keep `## Interface-Forever: 16001` so BigWigs packager / Curse / Wago tag the Forever flavor. Do **not** pass `-g retail` in `release-package.yml` — that override uploads Mainline only.
 - Confirm addon title/notes/author metadata are accurate.
 - Confirm `CombatMode/CombatMode.toc` addon folder/name metadata still matches `CombatMode` packaging expectations.
 - `ChangelogData.lua` is synced (`pwsh ./scripts/sync-changelog-to-lua.ps1`).
