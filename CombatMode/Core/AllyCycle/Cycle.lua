@@ -7,13 +7,21 @@
 --    • CombatModeAllyCycle: SecureActionButton + OnClick wrap (key-up only).
 --    • Dual SecureGroupHeaderTemplate rosters (ASC for Up, DESC for Down) —
 --      takeNext walk so a pause between presses continues in the pressed direction.
---    • Self header (nameList) supplies the player’s secure unit token; RestrictedEnv
---      cannot call UnitIsUnit, so skip compares use exact tokens only.
+--    • Self header (nameList) supplies the player’s secure unit token; skip-self
+--      compares use exact tokens only.
+--    • Restore-if-lost: if lastUnit exists and the hard target is missing or
+--      not assistable (PlayerCanAssist — RestrictedEnv has no UnitIsUnit),
+--      this press reselects lastUnit; the next press takeNext.
 --    • PrepareCycle (CallMethod) syncs lastUnit from the hard target only out of combat
 --      (secure SetAttribute is lockdown-blocked; dual headers already keep direction).
 --    • Frame refs are SecureGroupHeaderTemplate only — non-secure frames raise
 --      "Invalid frame handle" under RestrictedEnv (esp. in combat).
 --    • Roster signature clears lastUnit when membership/order changes.
+--    • CM.ResetAllyCycleCursor clears lastUnit OOC (PLAYER_REGEN_ENABLED).
+--    • CM.GetAllyCycleIndex(unit) — insecure ASC walk (skip player); current/total
+--      for the HUD. UnitIsUnit via PublicBool (secret → current unknown).
+--    • On advance (chosen ~= lastUnit) CallMethod NotifyCycle up/down so the HUD
+--      can slide; restore-if-lost does not notify.
 --    • Bindings.xml names + SetOverrideBindingClick (Target Lock pattern).
 --    • CM.IsAllyCycleEnabled — either Up or Down key bound.
 --  Does not: Own Ally HUD chrome or TargetingMacroBuilder help/harm prelines.
@@ -40,6 +48,7 @@ local UnitName = _G.UnitName
 
 -- Lua stdlib
 local ipairs = _G.ipairs
+local issecretvalue = _G.issecretvalue
 local tostring = _G.tostring
 
 local BIND_UP = "Combat Mode - Ally Cycle Up"
@@ -134,7 +143,7 @@ end
 
 --- Sync lastUnit from the hard target so Up/Down continue from who you see.
 --- Only out of combat: insecure SetAttribute on this secure button is lockdown-blocked.
---- In combat, lastUnit from the previous secure click is enough for takeNext direction.
+--- In combat, lastUnit from the previous secure click drives restore-if-lost / takeNext.
 function CycleButton:PrepareCycle()
   if InCombatLockdown and InCombatLockdown() then
     return
@@ -214,7 +223,16 @@ if SecureHandlerWrapScript then
       local chosen = nil
       local takeNext = false
 
-      if header then
+      -- Harm retarget replaces the friendly hard target; reselect lastUnit
+      -- instead of advancing. RestrictedEnv has no UnitIsUnit — restore when
+      -- target is gone or not assistable (PlayerCanAssist). Next press takeNext.
+      if lastUnit and UnitExists(lastUnit)
+        and (not UnitExists("target") or not PlayerCanAssist("target"))
+      then
+        chosen = lastUnit
+      end
+
+      if not chosen and header then
         for slot = 1, 40 do
           local member = header:GetFrameRef("child" .. slot)
           local unit = member and member:GetAttribute("unit")
@@ -241,14 +259,24 @@ if SecureHandlerWrapScript then
       end
 
       if chosen and UnitExists(chosen) then
+        local advanced = (not lastUnit) or (chosen ~= lastUnit)
         self:SetAttribute("unit", chosen)
         self:SetAttribute("lastUnit", chosen)
+        if advanced then
+          self:CallMethod("NotifyCycle", goDown and "down" or "up")
+        end
       else
         self:SetAttribute("unit", nil)
         self:SetAttribute("lastUnit", nil)
       end
     ]]
   )
+end
+
+function CycleButton:NotifyCycle(direction)
+  if CM.NotifyAllyCycleHUD then
+    CM.NotifyAllyCycleHUD(direction)
+  end
 end
 
 function CM.RefreshAllyCycleRoster()
@@ -267,6 +295,72 @@ end
 
 function CM.FlushPendingAllyCycleRoster()
   CM.RefreshAllyCycleRoster()
+end
+
+local function IsSecret(v)
+  return v ~= nil and issecretvalue and issecretvalue(v)
+end
+
+local function PublicBool(v)
+  if IsSecret(v) then
+    return nil
+  end
+  if v == true then
+    return true
+  end
+  if v == false then
+    return false
+  end
+  return nil
+end
+
+local function IsPlayerUnit(unit)
+  if not unit then
+    return false
+  end
+  if unit == "player" then
+    return true
+  end
+  if not UnitIsUnit then
+    return false
+  end
+  return PublicBool(UnitIsUnit(unit, "player")) == true
+end
+
+--- Cycle position of unit among ASC roster members (player skipped).
+--- Returns currentIndex (or nil if unknown) and total.
+function CM.GetAllyCycleIndex(unit)
+  unit = unit or "target"
+  local total = 0
+  local current = nil
+  if not GroupAsc then
+    return nil, 0
+  end
+  local children = { GroupAsc:GetChildren() }
+  for _, child in ipairs(children) do
+    local slot = child.GetAttribute and child:GetAttribute("unit")
+    if slot then
+      local exists = UnitExists(slot)
+      if IsSecret(exists) or exists then
+        if not IsPlayerUnit(slot) then
+          total = total + 1
+          if unit and UnitIsUnit and PublicBool(UnitIsUnit(slot, unit)) == true then
+            current = total
+          end
+        end
+      end
+    end
+  end
+  return current, total
+end
+
+--- Drop the cycle cursor so the next press starts at the top of the index
+--- (unless OOC PrepareCycle sees a friendly hard target and continues from them).
+function CM.ResetAllyCycleCursor()
+  if InCombatLockdown and InCombatLockdown() then
+    return
+  end
+  CycleButton:SetAttribute("lastUnit", nil)
 end
 
 function CM.IsAllyCycleEnabled()

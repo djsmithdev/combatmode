@@ -111,7 +111,7 @@ UI.Options.AddTab({
 
     ctx:Toggle({
       label = "Show Ally HUD",
-      desc = "Show an indicator for the currently selected group member beside the crosshair.",
+      desc = "Show name, role, health, cycle index, and raid marker for the selected group member beside the crosshair.",
       get = function()
         return AllyCycleDb().showHud ~= false
       end,

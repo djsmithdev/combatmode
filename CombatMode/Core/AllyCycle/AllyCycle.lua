@@ -6,6 +6,8 @@
 --  Architecture / how it works:
 --    • Enable = Up/Down keybinds bound (CM.IsAllyCycleEnabled).
 --    • OnGroupRosterUpdate / OnCombatEnd refresh secure unit attrs; HUD tracks target.
+--    • OnCombatEnd also ResetAllyCycleCursor (lastUnit) so the next press starts
+--      at the top unless OOC PrepareCycle continues from a friendly hard target.
 --  Does not: Build click-cast macrotext (TargetingMacroBuilder) or own options UI.
 --  Related: Core/AllyCycle/{Cycle,HUD}.lua, Core/Runtime/{Bootstrap,EventRouter}.lua,
 --  Core/Crosshair/Crosshair.lua, UI/Options/Tabs/TabAllyCycle.lua
@@ -31,6 +33,9 @@ function CM.OnAllyCycleGroupRosterUpdate()
 end
 
 function CM.OnAllyCycleCombatEnd()
+  if CM.ResetAllyCycleCursor then
+    CM.ResetAllyCycleCursor()
+  end
   if CM.FlushPendingAllyCycleRoster then
     CM.FlushPendingAllyCycleRoster()
   end

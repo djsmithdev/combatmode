@@ -4,7 +4,7 @@
 --  What it does: Static layout sizes, widgetstatusbar health-bar chrome tuning, role
 --  atlases, shadow pads, and out-of-range alpha for the Ally Cycle HUD.
 --  Architecture / how it works:
---    • AllyCycleLayout — role/name/bar/marker sizes, shadow pads.
+--    • AllyCycleLayout — role/name/bar/marker/index sizes, shadow pads, cycle slide.
 --    • AllyCycleHealthBar — widgetstatusbar kit; low-HP glow (red) + aggro glow (yellow).
 --    • AllyCycleRoleAtlases — UI-Frame Tank / Healer / Dps icons (FrameGeneral).
 --  Does not: Own cycle roster, secure buttons, or DB.global.allyCycle settings.
@@ -14,7 +14,8 @@
 local _, CM = ...
 
 CM.Constants.AllyCycleLayout = {
-  -- Name + bar stay centered; role icon left of bar, raid marker right.
+  -- Name + bar stay centered; role icon left of bar, cycle index right;
+  -- raid marker sits just above the name.
   roleIconSize = 20,
   nameFontSize = 11,
   nameMaxWidth = 120,
@@ -33,10 +34,19 @@ CM.Constants.AllyCycleLayout = {
   shadowShiftY = -10,
   -- Whole-cluster alpha when UnitInRange is false.
   outOfRangeAlpha = 0.3,
-  -- Slightly smaller than the role icon; drawn above the health-bar chrome.
+  -- Slightly smaller than the role icon; sits above the name.
   raidMarkerSize = 16,
-  -- Horizontal gap from bar right edge (role icon still uses `gap`).
-  raidMarkerGap = 4,
+  -- Gap between marker bottom and name top (WoW Y is up-positive).
+  raidMarkerLift = 4,
+  -- Horizontal gap from bar right edge to cycle index (role icon still uses `gap`).
+  indexGap = 2,
+  indexFontSize = 10,
+  -- Enough for "40/40" so the bar stays centered as the digits change.
+  indexMinWidth = 28,
+  -- Cycle advance: short slide in from below (up) / above (down), ease-out.
+  cycleSlidePx = 3,
+  cycleAnimSec = 0.14,
+  cycleAnimFromAlpha = 0.75,
 }
 
 CM.Constants.AllyCycleHealthBar = {
