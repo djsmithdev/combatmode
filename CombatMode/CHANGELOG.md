@@ -11,7 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Ally Cycle**: bind Up/Down to hard-target the next or previous party/raid member (group/index order; skips you) without unlocking Mouse Look. Huge thank you to user `Ataxium` for the concept/suggestion.
 - **Simultaneous attack + assist**: while an ally is selected, helpful Click Casting spells go to that ally; harmful spells still prefer your hostile Crosshair / Target Lock target.
-- **Ally HUD** (dedicated options tab): companion beside the crosshair for the selected ally — class-colored name, role icon, health bar, raid marker, and cycle index (`n/total`, excluding you). Configurable position (default above the reticle) and scale.
+- **Ally HUD** (dedicated options tab): companion beside the crosshair for the selected ally — class-colored name, role icon, health bar, raid marker, and cycle index (`n/total`, excluding you). Configurable position, scale, and **Distance**.
+- **Distance** sliders on Interaction HUD, Combat Assist, and Ally HUD: gap past the reticle edge (default 24, same as before).
+- Right-clicking an **options slider** now resets it to its default value.
 
 ### Fixed
 

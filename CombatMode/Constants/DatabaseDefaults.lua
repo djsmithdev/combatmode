@@ -96,10 +96,12 @@ CM.Constants.DatabaseDefaults = {
     interactionHUD = true,
     interactionHUDSide = "LEFT",
     interactionHUDScale = 1.0,
+    interactionHUDPadding = 24,
     -- combat assist
     assistedHighlightEnabled = true,
     assistedHighlightSide = "RIGHT",
     assistedHighlightScale = 1.0,
+    assistedHighlightPadding = 24,
     -- reticle targeting
     reticleTargetingCVarOverrides = {},
     priorCVarSnapshot = nil,
@@ -147,6 +149,7 @@ return false
       showHud = true,
       hudSide = "BOTTOM",
       scale = 1.0,
+      padding = 24,
       skipPlayer = true,
       -- false + Set=false → follow healer spec until the user toggles.
       restoreAllyAfterHarm = false,

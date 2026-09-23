@@ -2,14 +2,15 @@
 --  UI/Options/Tabs/TabCrosshair.lua — OPTIONS TAB — Crosshair + HUD + Assist
 ---------------------------------------------------------------------------------------
 --  What it does: Wires crosshair enable/cast feedback/appearance/scale/Y,
---  situational condition + situational appearance, Interaction HUD enable + side + scale,
---  and Combat Assist enable + side + scale. Live preview via SetCrosshairOptionsPreview
---  onSelect/onDeselect; when HUD turns on without reticle targeting, applies
---  ConfigInteractionHUDSoftTarget.
+--  situational condition + situational appearance, Interaction HUD enable + side + scale
+--  + distance, and Combat Assist enable + side + scale + distance. Live preview via
+--  SetCrosshairOptionsPreview onSelect/onDeselect; when HUD turns on without reticle
+--  targeting, applies ConfigInteractionHUDSoftTarget.
 --  Architecture / how it works:
 --    • DB.global: crosshair*, crosshairScale, crosshairReactionColors,
 --      crosshairSituationalCondition, crosshairSituationalAppearance,
---      interactionHUD / Side / Scale, assistedHighlightEnabled / Side / Scale.
+--      interactionHUD / Side / Scale / Padding, assistedHighlightEnabled / Side / Scale / Padding
+--      (Padding sliders labeled Distance).
 --    • set() → DisplayCrosshair / CreateCrosshair / CancelCrosshairCastFeedback /
 --      ApplyInteractionHUDLayout / RefreshInteractionHUD /
 --      ApplyCrosshairAssistedHighlightOptions / UpdateCrosshairAssistedHighlight.
@@ -54,6 +55,7 @@ end
 UI.Options.AddTab({
   id = "crosshair",
   label = "Crosshair",
+  newFeatureFlag = true,
   onSelect = function()
     CM.SetCrosshairOptionsPreview(true)
   end,
@@ -120,6 +122,7 @@ UI.Options.AddTab({
       min = 0.5,
       max = 1.5,
       step = 0.05,
+      default = 1,
       get = function()
         return CM.GetCrosshairScale and CM.GetCrosshairScale() or CM.DB.global.crosshairScale or 1
       end,
@@ -135,6 +138,7 @@ UI.Options.AddTab({
       min = -400,
       max = 400,
       step = 1,
+      default = 100,
       get = function()
         return CM.DB.global.crosshairY or CM.Constants.DatabaseDefaults.global.crosshairY
       end,
@@ -239,6 +243,7 @@ return false
       min = 0.5,
       max = 1.5,
       step = 0.05,
+      default = 1,
       get = function()
         return CM.DB.global.interactionHUDScale
           or CM.Constants.DatabaseDefaults.global.interactionHUDScale
@@ -246,6 +251,34 @@ return false
       end,
       set = function(value)
         CM.DB.global.interactionHUDScale = value
+        if CM.ApplyInteractionHUDLayout then
+          CM.ApplyInteractionHUDLayout()
+        end
+        if CM.RefreshInteractionHUD then
+          CM.RefreshInteractionHUD()
+        end
+      end,
+      disabled = function()
+        return CrosshairOff() or not CM.DB.global.interactionHUD
+      end,
+    })
+    ctx:Slider({
+      label = "Distance",
+      desc = "Distance between the Interaction HUD and the crosshair.",
+      newFeatureFlag = true,
+      min = 0,
+      max = 128,
+      step = 1,
+      default = 24,
+      get = function()
+        local v = CM.DB.global.interactionHUDPadding
+        if v == nil then
+          v = CM.Constants.DatabaseDefaults.global.interactionHUDPadding
+        end
+        return v or 24
+      end,
+      set = function(value)
+        CM.DB.global.interactionHUDPadding = value
         if CM.ApplyInteractionHUDLayout then
           CM.ApplyInteractionHUDLayout()
         end
@@ -296,6 +329,7 @@ return false
       min = 0.5,
       max = 1.5,
       step = 0.05,
+      default = 1,
       get = function()
         return CM.DB.global.assistedHighlightScale
           or CM.Constants.DatabaseDefaults.global.assistedHighlightScale
@@ -303,6 +337,27 @@ return false
       end,
       set = function(value)
         CM.DB.global.assistedHighlightScale = value
+        RefreshAssist()
+      end,
+      disabled = AssistOff,
+    })
+    ctx:Slider({
+      label = "Distance",
+      desc = "Distance between the Combat Assist and the crosshair.",
+      newFeatureFlag = true,
+      min = 0,
+      max = 128,
+      step = 1,
+      default = 24,
+      get = function()
+        local v = CM.DB.global.assistedHighlightPadding
+        if v == nil then
+          v = CM.Constants.DatabaseDefaults.global.assistedHighlightPadding
+        end
+        return v or 24
+      end,
+      set = function(value)
+        CM.DB.global.assistedHighlightPadding = value
         RefreshAssist()
       end,
       disabled = AssistOff,

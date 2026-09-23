@@ -6,7 +6,8 @@
 --  label + shadow, layout/resize, options preview sample, and public Apply / Refresh / Init.
 --  Architecture / how it works:
 --    • InitInteractionHUD({crosshairFrame, crosshairTexture}); ApplyInteractionHUDLayout
---      + RefreshInteractionHUD for side/gap (CrosshairCompanionOffsetX beyond reticle edge).
+--      + RefreshInteractionHUD for side/gap (interactionHUDPadding beyond reticle edge;
+--      default CrosshairCompanionOffsetX).
 --    • SoftTarget CVars applied elsewhere via CVarManager.ConfigInteractionHUDSoftTarget.
 --    • Visual.Attach + OnUpdate Visual.Tick; Target for identity / cursor dim.
 --    • Retail 12.x: secret-string-safe UnitName / FontString sizing (no literal compares).
@@ -25,6 +26,7 @@ local UnitIsGameObject = _G.UnitIsGameObject
 
 -- Lua stdlib
 local math = _G.math
+local tonumber = _G.tonumber
 
 local Target = CM.InteractionHUDTarget
 local Visual = CM.InteractionHUDVisual
@@ -219,7 +221,16 @@ function CM.ApplyInteractionHUDLayout()
     or UserConfig.crosshairSize
     or DefaultConfig.crosshairSize
     or 64
-  local gap = (crosshairSize / 2) + IH_OFFSET_X
+  local pad = tonumber(UserConfig.interactionHUDPadding)
+  if pad == nil then
+    pad = IH_OFFSET_X or 24
+  end
+  if pad < 0 then
+    pad = 0
+  elseif pad > 128 then
+    pad = 128
+  end
+  local gap = (crosshairSize / 2) + pad
   local side = GetInteractionHUDSide()
   InteractionHUDCluster:ClearAllPoints()
   if side == "LEFT" then

@@ -2,7 +2,7 @@
 --  UI/Options/Tabs/TabAllyCycle.lua — OPTIONS TAB — Ally Cycle + HUD
 ---------------------------------------------------------------------------------------
 --  What it does: Up/Down keybinds, Skip Self, Keep Ally After Harm, and Ally HUD
---  show/side/scale. Unbound keys disable.
+--  show/side/scale/distance. Unbound keys disable.
 --  Architecture / how it works:
 --    • DB.global.allyCycle; onSelect/onDeselect → SetAllyCycleOptionsPreview.
 --    • Skip Self → skipPlayer + ApplyAllyCycleBindings (secure attribute).
@@ -42,6 +42,7 @@ local function AllyCycleDb()
       showHud = true,
       hudSide = "BOTTOM",
       scale = 1.0,
+      padding = 24,
       skipPlayer = true,
       restoreAllyAfterHarm = false,
       restoreAllyAfterHarmSet = false,
@@ -179,11 +180,31 @@ UI.Options.AddTab({
       min = 0.5,
       max = 1.5,
       step = 0.05,
+      default = 1,
       get = function()
         return AllyCycleDb().scale or 1
       end,
       set = function(value)
         AllyCycleDb().scale = value
+        ApplyHud()
+      end,
+    })
+    ctx:Slider({
+      label = "Distance",
+      desc = "Distance between the Ally HUD and the crosshair.",
+      min = 0,
+      max = 128,
+      step = 1,
+      default = 24,
+      get = function()
+        local v = AllyCycleDb().padding
+        if v == nil then
+          v = 24
+        end
+        return v
+      end,
+      set = function(value)
+        AllyCycleDb().padding = value
         ApplyHud()
       end,
     })

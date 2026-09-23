@@ -152,6 +152,7 @@ UI.Options.AddTab({
       min = 10,
       max = 180,
       step = 10,
+      default = 100,
       watermarkWhenDisabled = "Control relinquished to DynamicCam",
       get = function()
         return CM.DB.global.mouseLookSpeed
@@ -250,6 +251,7 @@ UI.Options.AddTab({
       min = -2,
       max = 2,
       step = 0.1,
+      default = 1.2,
       watermarkWhenDisabled = CameraFeatureWatermark,
       get = function()
         return CM.DB.char.shoulderOffset or 1.2

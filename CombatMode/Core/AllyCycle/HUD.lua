@@ -4,7 +4,8 @@
 --  What it does: Ally HUD beside the crosshair for a friendly hard target (or options preview).
 --  Self is shown only when Skip Self is off; name reads "You".
 --  Architecture / how it works:
---    • DB.global.allyCycle; layout / bar / role atlases are locals in this file.
+--    • DB.global.allyCycle (side / scale / padding); layout / bar / role atlases
+--      are locals in this file. Padding defaults to CrosshairCompanionOffsetX.
 --    • Index from GetAllyCycleIndex; slide via NotifyAllyCycleHUD.
 --    • Fades with Mouse Look (same cluster lerp as Interaction HUD); options preview
 --      stays visible with mouselook off.
@@ -44,6 +45,7 @@ local HB_VALUE_INTERP = StatusBarInterpolation and StatusBarInterpolation.Expone
 -- Lua stdlib
 local issecretvalue = _G.issecretvalue
 local math = _G.math
+local tonumber = _G.tonumber
 local tostring = _G.tostring
 local type = _G.type
 
@@ -177,7 +179,7 @@ local function Config()
     and CM.Constants.DatabaseDefaults
     and CM.Constants.DatabaseDefaults.global
     and CM.Constants.DatabaseDefaults.global.allyCycle
-  return g or d or { showHud = true, hudSide = "BOTTOM", scale = 1 }
+  return g or d or { showHud = true, hudSide = "BOTTOM", scale = 1, padding = 24 }
 end
 
 local function ExtractColorRGBA(color)
@@ -261,7 +263,16 @@ local function AnchorCluster(offsetY)
   local side = cfg.hudSide or "BOTTOM"
   local L = Layout()
   local crosshairSize = (CM.GetCrosshairPixelSize and CM.GetCrosshairPixelSize()) or 64
-  local gap = (crosshairSize / 2) + (L.companionOffset or 24)
+  local pad = tonumber(cfg.padding)
+  if pad == nil then
+    pad = L.companionOffset or 24
+  end
+  if pad < 0 then
+    pad = 0
+  elseif pad > 128 then
+    pad = 128
+  end
+  local gap = (crosshairSize / 2) + pad
   local scale = cfg.scale or 1
   local oy = offsetY or 0
   cluster:SetScale(scale)

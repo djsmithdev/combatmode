@@ -12,7 +12,7 @@
 --      drives the Crosshair options dropdown.
 --    • CrosshairReactionColors (defaults only — runtime tints use
 --      CM.GetCrosshairReactionColor), CrosshairCastBreak (shared interrupt VFX), and
---      CrosshairCompanionOffsetX (Assist + Interaction HUD gap past reticle edge).
+--      CrosshairCompanionOffsetX (default companion Distance fallback).
 --  Does not: Draw widgets, own frame lifecycle, apply appearance at runtime, or
 --  own Blizzard atlas FlipBook/VFX names (those stay local to the owning module).
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight/Assist.lua,

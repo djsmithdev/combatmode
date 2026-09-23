@@ -6,6 +6,7 @@
 --  Tabs supply get/set closures; widgets stay feature-API agnostic.
 --  Architecture / how it works:
 --    • UI.Options.controls registry; Options.Sync() refreshes values + disabled state.
+--    • Sliders: opts.default; right-click resets to that value.
 --    • Layout helpers (NewLayout) used by tabs and nested hosts (e.g. Camera/DynamicCam).
 --    • charSpecific badge + tooltips for per-character settings.
 --    • newFeatureFlag — shared "NEW" atlas badge (Alliance) beside section/option titles;
@@ -584,9 +585,9 @@ UI.NewFeatureBadge = {
   tabAtlas = "NewCharacter-Horde",
   contentAtlas = "NewCharacter-Alliance",
   tabMaxH = 28,
-  contentMaxH = 18,
+  contentMaxH = 22,
   headerMaxH = 28,
-  gap = 6,
+  gap = -4,
   headerGap = -4,
 }
 
@@ -1220,6 +1221,7 @@ function UI.MakeSlider(parent, opts)
   local committedValue
   local animFrom, animTo, animElapsed
   local userActive = false
+  local rightClicking = false
 
   local function stepRound(value)
     local step = opts.step or 1
@@ -1302,11 +1304,26 @@ function UI.MakeSlider(parent, opts)
     end)
   end
 
-  slider:HookScript("OnMouseDown", function()
+  slider:HookScript("OnMouseDown", function(_, button)
+    if button == "RightButton" then
+      rightClicking = true
+      return
+    end
     StopSliderAnim()
     userActive = true
   end)
-  slider:HookScript("OnMouseUp", function()
+  slider:HookScript("OnMouseUp", function(_, button)
+    if button == "RightButton" or rightClicking then
+      rightClicking = false
+      userActive = false
+      if IsDisabled(opts) or opts.default == nil then
+        return
+      end
+      local stepped = stepRound(opts.default)
+      ApplyDisplay(stepped, true)
+      CommitStepped(stepped, true)
+      return
+    end
     userActive = false
     -- Snap thumb + fill to the committed step when the drag ends.
     local stepped = stepRound(displayValue or slider:GetValue() or 0)
@@ -1320,7 +1337,7 @@ function UI.MakeSlider(parent, opts)
   end)
 
   slider:SetScript("OnValueChanged", function(_, value)
-    if suppress then
+    if suppress or rightClicking then
       return
     end
     displayValue = value
@@ -2351,7 +2368,7 @@ function UI.MakeHeader(parent, textOrOpts)
 
   local control = { frame = frame, height = 26, label = fs, badge = badge }
   -- Re-seat the badge after layout width is known (string width is reliable then).
-  function control.SetWidthTo(_width)
+  function control.SetWidthTo()
     if badge then
       UI.PlaceNewFeatureBadge(badge, fs, nil, nil, UI.NewFeatureBadge.headerGap)
     end

@@ -11,6 +11,7 @@
 --    • APIs: InitAssistedHighlight, ApplyCrosshairAssistedHighlightOptions,
 --      UpdateCrosshairAssistedHighlight. Keybind cache / cast events live in siblings.
 --    • Preview: IsCrosshairPreviewActive forces placeholder icon + keybind layout.
+--    • Gap past reticle edge: assistedHighlightPadding (default CrosshairCompanionOffsetX).
 --  Does not: Own keybind resolution (Keybinds), ProcLoop/glow/fade (Motion), swipe/
 --  break (CastProgress), or press/pulse/cache (Feedback). Not Animations / SoftTarget.
 --  Related: Core/Crosshair/AssistedHighlight/{Keybinds,Motion,CastProgress,Feedback}.lua,
@@ -389,7 +390,16 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
   local crosshairSize = (CM.GetCrosshairPixelSize and CM.GetCrosshairPixelSize())
     or tonumber(g.crosshairSize or d.crosshairSize)
     or 64
-  local gap = (crosshairSize / 2) + ASSIST_OFFSET_X
+  local pad = tonumber(g.assistedHighlightPadding)
+  if pad == nil then
+    pad = ASSIST_OFFSET_X or 24
+  end
+  if pad < 0 then
+    pad = 0
+  elseif pad > 128 then
+    pad = 128
+  end
+  local gap = (crosshairSize / 2) + pad
 
   local layoutChanged = lastAppliedSide ~= side
 
