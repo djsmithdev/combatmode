@@ -10,6 +10,8 @@
 --      at load; newFeatureFlag draws the Horde "NEW" badge on the tab button (far right).
 --      In-content headers/options use Alliance via Widgets `newFeatureFlag`.
 --      onSelect/onDeselect drive Crosshair / Ally Cycle preview.
+--    • ctx:WatermarkPage(text) stamps the tab scroll viewport (same overlay as
+--      per-row watermarkWhenDisabled) so a whole page can be inert.
 --    • Layout ctx passed to build() wraps Widgets factories.
 --    • Combat-guarded open where needed; not a Blizzard Settings host.
 --  Does not: Own per-feature option wiring (Tabs/*) or changelog body text.
@@ -102,8 +104,23 @@ end
 -- Gap between consecutive placed controls (options, headers, cards, buttons).
 local ITEM_GAP = 12
 
-local function NewLayout(content, width)
-  local ctx = { content = content, width = width, y = -8 }
+local function NewLayout(content, width, clip)
+  local ctx = { content = content, width = width, y = -8, clip = clip }
+
+  --- Dim + block the visible page (scroll viewport, or content if no clip).
+  function ctx:WatermarkPage(text)
+    if type(text) == "table" then
+      text = text.text
+    end
+    local parent = self.clip or self.content
+    if not parent or not UI.CreateWatermark then
+      return nil
+    end
+    local mark = UI.CreateWatermark(parent, text or "Unavailable", UI.Fonts.header)
+    mark:Show()
+    self.pageWatermark = mark
+    return mark
+  end
 
   function ctx:PlaceFrame(childFrame, height)
     childFrame:ClearAllPoints()
@@ -333,7 +350,7 @@ function UI.CreateWindow(globalName, titleText, width, height, opts)
     end)
   end
 
-  local ctx = NewLayout(content, contentWidth)
+  local ctx = NewLayout(content, contentWidth, scroll)
   win.ctx = ctx
   win.content = content
   win.scroll = scroll
@@ -563,7 +580,7 @@ local function BuildTab(def, index)
   local contentWidth = WINDOW_W - SIDEBAR_W - 22 - CONTENT_PAD
   content:SetSize(contentWidth, 10)
 
-  local ctx = NewLayout(content, contentWidth)
+  local ctx = NewLayout(content, contentWidth, scroll)
   def.build(ctx)
   ctx:Finish()
 
