@@ -9,9 +9,7 @@
     <Script file="Constants\Assets.lua"/>
     <Script file="Constants\Gameplay.lua"/>
     <Script file="Constants\DatabaseDefaults.lua"/>
-    <Script file="Constants\AllyCycle.lua"/>
     <Script file="Constants\FrameWatch.lua"/>
-    <Script file="Constants\Reticle.lua"/>
     <!-- DEV: profiling tools (gated by Debug Mode toggle; no production impact when off) -->
     <Script file="Core\Dev\FunctionProfiler.lua"/>
     <!-- RUNTIME support (events, CVars, deferred bindings, bootstrap) -->

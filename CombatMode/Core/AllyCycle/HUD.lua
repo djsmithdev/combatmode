@@ -1,26 +1,17 @@
 ---------------------------------------------------------------------------------------
 --  Core/AllyCycle/HUD.lua — ALLYCYCLE — crosshair companion for friendly hard target
 ---------------------------------------------------------------------------------------
---  What it does: Compact Ally HUD (class-colored name, UI-Frame role icon, widgetstatusbar
---  HP, cycle index, raid marker above the name) beside the crosshair while Ally Cycle is
---  enabled and the hard target is a friendly (non-self) unit — or while the Ally Cycle
---  options tab preview is active.
+--  What it does: Ally HUD beside the crosshair for a friendly hard target (or options preview).
 --  Architecture / how it works:
---    • DB.global.allyCycle: showHud, hudSide (default TOP), scale.
---    • Layout: name above; raid marker just above the name; role left of bar;
---      cycle index (n/total, player skipped) right of bar via CM.GetAllyCycleIndex.
---      Dead → desaturate bar/role/marker, grey name/index.
---      Low HP → red pulsing bar glow; aggro (threat ≥ 2) → same glow, yellow tint.
---      Raid marker via SetRaidTargetIconTexture (secret index safe under taint).
---      PetJournal-BattleSlot-Shadow backdrop; UnitInRange dims via EvaluateColorFromBoolean.
---    • Cycle advance: NotifyAllyCycleHUD(up/down) then slide-in (ease-out) on
---      Refresh. Range alpha may be secret (EvaluateColorFromBoolean); SetAlpha
---      gets it raw — never multiply a secret by slide alpha.
---    • RefreshAllyCycleHUD / ApplyAllyCycleHUDLayout; InitAllyCycleHUD from Crosshair.
---    • SetAllyCycleOptionsPreview — tab onSelect/onDeselect (crosshair + sample HUD).
+--    • DB.global.allyCycle; layout / bar / role atlases are locals in this file.
+--    • Index from GetAllyCycleIndex; slide via NotifyAllyCycleHUD.
+--    • Fades with Mouse Look (same cluster lerp as Interaction HUD); options preview
+--      stays visible with mouselook off.
+--    • Range alpha may be secret — SetAlpha raw, never multiply by slide/fade alpha.
+--    • Raid marker index may be secret — issecretvalue is presence; no Lua math.
 --  Does not: Own cycle bindings or targeting prelines.
 --  Related: Core/AllyCycle/{Cycle,AllyCycle}.lua, Core/Crosshair/Crosshair.lua,
---  Constants/AllyCycle.lua, UI/Options/Tabs/TabAllyCycle.lua
+--  UI/Options/Tabs/TabAllyCycle.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -72,8 +63,10 @@ local cycleAnim = nil
 local cycleSlideY = 0
 local cycleSlideA = 1
 local lastRangeAlpha = 1
+local hudFade = 0
+local hudFadeTarget = 0
+local HUD_FADE_SPEED = 16
 
--- Options preview: living / low / aggro+marker / dead.
 local PREVIEW_MAX = 100
 local PREVIEW_TOTAL = 4
 local PREVIEW_STAGES = {
@@ -91,16 +84,66 @@ local previewAggro = false
 local previewRaidIndex = nil
 local previewIndex = 1
 
+local LAYOUT = {
+  roleIconSize = 20,
+  nameFontSize = 11,
+  nameMaxWidth = 120,
+  nameLift = 6,
+  gap = 2,
+  companionOffset = (CM.Constants and CM.Constants.CrosshairCompanionOffsetX) or 24,
+  shadowAtlas = "PetJournal-BattleSlot-Shadow",
+  shadowAlpha = 0.7,
+  shadowPadL = 56,
+  shadowPadR = 56,
+  shadowPadT = 36,
+  shadowPadB = 28,
+  -- Negative = down (WoW UI Y is up-positive).
+  shadowShiftY = -10,
+  outOfRangeAlpha = 0.3,
+  raidMarkerSize = 16,
+  raidMarkerLift = 4,
+  indexGap = 2,
+  indexFontSize = 10,
+  -- Reserve width so the bar stays centered as "1/4" becomes "40/40".
+  indexMinWidth = 28,
+  cycleSlidePx = 3,
+  cycleAnimSec = 0.14,
+  cycleAnimFromAlpha = 0.75,
+}
+
+local HEALTH_BAR = {
+  width = 72,
+  height = 10,
+  lowPct = 0.25,
+  glowR = 1,
+  glowG = 0.12,
+  glowB = 0.08,
+  aggroGlowR = 1,
+  aggroGlowG = 0.85,
+  aggroGlowB = 0.12,
+  glowPulsePeriod = 1.15,
+  glowPulseMin = 0.35,
+  glowPulseMax = 1.0,
+  fillWhiteAtlas = "widgetstatusbar-fill-white",
+}
+
+local ROLE_ATLASES = {
+  TANK = "UI-Frame-TankIcon",
+  HEALER = "UI-Frame-HealerIcon",
+  DAMAGER = "UI-Frame-DpsIcon",
+  NONE = "UI-Frame-DpsIcon",
+}
+
 local function Layout()
-  return (CM.Constants and CM.Constants.AllyCycleLayout) or {}
+  return LAYOUT
 end
 
 local function HB()
-  return (CM.Constants and CM.Constants.AllyCycleHealthBar) or {}
+  return HEALTH_BAR
 end
 
 local function RoleAtlases()
-  return (CM.Constants and CM.Constants.AllyCycleRoleAtlases) or {}
+  return ROLE_ATLASES
 end
 
 local function IsSecret(v)
@@ -149,7 +192,6 @@ local function ExtractColorRGBA(color)
   return color[1], color[2], color[3], color[4]
 end
 
--- Health fill colors (green / yellow / crit — not class tint).
 local COLOR_HB_CRIT = CreateColor and CreateColor(1, 0.22, 0.12, 1)
 local COLOR_HB_DMG = CreateColor and CreateColor(1, 0.85, 0.15, 1)
 local COLOR_HB_OK = CreateColor and CreateColor(0.2, 0.85, 0.25, 1)
@@ -234,27 +276,88 @@ local function AnchorCluster(offsetY)
   end
 end
 
+-- SetAlpha accepts secret range alpha; Lua * does not.
 local function ApplyClusterVisual()
   if not cluster then
     return
   end
-  -- SetAlpha may consume a secret range alpha; Lua * must not.
+  local slideA = PublicNumber(cycleSlideA, 1)
+  local fadeA = PublicNumber(hudFade, 1)
   if IsSecret(lastRangeAlpha) then
-    cluster:SetAlpha(lastRangeAlpha)
+    if fadeA >= 0.999 and slideA >= 0.999 then
+      cluster:SetAlpha(lastRangeAlpha)
+    else
+      cluster:SetAlpha(fadeA * slideA)
+    end
   else
-    cluster:SetAlpha(PublicNumber(lastRangeAlpha, 1) * PublicNumber(cycleSlideA, 1))
+    cluster:SetAlpha(PublicNumber(lastRangeAlpha, 1) * slideA * fadeA)
   end
   AnchorCluster(cycleSlideY)
 end
 
+local function TickHudFade(elapsed)
+  if not cluster then
+    return
+  end
+  if math.abs(hudFade - hudFadeTarget) <= 0.001 then
+    hudFade = hudFadeTarget
+    if hudFadeTarget == 0 and hudFade <= 0.001 and cluster:IsShown() then
+      hudFade = 0
+      ResetCycleAnim()
+      lastRangeAlpha = 1
+      cluster:Hide()
+    end
+    return
+  end
+  local dt = (elapsed and elapsed > 0) and elapsed or (1 / 60)
+  local step = math.min(1, dt * HUD_FADE_SPEED)
+  hudFade = hudFade + (hudFadeTarget - hudFade) * step
+  if math.abs(hudFade - hudFadeTarget) < 0.01 then
+    hudFade = hudFadeTarget
+  end
+  ApplyClusterVisual()
+  if hudFadeTarget == 0 and hudFade <= 0.001 then
+    hudFade = 0
+    ResetCycleAnim()
+    lastRangeAlpha = 1
+    cluster:Hide()
+  end
+end
+
+local function RequestHudHide()
+  hudFadeTarget = 0
+  if not cluster or not cluster:IsShown() then
+    hudFade = 0
+    ResetCycleAnim()
+    lastRangeAlpha = 1
+    if cluster then
+      cluster:Hide()
+    end
+    return
+  end
+  if hudFade <= 0.001 then
+    hudFade = 0
+    ResetCycleAnim()
+    lastRangeAlpha = 1
+    cluster:Hide()
+  end
+end
+
+local function RequestHudShow()
+  hudFadeTarget = 1
+  if cluster then
+    cluster:Show()
+  end
+end
+
 local function StartCycleAnim(dir)
   local L = Layout()
-  local px = L.cycleSlidePx or 12
+  local px = L.cycleSlidePx or 3
   cycleAnim = {
     elapsed = 0,
-    dur = L.cycleAnimSec or 0.18,
+    dur = L.cycleAnimSec or 0.14,
     fromY = (dir == "down") and px or -px,
-    fromA = L.cycleAnimFromAlpha or 0.4,
+    fromA = L.cycleAnimFromAlpha or 0.75,
   }
   cycleSlideY = cycleAnim.fromY
   cycleSlideA = cycleAnim.fromA
@@ -333,7 +436,6 @@ local function ApplyRangeAlpha(unit)
   ApplyClusterVisual()
 end
 
---- True when hard target is a friendly we should show / route heals to.
 function CM.IsAllyCycleFriendlyHardTarget()
   if not UnitExists("target") then
     return false
@@ -361,7 +463,6 @@ function CM.IsAllyCycleOptionsPreviewActive()
   return previewActive
 end
 
---- Options-tab live preview: force crosshair + Ally HUD sample with mouselook off.
 function CM.SetAllyCycleOptionsPreview(enabled)
   enabled = enabled and true or false
   if previewActive == enabled then
@@ -419,7 +520,7 @@ local function ClassRGB(unit)
   return 1, 1, 1
 end
 
---- Dead: desaturate fill + role + marker; grey the name/index (FontString has no SetDesaturated).
+-- FontString has no SetDesaturated — grey name/index instead.
 local function ApplyDeadChrome(dead)
   dead = dead and true or false
   if healthBar then
@@ -560,7 +661,6 @@ local function LayoutShadowTexture(tex, L)
   tex:SetPoint("BOTTOMRIGHT", cluster, "BOTTOMRIGHT", padR, -padB + shiftY)
 end
 
--- healthGlowA = HP-curve baseline; aggro forces full glow + yellow tint.
 local function SyncBarGlow(unit)
   if not healthBar then
     return
@@ -881,6 +981,7 @@ local function TickPreviewHealth(elapsed)
 end
 
 local function OnHudUpdate(_, elapsed)
+  TickHudFade(elapsed)
   TickCycleAnim(elapsed)
   if previewActive and cluster and cluster:IsShown() then
     TickPreviewHealth(elapsed)
@@ -979,7 +1080,6 @@ local function EnsureFrames()
     healthBar = CreateAllyHealthBar(cluster)
     healthBar:SetSize(cfg.width or 72, cfg.height or 10)
 
-    -- Overlay frame above StatusBar chrome so the marker is never covered.
     local markerS = L.raidMarkerSize or 14
     raidMarkerFrame = CreateFrame("Frame", nil, cluster)
     raidMarkerFrame:SetSize(markerS, markerS)
@@ -988,29 +1088,6 @@ local function EnsureFrames()
     raidMarker:SetAllPoints(raidMarkerFrame)
     raidMarker:SetTexture(RAID_TARGET_TEXTURE)
     raidMarker:Hide()
-  else
-    -- Upgrade path if cluster was created before later chrome existed.
-    if not raidMarkerFrame and healthBar then
-      local markerS = L.raidMarkerSize or 14
-      raidMarkerFrame = CreateFrame("Frame", nil, cluster)
-      raidMarkerFrame:SetSize(markerS, markerS)
-      raidMarkerFrame:SetFrameLevel(healthBar:GetFrameLevel() + 5)
-      raidMarker = raidMarkerFrame:CreateTexture(nil, "OVERLAY")
-      raidMarker:SetAllPoints(raidMarkerFrame)
-      raidMarker:SetTexture(RAID_TARGET_TEXTURE)
-      raidMarker:Hide()
-    end
-    if not indexFS then
-      indexFS = cluster:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-      indexFS:SetJustifyH("CENTER")
-      indexFS:SetWordWrap(false)
-      if CM.SetFontStringFromTemplate then
-        CM.SetFontStringFromTemplate(indexFS, L.indexFontSize or 10, _G.GameFontNormalSmall)
-      end
-      indexFS:SetShadowColor(0, 0, 0, 1)
-      indexFS:SetShadowOffset(1, -1)
-      indexFS:SetTextColor(0.85, 0.85, 0.85, 1)
-    end
   end
 
   if not eventsRegistered and cluster then
@@ -1033,7 +1110,6 @@ local function MeasureNameWidth()
   if not nameFS then
     return nameMaxW
   end
-  -- Natural width; clamp so long names ellipsis later than the bar width.
   nameFS:SetWidth(0)
   local sw = nameFS.GetUnboundedStringWidth and nameFS:GetUnboundedStringWidth()
     or nameFS:GetStringWidth()
@@ -1084,7 +1160,6 @@ local function LayoutChildren()
   local indexH = (L.indexFontSize or 10) + 2
   local indexW = MeasureIndexWidth()
   local rowH = math.max(iconS, barH, indexH)
-  -- Equal side pads so name + bar stay centered (use the farther side extent).
   local sidePad = math.max(iconS + gap, indexW > 0 and (indexW + indexGap) or 0)
   local nameW = MeasureNameWidth()
   nameFS:SetWidth(nameW)
@@ -1110,7 +1185,6 @@ local function LayoutChildren()
   cluster:SetSize(totalW, totalH)
 
   nameFS:SetPoint("TOP", cluster, "TOP", 0, 0)
-  -- Marker sits above the name (overflows upward; cluster does not clip).
   local markerLift = L.raidMarkerLift
   if type(markerLift) ~= "number" then
     markerLift = 4
@@ -1135,7 +1209,6 @@ function CM.ApplyAllyCycleHUDLayout()
     return
   end
   LayoutChildren()
-  -- Keep mid-cycle slide offset; do not snap back on UNIT_HEALTH refresh.
   AnchorCluster(cycleSlideY)
 end
 
@@ -1207,18 +1280,18 @@ function CM.RefreshAllyCycleHUD()
   end
   local cfg = Config()
   local preview = previewActive
+  local looking = preview or (CM.IsMouselooking and CM.IsMouselooking())
   local show = cfg.showHud ~= false
     and CM.IsCrosshairEnabled
     and CM.IsCrosshairEnabled()
+    and looking
     and (
       preview
       or (CM.IsAllyCycleEnabled and CM.IsAllyCycleEnabled() and CM.IsAllyCycleFriendlyHardTarget())
     )
 
   if not show then
-    ResetCycleAnim()
-    lastRangeAlpha = 1
-    cluster:Hide()
+    RequestHudHide()
     return
   end
 
@@ -1235,12 +1308,9 @@ function CM.RefreshAllyCycleHUD()
   UpdateRoleIcon(unit)
   UpdateRaidMarker(unit)
   UpdateIndex(unit)
-
-  -- Layout after SetText so name / index width use the live strings.
   CM.ApplyAllyCycleHUDLayout()
 
   if preview then
-    -- Health stages are driven by OnUpdate (TickPreviewHealth).
     ApplyPublicHealthAppearance(previewDisplayPct, previewDead)
     ApplyDeadChrome(previewDead)
   else
@@ -1250,7 +1320,7 @@ function CM.RefreshAllyCycleHUD()
   SyncBarGlow(unit)
   ApplyRangeAlpha(unit)
 
-  cluster:Show()
+  RequestHudShow()
   if pendingCycleDir then
     StartCycleAnim(pendingCycleDir)
     pendingCycleDir = nil

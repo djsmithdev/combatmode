@@ -1,16 +1,12 @@
 ---------------------------------------------------------------------------------------
 --  Core/AllyCycle/AllyCycle.lua — ALLYCYCLE — façade / init / events
 ---------------------------------------------------------------------------------------
---  What it does: Public Ally Cycle entry points: Initialize, roster/binding refresh,
---  and event hooks for group/target/combat. Wires HUD + Cycle modules.
+--  What it does: Public init and event hooks; wires HUD + Cycle.
 --  Architecture / how it works:
---    • Enable = Up/Down keybinds bound (CM.IsAllyCycleEnabled).
---    • OnGroupRosterUpdate / OnCombatEnd refresh secure unit attrs; HUD tracks target.
---    • OnCombatEnd also ResetAllyCycleCursor (lastUnit) so the next press starts
---      at the top unless OOC PrepareCycle continues from a friendly hard target.
---  Does not: Build click-cast macrotext (TargetingMacroBuilder) or own options UI.
+--    • Enable = Up/Down keybinds bound. Combat end resets lastUnit then flushes roster.
+--  Does not: Build click-cast macros or own options UI.
 --  Related: Core/AllyCycle/{Cycle,HUD}.lua, Core/Runtime/{Bootstrap,EventRouter}.lua,
---  Core/Crosshair/Crosshair.lua, UI/Options/Tabs/TabAllyCycle.lua
+--  UI/Options/Tabs/TabAllyCycle.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 

@@ -13,7 +13,7 @@
 --      effects already decorate the NPC (otherwise SetUnitCursorTexture fails and the
 --      HUD fell back to the mechagon-projects gear atlas).
 --  Does not: Own cluster chrome, fade/range motion, SoftTarget CVar writes.
---  Related: Core/Crosshair/InteractionHUD/{Visual,HUD}.lua, Constants/Reticle.lua
+--  Related: Core/Crosshair/InteractionHUD/{Visual,HUD}.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -37,7 +37,17 @@ local Target = {}
 CM.InteractionHUDTarget = Target
 
 local IH_ICON = 26
-local IH_CURSOR_UNABLE = (CM.Constants and CM.Constants.InteractionHUDUnableCursor) or {}
+-- Soft-interact "unable" cursor file ids (dim icon; label color unchanged).
+local IH_CURSOR_UNABLE = {
+  ["4675695"] = true,
+  ["4675705"] = true,
+  ["4675693"] = true,
+  ["4675702"] = true,
+  ["4675694"] = true,
+  ["4675720"] = true,
+  ["4675725"] = true,
+  ["4675677"] = true,
+}
 
 Target.IH_ICON = IH_ICON
 

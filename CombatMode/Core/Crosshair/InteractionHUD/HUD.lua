@@ -13,7 +13,7 @@
 --    • Preview: IsCrosshairPreviewActive shows sample atlas + "Interactable" with no target.
 --  Does not: Write SoftTarget CVars or own fade/range internals (Visual) / cursor resolve (Target).
 --  Related: Core/Crosshair/InteractionHUD/{Target,Visual}.lua, Core/Crosshair/Crosshair.lua,
---  Core/Runtime/CVarManager.lua, Constants/Reticle.lua, Constants/CVars.lua,
+--  Core/Runtime/CVarManager.lua, Constants/CVars.lua,
 --  UI/Options/Tabs/TabCrosshair.lua, Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...

@@ -7,10 +7,10 @@
 	<Binding name="Combat Mode - Reset Mouse Look" description="Recover the cursor if it gets stuck after switching windows (re-grabs and releases Mouse Look)" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
 		CombatMode_ResetMouseLook()
 	</Binding>
-	<Binding name="Combat Mode - Ally Cycle Up" description="Cycle to the next party/raid member (skips you)" header="Ally Cycle" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
+	<Binding name="Combat Mode - Ally Cycle Next" description="Cycle to the next group member (skips you)" header="Ally Cycle" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
 		CombatMode_AllyCycleUp()
 	</Binding>
-	<Binding name="Combat Mode - Ally Cycle Down" description="Cycle to the previous party/raid member (skips you)" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
+	<Binding name="Combat Mode - Ally Cycle Previous" description="Cycle to the previous group member (skips you)" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
 		CombatMode_AllyCycleDown()
 	</Binding>
 	<Binding name="Combat Mode - Toggle Focus Target" description="Tap to focus target, tap again to clear focus" header="Reticle Targeting" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">

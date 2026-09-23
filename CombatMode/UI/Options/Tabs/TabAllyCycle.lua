@@ -1,15 +1,12 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabAllyCycle.lua — OPTIONS TAB — Ally Cycle + HUD
 ---------------------------------------------------------------------------------------
---  What it does: Wires Ally Cycle Up/Down keybinds and Ally HUD show/side/scale.
---  Unbound cycle keys disable the feature (Target Lock pattern).
+--  What it does: Up/Down keybinds and Ally HUD show/side/scale. Unbound keys disable.
 --  Architecture / how it works:
---    • DB.global.allyCycle.*; ApplyAllyCycleBindings after keybind sets;
---      ApplyAllyCycleHUDLayout / RefreshAllyCycleHUD after visual sets.
---    • onSelect/onDeselect → SetAllyCycleOptionsPreview (crosshair + sample Ally HUD).
+--    • DB.global.allyCycle; onSelect/onDeselect → SetAllyCycleOptionsPreview.
 --  Does not: Own secure roster or macro prelines.
---  Related: Core/AllyCycle/{Cycle,HUD,AllyCycle}.lua, Constants/AllyCycle.lua,
---  Constants/DatabaseDefaults.lua, UI/Options/OptionsPanel.lua
+--  Related: Core/AllyCycle/{Cycle,HUD,AllyCycle}.lua, Constants/DatabaseDefaults.lua,
+--  UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -73,11 +70,11 @@ UI.Options.AddTab({
       label = "Ally Cycle - Next",
       desc = "Target the next group member.",
       get = function()
-        return GetBindingKey(CM.AllyCycleBindUp or "Combat Mode - Ally Cycle Up")
+        return GetBindingKey(CM.AllyCycleBindUp or "Combat Mode - Ally Cycle Next")
       end,
       set = function(key)
-        CM.TryApplyBindingChange("ally cycle up keybinding", function()
-          CM.AssignNamedKeybind(CM.AllyCycleBindUp or "Combat Mode - Ally Cycle Up", key)
+        CM.TryApplyBindingChange("ally cycle next keybinding", function()
+          CM.AssignNamedKeybind(CM.AllyCycleBindUp or "Combat Mode - Ally Cycle Next", key)
           if CM.ApplyAllyCycleBindings then
             CM.ApplyAllyCycleBindings()
           end
@@ -91,11 +88,11 @@ UI.Options.AddTab({
       label = "Ally Cycle - Previous",
       desc = "Target the previous group member.",
       get = function()
-        return GetBindingKey(CM.AllyCycleBindDown or "Combat Mode - Ally Cycle Down")
+        return GetBindingKey(CM.AllyCycleBindDown or "Combat Mode - Ally Cycle Previous")
       end,
       set = function(key)
-        CM.TryApplyBindingChange("ally cycle down keybinding", function()
-          CM.AssignNamedKeybind(CM.AllyCycleBindDown or "Combat Mode - Ally Cycle Down", key)
+        CM.TryApplyBindingChange("ally cycle previous keybinding", function()
+          CM.AssignNamedKeybind(CM.AllyCycleBindDown or "Combat Mode - Ally Cycle Previous", key)
           if CM.ApplyAllyCycleBindings then
             CM.ApplyAllyCycleBindings()
           end
