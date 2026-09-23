@@ -145,8 +145,9 @@ return false
     -- Ally Cycle HUD (enable = Up/Down keybinds bound; no master toggle)
     allyCycle = {
       showHud = true,
-      hudSide = "TOP",
+      hudSide = "BOTTOM",
       scale = 1.0,
+      skipPlayer = true,
       -- false + Set=false → follow healer spec until the user toggles.
       restoreAllyAfterHarm = false,
       restoreAllyAfterHarmSet = false,

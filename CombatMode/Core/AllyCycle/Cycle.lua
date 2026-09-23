@@ -1,13 +1,16 @@
 ---------------------------------------------------------------------------------------
 --  Core/AllyCycle/Cycle.lua — ALLYCYCLE — secure UP/DOWN party/raid targeting
 ---------------------------------------------------------------------------------------
---  What it does: Secure Up/Down hard-target through group/index order (skips player).
+--  What it does: Secure Up/Down hard-target through group/index order. Skip Self
+--  (default on) omits the player from the roster.
 --  Architecture / how it works:
 --    • SecureActionButton + key-up wrap; ASC/DESC headers; takeNext; restore-if-lost
 --      via PlayerCanAssist (RestrictedEnv has no UnitIsUnit). Frame refs must be
 --      SecureGroupHeaderTemplate.
+--    • skipPlayer attribute set OOC from DB (RestrictedEnv cannot read CM.DB).
 --    • PrepareCycle / ResetAllyCycleCursor OOC only (SetAttribute is lockdown-blocked).
---    • GetAllyCycleIndex for the HUD; NotifyCycle on advance (not restore).
+--    • GetAllyCycleIndex for the HUD; NotifyCycle on advance (not restore) plays a
+--      quiet UI tick (softer than Target Lock cycle).
 --  Does not: Own HUD chrome or click-cast prelines.
 --  Related: Core/AllyCycle/{HUD,AllyCycle}.lua, Core/ClickCasting/BindingOverrides.lua,
 --  Core/Runtime/BindingQueue.lua, UI/Options/Tabs/TabAllyCycle.lua, Bindings.xml
@@ -22,6 +25,8 @@ local GetBindingKey = _G.GetBindingKey
 local GetNormalizedRealmName = _G.GetNormalizedRealmName
 local GetRealmName = _G.GetRealmName
 local InCombatLockdown = _G.InCombatLockdown
+local PlaySound = _G.PlaySound
+local SOUNDKIT = _G.SOUNDKIT
 local SecureHandlerSetFrameRef = _G.SecureHandlerSetFrameRef
 local SecureHandlerWrapScript = _G.SecureHandlerWrapScript
 local SetOverrideBindingClick = _G.SetOverrideBindingClick
@@ -38,6 +43,8 @@ local tostring = _G.tostring
 local BIND_UP = "Combat Mode - Ally Cycle Next"
 local BIND_DOWN = "Combat Mode - Ally Cycle Previous"
 local GROUPS = "1,2,3,4,5,6,7,8"
+-- Softer than Target Lock's IG_MAINMENU_OPTION cycle tick.
+local ALLY_CYCLE_SOUND = (SOUNDKIT and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON) or 856
 
 local OverrideOwner = CreateFrame("Frame", "CombatModeAllyCycleOverrideOwner", UIParent)
 local CycleButton =
@@ -125,6 +132,14 @@ local function EnsureSelfHeaderNameList()
   SelfHeader:Show()
 end
 
+function CM.IsAllyCycleSkipPlayer()
+  local ac = CM.DB and CM.DB.global and CM.DB.global.allyCycle
+  if ac and ac.skipPlayer == false then
+    return false
+  end
+  return true
+end
+
 -- OOC only: SetAttribute on this button is lockdown-blocked.
 function CycleButton:PrepareCycle()
   if InCombatLockdown and InCombatLockdown() then
@@ -133,14 +148,16 @@ function CycleButton:PrepareCycle()
   if not UnitExists("target") then
     return
   end
-  if UnitIsUnit and UnitIsUnit("target", "player") then
+  local skipPlayer = CM.IsAllyCycleSkipPlayer()
+  if skipPlayer and UnitIsUnit and UnitIsUnit("target", "player") then
     return
   end
   local children = { GroupAsc:GetChildren() }
   for _, child in ipairs(children) do
     local unit = child.GetAttribute and child:GetAttribute("unit")
     if unit and UnitExists(unit) and UnitIsUnit and UnitIsUnit(unit, "target") then
-      if unit ~= "player" and not UnitIsUnit(unit, "player") then
+      local isSelf = unit == "player" or UnitIsUnit(unit, "player")
+      if not skipPlayer or not isSelf then
         self:SetAttribute("lastUnit", unit)
       end
       return
@@ -209,14 +226,14 @@ if SecureHandlerWrapScript then
         chosen = lastUnit
       end
 
+      local skipPlayer = self:GetAttribute("skipPlayer") ~= false
+
       if not chosen and header then
         for slot = 1, 40 do
           local member = header:GetFrameRef("child" .. slot)
           local unit = member and member:GetAttribute("unit")
-          if unit and UnitExists(unit)
-            and unit ~= "player"
-            and (not selfUnit or unit ~= selfUnit)
-          then
+          local isSelf = unit == "player" or (selfUnit and unit == selfUnit)
+          if unit and UnitExists(unit) and not (skipPlayer and isSelf) then
             if not firstUnit then
               firstUnit = unit
             end
@@ -251,6 +268,9 @@ if SecureHandlerWrapScript then
 end
 
 function CycleButton:NotifyCycle(direction)
+  if PlaySound then
+    PlaySound(ALLY_CYCLE_SOUND, "Master", true)
+  end
   if CM.NotifyAllyCycleHUD then
     CM.NotifyAllyCycleHUD(direction)
   end
@@ -317,7 +337,7 @@ function CM.GetAllyCycleIndex(unit)
     if slot then
       local exists = UnitExists(slot)
       if IsSecret(exists) or exists then
-        if not IsPlayerUnit(slot) then
+        if not CM.IsAllyCycleSkipPlayer() or not IsPlayerUnit(slot) then
           total = total + 1
           if unit and UnitIsUnit and PublicBool(UnitIsUnit(slot, unit)) == true then
             current = total
@@ -352,6 +372,7 @@ function CM.ApplyAllyCycleBindings()
     end
     return
   end
+  CycleButton:SetAttribute("skipPlayer", CM.IsAllyCycleSkipPlayer())
   ClearOverrideBindings(OverrideOwner)
   if not CM.IsAllyCycleEnabled() then
     CM.DebugPrint("Ally Cycle bindings cleared (unbound)")

@@ -2,6 +2,7 @@
 --  Core/AllyCycle/HUD.lua — ALLYCYCLE — crosshair companion for friendly hard target
 ---------------------------------------------------------------------------------------
 --  What it does: Ally HUD beside the crosshair for a friendly hard target (or options preview).
+--  Self is shown only when Skip Self is off; name reads "You".
 --  Architecture / how it works:
 --    • DB.global.allyCycle; layout / bar / role atlases are locals in this file.
 --    • Index from GetAllyCycleIndex; slide via NotifyAllyCycleHUD.
@@ -176,7 +177,7 @@ local function Config()
     and CM.Constants.DatabaseDefaults
     and CM.Constants.DatabaseDefaults.global
     and CM.Constants.DatabaseDefaults.global.allyCycle
-  return g or d or { showHud = true, hudSide = "TOP", scale = 1 }
+  return g or d or { showHud = true, hudSide = "BOTTOM", scale = 1 }
 end
 
 local function ExtractColorRGBA(color)
@@ -257,7 +258,7 @@ local function AnchorCluster(offsetY)
     return
   end
   local cfg = Config()
-  local side = cfg.hudSide or "TOP"
+  local side = cfg.hudSide or "BOTTOM"
   local L = Layout()
   local crosshairSize = (CM.GetCrosshairPixelSize and CM.GetCrosshairPixelSize()) or 64
   local gap = (crosshairSize / 2) + (L.companionOffset or 24)
@@ -441,7 +442,10 @@ function CM.IsAllyCycleFriendlyHardTarget()
     return false
   end
   if UnitIsUnit and UnitIsUnit("target", "player") then
-    return false
+    if not CM.IsAllyCycleSkipPlayer or CM.IsAllyCycleSkipPlayer() then
+      return false
+    end
+    return true
   end
   local attack = UnitCanAttack and UnitCanAttack("player", "target")
   local pubAttack = PublicBool(attack)
@@ -1299,7 +1303,9 @@ function CM.RefreshAllyCycleHUD()
   local dead = preview and previewDead
     or (UnitIsDeadOrGhost and PublicBool(UnitIsDeadOrGhost(unit)) == true)
   local name = UnitName and UnitName(unit)
-  if IsSecret(name) or type(name) ~= "string" or name == "" then
+  if not preview and PublicBool(UnitIsUnit and UnitIsUnit(unit, "player")) == true then
+    nameFS:SetText("You")
+  elseif IsSecret(name) or type(name) ~= "string" or name == "" then
     nameFS:SetText(preview and "Ally" or "…")
   else
     nameFS:SetText(name)
