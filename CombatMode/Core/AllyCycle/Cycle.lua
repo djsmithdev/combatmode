@@ -9,8 +9,9 @@
 --      SecureGroupHeaderTemplate.
 --    • skipPlayer attribute set OOC from DB (RestrictedEnv cannot read CM.DB).
 --    • PrepareCycle / ResetAllyCycleCursor OOC only (SetAttribute is lockdown-blocked).
---    • GetAllyCycleIndex for the HUD; NotifyCycle on advance (not restore) plays a
---      quiet UI tick (softer than Target Lock cycle).
+--    • GetAllyCycleIndex for the HUD (reuses a child scratch table); NotifyCycle on
+--      advance (not restore) plays a quiet UI tick (softer than Target Lock cycle).
+--    • CM.Profile keys: AllyCycle:GetIndex / ApplyBindings / RefreshRoster.
 --  Does not: Own HUD chrome or click-cast prelines.
 --  Related: Core/AllyCycle/{HUD,AllyCycle}.lua, Core/ClickCasting/BindingOverrides.lua,
 --  Core/Runtime/BindingQueue.lua, UI/Options/Tabs/TabAllyCycle.lua, Bindings.xml
@@ -38,7 +39,9 @@ local UnitName = _G.UnitName
 -- Lua stdlib
 local ipairs = _G.ipairs
 local issecretvalue = _G.issecretvalue
+local select = _G.select
 local tostring = _G.tostring
+local wipe = _G.wipe
 
 local BIND_UP = "Combat Mode - Ally Cycle Next"
 local BIND_DOWN = "Combat Mode - Ally Cycle Previous"
@@ -276,7 +279,7 @@ function CycleButton:NotifyCycle(direction)
   end
 end
 
-function CM.RefreshAllyCycleRoster()
+local function RefreshAllyCycleRosterImpl()
   EnsureSelfHeaderNameList()
   if SelfHeader and not SelfHeader:IsShown() then
     SelfHeader:Show()
@@ -288,6 +291,10 @@ function CM.RefreshAllyCycleRoster()
     GroupDesc:Show()
   end
   CM.DebugPrint("Ally Cycle roster refreshed")
+end
+
+function CM.RefreshAllyCycleRoster()
+  return CM.Profile("AllyCycle:RefreshRoster", RefreshAllyCycleRosterImpl)
 end
 
 function CM.FlushPendingAllyCycleRoster()
@@ -311,6 +318,29 @@ local function PublicBool(v)
   return nil
 end
 
+local rosterKids = {}
+
+local function PackInto(dest, ...)
+  local n = select("#", ...)
+  for i = 1, n do
+    dest[i] = select(i, ...)
+  end
+  for i = n + 1, #dest do
+    dest[i] = nil
+  end
+end
+
+local function CollectHeaderChildren(header)
+  if not header then
+    if wipe then
+      wipe(rosterKids)
+    end
+    return rosterKids
+  end
+  PackInto(rosterKids, header:GetChildren())
+  return rosterKids
+end
+
 local function IsPlayerUnit(unit)
   if not unit then
     return false
@@ -324,20 +354,21 @@ local function IsPlayerUnit(unit)
   return PublicBool(UnitIsUnit(unit, "player")) == true
 end
 
-function CM.GetAllyCycleIndex(unit)
+local function GetAllyCycleIndexImpl(unit)
   unit = unit or "target"
   local total = 0
   local current = nil
   if not GroupAsc then
     return nil, 0
   end
-  local children = { GroupAsc:GetChildren() }
+  local skipSelf = CM.IsAllyCycleSkipPlayer()
+  local children = CollectHeaderChildren(GroupAsc)
   for _, child in ipairs(children) do
     local slot = child.GetAttribute and child:GetAttribute("unit")
     if slot then
       local exists = UnitExists(slot)
       if IsSecret(exists) or exists then
-        if not CM.IsAllyCycleSkipPlayer() or not IsPlayerUnit(slot) then
+        if not skipSelf or not IsPlayerUnit(slot) then
           total = total + 1
           if unit and UnitIsUnit and PublicBool(UnitIsUnit(slot, unit)) == true then
             current = total
@@ -347,6 +378,10 @@ function CM.GetAllyCycleIndex(unit)
     end
   end
   return current, total
+end
+
+function CM.GetAllyCycleIndex(unit)
+  return CM.Profile("AllyCycle:GetIndex", GetAllyCycleIndexImpl, unit)
 end
 
 function CM.ResetAllyCycleCursor()
@@ -363,15 +398,7 @@ function CM.IsAllyCycleEnabled()
   return (GetBindingKey(BIND_UP) or GetBindingKey(BIND_DOWN)) and true or false
 end
 
-function CM.ApplyAllyCycleBindings()
-  if InCombatLockdown() then
-    if CM.TryApplyBindingChange then
-      CM.TryApplyBindingChange("ally cycle bindings", function()
-        CM.ApplyAllyCycleBindings()
-      end)
-    end
-    return
-  end
+local function ApplyAllyCycleBindingsImpl()
   CycleButton:SetAttribute("skipPlayer", CM.IsAllyCycleSkipPlayer())
   ClearOverrideBindings(OverrideOwner)
   if not CM.IsAllyCycleEnabled() then
@@ -396,6 +423,18 @@ function CM.ApplyAllyCycleBindings()
   if CM.RefreshAllyCycleHUD then
     CM.RefreshAllyCycleHUD()
   end
+end
+
+function CM.ApplyAllyCycleBindings()
+  if InCombatLockdown() then
+    if CM.TryApplyBindingChange then
+      CM.TryApplyBindingChange("ally cycle bindings", function()
+        CM.ApplyAllyCycleBindings()
+      end)
+    end
+    return
+  end
+  return CM.Profile("AllyCycle:ApplyBindings", ApplyAllyCycleBindingsImpl)
 end
 
 CM.AllyCycleBindUp = BIND_UP
