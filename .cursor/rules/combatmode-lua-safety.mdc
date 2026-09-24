@@ -39,7 +39,7 @@ Unit identity and many measures can be **secret** in instances while execution i
 
 ### Reference modules
 
-`Core/Crosshair/Crosshair.lua`, `FocusNameplateMarker.lua`, `InteractionHUD/Target.lua` + `HUD.lua`, `AssistedHighlight/CastProgress.lua`, `Animations.lua`, `Core/AllyCycle/HUD.lua`.
+`Core/Crosshair/Crosshair.lua`, `FocusNameplateMarker.lua`, `InteractionHUD/Target.lua` + `HUD.lua`, `AssistedHighlight/CastProgress.lua`, `Animations.lua`, `Core/AllyCycle/{Target,HealthBar,Motion,HUD}.lua`.
 
 ## Taint-avoidance practices
 

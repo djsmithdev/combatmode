@@ -7,7 +7,7 @@
 --    • IsAllyCycleRestoreAfterHarm: user toggle, else healer spec. Used by
 --      TargetingMacroBuilder (harm /tar then /targetlasttarget).
 --  Does not: Build click-cast macros or own options UI.
---  Related: Core/AllyCycle/{Cycle,HUD}.lua, Core/Runtime/{Bootstrap,EventRouter}.lua,
+--  Related: Core/AllyCycle/{Cycle,Target,HealthBar,Motion,HUD}.lua, Core/Runtime/{Bootstrap,EventRouter}.lua,
 --  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/Tabs/TabAllyCycle.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...

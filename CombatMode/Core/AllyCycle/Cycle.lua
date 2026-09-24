@@ -17,7 +17,7 @@
 --      (that global is not addon-visible on Mainline either) or WOW_PROJECT_ID (Forever
 --      reports as Mainline).
 --  Does not: Own HUD chrome or click-cast prelines.
---  Related: Core/AllyCycle/{HUD,AllyCycle}.lua, Core/ClickCasting/BindingOverrides.lua,
+--  Related: Core/AllyCycle/{Target,HealthBar,Motion,HUD,AllyCycle}.lua, Core/ClickCasting/BindingOverrides.lua,
 --  Core/Runtime/BindingQueue.lua, UI/Options/Tabs/TabAllyCycle.lua, Bindings.xml
 ---------------------------------------------------------------------------------------
 local _, CM = ...

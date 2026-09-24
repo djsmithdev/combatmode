@@ -61,10 +61,10 @@ Use this checklist for feature work and regressions.
 
 ## Ally Cycle
 
-- Options → Ally Cycle tab: bind Up/Down, toggle Keep Ally After Harm / Ally HUD / side / scale; no Lua errors on open.
-- Ally Cycle in party/raid: Up/Down cycles members in combat; HUD shows only with friendly hard target; unbound keys = inert.
-- Role icons: dead uses Disabled atlas; mind-controlled shows fading Decline X; low health shows icon glow; dead health bars are greyed (no glow).
-- Keep Ally After Harm: with a cycled ally selected, a harmful click-cast retargets the enemy then restores the ally; stamp overlay while Auto Target Lock is on.
+- Options → Ally Cycle tab: bind Up/Down, toggle Skip Self / Keep Ally After Harm / Ally HUD / side / scale / Distance; no Lua errors on open. Forever Beta: tab is watermarked and cycling is inert.
+- Ally Cycle in party/raid: Up/Down cycles members in combat; HUD shows only with a friendly hard target (self only when Skip Self is off); unbound keys = inert.
+- Ally HUD: class-colored name ("You" on self), UI-Frame role icon, raid marker, cycle index n/total; Previous travels an up arrow, Next a down arrow. Dead chrome is grey/desaturated; low HP pulses a red bar glow (no role-icon glow).
+- Keep Ally After Harm: with a cycled ally selected, a harmful click-cast retargets the enemy then restores the ally; skipped while Auto Target Lock is on.
 
 ## Profiling (Function Profiler)
 

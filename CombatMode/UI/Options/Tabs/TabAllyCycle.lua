@@ -9,7 +9,7 @@
 --    • Keep Ally After Harm → SetAllyCycleRestoreAfterHarm + RefreshClickCastMacros.
 --    • Forever (not IsAllyCycleSecureAvailable): ctx:WatermarkPage over the tab.
 --  Does not: Own secure roster or build click-cast macrotext.
---  Related: Core/AllyCycle/{Cycle,HUD,AllyCycle}.lua, Constants/DatabaseDefaults.lua,
+--  Related: Core/AllyCycle/{Cycle,Target,HealthBar,Motion,HUD,AllyCycle}.lua, Constants/DatabaseDefaults.lua,
 --  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -70,7 +70,7 @@ UI.Options.AddTab({
     ctx:Header({ text = "ALLY CYCLE", newFeatureFlag = true })
 
     ctx:Description({
-      text = "Ally Cycle lets you attack enemies and assist allies simultaneously by allowing selection of group members while in Mouse Look."
+      text = "Ally Cycle lets you attack enemies and assist allies simultaneously by allowing selection of group members while in Mouse Look. "
         .. "When an ally is selected, helpful spells are cast on them, while harmful spells continue to target your hostile Crosshair target.",
     })
 

@@ -1,66 +1,43 @@
 ---------------------------------------------------------------------------------------
---  Core/AllyCycle/HUD.lua — ALLYCYCLE — crosshair companion for friendly hard target
+--  Core/AllyCycle/HUD.lua — ALLYCYCLE — crosshair companion chrome
 ---------------------------------------------------------------------------------------
---  What it does: Ally HUD beside the crosshair for a friendly hard target (or options preview).
---  Self is shown only when Skip Self is off; name reads "You".
+--  What it does: Owns the Ally HUD cluster beside the crosshair for a friendly hard
+--  target (or options preview). Self is shown only when Skip Self is off; name reads
+--  "You". Wires Target, HealthBar, and Motion.
 --  Architecture / how it works:
---    • DB.global.allyCycle (side / scale / padding); layout / bar / role atlases
---      are locals in this file. Padding defaults to CrosshairCompanionOffsetX.
---    • Index from GetAllyCycleIndex; slide via NotifyAllyCycleHUD. Cycle prev/next
---      travels a housing floor arrow (up / down) to the right of the counter.
---    • Fades with Mouse Look (same cluster lerp as Interaction HUD); options preview
---      stays visible with mouselook off.
---    • Range alpha may be secret — SetAlpha raw, never multiply by slide/fade alpha.
---      Live range is UNIT_IN_RANGE_UPDATE (no per-frame EvaluateColorFromBoolean).
---    • Raid marker index may be secret — issecretvalue is presence; no Lua math.
---    • UNIT_HEALTH / UNIT_MAXHEALTH only retint the bar (low-HP red glow); chrome refresh is
---      target/role/marker/flags. No threat/aggro glow.
---    • OnUpdate is fade / slide / glow only; AnchorCluster and spark points are dirty-checked.
---    • CM.Profile keys: AllyHUD:OnUpdate / Refresh / Layout / HealthBar.
---  Does not: Own cycle bindings or targeting prelines.
---  Related: Core/AllyCycle/{Cycle,AllyCycle}.lua, Core/Crosshair/Crosshair.lua,
---  UI/Options/Tabs/TabAllyCycle.lua
+--    • DB.global.allyCycle (side / scale / padding); LAYOUT locals here. Padding
+--      defaults to CrosshairCompanionOffsetX.
+--    • InitAllyCycleHUD({crosshairFrame}); ApplyAllyCycleHUDLayout + RefreshAllyCycleHUD.
+--    • Motion.Attach + OnUpdate Motion.Tick then HealthBar.TickGlow. Preview lerp
+--      stays here. Range via UNIT_IN_RANGE_UPDATE → Motion.ApplyRange.
+--    • Raid marker / name / role applied from AllyCycleTarget (frame-free data).
+--    • OnUpdate is fade / slide / glow / preview only; AnchorCluster is dirty-checked.
+--    • CM.Profile keys: AllyHUD:OnUpdate / Refresh / Layout (HealthBar profiles itself).
+--  Does not: Own cycle bindings, targeting prelines, bar widget, or fade internals.
+--  Related: Core/AllyCycle/{Target,HealthBar,Motion,Cycle,AllyCycle}.lua,
+--  Core/Crosshair/Crosshair.lua, UI/Options/Tabs/TabAllyCycle.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
 
 -- WoW API
-local CreateColor = _G.CreateColor
 local CreateFrame = _G.CreateFrame
-local GetClassColor = _G.GetClassColor
-local UnitClass = _G.UnitClass
-local UnitExists = _G.UnitExists
-local UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned
-local UnitHealth = _G.UnitHealth
-local UnitHealthMax = _G.UnitHealthMax
-local UnitHealthPercent = _G.UnitHealthPercent
-local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
-local UnitIsUnit = _G.UnitIsUnit
-local UnitInRange = _G.UnitInRange
-local UnitName = _G.UnitName
-local UnitCanAssist = _G.UnitCanAssist
-local UnitCanAttack = _G.UnitCanAttack
-local GetRaidTargetIndex = _G.GetRaidTargetIndex
-local GetAtlasInfo = _G.C_Texture and _G.C_Texture.GetAtlasInfo
-local SetRaidTargetIconTexture = _G.SetRaidTargetIconTexture
-local CreateColorCurve = _G.C_CurveUtil and _G.C_CurveUtil.CreateColorCurve
-local EvaluateColorFromBoolean = _G.C_CurveUtil and _G.C_CurveUtil.EvaluateColorFromBoolean
-local StatusBarInterpolation = _G.Enum and _G.Enum.StatusBarInterpolation
-local HB_VALUE_INTERP = StatusBarInterpolation and StatusBarInterpolation.ExponentialEaseOut
 
 -- Lua stdlib
 local issecretvalue = _G.issecretvalue
 local math = _G.math
 local tonumber = _G.tonumber
-local tostring = _G.tostring
 local type = _G.type
+
+local Target = CM.AllyCycleTarget
+local HealthBar = CM.AllyCycleHealthBar
+local Motion = CM.AllyCycleMotion
 
 local cluster
 local nameFS
 local indexFS
 local cycleArrow
 local healthBar
-local UpdateHealthBar
 local roleIcon
 local raidMarker
 local raidMarkerFrame
@@ -68,27 +45,9 @@ local hudShadow
 local crosshairFrame
 local eventsRegistered = false
 local previewActive = false
-local glowPulsePhase = 0
-local pendingCycleDir = nil
-local cycleAnim = nil
-local cycleSlideY = 0
-local cycleSlideA = 1
-local lastRangeAlpha = 1
-local lastAppliedClusterA = nil
 local lastAnchorSide, lastAnchorScale, lastAnchorGap, lastAnchorOy
-local hudFade = 0
-local hudFadeTarget = 0
-local HUD_FADE_SPEED = 16
 local CONFIG_FALLBACK = { showHud = true, hudSide = "BOTTOM", scale = 1, padding = 24 }
-local cycleAnimState = { elapsed = 0, dur = 0.14, fromY = 0, fromA = 0.75 }
-local cycleArrowHold = 0
-local cycleArrowHoldMax = 0.32
-local cycleArrowY = 0
-local cycleArrowTravelSign = 0
-local ARROW_UP = "housing-floor-arrow-up-default"
-local ARROW_DOWN = "housing-floor-arrow-down-default"
 
-local PREVIEW_MAX = 100
 local PREVIEW_TOTAL = 4
 local PREVIEW_STAGES = {
   { pct = 1.0, dead = false, raid = nil, index = 1, dwell = 1.0 },
@@ -127,7 +86,7 @@ local LAYOUT = {
   -- Reserve width so the bar stays centered as "1/4" becomes "40/40".
   indexMinWidth = 28,
   cycleArrowSize = 10,
-  cycleArrowGap = -4,
+  cycleArrowGap = 0,
   cycleArrowHold = 0.32,
   cycleArrowTravel = 5,
   cycleSlidePx = 3,
@@ -135,60 +94,12 @@ local LAYOUT = {
   cycleAnimFromAlpha = 0.75,
 }
 
-local HEALTH_BAR = {
-  width = 72,
-  height = 10,
-  lowPct = 0.25,
-  glowR = 1,
-  glowG = 0.12,
-  glowB = 0.08,
-  glowPulsePeriod = 1.15,
-  glowPulseMin = 0.35,
-  glowPulseMax = 1.0,
-  fillWhiteAtlas = "widgetstatusbar-fill-white",
-}
-
-local ROLE_ATLASES = {
-  TANK = "UI-Frame-TankIcon",
-  HEALER = "UI-Frame-HealerIcon",
-  DAMAGER = "UI-Frame-DpsIcon",
-  NONE = "UI-Frame-DpsIcon",
-}
-
 local function Layout()
   return LAYOUT
 end
 
-local function HB()
-  return HEALTH_BAR
-end
-
-local function RoleAtlases()
-  return ROLE_ATLASES
-end
-
 local function IsSecret(v)
   return v ~= nil and issecretvalue and issecretvalue(v)
-end
-
-local function PublicBool(v)
-  if IsSecret(v) then
-    return nil
-  end
-  if v == true then
-    return true
-  end
-  if v == false then
-    return false
-  end
-  return nil
-end
-
-local function PublicNumber(v, fallback)
-  if v == nil or IsSecret(v) or type(v) ~= "number" then
-    return fallback
-  end
-  return v
 end
 
 local function Config()
@@ -201,112 +112,10 @@ local function Config()
 end
 
 local function InvalidateClusterLayout()
-  lastAppliedClusterA = nil
   lastAnchorSide = nil
   lastAnchorScale = nil
   lastAnchorGap = nil
   lastAnchorOy = nil
-end
-
-local function ExtractColorRGBA(color)
-  if not color then
-    return nil
-  end
-  if color.GetRGBA then
-    return color:GetRGBA()
-  end
-  if color.r then
-    return color.r, color.g, color.b, color.a
-  end
-  return color[1], color[2], color[3], color[4]
-end
-
-local COLOR_HB_CRIT = CreateColor and CreateColor(1, 0.22, 0.12, 1)
-local COLOR_HB_DMG = CreateColor and CreateColor(1, 0.85, 0.15, 1)
-local COLOR_HB_OK = CreateColor and CreateColor(0.2, 0.85, 0.25, 1)
-local COLOR_HB_DEAD = CreateColor and CreateColor(0.45, 0.45, 0.45, 1)
-
-local HB_FILL_CURVE, HB_GLOW_CURVE, HB_SPARK_CURVE
-do
-  local cfg = HB()
-  local lowPct = cfg.lowPct or 0.25
-  if CreateColorCurve and COLOR_HB_CRIT then
-    local stepType = _G.Enum and _G.Enum.LuaCurveType and _G.Enum.LuaCurveType.Step
-    local yellowAt = lowPct + 1e-4
-    local greenAt = 0.5 + 1e-4
-    local glowOn = CreateColor(cfg.glowR or 1, cfg.glowG or 0.12, cfg.glowB or 0.08, 1)
-    local glowOff = CreateColor(cfg.glowR or 1, cfg.glowG or 0.12, cfg.glowB or 0.08, 0)
-    local sparkOn = CreateColor(1, 1, 1, 1)
-    local sparkOff = CreateColor(1, 1, 1, 0)
-
-    HB_FILL_CURVE = CreateColorCurve()
-    if stepType then
-      HB_FILL_CURVE:SetType(stepType)
-    end
-    HB_FILL_CURVE:AddPoint(0, COLOR_HB_CRIT)
-    HB_FILL_CURVE:AddPoint(lowPct, COLOR_HB_CRIT)
-    HB_FILL_CURVE:AddPoint(yellowAt, COLOR_HB_DMG)
-    HB_FILL_CURVE:AddPoint(0.5, COLOR_HB_DMG)
-    HB_FILL_CURVE:AddPoint(greenAt, COLOR_HB_OK)
-    HB_FILL_CURVE:AddPoint(1, COLOR_HB_OK)
-
-    HB_GLOW_CURVE = CreateColorCurve()
-    if stepType then
-      HB_GLOW_CURVE:SetType(stepType)
-    end
-    HB_GLOW_CURVE:AddPoint(0, glowOn)
-    HB_GLOW_CURVE:AddPoint(lowPct, glowOn)
-    HB_GLOW_CURVE:AddPoint(yellowAt, glowOff)
-    HB_GLOW_CURVE:AddPoint(1, glowOff)
-
-    HB_SPARK_CURVE = CreateColorCurve()
-    if stepType then
-      HB_SPARK_CURVE:SetType(stepType)
-    end
-    HB_SPARK_CURVE:AddPoint(0, sparkOff)
-    HB_SPARK_CURVE:AddPoint(0.001, sparkOn)
-    HB_SPARK_CURVE:AddPoint(0.999, sparkOn)
-    HB_SPARK_CURVE:AddPoint(1, sparkOff)
-  end
-end
-
--- Encode range in ColorMixin alpha so secret UnitInRange never enters a Lua compare.
-local COLOR_IN_RANGE = CreateColor and CreateColor(1, 1, 1, 1)
-local COLOR_OUT_OF_RANGE = CreateColor and CreateColor(1, 1, 1, Layout().outOfRangeAlpha or 0.3)
-
-local function PlaceCycleArrow()
-  if not cycleArrow then
-    return
-  end
-  local L = Layout()
-  local arrowGap = L.cycleArrowGap
-  if type(arrowGap) ~= "number" then
-    arrowGap = 0
-  end
-  cycleArrow:ClearAllPoints()
-  if indexFS then
-    cycleArrow:SetPoint("LEFT", indexFS, "RIGHT", arrowGap, cycleArrowY)
-  elseif healthBar then
-    cycleArrow:SetPoint("LEFT", healthBar, "RIGHT", L.indexGap or 2, cycleArrowY)
-  end
-end
-
-local function HideCycleArrow()
-  cycleArrowHold = 0
-  cycleArrowY = 0
-  cycleArrowTravelSign = 0
-  if cycleArrow then
-    cycleArrow:SetAlpha(1)
-    cycleArrow:Hide()
-  end
-end
-
-local function ResetCycleAnim()
-  pendingCycleDir = nil
-  cycleAnim = nil
-  cycleSlideY = 0
-  cycleSlideA = 1
-  HideCycleArrow()
 end
 
 local function AnchorCluster(offsetY)
@@ -354,251 +163,6 @@ local function AnchorCluster(offsetY)
   end
 end
 
--- SetAlpha accepts secret range alpha; Lua * does not.
-local function ApplyClusterAlpha()
-  if not cluster then
-    return
-  end
-  local slideA = PublicNumber(cycleSlideA, 1)
-  local fadeA = PublicNumber(hudFade, 1)
-  if IsSecret(lastRangeAlpha) then
-    lastAppliedClusterA = nil
-    if fadeA >= 0.999 and slideA >= 0.999 then
-      cluster:SetAlpha(lastRangeAlpha)
-    else
-      cluster:SetAlpha(fadeA * slideA)
-    end
-    return
-  end
-  local a = PublicNumber(lastRangeAlpha, 1) * slideA * fadeA
-  if a == lastAppliedClusterA then
-    return
-  end
-  lastAppliedClusterA = a
-  cluster:SetAlpha(a)
-end
-
-local function ApplyClusterVisual()
-  ApplyClusterAlpha()
-  AnchorCluster(cycleSlideY)
-end
-
-local function TickHudFade(elapsed)
-  if not cluster then
-    return
-  end
-  if math.abs(hudFade - hudFadeTarget) <= 0.001 then
-    hudFade = hudFadeTarget
-    if hudFadeTarget == 0 and hudFade <= 0.001 and cluster:IsShown() then
-      hudFade = 0
-      ResetCycleAnim()
-      lastRangeAlpha = 1
-      InvalidateClusterLayout()
-      cluster:Hide()
-    end
-    return
-  end
-  local dt = (elapsed and elapsed > 0) and elapsed or (1 / 60)
-  local step = math.min(1, dt * HUD_FADE_SPEED)
-  hudFade = hudFade + (hudFadeTarget - hudFade) * step
-  if math.abs(hudFade - hudFadeTarget) < 0.01 then
-    hudFade = hudFadeTarget
-  end
-  ApplyClusterVisual()
-  if hudFadeTarget == 0 and hudFade <= 0.001 then
-    hudFade = 0
-    ResetCycleAnim()
-    lastRangeAlpha = 1
-    InvalidateClusterLayout()
-    cluster:Hide()
-  end
-end
-
-local function RequestHudHide()
-  hudFadeTarget = 0
-  if not cluster or not cluster:IsShown() then
-    hudFade = 0
-    ResetCycleAnim()
-    lastRangeAlpha = 1
-    InvalidateClusterLayout()
-    if cluster then
-      cluster:Hide()
-    end
-    return
-  end
-  if hudFade <= 0.001 then
-    hudFade = 0
-    ResetCycleAnim()
-    lastRangeAlpha = 1
-    InvalidateClusterLayout()
-    cluster:Hide()
-  end
-end
-
-local function RequestHudShow()
-  hudFadeTarget = 1
-  if cluster then
-    cluster:Show()
-  end
-end
-
-local function ShowCycleArrow(dir)
-  if not cycleArrow or not cycleArrow.SetAtlas then
-    return
-  end
-  -- Next is roster "up" → down arrow traveling down. Previous is "down" → up arrow traveling up.
-  local atlas = (dir == "down") and ARROW_UP or ARROW_DOWN
-  if GetAtlasInfo and not GetAtlasInfo(atlas) then
-    HideCycleArrow()
-    return
-  end
-  local L = Layout()
-  cycleArrow:SetAtlas(atlas, false)
-  cycleArrow:SetAlpha(1)
-  cycleArrow:Show()
-  cycleArrowTravelSign = (dir == "down") and 1 or -1
-  cycleArrowY = 0
-  cycleArrowHoldMax = L.cycleArrowHold or 0.32
-  cycleArrowHold = cycleArrowHoldMax
-  PlaceCycleArrow()
-end
-
-local function TickCycleArrow(elapsed)
-  if cycleArrowHold <= 0 then
-    return
-  end
-  cycleArrowHold = cycleArrowHold - (elapsed or 0)
-  local maxHold = cycleArrowHoldMax
-  if type(maxHold) ~= "number" or maxHold <= 0 then
-    HideCycleArrow()
-    return
-  end
-  local t = 1 - math.max(0, cycleArrowHold) / maxHold
-  if t < 0 then
-    t = 0
-  elseif t > 1 then
-    t = 1
-  end
-  local eased = t * t * (3 - 2 * t)
-  local travel = Layout().cycleArrowTravel or 5
-  cycleArrowY = cycleArrowTravelSign * travel * eased
-  if cycleArrow then
-    cycleArrow:SetAlpha(1 - t)
-  end
-  PlaceCycleArrow()
-  if cycleArrowHold <= 0 then
-    HideCycleArrow()
-  end
-end
-
-local function StartCycleAnim(dir)
-  local L = Layout()
-  local px = L.cycleSlidePx or 3
-  cycleAnimState.elapsed = 0
-  cycleAnimState.dur = L.cycleAnimSec or 0.14
-  cycleAnimState.fromY = (dir == "down") and px or -px
-  cycleAnimState.fromA = L.cycleAnimFromAlpha or 0.75
-  cycleAnim = cycleAnimState
-  cycleSlideY = cycleAnim.fromY
-  cycleSlideA = cycleAnim.fromA
-  ShowCycleArrow(dir)
-  ApplyClusterVisual()
-end
-
-local function TickCycleAnim(elapsed)
-  if not cycleAnim then
-    return
-  end
-  local dur = cycleAnim.dur
-  if type(dur) ~= "number" or dur <= 0 then
-    cycleAnim = nil
-    cycleSlideY = 0
-    cycleSlideA = 1
-    ApplyClusterVisual()
-    return
-  end
-  cycleAnim.elapsed = cycleAnim.elapsed + (elapsed or 0)
-  local t = math.min(1, cycleAnim.elapsed / dur)
-  local eased = 1 - (1 - t) * (1 - t)
-  cycleSlideY = cycleAnim.fromY * (1 - eased)
-  cycleSlideA = cycleAnim.fromA + (1 - cycleAnim.fromA) * eased
-  ApplyClusterVisual()
-  if t >= 1 then
-    cycleAnim = nil
-    cycleSlideY = 0
-    cycleSlideA = 1
-    ApplyClusterVisual()
-  end
-end
-
-function CM.NotifyAllyCycleHUD(direction)
-  if direction == "down" then
-    pendingCycleDir = "down"
-  else
-    pendingCycleDir = "up"
-  end
-end
-
-local function ApplyRangeAlpha(unit)
-  if not cluster then
-    return
-  end
-  local outA = (Layout().outOfRangeAlpha or 0.3)
-  if previewActive or not unit or unit == "player" or not UnitExists(unit) then
-    lastRangeAlpha = 1
-    ApplyClusterAlpha()
-    return
-  end
-  if not UnitInRange then
-    lastRangeAlpha = 1
-    ApplyClusterAlpha()
-    return
-  end
-  local inRange = UnitInRange(unit)
-  if IsSecret(inRange) then
-    -- Secret boolean: encode in ColorMixin alpha; never Lua-compare the flag.
-    if EvaluateColorFromBoolean and COLOR_IN_RANGE and COLOR_OUT_OF_RANGE then
-      local rangeColor = EvaluateColorFromBoolean(inRange, COLOR_IN_RANGE, COLOR_OUT_OF_RANGE)
-      if rangeColor and rangeColor.a ~= nil then
-        lastRangeAlpha = rangeColor.a
-        ApplyClusterAlpha()
-        return
-      end
-    end
-    lastRangeAlpha = 1
-    ApplyClusterAlpha()
-    return
-  end
-  lastRangeAlpha = (inRange == false) and outA or 1
-  ApplyClusterAlpha()
-end
-
-function CM.IsAllyCycleFriendlyHardTarget()
-  if not UnitExists("target") then
-    return false
-  end
-  if UnitIsUnit and UnitIsUnit("target", "player") then
-    if not CM.IsAllyCycleSkipPlayer or CM.IsAllyCycleSkipPlayer() then
-      return false
-    end
-    return true
-  end
-  local attack = UnitCanAttack and UnitCanAttack("player", "target")
-  local pubAttack = PublicBool(attack)
-  if pubAttack == true then
-    return false
-  end
-  local assist = UnitCanAssist and UnitCanAssist("player", "target")
-  local pubAssist = PublicBool(assist)
-  if pubAssist == false then
-    return false
-  end
-  if pubAssist == true then
-    return true
-  end
-  return false
-end
-
 function CM.IsAllyCycleOptionsPreviewActive()
   return previewActive
 end
@@ -623,20 +187,11 @@ function CM.SetAllyCycleOptionsPreview(enabled)
   CM.RefreshAllyCycleHUD()
 end
 
-local function ResolveRoleAtlas(unit)
-  local atlases = RoleAtlases()
-  local role = UnitGroupRolesAssigned and UnitGroupRolesAssigned(unit)
-  if IsSecret(role) or type(role) ~= "string" or role == "" then
-    role = "NONE"
-  end
-  return atlases[role] or atlases.DAMAGER or atlases.NONE
-end
-
 local function UpdateRoleIcon(unit)
   if not roleIcon then
     return
   end
-  local atlas = ResolveRoleAtlas(unit)
+  local atlas = Target and Target.GetRoleAtlas and Target.GetRoleAtlas(unit)
   if atlas and roleIcon.SetAtlas then
     roleIcon:SetAtlas(atlas)
     roleIcon:Show()
@@ -645,32 +200,9 @@ local function UpdateRoleIcon(unit)
   end
 end
 
-local function ClassRGB(unit)
-  local _, classFile = UnitClass(unit)
-  if IsSecret(classFile) or type(classFile) ~= "string" then
-    return 1, 1, 1
-  end
-  if GetClassColor then
-    local r, g, b = GetClassColor(classFile)
-    if r then
-      return r, g, b
-    end
-  end
-  return 1, 1, 1
-end
-
--- FontString has no SetDesaturated — grey name/index instead.
+-- FontString has no SetDesaturated — grey name/index instead. Bar desaturate is HealthBar.
 local function ApplyDeadChrome(dead)
   dead = dead and true or false
-  if healthBar then
-    if healthBar.SetStatusBarDesaturated then
-      healthBar:SetStatusBarDesaturated(dead)
-    end
-    local fillTex = healthBar:GetStatusBarTexture()
-    if fillTex and fillTex.SetDesaturated then
-      fillTex:SetDesaturated(dead)
-    end
-  end
   if roleIcon and roleIcon.SetDesaturated then
     roleIcon:SetDesaturated(dead)
   end
@@ -697,18 +229,13 @@ local function ApplyNameColor(unit, dead)
     nameFS:SetTextColor(0.55, 0.55, 0.55, 1)
     return
   end
-  if unit then
-    local r, g, b = ClassRGB(unit)
+  if unit and Target and Target.GetClassRGB then
+    local r, g, b = Target.GetClassRGB(unit)
     nameFS:SetTextColor(r, g, b, 1)
   else
     nameFS:SetTextColor(1, 1, 1, 1)
   end
 end
-
--- Blizzard UI-RaidTargetingIcons sheet (4×4). SetRaidTargetIconTexture accepts secret indices.
-local RAID_TARGET_TEXTURE = [[Interface\TargetingFrame\UI-RaidTargetingIcons]]
-local RAID_TARGET_TEXTURE_ROWS = 4
-local RAID_TARGET_TEXTURE_COLUMNS = 4
 
 local function SetRaidMarkerShown(shown)
   if raidMarker then
@@ -720,34 +247,20 @@ local function SetRaidMarkerShown(shown)
 end
 
 local function UpdateRaidMarker(unit)
-  if not raidMarker then
+  if not raidMarker or not Target then
     return
   end
   local idx
   if previewActive then
     idx = previewRaidIndex
-  elseif unit and UnitExists(unit) and GetRaidTargetIndex then
-    idx = GetRaidTargetIndex(unit)
-  end
-
-  -- Under taint, a present marker is a *secret* number (issecretvalue = presence).
-  -- Never truth-test / compare / arithmetic the index in Lua.
-  local hasMarker = IsSecret(idx) or (type(idx) == "number" and idx >= 1 and idx <= 8)
-  if not hasMarker then
-    SetRaidMarkerShown(false)
-    return
-  end
-
-  raidMarker:SetTexture(RAID_TARGET_TEXTURE)
-  if SetRaidTargetIconTexture then
-    SetRaidTargetIconTexture(raidMarker, idx)
-  elseif raidMarker.SetSpriteSheetCell then
-    raidMarker:SetSpriteSheetCell(idx, RAID_TARGET_TEXTURE_ROWS, RAID_TARGET_TEXTURE_COLUMNS)
   else
-    SetRaidMarkerShown(false)
+    idx = Target.GetRaidTargetIndex and Target.GetRaidTargetIndex(unit)
+  end
+  if Target.ApplyRaidMarker and Target.ApplyRaidMarker(raidMarker, idx) then
+    SetRaidMarkerShown(true)
     return
   end
-  SetRaidMarkerShown(true)
+  SetRaidMarkerShown(false)
 end
 
 local function UpdateIndex(unit)
@@ -758,20 +271,19 @@ local function UpdateIndex(unit)
   if previewActive then
     current = previewIndex or 1
     total = PREVIEW_TOTAL
-  elseif CM.GetAllyCycleIndex then
-    current, total = CM.GetAllyCycleIndex(unit)
+  elseif Target and Target.GetIndex then
+    current, total = Target.GetIndex(unit)
   end
-  if type(total) ~= "number" or total < 1 then
+  local text = Target and Target.FormatIndex and Target.FormatIndex(current, total)
+  if not text then
     indexFS:SetText("")
     indexFS:Hide()
-    HideCycleArrow()
+    if Motion and Motion.HideCycleArrow then
+      Motion.HideCycleArrow()
+    end
     return
   end
-  local curText = "?"
-  if type(current) == "number" and current >= 1 then
-    curText = tostring(current)
-  end
-  indexFS:SetText(curText .. "/" .. tostring(total))
+  indexFS:SetText(text)
   indexFS:Show()
 end
 
@@ -789,271 +301,8 @@ local function LayoutShadowTexture(tex, L)
   tex:SetPoint("BOTTOMRIGHT", cluster, "BOTTOMRIGHT", padR, -padB + shiftY)
 end
 
-local function SyncBarGlow(unit)
-  if not healthBar then
-    return
-  end
-  local dead = previewActive and previewDead
-    or (unit and UnitIsDeadOrGhost and PublicBool(UnitIsDeadOrGhost(unit)) == true)
-  if dead then
-    healthBar.glowBaseA = 0
-  else
-    healthBar.glowBaseA = healthBar.healthGlowA or 0
-  end
-end
-
-local function CreateHealthBarLCR(
-  bar,
-  drawLayer,
-  subLevel,
-  leftAtlas,
-  centerAtlas,
-  rightAtlas,
-  endW,
-  height,
-  xOff
-)
-  local left = bar:CreateTexture(nil, drawLayer, nil, subLevel)
-  left:SetAtlas(leftAtlas, false)
-  left:SetSize(endW, height)
-  left:SetPoint("LEFT", bar, "LEFT", -xOff, 0)
-
-  local right = bar:CreateTexture(nil, drawLayer, nil, subLevel)
-  right:SetAtlas(rightAtlas, false)
-  right:SetSize(endW, height)
-  right:SetPoint("RIGHT", bar, "RIGHT", xOff, 0)
-
-  local center = bar:CreateTexture(nil, drawLayer, nil, subLevel)
-  center:SetAtlas(centerAtlas, false)
-  center:SetHeight(height)
-  center:SetPoint("LEFT", left, "RIGHT")
-  center:SetPoint("RIGHT", right, "LEFT")
-
-  return left, center, right
-end
-
-local function ApplyHealthBarFill(bar, atlas)
-  bar:SetStatusBarTexture(atlas)
-  local fillTex = bar:GetStatusBarTexture()
-  if fillTex then
-    if fillTex.SetAtlas then
-      fillTex:SetAtlas(atlas, false)
-    end
-    fillTex:SetHorizTile(true)
-  end
-  return fillTex
-end
-
-local function CreateAllyHealthBar(parent)
-  local cfg = HB()
-  local barW = cfg.width or 72
-  local barH = cfg.height or 10
-  local scale = barH / 15
-  local borderX = math.floor(8 * scale + 0.5)
-  local bgX = math.max(1, math.floor(2 * scale + 0.5))
-  local borderH = math.floor(31 * scale + 0.5)
-  local borderEndW = math.floor(35 * scale + 0.5)
-  local bgH = math.floor(18 * scale + 0.5)
-  local bgEndW = math.floor(29 * scale + 0.5)
-  local fillAtlas = cfg.fillWhiteAtlas or "widgetstatusbar-fill-white"
-  local glowR, glowG, glowB = cfg.glowR or 1, cfg.glowG or 0.12, cfg.glowB or 0.08
-
-  local bar = CreateFrame("StatusBar", nil, parent)
-  bar:SetSize(barW, barH)
-  bar:SetMinMaxValues(0, 1)
-  bar:SetValue(1)
-  bar._fillTex = ApplyHealthBarFill(bar, fillAtlas)
-  if COLOR_HB_OK then
-    bar:SetStatusBarColor(COLOR_HB_OK:GetRGBA())
-  end
-
-  CreateHealthBarLCR(
-    bar,
-    "BACKGROUND",
-    0,
-    "widgetstatusbar-bgleft",
-    "widgetstatusbar-bgcenter",
-    "widgetstatusbar-bgright",
-    bgEndW,
-    bgH,
-    bgX
-  )
-  local borderLeft, _, borderRight = CreateHealthBarLCR(
-    bar,
-    "OVERLAY",
-    1,
-    "widgetstatusbar-borderleft",
-    "widgetstatusbar-bordercenter",
-    "widgetstatusbar-borderright",
-    borderEndW,
-    borderH,
-    borderX
-  )
-
-  local glowFrame = CreateFrame("Frame", nil, bar)
-  glowFrame:SetAllPoints(bar)
-  glowFrame:Hide()
-  bar.glowFrame = glowFrame
-
-  local function MakeGlow(atlas, point, relative)
-    local tex = glowFrame:CreateTexture(nil, "OVERLAY", nil, 3)
-    tex:SetAtlas(atlas, false)
-    tex:SetSize(borderEndW, borderH)
-    tex:SetBlendMode("ADD")
-    tex:SetVertexColor(glowR, glowG, glowB, 1)
-    tex:SetPoint(point, relative)
-    tex:Hide()
-    return tex
-  end
-  local glowLeft = MakeGlow("widgetstatusbar-glowleft", "LEFT", borderLeft)
-  local glowRight = MakeGlow("widgetstatusbar-glowright", "RIGHT", borderRight)
-  local glowCenter = glowFrame:CreateTexture(nil, "OVERLAY", nil, 3)
-  glowCenter:SetAtlas("widgetstatusbar-glowcenter", false)
-  glowCenter:SetBlendMode("ADD")
-  glowCenter:SetVertexColor(glowR, glowG, glowB, 1)
-  glowCenter:SetHeight(borderH)
-  glowCenter:SetPoint("LEFT", glowLeft, "RIGHT")
-  glowCenter:SetPoint("RIGHT", glowRight, "LEFT")
-  glowCenter:Hide()
-  bar.glowLeft = glowLeft
-  bar.glowCenter = glowCenter
-  bar.glowRight = glowRight
-
-  local spark = bar:CreateTexture(nil, "OVERLAY", nil, 2)
-  spark:SetAtlas("widgetstatusbar-spark", false)
-  spark:SetSize(6, barH + 4)
-  spark:SetBlendMode("ADD")
-  spark:Hide()
-  bar.spark = spark
-
-  return bar
-end
-
-local function SetHealthBarGlowShown(bar, shown)
-  if not bar then
-    return
-  end
-  if bar.glowLeft then
-    bar.glowLeft:SetShown(shown)
-  end
-  if bar.glowCenter then
-    bar.glowCenter:SetShown(shown)
-  end
-  if bar.glowRight then
-    bar.glowRight:SetShown(shown)
-  end
-end
-
-local function HideBarGlow(bar)
-  if not bar then
-    return
-  end
-  bar.healthGlowA = 0
-  bar.glowBaseA = 0
-  if bar.glowFrame then
-    bar.glowFrame:Hide()
-  end
-  SetHealthBarGlowShown(bar, false)
-end
-
-local function ApplyGlowPulse(bar, pulseA)
-  if not bar or not bar.glowFrame then
-    return
-  end
-  local baseA = bar.glowBaseA
-  if not (issecretvalue and issecretvalue(baseA)) and type(baseA) == "number" and baseA <= 0 then
-    bar.glowFrame:Hide()
-    return
-  end
-  local cfg = HB()
-  local r, g, b = cfg.glowR or 1, cfg.glowG or 0.12, cfg.glowB or 0.08
-  bar.glowLeft:SetVertexColor(r, g, b, baseA)
-  bar.glowCenter:SetVertexColor(r, g, b, baseA)
-  bar.glowRight:SetVertexColor(r, g, b, baseA)
-  bar.glowFrame:SetAlpha(pulseA)
-  SetHealthBarGlowShown(bar, true)
-  bar.glowFrame:Show()
-end
-
-local function PinSparkToFill()
-  local fillTex = healthBar and (healthBar._fillTex or healthBar:GetStatusBarTexture())
-  if fillTex and healthBar.spark then
-    healthBar._fillTex = fillTex
-    if not healthBar._sparkPinned then
-      healthBar.spark:ClearAllPoints()
-      healthBar.spark:SetPoint("CENTER", fillTex, "RIGHT", 0, 0)
-      healthBar._sparkPinned = true
-    end
-  end
-end
-
-local function ApplyPublicHealthAppearance(pct, dead)
-  if not healthBar then
-    return
-  end
-  local cfg = HB()
-  local lowPct = cfg.lowPct or 0.25
-
-  if dead or pct <= 0 then
-    healthBar:SetMinMaxValues(0, PREVIEW_MAX)
-    healthBar:SetValue(0)
-    if COLOR_HB_DEAD then
-      healthBar:SetStatusBarColor(COLOR_HB_DEAD:GetRGBA())
-    end
-    HideBarGlow(healthBar)
-    if healthBar.spark then
-      healthBar.spark:Hide()
-    end
-    healthBar._hbHasValue = true
-    ApplyDeadChrome(true)
-    return
-  end
-
-  ApplyDeadChrome(false)
-
-  local health = PREVIEW_MAX * pct
-  if HB_VALUE_INTERP and healthBar._hbHasValue then
-    healthBar:SetMinMaxValues(0, PREVIEW_MAX, HB_VALUE_INTERP)
-    healthBar:SetValue(health, HB_VALUE_INTERP)
-  else
-    healthBar:SetMinMaxValues(0, PREVIEW_MAX)
-    healthBar:SetValue(health)
-  end
-  healthBar._hbHasValue = true
-
-  if pct <= lowPct then
-    if COLOR_HB_CRIT then
-      healthBar:SetStatusBarColor(COLOR_HB_CRIT:GetRGBA())
-    end
-    healthBar.healthGlowA = 1
-  elseif pct <= 0.5 then
-    if COLOR_HB_DMG then
-      healthBar:SetStatusBarColor(COLOR_HB_DMG:GetRGBA())
-    end
-    healthBar.healthGlowA = 0
-  else
-    if COLOR_HB_OK then
-      healthBar:SetStatusBarColor(COLOR_HB_OK:GetRGBA())
-    end
-    healthBar.healthGlowA = 0
-  end
-  healthBar.glowBaseA = healthBar.healthGlowA
-
-  if healthBar.glowBaseA == 0 and healthBar.glowFrame then
-    healthBar.glowFrame:Hide()
-    SetHealthBarGlowShown(healthBar, false)
-  end
-
-  PinSparkToFill()
-  if healthBar.spark then
-    healthBar.spark:SetVertexColor(1, 1, 1, 1)
-    healthBar.spark:SetAlpha(1)
-    healthBar.spark:SetShown(pct > 0 and pct < 1)
-  end
-end
-
 local function TickPreviewHealth(elapsed)
-  if not healthBar then
+  if not healthBar or not HealthBar then
     return
   end
   local stage = PREVIEW_STAGES[previewStageIndex] or PREVIEW_STAGES[1]
@@ -1075,13 +324,13 @@ local function TickPreviewHealth(elapsed)
   end
 
   local nowDead = stage.dead and previewStageElapsed > PREVIEW_LERP_SEC
-  ApplyPublicHealthAppearance(previewDisplayPct, nowDead)
+  HealthBar.ApplyPreview(healthBar, previewDisplayPct, nowDead, ApplyDeadChrome)
   if nowDead ~= previewDead then
     previewDead = nowDead
     ApplyNameColor("player", previewDead)
   end
   previewDead = nowDead
-  SyncBarGlow("player")
+  HealthBar.SyncGlow(healthBar, previewDead)
 
   if previewStageElapsed >= stage.dwell then
     previewStageElapsed = 0
@@ -1095,33 +344,25 @@ local function TickPreviewHealth(elapsed)
     previewRaidIndex = nextStage.raid
     UpdateIndex("player")
     UpdateRaidMarker("player")
-    StartCycleAnim("up")
+    if Motion and Motion.StartCycle then
+      Motion.StartCycle("up")
+    end
   end
 end
 
 local function OnHudUpdateImpl(_, elapsed)
-  TickHudFade(elapsed)
+  if Motion and Motion.Tick then
+    Motion.Tick(elapsed)
+  end
   if not cluster or not cluster:IsShown() then
     return
   end
-  TickCycleAnim(elapsed)
-  TickCycleArrow(elapsed)
   if previewActive then
     TickPreviewHealth(elapsed)
   end
-  if not healthBar then
-    return
+  if healthBar and HealthBar and HealthBar.TickGlow then
+    HealthBar.TickGlow(healthBar, elapsed)
   end
-  local cfg = HB()
-  local period = cfg.glowPulsePeriod or 1.15
-  glowPulsePhase = glowPulsePhase + elapsed / period
-  if glowPulsePhase >= 1 then
-    glowPulsePhase = glowPulsePhase - math.floor(glowPulsePhase)
-  end
-  local wave = 0.5 - 0.5 * math.cos(glowPulsePhase * math.pi * 2)
-  local pulseA = (cfg.glowPulseMin or 0.35)
-    + ((cfg.glowPulseMax or 1) - (cfg.glowPulseMin or 0.35)) * wave
-  ApplyGlowPulse(healthBar, pulseA)
 end
 
 local function OnHudUpdate(self, elapsed)
@@ -1138,8 +379,8 @@ local function OnHudEvent(_, event, unit)
     return
   end
   if event == "UNIT_IN_RANGE_UPDATE" and unit == "target" then
-    if cluster and cluster:IsShown() and not previewActive then
-      ApplyRangeAlpha("target")
+    if cluster and cluster:IsShown() and not previewActive and Motion and Motion.ApplyRange then
+      Motion.ApplyRange("target", false)
     end
     return
   end
@@ -1153,9 +394,34 @@ local function OnHudEvent(_, event, unit)
     and cluster
     and cluster:IsShown()
     and not previewActive
+    and HealthBar
+    and HealthBar.Update
   then
-    UpdateHealthBar("target")
+    HealthBar.Update(healthBar, "target", ApplyDeadChrome)
   end
+end
+
+local function BindMotion()
+  if not Motion or not Motion.Attach then
+    return
+  end
+  Motion.Attach({
+    getCluster = function()
+      return cluster
+    end,
+    getArrow = function()
+      return cycleArrow
+    end,
+    getIndexFS = function()
+      return indexFS
+    end,
+    getHealthBar = function()
+      return healthBar
+    end,
+    getLayout = Layout,
+    applyAnchor = AnchorCluster,
+    onHidden = InvalidateClusterLayout,
+  })
 end
 
 local function EnsureFrames()
@@ -1163,7 +429,10 @@ local function EnsureFrames()
     return
   end
   local L = Layout()
-  local cfg = HB()
+  local barW, barH = 72, 10
+  if HealthBar and HealthBar.GetSize then
+    barW, barH = HealthBar.GetSize()
+  end
 
   if not cluster then
     cluster = CreateFrame("Frame", "CombatModeAllyCycleHUD", crosshairFrame)
@@ -1207,17 +476,25 @@ local function EnsureFrames()
     cycleArrow:SetSize(arrowS, arrowS)
     cycleArrow:Hide()
 
-    healthBar = CreateAllyHealthBar(cluster)
-    healthBar:SetSize(cfg.width or 72, cfg.height or 10)
+    if HealthBar and HealthBar.Create then
+      healthBar = HealthBar.Create(cluster)
+      healthBar:SetSize(barW, barH)
+    end
 
     local markerS = L.raidMarkerSize or 14
     raidMarkerFrame = CreateFrame("Frame", nil, cluster)
     raidMarkerFrame:SetSize(markerS, markerS)
-    raidMarkerFrame:SetFrameLevel(healthBar:GetFrameLevel() + 5)
+    if healthBar then
+      raidMarkerFrame:SetFrameLevel(healthBar:GetFrameLevel() + 5)
+    end
     raidMarker = raidMarkerFrame:CreateTexture(nil, "OVERLAY")
     raidMarker:SetAllPoints(raidMarkerFrame)
-    raidMarker:SetTexture(RAID_TARGET_TEXTURE)
+    local raidTex = Target and Target.RAID_TARGET_TEXTURE
+      or [[Interface\TargetingFrame\UI-RaidTargetingIcons]]
+    raidMarker:SetTexture(raidTex)
     raidMarker:Hide()
+
+    BindMotion()
   end
 
   if not eventsRegistered and cluster then
@@ -1275,7 +552,6 @@ local function LayoutChildren()
     return
   end
   local L = Layout()
-  local cfg = HB()
   local gap = L.gap or 2
   local indexGap = L.indexGap
   if type(indexGap) ~= "number" then
@@ -1284,8 +560,10 @@ local function LayoutChildren()
   local nameLift = L.nameLift or 6
   local iconS = L.roleIconSize or 20
   local markerS = L.raidMarkerSize or 14
-  local barW = cfg.width or 72
-  local barH = cfg.height or 10
+  local barW, barH = 72, 10
+  if HealthBar and HealthBar.GetSize then
+    barW, barH = HealthBar.GetSize()
+  end
   local nameH = (L.nameFontSize or 11) + 2
   local indexH = (L.indexFontSize or 10) + 2
   local indexW = MeasureIndexWidth()
@@ -1333,7 +611,9 @@ local function LayoutChildren()
   end
   if cycleArrow then
     cycleArrow:SetSize(arrowS, arrowS)
-    PlaceCycleArrow()
+    if Motion and Motion.PlaceCycleArrow then
+      Motion.PlaceCycleArrow()
+    end
   end
 
   LayoutShadowTexture(hudShadow, L)
@@ -1349,87 +629,12 @@ local function ApplyAllyCycleHUDLayoutImpl()
     return
   end
   LayoutChildren()
-  AnchorCluster(cycleSlideY)
+  local slideY = (Motion and Motion.GetSlideY and Motion.GetSlideY()) or 0
+  AnchorCluster(slideY)
 end
 
 function CM.ApplyAllyCycleHUDLayout()
   return CM.Profile("AllyHUD:Layout", ApplyAllyCycleHUDLayoutImpl)
-end
-
-local function UpdateHealthBarImpl(unit)
-  if not healthBar then
-    return
-  end
-
-  local dead = UnitIsDeadOrGhost and UnitIsDeadOrGhost(unit)
-  local pubDead = PublicBool(dead)
-  if pubDead == true then
-    healthBar:SetMinMaxValues(0, 1)
-    healthBar:SetValue(0)
-    if COLOR_HB_DEAD then
-      healthBar:SetStatusBarColor(COLOR_HB_DEAD:GetRGBA())
-    end
-    HideBarGlow(healthBar)
-    if healthBar.spark then
-      healthBar.spark:Hide()
-    end
-    healthBar._hbHasValue = true
-    healthBar._lastH = nil
-    healthBar._lastM = nil
-    ApplyDeadChrome(true)
-    return
-  end
-
-  ApplyDeadChrome(false)
-
-  local health = UnitHealth and UnitHealth(unit, true)
-  local maxHealth = UnitHealthMax and UnitHealthMax(unit)
-  local pubH = PublicNumber(health, nil)
-  local pubM = PublicNumber(maxHealth, nil)
-  if pubH and pubM and pubH == healthBar._lastH and pubM == healthBar._lastM then
-    return
-  end
-  if pubH then
-    healthBar._lastH = pubH
-  end
-  if pubM then
-    healthBar._lastM = pubM
-  end
-
-  if health ~= nil and maxHealth ~= nil then
-    if HB_VALUE_INTERP and healthBar._hbHasValue then
-      healthBar:SetMinMaxValues(0, maxHealth, HB_VALUE_INTERP)
-      healthBar:SetValue(health, HB_VALUE_INTERP)
-    else
-      healthBar:SetMinMaxValues(0, maxHealth)
-      healthBar:SetValue(health)
-    end
-    healthBar._hbHasValue = true
-  end
-
-  if UnitHealthPercent and HB_FILL_CURVE then
-    local fillColor = UnitHealthPercent(unit, true, HB_FILL_CURVE)
-    local fr, fg, fb, fa = ExtractColorRGBA(fillColor)
-    if fr then
-      healthBar:SetStatusBarColor(fr, fg, fb, fa)
-    end
-    local glowColor = UnitHealthPercent(unit, true, HB_GLOW_CURVE)
-    local _, _, _, glowA = ExtractColorRGBA(glowColor)
-    healthBar.healthGlowA = glowA or 0
-    healthBar.glowBaseA = healthBar.healthGlowA
-    PinSparkToFill()
-    if HB_SPARK_CURVE and healthBar.spark then
-      local sparkColor = UnitHealthPercent(unit, true, HB_SPARK_CURVE)
-      local _, _, _, sparkA = ExtractColorRGBA(sparkColor)
-      healthBar.spark:SetVertexColor(1, 1, 1, 1)
-      healthBar.spark:SetAlpha(sparkA or 0)
-      healthBar.spark:Show()
-    end
-  end
-end
-
-UpdateHealthBar = function(unit)
-  CM.Profile("AllyHUD:HealthBar", UpdateHealthBarImpl, unit)
 end
 
 local function RefreshAllyCycleHUDImpl()
@@ -1450,20 +655,16 @@ local function RefreshAllyCycleHUDImpl()
     )
 
   if not show then
-    RequestHudHide()
+    if Motion and Motion.RequestHide then
+      Motion.RequestHide()
+    end
     return
   end
 
   local unit = preview and "player" or "target"
-  local dead = preview and previewDead
-    or (UnitIsDeadOrGhost and PublicBool(UnitIsDeadOrGhost(unit)) == true)
-  local name = UnitName and UnitName(unit)
-  if not preview and PublicBool(UnitIsUnit and UnitIsUnit(unit, "player")) == true then
-    nameFS:SetText("You")
-  elseif IsSecret(name) or type(name) ~= "string" or name == "" then
-    nameFS:SetText(preview and "Ally" or "…")
-  else
-    nameFS:SetText(name)
+  local dead = preview and previewDead or (Target and Target.IsDead and Target.IsDead(unit))
+  if nameFS and Target and Target.GetDisplayName then
+    nameFS:SetText(Target.GetDisplayName(unit, preview))
   end
   ApplyNameColor(unit, dead)
   UpdateRoleIcon(unit)
@@ -1472,19 +673,26 @@ local function RefreshAllyCycleHUDImpl()
   CM.ApplyAllyCycleHUDLayout()
 
   if preview then
-    ApplyPublicHealthAppearance(previewDisplayPct, previewDead)
+    if HealthBar and HealthBar.ApplyPreview then
+      HealthBar.ApplyPreview(healthBar, previewDisplayPct, previewDead, ApplyDeadChrome)
+    end
     ApplyDeadChrome(previewDead)
-  else
-    UpdateHealthBar(unit)
+  elseif HealthBar and HealthBar.Update then
+    HealthBar.Update(healthBar, unit, ApplyDeadChrome)
   end
 
-  SyncBarGlow(unit)
-  ApplyRangeAlpha(unit)
+  if HealthBar and HealthBar.SyncGlow then
+    HealthBar.SyncGlow(healthBar, dead)
+  end
+  if Motion and Motion.ApplyRange then
+    Motion.ApplyRange(unit, preview)
+  end
 
-  RequestHudShow()
-  if pendingCycleDir then
-    StartCycleAnim(pendingCycleDir)
-    pendingCycleDir = nil
+  if Motion and Motion.RequestShow then
+    Motion.RequestShow()
+  end
+  if Motion and Motion.ConsumePending then
+    Motion.ConsumePending()
   end
 end
 

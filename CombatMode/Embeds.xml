@@ -40,6 +40,9 @@
     <Script file="Core\Crosshair\FocusNameplateMarker.lua"/>
     <!-- ALLY CYCLE chrome before Crosshair (InitAllyCycleHUD); Cycle secure button first. -->
     <Script file="Core\AllyCycle\Cycle.lua"/>
+    <Script file="Core\AllyCycle\Target.lua"/>
+    <Script file="Core\AllyCycle\HealthBar.lua"/>
+    <Script file="Core\AllyCycle\Motion.lua"/>
     <Script file="Core\AllyCycle\HUD.lua"/>
     <Script file="Core\Crosshair\Crosshair.lua"/>
     <Script file="Core\AllyCycle\AllyCycle.lua"/>
