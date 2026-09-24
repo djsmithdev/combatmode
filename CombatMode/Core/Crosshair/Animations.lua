@@ -35,7 +35,6 @@ local issecretvalue = _G.issecretvalue
 
 -- Lua stdlib
 local math = _G.math
-local unpack = _G.unpack
 local random = _G.math.random
 
 ---------------------------------------------------------------------------------------

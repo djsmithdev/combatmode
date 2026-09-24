@@ -6,7 +6,8 @@
 --  Architecture / how it works:
 --    • DB.global.allyCycle (side / scale / padding); layout / bar / role atlases
 --      are locals in this file. Padding defaults to CrosshairCompanionOffsetX.
---    • Index from GetAllyCycleIndex; slide via NotifyAllyCycleHUD.
+--    • Index from GetAllyCycleIndex; slide via NotifyAllyCycleHUD. Cycle prev/next
+--      travels a housing floor arrow (up / down) to the right of the counter.
 --    • Fades with Mouse Look (same cluster lerp as Interaction HUD); options preview
 --      stays visible with mouselook off.
 --    • Range alpha may be secret — SetAlpha raw, never multiply by slide/fade alpha.
@@ -40,6 +41,7 @@ local UnitName = _G.UnitName
 local UnitCanAssist = _G.UnitCanAssist
 local UnitCanAttack = _G.UnitCanAttack
 local GetRaidTargetIndex = _G.GetRaidTargetIndex
+local GetAtlasInfo = _G.C_Texture and _G.C_Texture.GetAtlasInfo
 local SetRaidTargetIconTexture = _G.SetRaidTargetIconTexture
 local CreateColorCurve = _G.C_CurveUtil and _G.C_CurveUtil.CreateColorCurve
 local EvaluateColorFromBoolean = _G.C_CurveUtil and _G.C_CurveUtil.EvaluateColorFromBoolean
@@ -56,6 +58,7 @@ local type = _G.type
 local cluster
 local nameFS
 local indexFS
+local cycleArrow
 local healthBar
 local UpdateHealthBar
 local roleIcon
@@ -78,6 +81,12 @@ local hudFadeTarget = 0
 local HUD_FADE_SPEED = 16
 local CONFIG_FALLBACK = { showHud = true, hudSide = "BOTTOM", scale = 1, padding = 24 }
 local cycleAnimState = { elapsed = 0, dur = 0.14, fromY = 0, fromA = 0.75 }
+local cycleArrowHold = 0
+local cycleArrowHoldMax = 0.32
+local cycleArrowY = 0
+local cycleArrowTravelSign = 0
+local ARROW_UP = "housing-floor-arrow-up-default"
+local ARROW_DOWN = "housing-floor-arrow-down-default"
 
 local PREVIEW_MAX = 100
 local PREVIEW_TOTAL = 4
@@ -117,6 +126,10 @@ local LAYOUT = {
   indexFontSize = 10,
   -- Reserve width so the bar stays centered as "1/4" becomes "40/40".
   indexMinWidth = 28,
+  cycleArrowSize = 10,
+  cycleArrowGap = -4,
+  cycleArrowHold = 0.32,
+  cycleArrowTravel = 5,
   cycleSlidePx = 3,
   cycleAnimSec = 0.14,
   cycleAnimFromAlpha = 0.75,
@@ -261,11 +274,39 @@ end
 local COLOR_IN_RANGE = CreateColor and CreateColor(1, 1, 1, 1)
 local COLOR_OUT_OF_RANGE = CreateColor and CreateColor(1, 1, 1, Layout().outOfRangeAlpha or 0.3)
 
+local function PlaceCycleArrow()
+  if not cycleArrow then
+    return
+  end
+  local L = Layout()
+  local arrowGap = L.cycleArrowGap
+  if type(arrowGap) ~= "number" then
+    arrowGap = 0
+  end
+  cycleArrow:ClearAllPoints()
+  if indexFS then
+    cycleArrow:SetPoint("LEFT", indexFS, "RIGHT", arrowGap, cycleArrowY)
+  elseif healthBar then
+    cycleArrow:SetPoint("LEFT", healthBar, "RIGHT", L.indexGap or 2, cycleArrowY)
+  end
+end
+
+local function HideCycleArrow()
+  cycleArrowHold = 0
+  cycleArrowY = 0
+  cycleArrowTravelSign = 0
+  if cycleArrow then
+    cycleArrow:SetAlpha(1)
+    cycleArrow:Hide()
+  end
+end
+
 local function ResetCycleAnim()
   pendingCycleDir = nil
   cycleAnim = nil
   cycleSlideY = 0
   cycleSlideA = 1
+  HideCycleArrow()
 end
 
 local function AnchorCluster(offsetY)
@@ -401,6 +442,55 @@ local function RequestHudShow()
   end
 end
 
+local function ShowCycleArrow(dir)
+  if not cycleArrow or not cycleArrow.SetAtlas then
+    return
+  end
+  -- Next is roster "up" → down arrow traveling down. Previous is "down" → up arrow traveling up.
+  local atlas = (dir == "down") and ARROW_UP or ARROW_DOWN
+  if GetAtlasInfo and not GetAtlasInfo(atlas) then
+    HideCycleArrow()
+    return
+  end
+  local L = Layout()
+  cycleArrow:SetAtlas(atlas, false)
+  cycleArrow:SetAlpha(1)
+  cycleArrow:Show()
+  cycleArrowTravelSign = (dir == "down") and 1 or -1
+  cycleArrowY = 0
+  cycleArrowHoldMax = L.cycleArrowHold or 0.32
+  cycleArrowHold = cycleArrowHoldMax
+  PlaceCycleArrow()
+end
+
+local function TickCycleArrow(elapsed)
+  if cycleArrowHold <= 0 then
+    return
+  end
+  cycleArrowHold = cycleArrowHold - (elapsed or 0)
+  local maxHold = cycleArrowHoldMax
+  if type(maxHold) ~= "number" or maxHold <= 0 then
+    HideCycleArrow()
+    return
+  end
+  local t = 1 - math.max(0, cycleArrowHold) / maxHold
+  if t < 0 then
+    t = 0
+  elseif t > 1 then
+    t = 1
+  end
+  local eased = t * t * (3 - 2 * t)
+  local travel = Layout().cycleArrowTravel or 5
+  cycleArrowY = cycleArrowTravelSign * travel * eased
+  if cycleArrow then
+    cycleArrow:SetAlpha(1 - t)
+  end
+  PlaceCycleArrow()
+  if cycleArrowHold <= 0 then
+    HideCycleArrow()
+  end
+end
+
 local function StartCycleAnim(dir)
   local L = Layout()
   local px = L.cycleSlidePx or 3
@@ -411,6 +501,7 @@ local function StartCycleAnim(dir)
   cycleAnim = cycleAnimState
   cycleSlideY = cycleAnim.fromY
   cycleSlideA = cycleAnim.fromA
+  ShowCycleArrow(dir)
   ApplyClusterVisual()
 end
 
@@ -593,6 +684,9 @@ local function ApplyDeadChrome(dead)
       indexFS:SetTextColor(0.85, 0.85, 0.85, 1)
     end
   end
+  if cycleArrow and cycleArrow.SetDesaturated then
+    cycleArrow:SetDesaturated(dead)
+  end
 end
 
 local function ApplyNameColor(unit, dead)
@@ -670,6 +764,7 @@ local function UpdateIndex(unit)
   if type(total) ~= "number" or total < 1 then
     indexFS:SetText("")
     indexFS:Hide()
+    HideCycleArrow()
     return
   end
   local curText = "?"
@@ -1010,6 +1105,7 @@ local function OnHudUpdateImpl(_, elapsed)
     return
   end
   TickCycleAnim(elapsed)
+  TickCycleArrow(elapsed)
   if previewActive then
     TickPreviewHealth(elapsed)
   end
@@ -1106,6 +1202,11 @@ local function EnsureFrames()
     indexFS:SetShadowOffset(1, -1)
     indexFS:SetTextColor(0.85, 0.85, 0.85, 1)
 
+    local arrowS = L.cycleArrowSize or 12
+    cycleArrow = cluster:CreateTexture(nil, "OVERLAY")
+    cycleArrow:SetSize(arrowS, arrowS)
+    cycleArrow:Hide()
+
     healthBar = CreateAllyHealthBar(cluster)
     healthBar:SetSize(cfg.width or 72, cfg.height or 10)
 
@@ -1188,8 +1289,14 @@ local function LayoutChildren()
   local nameH = (L.nameFontSize or 11) + 2
   local indexH = (L.indexFontSize or 10) + 2
   local indexW = MeasureIndexWidth()
-  local rowH = math.max(iconS, barH, indexH)
-  local sidePad = math.max(iconS + gap, indexW > 0 and (indexW + indexGap) or 0)
+  local arrowS = L.cycleArrowSize or 12
+  local arrowGap = L.cycleArrowGap
+  if type(arrowGap) ~= "number" then
+    arrowGap = 1
+  end
+  local arrowReserve = (indexW > 0) and (arrowS + arrowGap) or 0
+  local rowH = math.max(iconS, barH, indexH, arrowS)
+  local sidePad = math.max(iconS + gap, indexW > 0 and (indexW + indexGap + arrowReserve) or 0)
   local nameW = MeasureNameWidth()
   nameFS:SetWidth(nameW)
   nameFS:SetHeight(nameH)
@@ -1223,6 +1330,10 @@ local function LayoutChildren()
   roleIcon:SetPoint("RIGHT", healthBar, "LEFT", -gap, 0)
   if indexFS then
     indexFS:SetPoint("LEFT", healthBar, "RIGHT", indexGap, 0)
+  end
+  if cycleArrow then
+    cycleArrow:SetSize(arrowS, arrowS)
+    PlaceCycleArrow()
   end
 
   LayoutShadowTexture(hudShadow, L)
