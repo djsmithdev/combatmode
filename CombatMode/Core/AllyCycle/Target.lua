@@ -11,7 +11,7 @@
 --    • Secret-safe: PublicBool / issecretvalue; raid index is presence not math;
 --      range encodes secret UnitInRange in ColorMixin alpha (no Lua compare).
 --  Does not: Own cluster chrome, fade/slide, or the health-bar widget.
---  Related: Core/AllyCycle/{HealthBar,Motion,HUD,Cycle,AllyCycle}.lua
+--  Related: Core/AllyCycle/HealthBar.lua, Motion.lua, HUD.lua, Cycle.lua, AllyCycle.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -124,7 +124,7 @@ function Target.GetDisplayName(unit, preview)
     return "You"
   end
   if IsSecret(name) or type(name) ~= "string" or name == "" then
-    return preview and "Ally" or "…"
+    return preview and "Ally" or "..."
   end
   return name
 end
@@ -157,8 +157,7 @@ function Target.GetRaidTargetIndex(unit)
   end
 end
 
---- Apply Blizzard raid-target sheet. SetRaidTargetIconTexture accepts secret indices.
---- @return boolean shown
+-- Apply Blizzard raid-target sheet. SetRaidTargetIconTexture accepts secret indices.
 function Target.ApplyRaidMarker(tex, idx)
   if not tex then
     return false
@@ -198,7 +197,7 @@ function Target.FormatIndex(current, total)
   return curText .. "/" .. tostring(total)
 end
 
---- Range alpha for the cluster. Secret UnitInRange is encoded in ColorMixin alpha.
+-- Range alpha for the cluster. Secret UnitInRange is encoded in ColorMixin alpha.
 function Target.GetRangeAlpha(unit, preview, outA)
   if type(outA) ~= "number" then
     outA = 0.3

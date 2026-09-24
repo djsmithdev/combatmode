@@ -651,7 +651,12 @@ local function RefreshAllyCycleHUDImpl()
     and looking
     and (
       preview
-      or (CM.IsAllyCycleEnabled and CM.IsAllyCycleEnabled() and CM.IsAllyCycleFriendlyHardTarget())
+      or (
+        CM.IsAllyCycleEnabled
+        and CM.IsAllyCycleEnabled()
+        and CM.IsAllyCycleFriendlyHardTarget
+        and CM.IsAllyCycleFriendlyHardTarget()
+      )
     )
 
   if not show then
