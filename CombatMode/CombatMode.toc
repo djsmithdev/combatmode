@@ -1,5 +1,11 @@
-## Interface: 120105, 120100, 16001
+## Interface: 120105, 120100, 16001, 50504, 40402, 38002, 30405, 20506, 11509
 ## Interface-Forever: 16001
+## Interface-Mists: 50504
+## Interface-Cata: 40402
+## Interface-Titan: 38002
+## Interface-Wrath: 30405
+## Interface-BCC: 20506
+## Interface-Classic: 11509
 ## Version: 4.7.3
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
