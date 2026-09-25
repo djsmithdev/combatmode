@@ -27,6 +27,7 @@ Use this checklist for feature work and regressions.
 ## Click casting
 
 - Validate base click-cast actions on valid units.
+- **Start Attack** (click-cast override, not Blizzard's raw bind): left-click aims at a new enemy and starts swinging without toggling off or using an action-bar slot; existing Start Attack slot values pick this up.
 - Validate modifier variants (Shift/Ctrl/Alt) map to expected spells/macros.
 - Verify behavior remains stable in combat (no insecure action taint/errors).
 - Binding refresh must not loop when Single-Button Assistant rewrites its action slot.

@@ -8,7 +8,8 @@
 --    • Honors char.reticleTargeting, macroInjectionClickCastOnly (skip keyboard overrides
 --      when true), and GetBindingsLocation() for which bindings table to read.
 --    • SetNewBinding / OverrideDefaultButtons / ResetBindingOverride — per-slot secure
---      attributes + SetMouselookOverrideBinding / SetOverrideBindingClick.
+--      attributes + SetMouselookOverrideBinding / SetOverrideBindingClick. STARTATTACK
+--      is the reticle /tar + /startattack override (not Blizzard's raw Start Attack).
 --    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run
 --      for ACTIONBUTTON + MULTIACTIONBAR1–7 (CM.Constants.ClickCastBars).
 --    • ApplyToggleFocusTargetBinding — Combat Mode Target Lock keybind (always clears
@@ -495,6 +496,8 @@ function CM.SetNewBinding(buttonSettings)
     valueToUse = "MACRO CM_ClearTarget"
   elseif value == "CLEARFOCUS" then
     valueToUse = "MACRO CM_ClearFocus"
+  elseif value == "STARTATTACK" then
+    valueToUse = "MACRO CM_StartAttack"
   elseif value == "TOGGLEFOCUSANY" then
     valueToUse = "MACRO CM_ToggleFocusAny"
   elseif value == "TOGGLEFOCUSENEMY" then

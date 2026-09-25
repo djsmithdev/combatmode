@@ -7,7 +7,8 @@
 --  Architecture / how it works:
 --    • Macros: CM_ClearTarget/Focus, CM_ToggleFocus{Any,Enemy}
 --      (target-first-then-mouseover on lock; clear focus + target on unlock),
---      CM_CycleFocusEnemy{Next,Prev}
+--      CM_CycleFocusEnemy{Next,Prev}, CM_StartAttack (hostile /tar then /startattack;
+--      hides raw Blizzard STARTATTACK in the click-cast dropdown)
 --    • BLIZZARD_EVENTS groups: UNLOCK/LOCK/REMATCH, FRIENDLY_TARGETING,
 --      UNCATEGORIZED, REFRESH_BINDINGS (bars/vehicles/CVAR_UPDATE), FOCUS_LOCK,
 --      CAST_FEEDBACK (player cast/channel), ASSISTED_HIGHLIGHT
@@ -44,6 +45,8 @@ CM.Constants.Macros = {
   -- Mouse-wheel Target Lock cycle (nearest / previous enemy, then focus).
   CM_CycleFocusEnemyNext = "/targetenemy [@focus,exists]\n/focus [@target,exists]",
   CM_CycleFocusEnemyPrev = "/targetenemy [@focus,exists] 1\n/focus [@target,exists]",
+  -- Click-cast Start Attack: hostile under the reticle, then swing (does not toggle off).
+  CM_StartAttack = "/tar [@focus,harm];[nomounted,@mouseover,harm,nodead][nomounted,@anyenemy]\n/startattack",
 }
 
 -- EVENTS TO BE TRACKED
@@ -186,7 +189,6 @@ local ACTIONS_TO_PROCESS_EXTRA = {
   "ASSISTTARGET",
   "ATTACKTARGET",
   "PETATTACK",
-  "STARTATTACK",
   "STOPATTACK",
   "STOPCASTING",
   "EXTRAACTIONBUTTON1",
@@ -277,6 +279,7 @@ end
 CM.Constants.OverrideActions = {
   CLEARTARGET = "|cff69ccf0Clear Target|r",
   CLEARFOCUS = "|cff69ccf0Clear Focus|r",
+  STARTATTACK = "|cff69ccf0Start Attack|r",
   TOGGLEFOCUSANY = "|cff69ccf0Toggle Focus Any|r",
   TOGGLEFOCUSENEMY = "|cff69ccf0Toggle Focus Enemy|r",
   MACRO = "|cff69ccf0Run MACRO|r",
