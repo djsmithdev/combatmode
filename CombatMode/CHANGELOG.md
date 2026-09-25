@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Start Attack** click-cast action. Replaces Blizzard's raw Start Attack in the dropdown so we can inject reticle targeting logic into it.
 
+### Fixed
+
+- **Auto Attack / Auto Shot / Shoot / Pet Attack** click-cast no longer toggles off when swapping to a new target under the reticle.
+
 ## [4.7.4] - 2026-09-24
 
 ### Fixed

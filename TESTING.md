@@ -27,7 +27,8 @@ Use this checklist for feature work and regressions.
 ## Click casting
 
 - Validate base click-cast actions on valid units.
-- **Start Attack** (click-cast override, not Blizzard's raw bind): left-click aims at a new enemy and starts swinging without toggling off or using an action-bar slot; existing Start Attack slot values pick this up.
+- **Start Attack** / **Pet Attack** (click-cast overrides, not Blizzard's raw binds): left-click aims at a new enemy and starts you or your pet swinging; existing Start Attack / Pet Attack slot values pick this up.
+- Action Button 1 (or any bar slot) with Auto Attack / Auto Shot / Shoot / Pet Attack still gets reticle `/tar` and can swap hostiles. A new unit keeps the swing on (`/startattack` / `/cast !` / `/petattack`, not `/click` which would toggle it off).
 - Validate modifier variants (Shift/Ctrl/Alt) map to expected spells/macros.
 - Verify behavior remains stable in combat (no insecure action taint/errors).
 - Binding refresh must not loop when Single-Button Assistant rewrites its action slot.

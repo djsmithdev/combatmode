@@ -17,8 +17,11 @@
 --      ([nodead] any / [nodead,harm] enemy) so sticky empty-focus cannot leave a dead
 --      lock. Cleartarget prevents corpse re-lock on hard target.
 --    • Ally Cycle (keys bound + in group): helpful → sticky ally preline; unclassified
---      treated as help. Harmful → ENEMY / AUTO_LOCK_ENEMY, or a shorter /tar +
---      /targetlasttarget [harm] post-line when restore-after-harm is on (not Auto Lock).
+--      treated as help. Auto Attack / Auto Shot / Shoot / Pet Attack are treated as
+--      harm (they are not IsSpellHarmful). After /tar they use /startattack, /cast !,
+--      or /petattack so a new unit cannot toggle the swing off. Harmful → ENEMY /
+--      AUTO_LOCK_ENEMY, or a shorter /tar + /targetlasttarget [harm] post-line when
+--      restore-after-harm is on (not Auto Lock).
 --    • CM.TargetingMacroPrelineMaxLen = 255 − worst /click cast − newline; editor enforces.
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists;
 --      builtin skyriding IDs from Constants.ReticleTargetingBuiltinExcludeSpellIds.
@@ -208,9 +211,63 @@ local function FormatClickLine(frameName, mouseButton)
   return "/click " .. frameName .. " " .. btn
 end
 
+-- Auto Attack / Auto Shot / Shoot / Pet Attack are combat swings, not IsSpellHarmful.
+local AUTO_SWING_KIND = {
+  [6603] = "attack",
+  [75] = "shot",
+  [5019] = "shoot",
+  [287988] = "pet",
+}
+
+local function AutoSwingKind(spellId)
+  return AUTO_SWING_KIND[spellId]
+end
+
+local function AutoSwingSwapCommand(kind, spellId)
+  if kind == "shot" or kind == "shoot" then
+    local name
+    if C_Spell and C_Spell.GetSpellInfo and spellId then
+      local info = C_Spell.GetSpellInfo(spellId)
+      name = info and info.name
+    end
+    if type(name) == "string" and name ~= "" then
+      return "/cast !" .. name
+    end
+    return "/cast !spell:" .. tostring(spellId)
+  end
+  if kind == "pet" then
+    return "/petattack"
+  end
+  return "/startattack"
+end
+
+local function IsAutoSwingSpell(spellId)
+  if type(spellId) ~= "number" or spellId <= 0 then
+    return false
+  end
+  if AutoSwingKind(spellId) then
+    return true
+  end
+  if C_Spell and C_Spell.IsAutoRepeatSpell then
+    local ok, isRepeat = pcall(C_Spell.IsAutoRepeatSpell, spellId)
+    if ok and isRepeat then
+      return true
+    end
+  end
+  local IsAutoRepeatSpell = _G.IsAutoRepeatSpell
+  if IsAutoRepeatSpell then
+    local ok, isRepeat = pcall(IsAutoRepeatSpell, spellId)
+    return ok and isRepeat or false
+  end
+  return false
+end
+
 local function ShouldInjectTargetingForSpell(spellId)
   if not spellId or type(spellId) ~= "number" or spellId <= 0 then
     return false
+  end
+  if IsAutoSwingSpell(spellId) then
+    return true
   end
   -- Only inject targeting logic for actual combat spells (helpful/harmful).
   -- Use C_Spell helpers (spellId-based). If unavailable, fall back to injecting for spells
@@ -467,6 +524,9 @@ local function GetAllyCycleSpellRoute(spellId)
   if not spellId or type(spellId) ~= "number" or spellId <= 0 then
     return nil
   end
+  if IsAutoSwingSpell(spellId) then
+    return "harm"
+  end
   if not (C_Spell and C_Spell.IsSpellHelpful and C_Spell.IsSpellHarmful) then
     return nil
   end
@@ -618,16 +678,17 @@ function CM.BuildClickCastMacroText(bindingValue)
         if atype == "macro" then
           return castLine
         end
-        -- Only wrap targeting logic for spells; items/mounts/etc. should just click normally.
-        if atype ~= "spell" then
+        local idNum = tonumber(id)
+        -- Auto-swing / Pet Attack IDs can show up as non-spell action types.
+        if atype ~= "spell" and not IsAutoSwingSpell(idNum) then
           return castLine
+        end
+        if idNum and idNum > 0 then
+          spellIdForPreline = idNum
         end
         -- Special action bar abilities (override, bonus, shapeshift): don't inject pre-line, just click the button directly
         if isSpecialBarButton then
           return castLine
-        end
-        if atype == "spell" and id and type(id) == "number" and id > 0 then
-          spellIdForPreline = id
         end
         -- Spell in blacklist (e.g. self-cast defensives): don't apply targeting pre-line.
         if spellIdForPreline and CM.IsExcludedFromTargetingSpell(spellIdForPreline) then
@@ -656,6 +717,15 @@ function CM.BuildClickCastMacroText(bindingValue)
   -- Don't inject preline for special action bar buttons
   if isSpecialBarButton then
     return castLine
+  end
+
+  -- /click Attack after /tar toggles relative to "already swinging," so a swap
+  -- turns the ability off. /startattack and /cast ! only start (or keep) the swing.
+  if IsAutoSwingSpell(spellIdForPreline) then
+    local kind = AutoSwingKind(spellIdForPreline) or "attack"
+    local pre = GetClickCastPreLine(spellIdForPreline)
+    local swapCmd = AutoSwingSwapCommand(kind, spellIdForPreline)
+    return pre and (pre .. "\n" .. swapCmd) or swapCmd
   end
 
   local pre = GetClickCastPreLine(spellIdForPreline)

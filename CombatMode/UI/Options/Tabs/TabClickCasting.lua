@@ -2,7 +2,7 @@
 --  UI/Options/Tabs/TabClickCasting.lua — OPTIONS TAB — click-cast slot overrides
 ---------------------------------------------------------------------------------------
 --  What it does: Wires the eight mouse click-cast slots (base + shift/ctrl/alt) with
---  enable, key, action dropdown (OverrideActions including Start Attack + ActionsToProcess),
+--  enable, key, action dropdown (OverrideActions including Start Attack / Pet Attack + ActionsToProcess),
 --  optional macro
 --  name, and useGlobalBindings. Applies via SetNewBinding / ResetBindingOverride.
 --  Architecture / how it works:
@@ -33,8 +33,15 @@ local C = UI.Colors
 -- Full dropdown value set: the CombatMode override actions (CM.Constants.OverrideActions)
 -- first, followed by every standard bindable action (CM.Constants.ActionsToProcess)
 -- labeled via Blizzard's BINDING_NAME_* globals. Built lazily so BINDING_NAME_* are ready.
-local OVERRIDE_ORDER =
-  { "CLEARFOCUS", "CLEARTARGET", "STARTATTACK", "TOGGLEFOCUSANY", "TOGGLEFOCUSENEMY", "MACRO" }
+local OVERRIDE_ORDER = {
+  "CLEARFOCUS",
+  "CLEARTARGET",
+  "STARTATTACK",
+  "PETATTACK",
+  "TOGGLEFOCUSANY",
+  "TOGGLEFOCUSENEMY",
+  "MACRO",
+}
 local ACTION_VALUES
 local ACTION_ORDER
 
@@ -56,7 +63,7 @@ local function BuildActionValues()
     tinsert(ACTION_ORDER, id)
   end
   for _, id in ipairs(CM.Constants.ActionsToProcess) do
-    if id ~= "STARTATTACK" and not ACTION_VALUES[id] then
+    if id ~= "STARTATTACK" and id ~= "PETATTACK" and not ACTION_VALUES[id] then
       local name = _G["BINDING_NAME_" .. id]
       ACTION_VALUES[id] = name or id
       tinsert(ACTION_ORDER, id)

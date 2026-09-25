@@ -9,7 +9,9 @@
 --      when true), and GetBindingsLocation() for which bindings table to read.
 --    • SetNewBinding / OverrideDefaultButtons / ResetBindingOverride — per-slot secure
 --      attributes + SetMouselookOverrideBinding / SetOverrideBindingClick. STARTATTACK
---      is the reticle /tar + /startattack override (not Blizzard's raw Start Attack).
+--      / PETATTACK are reticle /tar + /startattack or /petattack (not raw Blizzard binds).
+--      Auto Attack / Auto Shot / Shoot / Pet Attack bar slots use /startattack or
+--      /cast ! / /petattack after /tar so a swap cannot toggle the swing off.
 --    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run
 --      for ACTIONBUTTON + MULTIACTIONBAR1–7 (CM.Constants.ClickCastBars).
 --    • ApplyToggleFocusTargetBinding — Combat Mode Target Lock keybind (always clears
@@ -47,6 +49,7 @@ local SetBinding = _G.SetBinding
 local SetMouselookOverrideBinding = _G.SetMouselookOverrideBinding
 local SetOverrideBinding = _G.SetOverrideBinding
 local SetOverrideBindingClick = _G.SetOverrideBindingClick
+local SecureHandlerWrapScript = _G.SecureHandlerWrapScript
 local UIParent = _G.UIParent
 
 -- Lua stdlib
@@ -134,8 +137,6 @@ ToggleFocusTargetButton:RegisterForClicks("AnyUp", "AnyDown")
 -- Dedicated Bindings.xml keys + SetOverrideBindingClick (same model as Target Lock).
 -- Duplicate keys are resolved by the engine when the user assigns binds in options.
 -- Secure PreClick: UnitExists("focus") → cycle macro; else no-op.
-local SecureHandlerWrapScript = _G.SecureHandlerWrapScript
-
 local CycleFocusOverrideOwner = CreateFrame("Frame", nil, UIParent)
 
 local CycleFocusEnemyNextButton = CreateFrame(
@@ -498,6 +499,8 @@ function CM.SetNewBinding(buttonSettings)
     valueToUse = "MACRO CM_ClearFocus"
   elseif value == "STARTATTACK" then
     valueToUse = "MACRO CM_StartAttack"
+  elseif value == "PETATTACK" then
+    valueToUse = "MACRO CM_PetAttack"
   elseif value == "TOGGLEFOCUSANY" then
     valueToUse = "MACRO CM_ToggleFocusAny"
   elseif value == "TOGGLEFOCUSENEMY" then
