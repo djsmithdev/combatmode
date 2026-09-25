@@ -6,7 +6,7 @@
 ## Interface-Wrath: 30405
 ## Interface-BCC: 20506
 ## Interface-Classic: 11509
-## Version: 4.7.3
+## Version: 4.7.4
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
 ## Notes: Combat Mode brings modern action-game controls to World of Warcraft, replacing traditional tab-targeting with intuitive aiming, more engaging controls, and immersive combat.

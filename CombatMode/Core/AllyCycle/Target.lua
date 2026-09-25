@@ -7,7 +7,8 @@
 --    • CM.AllyCycleTarget: IsFriendlyHardTarget, GetDisplayName, GetClassRGB,
 --      GetRoleAtlas, GetRaidTargetIndex, ApplyRaidMarker, GetIndex, FormatIndex,
 --      GetRangeAlpha, IsDead, IsPlayer.
---    • CM.IsAllyCycleFriendlyHardTarget is implemented here (Skip Self + assist).
+--    • CM.IsAllyCycleFriendlyHardTarget is implemented here (party/raid roster +
+--      Skip Self + assist). Friendly NPCs (Interact) are not HUD units.
 --    • Secret-safe: PublicBool / issecretvalue; raid index is presence not math;
 --      range encodes secret UnitInRange in ColorMixin alpha (no Lua compare).
 --  Does not: Own cluster chrome, fade/slide, or the health-bar widget.
@@ -26,6 +27,8 @@ local UnitCanAttack = _G.UnitCanAttack
 local UnitClass = _G.UnitClass
 local UnitExists = _G.UnitExists
 local UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned
+local UnitInParty = _G.UnitInParty
+local UnitInRaid = _G.UnitInRaid
 local UnitInRange = _G.UnitInRange
 local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitIsUnit = _G.UnitIsUnit
@@ -74,6 +77,23 @@ local function PublicBool(v)
   return nil
 end
 
+-- SecureGroupHeader roster is party/raid (+ self). Interact NPCs can be assistable.
+local function IsAllyCycleRosterUnit(unit)
+  if UnitInParty and PublicBool(UnitInParty(unit)) == true then
+    return true
+  end
+  if UnitInRaid then
+    local raidIndex = UnitInRaid(unit)
+    if IsSecret(raidIndex) then
+      return false
+    end
+    if type(raidIndex) == "number" then
+      return true
+    end
+  end
+  return false
+end
+
 function Target.IsFriendlyHardTarget()
   if not UnitExists("target") then
     return false
@@ -83,6 +103,9 @@ function Target.IsFriendlyHardTarget()
       return false
     end
     return true
+  end
+  if not IsAllyCycleRosterUnit("target") then
+    return false
   end
   local attack = UnitCanAttack and UnitCanAttack("player", "target")
   local pubAttack = PublicBool(attack)

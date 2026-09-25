@@ -1,9 +1,9 @@
 ---------------------------------------------------------------------------------------
 --  Core/AllyCycle/HUD.lua — ALLYCYCLE — crosshair companion chrome
 ---------------------------------------------------------------------------------------
---  What it does: Owns the Ally HUD cluster beside the crosshair for a friendly hard
---  target (or options preview). Self is shown only when Skip Self is off; name reads
---  "You". Wires Target, HealthBar, and Motion.
+--  What it does: Owns the Ally HUD cluster beside the crosshair for a party/raid
+--  hard target (or options preview). Self is shown only when Skip Self is off; name
+--  reads "You". Wires Target, HealthBar, and Motion.
 --  Architecture / how it works:
 --    • DB.global.allyCycle (side / scale / padding); LAYOUT locals here. Padding
 --      defaults to CrosshairCompanionOffsetX.
