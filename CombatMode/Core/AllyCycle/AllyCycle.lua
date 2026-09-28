@@ -5,7 +5,9 @@
 --  Architecture / how it works:
 --    • Enable = Up/Down keybinds bound. Combat end resets lastUnit then flushes roster.
 --    • IsAllyCycleRestoreAfterHarm: user toggle, else healer spec. Used by
---      TargetingMacroBuilder (harm /tar then /targetlasttarget).
+--      TargetingMacroBuilder (harm /tar then /targetlasttarget). Healer-spec
+--      probe is pcall-guarded — Classic/TBC may stub GetSpecializationRole
+--      (function exists, calling it errors). Missing API → not a healer.
 --  Does not: Build click-cast macros or own options UI.
 --  Related: Core/AllyCycle/{Cycle,Target,HealthBar,Motion,HUD}.lua, Core/Runtime/{Bootstrap,EventRouter}.lua,
 --  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/Tabs/TabAllyCycle.lua
@@ -18,21 +20,36 @@ local GetSpecialization = _G.GetSpecialization
 local GetSpecializationRole = _G.GetSpecializationRole
 local C_SpecializationInfo = _G.C_SpecializationInfo
 
+-- Lua stdlib
+local pcall = _G.pcall
+local type = _G.type
+
 local function AllyCycleDb()
   return CM.DB and CM.DB.global and CM.DB.global.allyCycle
 end
 
-function CM.IsPlayerHealerSpec()
-  local specIndex
-  if C_SpecializationInfo and C_SpecializationInfo.GetSpecialization then
-    specIndex = C_SpecializationInfo.GetSpecialization()
-  elseif GetSpecialization then
-    specIndex = GetSpecialization()
+local function SafeCall(fn, ...)
+  if type(fn) ~= "function" then
+    return nil
   end
-  if not specIndex or not GetSpecializationRole then
+  local ok, result = pcall(fn, ...)
+  if ok then
+    return result
+  end
+  return nil
+end
+
+function CM.IsPlayerHealerSpec()
+  local specIndex =
+    SafeCall(C_SpecializationInfo and C_SpecializationInfo.GetSpecialization or GetSpecialization)
+  if type(specIndex) ~= "number" or specIndex <= 0 then
     return false
   end
-  return GetSpecializationRole(specIndex) == "HEALER"
+  local role = SafeCall(
+    (C_SpecializationInfo and C_SpecializationInfo.GetSpecializationRole) or GetSpecializationRole,
+    specIndex
+  )
+  return role == "HEALER"
 end
 
 --- Harm click-cast restores the ally after /tar. User toggle wins; otherwise healer spec.

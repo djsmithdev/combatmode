@@ -11,6 +11,7 @@
 --      Skip Self + assist). Friendly NPCs (Interact) are not HUD units.
 --    • Secret-safe: PublicBool / issecretvalue; raid index is presence not math;
 --      range encodes secret UnitInRange in ColorMixin alpha (no Lua compare).
+--      UnitGroupRolesAssigned is pcall-guarded (Classic stubs can exist and throw).
 --  Does not: Own cluster chrome, fade/slide, or the health-bar widget.
 --  Related: Core/AllyCycle/HealthBar.lua, Motion.lua, HUD.lua, Cycle.lua, AllyCycle.lua
 ---------------------------------------------------------------------------------------
@@ -37,6 +38,7 @@ local EvaluateColorFromBoolean = _G.C_CurveUtil and _G.C_CurveUtil.EvaluateColor
 
 -- Lua stdlib
 local issecretvalue = _G.issecretvalue
+local pcall = _G.pcall
 local tostring = _G.tostring
 local type = _G.type
 
@@ -167,7 +169,13 @@ function Target.GetClassRGB(unit)
 end
 
 function Target.GetRoleAtlas(unit)
-  local role = UnitGroupRolesAssigned and UnitGroupRolesAssigned(unit)
+  local role
+  if UnitGroupRolesAssigned then
+    local ok, result = pcall(UnitGroupRolesAssigned, unit)
+    if ok then
+      role = result
+    end
+  end
   if IsSecret(role) or type(role) ~= "string" or role == "" then
     role = "NONE"
   end

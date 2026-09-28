@@ -14,6 +14,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.7.6] - 2026-09-28
+
+### Fixed
+
+- Opening options on **TBC / Classic** no longer errors when Ally Cycle checks healer spec (`GetSpecializationRole` exists as an unsupported stub on those clients).
+
 ## [4.7.5] - 2026-09-25
 
 ### Added
@@ -535,7 +541,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.7.5...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.7.6...HEAD
+[4.7.6]: https://github.com/djsmithdev/combatmode/compare/4.7.5...4.7.6
 [4.7.5]: https://github.com/djsmithdev/combatmode/compare/4.7.4...4.7.5
 [4.7.4]: https://github.com/djsmithdev/combatmode/compare/4.7.3...4.7.4
 [4.7.3]: https://github.com/djsmithdev/combatmode/compare/4.7.2...4.7.3
