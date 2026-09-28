@@ -16,12 +16,14 @@
 --      focus/mouseover branches — harm alone matches corpses), then /focus resync
 --      ([nodead] any / [nodead,harm] enemy) so sticky empty-focus cannot leave a dead
 --      lock. Cleartarget prevents corpse re-lock on hard target.
---    • Ally Cycle (keys bound, including solo): helpful + Enemies Only → no /tar.
---      Helpful + Any → /tar @mouseover if [help], then @softinteract (NPCs), then
---      @anyfriend (players). A hostile under the reticle does not steal a cycled ally.
---      Unclassified treated as help. Harmful → ENEMY / AUTO_LOCK_ENEMY.
---      Auto-swing uses /startattack or /cast ! or /petattack after /tar. Restore
---      `/targetlasttarget [harm]` is in-group only (not Auto Lock).
+--    • Helpful spells (Reticle Targeting): Enemies Only → no /tar (keep friendly hard
+--      target). Any → /tar @mouseover if [help], then @softinteract (NPCs), then
+--      @anyfriend (players). A hostile under the reticle does not steal a friendly
+--      hard target. Not gated on Ally Cycle keybinds (Forever / unbound users).
+--      Unclassified + cycle keys bound → treated as help. Harmful + cycle keys →
+--      ENEMY / AUTO_LOCK_ENEMY (including solo). Auto-swing uses /startattack or
+--      /cast ! or /petattack after /tar. Restore `/targetlasttarget [harm]` is
+--      in-group only when cycle keys are bound (not Auto Lock).
 --    • CM.TargetingMacroPrelineMaxLen = 255 − worst /click cast − newline; editor enforces.
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists;
 --      builtin skyriding IDs from Constants.ReticleTargetingBuiltinExcludeSpellIds.
@@ -712,6 +714,7 @@ local function GetAllyCycleSpellRoute(spellId)
   return nil
 end
 
+-- Cycle Up/Down bound. Gates harm/restore routing only — not helpful prelines.
 local function AllyCycleKeysBound()
   return CM.IsAllyCycleEnabled and CM.IsAllyCycleEnabled()
 end
@@ -720,21 +723,33 @@ local function AllyCycleInGroup()
   return IsInGroup and IsInGroup()
 end
 
+local function FriendlyPreservingHelpPreLine()
+  if CM.DbBool(CM.DB.char.reticleTargetingEnemyOnly, true) then
+    return CLICKCAST_PRE_LINE_ALLY_HELP
+  end
+  return CLICKCAST_PRE_LINE_ALLY_HELP_ANY
+end
+
 local function GetClickCastPreLine(spellId)
   if not CM.DB.char.reticleTargeting then
     return nil
   end
 
-  -- Keys bound: help/harm split even while solo.
+  local route = GetAllyCycleSpellRoute(spellId)
+
+  -- Helpful: Reticle Targeting friendly-preserving path (not Ally Cycle–gated).
+  if route == "help" then
+    return FriendlyPreservingHelpPreLine()
+  end
+
+  -- Harmful + cycle keys: enemy / restore-aware preline (including solo).
+  if AllyCycleKeysBound() and route == "harm" then
+    return GetAllyCycleHarmPreLine()
+  end
+
+  -- Unclassified + cycle keys: treat as help (same as when cycling is on).
   if AllyCycleKeysBound() then
-    local route = GetAllyCycleSpellRoute(spellId)
-    if route == "harm" then
-      return GetAllyCycleHarmPreLine()
-    end
-    if CM.DbBool(CM.DB.char.reticleTargetingEnemyOnly, true) then
-      return CLICKCAST_PRE_LINE_ALLY_HELP
-    end
-    return CLICKCAST_PRE_LINE_ALLY_HELP_ANY
+    return FriendlyPreservingHelpPreLine()
   end
 
   local function GetOverride(key)
