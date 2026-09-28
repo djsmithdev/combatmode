@@ -16,12 +16,12 @@
 --      focus/mouseover branches — harm alone matches corpses), then /focus resync
 --      ([nodead] any / [nodead,harm] enemy) so sticky empty-focus cannot leave a dead
 --      lock. Cleartarget prevents corpse re-lock on hard target.
---    • Ally Cycle (keys bound + in group): helpful → sticky ally preline; unclassified
---      treated as help. Auto Attack / Auto Shot / Shoot / Pet Attack are treated as
---      harm (they are not IsSpellHarmful). After /tar they use /startattack, /cast !,
---      or /petattack so a new unit cannot toggle the swing off. Harmful → ENEMY /
---      AUTO_LOCK_ENEMY, or a shorter /tar + /targetlasttarget [harm] post-line when
---      restore-after-harm is on (not Auto Lock).
+--    • Ally Cycle (keys bound, including solo): helpful + Enemies Only → no /tar.
+--      Helpful + Any → /tar @mouseover if [help], then @softinteract (NPCs), then
+--      @anyfriend (players). A hostile under the reticle does not steal a cycled ally.
+--      Unclassified treated as help. Harmful → ENEMY / AUTO_LOCK_ENEMY.
+--      Auto-swing uses /startattack or /cast ! or /petattack after /tar. Restore
+--      `/targetlasttarget [harm]` is in-group only (not Auto Lock).
 --    • CM.TargetingMacroPrelineMaxLen = 255 − worst /click cast − newline; editor enforces.
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists;
 --      builtin skyriding IDs from Constants.ReticleTargetingBuiltinExcludeSpellIds.
@@ -337,6 +337,7 @@ end
 -- After /clearfocus [@focus,dead], focus retarget need not repeat ,nodead.
 -- /tar is a valid alias for /target. Do not use /f — that is /follow, not /focus.
 -- @anyenemy is hostile-only — ,harm is redundant on it.
+-- @anyfriend is players (target / softfriend). Friendly NPCs are @softinteract.
 
 -- Full macrotext = preline + "\n" + /click [+ optional post-line]. Hard engine
 -- limit is 255 (patch 11.0.2). Same patch: macrotext cannot /click another
@@ -485,8 +486,11 @@ function CM.IsExcludedFromTargetingSpell(spellId)
     or SpellListContains(CM.DB.char.excludeFromTargetingSpells, spellId)
 end
 
--- Helpful spells while Ally Cycle is enabled: stick to friendly hard target (no soft /tar).
+-- Helpful: Enemies Only = do not /tar. Any = reticle /tar helpable mouseover, NPCs, players
+-- (not unfiltered mouseover — that would /tar a hostile and drop a cycled ally).
 local CLICKCAST_PRE_LINE_ALLY_HELP = "/clearfocus [@focus,dead]"
+local CLICKCAST_PRE_LINE_ALLY_HELP_ANY = "/clearfocus [@focus,dead]\n"
+  .. "/tar [nomounted,@mouseover,help,nodead][nomounted,@softinteract,exists][nomounted,@anyfriend,exists]"
 
 -- Slimmer than ENEMY (no dead-focus clear) so pre + /click + /targetlasttarget
 -- fits the 255-char cap. Keeps [@focus,harm] so hostile Target Lock still wins /tar.
@@ -499,8 +503,7 @@ local function AllyCycleRestoreAfterHarm()
 end
 
 local function GetAllyCycleHarmPreLine()
-  local autoLock = CM.DB.char.autoTargetLockOnAttack == true
-  if autoLock then
+  if CM.DbBool(CM.DB.char.autoTargetLockOnAttack, false) then
     return CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY
   end
   if AllyCycleRestoreAfterHarm() then
@@ -510,7 +513,7 @@ local function GetAllyCycleHarmPreLine()
 end
 
 local function GetAllyCycleHarmPostLine()
-  if CM.DB.char.autoTargetLockOnAttack == true then
+  if CM.DbBool(CM.DB.char.autoTargetLockOnAttack, false) then
     return nil
   end
   if not AllyCycleRestoreAfterHarm() then
@@ -543,19 +546,29 @@ local function GetAllyCycleSpellRoute(spellId)
   return nil
 end
 
+local function AllyCycleKeysBound()
+  return CM.IsAllyCycleEnabled and CM.IsAllyCycleEnabled()
+end
+
+local function AllyCycleInGroup()
+  return IsInGroup and IsInGroup()
+end
+
 local function GetClickCastPreLine(spellId)
   if not CM.DB.char.reticleTargeting then
     return nil
   end
 
-  -- Ally Cycle: per-spell helpful vs harmful templates (bindings + in group).
-  if CM.IsAllyCycleEnabled and CM.IsAllyCycleEnabled() and IsInGroup and IsInGroup() then
+  -- Keys bound: help/harm split even while solo.
+  if AllyCycleKeysBound() then
     local route = GetAllyCycleSpellRoute(spellId)
     if route == "harm" then
       return GetAllyCycleHarmPreLine()
     end
-    -- Helpful or unclassified: do not /tar (unclassified would steal the ally).
-    return CLICKCAST_PRE_LINE_ALLY_HELP
+    if CM.DbBool(CM.DB.char.reticleTargetingEnemyOnly, true) then
+      return CLICKCAST_PRE_LINE_ALLY_HELP
+    end
+    return CLICKCAST_PRE_LINE_ALLY_HELP_ANY
   end
 
   local function GetOverride(key)
@@ -575,8 +588,8 @@ local function GetClickCastPreLine(spellId)
     return v
   end
 
-  local autoLock = CM.DB.char.autoTargetLockOnAttack == true
-  if CM.DB.char.reticleTargetingEnemyOnly then
+  local autoLock = CM.DbBool(CM.DB.char.autoTargetLockOnAttack, false)
+  if CM.DbBool(CM.DB.char.reticleTargetingEnemyOnly, true) then
     if autoLock then
       return GetOverride("targetingMacroPrelineAutoLockEnemyOverride")
         or CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY
@@ -594,7 +607,7 @@ local function GetClickCastPostLine(spellId)
   if not CM.DB.char.reticleTargeting then
     return nil
   end
-  if not (CM.IsAllyCycleEnabled and CM.IsAllyCycleEnabled() and IsInGroup and IsInGroup()) then
+  if not (AllyCycleKeysBound() and AllyCycleInGroup()) then
     return nil
   end
   if GetAllyCycleSpellRoute(spellId) ~= "harm" then

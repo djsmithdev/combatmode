@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Opening options on **TBC / Classic** no longer errors when Ally Cycle checks healer spec (`GetSpecializationRole` exists as an unsupported stub on those clients).
+- Opening options on **Classic clients** no longer errors when Ally Cycle checks healer spec.
+- **Ally Cycle** click-cast help/harm routing now applies while solo, not only in a group.
+
+### Changed
+
+- With **Enemies Only** enabled, helpful spells now cast on the current friendly hard target if one exists. It still ignores friendly targets under the crosshair when selecting targets.
+- With **Enemies Only** disabled, helpful spells can now hard-target friendlies under the reticle. Aiming the crosshair at a friendly unit and casting a helpful spell will override an **Ally Cycle** selection.
 
 ## [4.7.5] - 2026-09-25
 

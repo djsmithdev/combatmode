@@ -65,6 +65,7 @@ Use this checklist for feature work and regressions.
 
 - Options → Ally Cycle tab: bind Up/Down, toggle Skip Self / Keep Ally After Harm / Ally HUD / side / scale / Distance; no Lua errors on open. Forever Beta: tab is watermarked and cycling is inert.
 - Ally Cycle in party/raid: Up/Down cycles members in combat; HUD shows only with a party/raid hard target (self only when Skip Self is off); Interact on a friendly NPC must not flash the HUD; unbound keys = inert.
+- Ally Cycle keys bound (including solo): Enemies Only on — helpful click-cast keeps a friendly hard target (hostile under the reticle does not steal); harmful still `/tar`s `@anyenemy`. Enemies Only off — helpful `/tar`s a helpable mouseover / `@softinteract` / `@anyfriend`, not a hostile (cycled ally is kept).
 - Ally HUD: class-colored name ("You" on self), UI-Frame role icon, raid marker, cycle index n/total; Previous travels an up arrow, Next a down arrow. Dead chrome is grey/desaturated; low HP pulses a red bar glow (no role-icon glow).
 - Keep Ally After Harm: with a cycled ally selected, a harmful click-cast retargets the enemy then restores the ally; skipped while Auto Target Lock is on.
 
