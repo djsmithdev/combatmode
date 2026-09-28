@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Opening options on **Classic clients** no longer errors when Ally Cycle checks healer spec.
 - **Ally Cycle** click-cast help/harm routing now applies while solo, not only in a group.
+- With Reticle Targeting on, custom **macros** on a paged, bonus, or secondary action bar (the bar that replaces the main 1–12 keys) fire from their keybinds again. Combat Mode was classifying those slots from main-bar page 1, so the key stayed on the nested-`/click` proxy and the macro silently no-op'd; mouse clicks were unaffected. Spells on those bars still get reticle targeting.
 
 ### Changed
 

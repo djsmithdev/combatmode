@@ -14,6 +14,10 @@
 --      /cast ! / /petattack after /tar so a swap cannot toggle the swing off.
 --    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run
 --      for ACTIONBUTTON + MULTIACTIONBAR1–7 (CM.Constants.ClickCastBars).
+--      Macro slots skip the proxy (nested macro /click is a no-op): native bind for
+--      ActionButton/MultiBar; SetOverrideBindingClick the live frame for Bonus /
+--      Override / TempShapeshift. Slot type from CM.GetDisplayedActionSlotInfo
+--      (paged / bonus aware; rejects stale override attrs after dismount).
 --    • ApplyToggleFocusTargetBinding — Combat Mode Target Lock keybind (always clears
 --      override owner first so stolen keys cannot leave a stale click override). No-ops
 --      install when char.reticleTargeting is off (CM.IsTargetLockEnabled).
@@ -262,76 +266,17 @@ local function SetClickCastFrameMacro(frame, macroText)
   end
 end
 
--- Returns true if the given action bar binding (e.g. ACTIONBUTTON5) currently has a macro in that slot.
--- Always checks the regular ActionButton slot directly, not override/bonus bars, since macros are stored in the slot itself.
+-- Returns true if the given action bar binding currently has a macro in the
+-- *displayed* slot (paged / bonus / override-aware via GetDisplayedActionSlotInfo).
 local function IsSlotMacro(bindingValue)
-  -- For ACTIONBUTTON bindings, check the slot number directly (1-12) instead of using the frame's action attribute,
-  -- which may be stale after dismounting (e.g., still pointing to override bar action 127 that no longer exists)
-  local buttonNum = bindingValue:match("^ACTIONBUTTON(%d+)$")
-  if buttonNum then
-    local slotNum = tonumber(buttonNum)
-    if slotNum and slotNum >= 1 and slotNum <= 12 then
-      -- Check the slot directly - this works even when frame's action attribute is stale after dismounting
-      local getOk, atype = pcall(GetActionInfo, slotNum)
-      return getOk and atype == "macro"
-    end
-  end
-
-  -- For non-ACTIONBUTTON bindings, use effective (addon) frame and check its action
-  local frameToCheck = CM.GetEffectiveBarButtonFrameName(bindingValue)
-  if not frameToCheck then
-    return false
-  end
-  local ok, actionFrame = pcall(function()
-    return _G[frameToCheck]
-  end)
-  if not ok or not actionFrame then
-    return false
-  end
-  local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action")
-    or actionFrame.action
-  local action = rawAction and tonumber(rawAction)
-  if not action or action <= 0 then
-    return false
-  end
-  local getOk, atype = pcall(GetActionInfo, action)
-  return getOk and atype == "macro"
+  local atype = CM.GetDisplayedActionSlotInfo(bindingValue)
+  return atype == "macro"
 end
 
---- Spell id on the resolved action bar button for this binding, or nil if not a spell (e.g. macro, empty).
---- Mirrors resolution inside BuildClickCastMacroText so behavior stays aligned.
+--- Spell id on the currently displayed action for this binding, or nil if not a spell.
 local function GetSpellIdForActionBarBinding(bindingName)
-  local clickFrame = CM.GetEffectiveBarButtonFrameName(bindingName)
-  if not clickFrame then
-    return nil
-  end
-  local buttonNum = bindingName:match("^ACTIONBUTTON(%d+)$")
-  local useConditionalClick = buttonNum ~= nil
-
-  if useConditionalClick and buttonNum then
-    local slotNum = tonumber(buttonNum)
-    if slotNum and slotNum >= 1 and slotNum <= 12 then
-      local getOk, atype = pcall(GetActionInfo, slotNum)
-      if getOk and atype == "macro" then
-        return nil
-      end
-    end
-  end
-
-  local ok, actionFrame = pcall(function()
-    return _G[clickFrame]
-  end)
-  if not ok or not actionFrame then
-    return nil
-  end
-  local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action")
-    or actionFrame.action
-  local action = rawAction and tonumber(rawAction)
-  if not action or action <= 0 then
-    return nil
-  end
-  local getOk, atype, id = pcall(GetActionInfo, action)
-  if not getOk or atype ~= "spell" or not id or type(id) ~= "number" or id <= 0 then
+  local atype, id = CM.GetDisplayedActionSlotInfo(bindingName)
+  if atype ~= "spell" or not id or type(id) ~= "number" or id <= 0 then
     return nil
   end
   return id
@@ -418,8 +363,26 @@ function CM.ApplyGroundCastKeyOverrides()
       if key and not IsMouseBindingKey(key) then
         local realFrame = CM.GetEffectiveBarButtonFrameName(bindingName)
         if realFrame and IsSlotMacro(bindingName) then
-          -- Slot is a macro: do not inject. Prefer the native binding name so the macro runs as written.
-          SetOverrideBinding(GroundCastKeyOverrideOwner, GROUND_CAST_KEY_PRIORITY, key, bindingName)
+          -- Slot is a macro: do not inject (nested macro /click is a no-op).
+          -- Normal ActionButton/MultiBar: native bind name (same path as page-1 macros).
+          -- Bonus/Override/TempShapeshift: click the live frame so Classic-style overlay
+          -- bars are not sent to the hidden main ActionButton.
+          if CM.IsSpecialLogicalBarFrameName and CM.IsSpecialLogicalBarFrameName(realFrame) then
+            SetOverrideBindingClick(
+              GroundCastKeyOverrideOwner,
+              GROUND_CAST_KEY_PRIORITY,
+              key,
+              realFrame,
+              "LeftButton"
+            )
+          else
+            SetOverrideBinding(
+              GroundCastKeyOverrideOwner,
+              GROUND_CAST_KEY_PRIORITY,
+              key,
+              bindingName
+            )
+          end
         else
           local spellId = GetSpellIdForActionBarBinding(bindingName)
           if

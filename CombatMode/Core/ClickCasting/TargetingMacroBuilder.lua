@@ -26,6 +26,10 @@
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists;
 --      builtin skyriding IDs from Constants.ReticleTargetingBuiltinExcludeSpellIds.
 --    • GetEffectiveBarButtonFrameName uses AddonActionBarResolver for third-party bars.
+--    • GetDisplayedActionSlotInfo — currently shown action (live frame action attr,
+--      reject stale override 121–132 after dismount, else page/bonus or MultiBar slot).
+--      IsSlotMacro / BuildClickCastMacroText / BindingOverrides use this so paged /
+--      bonus / secondary bar macros are not misclassified as page-1 spells.
 --    • Click frame map from CM.Constants.ClickCastBars (ACTIONBUTTON + MultiBar 1–7).
 --  Does not: Own SecureActionButton frames or SetOverrideBinding (BindingOverrides).
 --  Related: Core/ClickCasting/BindingOverrides.lua,
@@ -287,6 +291,168 @@ local function IsSpecialLogicalBarFrameName(frameName)
   return frameName:match("^OverrideActionBarButton")
     or frameName:match("^BonusActionButton")
     or frameName:match("^TempShapeshiftActionButton")
+end
+
+function CM.IsSpecialLogicalBarFrameName(frameName)
+  return IsSpecialLogicalBarFrameName(frameName) and true or false
+end
+
+-- Override / vehicle / possess / temp-shapeshift bars use action slots 121–132.
+-- After dismount the button attribute can linger; reject those when the bar is gone.
+local OVERRIDE_ACTION_MIN = 121
+local OVERRIDE_ACTION_MAX = 132
+
+local function IsOverrideStyleBarActive()
+  if C_ActionBar then
+    if C_ActionBar.HasOverrideActionBar then
+      local ok, v = pcall(C_ActionBar.HasOverrideActionBar)
+      if ok and v then
+        return true
+      end
+    end
+    if C_ActionBar.HasVehicleActionBar then
+      local ok, v = pcall(C_ActionBar.HasVehicleActionBar)
+      if ok and v then
+        return true
+      end
+    end
+    if C_ActionBar.HasTempShapeshiftActionBar then
+      local ok, v = pcall(C_ActionBar.HasTempShapeshiftActionBar)
+      if ok and v then
+        return true
+      end
+    end
+  end
+  local overrideBar = _G.OverrideActionBar
+  if overrideBar then
+    local ok, shown = pcall(function()
+      return overrideBar.IsShown and overrideBar:IsShown()
+    end)
+    if ok and shown then
+      return true
+    end
+  end
+  return false
+end
+
+local function IsStaleOverrideAction(action)
+  if not action or action < OVERRIDE_ACTION_MIN or action > OVERRIDE_ACTION_MAX then
+    return false
+  end
+  return not IsOverrideStyleBarActive()
+end
+
+local function GetActionBarPageSafe()
+  if C_ActionBar and C_ActionBar.GetActionBarPage then
+    local ok, page = pcall(C_ActionBar.GetActionBarPage)
+    if ok and type(page) == "number" and page > 0 then
+      return page
+    end
+  end
+  local GetActionBarPage = _G.GetActionBarPage
+  if GetActionBarPage then
+    local ok, page = pcall(GetActionBarPage)
+    if ok and type(page) == "number" and page > 0 then
+      return page
+    end
+  end
+  return 1
+end
+
+local function GetBonusBarOffsetSafe()
+  if C_ActionBar and C_ActionBar.GetBonusBarOffset then
+    local ok, offset = pcall(C_ActionBar.GetBonusBarOffset)
+    if ok and type(offset) == "number" then
+      return offset
+    end
+  end
+  local GetBonusBarOffset = _G.GetBonusBarOffset
+  if GetBonusBarOffset then
+    local ok, offset = pcall(GetBonusBarOffset)
+    if ok and type(offset) == "number" then
+      return offset
+    end
+  end
+  return 0
+end
+
+local function HasBonusActionBarSafe()
+  if C_ActionBar and C_ActionBar.HasBonusActionBar then
+    local ok, v = pcall(C_ActionBar.HasBonusActionBar)
+    if ok and v then
+      return true
+    end
+  end
+  return GetBonusBarOffsetSafe() ~= 0
+end
+
+-- ACTIONBUTTON index → action slot for the currently paged / bonus bar.
+local function ComputeActionButtonSlot(buttonNum)
+  local id = tonumber(buttonNum)
+  local buttons = tonumber(_G.NUM_ACTIONBAR_BUTTONS) or 12
+  if not id or id < 1 or id > buttons then
+    return nil
+  end
+  local pages = tonumber(_G.NUM_ACTIONBAR_PAGES) or 6
+  local bonusOffset = GetBonusBarOffsetSafe()
+  if HasBonusActionBarSafe() and bonusOffset ~= 0 then
+    return id + ((pages + bonusOffset - 1) * buttons)
+  end
+  local page = GetActionBarPageSafe()
+  return id + ((page - 1) * buttons)
+end
+
+local function ReadFrameActionId(frameName)
+  if not frameName then
+    return nil
+  end
+  local ok, actionFrame = pcall(function()
+    return _G[frameName]
+  end)
+  if not ok or not actionFrame then
+    return nil
+  end
+  local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action")
+    or actionFrame.action
+  local action = rawAction and tonumber(rawAction)
+  if not action or action <= 0 then
+    return nil
+  end
+  if IsStaleOverrideAction(action) then
+    return nil
+  end
+  return action
+end
+
+--- Currently displayed action for ACTIONBUTTON / MULTIACTIONBAR* bindings.
+--- Prefers the live button action attribute; rejects stale override slots (121–132)
+--- after dismount; falls back to page/bonus math or ResolveClickCastBindingToActionSlot.
+function CM.GetDisplayedActionSlotInfo(bindingValue)
+  if not bindingValue or bindingValue == "" then
+    return nil
+  end
+
+  local frameName = CM.GetEffectiveBarButtonFrameName(bindingValue)
+  local action = ReadFrameActionId(frameName)
+
+  if not action then
+    local buttonNum = bindingValue:match("^ACTIONBUTTON(%d+)$")
+    if buttonNum then
+      action = ComputeActionButtonSlot(buttonNum)
+    elseif CM.ResolveClickCastBindingToActionSlot then
+      action = CM.ResolveClickCastBindingToActionSlot(bindingValue)
+    end
+  end
+
+  if not action or action <= 0 then
+    return nil
+  end
+
+  local getOk, atype, id = pcall(GetActionInfo, action)
+  if not getOk then
+    return nil
+  end
+  return atype, id, action
 end
 
 local function ResolveAddonMultiBarButtonFrame(bindingValue)
@@ -662,68 +828,43 @@ function CM.BuildClickCastMacroText(bindingValue)
     castLine = FormatClickLine(effectiveFrame, "LeftButton")
   end
 
-  -- For ACTIONBUTTON bindings, check slot directly (same as IsSlotMacro) to avoid stale action attributes after dismounting
-  if useConditionalClick and buttonNum then
-    local slotNum = tonumber(buttonNum)
-    if slotNum and slotNum >= 1 and slotNum <= 12 then
-      local getOk, atype = pcall(GetActionInfo, slotNum)
-      if getOk then
-        -- Slot is a macro: don't inject pre-line so the macro runs as written (e.g. [mod:shift], [@cursor]).
-        if atype == "macro" then
-          return castLine
-        end
-      end
-    end
-  end
-
-  local ok, actionFrame = pcall(function()
-    return _G[effectiveFrame]
-  end)
+  -- Classify from the currently displayed slot (paged / bonus / override-aware).
+  -- Macros: no pre-line so the macro runs as written (e.g. [mod:shift], [@cursor]).
+  local atype, id = CM.GetDisplayedActionSlotInfo(bindingValue)
   local spellIdForPreline
-  if ok and actionFrame then
-    local rawAction = actionFrame.GetAttribute and actionFrame:GetAttribute("action")
-      or actionFrame.action
-    local action = rawAction and tonumber(rawAction)
-    if action and action > 0 then
-      local getOk, atype, id = pcall(GetActionInfo, action)
-      if getOk then
-        -- Slot is a macro: don't inject pre-line so the macro runs as written (e.g. [mod:shift], [@cursor]).
-        if atype == "macro" then
-          return castLine
-        end
-        local idNum = tonumber(id)
-        -- Auto-swing / Pet Attack IDs can show up as non-spell action types.
-        if atype ~= "spell" and not IsAutoSwingSpell(idNum) then
-          return castLine
-        end
-        if idNum and idNum > 0 then
-          spellIdForPreline = idNum
-        end
-        -- Special action bar abilities (override, bonus, shapeshift): don't inject pre-line, just click the button directly
-        if isSpecialBarButton then
-          return castLine
-        end
-        -- Spell in blacklist (e.g. self-cast defensives): don't apply targeting pre-line.
-        if spellIdForPreline and CM.IsExcludedFromTargetingSpell(spellIdForPreline) then
-          return castLine
-        end
-        -- Ground-targeted spell from whitelist: use /cast [@cursor] only (no pre-line).
-        -- Must run before ShouldInjectTargetingForSpell: many ground spells are neither helpful nor harmful per C_Spell API.
-        if spellIdForPreline and CM.IsCastAtCursorSpell(spellIdForPreline) then
-          local spellInfo = C_Spell
-            and C_Spell.GetSpellInfo
-            and C_Spell.GetSpellInfo(spellIdForPreline)
-          local spellName = spellInfo and spellInfo.name
-          if spellName and spellName ~= "" then
-            return "/cast [@cursor] " .. spellName
-          end
-          return "/cast [@cursor] spell:" .. spellIdForPreline
-        end
-        -- Non-combat spells (e.g. mounts) shouldn't get the targeting pre-line.
-        if not ShouldInjectTargetingForSpell(spellIdForPreline) then
-          return castLine
-        end
+  if atype == "macro" then
+    return castLine
+  end
+  if atype then
+    local idNum = tonumber(id)
+    -- Auto-swing / Pet Attack IDs can show up as non-spell action types.
+    if atype ~= "spell" and not IsAutoSwingSpell(idNum) then
+      return castLine
+    end
+    if idNum and idNum > 0 then
+      spellIdForPreline = idNum
+    end
+    -- Special action bar abilities (override, bonus, shapeshift): don't inject pre-line, just click the button directly
+    if isSpecialBarButton then
+      return castLine
+    end
+    -- Spell in blacklist (e.g. self-cast defensives): don't apply targeting pre-line.
+    if spellIdForPreline and CM.IsExcludedFromTargetingSpell(spellIdForPreline) then
+      return castLine
+    end
+    -- Ground-targeted spell from whitelist: use /cast [@cursor] only (no pre-line).
+    -- Must run before ShouldInjectTargetingForSpell: many ground spells are neither helpful nor harmful per C_Spell API.
+    if spellIdForPreline and CM.IsCastAtCursorSpell(spellIdForPreline) then
+      local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellIdForPreline)
+      local spellName = spellInfo and spellInfo.name
+      if spellName and spellName ~= "" then
+        return "/cast [@cursor] " .. spellName
       end
+      return "/cast [@cursor] spell:" .. spellIdForPreline
+    end
+    -- Non-combat spells (e.g. mounts) shouldn't get the targeting pre-line.
+    if not ShouldInjectTargetingForSpell(spellIdForPreline) then
+      return castLine
     end
   end
 

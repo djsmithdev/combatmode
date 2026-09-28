@@ -33,6 +33,7 @@ Use this checklist for feature work and regressions.
 - Verify behavior remains stable in combat (no insecure action taint/errors).
 - Binding refresh must not loop when Single-Button Assistant rewrites its action slot.
 - Rebinding Mouse Look / Ally Cycle / Target Lock clears leftover Interact Alt+key chords without a reload.
+- **Paged / bonus / secondary bar macros (Reticle Targeting on):** put a custom macro on main-bar page 1 — keybind still fires (native path). Page the main bar, or enter stealth/form so a **bonus** bar shows the same 1–12 keys with a **macro** — keybind fires and mouse click still fires. A **spell** on that paged/bonus bar still gets reticle `/tar` + `/click`. Exit a vehicle: keys must not stick on override slots 121+. Forever and Mainline: same cases.
 
 ## Interact key
 

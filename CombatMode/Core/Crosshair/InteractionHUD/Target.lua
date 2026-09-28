@@ -110,7 +110,6 @@ end
 
 --- SetUnitCursorTexture("softinteract") → file id/path; dim when "unable" art.
 --- Path/id probes are secret-safe (no strfind / table-key on secrets under taint).
---- @return number dimAlpha, boolean inRange
 function Target.GetCursorDim(icon)
   if not icon then
     return 0.9, true
