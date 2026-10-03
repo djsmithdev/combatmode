@@ -6,7 +6,8 @@
 --  vignette; Camera Features (respectMotionSickness, dynamic pitch, shoulder
 --  offset, disable offset with mouselook); Interact keybind + interactUnit.
 --  Architecture / how it works:
---    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed, dynamicPitch, vignette,
+--    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed, dynamicPitch,
+--      dynamicPitchStrength, vignette,
 --      respectMotionSickness, shoulderFollowsMouseLook, sheathWeaponsWithMouselook,
 --      interactUnit; char.shoulderOffset.
 --    • Motion Sickness Protection disables ActionCam-owned Camera Features (pitch /
@@ -239,6 +240,29 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.global.dynamicPitch = value
+        if CM.SetDynamicPitch then
+          CM.SetDynamicPitch()
+        end
+      end,
+      disabled = CameraFeatureDisabled,
+    })
+    ctx:Slider({
+      label = "Pitch Strength",
+      desc = "How far Dynamic Pitch tilts the camera. Lower values keep your character higher on screen. Flying tilts further and scales with this.",
+      min = CM.Constants.MouseLookCameraPitchStrengthMin,
+      max = CM.Constants.MouseLookCameraPitchStrengthMax,
+      step = 0.05,
+      default = CM.Constants.MouseLookCameraPitchBase,
+      watermarkWhenDisabled = CameraFeatureWatermark,
+      get = function()
+        local value = CM.DB.global.dynamicPitchStrength
+        if type(value) ~= "number" then
+          return CM.Constants.MouseLookCameraPitchBase
+        end
+        return value
+      end,
+      set = function(value)
+        CM.DB.global.dynamicPitchStrength = value
         if CM.SetDynamicPitch then
           CM.SetDynamicPitch()
         end

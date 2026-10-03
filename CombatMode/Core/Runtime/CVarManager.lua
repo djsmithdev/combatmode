@@ -15,7 +15,9 @@
 --      contaminating the snapshot with CM's own CVar values on subsequent logins).
 --    • GetEffectiveReticleTargetingCVarValues = preset ∪ global.reticleTargetingCVarOverrides.
 --    • ApplyMouseLookCamera / ClearMouseLookCamera — lock vs unlock (shoulder; MS via gate).
---    • SetDynamicPitch — sticky with the option; ApplyActionCamMotionSicknessGate keeps
+--    • SetDynamicPitch — sticky with the option; strength is global.dynamicPitchStrength
+--      (ground pad). Flying pad is that value times Flying/Base so the air tilt stays
+--      proportional. ApplyActionCamMotionSicknessGate keeps
 --      CameraKeepCharacterCentered / CameraReduceUnexpectedMovement at 0 while pitch,
 --      autofocus, or owned shoulder needs ActionCam (not freelook alone — toggling MS
 --      with Mouse Look snaps skyriding FOV/zoom). Never re-enable MS while flying.
@@ -569,8 +571,23 @@ end
 
 local function ApplyDynamicPitchPads()
   local CONSTS = CM.Constants
-  CM.SetCVar("test_cameraDynamicPitchBaseFovPad", CONSTS.MouseLookCameraPitchBase or 0.4)
-  CM.SetCVar("test_cameraDynamicPitchBaseFovPadFlying", CONSTS.MouseLookCameraPitchFlying or 0.75)
+  local baseDefault = CONSTS.MouseLookCameraPitchBase or 0.4
+  local flyingDefault = CONSTS.MouseLookCameraPitchFlying or 0.75
+  local flyingScale = baseDefault > 0 and (flyingDefault / baseDefault) or 1
+  local minPad = CONSTS.MouseLookCameraPitchStrengthMin or 0
+  local maxPad = CONSTS.MouseLookCameraPitchStrengthMax or 1
+  local g = CM.DB and CM.DB.global
+  local strength = g and tonumber(g.dynamicPitchStrength)
+  if strength == nil then
+    strength = baseDefault
+  end
+  if strength < minPad then
+    strength = minPad
+  elseif strength > maxPad then
+    strength = maxPad
+  end
+  CM.SetCVar("test_cameraDynamicPitchBaseFovPad", strength)
+  CM.SetCVar("test_cameraDynamicPitchBaseFovPadFlying", strength * flyingScale)
   CM.SetCVar(
     "test_cameraDynamicPitchBaseFovPadDownScale",
     CONSTS.MouseLookCameraPitchDownScale or 0.25

@@ -85,6 +85,9 @@ CM.Constants.InteractionHUDSoftTargetCVarValues = {
 -- https://warcraft.wiki.gg/wiki/CVar_ActionCam
 CM.Constants.MouseLookCameraPitchBase = 0.4
 CM.Constants.MouseLookCameraPitchFlying = 0.75
+-- Slider range for the ground pad. Flying stays at Flying/Base times the chosen strength.
+CM.Constants.MouseLookCameraPitchStrengthMin = 0
+CM.Constants.MouseLookCameraPitchStrengthMax = 1
 CM.Constants.MouseLookCameraPitchDownScale = 0.25
 CM.Constants.MouseLookCameraPitchSmartPivotCutoff = 39
 -- Shared with Vignette fade so shoulder ease matches edge darkening.

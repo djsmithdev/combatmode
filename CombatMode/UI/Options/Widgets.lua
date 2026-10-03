@@ -1137,6 +1137,11 @@ function UI.MakeToggle(parent, opts)
     SetDescAlpha(control, a)
     ClearHoverIfDisabled(row, disabled)
     row:SetEnabled(not disabled)
+    if disabled then
+      track:Hide()
+    else
+      track:Show()
+    end
     if control.watermark then
       -- Only stamp when watermarkWhenDisabled resolves to a non-empty string so composite
       -- disabled() reasons (e.g. Reticle Targeting off) can grey the row without a false
@@ -1150,11 +1155,8 @@ function UI.MakeToggle(parent, opts)
           control.watermark.stamp:SetText(UI.StripColors(mark) or "")
         end
         control.watermark:Show()
-        -- The scrim is translucent, so the switch would still read through the stamp.
-        track:Hide()
       else
         control.watermark:Hide()
-        track:Show()
       end
     end
   end
