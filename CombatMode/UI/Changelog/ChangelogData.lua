@@ -14,6 +14,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.8.0] - 2026-10-03
+
+### Added
+
+- **Advanced** options tab. Holds Force Lock, Force Unlock, the crosshair situational appearance and condition, and the Reticle CVar / Targeting Macro Prelines editors.
+- **Force Lock**: custom Lua that keeps Mouse Look locked while it returns true. It beats a tap/hold unlock and the Force Unlock snippet only. Bags, watched frames, mounts, feign, pet battles, ground targeting, and cinematics still unlock.
+- **Lock Once** and **Unlock Once**: the force applies the first time its condition becomes true. A manual unlock (Lock Once) or manual lock (Unlock Once) sticks until that condition goes false and then true again.
+- **Invisible** situational crosshair appearance. Hides the center reticle while the situational condition is true.
+- **−** and **+** on options sliders, stepping by that slider's existing step.
+- **Pitch Strength** (General → Camera Features): how far Dynamic Pitch tilts the camera, from 0 to 1 (default 0.4, same tilt as before). Lower values keep your character higher on screen. The flying tilt scales with the slider at the same ratio as the old ground/flying defaults. The game clamps the flying camera setting, so flying stops getting stronger once the slider passes about 0.45; ground tilt can still increase up to 1.
+
+### Changed
+
+- Auto Unlock's custom condition now lives under Advanced → **Force Unlock**. Frame watch, mounts, and extra frames stay on the Auto Unlock tab.
+- Crosshair situational appearance and condition moved from the Crosshair tab to Advanced.
+- Reticle CVar editor and Targeting Macro Prelines editor moved from Reticle Targeting to Advanced.
+
 ## [4.7.6] - 2026-09-28
 
 ### Fixed
@@ -549,7 +566,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.7.6...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.8.0...HEAD
+[4.8.0]: https://github.com/djsmithdev/combatmode/compare/4.7.6...4.8.0
 [4.7.6]: https://github.com/djsmithdev/combatmode/compare/4.7.5...4.7.6
 [4.7.5]: https://github.com/djsmithdev/combatmode/compare/4.7.4...4.7.5
 [4.7.4]: https://github.com/djsmithdev/combatmode/compare/4.7.3...4.7.4
