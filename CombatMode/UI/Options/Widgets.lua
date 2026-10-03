@@ -1024,8 +1024,43 @@ function UI.MakeToggle(parent, opts)
 
   local track = CreateFrame("Frame", nil, row)
   track:SetSize(TOGGLE_TRACK_W, TOGGLE_TRACK_H)
-  -- Full stadium pill: corner radius = half track height (StylePill uses control radius 3).
-  UI.StyleRounded(track, C.trackOff, C.cardBorder, TOGGLE_TRACK_H / 2)
+
+  -- Stadium: a circle cap on each end plus a bar between their centers. The
+  -- scalable mask replaces the low-res portrait corners StyleRounded uses, so
+  -- the 20px pill and the knob stay smooth. A 1px border pill sits behind.
+  local function AddStadium(layer, inset)
+    local h = TOGGLE_TRACK_H - (inset * 2)
+    local function cap(point, x)
+      local tex = track:CreateTexture(nil, layer)
+      tex:SetSize(h, h)
+      tex:SetPoint(point, track, point, x, 0)
+      local mask = track:CreateMaskTexture()
+      UI.SetCircleMask(mask)
+      mask:SetAllPoints(tex)
+      tex:AddMaskTexture(mask)
+      return tex
+    end
+    local left = cap("LEFT", inset)
+    local right = cap("RIGHT", -inset)
+    -- CircleMaskScalable's disk sits inside the texture (soft edge, not full
+    -- bleed). A bar as tall as the texture box sticks out above and below
+    -- the caps. 2/64 is enough of that margin to hide the lip.
+    local lip = h * (2 / 64)
+    local mid = track:CreateTexture(nil, layer)
+    mid:SetPoint("TOPLEFT", left, "TOP", 0, -lip)
+    mid:SetPoint("BOTTOMRIGHT", right, "BOTTOM", 0, lip)
+    return function(r, g, b, a)
+      a = a or 1
+      left:SetColorTexture(r, g, b, a)
+      right:SetColorTexture(r, g, b, a)
+      mid:SetColorTexture(r, g, b, a)
+    end
+  end
+
+  local setBorder = AddStadium("BACKGROUND", 0)
+  local setFill = AddStadium("ARTWORK", 1)
+  setFill(C.trackOff[1], C.trackOff[2], C.trackOff[3], 1)
+  setBorder(C.cardBorder[1], C.cardBorder[2], C.cardBorder[3], C.cardBorder[4] or 1)
 
   local knob = UI.CreateCircle(track, "OVERLAY", C.white)
   knob:SetSize(TOGGLE_KNOB, TOGGLE_KNOB)
@@ -1039,13 +1074,13 @@ function UI.MakeToggle(parent, opts)
     local x = Lerp(TOGGLE_KNOB_PAD, TOGGLE_KNOB_ON_X, t)
     knob:ClearAllPoints()
     knob:SetPoint("LEFT", track, "LEFT", x, 0)
-    track:cmSetFill(
+    setFill(
       Lerp(C.trackOff[1], C.toggleOn[1], t),
       Lerp(C.trackOff[2], C.toggleOn[2], t),
       Lerp(C.trackOff[3], C.toggleOn[3], t),
       1
     )
-    track:cmSetBorder(
+    setBorder(
       Lerp(C.cardBorder[1], C.toggleOn[1] * 0.85, t),
       Lerp(C.cardBorder[2], C.toggleOn[2] * 0.85, t),
       Lerp(C.cardBorder[3], C.toggleOn[3] * 0.85, t),
@@ -1115,8 +1150,11 @@ function UI.MakeToggle(parent, opts)
           control.watermark.stamp:SetText(UI.StripColors(mark) or "")
         end
         control.watermark:Show()
+        -- The scrim is translucent, so the switch would still read through the stamp.
+        track:Hide()
       else
         control.watermark:Hide()
+        track:Show()
       end
     end
   end

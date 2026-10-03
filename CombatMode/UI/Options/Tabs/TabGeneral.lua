@@ -43,8 +43,8 @@ local INTERACT_MOUSEOVER = "INTERACTMOUSEOVER"
 local INTERACT_TARGET = "INTERACTTARGET"
 
 local INTERACT_UNIT_VALUES = {
-  mouseover = "Crosshair Unit - More accurate",
-  target = "Soft Targeted Unit - More forgiving",
+  mouseover = "Crosshair - More accurate",
+  target = "Soft Target - More forgiving",
 }
 local INTERACT_UNIT_ORDER = { "mouseover", "target" }
 

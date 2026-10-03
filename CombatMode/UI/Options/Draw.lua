@@ -20,6 +20,7 @@ local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
+local C_Texture = _G.C_Texture
 local GameTooltip = _G.GameTooltip
 local GetCursorPosition = _G.GetCursorPosition
 local UIParent = _G.UIParent
@@ -386,16 +387,36 @@ function UI.CreateIconLinkButton(parent, texturePath, url, tooltip, label)
   return btn
 end
 
---- Circular texture: a texture with a circular alpha mask applied (for switch knobs/dots).
-function UI.CreateCircle(frame, layer, color)
-  local tex = frame:CreateTexture(nil, layer or "ARTWORK")
-  tex:SetColorTexture(color[1], color[2], color[3], color[4] or 1)
-  local mask = frame:CreateMaskTexture()
+--- Circular alpha mask that stays smooth when scaled. TempPortraitAlphaMask is the
+--- fallback on clients that do not ship CircleMaskScalable.
+function UI.SetCircleMask(mask)
+  local atlas = "CircleMaskScalable"
+  if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas) then
+    mask:SetAtlas(atlas, false, "LINEAR")
+    return
+  end
+  local ok = mask:SetTexture(
+    "Interface\\Common\\CircleMaskScalable",
+    "CLAMPTOBLACKADDITIVE",
+    "CLAMPTOBLACKADDITIVE",
+    "LINEAR"
+  )
+  if ok then
+    return
+  end
   mask:SetTexture(
     "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask",
     "CLAMPTOBLACKADDITIVE",
     "CLAMPTOBLACKADDITIVE"
   )
+end
+
+--- Circular texture: a solid color clipped by CircleMaskScalable (toggle knobs).
+function UI.CreateCircle(frame, layer, color)
+  local tex = frame:CreateTexture(nil, layer or "ARTWORK")
+  tex:SetColorTexture(color[1], color[2], color[3], color[4] or 1)
+  local mask = frame:CreateMaskTexture()
+  UI.SetCircleMask(mask)
   mask:SetAllPoints(tex)
   tex:AddMaskTexture(mask)
   tex.cmMask = mask
