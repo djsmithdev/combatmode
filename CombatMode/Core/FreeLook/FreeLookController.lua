@@ -12,7 +12,13 @@
 --    • StartFreeLookFresh forces centering off, starts mouselook, then deferred
 --      SetCursorFreelookCentering(true) so the cursor recenters reliably.
 --    • ShouldFreeLookBeOff consults AutoCursorUnlock predicates, SpellIsTargeting,
---      cinematics, FreeLookOverride, default LMB/RMB held.
+--      cinematics, FreeLookOverride, default LMB/RMB held. customLockCondition
+--      (IsCustomLockConditionTrue) beats tap/hold unlock and the Auto Unlock
+--      custom condition only; feign, pet battle, ground targeting, cinematics,
+--      frames, and vendor mounts still unlock. customLockConditionOnce latches
+--      that force to the rising edge: a manual unlock stays unlocked until the
+--      snippet goes false. customConditionOnce does the same for force-unlock:
+--      a manual lock stays locked until that snippet goes false.
 --    • SheathWeaponsWithMouselook: unsheath on intentional Mouse Look; sheath on
 --      tap unlock (poll detects binding release) and Auto Cursor Unlock. Hold
 --      never sheaths. Ground targeting and OPie keep weapons drawn.
@@ -56,6 +62,10 @@ local cmMouselookActive = false -- Tracks Combat Mode's own intentional mouseloo
 -- Shoulder + vignette stay up through temp (hold) unlock; cleared only on permanent unlock.
 local mouseLookCameraChromeActive = false
 local FreeLookOverride = false -- Changes when Free Look state is modified through user input ("Toggle / Hold" keybind and "/cm" cmd)
+-- customLockConditionOnce: after a manual unlock, ignore force-lock until the snippet is false.
+local customLockOnceConsumed = false
+-- customConditionOnce: after a manual lock, ignore force-unlock until the snippet is false.
+local customUnlockOnceConsumed = false
 local CursorModeShowTime = 0 -- GetTime() when cursor was unlocked via keybind (for spurious key-up filter)
 local opieUnlockSeen = false -- Latched while an OPie ring was reported visible
 local pendingTapSheath = false -- True until tap sheath is applied or hold is confirmed
@@ -248,18 +258,29 @@ end
 
 function CM.ShouldFreeLookBeOff()
   return CM.Profile("FreeLook:ShouldBeOff", function()
-    -- Fast locals and cheap bools first; expensive calls (SpellIsTargeting, frame walks)
-    -- are last since Lua or short-circuits on the first true condition.
-    if FreeLookOverride then
+    -- Force lock beats tap/hold unlock and the Auto Unlock custom condition only.
+    -- Feign, pet battle, ground targeting, cinematics, frames, and mounts still unlock.
+    -- Cheap bools stay ahead of SpellIsTargeting / frame walks when force lock is off.
+    -- Once-mode spends that force after a manual unlock until the snippet is false again.
+    local condition = CM.IsCustomLockConditionTrue()
+    local once = CM.DbBool(CM.DB.global.customLockConditionOnce, false)
+    if not condition or not once then
+      customLockOnceConsumed = false
+    end
+    local forceLock = condition and not customLockOnceConsumed
+    local unlockCondition = CM.IsCustomConditionTrue()
+    local unlockOnce = CM.DbBool(CM.DB.global.customConditionOnce, false)
+    if not unlockCondition or not unlockOnce then
+      customUnlockOnceConsumed = false
+    end
+    local forceUnlock = unlockCondition and not customUnlockOnceConsumed
+    if not forceLock and FreeLookOverride then
       return true
     end
     if CM.IsFeignDeathActive() then
       return true
     end
     if CM.IsInPetBattle() then
-      return true
-    end
-    if CM.IsCustomConditionTrue() then
       return true
     end
     if
@@ -269,6 +290,9 @@ function CM.ShouldFreeLookBeOff()
       or CM.IsUnlockFrameVisible()
       or CM.IsVendorMountOut()
     then
+      return true
+    end
+    if not forceLock and forceUnlock then
       return true
     end
     return false
@@ -410,16 +434,30 @@ function _G.CombatMode_CursorModeKey(keystate)
   end
 
   if keystate == "down" then
-    if not IsMouselooking() and FreeLookOverride then
-      -- Already unlocked via previous tap — re-lock (toggle off)
-      CancelPendingTapSheath()
-      CM.LockFreeLook()
-      FreeLookOverride = false
-      CursorModeShowTime = 0 -- No spurious filter needed for lock
-      ApplyWeaponsSheathed(false)
+    if not IsMouselooking() then
+      local unlockOnceActive = CM.DbBool(CM.DB.global.customConditionOnce, false)
+        and CM.IsCustomConditionTrue()
+      if unlockOnceActive then
+        customUnlockOnceConsumed = true
+      end
+      if FreeLookOverride or unlockOnceActive then
+        -- Re-lock. Unlock Once also covers a force-unlock that did not set FreeLookOverride,
+        -- so the key can lock and stay locked while that snippet remains true.
+        CancelPendingTapSheath()
+        CM.LockFreeLook()
+        FreeLookOverride = false
+        CursorModeShowTime = 0 -- No spurious filter needed for lock
+        ApplyWeaponsSheathed(false)
+      end
     elseif IsMouselooking() then
       -- Unlock cursor; tap vs hold is decided after the hold threshold.
       -- Use temp unlock so chrome stays until a tap is confirmed (or re-lock on hold).
+      -- Once-mode: this manual unlock suppresses force-lock until the snippet is false.
+      if
+        CM.DbBool(CM.DB.global.customLockConditionOnce, false) and CM.IsCustomLockConditionTrue()
+      then
+        customLockOnceConsumed = true
+      end
       CursorModeShowTime = GetTime()
       FreeLookOverride = true
       CM.UnlockFreeLook()

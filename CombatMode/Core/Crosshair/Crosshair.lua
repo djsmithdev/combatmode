@@ -11,8 +11,10 @@
 --      crosshairReactionColors optional overrides; CM.GetCrosshairReactionColor resolves
 --      tints (mounted = defaults; focus → hostile).
 --    • crosshairSituationalCondition — user Lua; when true, Animations uses
---      crosshairSituationalAppearance (default Arrows) while reaction tint/scale stay normal
---      (mounted / Target Lock still override).
+--      crosshairSituationalAppearance (default Invisible) while reaction tint/scale stay normal.
+--      Appearance Hidden (Invisible) hides the reticle texture only. Mounted idle and
+--      Target Lock still override unless the condition is active (Target Lock always
+--      keeps its idle Dot).
 --    • IsCrosshairMounted — returns IsMounted() (always-on; no DB toggle). When mounted,
 --      UpdateCrosshairReaction sets a static base appearance (inactive dot) unless
 --      crosshairSituationalCondition is true (then full reaction + situational appearance).
@@ -195,6 +197,15 @@ function CM.IsCrosshairSituationalActive()
   )
 end
 
+--- True when the situational condition is active and its appearance is Invisible.
+function CM.IsCrosshairSituationalHidden()
+  if not CM.IsCrosshairSituationalActive() then
+    return false
+  end
+  local situational = CM.DB.global and CM.DB.global.crosshairSituationalAppearance
+  return type(situational) == "table" and situational.Hidden == true
+end
+
 function CM.IsFocusLockReticleSuppressed()
   return focusLockReticleSuppressed
 end
@@ -346,6 +357,8 @@ function CM.DisplayCrosshair(shouldShow)
     CrosshairVisualFrame:SetAlpha(1)
     if focusLockReticleSuppressed then
       ApplyFocusLockIdleReticle()
+    elseif CM.IsCrosshairSituationalHidden() then
+      CrosshairTexture:Hide()
     else
       CrosshairTexture:Show()
     end

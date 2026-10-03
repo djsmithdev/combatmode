@@ -2,15 +2,15 @@
 --  Core/Runtime/UserLuaCondition.lua — RUNTIME — cached user Lua condition evaluator
 ---------------------------------------------------------------------------------------
 --  What it does: Compiles and runs user-authored Lua snippets from SavedVariables with
---  per-consumer cache (source string + compiled func). Used by Auto Unlock and crosshair
---  situational texture override.
+--  per-consumer cache (source string + compiled func). Used by Auto Unlock,
+--  Mouse Look force lock, and crosshair situational texture override.
 --  Architecture / how it works:
 --    • CM.EvaluateUserLuaCondition(source, cache, errorLabel) — empty source → false;
 --      compile/runtime errors log via throttled CM.DebugPrintThrottled and return false.
 --    • `cache` is a caller-owned table { source, func } reused across hot-path calls.
 --  Does not: Own DB keys or feature-specific semantics (callers supply source strings).
 --  Related: Core/FreeLook/AutoCursorUnlock.lua, Core/Crosshair/Crosshair.lua,
---  UI/Options/Tabs/TabAutoCursorUnlock.lua, UI/Options/Tabs/TabCrosshair.lua
+--  UI/Options/Tabs/TabAdvanced.lua, UI/Options/Tabs/TabCrosshair.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

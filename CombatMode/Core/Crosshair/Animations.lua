@@ -13,7 +13,8 @@
 --    • ApplyCrosshairAppearanceToWidget uses CM.GetCrosshairReactionColor; scale tween on
 --      base ↔ active; active ↔ active lerps RGBA over REACTION_COLOR_DURATION. Cast-break
 --      hostile flash resolves at flash time. Situational condition swaps to
---      crosshairSituationalAppearance (default Arrows) while keeping reaction colors/scale.
+--      crosshairSituationalAppearance (default Invisible) while keeping reaction colors/scale.
+--      Hidden (Invisible) hides the texture instead of swapping it.
 --  Does not: Own Assisted Combat ProcLoop FlipBook (AssistedHighlight/Motion.lua) /
 --  interrupt cast break (AssistedHighlight/CastProgress.lua) or mouselook / CVar writes.
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight/Assist.lua,
@@ -243,14 +244,16 @@ local function ApplyCrosshairAppearanceToWidget(
   local appearance = CrosshairAppearance
   if CM.IsCrosshairSituationalActive and CM.IsCrosshairSituationalActive() then
     local situational = CM.DB.global.crosshairSituationalAppearance
-    if type(situational) ~= "table" or not situational.Base then
+    local hidden = type(situational) == "table" and situational.Hidden
+    local hasBase = type(situational) == "table" and situational.Base
+    if not hidden and not hasBase then
       local name = (type(situational) == "table" and situational.Name)
         or (type(situational) == "string" and situational)
         or "Arrows"
       situational = CM.Constants.CrosshairTextureObj and CM.Constants.CrosshairTextureObj[name]
-    end
-    if not situational then
-      situational = CM.Constants.CrosshairTextureObj and CM.Constants.CrosshairTextureObj.Arrows
+      if not situational then
+        situational = CM.Constants.CrosshairTextureObj and CM.Constants.CrosshairTextureObj.Arrows
+      end
     end
     if situational then
       appearance = situational
@@ -268,6 +271,16 @@ local function ApplyCrosshairAppearanceToWidget(
     lastReactionAppearanceState = nil
     targetFrame:SetScale(STARTING_SCALE)
     targetFrame:SetPoint("CENTER", parent, "CENTER", 0, verticalOffset)
+    return
+  end
+
+  if appearance.Hidden then
+    if animGroup and animGroup.Stop then
+      animGroup:Stop()
+    end
+    CancelReactionColorTween()
+    lastReactionAppearanceState = state
+    targetTexture:Hide()
     return
   end
 
@@ -634,6 +647,9 @@ end
 
 function CM.ShowCrosshairLockIn()
   if CM.IsFocusLockReticleSuppressed and CM.IsFocusLockReticleSuppressed() then
+    return
+  end
+  if CM.IsCrosshairSituationalHidden and CM.IsCrosshairSituationalHidden() then
     return
   end
   if not (CM.IsCrosshairEnabled and CM.IsCrosshairEnabled()) then

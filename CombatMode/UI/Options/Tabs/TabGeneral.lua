@@ -3,8 +3,8 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Wires General-tab controls to freelook and interact binds:
 --  Mouse Look keybind, pulseCursor, hideTooltip, turn speed, sheath weapons,
---  vignette; Camera Features (respectMotionSickness, dynamic pitch, shoulder offset,
---  disable offset with mouselook); Interact keybind + interactUnit.
+--  vignette; Camera Features (respectMotionSickness, dynamic pitch, shoulder
+--  offset, disable offset with mouselook); Interact keybind + interactUnit.
 --  Architecture / how it works:
 --    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed, dynamicPitch, vignette,
 --      respectMotionSickness, shoulderFollowsMouseLook, sheathWeaponsWithMouselook,
@@ -15,12 +15,13 @@
 --      orphans on the stolen key and refreshes Target Lock / Cycle Lock override layers).
 --    • Interact rebind clears both INTERACTMOUSEOVER and INTERACTTARGET then assigns
 --      primary + ALT alternate (skip ALT dual-bind when the chosen key already has ALT-).
---  Does not: Own freelook state machine, Target Lock UI (TabReticleTargeting), or
---      click-cast slot table UI.
+--  Does not: Own freelook state machine, Target Lock UI (TabReticleTargeting),
+--      click-cast slot table UI, or custom Lua conditions (TabAdvanced).
 --  Related: Core/FreeLook/FreeLookController.lua, Core/Runtime/CVarManager.lua,
 --  Core/Vignette.lua, Core/ClickCasting/BindingOverrides.lua,
 --  Core/Runtime/BindingQueue.lua, Core/Crosshair/Crosshair.lua,
---  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/OptionsPanel.lua
+--  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/Tabs/TabAdvanced.lua,
+--  UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G

@@ -11,6 +11,8 @@
 --      then coerces Forever-style 1/0 flags to real booleans (CM.DbBool / NormalizeBools)
 --      wherever defaults declare a boolean — so == true / ~= false / if x stay correct.
 --      Also drops leftover global.partyRadial (feature removed in 4.7.0).
+--      Rewrites the shipped situational default (dead-or-stealth + Arrows) to
+--      dead-only + Invisible when the saved values still match that default.
 --    • GetBindingsLocation → "global" vs "char" from useGlobalBindings.
 --    • RuntimeRematch reapplies CVars/bindings/crosshair after PEW / rematch events.
 --    • OnEnable registers root-frame events (via Bootstrap path) and starts freelook.
@@ -294,6 +296,24 @@ function CM.InitDatabase()
   -- Party Radial removed in 4.7.0; drop leftover settings so they do not linger in SV.
   if sv.global then
     sv.global.partyRadial = nil
+    local oldSituational = 'local deadOrGhost = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")\n'
+      .. "local isPlayerStealthed = IsStealthed and IsStealthed()\n"
+      .. "if deadOrGhost or isPlayerStealthed then\n"
+      .. "  return true end\n"
+      .. "return false\n"
+    local function TrimEnd(text)
+      return (text:gsub("%s+$", ""))
+    end
+    if
+      type(sv.global.crosshairSituationalCondition) == "string"
+      and TrimEnd(sv.global.crosshairSituationalCondition) == TrimEnd(oldSituational)
+    then
+      sv.global.crosshairSituationalCondition = defaults.global.crosshairSituationalCondition
+      local appearance = sv.global.crosshairSituationalAppearance
+      if type(appearance) == "table" and appearance.Name == "Arrows" then
+        sv.global.crosshairSituationalAppearance = CM.Constants.CrosshairSituationalHidden
+      end
+    end
   end
   if CM.MigrateMouseLookCameraDB then
     CM.MigrateMouseLookCameraDB()

@@ -16,6 +16,9 @@ Use this checklist for feature work and regressions.
 - Verify no stuck mouselook after opening/closing common UI panels.
 - Test transitions in and out of combat; no protected-action errors.
 - **Sheath Weapons with Mouse Look:** rapid Mouse Look toggles (e.g. single-pull) should not flash sheath/unsheath; unsheath on lock remains immediate; temporary unlocks (hold, ground spells, OPie) keep weapons drawn.
+- **Force Lock** (Advanced): snippet `return true` re-locks after a tap unlock. Force Unlock custom condition `return true` does not unlock while Force Lock is true. Opening a bag or ground-targeting a spell still unlocks. Clearing the snippet restores the previous unlock (a prior tap-unlock stays unlocked).
+- **Lock Once** (Advanced, under Force Lock): with the snippet staying `return true`, the first check locks; a manual Mouse Look unlock stays unlocked until the snippet is cleared or edited to return false and then true again. With Lock Once off, the same snippet re-locks on the next check after a manual unlock.
+- **Unlock Once** (Advanced, under Force Unlock): with the snippet staying `return true`, the first check unlocks; pressing Mouse Look to lock stays locked until the snippet is cleared or edited to return false and then true again. With Unlock Once off, the same snippet unlocks again on the next check.
 
 ## Reticle and targeting CVars
 
@@ -52,6 +55,7 @@ Use this checklist for feature work and regressions.
 ## Crosshair cast feedback & Combat Assist
 
 - Cast feedback grow / explode / break (and Assist swipe / cancel break) work in open world.
+- **Situational Appearance → Invisible** (Advanced): while the situational condition is true, the center crosshair hides; it returns when the condition is false. Target Lock still shows its center Dot.
 - Repeat the same in a **dungeon/instance** with no Lua errors from cast GUID compares.
 - Rapid Single-Button Assistant presses do not spam Assist cast-success press/pulse animations.
 - Assist cast-success does not double-fire from assisted-action + `UNIT_SPELLCAST_SUCCEEDED`.

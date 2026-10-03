@@ -3,9 +3,8 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Wires Reticle Targeting enable (reload + ConfigReticleTargeting),
 --  enemy-only preline mode, macroInjectionClickCastOnly, exclude / cast-at-crosshair
---  spell multi-selects, Target Lock (keybinds, Auto Target Lock, marker, autofocus),
---  and Advanced buttons that open the Reticle CVar editor and Targeting Macro
---  Prelines editor.
+--  spell multi-selects, and Target Lock (keybinds, Auto Target Lock, marker, autofocus).
+--  The CVar and macro-preline editors live on Advanced.
 --  Architecture / how it works:
 --    • DB.char: reticleTargeting, reticleTargetingEnemyOnly, autoTargetLockOnAttack,
 --      macroInjectionClickCastOnly, stickyCrosshair, excludeFromTargetingSpells,
@@ -17,7 +16,8 @@
 --  Does not: Own CVar override table UI (ReticleCVarEditor*) or secure proxies.
 --  Related: Core/Runtime/CVarManager.lua, Core/ClickCasting/BindingOverrides.lua,
 --  Core/ClickCasting/TargetingMacroBuilder.lua, Core/Crosshair/FocusNameplateMarker.lua,
---  UI/Options/SpellMultiSelect.lua, UI/Editors/ReticleCVarEditorPanel.lua,
+--  UI/Options/SpellMultiSelect.lua, UI/Options/Tabs/TabAdvanced.lua,
+--  UI/Editors/ReticleCVarEditorPanel.lua,
 --  UI/Editors/TargetingMacroPrelinesEditor.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -235,27 +235,6 @@ UI.Options.AddTab({
       disabled = function()
         return not CM.DB.char.reticleTargeting or CM.DB.global.respectMotionSickness == true
       end,
-    })
-
-    ctx:Gap()
-    ctx:Header("ADVANCED")
-    ctx:Description({
-      text = "Modify Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines.",
-      warning = "Warning: editing these values could break Reticle Targeting and Target Lock.",
-    })
-    ctx:ButtonRow({
-      {
-        label = "Reticle Targeting CVar Editor",
-        func = function()
-          CM.OpenReticleTargetingCVarEditor()
-        end,
-      },
-      {
-        label = "Targeting Macro Prelines Editor",
-        func = function()
-          CM.OpenTargetingMacroPrelinesEditor()
-        end,
-      },
     })
   end,
 })

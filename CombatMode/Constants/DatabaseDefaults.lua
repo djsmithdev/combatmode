@@ -111,13 +111,12 @@ CM.Constants.DatabaseDefaults = {
     targetingMacroPrelineAutoLockEnemyOverride = nil,
     crosshairReactionColors = {},
     crosshairSituationalCondition = [[
-local isPlayerDead = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
-local isPlayerStealthed = IsStealthed and IsStealthed()
-if isPlayerDead or isPlayerStealthed then
+local deadOrGhost = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
+if deadOrGhost then
   return true end
 return false
 ]],
-    crosshairSituationalAppearance = CM.Constants.CrosshairTextureObj.Arrows,
+    crosshairSituationalAppearance = CM.Constants.CrosshairSituationalHidden,
     -- click casting
     bindings = DefaultBindings,
     -- auto unlock
@@ -136,6 +135,12 @@ return false
       "WeakTextures_MainFrame",
     },
     customCondition = "",
+    -- When true, force-unlock applies once per time the snippet becomes true.
+    customConditionOnce = false,
+    -- Return true to force Mouse Look on (beats tap-unlock + customCondition only).
+    customLockCondition = "",
+    -- When true, that force applies once per time the snippet becomes true.
+    customLockConditionOnce = false,
     -- mouse look camera
     mouseLookSpeed = 100,
     dynamicPitch = true,

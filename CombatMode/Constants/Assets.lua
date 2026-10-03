@@ -9,7 +9,8 @@
 --  • Logo/Title BLPs, Discord/GitHub/Sponsor icons + community URLs, AssistedSpellIcon*,
 --      ModifierKey{Ctrl,Shift,Alt} BLPs under Interface\AddOns\CombatMode\assets\.
 --    • CrosshairTextureObj entries pair active/inactive BLPs; AppearanceSelectValues
---      drives the Crosshair options dropdown.
+--      drives the Crosshair options dropdown. CrosshairSituationalHidden is the
+--      Advanced-only Invisible choice (no texture).
 --    • CrosshairReactionColors (defaults only — runtime tints use
 --      CM.GetCrosshairReactionColor), CrosshairCastBreak (shared interrupt VFX), and
 --      CrosshairCompanionOffsetX (default companion Distance fallback).
@@ -93,6 +94,13 @@ for _, assetName in ipairs(crosshairAssetNames) do
   }
   CM.Constants.CrosshairAppearanceSelectValues[assetName] = assetName
 end
+
+-- Situational-only. Not a texture; the reticle hides while the condition is true.
+-- Kept out of CrosshairAppearanceSelectValues so the main Appearance dropdown cannot select it.
+CM.Constants.CrosshairSituationalHidden = {
+  Name = "Invisible",
+  Hidden = true,
+}
 
 CM.Constants.CrosshairReactionColors = {
   hostile = { 1, 0.2, 0.3, 1 }, -- red (also cast-break flash + Target Lock nameplate)

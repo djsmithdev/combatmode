@@ -3,18 +3,20 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Answers whether the cursor should stay unlocked: watched frames,
 --  wildcard groups (incl. OPie), vendor mounts, pet battle, feign death, and optional
---  customCondition loadstring. OPie visibility also notifies FreeLookController so
---  centering can rematch after the ring closes.
+--  customCondition loadstring. customLockCondition is the inverse snippet (force
+--  Mouse Look on). OPie visibility also notifies FreeLookController so centering
+--  can rematch after the ring closes.
 --  Architecture / how it works:
 --    • IsUnlockFrameVisible — FramesToCheck + watchlist + wildcard tracking when
 --      DB.global.frameWatching.
 --    • InitializeWildcardFrameTracking — hooks/create listeners for dynamic names.
---    • IsVendorMountOut / IsInPetBattle / IsFeignDeathActive / IsCustomConditionTrue.
+--    • IsVendorMountOut / IsInPetBattle / IsFeignDeathActive / IsCustomConditionTrue
+--      / IsCustomLockConditionTrue (DB.global.customLockCondition).
 --    • OPie path may free centering + hide crosshair via FreeLook helpers.
 --  Does not: Own Lock/Unlock or ShouldFreeLookBeOff aggregation.
 --  Related: Constants/FrameWatch.lua, Core/FreeLook/FreeLookController.lua,
 --  Core/Runtime/UserLuaCondition.lua, UI/Options/Tabs/TabAutoCursorUnlock.lua,
---  Core/Crosshair/Crosshair.lua
+--  UI/Options/Tabs/TabGeneral.lua, Core/Crosshair/Crosshair.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -90,6 +92,18 @@ function CM.IsCustomConditionTrue()
     CM.DB.global.customCondition,
     customConditionCache,
     "Invalid custom condition"
+  )
+end
+
+-- Force Mouse Look on while the snippet returns true. Empty source is false.
+-- ShouldFreeLookBeOff decides what this beats (tap-unlock + custom unlock only).
+local customLockConditionCache = {}
+
+function CM.IsCustomLockConditionTrue()
+  return CM.EvaluateUserLuaCondition(
+    CM.DB.global.customLockCondition,
+    customLockConditionCache,
+    "Invalid force lock condition"
   )
 end
 

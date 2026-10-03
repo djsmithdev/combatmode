@@ -2,10 +2,10 @@
 --  UI/Options/Tabs/TabCrosshair.lua — OPTIONS TAB — Crosshair + HUD + Assist
 ---------------------------------------------------------------------------------------
 --  What it does: Wires crosshair enable/cast feedback/appearance/scale/Y,
---  situational condition + situational appearance, Interaction HUD enable + side + scale
---  + distance, and Combat Assist enable + side + scale + distance. Live preview via
---  SetCrosshairOptionsPreview onSelect/onDeselect; when HUD turns on without reticle
---  targeting, applies ConfigInteractionHUDSoftTarget.
+--  Interaction HUD enable + side + scale + distance, and Combat Assist enable +
+--  side + scale + distance. Situational appearance and its Lua condition are
+--  edited on Advanced. Live preview via SetCrosshairOptionsPreview onSelect/onDeselect;
+--  when HUD turns on without reticle targeting, applies ConfigInteractionHUDSoftTarget.
 --  Architecture / how it works:
 --    • DB.global: crosshair*, crosshairScale, crosshairReactionColors,
 --      crosshairSituationalCondition, crosshairSituationalAppearance,
@@ -18,7 +18,7 @@
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD/HUD.lua,
 --  Core/Crosshair/AssistedHighlight/Assist.lua, Core/Crosshair/Animations.lua,
 --  Core/Runtime/CVarManager.lua, UI/Editors/CrosshairColorsEditor.lua,
---  Constants/Assets.lua, Constants/DatabaseDefaults.lua
+--  UI/Options/Tabs/TabAdvanced.lua, Constants/Assets.lua, Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -55,7 +55,6 @@ end
 UI.Options.AddTab({
   id = "crosshair",
   label = "Crosshair",
-  newFeatureFlag = true,
   onSelect = function()
     CM.SetCrosshairOptionsPreview(true)
   end,
@@ -148,50 +147,6 @@ UI.Options.AddTab({
       end,
       disabled = CrosshairOff,
     })
-    ctx:Dropdown({
-      label = "Situational Appearance",
-      desc = "Texture used while the Situational Condition returns true. Reaction colors still apply.",
-      values = CM.Constants.CrosshairAppearanceSelectValues,
-      order = appearanceOrder,
-      get = function()
-        return CM.DB.global.crosshairSituationalAppearance
-            and CM.DB.global.crosshairSituationalAppearance.Name
-          or "Arrows"
-      end,
-      set = function(value)
-        CM.DB.global.crosshairSituationalAppearance = CM.Constants.CrosshairTextureObj[value]
-        if CM.RefreshCrosshairAppearance then
-          CM.RefreshCrosshairAppearance()
-        else
-          CM.CreateCrosshair()
-        end
-      end,
-      disabled = CrosshairOff,
-    })
-    ctx:TextInput({
-      label = "Situational Condition",
-      desc = "Custom Lua code checked during Mouse Look. While returning true, forces the crosshair to use the Situational Appearance.",
-      placeholder = [[
-local isPlayerDead = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
-local isPlayerStealthed = IsStealthed and IsStealthed()
-if isPlayerDead or isPlayerStealthed then
-  return true end
-return false
-]],
-      multiline = 5,
-      get = function()
-        return CM.DB.global.crosshairSituationalCondition
-          or CM.Constants.DatabaseDefaults.global.crosshairSituationalCondition
-          or ""
-      end,
-      set = function(input)
-        CM.DB.global.crosshairSituationalCondition = input
-        if CM.RefreshCrosshairAppearance then
-          CM.RefreshCrosshairAppearance()
-        end
-      end,
-      disabled = CrosshairOff,
-    })
 
     ctx:Gap()
     ctx:Header("INTERACTION HUD")
@@ -265,7 +220,6 @@ return false
     ctx:Slider({
       label = "Distance",
       desc = "Distance between the Interaction HUD and the crosshair.",
-      newFeatureFlag = true,
       min = 0,
       max = 128,
       step = 1,
@@ -344,7 +298,6 @@ return false
     ctx:Slider({
       label = "Distance",
       desc = "Distance between the Combat Assist and the crosshair.",
-      newFeatureFlag = true,
       min = 0,
       max = 128,
       step = 1,

@@ -1,17 +1,19 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabAutoCursorUnlock.lua — OPTIONS TAB — frame watch / conditions
 ---------------------------------------------------------------------------------------
---  What it does: DB-only wiring for Auto Unlock: frameWatching, mount multi-select, extra
---  watchlist frame names, and customCondition expression. No direct freelook calls —
---  predicates read these keys each update.
+--  What it does: DB-only wiring for Auto Unlock: frameWatching, mount multi-select,
+--  and extra watchlist frame names. The customCondition Lua box lives on Advanced.
+--  No direct freelook calls — predicates read these keys each update.
 --  Architecture / how it works:
---    • DB.global.frameWatching, mountsToUnlock (CSV → table), watchlist, customCondition.
+--    • DB.global.frameWatching, mountsToUnlock (CSV → table), watchlist.
+--      customCondition is edited on TabAdvanced.
 --    • Vendor Mounts now uses the mount multi-select instead of a toggle. The default
 --      list is seeded with known vendor mounts; users can add any mount they own.
 --    • Extra Frames disabled when frameWatching is off.
 --  Does not: Evaluate visibility or call MouselookStop.
 --  Related: Core/FreeLook/AutoCursorUnlock.lua, Constants/FrameWatch.lua,
---  Constants/DatabaseDefaults.lua, Core/FreeLook/FreeLookController.lua
+--  Constants/DatabaseDefaults.lua, Core/FreeLook/FreeLookController.lua,
+--  UI/Options/Tabs/TabAdvanced.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
@@ -68,25 +70,6 @@ UI.Options.AddTab({
       end,
       disabled = function()
         return CM.DB.global.frameWatching ~= true
-      end,
-    })
-    ctx:Gap()
-    ctx:TextInput({
-      label = "Custom Condition",
-      desc = "Custom Lua code checked during Mouse Look. Return true to trigger an auto unlock.",
-      placeholder = [[
-local isPlayerStill = GetUnitSpeed and GetUnitSpeed("player") == 0
-local isPlayerMounted = IsMounted and IsMounted() or false
-if isPlayerStill and not isPlayerMounted then
-  return true end
-return false
-]],
-      multiline = 5,
-      get = function()
-        return CM.DB.global.customCondition
-      end,
-      set = function(input)
-        CM.DB.global.customCondition = input
       end,
     })
   end,

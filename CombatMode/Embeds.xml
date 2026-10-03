@@ -62,6 +62,7 @@
     <Script file="UI\Options\Tabs\TabClickCasting.lua"/>
     <Script file="UI\Options\Tabs\TabAutoCursorUnlock.lua"/>
     <Script file="UI\Options\Tabs\TabAllyCycle.lua"/>
+    <Script file="UI\Options\Tabs\TabAdvanced.lua"/>
     <!-- CHANGELOG: in-game viewer. ChangelogNamespace first (defines CM.Config);
          panel uses the OPTIONS UI toolkit loaded above. -->
     <Script file="UI\Changelog\ChangelogNamespace.lua"/>
