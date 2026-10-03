@@ -6,7 +6,9 @@
 --  Tabs supply get/set closures; widgets stay feature-API agnostic.
 --  Architecture / how it works:
 --    • UI.Options.controls registry; Options.Sync() refreshes values + disabled state.
---    • Sliders: opts.default; right-click resets to that value.
+--    • Sliders: opts.default; right-click resets to that value. Minus/plus icons
+--      step by opts.step (dim until hover) and stop at min/max.
+--    • Dropdown menus match the select's laid-out width.
 --    • Layout helpers (NewLayout) used by tabs and nested hosts (e.g. Camera/DynamicCam).
 --    • charSpecific badge + tooltips for per-character settings.
 --    • newFeatureFlag — shared "NEW" atlas badge (Alliance) beside section/option titles;
@@ -23,6 +25,7 @@ local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
+local C_Texture = _G.C_Texture
 local C_Timer = _G.C_Timer
 local GetCurrentKeyBoardFocus = _G.GetCurrentKeyBoardFocus
 local UIParent = _G.UIParent
@@ -1155,6 +1158,7 @@ end
 --                                    SLIDER                                         --
 ---------------------------------------------------------------------------------------
 local SLIDER_ANIM_DURATION = 0.14
+local STEP_ICON_ALPHA = 0.45
 
 function UI.MakeSlider(parent, opts)
   local row = CreateFrame("Frame", nil, parent)
@@ -1172,13 +1176,43 @@ function UI.MakeSlider(parent, opts)
   valueText:SetJustifyH("LEFT")
   valueText:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
 
+  local function MakeStepButton(atlas)
+    local button = CreateFrame("Button", nil, host)
+    button:SetSize(16, 16)
+    local icon = button:CreateTexture(nil, "ARTWORK")
+    icon:SetAtlas(atlas, true)
+    local iconH = icon:GetHeight() or 16
+    local iconW = icon:GetWidth() or 16
+    if iconH > 0 then
+      local scale = 10 / iconH
+      icon:SetSize(iconW * scale, 10)
+    end
+    icon:SetPoint("CENTER", button, "CENTER", 0, 0)
+    icon:SetAlpha(STEP_ICON_ALPHA)
+    button.icon = icon
+    button:SetScript("OnEnter", function()
+      if button:IsEnabled() then
+        icon:SetAlpha(1)
+      end
+    end)
+    button:SetScript("OnLeave", function()
+      icon:SetAlpha(STEP_ICON_ALPHA)
+    end)
+    return button
+  end
+
+  local minus = MakeStepButton("common-icon-minus")
+  minus:SetPoint("LEFT", valueText, "RIGHT", 4, 0)
+  local plus = MakeStepButton("common-icon-plus")
+  plus:SetPoint("RIGHT", host, "RIGHT", 0, 0)
+
   local slider = CreateFrame("Slider", nil, host)
   slider:SetOrientation("HORIZONTAL")
   -- Continuous thumb while dragging; we snap the committed value to `step` ourselves.
   slider:SetObeyStepOnDrag(false)
   slider:SetHeight(16)
-  slider:SetPoint("LEFT", valueText, "RIGHT", 4, 0)
-  slider:SetPoint("RIGHT", host, "RIGHT", 0, 0)
+  slider:SetPoint("LEFT", minus, "RIGHT", 6, 0)
+  slider:SetPoint("RIGHT", plus, "LEFT", -6, 0)
   slider:SetMinMaxValues(opts.min or 0, opts.max or 1)
   slider:SetValueStep(opts.step or 1)
 
@@ -1188,23 +1222,28 @@ function UI.MakeSlider(parent, opts)
   track:SetPoint("LEFT", slider, "LEFT", 0, 0)
   track:SetPoint("RIGHT", slider, "RIGHT", 0, 0)
 
-  -- Accent fill from the left edge up to the thumb (follows continuous drag position).
+  -- Filled portion uses the same green as toggle tracks.
   local fill = slider:CreateTexture(nil, "ARTWORK")
-  fill:SetColorTexture(C.accent[1], C.accent[2], C.accent[3], 0.85)
+  fill:SetColorTexture(C.toggleOn[1], C.toggleOn[2], C.toggleOn[3], 1)
   fill:SetHeight(4)
   fill:SetPoint("LEFT", slider, "LEFT", 0, 0)
   fill:SetWidth(1)
 
-  -- Custom circular knob (solid fill + circular alpha mask) — no Blizzard slider art.
+  -- Diamond pip. The portrait circle is the fallback when this atlas is missing.
   local thumb = slider:CreateTexture(nil, "OVERLAY")
   thumb:SetColorTexture(0.88, 0.88, 0.88, 1)
-  thumb:SetSize(16, 16)
+  thumb:SetSize(18, 18)
   local thumbMask = slider:CreateMaskTexture()
-  thumbMask:SetTexture(
-    "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask",
-    "CLAMPTOBLACKADDITIVE",
-    "CLAMPTOBLACKADDITIVE"
-  )
+  local thumbMaskAtlas = "progress-bar-diamond-pip-mask"
+  if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(thumbMaskAtlas) then
+    thumbMask:SetAtlas(thumbMaskAtlas, false, "LINEAR")
+  else
+    thumbMask:SetTexture(
+      "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask",
+      "CLAMPTOBLACKADDITIVE",
+      "CLAMPTOBLACKADDITIVE"
+    )
+  end
   thumbMask:SetAllPoints(thumb)
   thumb:AddMaskTexture(thumbMask)
   slider:SetThumbTexture(thumb)
@@ -1259,6 +1298,26 @@ function UI.MakeSlider(parent, opts)
     animElapsed = nil
   end
 
+  local function ApplyStep(button, active)
+    button:SetEnabled(active)
+    local alpha = STEP_ICON_ALPHA
+    if active and button:IsMouseOver() then
+      alpha = 1
+    end
+    button.icon:SetAlpha(alpha)
+  end
+
+  local function UpdateSteppers(val)
+    local disabled = IsDisabled(opts)
+    local minV = opts.min or 0
+    local maxV = opts.max or 1
+    local stepped = stepRound(val or 0)
+    local atMin = abs(stepped - minV) < 0.0001
+    local atMax = abs(stepped - maxV) < 0.0001
+    ApplyStep(minus, not disabled and not atMin)
+    ApplyStep(plus, not disabled and not atMax)
+  end
+
   local function ApplyDisplay(val, writeWidget)
     displayValue = val
     if writeWidget then
@@ -1268,6 +1327,7 @@ function UI.MakeSlider(parent, opts)
     end
     valueText:SetText(tostring(stepRound(val)))
     UpdateFill(val)
+    UpdateSteppers(val)
   end
 
   local function CommitStepped(raw, sync)
@@ -1286,6 +1346,28 @@ function UI.MakeSlider(parent, opts)
       Options.Sync()
     end
   end
+
+  local function Nudge(direction)
+    if IsDisabled(opts) then
+      return
+    end
+    StopSliderAnim()
+    userActive = false
+    local current = committedValue
+    if current == nil then
+      current = stepRound((opts.get and opts.get()) or displayValue or opts.min or 0)
+    end
+    local stepped = stepRound(current + (direction * (opts.step or 1)))
+    ApplyDisplay(stepped, true)
+    CommitStepped(stepped, true)
+  end
+
+  minus:SetScript("OnClick", function()
+    Nudge(-1)
+  end)
+  plus:SetScript("OnClick", function()
+    Nudge(1)
+  end)
 
   local function StartSliderAnim(fromV, toV)
     animFrom = fromV
@@ -1343,6 +1425,7 @@ function UI.MakeSlider(parent, opts)
     displayValue = value
     valueText:SetText(tostring(stepRound(value)))
     UpdateFill(value)
+    UpdateSteppers(value)
     -- Live-commit stepped values while dragging so feature previews update, without
     -- snapping the thumb (Refresh skips SetValue while userActive).
     CommitStepped(value, true)
@@ -1367,6 +1450,7 @@ function UI.MakeSlider(parent, opts)
     row.label:SetAlpha(a)
     valueText:SetAlpha(a)
     slider:SetAlpha(a)
+    UpdateSteppers(value)
     SetDescAlpha(control, a)
     ClearHoverIfDisabled(row, disabled)
     if control.watermark then
@@ -1418,15 +1502,19 @@ function UI.MakeDropdown(parent, opts)
 
   local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
   text:SetPoint("LEFT", button, "LEFT", 8, 0)
-  text:SetPoint("RIGHT", button, "RIGHT", -18, 0)
+  text:SetPoint("RIGHT", button, "RIGHT", -22, 0)
   text:SetJustifyH("LEFT")
   text:SetTextColor(C.text[1], C.text[2], C.text[3])
 
   local arrow = button:CreateTexture(nil, "OVERLAY")
-  arrow:SetTexture("Interface\\Buttons\\Arrow-Down-Up")
-  arrow:SetSize(14, 14)
-  arrow:SetPoint("RIGHT", button, "RIGHT", -3, -2)
-  arrow:SetVertexColor(0.62, 0.62, 0.62)
+  arrow:SetAtlas("UI-Journeys-Delve-Arrow-down-pressed", true)
+  local arrowH = arrow:GetHeight() or 14
+  local arrowW = arrow:GetWidth() or 14
+  if arrowH > 12 and arrowH > 0 then
+    local scale = 12 / arrowH
+    arrow:SetSize(arrowW * scale, 12)
+  end
+  arrow:SetPoint("RIGHT", button, "RIGHT", -6, 1)
 
   local control = {
     frame = row,
@@ -1597,7 +1685,23 @@ function UI.MakeDropdown(parent, opts)
     EnsureMenu()
     local count = #orderedIds()
     local useFilter = count > FILTER_MIN
-    local width = max(button:GetWidth(), 220)
+    -- Size from the select's laid-out edges. Anchor-sized controls can report
+    -- GetWidth() as 0, and a UIParent popup does not share the options frame's
+    -- scale, so a raw GetWidth() (or the old 220 minimum) made the list a
+    -- different width than the closed control.
+    local left = button:GetLeft()
+    local right = button:GetRight()
+    local menuScale = menu:GetEffectiveScale()
+    if not menuScale or menuScale <= 0 then
+      menuScale = 1
+    end
+    local width
+    if left and right and right > left then
+      local buttonScale = button:GetEffectiveScale() or 1
+      width = (right - left) * buttonScale / menuScale
+    else
+      width = button:GetWidth() or 0
+    end
 
     menu:SetWidth(width)
 
