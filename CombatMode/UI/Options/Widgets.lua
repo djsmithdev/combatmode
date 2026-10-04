@@ -28,6 +28,7 @@ local CreateFrame = _G.CreateFrame
 local C_Texture = _G.C_Texture
 local C_Timer = _G.C_Timer
 local GetCurrentKeyBoardFocus = _G.GetCurrentKeyBoardFocus
+local IsMouseButtonDown = _G.IsMouseButtonDown
 local UIParent = _G.UIParent
 
 -- Lua stdlib
@@ -1259,20 +1260,29 @@ function UI.MakeSlider(parent, opts)
   local track = slider:CreateTexture(nil, "BACKGROUND")
   track:SetColorTexture(C.trackOff[1], C.trackOff[2], C.trackOff[3], 1)
   track:SetHeight(4)
-  track:SetPoint("LEFT", slider, "LEFT", 0, 0)
-  track:SetPoint("RIGHT", slider, "RIGHT", 0, 0)
+  -- Inset so the thumb can travel a few pixels past the visible bar. The
+  -- slider itself still clamps the texture to its frame.
+  local TRACK_OVERHANG = 3
+  track:SetPoint("LEFT", slider, "LEFT", TRACK_OVERHANG, 0)
+  track:SetPoint("RIGHT", slider, "RIGHT", -TRACK_OVERHANG, 0)
 
   -- Filled portion uses the same green as toggle tracks.
   local fill = slider:CreateTexture(nil, "ARTWORK")
   fill:SetColorTexture(C.toggleOn[1], C.toggleOn[2], C.toggleOn[3], 1)
   fill:SetHeight(4)
-  fill:SetPoint("LEFT", slider, "LEFT", 0, 0)
+  fill:SetPoint("LEFT", track, "LEFT", 0, 0)
   fill:SetWidth(1)
 
   -- Diamond pip. The portrait circle is the fallback when this atlas is missing.
+  -- The slider parks the thumb texture on the track ends at min/max. The pip
+  -- mask draws the diamond inside that box, so the points stop short while the
+  -- fill (full track width) is already empty or full. Scale the mask until the
+  -- points meet the texture edges.
+  local THUMB_SIZE = 15
+  local DIAMOND_MASK_SCALE = 1.4
   local thumb = slider:CreateTexture(nil, "OVERLAY")
   thumb:SetColorTexture(0.88, 0.88, 0.88, 1)
-  thumb:SetSize(18, 18)
+  thumb:SetSize(THUMB_SIZE, THUMB_SIZE)
   local thumbMask = slider:CreateMaskTexture()
   local thumbMaskAtlas = "progress-bar-diamond-pip-mask"
   if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(thumbMaskAtlas) then
@@ -1284,7 +1294,8 @@ function UI.MakeSlider(parent, opts)
       "CLAMPTOBLACKADDITIVE"
     )
   end
-  thumbMask:SetAllPoints(thumb)
+  thumbMask:SetSize(THUMB_SIZE * DIAMOND_MASK_SCALE, THUMB_SIZE * DIAMOND_MASK_SCALE)
+  thumbMask:SetPoint("CENTER", thumb, "CENTER", 0, 0)
   thumb:AddMaskTexture(thumbMask)
   slider:SetThumbTexture(thumb)
 
@@ -1330,7 +1341,21 @@ function UI.MakeSlider(parent, opts)
     elseif pct > 1 then
       pct = 1
     end
-    fill:SetWidth(max(1, width * pct))
+    -- Thumb texture stays inside the slider frame. The visible bar is inset,
+    -- so at min/max the diamond sits a few pixels past the bar. Fill runs
+    -- from the bar's left edge to the thumb.
+    local thumbW = thumb:GetWidth() or THUMB_SIZE
+    local travel = width - thumbW
+    if travel < 0 then
+      travel = 0
+    end
+    local fillW = (pct * travel) - TRACK_OVERHANG
+    if fillW <= 0 then
+      fill:Hide()
+    else
+      fill:Show()
+      fill:SetWidth(fillW)
+    end
   end
 
   local function StopSliderAnim()
@@ -1409,6 +1434,17 @@ function UI.MakeSlider(parent, opts)
     Nudge(1)
   end)
 
+  local function ResetToDefault()
+    if IsDisabled(opts) or opts.default == nil then
+      return
+    end
+    StopSliderAnim()
+    userActive = false
+    local stepped = stepRound(opts.default)
+    ApplyDisplay(stepped, true)
+    CommitStepped(stepped, true)
+  end
+
   local function StartSliderAnim(fromV, toV)
     animFrom = fromV
     animTo = toV
@@ -1428,6 +1464,13 @@ function UI.MakeSlider(parent, opts)
 
   slider:HookScript("OnMouseDown", function(_, button)
     if button == "RightButton" then
+      -- The slider widget sets its value from the cursor before this hook.
+      -- Mark the click so OnValueChanged does not keep that position.
+      rightClicking = true
+      ResetToDefault()
+      return
+    end
+    if button ~= "LeftButton" then
       rightClicking = true
       return
     end
@@ -1435,17 +1478,22 @@ function UI.MakeSlider(parent, opts)
     userActive = true
   end)
   slider:HookScript("OnMouseUp", function(_, button)
-    if button == "RightButton" or rightClicking then
-      rightClicking = false
-      userActive = false
-      if IsDisabled(opts) or opts.default == nil then
-        return
+    if button ~= "LeftButton" then
+      if button == "RightButton" then
+        rightClicking = true
+        ResetToDefault()
       end
-      local stepped = stepRound(opts.default)
-      ApplyDisplay(stepped, true)
-      CommitStepped(stepped, true)
+      userActive = false
+      if C_Timer and C_Timer.After then
+        C_Timer.After(0, function()
+          rightClicking = false
+        end)
+      else
+        rightClicking = false
+      end
       return
     end
+    rightClicking = false
     userActive = false
     -- Snap thumb + fill to the committed step when the drag ends.
     local stepped = stepRound(displayValue or slider:GetValue() or 0)
@@ -1459,7 +1507,16 @@ function UI.MakeSlider(parent, opts)
   end)
 
   slider:SetScript("OnValueChanged", function(_, value)
-    if suppress or rightClicking then
+    if suppress then
+      return
+    end
+    -- The slider widget moves the thumb for every mouse button. A right click
+    -- must not keep that cursor position; put the value back on the default.
+    if
+      IsMouseButtonDown("RightButton") or (rightClicking and not IsMouseButtonDown("LeftButton"))
+    then
+      rightClicking = true
+      ResetToDefault()
       return
     end
     displayValue = value

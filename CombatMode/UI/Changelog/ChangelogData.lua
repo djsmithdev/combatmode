@@ -14,6 +14,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.8.1] - 2026-10-03
+
+### Fixed
+
+- Options slider thumbs now travel the whole bar (this is a visual fix only; it was already properly modifying the values).
+- Right-clicking an options slider resets it to the default again. Only a left click moves the thumb.
+
 ## [4.8.0] - 2026-10-03
 
 ### Added
@@ -566,7 +573,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.8.0...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.8.1...HEAD
+[4.8.1]: https://github.com/djsmithdev/combatmode/compare/4.8.0...4.8.1
 [4.8.0]: https://github.com/djsmithdev/combatmode/compare/4.7.6...4.8.0
 [4.7.6]: https://github.com/djsmithdev/combatmode/compare/4.7.5...4.7.6
 [4.7.5]: https://github.com/djsmithdev/combatmode/compare/4.7.4...4.7.5
