@@ -12,7 +12,8 @@
 --      situational snippet is evaluated by the crosshair; appearance and condition
 --      set() refresh the crosshair. Both are disabled when the crosshair is off.
 --    • Editor buttons call CM.OpenReticleTargetingCVarEditor and
---      CM.OpenTargetingMacroPrelinesEditor.
+--      CM.OpenTargetingMacroPrelinesEditor. Code boxes include a ? that opens
+--      the API docs copy-link popup.
 --  Does not: Evaluate Lua, own frame-watch / mount unlock UI, or own the editor
 --      windows.
 --  Related: Core/FreeLook/FreeLookController.lua, Core/FreeLook/AutoCursorUnlock.lua,
@@ -30,6 +31,8 @@ local tinsert = _G.table.insert
 local tsort = _G.table.sort
 
 local UI = CM.UI
+
+local API_DOCS_URL = "https://warcraft.wiki.gg/wiki/World_of_Warcraft_API"
 
 local appearanceOrder = {}
 for name in pairs(CM.Constants.CrosshairAppearanceSelectValues) do
@@ -60,6 +63,7 @@ if inCombat then
 return false
 ]],
       multiline = 5,
+      helpUrl = API_DOCS_URL,
       get = function()
         return CM.DB.global.customLockCondition
       end,
@@ -90,6 +94,7 @@ if standingStill and not onMount then
 return false
 ]],
       multiline = 5,
+      helpUrl = API_DOCS_URL,
       get = function()
         return CM.DB.global.customCondition
       end,
@@ -148,6 +153,7 @@ if deadOrGhost then
 return false
 ]],
       multiline = 5,
+      helpUrl = API_DOCS_URL,
       get = function()
         return CM.DB.global.crosshairSituationalCondition
           or CM.Constants.DatabaseDefaults.global.crosshairSituationalCondition

@@ -2193,11 +2193,14 @@ function UI.MakeTextInput(parent, opts)
   UI.StyleRounded(box, C.inputBg, C.cardBorder, UI.Radius.control)
 
   local edit
+  local helpBtn
   if multiline then
+    local scrollRight = opts.helpUrl and 22 or 12
+    local barTop = opts.helpUrl and 22 or 6
     local scroll, mlEdit, bar = UI.CreateMultilineEditScroll(box)
     scroll:SetPoint("TOPLEFT", box, "TOPLEFT", 8, -6)
-    scroll:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -12, 6)
-    bar:SetPoint("TOPRIGHT", box, "TOPRIGHT", -4, -6)
+    scroll:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -scrollRight, 6)
+    bar:SetPoint("TOPRIGHT", box, "TOPRIGHT", -4, -barTop)
     bar:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -4, 6)
     edit = mlEdit
     UI.SetEditBoxFont(edit)
@@ -2222,6 +2225,34 @@ function UI.MakeTextInput(parent, opts)
     edit:SetScript("OnEnterPressed", edit.ClearFocus)
   end
 
+  if multiline and type(opts.helpUrl) == "string" and opts.helpUrl ~= "" then
+    -- Sits in the corner of the code box, above the scrollbar. Clicks stay on
+    -- this button so they do not focus the editor.
+    helpBtn = CreateFrame("Button", nil, box)
+    helpBtn:SetSize(16, 16)
+    helpBtn:SetPoint("TOPRIGHT", box, "TOPRIGHT", -1, -4)
+    helpBtn:SetFrameLevel(box:GetFrameLevel() + 20)
+    if helpBtn.SetPropagateMouseClicks then
+      helpBtn:SetPropagateMouseClicks(false)
+    end
+    local mark = UI.CreateFontString(helpBtn, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
+    mark:SetPoint("CENTER", helpBtn, "CENTER", 0, 0)
+    mark:SetText("?")
+    mark:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
+    helpBtn:SetScript("OnEnter", function()
+      mark:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+    end)
+    helpBtn:SetScript("OnLeave", function()
+      mark:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
+    end)
+    helpBtn:SetScript("OnClick", function()
+      if UI.ShowCopyLink then
+        UI.ShowCopyLink(opts.helpUrl, "Available APIs")
+      end
+    end)
+    UI.AttachTooltip(helpBtn, opts.helpTooltip or "Available APIs", "ANCHOR_RIGHT")
+  end
+
   if type(opts.maxLetters) == "number" and opts.maxLetters > 0 and edit.SetMaxLetters then
     edit:SetMaxLetters(opts.maxLetters)
   end
@@ -2243,7 +2274,13 @@ function UI.MakeTextInput(parent, opts)
   if placeholderText and placeholderText ~= "" then
     placeholderFs = UI.CreateFontString(box, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
     placeholderFs:SetPoint("TOPLEFT", box, "TOPLEFT", 10, -8)
-    placeholderFs:SetPoint("TOPRIGHT", box, "TOPRIGHT", multiline and -16 or -10, -8)
+    placeholderFs:SetPoint(
+      "TOPRIGHT",
+      box,
+      "TOPRIGHT",
+      multiline and (opts.helpUrl and -26 or -16) or -10,
+      -8
+    )
     placeholderFs:SetJustifyH("LEFT")
     placeholderFs:SetJustifyV("TOP")
     placeholderFs:SetWordWrap(true)
