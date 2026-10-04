@@ -2238,19 +2238,19 @@ function UI.MakeTextInput(parent, opts)
     local mark = UI.CreateFontString(helpBtn, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
     mark:SetPoint("CENTER", helpBtn, "CENTER", 0, 0)
     mark:SetText("?")
-    mark:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
+    mark:SetTextColor(C.warning[1], C.warning[2], C.warning[3], 0.8)
     helpBtn:SetScript("OnEnter", function()
-      mark:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+      mark:SetTextColor(C.warning[1], C.warning[2], C.warning[3], 1)
     end)
     helpBtn:SetScript("OnLeave", function()
-      mark:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
+      mark:SetTextColor(C.warning[1], C.warning[2], C.warning[3], 0.8)
     end)
     helpBtn:SetScript("OnClick", function()
       if UI.ShowCopyLink then
-        UI.ShowCopyLink(opts.helpUrl, "Available APIs")
+        UI.ShowCopyLink(opts.helpUrl, "WoW API Documentation")
       end
     end)
-    UI.AttachTooltip(helpBtn, opts.helpTooltip or "Available APIs", "ANCHOR_RIGHT")
+    UI.AttachTooltip(helpBtn, opts.helpTooltip or "WoW API Documentation", "ANCHOR_RIGHT")
   end
 
   if type(opts.maxLetters) == "number" and opts.maxLetters > 0 and edit.SetMaxLetters then
