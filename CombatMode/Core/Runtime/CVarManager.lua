@@ -360,9 +360,16 @@ end
 
 --- Motion Sickness Protection: do not drive ActionCam feature CVars / leave MS alone.
 local function RespectMotionSickness()
+  -- Delegated: SteadyCam's own Motion Sickness Protection decides (it also gates
+  -- Focus Locked Target here).
+  if CM.SteadyCam then
+    local api = _G.SteadyCamAPI
+    return api ~= nil and api.RespectsMotionSickness ~= nil and api.RespectsMotionSickness() == true
+  end
   local g = CM.DB and CM.DB.global
   return g and g.respectMotionSickness == true
 end
+CM.MotionSicknessProtectionOn = RespectMotionSickness
 
 local function ShoulderFadeDuration()
   return (CM.Constants and CM.Constants.MouseLookCameraFadeDuration) or 0.35
@@ -396,6 +403,10 @@ end
 
 --- Desired shoulder, or nil to stop writing (DynamicCam owns the CVar).
 local function DesiredShoulderOffset()
+  -- SteadyCam frames the character on foot and on every mount: never write.
+  if CM.SteadyCam then
+    return nil
+  end
   -- Protection clears CM-owned shoulder; with DynamicCam, stop writing entirely.
   if RespectMotionSickness() then
     if CM.DynamicCam then
@@ -563,7 +574,7 @@ function CM.SetShoulderOffset()
   local desired = DesiredShoulderOffset()
   EnsureShoulderAtDesired(desired)
   if desired == nil then
-    CM.DebugPrint("Shoulder Offset relinquished to DynamicCam")
+    CM.DebugPrint("Shoulder Offset relinquished to " .. tostring(CM.CameraOwner))
   else
     CM.DebugPrint("Shoulder Offset target " .. tostring(desired))
   end
@@ -603,7 +614,7 @@ end
 --- Do not key this off freelook alone: flipping MS with Mouse Look lock/unlock snaps
 --- skyriding FOV/zoom when Dynamic Pitch is off (pitch-on keeps MS sticky at 0).
 local function ShoulderNeedsActionCam()
-  if CM.DynamicCam then
+  if CM.CameraOwner then
     return false
   end
   if ShoulderFollowsMouseLook() then
@@ -654,7 +665,7 @@ end
 --- Restore MS CVars from prior snapshot (or Blizzard-on defaults). Used when enabling
 --- respectMotionSickness or when ActionCam no longer needs MS off.
 function CM.RestoreMotionSicknessFromSnapshot()
-  if CM.DynamicCam then
+  if CM.CameraOwner then
     return
   end
   local keep, reduce = MotionSicknessReleaseValues()
@@ -662,7 +673,7 @@ function CM.RestoreMotionSicknessFromSnapshot()
 end
 
 function CM.ApplyActionCamMotionSicknessGate()
-  if CM.DynamicCam then
+  if CM.CameraOwner then
     return
   end
   if RespectMotionSickness() then
@@ -686,7 +697,7 @@ end
 --- Sticky Dynamic Pitch (option-gated, not freelook). Pads + master CVar + MS gate
 --- so unlock / option toggles actually take effect. Forced off under Motion Sickness Protection.
 function CM.SetDynamicPitch()
-  if CM.DynamicCam then
+  if CM.CameraOwner then
     return
   end
   local wantPitch = CM.DB
@@ -703,7 +714,7 @@ end
 
 --- Apply Mouse Look camera chrome while freelook is locked (MS off when we own it, shoulder).
 function CM.ApplyMouseLookCamera()
-  if not CM.DynamicCam then
+  if not CM.CameraOwner then
     CM.ApplyActionCamMotionSicknessGate()
   end
   CM.SetShoulderOffset()
@@ -713,7 +724,7 @@ end
 --- Clear Mouse Look camera chrome while freelook is unlocked (tween shoulder to 0; MS gate).
 function CM.ClearMouseLookCamera()
   CM.SetShoulderOffset()
-  if not CM.DynamicCam then
+  if not CM.CameraOwner then
     CM.ApplyActionCamMotionSicknessGate()
   end
   CM.DebugPrint("Mouse Look camera cleared")
@@ -742,7 +753,7 @@ function CM.SyncTargetFocusFromFocusUnit()
   CM.SetCVar("test_cameraTargetFocusEnemyEnable", want and 1 or 0)
   if want then
     WriteMotionSicknessCVars(0, 0)
-  elseif not CM.DynamicCam then
+  elseif not CM.CameraOwner then
     CM.ApplyActionCamMotionSicknessGate()
   end
 end
@@ -758,7 +769,7 @@ function CM.ApplyMotionSicknessProtectionState()
   if CM.SyncTargetFocusFromFocusUnit then
     CM.SyncTargetFocusFromFocusUnit()
   end
-  if not CM.DynamicCam then
+  if not CM.CameraOwner then
     CM.ApplyActionCamMotionSicknessGate()
   end
 end
@@ -778,7 +789,7 @@ function CM.ConfigStickyCrosshair(CVarType)
 end
 
 function CM.SetMouseLookSpeed()
-  if CM.DynamicCam then
+  if CM.CameraOwner then
     return
   end
 

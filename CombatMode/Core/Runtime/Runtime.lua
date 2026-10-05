@@ -185,7 +185,17 @@ end
 local function IsDCLoaded()
   local loaded = IsAddOnLoaded("DynamicCam")
   CM.DynamicCam = loaded and true or false
-  if CM.DynamicCam and not CM.DB.global.silenceAlerts then
+  -- SteadyCam owns turn speed, shoulder offset, dynamic pitch and the motion-sickness
+  -- gates (Target Focus stays here). It takes precedence over DynamicCam: SteadyCam
+  -- keeps running and offers the player to disable DynamicCam itself.
+  CM.SteadyCam = IsAddOnLoaded("SteadyCam") and true or false
+  CM.CameraOwner = (CM.SteadyCam and "SteadyCam") or (CM.DynamicCam and "DynamicCam") or nil
+  if CM.SteadyCam and not CM.DB.global.silenceAlerts then
+    print(
+      CM.Constants.BasePrintMsg
+        .. "|cff909090: |cffE52B50SteadyCam detected!|r Handing over turn speed, shoulder, and dynamic pitch.|r"
+    )
+  elseif CM.DynamicCam and not CM.DB.global.silenceAlerts then
     print(
       CM.Constants.BasePrintMsg
         .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over turn speed, shoulder, and dynamic pitch.|r"

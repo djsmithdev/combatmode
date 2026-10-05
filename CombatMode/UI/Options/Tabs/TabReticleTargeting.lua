@@ -218,7 +218,7 @@ UI.Options.AddTab({
       label = "Focus Locked Target",
       desc = "Pulls the camera toward your locked target, keeping it in focus.",
       watermarkWhenDisabled = function()
-        if CM.DB.global.respectMotionSickness == true then
+        if CM.MotionSicknessProtectionOn and CM.MotionSicknessProtectionOn() == true then
           return "Disabled while Motion Sickness Protection is on"
         end
         return nil
@@ -233,7 +233,8 @@ UI.Options.AddTab({
         end
       end,
       disabled = function()
-        return not CM.DB.char.reticleTargeting or CM.DB.global.respectMotionSickness == true
+        return not CM.DB.char.reticleTargeting
+          or (CM.MotionSicknessProtectionOn and CM.MotionSicknessProtectionOn() == true)
       end,
     })
   end,
