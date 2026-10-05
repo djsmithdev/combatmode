@@ -10,9 +10,7 @@
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t
 ## Notes: Combat Mode brings modern action-game controls to World of Warcraft, replacing traditional tab-targeting with intuitive aiming, more engaging controls, and immersive combat.
-
 ## Author: justice7ca, sampconrad
-## X-Contributors: Orazur, DKulan, BennyFits
 
 ## IconTexture: Interface\AddOns\CombatMode\assets\cmlogo
 

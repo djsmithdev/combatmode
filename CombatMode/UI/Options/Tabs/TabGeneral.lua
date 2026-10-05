@@ -49,48 +49,28 @@ local INTERACT_UNIT_VALUES = {
 }
 local INTERACT_UNIT_ORDER = { "mouseover", "target" }
 
--- Shown over camera controls handed to SteadyCam, in the game's text language.
-local DELEGATED_TO_STEADYCAM = {
-  enUS = "Delegated to SteadyCam",
-  esES = "Delegado a SteadyCam",
-  esMX = "Delegado a SteadyCam",
-  deDE = "An SteadyCam übergeben",
-  frFR = "Délégué à SteadyCam",
-  itIT = "Delegato a SteadyCam",
-  ptBR = "Delegado ao SteadyCam",
-  ruRU = "Передано SteadyCam",
-  koKR = "SteadyCam에 위임됨",
-  zhCN = "已交由 SteadyCam 控制",
-  zhTW = "已交由 SteadyCam 控制",
-}
-
 --- Watermark for controls another camera addon owns (nil when Combat Mode owns them).
 local function CameraOwnerWatermark()
-  if CM.SteadyCam then
-    return DELEGATED_TO_STEADYCAM[_G.GetLocale()] or DELEGATED_TO_STEADYCAM.enUS
+  if not CM.CameraOwner then
+    return nil
   end
-  if CM.CameraOwner then
-    return "Control relinquished to " .. CM.CameraOwner
-  end
-  return nil
+
+  return "Control relinquished to " .. CM.CameraOwner
 end
 
 local function RespectMotionSicknessOn()
   if CM.MotionSicknessProtectionOn then
     return CM.MotionSicknessProtectionOn() == true -- SteadyCam's when delegated
   end
+
   return CM.DB.global.respectMotionSickness == true
 end
 
---- Watermark when camera ActionCam controls are locked by DynamicCam or Respect MS.
+-- Watermark when camera ActionCam controls are locked by DynamicCam or Respect MS.
 local function CameraFeatureWatermark()
-  if CM.CameraOwner then
-    return CameraOwnerWatermark()
-  end
-  if RespectMotionSicknessOn() then
-    return "Disabled while Motion Sickness Protection is on"
-  end
-  return nil
+  return CameraOwnerWatermark()
+    or (RespectMotionSicknessOn() and "Disabled while Motion Sickness Protection is on")
+    or nil
 end
 
 local function CameraFeatureDisabled()
@@ -184,7 +164,7 @@ UI.Options.AddTab({
       max = 180,
       step = 10,
       default = 100,
-      watermarkWhenDisabled = CameraOwnerWatermark,
+      watermarkWhenDisabled = CameraFeatureWatermark,
       get = function()
         return CM.DB.global.mouseLookSpeed
       end,
@@ -251,12 +231,7 @@ UI.Options.AddTab({
       label = "Motion Sickness Protection",
       desc = "Prevents Combat Mode from overriding Blizzard's Motion Sickness settings.",
       -- Delegated with the rest of the camera: SteadyCam has the same option.
-      watermarkWhenDisabled = function()
-        if CM.SteadyCam then
-          return CameraOwnerWatermark()
-        end
-        return nil
-      end,
+      watermarkWhenDisabled = CameraFeatureWatermark,
       disabled = function()
         return CM.SteadyCam
       end,
@@ -335,13 +310,10 @@ UI.Options.AddTab({
       -- Still editable with DynamicCam (unlock→0 / restore path); SteadyCam and MS
       -- Protection lock it.
       watermarkWhenDisabled = function()
-        if CM.SteadyCam then
-          return CameraOwnerWatermark()
-        end
         if RespectMotionSicknessOn() then
           return "Disabled while Motion Sickness Protection is on"
         end
-        return nil
+        return CameraOwnerWatermark()
       end,
       get = function()
         return CM.DB.global.shoulderFollowsMouseLook == true

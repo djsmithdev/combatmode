@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Help button** to custom code blocks. Takes you to the WoW API documentation.
+- Support for **Steady Cam** addon.
 
 ## [4.8.1] - 2026-10-03
 

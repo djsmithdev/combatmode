@@ -176,29 +176,23 @@ function CM.MacroExists(name)
 end
 
 --[[
-  Checking if DynamicCam is loaded so we can relinquish turn speed, shoulder slider,
-  and dynamic pitch. Autofocus Locked Target stays with Combat Mode. When
-  shoulderFollowsMouseLook is on, permanent unlock still eases shoulder to 0
-  (then restores on re-lock).
+  Checking if DynamicCam or SteadyCam are loaded so we can relinquish camera controls.
+  Autofocus Locked Target stays with Combat Mode. When shoulderFollowsMouseLook is on,
+  permanent unlock still eases shoulder to 0 (then restores on re-lock).
 ]]
 --
-local function IsDCLoaded()
-  local loaded = IsAddOnLoaded("DynamicCam")
-  CM.DynamicCam = loaded and true or false
-  -- SteadyCam owns turn speed, shoulder offset, dynamic pitch and the motion-sickness
-  -- gates (Target Focus stays here). It takes precedence over DynamicCam: SteadyCam
-  -- keeps running and offers the player to disable DynamicCam itself.
-  CM.SteadyCam = IsAddOnLoaded("SteadyCam") and true or false
-  CM.CameraOwner = (CM.SteadyCam and "SteadyCam") or (CM.DynamicCam and "DynamicCam") or nil
-  if CM.SteadyCam and not CM.DB.global.silenceAlerts then
+local function IsCamAddonLoaded()
+  CM.SteadyCam = IsAddOnLoaded("SteadyCam")
+  CM.DynamicCam = IsAddOnLoaded("DynamicCam")
+
+  CM.CameraOwner = CM.SteadyCam and "SteadyCam" or CM.DynamicCam and "DynamicCam" or nil
+
+  if CM.CameraOwner and not CM.DB.global.silenceAlerts then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: |cffE52B50SteadyCam detected!|r Handing over turn speed, shoulder, and dynamic pitch.|r"
-    )
-  elseif CM.DynamicCam and not CM.DB.global.silenceAlerts then
-    print(
-      CM.Constants.BasePrintMsg
-        .. "|cff909090: |cffE52B50DynamicCam detected!|r Handing over turn speed, shoulder, and dynamic pitch.|r"
+        .. "|cff909090: |cffE52B50"
+        .. CM.CameraOwner
+        .. " detected!|r Handing over turn speed, shoulder, and dynamic pitch.|r"
     )
   end
 end
@@ -398,9 +392,9 @@ local function Rematch()
   if CM.EnsurePriorCVarSnapshot then
     CM.EnsurePriorCVarSnapshot()
   end
-  IsDCLoaded()
+  IsCamAddonLoaded()
 
-  IsDCLoaded()
+  IsCamAddonLoaded()
 
   CM.SetMouseLookSpeed()
   if CM.SetDynamicPitch then
