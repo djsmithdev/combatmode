@@ -845,7 +845,7 @@ function CM.BuildClickCastMacroText(bindingValue)
 
   -- Classify from the currently displayed slot (paged / bonus / override-aware).
   -- Macros: no pre-line so the macro runs as written (e.g. [mod:shift], [@cursor]).
-  local atype, id = CM.GetDisplayedActionSlotInfo(bindingValue)
+  local atype, id, action = CM.GetDisplayedActionSlotInfo(bindingValue)
   local spellIdForPreline
   if atype == "macro" then
     return castLine
@@ -865,6 +865,17 @@ function CM.BuildClickCastMacroText(bindingValue)
     end
     -- Spell in blacklist (e.g. self-cast defensives): don't apply targeting pre-line.
     if spellIdForPreline and CM.IsExcludedFromTargetingSpell(spellIdForPreline) then
+      return castLine
+    end
+    -- SBA (Blizzard Assisted Combat) suggestion slots churn their spell; a bare
+    -- /cast [@cursor] would never click the real button, leaving it dead. Keep the
+    -- preline + /click injection for those slots.
+    if
+      spellIdForPreline
+      and action
+      and CM.IsAssistedCombatActionSlot
+      and CM.IsAssistedCombatActionSlot(action)
+    then
       return castLine
     end
     -- Ground-targeted spell from whitelist: use /cast [@cursor] only (no pre-line).
