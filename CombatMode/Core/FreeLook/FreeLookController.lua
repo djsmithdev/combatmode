@@ -77,6 +77,10 @@ local CURSOR_MODE_SPURIOUS_KEY_UP = 0.05
 local CURSOR_MODE_SHEATH_POLL = 0.05
 -- Delay sheath-on so quick Mouse Look re-entry (e.g. pull → click → lock) does not flash.
 local SHEATH_DEBOUNCE_SEC = 1.5
+-- Keep the cursor unlocked briefly after a watched frame hides so a frame that closes
+-- and auto-reopens (e.g. multi-quest accept/turn-in) does not re-lock Mouse Look in the gap.
+local FRAME_UNLOCK_DEBOUNCE_SEC = 0.5
+local frameUnlockSeenAt = 0 -- GetTime() when an unlock frame was last visible.
 local MOUSE_BINDING_BUTTON = {
   BUTTON1 = "LeftButton",
   BUTTON2 = "RightButton",
@@ -283,11 +287,16 @@ function CM.ShouldFreeLookBeOff()
     if CM.IsInPetBattle() then
       return true
     end
+    local frameVisible = CM.IsUnlockFrameVisible()
+    if frameVisible then
+      frameUnlockSeenAt = GetTime()
+    end
     if
       SpellIsTargeting()
       or InCinematic()
       or IsInCinematicScene()
-      or CM.IsUnlockFrameVisible()
+      or frameVisible
+      or GetTime() - frameUnlockSeenAt <= FRAME_UNLOCK_DEBOUNCE_SEC
       or CM.IsVendorMountOut()
     then
       return true
