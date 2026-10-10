@@ -198,8 +198,6 @@ local function BuildGroupPanel(parent, width, modifier)
   return panel
 end
 
-local SEGMENT_FADE = 0.16
-
 local function StyleSegment(button, selected)
   if selected then
     button:cmSetFill(C.tabActive[1], C.tabActive[2], C.tabActive[3], C.tabActive[4])
@@ -304,7 +302,6 @@ UI.Options.AddTab({
     panelHost:SetSize(contentW, hostH)
 
     local activeGroupId
-    local fadeGen = 0
 
     local function ShowGroup(id)
       if activeGroupId == id then
@@ -314,8 +311,6 @@ UI.Options.AddTab({
         end
       end
 
-      fadeGen = fadeGen + 1
-      local gen = fadeGen
       local previousId = activeGroupId
       local previous = previousId and panels[previousId]
       local incoming = panels[id]
@@ -333,31 +328,17 @@ UI.Options.AddTab({
         return
       end
 
-      local function FinishOutgoing(panel)
-        if not panel or panel == incoming then
-          return
-        end
-        panel:SetScript("OnUpdate", nil)
-        panel:Hide()
-        panel:SetAlpha(1)
+      -- Instant transition: hide the outgoing panel and show the incoming one at
+      -- full alpha with no crossfade.
+      if previous and previous ~= incoming then
+        previous:SetScript("OnUpdate", nil)
+        previous:Hide()
+        previous:SetAlpha(1)
       end
 
       incoming:SetScript("OnUpdate", nil)
-      incoming:SetAlpha(0)
+      incoming:SetAlpha(1)
       incoming:Show()
-
-      if previous and previous ~= incoming and previous:IsShown() then
-        UI.FadeAlpha(previous, 0, SEGMENT_FADE, function()
-          if gen ~= fadeGen then
-            return
-          end
-          FinishOutgoing(previous)
-        end)
-      else
-        FinishOutgoing(previous)
-      end
-
-      UI.FadeAlpha(incoming, 1, SEGMENT_FADE)
     end
 
     local bar = BuildSegmentBar(segmentHost, contentW, MODIFIER_GROUPS, ShowGroup)

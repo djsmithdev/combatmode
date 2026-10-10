@@ -49,22 +49,6 @@ local frame
 local tabs = {}
 local activeTab
 local tabActivated = false
-local tabFadeGen = 0
-
-local TAB_FADE_DURATION = 0.16
-
---- Eased alpha tween on a frame. `gen` cancels stale tweens when the user switches tabs
---- quickly. `onDone` runs only if this generation is still current.
-local function FadeAlpha(frameObj, toAlpha, gen, onDone)
-  UI.FadeAlpha(frameObj, toAlpha, TAB_FADE_DURATION, function()
-    if gen ~= tabFadeGen then
-      return
-    end
-    if onDone then
-      onDone()
-    end
-  end)
-end
 
 --- Parks the window left of screen center so the crosshair and companions stay clear
 --- for live options previews. On wide displays it sits farther in from the left edge;
@@ -446,11 +430,7 @@ local function SelectTab(tab)
   end
 
   DeactivateTab()
-  tabFadeGen = tabFadeGen + 1
-  local gen = tabFadeGen
   local previous = activeTab
-  -- OnUpdate does not run while the shell is hidden; snap on first build / pre-show select.
-  local animate = frame and frame:IsShown()
 
   for _, t in ipairs(tabs) do
     t.selected = (t == tab)
@@ -463,7 +443,7 @@ local function SelectTab(tab)
       t.button:cmSetBorder(0, 0, 0, 0)
       t.button.label:SetTextColor(0.56, 0.56, 0.56)
     end
-    -- Hide unrelated panes immediately; previous/incoming are handled by the crossfade.
+    -- Hide unrelated panes immediately; previous/incoming are handled below.
     if t ~= tab and t ~= previous then
       t.scroll:SetScript("OnUpdate", nil)
       t.scroll:Hide()
@@ -476,73 +456,32 @@ local function SelectTab(tab)
     end
   end
 
-  local function FinishOutgoing(outgoing)
-    if not outgoing or outgoing == tab then
-      return
-    end
-    outgoing.scroll:SetScript("OnUpdate", nil)
-    outgoing.scroll:Hide()
-    outgoing.scroll:SetAlpha(1)
-    if outgoing.bar then
-      outgoing.bar:SetScript("OnUpdate", nil)
-      outgoing.bar:Hide()
-      outgoing.bar:SetAlpha(1)
+  -- Instant transition: hide the outgoing pane and show the incoming one at full
+  -- alpha with no crossfade.
+  if previous and previous ~= tab then
+    previous.scroll:SetScript("OnUpdate", nil)
+    previous.scroll:Hide()
+    previous.scroll:SetAlpha(1)
+    if previous.bar then
+      previous.bar:SetScript("OnUpdate", nil)
+      previous.bar:Hide()
+      previous.bar:SetAlpha(1)
     end
   end
 
-  if not animate then
-    FinishOutgoing(previous)
-    tab.scroll:SetScript("OnUpdate", nil)
-    tab.scroll:SetAlpha(1)
-    tab.scroll:Show()
-    if tab.scroll.cmUpdate then
-      tab.scroll.cmUpdate()
-    end
-    if tab.bar then
-      tab.bar:SetScript("OnUpdate", nil)
-      tab.bar:SetAlpha(1)
-    end
-    activeTab = tab
-    return
-  end
-
-  -- Incoming pane: start transparent, then ease in.
   tab.scroll:SetScript("OnUpdate", nil)
-  tab.scroll:SetAlpha(0)
+  tab.scroll:SetAlpha(1)
   tab.scroll:Show()
-  if tab.bar then
-    tab.bar:SetScript("OnUpdate", nil)
-    tab.bar:SetAlpha(0)
-  end
   if tab.scroll.cmUpdate then
     tab.scroll.cmUpdate()
+  end
+  if tab.bar then
+    tab.bar:SetScript("OnUpdate", nil)
+    tab.bar:SetAlpha(1)
   end
 
   activeTab = tab
   ActivateTab()
-
-  if previous and previous ~= tab and previous.scroll:IsShown() then
-    FadeAlpha(previous.scroll, 0, gen, function()
-      if gen ~= tabFadeGen then
-        return
-      end
-      FinishOutgoing(previous)
-    end)
-    if previous.bar and previous.bar:IsShown() then
-      FadeAlpha(previous.bar, 0, gen)
-    end
-  else
-    FinishOutgoing(previous)
-  end
-
-  FadeAlpha(tab.scroll, 1, gen)
-  if tab.bar and tab.bar:IsShown() then
-    FadeAlpha(tab.bar, 1, gen)
-  elseif tab.bar then
-    -- cmUpdate may have hidden the bar (track/range not ready yet). Keep alpha at 1 so a
-    -- later OnSizeChanged/OnScrollRangeChanged Show() is actually visible.
-    tab.bar:SetAlpha(1)
-  end
 end
 
 local NEW_FEATURE_BADGE_MAX_H = (UI.NewFeatureBadge and UI.NewFeatureBadge.tabMaxH) or 32
