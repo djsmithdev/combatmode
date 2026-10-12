@@ -1,10 +1,10 @@
 
 <p align="center">
-  <img width="512" height="128" src="media/cmtitle.svg">
+  <img width="512" height="256" src="media/cmtitle.svg">
 </p>
 
 <p align="center">
-<strong>Combat Mode</strong> brings modern action-game controls to <em>World of Warcraft</em>, replacing traditional tab-targeting with intuitive aiming, more engaging controls, and immersive combat.
+<strong>Action Combat Mode</strong> brings modern action-game controls to <em>World of Warcraft</em>, replacing traditional tab-targeting with intuitive aiming, more engaging controls, and immersive combat.
 </p>
 
 <p align="center">
@@ -23,14 +23,14 @@ Lock your cursor to the center of the screen and control your character by simpl
 </p>
 
 ### Reticle Targeting
-Target enemies by simply aiming at them. Combat Mode's reticle targeting replaces traditional tab-targeting with an action-inspired system that also supports automatic ground targeting for AoE abilities, casting them exactly where you aim.
+Target enemies by simply aiming at them. Action Combat Mode's reticle targeting replaces traditional tab-targeting with an action-inspired system that also supports automatic ground targeting for AoE abilities, casting them exactly where you aim.
 
 <p align="center">
   <img src="media/reticle_targeting.gif">
 </p>
 
 ### Dynamic Crosshair
-The crosshair is the heart of Combat Mode—a fully reactive, intelligent HUD that adapts to your target and combat state in real time, delivers rich contextual feedback, and is fully customizable.
+The crosshair is the heart of Action Combat Mode—a fully reactive, intelligent HUD that adapts to your target and combat state in real time, delivers rich contextual feedback, and is fully customizable.
 
 <p align="center">
   <img src="media/crosshair.gif">
@@ -92,7 +92,7 @@ After installing the AddOn, you'll be greeted by this message upon your first lo
   <img src="media/welcome_msg.png">
 </p>
 
-1. Click Okay to proceed or go to Game Menu (ESC) > Options > AddOns > Combat Mode.
+1. Click Okay to proceed or go to Game Menu (ESC) > Options > AddOns > Action Combat Mode.
 2. In the options panel, you'll be able to configure the addon to your liking.
 
 <strong>Please, take your time reading what each option does, their tooltips and dev notes. They answer the majority of the most commonly asked questions.</strong>
@@ -107,7 +107,7 @@ You can report bugs, request features and provide feedback over on our [**Discor
 
 ## <img width="20" height="20" src="media/cmlogo.svg"> ARCHITECTURE
 
-Combat Mode is organized by **domain**. Runtime lives under `CombatMode/Core/`; settings under `CombatMode/UI/`; static tables under `CombatMode/Constants/`.
+Action Combat Mode is organized by **domain**. Runtime lives under `CombatMode/Core/`; settings under `CombatMode/UI/`; static tables under `CombatMode/Constants/`.
 
 | Domain | Owns |
 |--------|------|
@@ -124,7 +124,7 @@ Load order and public entry points: **[STRUCTURE.md](STRUCTURE.md)**. Agent/cont
 
 ## <img width="20" height="20" src="media/cmlogo.svg"> CONTRIBUTING
 
-You can submit a PR with your contributions to [**Combat Mode's repository on GitHub**](https://github.com/djsmithdev/combatmode).
+You can submit a PR with your contributions to [**Action Combat Mode's repository on GitHub**](https://github.com/djsmithdev/combatmode).
 
 ### Developer quickstart
 

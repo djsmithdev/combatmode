@@ -49,10 +49,12 @@
     <!-- OPTIONS UI: custom standalone window. Draw + Widgets before
          OptionsPanel (defines AddTab/CreateWindow); Tabs register after OptionsPanel. -->
     <Script file="UI\Options\Draw.lua"/>
+    <Script file="UI\Options\LuaCodeBox.lua"/>
     <Script file="UI\Options\Widgets.lua"/>
     <Script file="UI\Options\SpellMultiSelect.lua"/>
     <Script file="UI\Options\MountMultiSelect.lua"/>
     <Script file="UI\Options\OptionsPanel.lua"/>
+    <Script file="UI\Options\OptionsSearch.lua"/>
     <Script file="UI\Options\ColorPickerDialog.lua"/>
     <!-- Blizzard AddOns panel bridge (Open Options → CM.OpenOptions); after OptionsPanel. -->
     <Script file="UI\Options\BlizzardSettingsBridge.lua"/>

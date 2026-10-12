@@ -27,7 +27,7 @@ local C_XMLUtil = _G.C_XMLUtil
 local type = _G.type
 
 -- Same wordmark markup as CombatMode.toc Title (AddOns list + settings sidebar).
-local CATEGORY_NAME = "|A:::|a|TInterface\\Addons\\CombatMode\\assets\\cmtitle:22:95|t"
+local CATEGORY_NAME = "|A:::|a|TInterface\\Addons\\CombatMode\\assets\\cmtitle:26:55|t"
 
 local function CategoryDisplayName()
   local fromToc = CM.METADATA and CM.METADATA["TITLE"]
@@ -67,8 +67,8 @@ local function RegisterBlizzardAddOnCategory()
   titleArt:SetTexture(
     (CM.Constants and CM.Constants.Title) or "Interface\\AddOns\\CombatMode\\assets\\cmtitle"
   )
-  titleArt:SetSize(320, 74)
-  titleArt:SetPoint("TOP", optionsFrame, "CENTER", 0, 130)
+  titleArt:SetSize(CM.Constants.TitleSize(74 * 2))
+  titleArt:SetPoint("TOP", optionsFrame, "CENTER", 0, 170)
 
   local version = (CM.METADATA and CM.METADATA["VERSION"])
     or (C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata(
@@ -85,11 +85,11 @@ local function RegisterBlizzardAddOnCategory()
 
   local instructions = optionsFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge")
   instructions:SetPoint("TOP", versionText or titleArt, "BOTTOM", 0, -28)
-  instructions:SetText(WrapWhite("Use the button below to open Combat Mode options."))
+  instructions:SetText(WrapWhite("Use the button below to open Action Combat Mode options."))
 
   local slashHint = optionsFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
   slashHint:SetPoint("TOP", instructions, "BOTTOM", 0, -12)
-  slashHint:SetText("You can also type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r in chat.")
+  slashHint:SetText("You can also type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r in chat.")
 
   local template = "SharedButtonLargeTemplate"
   if C_XMLUtil and C_XMLUtil.GetTemplateInfo and not C_XMLUtil.GetTemplateInfo(template) then

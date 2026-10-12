@@ -32,9 +32,9 @@ local REACTION_STATES = {
 
 local TAB_BAR_W = 330
 local EDITOR_W = TAB_BAR_W + 32
-local EDITOR_H = 376
+local EDITOR_H = 398
 local PICKER_CARD_PAD = 10
-local RESET_BTN_H = 28
+local RESET_BTN_H = UI.Sizes.control
 local PICKER_BODY_H = UI.PickerBodyHeight
 
 local window
@@ -54,14 +54,7 @@ local function UpdateTabStyles()
   for _, state in ipairs(REACTION_STATES) do
     local btn = tabButtons[state.key]
     if btn then
-      local selected = state.key == activeKey
-      if selected then
-        btn:cmSetFill(C.tabActive[1], C.tabActive[2], C.tabActive[3], C.tabActive[4])
-        btn.label:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
-      else
-        btn:cmSetFill(0, 0, 0, 0)
-        btn.label:SetTextColor(0.56, 0.56, 0.56)
-      end
+      btn:cmSetTabSelected(state.key == activeKey)
     end
   end
 end
@@ -80,27 +73,19 @@ end
 
 local function MakeTabButton(parent, state, index)
   local btn = CreateFrame("Button", nil, parent)
-  btn:SetSize(64, 26)
+  btn:SetSize(64, 32)
   btn:SetPoint("TOPLEFT", parent, "TOPLEFT", (index - 1) * 66, 0)
-  UI.StyleRounded(btn, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, UI.Radius.control)
 
-  local label = UI.CreateFontString(btn, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
-  label:SetPoint("CENTER")
+  local label = UI.CreateFontString(btn, "OVERLAY", UI.Fonts.button, "GameFontNormal")
+  label:SetPoint("CENTER", btn, "CENTER", 4, 0)
   label:SetText(state.tab)
   btn.label = label
 
+  -- Same look as the sidebar tabs (selected pill, orange capsule marker, hover wash).
+  UI.StyleTab(btn, label, 18)
+
   btn:SetScript("OnClick", function()
     SelectReactionTab(state.key)
-  end)
-  btn:SetScript("OnEnter", function(self)
-    if state.key ~= activeKey then
-      self:cmSetFill(C.tabHover[1], C.tabHover[2], C.tabHover[3], C.tabHover[4])
-    end
-  end)
-  btn:SetScript("OnLeave", function(self)
-    if state.key ~= activeKey then
-      self:cmSetFill(0, 0, 0, 0)
-    end
   end)
 
   tabButtons[state.key] = btn
@@ -120,7 +105,8 @@ local function Build()
   content:SetPoint("TOPLEFT", window, "TOPLEFT", 16, -44)
   content:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -16, 16)
 
-  local desc = UI.CreateFontString(content, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
+  local desc =
+    UI.CreateFontString(content, "OVERLAY", UI.Fonts.sectionDesc, "GameFontHighlightSmall")
   desc:SetPoint("TOPLEFT", content, "TOPLEFT", 0, 0)
   desc:SetWidth(EDITOR_W - 48)
   desc:SetJustifyH("LEFT")
@@ -146,8 +132,7 @@ local function Build()
 
   -- Hairline under the reaction tabs (same treatment as other segmented option hosts).
   local sepGap = 8
-  local sep = content:CreateTexture(nil, "ARTWORK")
-  sep:SetColorTexture(1, 1, 1, 0.06)
+  local sep = UI.CreateLine(content, false, C.divider, "ends")
   sep:SetHeight(1)
   sep:SetPoint("TOPLEFT", tabBar, "BOTTOMLEFT", 0, -sepGap)
   sep:SetPoint("TOPRIGHT", tabBar, "BOTTOMRIGHT", 0, -sepGap)
@@ -158,7 +143,8 @@ local function Build()
     PICKER_CARD_PAD + PICKER_BODY_H + PICKER_CARD_PAD + RESET_BTN_H + PICKER_CARD_PAD
   )
   pickerCard:SetPoint("TOPLEFT", sep, "BOTTOMLEFT", 0, -sepGap)
-  UI.StyleRounded(pickerCard, C.cardBg, C.cardBorder, UI.Radius.card)
+  UI.StyleRounded(pickerCard, C.cardBg, C.cardBorder, UI.Radius.button)
+  pickerCard:cmSetBorderGradient(C.controlBorderTop, C.controlBorderBottom)
   pickerCard:SetClipsChildren(true)
 
   local pickerHost = CreateFrame("Frame", nil, pickerCard)
@@ -182,19 +168,11 @@ local function Build()
   resetBtn:SetHeight(RESET_BTN_H)
   resetBtn:SetPoint("BOTTOMLEFT", pickerCard, "BOTTOMLEFT", PICKER_CARD_PAD, PICKER_CARD_PAD)
   resetBtn:SetPoint("BOTTOMRIGHT", pickerCard, "BOTTOMRIGHT", -PICKER_CARD_PAD, PICKER_CARD_PAD)
-  UI.StylePill(resetBtn, { 0.16, 0.16, 0.16, 1 }, { 0, 0, 0, 0 })
-  local resetText = UI.CreateFontString(resetBtn, "OVERLAY", UI.Fonts.base, "GameFontNormal")
+  UI.StyleControl(resetBtn)
+  local resetText = UI.CreateFontString(resetBtn, "OVERLAY", UI.Fonts.button, "GameFontNormal")
   resetText:SetPoint("CENTER")
   resetText:SetText("Reset to Default")
-  resetText:SetTextColor(C.text[1], C.text[2], C.text[3])
-  resetBtn:SetScript("OnEnter", function(self)
-    self:cmSetFill(0.26, 0.26, 0.26, 1)
-    resetText:SetTextColor(1, 1, 1)
-  end)
-  resetBtn:SetScript("OnLeave", function(self)
-    self:cmSetFill(0.16, 0.16, 0.16, 1)
-    resetText:SetTextColor(C.text[1], C.text[2], C.text[3])
-  end)
+  UI.WireControlHover(resetBtn, resetText)
   resetBtn:SetScript("OnClick", function()
     if activeKey then
       CM.ResetCrosshairReactionColor(activeKey)

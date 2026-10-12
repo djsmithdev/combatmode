@@ -139,7 +139,7 @@ local function Build()
   })
 
   local function StateLines(enemiesOn, autoLockOn)
-    return "\nEnemies Only: "
+    return "Enemies Only: "
       .. UI.OnOffWrap(enemiesOn)
       .. "\nAuto Target Lock: "
       .. UI.OnOffWrap(autoLockOn)
@@ -149,6 +149,10 @@ local function Build()
     ctx:TextInput({
       label = opts.label,
       labelAllowColors = true,
+      labelSize = UI.Fonts.small,
+      -- Enemies Only / Auto Target Lock state, shown as the small muted helper under the label.
+      desc = opts.state,
+      descAllowColors = true,
       multiline = 4,
       maxLetters = maxLen,
       get = opts.get,
@@ -160,7 +164,8 @@ local function Build()
   end
 
   AddPrelineField({
-    label = "Preline: Target Enemies Only + No Auto Lock" .. StateLines(true, false),
+    label = "Preline: Target Enemies Only + No Auto Lock",
+    state = StateLines(true, false),
     get = function()
       return CM.DB.global.targetingMacroPrelineEnemyOverride or defaults.enemy or ""
     end,
@@ -171,7 +176,8 @@ local function Build()
     watermarkWhenDisabled = FieldWatermark(false, true),
   })
   AddPrelineField({
-    label = "Preline: Target Enemies Only + Auto Lock" .. StateLines(true, true),
+    label = "Preline: Target Enemies Only + Auto Lock",
+    state = StateLines(true, true),
     get = function()
       return CM.DB.global.targetingMacroPrelineAutoLockEnemyOverride or defaults.autoLockEnemy or ""
     end,
@@ -182,7 +188,8 @@ local function Build()
     watermarkWhenDisabled = FieldWatermark(true, true),
   })
   AddPrelineField({
-    label = "Preline: Target Any Unit + No Auto Lock" .. StateLines(false, false),
+    label = "Preline: Target Any Unit + No Auto Lock",
+    state = StateLines(false, false),
     get = function()
       return CM.DB.global.targetingMacroPrelineAnyOverride or defaults.any or ""
     end,
@@ -193,7 +200,8 @@ local function Build()
     watermarkWhenDisabled = FieldWatermark(false, false),
   })
   AddPrelineField({
-    label = "Preline: Target Any Unit + Auto Lock" .. StateLines(false, true),
+    label = "Preline: Target Any Unit + Auto Lock",
+    state = StateLines(false, true),
     get = function()
       return CM.DB.global.targetingMacroPrelineAutoLockAnyOverride or defaults.autoLockAny or ""
     end,
@@ -230,7 +238,7 @@ local function Build()
 
   ctx:Finish()
   -- Measure content once, publish as the shared secondary-editor height, then apply it
-  -- (same GetSecondaryEditorHeight path the CVar editor uses).
+  -- (published via UI.SetSecondaryEditorHeight).
   UI.SizeWindowToContent(window)
   UI.SetSecondaryEditorHeight(window:GetHeight())
   window:SetHeight(UI.GetSecondaryEditorHeight())

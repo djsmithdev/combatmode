@@ -108,12 +108,12 @@ local function MakeInputBox(parent, width, height)
   height = height or INPUT_ROW_H
   local box = CreateFrame("Frame", nil, parent, "BackdropTemplate")
   box:SetSize(width, height)
-  UI.StyleRounded(box, C.inputBg, C.cardBorder, UI.Radius.control)
+  UI.StyleField(box)
   local edit = CreateFrame("EditBox", nil, box)
   edit:SetAutoFocus(false)
   edit:EnableMouse(true)
-  UI.SetEditBoxFont(edit, UI.Fonts.desc)
-  edit:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+  UI.SetEditBoxFont(edit, UI.Fonts.input)
+  edit:SetTextColor(C.text[1], C.text[2], C.text[3])
   local padX = 6
   local padY = 3
   edit:SetPoint("TOPLEFT", box, "TOPLEFT", padX, -padY)
@@ -423,22 +423,12 @@ end
 
 local function MakePillButton(parent, label, onClick)
   local btn = CreateFrame("Button", nil, parent)
-  btn:SetSize(96, 28)
-  local IDLE = { 0.16, 0.16, 0.16, 1 }
-  local HOVER = { 0.26, 0.26, 0.26, 1 }
-  UI.StylePill(btn, IDLE, { 0, 0, 0, 0 })
-  local text = UI.CreateFontString(btn, "OVERLAY", UI.Fonts.base, "GameFontNormal")
+  btn:SetSize(96, UI.Sizes.control)
+  UI.StyleControl(btn)
+  local text = UI.CreateFontString(btn, "OVERLAY", UI.Fonts.button, "GameFontNormal")
   text:SetPoint("CENTER")
   text:SetText(label)
-  text:SetTextColor(C.text[1], C.text[2], C.text[3])
-  btn:SetScript("OnEnter", function(self)
-    self:cmSetFill(HOVER[1], HOVER[2], HOVER[3], HOVER[4])
-    text:SetTextColor(1, 1, 1)
-  end)
-  btn:SetScript("OnLeave", function(self)
-    self:cmSetFill(IDLE[1], IDLE[2], IDLE[3], IDLE[4])
-    text:SetTextColor(C.text[1], C.text[2], C.text[3])
-  end)
+  UI.WireControlHover(btn, text)
   btn:SetScript("OnClick", onClick)
   return btn
 end

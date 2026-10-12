@@ -153,17 +153,27 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas, leadingIconText
       end
       return true
     end,
+    -- Only shown once the Action is set to Run Macro; the rows below move up when hidden.
+    hidden = function()
+      return Binding(slot).value ~= "MACRO"
+    end,
     disabled = function()
-      return not Binding(slot).enabled or Binding(slot).value ~= "MACRO"
+      return not Binding(slot).enabled
     end,
   })
 end
 
-local function BuildGroupPanel(parent, width, modifier)
+local function BuildGroupPanel(parent, width, modifier, group, tabSearch)
   local panel = CreateFrame("Frame", nil, parent)
   panel:SetWidth(width)
   local layout = UI.NewLayout(panel, width)
   layout.y = 0
+  -- Base slots have no modifier in their labels, so prefix them for search results.
+  layout.search = {
+    tab = tabSearch.tab,
+    group = group.id,
+    prefix = modifier and "" or "Base - ",
+  }
   local prefix = ""
   local leadingIconTexture
   if modifier == "shift" then
@@ -195,25 +205,13 @@ local function BuildGroupPanel(parent, width, modifier)
   )
   layout:Finish()
   panel:SetHeight(-layout.y + 8)
+  -- Collapse the Macro Name rows that start hidden (bindings are loaded at build time).
+  layout:Reflow()
   return panel
 end
 
-local SEGMENT_FADE = 0.16
-
-local function StyleSegment(button, selected)
-  if selected then
-    button:cmSetFill(C.tabActive[1], C.tabActive[2], C.tabActive[3], C.tabActive[4])
-    button:cmSetBorder(0, 0, 0, 0)
-    button.label:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
-  else
-    button:cmSetFill(0, 0, 0, 0)
-    button:cmSetBorder(0, 0, 0, 0)
-    button.label:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
-  end
-end
-
 local function BuildSegmentBar(parent, width, groups, onSelect)
-  local barH = 28
+  local barH = 34
   local gap = 4
   local n = #groups
   local btnW = (width - gap * (n - 1)) / n
@@ -227,7 +225,7 @@ local function BuildSegmentBar(parent, width, groups, onSelect)
   local function Select(id)
     selectedId = id
     for _, button in ipairs(buttons) do
-      StyleSegment(button, button.groupId == id)
+      button:cmSetTabSelected(button.groupId == id)
     end
     onSelect(id)
   end
@@ -236,24 +234,18 @@ local function BuildSegmentBar(parent, width, groups, onSelect)
     local button = CreateFrame("Button", nil, bar)
     button:SetSize(btnW, barH)
     button:SetPoint("TOPLEFT", bar, "TOPLEFT", x, 0)
-    UI.StyleRounded(button, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, UI.Radius.control)
     button.groupId = group.id
 
     local label = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontNormal")
-    label:SetPoint("CENTER")
+    label:SetPoint("CENTER", button, "CENTER", 4, 0)
     label:SetText(group.label)
     button.label = label
 
+    -- Same look as the sidebar tabs (selected pill, orange capsule marker, hover wash).
+    UI.StyleTab(button, label, 20)
+
     button:SetScript("OnClick", function()
       Select(group.id)
-    end)
-    button:SetScript("OnEnter", function(self)
-      if self.groupId ~= selectedId then
-        self:cmSetFill(C.tabHover[1], C.tabHover[2], C.tabHover[3], C.tabHover[4])
-      end
-    end)
-    button:SetScript("OnLeave", function(self)
-      StyleSegment(self, self.groupId == selectedId)
     end)
 
     buttons[#buttons + 1] = button
@@ -294,7 +286,7 @@ UI.Options.AddTab({
     local panelHost = CreateFrame("Frame", nil, segmentHost)
     local hostH = 0
     for _, group in ipairs(MODIFIER_GROUPS) do
-      local panel = BuildGroupPanel(panelHost, contentW, group.modifier)
+      local panel = BuildGroupPanel(panelHost, contentW, group.modifier, group, ctx.search)
       panel:SetPoint("TOPLEFT", panelHost, "TOPLEFT", 0, 0)
       panel:Hide()
       panel:SetAlpha(1)
@@ -304,70 +296,38 @@ UI.Options.AddTab({
     panelHost:SetSize(contentW, hostH)
 
     local activeGroupId
-    local fadeGen = 0
 
     local function ShowGroup(id)
       if activeGroupId == id then
         local panel = panels[id]
-        if panel and panel:IsShown() and panel:GetAlpha() >= 0.99 then
+        if panel and panel:IsShown() then
           return
         end
       end
 
-      fadeGen = fadeGen + 1
-      local gen = fadeGen
-      local previousId = activeGroupId
-      local previous = previousId and panels[previousId]
-      local incoming = panels[id]
       activeGroupId = id
 
       for groupId, panel in pairs(panels) do
-        if groupId ~= id and groupId ~= previousId then
-          panel:SetScript("OnUpdate", nil)
+        if groupId ~= id then
           panel:Hide()
-          panel:SetAlpha(1)
         end
       end
 
-      if not incoming then
-        return
+      local incoming = panels[id]
+      if incoming then
+        incoming:Show()
       end
-
-      local function FinishOutgoing(panel)
-        if not panel or panel == incoming then
-          return
-        end
-        panel:SetScript("OnUpdate", nil)
-        panel:Hide()
-        panel:SetAlpha(1)
-      end
-
-      incoming:SetScript("OnUpdate", nil)
-      incoming:SetAlpha(0)
-      incoming:Show()
-
-      if previous and previous ~= incoming and previous:IsShown() then
-        UI.FadeAlpha(previous, 0, SEGMENT_FADE, function()
-          if gen ~= fadeGen then
-            return
-          end
-          FinishOutgoing(previous)
-        end)
-      else
-        FinishOutgoing(previous)
-      end
-
-      UI.FadeAlpha(incoming, 1, SEGMENT_FADE)
     end
 
-    local bar = BuildSegmentBar(segmentHost, contentW, MODIFIER_GROUPS, ShowGroup)
+    local bar, selectGroup = BuildSegmentBar(segmentHost, contentW, MODIFIER_GROUPS, ShowGroup)
     bar:SetPoint("TOPLEFT", segmentHost, "TOPLEFT", 0, 0)
+    -- Options search uses this to switch segments before scrolling to a result.
+    UI.Options.RegisterSegmentSelector("clickcasting", selectGroup)
 
     -- Hairline under the segment bar so the modifier tabs read separately from the
     -- Left/Right click options below (same treatment as the sidebar footer divider).
     local sepGap = 8
-    local sep = segmentHost:CreateTexture(nil, "ARTWORK")
-    sep:SetColorTexture(1, 1, 1, 0.06)
+    local sep = UI.CreateLine(segmentHost, false, C.divider, "ends")
     sep:SetHeight(1)
     sep:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", 0, -sepGap)
     sep:SetPoint("TOPRIGHT", bar, "BOTTOMRIGHT", 0, -sepGap)

@@ -61,7 +61,7 @@ local string = _G.string
 local cmMouselookActive = false -- Tracks Combat Mode's own intentional mouselook. Used in conjunction with _G.IsMouselooking() to handle external mouselook properly.
 -- Shoulder + vignette stay up through temp (hold) unlock; cleared only on permanent unlock.
 local mouseLookCameraChromeActive = false
-local FreeLookOverride = false -- Changes when Free Look state is modified through user input ("Toggle / Hold" keybind and "/cm" cmd)
+local FreeLookOverride = false -- Changes when Free Look state is modified through user input ("Toggle / Hold" keybind and "/acm" cmd)
 -- customLockConditionOnce: after a manual unlock, ignore force-lock until the snippet is false.
 local customLockOnceConsumed = false
 -- customConditionOnce: after a manual lock, ignore force-unlock until the snippet is false.

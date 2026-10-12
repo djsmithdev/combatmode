@@ -24,9 +24,10 @@ local _, CM = ...
 local _G = _G
 
 -- WoW API
+local CreateColor = _G.CreateColor
 local CreateFrame = _G.CreateFrame
-local C_Texture = _G.C_Texture
 local C_Timer = _G.C_Timer
+local C_Texture = _G.C_Texture
 local GetCurrentKeyBoardFocus = _G.GetCurrentKeyBoardFocus
 local IsMouseButtonDown = _G.IsMouseButtonDown
 local UIParent = _G.UIParent
@@ -54,6 +55,8 @@ local DISABLED_A = C.disabledAlpha or 0.5
 UI.Options = UI.Options or {}
 local Options = UI.Options
 Options.controls = Options.controls or {}
+-- Section headers registered by ctx:Header, for the options search: { label, tab, group, header, lastFrame }.
+Options.sections = Options.sections or {}
 
 local ROW_H = 30
 
@@ -62,6 +65,12 @@ local ROW_H = 30
 ---------------------------------------------------------------------------------------
 --- Refreshes every registered control (values + enabled state). Cheap; called on
 --- panel open and after any set() that could change another control's disabled state.
+-- Layouts with rows that can be hidden register a re-flow here (see ctx:Reflow).
+Options.reflowHooks = Options.reflowHooks or {}
+function Options.AddReflowHook(hook)
+  tinsert(Options.reflowHooks, hook)
+end
+
 function Options.Sync()
   for _, control in ipairs(Options.controls) do
     if control.Refresh then
@@ -70,6 +79,9 @@ function Options.Sync()
     if control.UpdateCharScopeTag then
       control.UpdateCharScopeTag()
     end
+  end
+  for _, hook in ipairs(Options.reflowHooks) do
+    hook()
   end
 end
 
@@ -109,7 +121,7 @@ local function AddRowHover(row, opts, ...)
   bounds:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", 0, -2)
   bounds:EnableMouse(false)
 
-  local hl = UI.CreateRoundedHover(row, bounds, C.tabHover, UI.Radius.control)
+  local hl = UI.CreateRoundedHover(row, bounds)
 
   local hots = { ... }
 
@@ -155,17 +167,19 @@ end
 ---------------------------------------------------------------------------------------
 local CONFIRM_W = 400
 local CONFIRM_PAD = 18
-local CONFIRM_TITLE_W = 95
-local CONFIRM_TITLE_H = 22
+-- Title art at its true display aspect (CM.Constants.TitleAspect).
+local CONFIRM_TITLE_W, CONFIRM_TITLE_H = CM.Constants.TitleSize(36)
+-- The welcome popup shows the wordmark larger than the other dialogs.
+local WELCOME_TITLE_W, WELCOME_TITLE_H = CM.Constants.TitleSize(64)
 local CONFIRM_BTN_W = 116
-local CONFIRM_BTN_H = 24
+local CONFIRM_BTN_H = UI.Sizes.control
 local confirmDialog
 local welcomeDialog
 
 --- Wordmark row, horizontally centered under the dialog top edge (no logo).
-local function AttachBrandedHeader(dialog)
+local function AttachBrandedHeader(dialog, width, height)
   local header = CreateFrame("Frame", nil, dialog)
-  header:SetSize(CONFIRM_TITLE_W, CONFIRM_TITLE_H)
+  header:SetSize(width or CONFIRM_TITLE_W, height or CONFIRM_TITLE_H)
   header:SetPoint("TOP", dialog, "TOP", 0, -CONFIRM_PAD)
 
   local titleArt = header:CreateTexture(nil, "ARTWORK")
@@ -179,23 +193,12 @@ end
 local function CreateDialogButton(parent, label)
   local button = CreateFrame("Button", nil, parent)
   button:SetSize(CONFIRM_BTN_W, CONFIRM_BTN_H)
-  local idle = { 0.16, 0.16, 0.16, 1 }
-  local hover = { 0.26, 0.26, 0.26, 1 }
-  UI.StylePill(button, idle, { 0, 0, 0, 0 })
+  UI.StyleControl(button)
 
-  local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontNormal")
+  local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.button, "GameFontNormal")
   text:SetPoint("CENTER")
   text:SetText(UI.StripColors(label) or "")
-  text:SetTextColor(C.text[1], C.text[2], C.text[3])
-
-  button:SetScript("OnEnter", function(self)
-    self:cmSetFill(hover[1], hover[2], hover[3], 1)
-    text:SetTextColor(1, 1, 1)
-  end)
-  button:SetScript("OnLeave", function(self)
-    self:cmSetFill(idle[1], idle[2], idle[3], 1)
-    text:SetTextColor(C.text[1], C.text[2], C.text[3])
-  end)
+  UI.WireControlHover(button, text)
   button.text = text
   return button
 end
@@ -219,7 +222,7 @@ local function BuildConfirmDialog()
   dialog:SetFrameLevel(blocker:GetFrameLevel() + 10)
   dialog:SetToplevel(true)
   dialog:SetSize(CONFIRM_W, 120)
-  UI.StyleRounded(dialog, C.windowBg, C.windowBorder, UI.Radius.window)
+  UI.StyleWindow(dialog)
   dialog:Hide()
 
   -- Branded header mirroring the main options window title bar (logo + wordmark art).
@@ -352,7 +355,7 @@ local function BuildCopyLinkDialog()
   dialog:SetFrameLevel(blocker:GetFrameLevel() + 10)
   dialog:SetToplevel(true)
   dialog:SetSize(COPY_LINK_W, 160)
-  UI.StyleRounded(dialog, C.windowBg, C.windowBorder, UI.Radius.window)
+  UI.StyleWindow(dialog)
   dialog:EnableMouse(true)
   dialog:Hide()
 
@@ -370,13 +373,13 @@ local function BuildCopyLinkDialog()
   box:SetHeight(COPY_LINK_INPUT_H)
   box:SetPoint("TOPLEFT", message, "BOTTOMLEFT", 0, -12)
   box:SetPoint("TOPRIGHT", message, "BOTTOMRIGHT", 0, -12)
-  UI.StyleRounded(box, C.inputBg, C.cardBorder, UI.Radius.control)
+  UI.StyleField(box)
 
   local edit = CreateFrame("EditBox", nil, box)
   edit:SetAutoFocus(false)
   edit:EnableMouse(true)
   UI.SetEditBoxFont(edit)
-  edit:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+  edit:SetTextColor(C.text[1], C.text[2], C.text[3])
   edit:SetPoint("TOPLEFT", box, "TOPLEFT", 8, -4)
   edit:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -8, 4)
   edit:SetScript("OnEscapePressed", function()
@@ -492,11 +495,11 @@ local function BuildWelcomeDialog()
   dialog:SetFrameLevel(blocker:GetFrameLevel() + 10)
   dialog:SetToplevel(true)
   dialog:SetSize(WELCOME_W, 120)
-  UI.StyleRounded(dialog, C.windowBg, C.windowBorder, UI.Radius.window)
+  UI.StyleWindow(dialog)
   dialog:EnableMouse(true)
   dialog:Hide()
 
-  local header = AttachBrandedHeader(dialog)
+  local header = AttachBrandedHeader(dialog, WELCOME_TITLE_W, WELCOME_TITLE_H)
 
   local message = UI.CreateFontString(dialog, "OVERLAY", UI.Fonts.base, "GameFontHighlight")
   message:SetPoint("TOP", header, "BOTTOM", 0, -12)
@@ -552,7 +555,7 @@ function UI.ShowWelcome(text, onClose)
   if msgH < 1 then
     msgH = 60
   end
-  dialog:SetHeight(CONFIRM_PAD + CONFIRM_TITLE_H + 12 + msgH + 16 + CONFIRM_BTN_H + CONFIRM_PAD)
+  dialog:SetHeight(CONFIRM_PAD + WELCOME_TITLE_H + 12 + msgH + 16 + CONFIRM_BTN_H + CONFIRM_PAD)
 
   dialog:ClearAllPoints()
   dialog:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
@@ -568,51 +571,92 @@ end
 --- are vertically centered against each other within the row. `opts.labelInset` is
 --- accepted for back-compat but ignored.
 local TEXT_FRAC = 0.58
-local ROW_PAD_X = 10
+local ROW_PAD_X = 8
+
+--- Round glyph badge (the code-box "?" help button, the character-specific "C"): two stacked
+--- discs (UI.CreateCircle) with the button outline gradient on the ring and the button fill
+--- gradient on the face, and a cream glyph. `size` is the outer diameter; (dx, dy) nudge the
+--- glyph so it looks centred; optional `fontSize` / `color` override the glyph (default: button
+--- font size, cream). Returns the badge with badge:SetHover(on) for the lighter fill.
+local function CreateGlyphBadge(parent, size, glyph, dx, dy, fontSize, color)
+  local function Gradient(tex, top, bottom)
+    -- Vertical gradients take the minimum colour at the bottom edge.
+    tex:SetGradient(
+      "VERTICAL",
+      CreateColor(bottom[1], bottom[2], bottom[3], 1),
+      CreateColor(top[1], top[2], top[3], 1)
+    )
+  end
+  local badge = {}
+  local ring = UI.CreateCircle(parent, "BACKGROUND", C.white)
+  ring:SetSize(size, size)
+  ring:SetPoint("CENTER", parent, "CENTER", 0, 0)
+  Gradient(ring, C.controlBorderTop, C.controlBorderBottom)
+  local face = UI.CreateCircle(parent, "ARTWORK", C.white)
+  face:SetSize(size - 2, size - 2)
+  face:SetPoint("CENTER", parent, "CENTER", 0, 0)
+  Gradient(face, C.controlFillTop, C.controlFill)
+  local mark = UI.CreateFontString(parent, "OVERLAY", fontSize or UI.Fonts.button, "GameFontNormal")
+  mark:SetPoint("CENTER", parent, "CENTER", dx or 0, dy or 0)
+  mark:SetJustifyH("CENTER")
+  mark:SetText(glyph)
+  color = color or C.text
+  mark:SetTextColor(color[1], color[2], color[3])
+  function badge.SetHover(_, on)
+    if on then
+      Gradient(face, C.buttonHoverTop, C.buttonHover)
+    else
+      Gradient(face, C.controlFillTop, C.controlFill)
+    end
+  end
+  badge.ring, badge.face, badge.mark = ring, face, mark
+  return badge
+end
+
+local SetMenuBarActive = UI.SetMenuBarActive
+-- Section headers and the description under them keep their original inset (no row padding).
+local HEADER_PAD_X = 4
+-- Rule under section headers: Blizzard atlas, height capped so a tall ornament stays a line.
+local HEADER_RULE_ATLAS = "evergreen-weeklyrewards-header"
+local HEADER_RULE_MAX_H = 8
+-- The atlas rule is centred and this fraction of the header width.
+local HEADER_RULE_WIDTH_FRAC = 0.6
 local ROW_PAD_Y = 4
-local TEXT_GAP = 1
+local TEXT_GAP = 4
 local DESC_BELOW_GAP = 6
 local CONTROL_GAP = 20
 local ICON_GAP = 6
 local DEFAULT_ICON_SIZE = 20
-local CHAR_SCOPE_MARK = "©"
-local CHAR_SCOPE_MARK_SIZE = 11
-local CHAR_SCOPE_MARK_W = 12
-local CHAR_SCOPE_MARK_GAP = 3
--- Same blue as slash-command hints (|cff69ccf0).
-local CHAR_SCOPE_MARK_COLOR = { 0.412, 0.800, 0.941 }
+local CHAR_SCOPE_MARK = "C"
+local CHAR_SCOPE_MARK_W = 14
+local CHAR_SCOPE_MARK_GAP = 4
 local CHAR_SCOPE_TOOLTIP = "Character-specific option."
 
--- Character-create "NEW" badge (Interface/Glues/CharacterCreate/NewCharacterNotification).
--- Tabs use Horde; in-content headers/options use Alliance.
+-- "NEW" tag for tabs and options: small accent-coloured text, superscript style, at the top
+-- right of the label it belongs to. Drawn by the addon so it follows the theme accent.
 UI.NewFeatureBadge = {
-  tabAtlas = "NewCharacter-Horde",
-  contentAtlas = "NewCharacter-Alliance",
-  tabMaxH = 28,
-  contentMaxH = 22,
-  headerMaxH = 28,
-  gap = -4,
-  headerGap = -4,
+  size = 8, -- font size
+  gap = 3, -- space after the label text
+  headerGap = 4,
+  lift = 3, -- how far the tag's top sits above the label's top
 }
 
---- Sized NEW atlas texture. Caller places it (PlaceNewFeatureBadge / tab far-right).
-function UI.CreateNewFeatureBadge(parent, atlas, maxH)
-  atlas = atlas or UI.NewFeatureBadge.contentAtlas
-  maxH = maxH or UI.NewFeatureBadge.contentMaxH
-  local badge = parent:CreateTexture(nil, "OVERLAY")
-  badge:SetAtlas(atlas, true)
-  local h = badge:GetHeight() or maxH
-  local w = badge:GetWidth() or maxH
-  if h > maxH and h > 0 then
-    local scale = maxH / h
-    badge:SetSize(w * scale, maxH)
-  end
+--- NEW tag frame. Caller places it (PlaceNewFeatureBadge, or beside a tab label).
+function UI.CreateNewFeatureBadge(parent)
+  local badge = CreateFrame("Frame", nil, parent)
+  badge:SetFrameLevel(parent:GetFrameLevel() + 5)
+  badge:SetSize(22, 10)
+  local text = UI.CreateFontString(badge, "OVERLAY", UI.NewFeatureBadge.size, "GameFontNormal")
+  text:SetPoint("TOPLEFT", badge, "TOPLEFT", 0, 0)
+  text:SetText("NEW")
+  text:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+  badge.text = text
   return badge
 end
 
---- Sit immediately after title glyphs (same idea as the © char-scope mark).
+--- Sit at the top right of the title text (superscript style).
 --- When `afterRegion` is shown (e.g. the © hit frame), place after that instead.
---- Optional `gapOverride` (e.g. headerGap) tightens spacing for section titles.
+--- Optional `gapOverride` (e.g. headerGap) adjusts spacing for section titles.
 function UI.PlaceNewFeatureBadge(badge, label, labelW, afterRegion, gapOverride)
   if not badge or not label then
     return
@@ -620,17 +664,18 @@ function UI.PlaceNewFeatureBadge(badge, label, labelW, afterRegion, gapOverride)
   badge:ClearAllPoints()
   local gap = gapOverride
   if gap == nil then
-    gap = UI.NewFeatureBadge.gap or 6
+    gap = UI.NewFeatureBadge.gap
   end
+  local lift = UI.NewFeatureBadge.lift
   if afterRegion and afterRegion.IsShown and afterRegion:IsShown() then
-    badge:SetPoint("LEFT", afterRegion, "RIGHT", gap, 0)
+    badge:SetPoint("TOPLEFT", afterRegion, "TOPRIGHT", gap, 2)
     return
   end
   local titleW = label:GetStringWidth() or 0
   if labelW and titleW > labelW then
     titleW = labelW
   end
-  badge:SetPoint("LEFT", label, "LEFT", titleW + gap, 0)
+  badge:SetPoint("TOPLEFT", label, "TOPLEFT", titleW + gap, lift)
 end
 
 --- Place the © immediately after the title glyphs (not at the right edge of the
@@ -650,8 +695,8 @@ local function PlaceCharScopeMark(scopeTag, label, labelW)
   scopeTag:SetPoint("LEFT", label, "LEFT", markX, 0)
 end
 
-local function AddRowLabel(row, text, allowColors)
-  local label = UI.CreateFontString(row, "OVERLAY", UI.Fonts.base, "GameFontHighlight")
+local function AddRowLabel(row, text, allowColors, size)
+  local label = UI.CreateFontString(row, "OVERLAY", size or UI.Fonts.base, "GameFontHighlight")
   label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X, -ROW_PAD_Y)
   label:SetJustifyH("LEFT")
   label:SetJustifyV("TOP")
@@ -686,6 +731,8 @@ end
 --- `control.widgetH` / `control.widgetFill` / `control.textFrac` behave as elsewhere
 --- (multiline inputs use textFrac 0.40 so the box gets ~60%).
 local function AttachOptionText(control, row, opts, widgetH)
+  -- Horizontal row padding; the narrow sidebar footer passes a smaller `padX`.
+  local padX = opts.padX or ROW_PAD_X
   control.widgetH = widgetH or ROW_H
   control.descBelow = opts.descBelow and true or nil
   control.iconFitText = opts.iconFitText and true or nil
@@ -721,25 +768,27 @@ local function AttachOptionText(control, row, opts, widgetH)
   end
 
   if opts.charSpecific ~= nil then
-    -- Hit frame so the © can receive mouse for the tooltip (FontStrings cannot).
+    -- Hit frame so the badge can receive mouse for the tooltip.
     local hit = CreateFrame("Frame", nil, row)
     hit:SetSize(CHAR_SCOPE_MARK_W, CHAR_SCOPE_MARK_W)
     hit:EnableMouse(true)
-    local mark = UI.CreateFontString(hit, "OVERLAY", CHAR_SCOPE_MARK_SIZE, "GameFontHighlight")
-    mark:SetPoint("CENTER")
-    mark:SetText(CHAR_SCOPE_MARK)
-    mark:SetTextColor(CHAR_SCOPE_MARK_COLOR[1], CHAR_SCOPE_MARK_COLOR[2], CHAR_SCOPE_MARK_COLOR[3])
-    hit.mark = mark
+    local badge = CreateGlyphBadge(hit, CHAR_SCOPE_MARK_W, CHAR_SCOPE_MARK, 1, 0, 8, C.textDim)
+    hit.mark = badge.mark
     control.scopeTag = hit
     UI.AttachTooltip(hit, CHAR_SCOPE_TOOLTIP)
+    hit:HookScript("OnEnter", function()
+      badge:SetHover(true)
+    end)
+    hit:HookScript("OnLeave", function()
+      badge:SetHover(false)
+    end)
     if not CharSpecificEnabled(opts) then
       hit:Hide()
     end
   end
 
   if opts.newFeatureFlag then
-    control.newFeatureBadge =
-      UI.CreateNewFeatureBadge(row, UI.NewFeatureBadge.contentAtlas, UI.NewFeatureBadge.contentMaxH)
+    control.newFeatureBadge = UI.CreateNewFeatureBadge(row)
   end
 
   local raw = opts.desc
@@ -823,7 +872,7 @@ local function AttachOptionText(control, row, opts, widgetH)
     local h
 
     local function PlaceIconColumn(topY, textBlockH)
-      local x = ROW_PAD_X
+      local x = padX
       if leadingIcon then
         local leadTop = topY + floor(((textBlockH or leadHeight) - leadHeight) / 2)
         leadingIcon:ClearAllPoints()
@@ -839,7 +888,7 @@ local function AttachOptionText(control, row, opts, widgetH)
 
     if control.descBelow then
       -- Top band: title left + control right; helper full-width below.
-      local labelW = max(width - (2 * ROW_PAD_X) - iconLead - CONTROL_GAP - 40, 40)
+      local labelW = max(width - (2 * padX) - iconLead - CONTROL_GAP - (control.widgetW or 40), 40)
       row.label:SetWidth(labelW)
       local labelH = row.label:GetStringHeight()
       local bandH = max(labelH, control.widgetH, iconsHeight)
@@ -848,28 +897,28 @@ local function AttachOptionText(control, row, opts, widgetH)
 
       PlaceIconColumn(ROW_PAD_Y + floor((bandH - iconsHeight) / 2), iconsHeight)
       row.label:ClearAllPoints()
-      row.label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X + iconLead, -labelTop)
-      if control.newFeatureBadge then
-        UI.PlaceNewFeatureBadge(control.newFeatureBadge, row.label, labelW)
-      end
+      row.label:SetPoint("TOPLEFT", row, "TOPLEFT", padX + iconLead, -labelTop)
       if scopeShown then
-        if control.newFeatureBadge then
-          scopeTag:ClearAllPoints()
-          scopeTag:SetPoint("LEFT", control.newFeatureBadge, "RIGHT", CHAR_SCOPE_MARK_GAP, 0)
-        else
-          PlaceCharScopeMark(scopeTag, row.label, labelW)
-        end
+        PlaceCharScopeMark(scopeTag, row.label, labelW)
+      end
+      if control.newFeatureBadge then
+        UI.PlaceNewFeatureBadge(
+          control.newFeatureBadge,
+          row.label,
+          labelW,
+          scopeShown and scopeTag or nil
+        )
       end
       if widget then
         widget:ClearAllPoints()
-        widget:SetPoint("TOPRIGHT", row, "TOPRIGHT", -ROW_PAD_X, -widgetTop)
+        widget:SetPoint("TOPRIGHT", row, "TOPRIGHT", -padX, -widgetTop)
       end
 
       h = ROW_PAD_Y + bandH
       if control.desc then
         control.desc:ClearAllPoints()
-        control.desc:SetWidth(width - (2 * ROW_PAD_X))
-        control.desc:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X, -(h + DESC_BELOW_GAP))
+        control.desc:SetWidth(width - (2 * padX))
+        control.desc:SetPoint("TOPLEFT", row, "TOPLEFT", padX, -(h + DESC_BELOW_GAP))
         h = h + DESC_BELOW_GAP + control.desc:GetStringHeight()
       end
       h = h + ROW_PAD_Y
@@ -877,7 +926,7 @@ local function AttachOptionText(control, row, opts, widgetH)
       local textFrac = control.textFrac or TEXT_FRAC
 
       local function MeasureText(lead)
-        local textW = max(floor(width * textFrac) - ROW_PAD_X - lead, 40)
+        local textW = max(floor(width * textFrac) - padX - lead, 40)
         row.label:SetWidth(textW)
         local labelH = row.label:GetStringHeight()
         local textH = labelH
@@ -931,17 +980,17 @@ local function AttachOptionText(control, row, opts, widgetH)
 
       PlaceIconColumn(textTop, textH)
       row.label:ClearAllPoints()
-      row.label:SetPoint("TOPLEFT", row, "TOPLEFT", ROW_PAD_X + iconLead, -textTop)
-      if control.newFeatureBadge then
-        UI.PlaceNewFeatureBadge(control.newFeatureBadge, row.label, textW)
-      end
+      row.label:SetPoint("TOPLEFT", row, "TOPLEFT", padX + iconLead, -textTop)
       if scopeShown then
-        if control.newFeatureBadge then
-          scopeTag:ClearAllPoints()
-          scopeTag:SetPoint("LEFT", control.newFeatureBadge, "RIGHT", CHAR_SCOPE_MARK_GAP, 0)
-        else
-          PlaceCharScopeMark(scopeTag, row.label, textW)
-        end
+        PlaceCharScopeMark(scopeTag, row.label, textW)
+      end
+      if control.newFeatureBadge then
+        UI.PlaceNewFeatureBadge(
+          control.newFeatureBadge,
+          row.label,
+          textW,
+          scopeShown and scopeTag or nil
+        )
       end
       if control.desc then
         control.desc:ClearAllPoints()
@@ -950,13 +999,13 @@ local function AttachOptionText(control, row, opts, widgetH)
 
       if widget then
         widget:ClearAllPoints()
-        widget:SetPoint("TOPRIGHT", row, "TOPRIGHT", -ROW_PAD_X, -widgetTop)
+        widget:SetPoint("TOPRIGHT", row, "TOPRIGHT", -padX, -widgetTop)
         if control.widgetFill then
           widget:SetPoint(
             "TOPLEFT",
             row,
             "TOPLEFT",
-            ROW_PAD_X + textW + iconLead + CONTROL_GAP,
+            padX + textW + iconLead + CONTROL_GAP,
             -widgetTop
           )
         end
@@ -1004,14 +1053,36 @@ local function ClearHoverIfDisabled(row, disabled)
   end
 end
 
+--- Shows or hides a row's disabled notice (control.watermark, see UI.CreateRowStamp). The
+--- notice appears only while the row is disabled and `watermarkWhenDisabled` resolves to a
+--- message (or `fallback` when the caller wants a default). Returns true while it is shown;
+--- callers then hide the row's control so the notice sits where the control was.
+local function SyncStamp(control, opts, disabled, fallback)
+  local stamp = control.watermark
+  if not stamp then
+    return false
+  end
+  local message = opts.watermarkWhenDisabled
+  if type(message) == "function" then
+    message = message()
+  end
+  if not (type(message) == "string" and message ~= "") then
+    message = fallback
+  end
+  if disabled and message then
+    stamp.SetStampText(message)
+    stamp:Show()
+    return true
+  end
+  stamp:Hide()
+  return false
+end
+
 ---------------------------------------------------------------------------------------
 --                                    TOGGLE                                         --
 ---------------------------------------------------------------------------------------
-local TOGGLE_TRACK_W = 40
-local TOGGLE_TRACK_H = 20
-local TOGGLE_KNOB = 14
+-- Page toggles are 45x22; `opts.compact` (sidebar footer) uses 35x18 (mockup proportions).
 local TOGGLE_KNOB_PAD = 3
-local TOGGLE_KNOB_ON_X = TOGGLE_TRACK_W - TOGGLE_KNOB - TOGGLE_KNOB_PAD
 local TOGGLE_ANIM_DURATION = 0.14
 
 local function Lerp(a, b, t)
@@ -1019,55 +1090,52 @@ local function Lerp(a, b, t)
 end
 
 function UI.MakeToggle(parent, opts)
+  -- Wide enough for the ON / OFF label beside the knob.
+  local TOGGLE_TRACK_W = opts.compact and 40 or 50
+  local TOGGLE_TRACK_H = opts.compact and 18 or 22
+  local TOGGLE_TEXT_SIZE = opts.compact and 8 or 9
+  local TOGGLE_KNOB = TOGGLE_TRACK_H - 6
+  local TOGGLE_KNOB_ON_X = TOGGLE_TRACK_W - TOGGLE_KNOB - TOGGLE_KNOB_PAD
+
   local row = CreateFrame("Button", nil, parent)
   row:SetHeight(ROW_H)
-  AddRowLabel(row, opts.label)
+  AddRowLabel(row, opts.label, false, opts.compact and UI.Fonts.small or nil)
 
   local track = CreateFrame("Frame", nil, row)
   track:SetSize(TOGGLE_TRACK_W, TOGGLE_TRACK_H)
 
-  -- Stadium: a circle cap on each end plus a bar between their centers. The
-  -- scalable mask replaces the low-res portrait corners StyleRounded uses, so
-  -- the 20px pill and the knob stay smooth. A 1px border pill sits behind.
-  local function AddStadium(layer, inset)
-    local h = TOGGLE_TRACK_H - (inset * 2)
-    local function cap(point, x)
-      local tex = track:CreateTexture(nil, layer)
-      tex:SetSize(h, h)
-      tex:SetPoint(point, track, point, x, 0)
-      local mask = track:CreateMaskTexture()
-      UI.SetCircleMask(mask)
-      mask:SetAllPoints(tex)
-      tex:AddMaskTexture(mask)
-      return tex
-    end
-    local left = cap("LEFT", inset)
-    local right = cap("RIGHT", -inset)
-    -- CircleMaskScalable's disk sits inside the texture (soft edge, not full
-    -- bleed). A bar as tall as the texture box sticks out above and below
-    -- the caps. 2/64 is enough of that margin to hide the lip.
-    local lip = h * (2 / 64)
-    local mid = track:CreateTexture(nil, layer)
-    mid:SetPoint("TOPLEFT", left, "TOP", 0, -lip)
-    mid:SetPoint("BOTTOMRIGHT", right, "BOTTOM", 0, lip)
-    return function(r, g, b, a)
-      a = a or 1
-      left:SetColorTexture(r, g, b, a)
-      right:SetColorTexture(r, g, b, a)
-      mid:SetColorTexture(r, g, b, a)
-    end
-  end
-
-  local setBorder = AddStadium("BACKGROUND", 0)
-  local setFill = AddStadium("ARTWORK", 1)
-  setFill(C.trackOff[1], C.trackOff[2], C.trackOff[3], 1)
-  setBorder(C.cardBorder[1], C.cardBorder[2], C.cardBorder[3], C.cardBorder[4] or 1)
+  -- Track: a gradient-filled pill (radius = height / 2) inside a 1px outline in the shared
+  -- control border colour.
+  UI.StyleRounded(track, C.trackOff, C.cardBorder, TOGGLE_TRACK_H / 2, 1)
 
   local knob = UI.CreateCircle(track, "OVERLAY", C.white)
   knob:SetSize(TOGGLE_KNOB, TOGGLE_KNOB)
   knob:SetPoint("LEFT", track, "LEFT", TOGGLE_KNOB_PAD, 0)
 
-  local control = { frame = row, height = ROW_H, widget = track, widgetH = TOGGLE_TRACK_H }
+  -- ON sits left of the knob (knob right when on), OFF sits right of it (knob left when
+  -- off). Each fades with the animation: ON in the accent colour, OFF in dim text.
+  local onText = UI.CreateFontString(track, "OVERLAY", TOGGLE_TEXT_SIZE, "GameFontNormalSmall")
+  onText:SetText("ON")
+  onText:SetTextColor(C.toggleOn[1], C.toggleOn[2], C.toggleOn[3])
+  onText:SetPoint("CENTER", track, "LEFT", (5 + TOGGLE_KNOB_ON_X - TOGGLE_KNOB_PAD) / 2, 0)
+  local offText = UI.CreateFontString(track, "OVERLAY", TOGGLE_TEXT_SIZE, "GameFontNormalSmall")
+  offText:SetText("OFF")
+  offText:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
+  offText:SetPoint(
+    "CENTER",
+    track,
+    "LEFT",
+    (TOGGLE_KNOB_PAD * 2 + TOGGLE_KNOB + TOGGLE_TRACK_W - 5) / 2,
+    0
+  )
+
+  local control = {
+    frame = row,
+    height = ROW_H,
+    widget = track,
+    widgetH = TOGGLE_TRACK_H,
+    widgetW = TOGGLE_TRACK_W,
+  }
   local displayT -- nil until first Refresh; 0 = off, 1 = on
   local animFrom, animTo, animElapsed
 
@@ -1075,19 +1143,12 @@ function UI.MakeToggle(parent, opts)
     local x = Lerp(TOGGLE_KNOB_PAD, TOGGLE_KNOB_ON_X, t)
     knob:ClearAllPoints()
     knob:SetPoint("LEFT", track, "LEFT", x, 0)
-    setFill(
-      Lerp(C.trackOff[1], C.toggleOn[1], t),
-      Lerp(C.trackOff[2], C.toggleOn[2], t),
-      Lerp(C.trackOff[3], C.toggleOn[3], t),
-      1
-    )
-    setBorder(
-      Lerp(C.cardBorder[1], C.toggleOn[1] * 0.85, t),
-      Lerp(C.cardBorder[2], C.toggleOn[2] * 0.85, t),
-      Lerp(C.cardBorder[3], C.toggleOn[3] * 0.85, t),
-      1
-    )
-    knob:SetColorTexture(0.95, 0.95, 0.95, 1)
+    -- Same dark gradient track and cream knob in both states; ON differs by the knob on the
+    -- right and the accent "ON" label.
+    track:cmSetFillGradient(C.trackOffTop, C.trackOff)
+    knob:SetColorTexture(0.95, 0.92, 0.87, 1)
+    onText:SetAlpha(t)
+    offText:SetAlpha(1 - t)
   end
 
   local function StopToggleAnim()
@@ -1143,23 +1204,10 @@ function UI.MakeToggle(parent, opts)
     else
       track:Show()
     end
-    if control.watermark then
-      -- Only stamp when watermarkWhenDisabled resolves to a non-empty string so composite
-      -- disabled() reasons (e.g. Reticle Targeting off) can grey the row without a false
-      -- "DynamicCam" overlay.
-      local mark = opts.watermarkWhenDisabled
-      if type(mark) == "function" then
-        mark = mark()
-      end
-      if disabled and type(mark) == "string" and mark ~= "" then
-        if control.watermark.stamp then
-          control.watermark.stamp:SetText(UI.StripColors(mark) or "")
-        end
-        control.watermark:Show()
-      else
-        control.watermark:Hide()
-      end
-    end
+    -- Only stamp when watermarkWhenDisabled resolves to a non-empty string so composite
+    -- disabled() reasons (e.g. Reticle Targeting off) can grey the row without a false
+    -- "DynamicCam" overlay. (The toggle itself is already hidden while disabled.)
+    SyncStamp(control, opts, disabled)
   end
 
   row:SetScript("OnClick", function()
@@ -1187,9 +1235,9 @@ function UI.MakeToggle(parent, opts)
   local markOpt = opts.watermarkWhenDisabled
   local markInitial = type(markOpt) == "function" and markOpt() or markOpt
   if type(markInitial) == "string" and markInitial ~= "" then
-    control.watermark = UI.CreateWatermark(row, markInitial, UI.Fonts.nav)
+    control.watermark = UI.CreateRowStamp(row, markInitial)
   elseif type(markOpt) == "function" then
-    control.watermark = UI.CreateWatermark(row, "Inactive", UI.Fonts.nav)
+    control.watermark = UI.CreateRowStamp(row, "Inactive")
   end
 
   return Register(control)
@@ -1199,7 +1247,11 @@ end
 --                                    SLIDER                                         --
 ---------------------------------------------------------------------------------------
 local SLIDER_ANIM_DURATION = 0.14
-local STEP_ICON_ALPHA = 0.45
+-- − / + steppers: full accent at rest, brighter on hover, dim when the value is at its limit.
+local STEP_ICON_ALPHA = 0.85
+local STEP_ICON_ALPHA_DISABLED = 0.35
+local SLIDER_TRACK_H = 5
+local SLIDER_THUMB_SIZE = 16
 
 function UI.MakeSlider(parent, opts)
   local row = CreateFrame("Frame", nil, parent)
@@ -1211,24 +1263,28 @@ function UI.MakeSlider(parent, opts)
   local host = CreateFrame("Frame", nil, row)
   host:SetHeight(22)
 
+  -- Value readout: like the mockup there is no number beside the slider. It appears above
+  -- the knob while hovering or dragging (anchored once the knob exists, below).
   local valueText = UI.CreateFontString(host, "OVERLAY", UI.Fonts.base, "GameFontNormal")
-  valueText:SetPoint("LEFT", host, "LEFT", 0, 0)
-  valueText:SetWidth(34)
-  valueText:SetJustifyH("LEFT")
+  valueText:SetJustifyH("CENTER")
   valueText:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+  valueText:Hide()
 
   local function MakeStepButton(atlas)
     local button = CreateFrame("Button", nil, host)
-    button:SetSize(16, 16)
+    button:SetSize(18, 18)
     local icon = button:CreateTexture(nil, "ARTWORK")
     icon:SetAtlas(atlas, true)
     local iconH = icon:GetHeight() or 16
     local iconW = icon:GetWidth() or 16
     if iconH > 0 then
-      local scale = 10 / iconH
-      icon:SetSize(iconW * scale, 10)
+      local scale = 12 / iconH
+      icon:SetSize(iconW * scale, 12)
     end
     icon:SetPoint("CENTER", button, "CENTER", 0, 0)
+    -- Desaturate then tint so the atlas glyph reads as the theme's white.
+    icon:SetDesaturated(true)
+    icon:SetVertexColor(C.text[1], C.text[2], C.text[3])
     icon:SetAlpha(STEP_ICON_ALPHA)
     button.icon = icon
     button:SetScript("OnEnter", function()
@@ -1237,13 +1293,13 @@ function UI.MakeSlider(parent, opts)
       end
     end)
     button:SetScript("OnLeave", function()
-      icon:SetAlpha(STEP_ICON_ALPHA)
+      icon:SetAlpha(button:IsEnabled() and STEP_ICON_ALPHA or STEP_ICON_ALPHA_DISABLED)
     end)
     return button
   end
 
   local minus = MakeStepButton("common-icon-minus")
-  minus:SetPoint("LEFT", valueText, "RIGHT", 4, 0)
+  minus:SetPoint("LEFT", host, "LEFT", 0, 0)
   local plus = MakeStepButton("common-icon-plus")
   plus:SetPoint("RIGHT", host, "RIGHT", 0, 0)
 
@@ -1251,53 +1307,47 @@ function UI.MakeSlider(parent, opts)
   slider:SetOrientation("HORIZONTAL")
   -- Continuous thumb while dragging; we snap the committed value to `step` ourselves.
   slider:SetObeyStepOnDrag(false)
-  slider:SetHeight(16)
+  slider:SetHeight(SLIDER_THUMB_SIZE)
   slider:SetPoint("LEFT", minus, "RIGHT", 6, 0)
   slider:SetPoint("RIGHT", plus, "LEFT", -6, 0)
   slider:SetMinMaxValues(opts.min or 0, opts.max or 1)
   slider:SetValueStep(opts.step or 1)
 
-  local track = slider:CreateTexture(nil, "BACKGROUND")
-  track:SetColorTexture(C.trackOff[1], C.trackOff[2], C.trackOff[3], 1)
-  track:SetHeight(4)
-  -- Inset so the thumb can travel a few pixels past the visible bar. The
-  -- slider itself still clamps the texture to its frame.
-  local TRACK_OVERHANG = 3
-  track:SetPoint("LEFT", slider, "LEFT", TRACK_OVERHANG, 0)
-  track:SetPoint("RIGHT", slider, "RIGHT", -TRACK_OVERHANG, 0)
+  -- Track and fill are rounded bars (the shared renderer, radius = half the bar height).
+  -- They are child frames below the slider's own level: the knob is a texture on the
+  -- slider, and a frame's textures draw under its child frames, so the bars must sit
+  -- beneath the slider rather than inside it.
+  local trackBar = CreateFrame("Frame", nil, host)
+  trackBar:SetFrameLevel(max(slider:GetFrameLevel() - 2, 0))
+  trackBar:SetHeight(SLIDER_TRACK_H)
+  trackBar:SetPoint("LEFT", slider, "LEFT", 0, 0)
+  trackBar:SetPoint("RIGHT", slider, "RIGHT", 0, 0)
+  UI.StyleRounded(trackBar, C.sliderTrack, { 0, 0, 0, 0 }, SLIDER_TRACK_H / 2)
 
-  -- Filled portion uses the same green as toggle tracks.
-  local fill = slider:CreateTexture(nil, "ARTWORK")
-  fill:SetColorTexture(C.toggleOn[1], C.toggleOn[2], C.toggleOn[3], 1)
-  fill:SetHeight(4)
-  fill:SetPoint("LEFT", track, "LEFT", 0, 0)
-  fill:SetWidth(1)
+  local fill = CreateFrame("Frame", nil, host)
+  fill:SetFrameLevel(max(slider:GetFrameLevel() - 1, 0))
+  fill:SetHeight(SLIDER_TRACK_H)
+  fill:SetPoint("LEFT", trackBar, "LEFT", 0, 0)
+  fill:SetWidth(SLIDER_TRACK_H)
+  UI.StyleRounded(fill, C.toggleOn, { 0, 0, 0, 0 }, SLIDER_TRACK_H / 2)
+  fill:cmSetFillGradientH(C.accentBottom, C.accentTop)
 
-  -- Diamond pip. The portrait circle is the fallback when this atlas is missing.
-  -- The slider parks the thumb texture on the track ends at min/max. The pip
-  -- mask draws the diamond inside that box, so the points stop short while the
-  -- fill (full track width) is already empty or full. Scale the mask until the
-  -- points meet the texture edges.
-  local THUMB_SIZE = 15
-  local DIAMOND_MASK_SCALE = 1.4
-  local thumb = slider:CreateTexture(nil, "OVERLAY")
-  thumb:SetColorTexture(0.88, 0.88, 0.88, 1)
+  -- Knob: the same cream circle (UI.CreateCircle) as the toggle knob, used as the slider's
+  -- thumb texture so the slider positions it.
+  local THUMB_SIZE = SLIDER_THUMB_SIZE
+  local thumb = UI.CreateCircle(slider, "OVERLAY", { 0.95, 0.92, 0.87, 1 })
   thumb:SetSize(THUMB_SIZE, THUMB_SIZE)
-  local thumbMask = slider:CreateMaskTexture()
-  local thumbMaskAtlas = "progress-bar-diamond-pip-mask"
-  if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(thumbMaskAtlas) then
-    thumbMask:SetAtlas(thumbMaskAtlas, false, "LINEAR")
-  else
-    thumbMask:SetTexture(
-      "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask",
-      "CLAMPTOBLACKADDITIVE",
-      "CLAMPTOBLACKADDITIVE"
-    )
-  end
-  thumbMask:SetSize(THUMB_SIZE * DIAMOND_MASK_SCALE, THUMB_SIZE * DIAMOND_MASK_SCALE)
-  thumbMask:SetPoint("CENTER", thumb, "CENTER", 0, 0)
-  thumb:AddMaskTexture(thumbMask)
   slider:SetThumbTexture(thumb)
+
+  valueText:SetPoint("BOTTOM", thumb, "TOP", 0, 6)
+  slider:HookScript("OnEnter", function()
+    valueText:Show()
+  end)
+  slider:HookScript("OnLeave", function()
+    if not slider.cmDragging then
+      valueText:Hide()
+    end
+  end)
 
   local control = {
     frame = row,
@@ -1341,16 +1391,16 @@ function UI.MakeSlider(parent, opts)
     elseif pct > 1 then
       pct = 1
     end
-    -- Thumb texture stays inside the slider frame. The visible bar is inset,
-    -- so at min/max the diamond sits a few pixels past the bar. Fill runs
-    -- from the bar's left edge to the thumb.
+    -- The thumb stays inside the slider frame, so its centre travels from half a thumb
+    -- in from each end. The fill runs from the track's left end to the thumb centre.
     local thumbW = thumb:GetWidth() or THUMB_SIZE
     local travel = width - thumbW
     if travel < 0 then
       travel = 0
     end
-    local fillW = (pct * travel) - TRACK_OVERHANG
-    if fillW <= 0 then
+    local fillW = (pct * travel) + (thumbW / 2)
+    -- A bar narrower than its own rounded ends would draw inside-out; the knob covers it.
+    if fillW <= SLIDER_TRACK_H then
       fill:Hide()
     else
       fill:Show()
@@ -1365,7 +1415,7 @@ function UI.MakeSlider(parent, opts)
 
   local function ApplyStep(button, active)
     button:SetEnabled(active)
-    local alpha = STEP_ICON_ALPHA
+    local alpha = active and STEP_ICON_ALPHA or STEP_ICON_ALPHA_DISABLED
     if active and button:IsMouseOver() then
       alpha = 1
     end
@@ -1476,6 +1526,8 @@ function UI.MakeSlider(parent, opts)
     end
     StopSliderAnim()
     userActive = true
+    slider.cmDragging = true
+    valueText:Show()
   end)
   slider:HookScript("OnMouseUp", function(_, button)
     if button ~= "LeftButton" then
@@ -1495,6 +1547,10 @@ function UI.MakeSlider(parent, opts)
     end
     rightClicking = false
     userActive = false
+    slider.cmDragging = false
+    if not slider:IsMouseOver() then
+      valueText:Hide()
+    end
     -- Snap thumb + fill to the committed step when the drag ends.
     local stepped = stepRound(displayValue or slider:GetValue() or 0)
     ApplyDisplay(stepped, true)
@@ -1550,24 +1606,9 @@ function UI.MakeSlider(parent, opts)
     UpdateSteppers(value)
     SetDescAlpha(control, a)
     ClearHoverIfDisabled(row, disabled)
-    if control.watermark then
-      if disabled then
-        local mark = opts.watermarkWhenDisabled
-        if type(mark) == "function" then
-          mark = mark()
-        end
-        if type(mark) == "string" and mark ~= "" then
-          if control.watermark.stamp then
-            control.watermark.stamp:SetText(UI.StripColors(mark) or "")
-          end
-          control.watermark:Show()
-        else
-          control.watermark:Hide()
-        end
-      else
-        control.watermark:Hide()
-      end
-    end
+    -- Like the toggle, the whole slider (track, knob, − / +) is hidden while disabled.
+    host:SetShown(not disabled)
+    SyncStamp(control, opts, disabled)
   end
 
   AddRowHover(row, opts, slider)
@@ -1577,9 +1618,9 @@ function UI.MakeSlider(parent, opts)
   local markOpt = opts.watermarkWhenDisabled
   local markInitial = type(markOpt) == "function" and markOpt() or markOpt
   if type(markInitial) == "string" and markInitial ~= "" then
-    control.watermark = UI.CreateWatermark(row, markInitial, UI.Fonts.nav)
+    control.watermark = UI.CreateRowStamp(row, markInitial)
   elseif type(markOpt) == "function" then
-    control.watermark = UI.CreateWatermark(row, "Unavailable", UI.Fonts.nav)
+    control.watermark = UI.CreateRowStamp(row, "Unavailable")
   end
 
   return Register(control)
@@ -1594,17 +1635,22 @@ function UI.MakeDropdown(parent, opts)
   AddRowLabel(row, opts.label)
 
   local button = CreateFrame("Button", nil, row, "BackdropTemplate")
-  button:SetHeight(22)
-  UI.StylePill(button, C.trackOff, { 0, 0, 0, 0 })
+  button:SetHeight(UI.Sizes.control)
+  UI.StyleControl(button)
 
-  local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
+  local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.button, "GameFontHighlightSmall")
   text:SetPoint("LEFT", button, "LEFT", 8, 0)
   text:SetPoint("RIGHT", button, "RIGHT", -22, 0)
   text:SetJustifyH("LEFT")
-  text:SetTextColor(C.text[1], C.text[2], C.text[3])
+  UI.WireControlHover(button, text, function()
+    return IsDisabled(opts)
+  end)
 
+  -- The atlas arrow is gold; desaturate and tint it to the dim text colour.
   local arrow = button:CreateTexture(nil, "OVERLAY")
   arrow:SetAtlas("UI-Journeys-Delve-Arrow-down-pressed", true)
+  arrow:SetDesaturated(true)
+  arrow:SetVertexColor(C.textDim[1], C.textDim[2], C.textDim[3])
   local arrowH = arrow:GetHeight() or 14
   local arrowW = arrow:GetWidth() or 14
   if arrowH > 12 and arrowH > 0 then
@@ -1617,7 +1663,7 @@ function UI.MakeDropdown(parent, opts)
     frame = row,
     height = ROW_H,
     widget = button,
-    widgetH = 22,
+    widgetH = UI.Sizes.control,
     widgetFill = true,
   }
 
@@ -1638,6 +1684,10 @@ function UI.MakeDropdown(parent, opts)
   -- clip the list. A dedicated high-strata popup guarantees the full list is visible, and
   -- it scrolls + filters so long lists (e.g. every bindable action) stay usable.
   local ITEM_H = 22
+  local FILTER_H = UI.Sizes.search
+  -- The open menu replaces the select: its top row is the select itself (same height, current
+  -- value and a flipped arrow) and the list grows out of it, so it reads as the select expanding.
+  local HEADER_H = UI.Sizes.control
   local MENU_PAD = 4
   local BAR_GUTTER = 10
   local FILTER_MIN = 12
@@ -1658,12 +1708,8 @@ function UI.MakeDropdown(parent, opts)
     end
     item = CreateFrame("Button", nil, menu.content)
     item:SetHeight(ITEM_H)
-    local hl = item:CreateTexture(nil, "BACKGROUND")
-    hl:SetAllPoints(item)
-    hl:SetColorTexture(1, 1, 1, 0.09)
-    hl:Hide()
-    item.hl = hl
-    item.text = UI.CreateFontString(item, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
+    item.hl = UI.CreateRoundedHover(item, item)
+    item.text = UI.CreateFontString(item, "OVERLAY", UI.Fonts.button, "GameFontHighlightSmall")
     item.text:SetPoint("LEFT", item, "LEFT", 8, 0)
     item.text:SetPoint("RIGHT", item, "RIGHT", -8, 0)
     item.text:SetJustifyH("LEFT")
@@ -1724,12 +1770,13 @@ function UI.MakeDropdown(parent, opts)
     menu.scroll:SetWidth(scrollW)
     menu.scroll:SetHeight(listH)
 
-    local topPad = MENU_PAD
+    local topPad = HEADER_H + MENU_PAD
     if menu.filter:IsShown() then
-      topPad = MENU_PAD + 22 + MENU_PAD
+      topPad = topPad + FILTER_H + MENU_PAD
     end
     menu:SetHeight(topPad + listH + MENU_PAD)
 
+    SetMenuBarActive(menu.bar, needsBar)
     if menu.scroll.cmUpdate then
       menu.scroll.cmUpdate()
     end
@@ -1749,18 +1796,52 @@ function UI.MakeDropdown(parent, opts)
     menu:SetFrameStrata("FULLSCREEN_DIALOG")
     menu:SetFrameLevel(closer:GetFrameLevel() + 10)
     menu:SetToplevel(true)
-    UI.StyleRounded(menu, C.windowBg, C.windowBorder, UI.Radius.window)
+    -- Same surface and outline as the select, stretched over the whole menu.
+    UI.StyleRounded(menu, C.controlFill, C.cardBorder, UI.Radius.button, 1)
+    menu:cmSetFillGradient(C.controlFillTop, C.controlFill)
+    menu:cmSetBorderGradient(C.controlBorderTop, C.controlBorderBottom)
     menu:Hide()
     menu.items = {}
     menu.closer = closer
 
+    -- Header row: the select's current value and an up arrow; clicking it collapses the menu.
+    local header = CreateFrame("Button", nil, menu)
+    header:SetHeight(HEADER_H)
+    header:SetPoint("TOPLEFT", menu, "TOPLEFT", 0, 0)
+    header:SetPoint("TOPRIGHT", menu, "TOPRIGHT", 0, 0)
+    header:SetScript("OnClick", CloseMenu)
+    local headerText =
+      UI.CreateFontString(header, "OVERLAY", UI.Fonts.button, "GameFontHighlightSmall")
+    headerText:SetPoint("LEFT", header, "LEFT", 8, 0)
+    headerText:SetPoint("RIGHT", header, "RIGHT", -22, 0)
+    headerText:SetJustifyH("LEFT")
+    headerText:SetTextColor(C.text[1], C.text[2], C.text[3])
+    local headerArrow = header:CreateTexture(nil, "OVERLAY")
+    headerArrow:SetAtlas("UI-Journeys-Delve-Arrow-down-pressed", true)
+    headerArrow:SetDesaturated(true)
+    headerArrow:SetVertexColor(C.textDim[1], C.textDim[2], C.textDim[3])
+    local ah = headerArrow:GetHeight() or 14
+    local aw = headerArrow:GetWidth() or 14
+    if ah > 12 and ah > 0 then
+      headerArrow:SetSize(aw * (12 / ah), 12)
+    end
+    headerArrow:SetRotation(math.pi)
+    headerArrow:SetPoint("RIGHT", header, "RIGHT", -6, 0)
+    menu.header = header
+    menu.headerText = headerText
+
+    local rule = UI.CreateLine(menu, false, C.divider, "ends")
+    rule:SetHeight(1)
+    rule:SetPoint("TOPLEFT", menu, "TOPLEFT", 8, -HEADER_H)
+    rule:SetPoint("TOPRIGHT", menu, "TOPRIGHT", -8, -HEADER_H)
+
     local filter = CreateFrame("EditBox", nil, menu)
     filter:SetAutoFocus(false)
-    filter:SetHeight(22)
+    filter:SetHeight(FILTER_H)
     UI.SetEditBoxFont(filter)
-    filter:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
-    filter:SetTextInsets(8, 8, 0, 0)
-    UI.StyleRounded(filter, C.inputBg, C.cardBorder, UI.Radius.control)
+    filter:SetTextColor(C.text[1], C.text[2], C.text[3])
+    filter:SetTextInsets(28, 8, 0, 0)
+    UI.StyleSearchBox(filter)
     filter:SetScript("OnTextChanged", function(self)
       Populate(self:GetText())
     end)
@@ -1802,14 +1883,15 @@ function UI.MakeDropdown(parent, opts)
 
     menu:SetWidth(width)
 
-    local top = -MENU_PAD
+    menu.headerText:SetText(text:GetText() or "")
+    local top = -HEADER_H - MENU_PAD
     if useFilter then
       menu.filter:Show()
       menu.filter:SetText("")
       menu.filter:ClearAllPoints()
       menu.filter:SetPoint("TOPLEFT", menu, "TOPLEFT", MENU_PAD, top)
       menu.filter:SetPoint("TOPRIGHT", menu, "TOPRIGHT", -MENU_PAD, top)
-      top = top - 22 - MENU_PAD
+      top = top - FILTER_H - MENU_PAD
     else
       menu.filter:Hide()
     end
@@ -1820,12 +1902,13 @@ function UI.MakeDropdown(parent, opts)
     menu.bar:ClearAllPoints()
     menu.bar:SetPoint("TOP", menu.scroll, "TOP", 0, 0)
     menu.bar:SetPoint("BOTTOM", menu.scroll, "BOTTOM", 0, 0)
-    menu.bar:SetPoint("LEFT", menu.scroll, "RIGHT", 2, 0)
+    menu.bar:SetPoint("RIGHT", menu, "RIGHT", -5, 0)
 
     Populate("")
 
     menu:ClearAllPoints()
-    menu:SetPoint("TOPRIGHT", button, "BOTTOMRIGHT", 0, -2)
+    -- Cover the select exactly; the header row stands in for it.
+    menu:SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
     menu.closer:Show()
     menu:Show()
     menu:Raise()
@@ -1874,7 +1957,7 @@ function UI.MakeDropdown(parent, opts)
   end
 
   AddRowHover(row, opts, button)
-  AttachOptionText(control, row, opts, 22)
+  AttachOptionText(control, row, opts, UI.Sizes.control)
   return Register(control)
 end
 
@@ -1988,15 +2071,13 @@ function UI.MakeKeybind(parent, opts)
   AddRowLabel(row, opts.label)
 
   local button = CreateFrame("Button", nil, row)
-  button:SetHeight(22)
-  local IDLE = { C.trackOff[1], C.trackOff[2], C.trackOff[3], 1 }
-  local HOVER = { 0.30, 0.30, 0.30, 1 }
-  UI.StylePill(button, IDLE, { 0, 0, 0, 0 })
+  button:SetHeight(UI.Sizes.control)
+  UI.StyleControl(button)
   button:EnableMouse(true)
   button:RegisterForClicks("AnyDown")
   button:EnableMouseWheel(false)
 
-  local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
+  local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.button, "GameFontHighlightSmall")
   text:SetPoint("CENTER")
   text:SetTextColor(C.text[1], C.text[2], C.text[3])
 
@@ -2004,14 +2085,14 @@ function UI.MakeKeybind(parent, opts)
     frame = row,
     height = ROW_H,
     widget = button,
-    widgetH = 22,
+    widgetH = UI.Sizes.control,
     widgetFill = true,
   }
   local listening = false
   local NOT_BOUND = _G.NOT_BOUND or "Not Bound"
 
   local function applyKeybindIdle()
-    button:cmSetFill(IDLE[1], IDLE[2], IDLE[3], 1)
+    button:cmControlHover(false)
     if listening then
       text:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
       return
@@ -2028,8 +2109,8 @@ function UI.MakeKeybind(parent, opts)
     if IsDisabled(opts) or listening then
       return
     end
-    self:cmSetFill(HOVER[1], HOVER[2], HOVER[3], 1)
-    text:SetTextColor(1, 1, 1)
+    self:cmControlHover(true)
+    text:SetTextColor(C.text[1], C.text[2], C.text[3])
   end)
   button:SetScript("OnLeave", function(self)
     if self:IsMouseOver() then
@@ -2166,15 +2247,15 @@ function UI.MakeKeybind(parent, opts)
     SetDescAlpha(control, a)
     ClearHoverIfDisabled(row, disabled)
     if not disabled and button:IsMouseOver() then
-      button:cmSetFill(HOVER[1], HOVER[2], HOVER[3], 1)
-      text:SetTextColor(1, 1, 1)
+      button:cmControlHover(true)
+      text:SetTextColor(C.text[1], C.text[2], C.text[3])
     else
       applyKeybindIdle()
     end
   end
 
   AddRowHover(row, opts, button)
-  AttachOptionText(control, row, opts, 22)
+  AttachOptionText(control, row, opts, UI.Sizes.control)
   return Register(control)
 end
 
@@ -2184,27 +2265,30 @@ end
 function UI.MakeTextInput(parent, opts)
   local multiline = opts.multiline
   local lines = type(multiline) == "number" and multiline or (multiline and 6 or 1)
-  local boxHeight = multiline and (lines * 16 + 12) or 24
+  local boxHeight = multiline and (lines * 17 + 12) or 26
   local row = CreateFrame("Frame", nil, parent)
-  AddRowLabel(row, opts.label, opts.labelAllowColors and true or false)
+  AddRowLabel(row, opts.label, opts.labelAllowColors and true or false, opts.labelSize)
 
   local box = CreateFrame("Frame", nil, row, "BackdropTemplate")
   box:SetHeight(boxHeight)
-  UI.StyleRounded(box, C.inputBg, C.cardBorder, UI.Radius.control)
+  UI.StyleField(box)
 
   local edit
   local helpBtn
   if multiline then
-    local scrollRight = opts.helpUrl and 22 or 12
-    local barTop = opts.helpUrl and 22 or 6
+    local scrollRight = opts.helpUrl and 26 or 16
+    local barTop = opts.helpUrl and 28 or 6
     local scroll, mlEdit, bar = UI.CreateMultilineEditScroll(box)
     scroll:SetPoint("TOPLEFT", box, "TOPLEFT", 8, -6)
     scroll:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -scrollRight, 6)
     bar:SetPoint("TOPRIGHT", box, "TOPRIGHT", -4, -barTop)
     bar:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -4, 6)
     edit = mlEdit
+    if opts.lua then
+      UI.AttachLuaCodeBox(edit)
+    end
     UI.SetEditBoxFont(edit)
-    edit:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+    edit:SetTextColor(C.text[1], C.text[2], C.text[3])
     edit:SetScript("OnEscapePressed", edit.ClearFocus)
     -- Clicking the chrome around the edit (padding / rounded fill) also focuses it.
     box:EnableMouse(true)
@@ -2218,7 +2302,7 @@ function UI.MakeTextInput(parent, opts)
     edit:SetAutoFocus(false)
     edit:EnableMouse(true)
     UI.SetEditBoxFont(edit)
-    edit:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+    edit:SetTextColor(C.text[1], C.text[2], C.text[3])
     edit:SetPoint("TOPLEFT", box, "TOPLEFT", 8, -4)
     edit:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -8, 4)
     edit:SetScript("OnEscapePressed", edit.ClearFocus)
@@ -2229,21 +2313,20 @@ function UI.MakeTextInput(parent, opts)
     -- Sits in the corner of the code box, above the scrollbar. Clicks stay on
     -- this button so they do not focus the editor.
     helpBtn = CreateFrame("Button", nil, box)
-    helpBtn:SetSize(16, 16)
-    helpBtn:SetPoint("TOPRIGHT", box, "TOPRIGHT", -1, -4)
+    helpBtn:SetSize(20, 20)
+    helpBtn:SetPoint("TOPRIGHT", box, "TOPRIGHT", -3, -4)
     helpBtn:SetFrameLevel(box:GetFrameLevel() + 20)
     if helpBtn.SetPropagateMouseClicks then
       helpBtn:SetPropagateMouseClicks(false)
     end
-    local mark = UI.CreateFontString(helpBtn, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
-    mark:SetPoint("CENTER", helpBtn, "CENTER", 0, 0)
-    mark:SetText("?")
-    mark:SetTextColor(C.warning[1], C.warning[2], C.warning[3], 0.8)
+    -- Round "?" badge (same look as the character-specific "C"); the glyph is nudged to look
+    -- centred in the circle.
+    local help = CreateGlyphBadge(helpBtn, 20, "?", 2, 0, nil, C.textDim)
     helpBtn:SetScript("OnEnter", function()
-      mark:SetTextColor(C.warning[1], C.warning[2], C.warning[3], 1)
+      help:SetHover(true)
     end)
     helpBtn:SetScript("OnLeave", function()
-      mark:SetTextColor(C.warning[1], C.warning[2], C.warning[3], 0.8)
+      help:SetHover(false)
     end)
     helpBtn:SetScript("OnClick", function()
       if UI.ShowCopyLink then
@@ -2272,7 +2355,7 @@ function UI.MakeTextInput(parent, opts)
   local placeholderFs
   local placeholderText = opts.placeholder and UI.StripColors(opts.placeholder) or nil
   if placeholderText and placeholderText ~= "" then
-    placeholderFs = UI.CreateFontString(box, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
+    placeholderFs = UI.CreateFontString(box, "OVERLAY", UI.Fonts.input, "GameFontHighlightSmall")
     placeholderFs:SetPoint("TOPLEFT", box, "TOPLEFT", 10, -8)
     placeholderFs:SetPoint(
       "TOPRIGHT",
@@ -2284,8 +2367,16 @@ function UI.MakeTextInput(parent, opts)
     placeholderFs:SetJustifyH("LEFT")
     placeholderFs:SetJustifyV("TOP")
     placeholderFs:SetWordWrap(true)
-    placeholderFs:SetText(placeholderText)
-    placeholderFs:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3], 0.7)
+    if opts.lua and UI.FormatLuaCode then
+      -- Code boxes: placeholder gets the same indentation and syntax colors as typed code,
+      -- dimmed as a whole so it still reads as a hint.
+      placeholderFs:SetText(UI.FormatLuaCode(placeholderText))
+      placeholderFs:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3], 1)
+      placeholderFs:SetAlpha(0.7)
+    else
+      placeholderFs:SetText(placeholderText)
+      placeholderFs:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3], 0.7)
+    end
   end
 
   local function updatePlaceholder()
@@ -2339,20 +2430,10 @@ function UI.MakeTextInput(parent, opts)
     box:SetAlpha(a)
     SetDescAlpha(control, a)
     ClearHoverIfDisabled(row, disabled)
-    if control.watermark then
-      if disabled then
-        local mark = opts.watermarkWhenDisabled
-        if type(mark) == "function" then
-          mark = mark()
-        end
-        if type(mark) == "string" and mark ~= "" and control.watermark.stamp then
-          control.watermark.stamp:SetText(UI.StripColors(mark) or "")
-        end
-        control.watermark:Show()
-      else
-        control.watermark:Hide()
-      end
-    end
+    -- The field keeps showing (dimmed) unless a notice replaces it. A disabled field with a
+    -- watermark option but no message falls back to "Inactive".
+    local stamped = SyncStamp(control, opts, disabled, "Inactive")
+    box:SetShown(not stamped)
   end
 
   -- Optional DynamicCam-style stamp over the whole row while this field is inactive
@@ -2360,9 +2441,9 @@ function UI.MakeTextInput(parent, opts)
   local markOpt = opts.watermarkWhenDisabled
   local markInitial = type(markOpt) == "function" and markOpt() or markOpt
   if type(markInitial) == "string" and markInitial ~= "" then
-    control.watermark = UI.CreateWatermark(row, markInitial, UI.Fonts.nav)
+    control.watermark = UI.CreateRowStamp(row, markInitial)
   elseif type(markOpt) == "function" then
-    control.watermark = UI.CreateWatermark(row, "Inactive", UI.Fonts.nav)
+    control.watermark = UI.CreateRowStamp(row, "Inactive")
   end
 
   -- Box chrome must accept mouse so hover fires over padding; edit covers the inner area.
@@ -2378,7 +2459,7 @@ end
 --- Default: label on the pill. `layout = "row"` matches toggles/dropdowns (title left,
 --- `buttonLabel` pill right, optional `desc` under the title).
 local function MakeOptionRowButton(parent, opts)
-  local btnH = opts.height or 22
+  local btnH = opts.height or UI.Sizes.control
   local buttonText = opts.buttonLabel or "Edit"
 
   local row = CreateFrame("Frame", nil, parent)
@@ -2388,32 +2469,23 @@ local function MakeOptionRowButton(parent, opts)
   local button = CreateFrame("Button", nil, row)
   button:SetHeight(btnH)
   button:EnableMouse(true)
-  local IDLE = { C.trackOff[1], C.trackOff[2], C.trackOff[3], 1 }
-  local HOVER = { 0.30, 0.30, 0.30, 1 }
-  UI.StylePill(button, IDLE, { 0, 0, 0, 0 })
+  UI.StyleControl(button)
 
-  local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
+  local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.button, "GameFontHighlightSmall")
   text:SetPoint("CENTER")
   text:SetText(UI.StripColors(buttonText) or "Edit")
-  text:SetTextColor(C.text[1], C.text[2], C.text[3])
 
   local function applyButtonIdle()
-    button:cmSetFill(IDLE[1], IDLE[2], IDLE[3], 1)
-    text:SetTextColor(C.text[1], C.text[2], C.text[3])
+    button:cmControlHover(false)
+    text:SetTextColor(
+      button.cmControlText.idle[1],
+      button.cmControlText.idle[2],
+      button.cmControlText.idle[3]
+    )
   end
 
-  button:SetScript("OnEnter", function(self)
-    if IsDisabled(opts) then
-      return
-    end
-    self:cmSetFill(HOVER[1], HOVER[2], HOVER[3], 1)
-    text:SetTextColor(1, 1, 1)
-  end)
-  button:SetScript("OnLeave", function(self)
-    if self:IsMouseOver() then
-      return
-    end
-    applyButtonIdle()
+  UI.WireControlHover(button, text, function()
+    return IsDisabled(opts)
   end)
 
   button:SetScript("OnClick", function()
@@ -2467,7 +2539,7 @@ function UI.MakeButton(parent, opts)
     return MakeOptionRowButton(parent, opts)
   end
 
-  local btnH = opts.height or 24
+  local btnH = opts.height or UI.Sizes.control
   local btnW = opts.pixelWidth or 200
   local row = CreateFrame("Frame", nil, parent)
   row:SetHeight(btnH)
@@ -2476,40 +2548,13 @@ function UI.MakeButton(parent, opts)
   button:SetHeight(btnH)
   button:SetWidth(btnW)
   button:SetPoint("TOPLEFT", row, "TOPLEFT", 0, 0)
-  -- Flat borderless fill. opts.danger uses warning red for uninstall-style actions.
-  local IDLE = opts.danger
-      and {
-        C.warning[1] * 0.35,
-        C.warning[2] * 0.35,
-        C.warning[3] * 0.35,
-        1,
-      }
-    or { 0.16, 0.16, 0.16, 1 }
-  local HOVER = opts.danger
-      and {
-        C.warning[1] * 0.55,
-        C.warning[2] * 0.55,
-        C.warning[3] * 0.55,
-        1,
-      }
-    or { 0.26, 0.26, 0.26, 1 }
-  -- Danger actions stay white; neutral buttons use theme text and brighten on hover.
-  local TEXT = opts.danger and { 1, 1, 1 } or { C.text[1], C.text[2], C.text[3] }
-  UI.StylePill(button, IDLE, { 0, 0, 0, 0 })
+  -- Standard control surface; opts.danger (Uninstall) is the red danger variant.
+  UI.StyleControl(button, opts.danger and "danger" or nil)
 
-  local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.base, "GameFontNormal")
+  local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.button, "GameFontNormal")
   text:SetPoint("CENTER")
   text:SetText(UI.StripColors(opts.label) or "")
-  text:SetTextColor(TEXT[1], TEXT[2], TEXT[3])
-
-  button:SetScript("OnEnter", function(self)
-    self:cmSetFill(HOVER[1], HOVER[2], HOVER[3], HOVER[4] or 1)
-    text:SetTextColor(1, 1, 1)
-  end)
-  button:SetScript("OnLeave", function(self)
-    self:cmSetFill(IDLE[1], IDLE[2], IDLE[3], IDLE[4] or 1)
-    text:SetTextColor(TEXT[1], TEXT[2], TEXT[3])
-  end)
+  UI.WireControlHover(button, text)
   button:SetScript("OnClick", function()
     if not opts.func then
       return
@@ -2571,42 +2616,62 @@ end
 ---------------------------------------------------------------------------------------
 --                              HEADER & DESCRIPTION                                 --
 ---------------------------------------------------------------------------------------
---- Section title: larger font, theme accent (yellow). Accepts a string or
---- `{ text = "...", newFeatureFlag = true }` for the Alliance "NEW" badge.
+--- Section title: uppercase cream text over a full-width accent rule (mockup style).
+--- Accepts a string or `{ text = "...", newFeatureFlag = true, fontSize = n }` (NEW badge, size).
 function UI.MakeHeader(parent, textOrOpts)
   local text = textOrOpts
   local newFeature = false
+  local fontSize = UI.Fonts.header
   if type(textOrOpts) == "table" then
     text = textOrOpts.text or textOrOpts.label
+    fontSize = textOrOpts.fontSize or fontSize
     newFeature = textOrOpts.newFeatureFlag and true or false
   end
 
+  -- Rule under the title: the header atlas across the full width (capped to stay a line), or
+  -- the fading accent hairline when the atlas is not available. The atlas has a centre
+  -- ornament, so the title sits above its full height instead of on it.
+  local atlasInfo = C_Texture
+    and C_Texture.GetAtlasInfo
+    and C_Texture.GetAtlasInfo(HEADER_RULE_ATLAS)
+  local ruleH = atlasInfo and min(max(atlasInfo.height or 8, 1), HEADER_RULE_MAX_H) or 0
+  local headerH = atlasInfo and (ruleH + 24) or 28
+  local titleY = atlasInfo and (ruleH + 4) or 5
+
+  local headerRule
   local frame = CreateFrame("Frame", nil, parent)
-  frame:SetHeight(26)
-  local fs = UI.CreateFontString(frame, "OVERLAY", UI.Fonts.header, "GameFontNormalLarge")
-  fs:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 2, 2)
-  fs:SetText(UI.StripColors(text) or "")
-  fs:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+  frame:SetHeight(headerH)
+  local fs = UI.CreateFontString(frame, "OVERLAY", fontSize, "GameFontNormalLarge")
+  fs:SetPoint("BOTTOM", frame, "BOTTOM", 0, titleY)
+  fs:SetText((UI.StripColors(text) or ""):upper())
+  fs:SetTextColor(C.text[1], C.text[2], C.text[3])
 
   local badge
   if newFeature then
-    badge = UI.CreateNewFeatureBadge(
-      frame,
-      UI.NewFeatureBadge.contentAtlas,
-      UI.NewFeatureBadge.headerMaxH or UI.NewFeatureBadge.contentMaxH
-    )
+    badge = UI.CreateNewFeatureBadge(frame)
     UI.PlaceNewFeatureBadge(badge, fs, nil, nil, UI.NewFeatureBadge.headerGap)
   end
 
-  local line = frame:CreateTexture(nil, "ARTWORK")
-  line:SetColorTexture(1, 1, 1, 0.07)
-  line:SetHeight(1)
-  line:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
-  line:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+  if atlasInfo then
+    local rule = frame:CreateTexture(nil, "ARTWORK")
+    rule:SetAtlas(HEADER_RULE_ATLAS, false)
+    rule:SetHeight(ruleH)
+    rule:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0)
+    rule:SetWidth(200)
+    headerRule = rule
+  else
+    local line = UI.CreateLine(frame, false, C.headerRule, "fade")
+    line:SetHeight(1)
+    line:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
+    line:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+  end
 
-  local control = { frame = frame, height = 26, label = fs, badge = badge }
+  local control = { frame = frame, height = headerH, label = fs, badge = badge }
   -- Re-seat the badge after layout width is known (string width is reliable then).
-  function control.SetWidthTo()
+  function control.SetWidthTo(width)
+    if headerRule and width and width > 0 then
+      headerRule:SetWidth(width * HEADER_RULE_WIDTH_FRAC)
+    end
     if badge then
       UI.PlaceNewFeatureBadge(badge, fs, nil, nil, UI.NewFeatureBadge.headerGap)
     end
@@ -2638,9 +2703,9 @@ function UI.MakeDescription(parent, textOrOpts)
   end
 
   local frame = CreateFrame("Frame", nil, parent)
-  local fs = UI.CreateFontString(frame, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
-  fs:SetPoint("TOPLEFT", frame, "TOPLEFT", 4, 0)
-  fs:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -4, 0)
+  local fs = UI.CreateFontString(frame, "OVERLAY", UI.Fonts.sectionDesc, "GameFontHighlightSmall")
+  fs:SetPoint("TOPLEFT", frame, "TOPLEFT", HEADER_PAD_X, 0)
+  fs:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -HEADER_PAD_X, 0)
   fs:SetJustifyH("LEFT")
   fs:SetWordWrap(true)
   local display = allowColors and text or UI.StripColors(text)
@@ -2650,7 +2715,8 @@ function UI.MakeDescription(parent, textOrOpts)
   local warningFs
   if warningText then
     -- Keep warning in the same description block so layout ITEM_GAP does not split the lines.
-    warningFs = UI.CreateFontString(frame, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
+    warningFs =
+      UI.CreateFontString(frame, "OVERLAY", UI.Fonts.sectionDesc, "GameFontHighlightSmall")
     warningFs:SetPoint("TOPLEFT", fs, "BOTTOMLEFT", 0, -2)
     warningFs:SetPoint("TOPRIGHT", fs, "BOTTOMRIGHT", 0, -2)
     warningFs:SetJustifyH("LEFT")
@@ -2689,17 +2755,29 @@ end
 --  Related: UI/Options/SpellMultiSelect.lua, UI/Options/MountMultiSelect.lua,
 --  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/Tabs/TabAutoCursorUnlock.lua
 ---------------------------------------------------------------------------------------
-local PILL_BOX_H = 76
-local PILL_H = 20
-local PILL_GAP = 4
-local PILL_PAD_X = 5
-local PILL_ICON_SIZE = 14
-local PILL_BOX_PAD = 6
+local PILL_BOX_H = 93
+local PILL_H = 24
+local PILL_GAP = 7
+local PILL_PAD_X = 6
+local PILL_ICON_SIZE = 18
+local PILL_TEXT_SIZE = UI.Fonts.input
+local PILL_BOX_PAD = 8
 local PILL_MAX_VISIBLE_ROWS = 8
 local PILL_SUGGEST_ITEM_H = 22
 local PILL_MENU_PAD = 4
 local PILL_BAR_GUTTER = 10
 local PILL_DEBOUNCE_S = 0.06
+
+--- Makes a spell / mount icon round: zooms in slightly (hides the icon's own square border)
+--- and clips it to a circle. Used by the chips in the list and by the suggestion menu rows.
+local function RoundIcon(host, icon, size)
+  icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  local mask = host:CreateMaskTexture()
+  local frac = UI.SetCircleMask(mask) or 1
+  mask:SetSize(size / frac, size / frac)
+  mask:SetPoint("CENTER", icon, "CENTER", 0, 0)
+  icon:AddMaskTexture(mask)
+end
 
 function UI.MakePillMultiSelect(parent, opts, resolver)
   local row = CreateFrame("Frame", nil, parent)
@@ -2715,18 +2793,18 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
 
   local box = CreateFrame("Frame", nil, row)
   box:SetHeight(PILL_BOX_H)
-  UI.StyleRounded(box, C.inputBg, C.cardBorder, UI.Radius.control)
+  UI.StyleField(box)
   box:EnableMouse(true)
   box:SetClipsChildren(true)
 
   -- ScrollFrame inside the fixed box for pill overflow, with the bar inset on the right
   -- (mirrors the multiline edit layout pattern).  Use the 5px bar thickness that
   -- CreateMultilineEditScroll uses.
-  local pillScroll, pillContent, pillBar = UI.CreateScrollFrame(box, 5)
+  local pillScroll, pillContent, pillBar = UI.CreateScrollFrame(box)
   pillScroll:SetPoint("TOPLEFT", box, "TOPLEFT", 8, -6)
-  pillScroll:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -12, 6)
-  pillBar:SetPoint("TOPRIGHT", box, "TOPRIGHT", -4, -6)
-  pillBar:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -4, 6)
+  pillScroll:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -18, 6)
+  pillBar:SetPoint("TOPRIGHT", box, "TOPRIGHT", -6, -8)
+  pillBar:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -6, 8)
 
   local control = {
     frame = row,
@@ -2750,7 +2828,7 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
   edit:SetAutoFocus(false)
   edit:SetHeight(PILL_H)
   UI.SetEditBoxFont(edit)
-  edit:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+  edit:SetTextColor(C.text[1], C.text[2], C.text[3])
   edit:SetTextInsets(2, 2, 0, 0)
   if edit.SetPlaceholderText then
     edit:SetPlaceholderText(resolver.placeholder)
@@ -2898,23 +2976,26 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
       return pill
     end
     pill = CreateFrame("Frame", nil, pillContent)
-    UI.StyleRounded(pill, C.trackOff, C.cardBorder, UI.Radius.control)
+    -- Fully rounded chip: corner radius is half the chip height.
+    UI.StyleControl(pill, nil, PILL_H / 2)
     pill:SetHeight(PILL_H)
 
     local icon = pill:CreateTexture(nil, "ARTWORK")
     icon:SetSize(PILL_ICON_SIZE, PILL_ICON_SIZE)
-    icon:SetPoint("LEFT", pill, "LEFT", PILL_PAD_X, 0)
+    -- Concentric with the rounded end: the gap to the left edge matches the gap above/below.
+    icon:SetPoint("LEFT", pill, "LEFT", (PILL_H - PILL_ICON_SIZE) / 2, 0)
+    RoundIcon(pill, icon, PILL_ICON_SIZE)
     pill.icon = icon
 
-    local text = UI.CreateFontString(pill, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
+    local text = UI.CreateFontString(pill, "OVERLAY", PILL_TEXT_SIZE, "GameFontHighlightSmall")
     text:SetJustifyH("LEFT")
     text:SetTextColor(C.text[1], C.text[2], C.text[3])
     pill.text = text
 
     local remove = CreateFrame("Button", nil, pill)
-    remove:SetSize(12, 12)
-    remove:SetPoint("RIGHT", pill, "RIGHT", -3, 0)
-    local rx = UI.CreateFontString(remove, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
+    remove:SetSize(14, 14)
+    remove:SetPoint("RIGHT", pill, "RIGHT", -5, 0)
+    local rx = UI.CreateFontString(remove, "OVERLAY", PILL_TEXT_SIZE, "GameFontHighlightSmall")
     rx:SetAllPoints()
     rx:SetJustifyH("CENTER")
     rx:SetText("×")
@@ -3002,7 +3083,7 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
     suggestMenu:SetFrameStrata("FULLSCREEN_DIALOG")
     suggestMenu:SetFrameLevel(suggestCloser:GetFrameLevel() + 10)
     suggestMenu:SetToplevel(true)
-    UI.StyleRounded(suggestMenu, C.windowBg, C.windowBorder, UI.Radius.window)
+    UI.StylePopup(suggestMenu)
     suggestMenu:Hide()
     suggestMenu:EnableMouse(true)
     suggestMenu:SetScript("OnHide", function()
@@ -3040,22 +3121,20 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
     suggestMenu.bar:ClearAllPoints()
     suggestMenu.bar:SetPoint("TOP", suggestMenu.scroll, "TOP", 0, 0)
     suggestMenu.bar:SetPoint("BOTTOM", suggestMenu.scroll, "BOTTOM", 0, 0)
-    suggestMenu.bar:SetPoint("LEFT", suggestMenu.scroll, "RIGHT", 2, 0)
+    suggestMenu.bar:SetPoint("RIGHT", suggestMenu, "RIGHT", -5, 0)
+    SetMenuBarActive(suggestMenu.bar, needsBar)
 
     for i = 1, shown do
       local item = suggestItems[i]
       if not item then
         item = CreateFrame("Button", nil, suggestMenu.content)
         item:SetHeight(PILL_SUGGEST_ITEM_H)
-        local hl = item:CreateTexture(nil, "BACKGROUND")
-        hl:SetAllPoints(item)
-        hl:SetColorTexture(1, 1, 1, 0.09)
-        hl:Hide()
-        item.hl = hl
+        item.hl = UI.CreateRoundedHover(item, item)
         item.icon = item:CreateTexture(nil, "ARTWORK")
         item.icon:SetSize(PILL_ICON_SIZE, PILL_ICON_SIZE)
         item.icon:SetPoint("LEFT", item, "LEFT", 6, 0)
-        item.text = UI.CreateFontString(item, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmall")
+        RoundIcon(item, item.icon, PILL_ICON_SIZE)
+        item.text = UI.CreateFontString(item, "OVERLAY", UI.Fonts.button, "GameFontHighlightSmall")
         item.text:SetPoint("LEFT", item.icon, "RIGHT", 6, 0)
         item.text:SetPoint("RIGHT", item, "RIGHT", -6, 0)
         item.text:SetJustifyH("LEFT")

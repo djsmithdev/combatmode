@@ -6,7 +6,7 @@
 --  appearance select values and reaction color tables the Crosshair tab and runtime read.
 --  Architecture / how it works:
 --    • `PopupMsg` / `BasePrintMsg` — welcome modal + print prefix (version from METADATA).
---  • Logo/Title BLPs, Discord/GitHub/Sponsor icons + community URLs, AssistedSpellIcon*,
+--  • Logo/Title BLPs, window shadow TGA, Discord/GitHub/Sponsor icons + community URLs, AssistedSpellIcon*,
 --      ModifierKey{Ctrl,Shift,Alt} BLPs under Interface\AddOns\CombatMode\assets\.
 --    • CrosshairTextureObj entries pair active/inactive BLPs; AppearanceSelectValues
 --      drives the Crosshair options dropdown. CrosshairSituationalHidden is the
@@ -27,11 +27,27 @@ local _G = _G
 local ipairs = _G.ipairs
 
 -- Body only: the welcome modal (CM.UI.ShowWelcome) draws the wordmark header itself.
--- Slash commands keep inline color: blue for options (/cm, /combatmode).
-CM.Constants.PopupMsg = "Welcome to Combat Mode!\n\n"
+-- Slash commands keep inline color: blue for options (/acm, /actioncombatmode).
+CM.Constants.PopupMsg = "Welcome to Action Combat Mode!\n\n"
   .. "The configuration panel will open after you close this message.\n\n"
-  .. "You can reopen it anytime with |cff69ccf0/cm|r or |cff69ccf0/combatmode|r.\n\n"
+  .. "You can reopen it anytime with |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r.\n\n"
   .. "|cff909090To restore your previous settings, use the |cffff5555Uninstall|r button in the options panel.|r\n\n"
+
+-- Key Bindings screen labels. The binding names in Bindings.xml ("Combat Mode - ...") are IDs the
+-- client stores players' key assignments under (and the code looks up by that exact string), so
+-- they stay as they are; these globals only change the text shown for them.
+local BINDING_DISPLAY_NAMES = {
+  "Mouse Look",
+  "Reset Mouse Look",
+  "Ally Cycle Next",
+  "Ally Cycle Previous",
+  "Toggle Focus Target",
+  "Cycle Focus Next",
+  "Cycle Focus Previous",
+}
+for _, label in ipairs(BINDING_DISPLAY_NAMES) do
+  _G["BINDING_NAME_Combat Mode - " .. label] = "Action Combat Mode - " .. label
+end
 
 CM.Constants.BasePrintMsg = CM.METADATA["TITLE"]
   .. " |cff00ff00v."
@@ -41,6 +57,17 @@ CM.Constants.BasePrintMsg = CM.METADATA["TITLE"]
 local assetsFolderPath = "Interface\\AddOns\\CombatMode\\assets\\"
 CM.Constants.Logo = assetsFolderPath .. "cmlogo.blp"
 CM.Constants.Title = assetsFolderPath .. "cmtitle.blp"
+-- The title art is stored squashed in the 256x64 texture canvas (with empty space above and
+-- below the lettering), so it must be displayed at this aspect, not the file's 4:1. 2.1 was
+-- measured from the in-game render against the mockup (2.7 looked stretched sideways).
+-- Use CM.Constants.TitleSize(height) wherever the title is drawn.
+CM.Constants.TitleAspect = 2.1
+function CM.Constants.TitleSize(height)
+  return math.floor(height * CM.Constants.TitleAspect + 0.5), height
+end
+-- Soft window drop shadow: 128x128 TGA, a blurred rounded box (box 48..80, radius 10) sliced as
+-- 9 pieces by UI.AddWindowShadow.
+CM.Constants.Shadow = assetsFolderPath .. "shadow.tga"
 CM.Constants.DiscordIcon = assetsFolderPath .. "discord.blp"
 CM.Constants.GitHubIcon = assetsFolderPath .. "github.blp"
 CM.Constants.SponsorIcon = assetsFolderPath .. "sponsor.blp"

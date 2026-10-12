@@ -229,7 +229,7 @@ UI.Options.AddTab({
 
     ctx:Toggle({
       label = "Motion Sickness Protection",
-      desc = "Prevents Combat Mode from overriding Blizzard's Motion Sickness settings.",
+      desc = "Prevents Action Combat Mode from overriding Blizzard's Motion Sickness settings.",
       -- Delegated with the rest of the camera: SteadyCam has the same option.
       watermarkWhenDisabled = CameraFeatureWatermark,
       disabled = function()

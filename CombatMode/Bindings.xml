@@ -1,25 +1,25 @@
 <Bindings>
-	<Binding name="Combat Mode - Mouse Look" description="Tap to toggle, hold to temporarily switch" header="Combat Mode - Mouse Look" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t" runOnUp="true">
+	<Binding name="Combat Mode - Mouse Look" description="Tap to toggle, hold to temporarily switch" header="Action Combat Mode - Mouse Look" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:26:55|t" runOnUp="true">
 		if keystate == "down" or keystate == "up" then
 			CombatMode_CursorModeKey(keystate)
 		end
 	</Binding>
-	<Binding name="Combat Mode - Reset Mouse Look" description="Recover the cursor if it gets stuck after switching windows (re-grabs and releases Mouse Look)" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
+	<Binding name="Combat Mode - Reset Mouse Look" description="Recover the cursor if it gets stuck after switching windows (re-grabs and releases Mouse Look)" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:26:55|t">
 		CombatMode_ResetMouseLook()
 	</Binding>
-	<Binding name="Combat Mode - Ally Cycle Next" description="Cycle to the next group member" header="Ally Cycle" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
+	<Binding name="Combat Mode - Ally Cycle Next" description="Cycle to the next group member" header="Ally Cycle" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:26:55|t">
 		CombatMode_AllyCycleUp()
 	</Binding>
-	<Binding name="Combat Mode - Ally Cycle Previous" description="Cycle to the previous group member" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
+	<Binding name="Combat Mode - Ally Cycle Previous" description="Cycle to the previous group member" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:26:55|t">
 		CombatMode_AllyCycleDown()
 	</Binding>
-	<Binding name="Combat Mode - Toggle Focus Target" description="Tap to focus target, tap again to clear focus" header="Reticle Targeting" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
+	<Binding name="Combat Mode - Toggle Focus Target" description="Tap to focus target, tap again to clear focus" header="Reticle Targeting" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:26:55|t">
 		CombatMode_ToggleFocusTarget()
 	</Binding>
-	<Binding name="Combat Mode - Cycle Focus Next" description="Cycle Target Lock to the next nearby enemy" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
+	<Binding name="Combat Mode - Cycle Focus Next" description="Cycle Target Lock to the next nearby enemy" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:26:55|t">
 		CombatMode_CycleFocusNext()
 	</Binding>
-	<Binding name="Combat Mode - Cycle Focus Previous" description="Cycle Target Lock to the previous nearby enemy" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:22:95|t">
+	<Binding name="Combat Mode - Cycle Focus Previous" description="Cycle Target Lock to the previous nearby enemy" category="|A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:26:55|t">
 		CombatMode_CycleFocusPrevious()
 	</Binding>
 </Bindings>

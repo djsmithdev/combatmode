@@ -40,6 +40,8 @@ Editor.modifiedBy = Editor.modifiedBy or {}
 local reticleCVarSeenFromHook = {}
 local pendingExternalUpdate = {}
 local refreshQueued = false
+-- Own fixed height; independent of the Prelines editor (which sizes itself to its content).
+local EDITOR_H = 400
 
 local function IsIgnoredSource(source)
   local normalized = strlower(source or "")
@@ -55,9 +57,9 @@ local function FormatModifiedBy(source, lineNum)
   local normalized = strlower(source or "")
   if strfind(normalized, "[\\/]combatmode[\\/]") then
     if strfind(normalized, "reticlecvareditor") then
-      return "Combat Mode (Reticle CVar Editor)"
+      return "Action Combat Mode (Reticle CVar Editor)"
     end
-    return "Combat Mode"
+    return "Action Combat Mode"
   end
   return source .. ":" .. lineNum
 end
@@ -101,7 +103,7 @@ local function TraceCVarSource(cvar)
     Editor.modifiedBy[key] = FormatModifiedBy(source, lineNum)
   else
     -- Hook fired with only ignored frames (CM.SetCVar path fully inside Combat Mode).
-    Editor.modifiedBy[key] = "Combat Mode"
+    Editor.modifiedBy[key] = "Action Combat Mode"
   end
   reticleCVarSeenFromHook[key] = true
 end
@@ -138,7 +140,7 @@ end
 local function BuildListFrame(parent, width, height)
   local frame = CreateFrame("Frame", nil, parent)
   frame:SetSize(width, height)
-  UI.StyleRounded(frame, C.inputBg, C.cardBorder, UI.Radius.card)
+  UI.StyleField(frame)
   frame:SetFrameStrata(parent:GetFrameStrata())
   frame:SetFrameLevel(parent:GetFrameLevel() + 2)
   frame.itemHeight = 18
@@ -186,7 +188,7 @@ local function BuildListFrame(parent, width, height)
     local fs = button:GetFontString()
     fs:SetAllPoints()
     fs:SetJustifyH(col[3])
-    UI.SetFontSize(fs, UI.Fonts.base, "GameFontHighlightSmallLeft")
+    UI.SetFontSize(fs, UI.Fonts.input, "GameFontHighlightSmallLeft")
     fs:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
     button:SetScript("OnClick", function()
       if frame.sortColumn == index then
@@ -203,8 +205,8 @@ local function BuildListFrame(parent, width, height)
   frame.headerButtons = headerButtons
 
   local scrollbar = UI.CreateVerticalSlider(frame)
-  scrollbar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -5, -6)
-  scrollbar:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -5, 6)
+  scrollbar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, -6)
+  scrollbar:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -6, 6)
   scrollbar:SetMinMaxValues(0, 0)
   scrollbar:SetValueStep(1)
   frame.scrollbar = scrollbar
@@ -324,16 +326,13 @@ local function BuildListFrame(parent, width, height)
       row:SetPoint("TOPLEFT", frame.rows[rowIndex - 1], "BOTTOMLEFT", 0, 0)
     end
 
-    local bg = row:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetColorTexture(1, 1, 1, 0.1)
-    bg:Hide()
-    row.bg = bg
+    row.bg = UI.CreateRoundedHover(row, row)
 
     row.cols = {}
     local xOffset = 0
     for colIndex, col in ipairs(cols) do
-      local fs = UI.CreateFontString(row, "OVERLAY", UI.Fonts.base, "GameFontHighlightSmallLeft")
+      local fs = UI.CreateFontString(row, "OVERLAY", UI.Fonts.input, "GameFontHighlightSmallLeft")
+      fs:SetTextColor(C.text[1], C.text[2], C.text[3])
       fs:SetPoint("LEFT", xOffset, 0)
       fs:SetWidth(col[2])
       fs:SetWordWrap(false)
@@ -513,11 +512,12 @@ function CM.OpenReticleTargetingCVarEditor()
       "CombatModeReticleCVarEditor",
       CM.METADATA["TITLE"] .. " - Reticle Targeting CVar Editor",
       735,
-      UI.GetSecondaryEditorHeight()
+      EDITOR_H
     )
     frame:Hide()
 
-    local subtitle = UI.CreateFontString(frame, "ARTWORK", UI.Fonts.base, "GameFontHighlight")
+    local subtitle =
+      UI.CreateFontString(frame, "ARTWORK", UI.Fonts.sectionDesc, "GameFontHighlight")
     subtitle:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -44)
     subtitle:SetPoint("RIGHT", frame, "RIGHT", -40, 0)
     subtitle:SetJustifyH("LEFT")
@@ -529,13 +529,13 @@ function CM.OpenReticleTargetingCVarEditor()
     local filterBox = CreateFrame("EditBox", nil, frame)
     filterBox:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 0, -12)
     filterBox:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
-    filterBox:SetHeight(24)
+    filterBox:SetHeight(UI.Sizes.search)
     filterBox:SetAutoFocus(false)
     UI.SetEditBoxFont(filterBox)
-    filterBox:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
-    filterBox:SetTextInsets(8, 8, 0, 0)
+    filterBox:SetTextColor(C.text[1], C.text[2], C.text[3])
+    filterBox:SetTextInsets(28, 8, 0, 0)
     filterBox:SetMaxLetters(120)
-    UI.StyleRounded(filterBox, C.inputBg, C.cardBorder, UI.Radius.control)
+    UI.StyleSearchBox(filterBox)
     filterBox:SetScript("OnEscapePressed", function(self)
       self:ClearFocus()
     end)
@@ -548,7 +548,7 @@ function CM.OpenReticleTargetingCVarEditor()
 
     local listFrame = BuildListFrame(frame, 700, 300)
     listFrame:SetPoint("TOP", filterBox, "BOTTOM", 0, -28)
-    listFrame:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 46)
+    listFrame:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 60)
 
     local resetControl = UI.MakeButton(frame, {
       label = "Reset to Defaults",
@@ -586,10 +586,10 @@ function CM.OpenReticleTargetingCVarEditor()
     inlineInput:SetSize(60, 20)
     inlineInput:SetAutoFocus(false)
     UI.SetEditBoxFont(inlineInput)
-    inlineInput:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+    inlineInput:SetTextColor(C.text[1], C.text[2], C.text[3])
     inlineInput:SetJustifyH("RIGHT")
     inlineInput:SetTextInsets(5, 8, 0, 0)
-    UI.StyleRounded(inlineInput, C.inputBg, C.accent, UI.Radius.control)
+    UI.StyleField(inlineInput)
     inlineInput:Hide()
     inlineInput:SetScript("OnEscapePressed", function(self)
       self:ClearFocus()
@@ -622,7 +622,7 @@ function CM.OpenReticleTargetingCVarEditor()
     Editor.inlineBlocker = blocker
   end
 
-  Editor.frame:SetHeight(UI.GetSecondaryEditorHeight())
+  Editor.frame:SetHeight(EDITOR_H)
   Editor.frame:Show()
   Editor.frame:Raise()
 

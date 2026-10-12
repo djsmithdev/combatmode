@@ -63,6 +63,7 @@ if inCombat then
 return false
 ]],
       multiline = 5,
+      lua = true,
       helpUrl = API_DOCS_URL,
       get = function()
         return CM.DB.global.customLockCondition
@@ -94,6 +95,7 @@ if standingStill and not onMount then
 return false
 ]],
       multiline = 5,
+      lua = true,
       helpUrl = API_DOCS_URL,
       get = function()
         return CM.DB.global.customCondition
@@ -153,6 +155,7 @@ if deadOrGhost then
 return false
 ]],
       multiline = 5,
+      lua = true,
       helpUrl = API_DOCS_URL,
       get = function()
         return CM.DB.global.crosshairSituationalCondition
@@ -173,7 +176,7 @@ return false
     ctx:Gap()
     ctx:Header("RETICLE TARGETING")
     ctx:Description({
-      text = "Modify Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines.",
+      text = "Modify Action Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines.",
       warning = "Warning: editing these values could break Reticle Targeting and Target Lock.",
     })
     ctx:ButtonRow({

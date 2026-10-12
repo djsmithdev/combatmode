@@ -2,7 +2,7 @@
 --  Core/Runtime/Runtime.lua — RUNTIME — addon shell, DB, slash, OnUpdate
 ---------------------------------------------------------------------------------------
 --  What it does: Receives the AddOn namespace (`local addonName, CM = ...`), optional
---  `_G.CM` alias, TOC METADATA, native CombatModeDB merge, slash `/cm` `/combatmode`,
+--  `_G.CM` alias, TOC METADATA, native CombatModeDB merge, slash `/acm` `/actioncombatmode`,
 --  lifecycle (ADDON_LOADED / PLAYER_LOGIN → OnInitialize / OnEnable), Rematch
 --  coordination, throttled CombatMode_OnUpdate (free-look + crosshair reaction),
 --  welcome/changelog scheduling, and UninstallCombatMode.
@@ -325,7 +325,7 @@ function CM.InitDatabase()
 end
 
 function CM:OnResetDB()
-  CM.DebugPrint("Reseting Combat Mode settings.")
+  CM.DebugPrint("Reseting Action Combat Mode settings.")
   local defaults = CM.Constants.DatabaseDefaults
   local sv = _G.CombatModeDB or {}
 
@@ -488,8 +488,8 @@ function CM:OpenConfigCMD()
 end
 
 local function RegisterSlashCommands()
-  _G.SLASH_COMBATMODE1 = "/cm"
-  _G.SLASH_COMBATMODE2 = "/combatmode"
+  _G.SLASH_COMBATMODE1 = "/acm"
+  _G.SLASH_COMBATMODE2 = "/actioncombatmode"
   _G.SlashCmdList["COMBATMODE"] = function()
     CM:OpenConfigCMD()
   end
@@ -533,7 +533,7 @@ function CM:OnEnable()
   if not CM.DB.global.silenceAlerts then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: Type |cff69ccf0/cm|r or |cff69ccf0/combatmode|r for settings.|r"
+        .. "|cff909090: Type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r for settings.|r"
     )
   end
 

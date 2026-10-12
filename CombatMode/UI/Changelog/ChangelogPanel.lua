@@ -31,10 +31,12 @@ local C = UI.Colors
 
 local SIDEBAR_W = 118
 local WINDOW_W, WINDOW_H = 660, 460
-local NAV_BTN_H = 28
+local NAV_BTN_H = 32
 local NAV_BTN_GAP = 4
 local SECTION_GAP = 10
 local CONTENT_PAD_TOP = 8
+local CONTENT_PAD_BOTTOM = 24 -- space under the last entry, inside the scrolling content
+local BAR_PAD_Y = 10 -- gap above / below the scroll bars so they clear the frame
 
 local changelogFrame
 
@@ -45,12 +47,12 @@ local changelogFrame
 -- so emphasis uses UI |cff…|r escapes. Markdown links become <a href>; Keep a Changelog
 -- [Unreleased] section and compare-link definitions at the file footer are skipped in-game.
 local H3_SUBSECTION_COLORS = {
-  added = "|cffb4b4b4",
-  changed = "|cffb4b4b4",
-  fixed = "|cffb4b4b4",
-  removed = "|cffb4b4b4",
-  deprecated = "|cffb4b4b4",
-  security = "|cffb4b4b4",
+  added = "|cff9c968c",
+  changed = "|cff9c968c",
+  fixed = "|cff9c968c",
+  removed = "|cff9c968c",
+  deprecated = "|cff9c968c",
+  security = "|cff9c968c",
 }
 
 -- Emphasized inline text (e.g. **Breaking:**) — must contrast with body grey (white |cff is invisible).
@@ -305,12 +307,34 @@ local function ChangelogMarkdownToParts(md)
   return WrapHtml(preambleParts), sections
 end
 
+-- Changelog text follows the shared type scale (UI.Fonts) instead of Blizzard's default
+-- sizes: headings use header / base, body copy uses the input size.
+local changelogFonts = {}
+
+local function SizedFont(key, template, size)
+  local font = changelogFonts[key]
+  if not font then
+    font = _G.CreateFont("CombatModeChangelogFont" .. key)
+    changelogFonts[key] = font
+  end
+  font:CopyFontObject(template)
+  local path, _, flags = template:GetFont()
+  if path then
+    font:SetFont(path, size, flags or "")
+  end
+  return font
+end
+
 local function ApplySimpleHtmlFonts(body)
-  local h2Font = _G.GameFontHighlightMedium or _G.GameFontHighlight
-  body:SetFontObject("h1", _G.GameFontNormalLarge)
-  body:SetFontObject("h2", h2Font)
-  body:SetFontObject("h3", _G.GameFontHighlight)
-  body:SetFontObject("p", _G.GameFontHighlightSmall)
+  local h2Template = _G.GameFontHighlightMedium or _G.GameFontHighlight
+  body:SetFontObject("h1", SizedFont("H1", _G.GameFontNormalLarge, UI.Fonts.header))
+  body:SetFontObject("h2", SizedFont("H2", h2Template, UI.Fonts.base))
+  body:SetFontObject("h3", SizedFont("H3", _G.GameFontHighlight, UI.Fonts.base))
+  body:SetFontObject("p", SizedFont("P", _G.GameFontHighlightSmall, UI.Fonts.input))
+  -- Theme ramp: cream titles/body, accent version headings (markup), muted subsection labels.
+  body:SetTextColor("h1", C.text[1], C.text[2], C.text[3])
+  body:SetTextColor("h3", C.textDim[1], C.textDim[2], C.textDim[3])
+  body:SetTextColor("p", C.text[1], C.text[2], C.text[3])
 end
 
 local function WireSimpleHtmlLinks(body)
@@ -354,14 +378,7 @@ local function HideExtraBlocks(pool, used)
 end
 
 local function SetNavButtonSelected(button, selected)
-  button.selected = selected
-  if selected then
-    button:cmSetFill(C.tabActive[1], C.tabActive[2], C.tabActive[3], C.tabActive[4])
-    button.label:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
-  else
-    button:cmSetFill(0, 0, 0, 0)
-    button.label:SetTextColor(0.56, 0.56, 0.56)
-  end
+  button:cmSetTabSelected(selected)
 end
 
 local function SelectVersion(index, instant)
@@ -445,12 +462,12 @@ local function RebuildNavButtons(frame, sections)
     local button = CreateFrame("Button", nil, navChild)
     button:SetSize(btnW, NAV_BTN_H)
     button:SetPoint("TOPLEFT", navChild, "TOPLEFT", 0, -y)
-    UI.StyleRounded(button, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, UI.Radius.control)
 
     local label = UI.CreateFontString(button, "OVERLAY", UI.Fonts.nav, "GameFontNormal")
-    label:SetPoint("LEFT", button, "LEFT", 10, 0)
+    label:SetPoint("LEFT", button, "LEFT", 18, 0)
     label:SetText(sec.version or "")
     button.label = label
+    UI.StyleTab(button, label, 14)
     SetNavButtonSelected(button, false)
 
     button:SetScript("OnClick", function()
@@ -462,18 +479,12 @@ local function RebuildNavButtons(frame, sections)
         end
       end)
     end)
-    button:SetScript("OnEnter", function(self)
-      if not self.selected then
-        self:cmSetFill(C.tabHover[1], C.tabHover[2], C.tabHover[3], C.tabHover[4])
-      end
+    button:HookScript("OnEnter", function(self)
       if sec.date and sec.date ~= "" then
         UI.ShowTooltip(self, sec.date, "ANCHOR_RIGHT")
       end
     end)
-    button:SetScript("OnLeave", function(self)
-      if not self.selected then
-        self:cmSetFill(0, 0, 0, 0)
-      end
+    button:HookScript("OnLeave", function()
       UI.HideTooltip()
     end)
 
@@ -481,7 +492,7 @@ local function RebuildNavButtons(frame, sections)
     y = y + NAV_BTN_H + NAV_BTN_GAP
   end
   navChild:SetWidth(btnW)
-  navChild:SetHeight(math.max(y - NAV_BTN_GAP, 1))
+  navChild:SetHeight(math.max(y - NAV_BTN_GAP + CONTENT_PAD_BOTTOM, 1))
   if frame.navScroll.cmUpdate then
     frame.navScroll.cmUpdate()
   end
@@ -541,7 +552,7 @@ local function LayoutChangelogContent()
     cursorY = cursorY - SECTION_GAP
   end
   scrollChild:SetWidth(sw)
-  scrollChild:SetHeight(math.max(cursorY + CONTENT_PAD_TOP, scroll:GetHeight()))
+  scrollChild:SetHeight(math.max(cursorY + CONTENT_PAD_BOTTOM, scroll:GetHeight()))
   frame.versionOffsets = offsets
 
   local keep = frame.selectedVersion
@@ -569,29 +580,25 @@ local function EnsureChangelogFrame()
   frame:SetFrameLevel(200)
   frame:Hide()
 
-  local divider = frame:CreateTexture(nil, "ARTWORK")
-  divider:SetColorTexture(1, 1, 1, 0.06)
+  local divider = UI.CreateLine(frame, true, C.divider, "ends")
   divider:SetWidth(1)
   divider:SetPoint("TOPLEFT", frame, "TOPLEFT", SIDEBAR_W - 4, -40)
   divider:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", SIDEBAR_W - 4, 12)
 
-  local versionHeader = UI.MakeHeader(frame, "Version")
-  versionHeader.frame:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -40)
-  versionHeader.frame:SetWidth(SIDEBAR_W - 24)
-
   local navScroll, navChild = UI.CreateScrollFrame(frame)
-  navScroll:SetPoint("TOPLEFT", versionHeader.frame, "BOTTOMLEFT", 0, -6)
-  navScroll:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 12, 14)
+  navScroll:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -44)
+  navScroll:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 12, 0)
   navScroll:SetWidth(SIDEBAR_W - 20)
-  navScroll.cmScrollBar:SetPoint("TOPLEFT", navScroll, "TOPRIGHT", 2, 0)
-  navScroll.cmScrollBar:SetPoint("BOTTOMLEFT", navScroll, "BOTTOMRIGHT", 2, 0)
+  navScroll.cmScrollBar:SetPoint("TOPLEFT", navScroll, "TOPRIGHT", 2, -BAR_PAD_Y)
+  navScroll.cmScrollBar:SetPoint("BOTTOMLEFT", navScroll, "BOTTOMRIGHT", 2, BAR_PAD_Y)
   navChild:SetWidth(SIDEBAR_W - 24)
 
   local scroll, scrollChild = UI.CreateScrollFrame(frame)
   scroll:SetPoint("TOPLEFT", frame, "TOPLEFT", SIDEBAR_W, -40)
-  scroll:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -24, 14)
-  scroll.cmScrollBar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 6, 0)
-  scroll.cmScrollBar:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", 6, 0)
+  scroll:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -24, 0)
+  scroll.cmScrollBar:SetPoint("TOP", scroll, "TOP", 0, -BAR_PAD_Y)
+  scroll.cmScrollBar:SetPoint("BOTTOM", scroll, "BOTTOM", 0, BAR_PAD_Y)
+  scroll.cmScrollBar:SetPoint("RIGHT", frame, "RIGHT", -6, 0)
   scrollChild:SetWidth(1)
 
   scroll:HookScript("OnVerticalScroll", function()

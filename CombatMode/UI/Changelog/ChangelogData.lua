@@ -14,6 +14,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2026-10-13
+
+### Added
+
+- **Search** in the options window header. It starts as a magnifier button and expands when clicked. Type to find options by name, description, section or tab; picking a result switches to its tab, scrolls to it and highlights it. Searching a section (such as **Force Lock**) or a tab lists everything inside it and highlights the whole section. Up, Down and Enter work too.
+- The **version number** in the header is now a button that opens the changelog.
+- Dropdowns open in place, as an expanded version of the select, with a search box on long lists.
+- Lua syntax highlighting and auto-indent in the custom code blocks, including their placeholder code.
+- Spell and mount list suggestions now have round icons.
+
+### Changed
+
+- **Breaking:** Combat Mode is now **Action Combat Mode**. The slash commands are now `/acm` and `/actioncombatmode`; `/cm` and `/combatmode` no longer work. Key binding assignments are unaffected.
+- New look for the whole options window and its editors, dialogs and changelog: copper accent, dark gradient panels, a metal frame with a drop shadow, new background art, a branded header with the logo, and consistent buttons, toggles, sliders, inputs and scroll bars.
+- Click Casting hides the Macro Name field until the action is set to Run Macro.
+- The Changelog button moved out of the sidebar (use the version number).
+- Switching tabs is instant.
+
+### Removed
+
+- The Changelog button in the options sidebar.
+
 ## [4.8.2] - 2026-10-03
 
 ### Added
@@ -580,7 +602,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/4.8.2...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.0.0...HEAD
+[5.0.0]: https://github.com/djsmithdev/combatmode/compare/4.8.2...5.0.0
 [4.8.2]: https://github.com/djsmithdev/combatmode/compare/4.8.1...4.8.2
 [4.8.1]: https://github.com/djsmithdev/combatmode/compare/4.8.0...4.8.1
 [4.8.0]: https://github.com/djsmithdev/combatmode/compare/4.7.6...4.8.0
