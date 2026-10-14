@@ -164,8 +164,17 @@ local function DisplayPopup()
     CM.DebugPrint("Showing first-install welcome modal")
     CM.UI.ShowWelcome(CM.Constants.PopupMsg, function()
       CM.DB.char.seenWarning = true
-      OpenConfigPanel()
-      ScheduleChangelogIfNewVersion()
+      -- New installs go through the setup wizard (it opens the options panel for its tour);
+      -- if it is unavailable fall back to just opening the panel.
+      if CM.Wizard and CM.Wizard.Start and (not CM.DB.char.seenWizard or debugMode) then
+        -- A new install (or reset) has nothing to catch up on, so the changelog stays out of
+        -- the wizard's way: count this version as seen instead of opening it beside the tour.
+        CM.DB.global.lastSeenChangelogVersion = CM.METADATA["VERSION"]
+        CM.Wizard.Start()
+      else
+        OpenConfigPanel()
+        ScheduleChangelogIfNewVersion()
+      end
     end)
   end)
   return true

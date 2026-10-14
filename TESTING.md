@@ -10,6 +10,13 @@ Use this checklist for feature work and regressions.
 - If testing bindings, verify keybinds are set as expected.
 - For API-sensitive changes, verify WoW API/event signatures via MCP tools first (or manual fallback in `RELEASE.md`).
 
+## Setup wizard
+- New character (or Debug Mode on, then `/reload`): welcome popup → OKAY opens the options window and starts the tour (Mouse Look section, Camera Features, then one whole section per step in tab order: Crosshair, Interaction HUD, Combat Assist, Reticle Targeting, Target Lock, Click Casting, Auto Unlock, Ally Cycle, Ally HUD, and the four Advanced sections).
+- Each step scrolls to its setting or section, dims the rest of the screen (the cut-out stays inside the tab's visible area for tall sections), outlines it and shows a balloon (on screen, readable). The highlighted setting is fully usable: setting a keybind there matches the tab afterwards.
+- Back / Next / Skip tour / ESC work; Finish ends it. Switching tabs by hand hides the dim until the next step.
+- Cog left of the version chip: tooltip, confirm dialog, Yes restarts the tour, No does nothing. Version chip and search box still lay out correctly.
+- Starting in combat waits for combat to end; entering combat mid-tour ends it. Existing characters (`seenWarning` set) are not prompted.
+
 ## Core and mouselook
 
 - Toggle CombatMode on/off and verify mouselook enters/exits correctly.

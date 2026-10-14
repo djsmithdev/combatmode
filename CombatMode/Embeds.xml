@@ -65,6 +65,9 @@
     <Script file="UI\Options\Tabs\TabAutoCursorUnlock.lua"/>
     <Script file="UI\Options\Tabs\TabAllyCycle.lua"/>
     <Script file="UI\Options\Tabs\TabAdvanced.lua"/>
+    <!-- WIZARD: first-run setup pages + guided tour (needs the tabs' Binds and the options toolkit). -->
+    <Script file="UI\Wizard\Spotlight.lua"/>
+    <Script file="UI\Wizard\SetupWizard.lua"/>
     <!-- CHANGELOG: in-game viewer. ChangelogNamespace first (defines CM.Config);
          panel uses the OPTIONS UI toolkit loaded above. -->
     <Script file="UI\Changelog\ChangelogNamespace.lua"/>

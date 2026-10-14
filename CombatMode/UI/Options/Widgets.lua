@@ -189,11 +189,12 @@ local function AttachBrandedHeader(dialog, width, height)
   return header
 end
 
---- Neutral pill button matching UI.MakeButton, minus the layout row wrapper.
-local function CreateDialogButton(parent, label)
+--- Pill button matching UI.MakeButton, minus the layout row wrapper. `variant` is a UI.StyleControl
+--- variant ("primary" / "danger"); nil is the neutral look.
+local function CreateDialogButton(parent, label, variant)
   local button = CreateFrame("Button", nil, parent)
   button:SetSize(CONFIRM_BTN_W, CONFIRM_BTN_H)
-  UI.StyleControl(button)
+  UI.StyleControl(button, variant)
 
   local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.button, "GameFontNormal")
   text:SetPoint("CENTER")
@@ -202,6 +203,9 @@ local function CreateDialogButton(parent, label)
   button.text = text
   return button
 end
+
+-- Exposed so the setup wizard's windows can reuse the dialog button look.
+UI.CreateDialogButton = CreateDialogButton
 
 --- Builds the single reusable confirm window. The full-screen blocker underneath makes
 --- the dialog modal without dismissing it on an outside click, so the choice stays

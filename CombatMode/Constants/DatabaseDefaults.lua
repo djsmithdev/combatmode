@@ -165,6 +165,8 @@ return false
     debugMode = false,
   },
   char = {
+    -- setup wizard (UI/Wizard/SetupWizard.lua): set once it has been finished or skipped
+    seenWizard = false,
     -- mouse look camera
     shoulderOffset = 1.2,
     -- reticle targeting

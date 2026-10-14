@@ -39,6 +39,7 @@ CM.Constants.FramesToCheck = {
   "CombatModeConfirmDialog",
   "CombatModeWelcomeDialog",
   "CombatModeOptionsFrame",
+  "CombatModeSetupWizard",
   "CommunitiesFrame",
   "ContainerFrame1",
   "ContainerFrame2",

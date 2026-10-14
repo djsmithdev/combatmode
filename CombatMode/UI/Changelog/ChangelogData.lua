@@ -22,11 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Name suggestions** in the code blocks. Typing a name (or a `C_` / `Enum` member after the dot) lists matching WoW API names; pick one with Up / Down and Tab / Enter, or click it.
 - Blizzard API names in the code blocks are now highlighted in yellow so they stand out.
 - **Line numbers** on the left of the custom code blocks.
+- **Setup wizard.** On first install it now guides you through the options window: it scrolls to each major section (Mouse Look, Camera Features, Crosshair, Interaction HUD, Combat Assist, Reticle Targeting, Target Lock, Click Casting, Auto Unlock, Ally Cycle and Advanced), dims everything else and explains what it does, while you change settings right there. A new cog button between the version number and the search button runs it again.
 
 ### Changed
 
 - **Enemies Only** is now **Ignore Friendlies** (Reticle Targeting), including in the Targeting Macro Prelines editor. Your setting is kept.
 - The **General** tab is now **Mouse Look**. **Interact Keybind** and **Interact Unit** now sit right under the Mouse Look keybind, and **Turn Speed** moved to Camera Features, below Motion Sickness Protection.
+- The Target Lock keybind no longer says it follows Reticle Targeting settings. A red warning under **Target Lock** now explains that it uses your Focus Target, so anything else that sets your focus will interfere with it.
 
 ### Fixed
 

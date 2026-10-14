@@ -615,6 +615,70 @@ function Options.GetTabScroll(id)
   return tab and tab.scroll
 end
 
+--- Sidebar button of the tab with `id` (nil if unknown). Used by the setup wizard tour.
+function Options.GetTabButton(id)
+  local tab = FindTab(id)
+  return tab and tab.button
+end
+
+local FOCUS_SCROLL_PAD = 24
+
+--- Control registered on tab `tabId` labelled `label` (first control of the tab / group when
+--- `label` is nil or not found). Used by the setup wizard tour.
+function Options.FindControl(tabId, label, group)
+  local first
+  for _, control in ipairs(Options.controls) do
+    local search = control.search
+    if search and search.tab == tabId and (not group or search.group == group) then
+      first = first or control
+      if label and search.label == label then
+        return control
+      end
+    end
+  end
+  return first
+end
+
+--- Selects tab `tabId` (and Click Casting segment `group`), scrolls the control labelled
+--- `label` into view and returns its frame; falls back to the tab's sidebar button. Used by
+--- the setup wizard tour.
+function Options.FocusControl(tabId, label, group)
+  Options.SelectTabById(tabId)
+  local selectSegment = group and Options.segmentSelectors[tabId]
+  if selectSegment then
+    selectSegment(group)
+  end
+  local found = Options.FindControl(tabId, label, group)
+  if not found then
+    return Options.GetTabButton(tabId)
+  end
+  local tabScroll = Options.GetTabScroll(tabId)
+  local rowTop = found.frame:GetTop()
+  local contentTop = tabScroll and tabScroll:GetScrollChild():GetTop()
+  if tabScroll and rowTop and contentTop and tabScroll.cmScrollTo then
+    tabScroll.cmScrollTo(contentTop - rowTop - FOCUS_SCROLL_PAD, true)
+  end
+  return found.frame
+end
+
+--- Selects tab `tabId`, scrolls the section headed `label` (a ctx:Header title) to the top and
+--- returns { header frame, last frame of the section }, or nil. Used by the setup wizard tour.
+function Options.FocusSection(tabId, label)
+  Options.SelectTabById(tabId)
+  for _, section in ipairs(Options.sections) do
+    if section.tab == tabId and section.label == label then
+      local header = section.header.frame
+      local tabScroll = Options.GetTabScroll(tabId)
+      local headerTop = header:GetTop()
+      local contentTop = tabScroll and tabScroll:GetScrollChild():GetTop()
+      if tabScroll and headerTop and contentTop and tabScroll.cmScrollTo then
+        tabScroll.cmScrollTo(contentTop - headerTop - FOCUS_SCROLL_PAD, true)
+      end
+      return { header, section.lastFrame }
+    end
+  end
+end
+
 --- Segment bars (e.g. Click Casting modifiers) register a selector so search can switch
 --- to the segment that owns a result. `select(groupId)` must update the bar and content.
 Options.segmentSelectors = Options.segmentSelectors or {}
@@ -867,9 +931,32 @@ local function BuildShell()
   headerDivider:SetWidth(1)
   headerDivider:SetHeight(54)
   headerDivider:SetPoint("TOPLEFT", frame, "TOPLEFT", SIDEBAR_W - 4, -3)
-  -- Version chip just past the divider (same vertical centre as the header), search after it.
+  -- Version chip just past the divider (same vertical centre as the header).
   chip:SetPoint("LEFT", headerDivider, "RIGHT", 16, 0)
-  Options.BuildSearchBox(titleBar, chip, 10)
+  -- Setup wizard cog between the version chip and the search box (same vertical centre).
+  local cog = CreateFrame("Button", nil, titleBar)
+  UI.StyleControl(cog, nil, UI.Radius.control)
+  cog:SetSize(CHIP_H, CHIP_H)
+  cog:SetPoint("LEFT", chip, "RIGHT", 8, 0)
+  local cogIcon = cog:CreateTexture(nil, "OVERLAY")
+  cogIcon:SetAtlas("QuestLog-icon-setting", false)
+  cogIcon:SetSize(CHIP_H - 16, CHIP_H - 16)
+  cogIcon:SetPoint("CENTER")
+  cog:SetScript("OnEnter", function(self)
+    self:cmControlHover(true)
+  end)
+  cog:SetScript("OnLeave", function(self)
+    self:cmControlHover(false)
+  end)
+  cog:SetScript("OnClick", function()
+    UI.Confirm("Run the setup wizard again?", function()
+      if CM.Wizard and CM.Wizard.Start then
+        CM.Wizard.Start()
+      end
+    end)
+  end)
+  UI.AttachTooltip(cog, "Run the setup wizard", "ANCHOR_BOTTOM")
+  Options.BuildSearchBox(titleBar, cog, 10)
 
   UI.EnableDrag(frame, titleBar, false)
   UI.EnableEscClose(frame, "CombatModeOptionsFrame")
