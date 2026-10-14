@@ -622,6 +622,10 @@ local HEADER_RULE_MAX_H = 8
 -- The atlas rule is centred and this fraction of the header width.
 local HEADER_RULE_WIDTH_FRAC = 0.6
 local ROW_PAD_Y = 4
+local CODE_STATUS_H = 18 -- height of a code box's diagnostic strip along its bottom
+local CODE_GUTTER_W = 18 -- width of a code box's line-number strip (two digits)
+local CODE_STRIP_INSET = 1 -- the strips sit flush against the input well's 1px outline
+local CODE_GUTTER_GAP = 5 -- gap between the line-number strip and the code
 local TEXT_GAP = 4
 local DESC_BELOW_GAP = 6
 local CONTROL_GAP = 20
@@ -2275,17 +2279,86 @@ function UI.MakeTextInput(parent, opts)
 
   local edit
   local helpBtn
+  -- Code boxes keep a line-number strip on the left, so their editor starts further right.
+  local scrollLeft = (multiline and opts.lua)
+      and (CODE_STRIP_INSET + CODE_GUTTER_W + CODE_GUTTER_GAP)
+    or 8
   if multiline then
     local scrollRight = opts.helpUrl and 26 or 16
     local barTop = opts.helpUrl and 28 or 6
     local scroll, mlEdit, bar = UI.CreateMultilineEditScroll(box)
-    scroll:SetPoint("TOPLEFT", box, "TOPLEFT", 8, -6)
+    scroll:SetPoint("TOPLEFT", box, "TOPLEFT", scrollLeft, -6)
     scroll:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -scrollRight, 6)
     bar:SetPoint("TOPRIGHT", box, "TOPRIGHT", -4, -barTop)
     bar:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -4, 6)
     edit = mlEdit
     if opts.lua then
-      UI.AttachLuaCodeBox(edit)
+      -- Both strips are flush against the well's outline (inside it) and share its corner curve on
+      -- the outer corners; their inner corners are square.
+      local stripRadius = max(UI.Radius.button - CODE_STRIP_INSET, 0)
+
+      -- Line numbers: a slightly lighter strip down the left edge of the well.
+      local gutterZone =
+        UI.CreateZone(box, C.inputStrip, stripRadius, { TOPLEFT = true, BOTTOMLEFT = true })
+      gutterZone:SetWidth(CODE_GUTTER_W)
+      gutterZone:SetPoint("TOPLEFT", box, "TOPLEFT", CODE_STRIP_INSET, -CODE_STRIP_INSET)
+      gutterZone:SetPoint("BOTTOMLEFT", box, "BOTTOMLEFT", CODE_STRIP_INSET, CODE_STRIP_INSET)
+      -- The numbers live in a frame that clips them to the editor's visible rows and scrolls
+      -- them with it.
+      local gutterClip = CreateFrame("Frame", nil, box)
+      gutterClip:SetPoint("TOPRIGHT", scroll, "TOPLEFT", -CODE_GUTTER_GAP, 0)
+      gutterClip:SetPoint("BOTTOMRIGHT", scroll, "BOTTOMLEFT", -CODE_GUTTER_GAP, 0)
+      gutterClip:SetFrameLevel(gutterZone:GetFrameLevel() + 2) -- numbers above the strip fill
+      gutterClip:SetWidth(CODE_GUTTER_W)
+      gutterClip:SetClipsChildren(true)
+      local gutterFs =
+        UI.CreateFontString(gutterClip, "OVERLAY", UI.Fonts.input, "GameFontHighlightSmall")
+      gutterFs:SetPoint("TOPRIGHT", gutterClip, "TOPRIGHT", -4, 0)
+      gutterFs:SetJustifyH("RIGHT")
+      gutterFs:SetJustifyV("TOP")
+      gutterFs:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3], 0.8)
+
+      -- One-line diagnostic (syntax error / unknown API name) in a reddish strip along the bottom
+      -- of the well; the editor and the numbers shrink to make room while it is shown.
+      local statusZone =
+        UI.CreateZone(box, C.errorStrip, stripRadius, { BOTTOMLEFT = true, BOTTOMRIGHT = true })
+      statusZone:SetFrameLevel(gutterClip:GetFrameLevel() + 2) -- above the numbers
+      statusZone:SetHeight(CODE_STATUS_H)
+      statusZone:SetPoint("BOTTOMLEFT", box, "BOTTOMLEFT", CODE_STRIP_INSET, CODE_STRIP_INSET)
+      statusZone:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -CODE_STRIP_INSET, CODE_STRIP_INSET)
+      statusZone:Hide()
+      local statusFs =
+        UI.CreateFontString(statusZone, "OVERLAY", UI.Fonts.input, "GameFontNormalSmall")
+      statusFs:SetPoint("LEFT", statusZone, "LEFT", 8, 0)
+      statusFs:SetPoint("RIGHT", statusZone, "RIGHT", -8, 0)
+      statusFs:SetJustifyH("LEFT")
+      statusFs:SetWordWrap(false)
+      statusFs:SetTextColor(C.errorStripText[1], C.errorStripText[2], C.errorStripText[3])
+
+      UI.AttachLuaCodeBox(
+        edit,
+        function(text)
+          local bottom = 6
+          if text then
+            statusFs:SetText(text)
+            statusZone:Show()
+            bottom = CODE_STRIP_INSET + CODE_STATUS_H + 4
+          else
+            statusZone:Hide()
+          end
+          scroll:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -scrollRight, bottom)
+          bar:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -4, bottom)
+        end,
+        box,
+        {
+          frame = gutterClip,
+          zone = gutterZone,
+          fs = gutterFs,
+          scroll = scroll,
+          padRight = 4,
+          padTop = 0,
+        }
+      )
     end
     UI.SetEditBoxFont(edit)
     edit:SetTextColor(C.text[1], C.text[2], C.text[3])
@@ -2356,7 +2429,7 @@ function UI.MakeTextInput(parent, opts)
   local placeholderText = opts.placeholder and UI.StripColors(opts.placeholder) or nil
   if placeholderText and placeholderText ~= "" then
     placeholderFs = UI.CreateFontString(box, "OVERLAY", UI.Fonts.input, "GameFontHighlightSmall")
-    placeholderFs:SetPoint("TOPLEFT", box, "TOPLEFT", 10, -8)
+    placeholderFs:SetPoint("TOPLEFT", box, "TOPLEFT", scrollLeft + 2, -8)
     placeholderFs:SetPoint(
       "TOPRIGHT",
       box,
@@ -2437,7 +2510,7 @@ function UI.MakeTextInput(parent, opts)
   end
 
   -- Optional DynamicCam-style stamp over the whole row while this field is inactive
-  -- (e.g. preline editor: only the active Auto Lock / Enemies Only field is editable).
+  -- (e.g. preline editor: only the active Auto Lock / Ignore Friendlies field is editable).
   local markOpt = opts.watermarkWhenDisabled
   local markInitial = type(markOpt) == "function" and markOpt() or markOpt
   if type(markInitial) == "string" and markInitial ~= "" then

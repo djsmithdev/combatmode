@@ -60,8 +60,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Enemies Only",
-      desc = "Only target hostile units, ignoring friendly NPCs and Players.",
+      label = "Ignore Friendlies",
+      desc = "Ignore friendly NPCs and Players, and only target hostile units.",
       charSpecific = true,
       confirm = true,
       confirmText = RELOAD_CONFIRM,

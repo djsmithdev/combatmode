@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.1] - 2026-10-14
+
+### Added
+
+- **Code block diagnostics.** The custom Lua code blocks now show a one-line message under the code when it has a syntax error (with the line number) or uses a name that does not exist in the WoW API, with a "did you mean" suggestion. Unknown names are tinted red.
+- **Name suggestions** in the code blocks. Typing a name (or a `C_` / `Enum` member after the dot) lists matching WoW API names; pick one with Up / Down and Tab / Enter, or click it.
+- Blizzard API names in the code blocks are now highlighted in yellow so they stand out.
+- **Line numbers** on the left of the custom code blocks.
+
+### Changed
+
+- **Enemies Only** is now **Ignore Friendlies** (Reticle Targeting), including in the Targeting Macro Prelines editor. Your setting is kept.
+- The **General** tab is now **Mouse Look**. **Interact Keybind** and **Interact Unit** now sit right under the Mouse Look keybind, and **Turn Speed** moved to Camera Features, below Motion Sickness Protection.
+
+### Fixed
+
+- The Assisted Combat (single-button) action no longer fails to target the unit under the crosshair after patch 12.1.5.
+
 ## [5.0.0] - 2026-10-13
 
 ### Added
@@ -593,7 +611,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.0.0...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.0.1...HEAD
+[5.0.1]: https://github.com/djsmithdev/combatmode/compare/5.0.0...5.0.1
 [5.0.0]: https://github.com/djsmithdev/combatmode/compare/4.8.2...5.0.0
 [4.8.2]: https://github.com/djsmithdev/combatmode/compare/4.8.1...4.8.2
 [4.8.1]: https://github.com/djsmithdev/combatmode/compare/4.8.0...4.8.1

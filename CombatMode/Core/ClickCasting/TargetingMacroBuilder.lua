@@ -16,7 +16,7 @@
 --      focus/mouseover branches — harm alone matches corpses), then /focus resync
 --      ([nodead] any / [nodead,harm] enemy) so sticky empty-focus cannot leave a dead
 --      lock. Cleartarget prevents corpse re-lock on hard target.
---    • Helpful spells (Reticle Targeting): Enemies Only → no /tar (keep friendly hard
+--    • Helpful spells (Reticle Targeting): Ignore Friendlies → no /tar (keep friendly hard
 --      target). Any → /tar @mouseover if [help], then @softinteract (NPCs), then
 --      @anyfriend (players). A hostile under the reticle does not steal a friendly
 --      hard target. Not gated on Ally Cycle keybinds (Forever / unbound users).
@@ -521,13 +521,13 @@ local CLICKCAST_WORST_CAST_LINE_LEN = 125
 -- Max editable preline so pre + newline + worst cast stays within SECURE_MACROTEXT_MAX.
 CM.TargetingMacroPrelineMaxLen = SECURE_MACROTEXT_MAX - CLICKCAST_WORST_CAST_LINE_LEN - 1
 
--- Regular (Auto Target Lock OFF), Enemies Only OFF:
+-- Regular (Auto Target Lock OFF), Ignore Friendlies OFF:
 -- Clear dead focus + dead *hostile* hard target (keep friendly corpses for res).
 local CLICKCAST_PRE_LINE_ANY = "/clearfocus [@focus,dead]\n"
   .. "/cleartarget [dead,harm]\n"
   .. "/tar [@focus,exists];[nomounted,@mouseover]"
 
--- Regular (Auto Target Lock OFF), Enemies Only ON:
+-- Regular (Auto Target Lock OFF), Ignore Friendlies ON:
 -- Clear dead focus + dead hostile hard target. Focus branch gated on harm so a friendly
 -- Target Lock (e.g. a party member) is ignored for hostile casts. Otherwise: mouseover
 -- hostile+alive under the crosshair; else anyenemy (hard target, then softenemy /
@@ -546,14 +546,14 @@ local CLICKCAST_PRE_LINE_ENEMY = "/clearfocus [@focus,dead]\n"
 -- defaults to @target. Focus branches must include ,nodead — ,harm / ,exists alone
 -- still match corpses.
 
--- Auto Target Lock ON, Enemies Only OFF:
+-- Auto Target Lock ON, Ignore Friendlies OFF:
 -- Attack-driven: soft-target harm+alive. [@focus,nodead] skips a dead lock for /tar.
 local CLICKCAST_PRE_LINE_AUTO_LOCK_ANY = "/clearfocus [@focus,dead]\n"
   .. "/cleartarget [dead,harm]\n"
   .. "/tar [@focus,nodead];[@mouseover,harm,nodead]\n"
   .. "/focus [nodead]"
 
--- Auto Target Lock ON, Enemies Only ON:
+-- Auto Target Lock ON, Ignore Friendlies ON:
 -- ,nodead on focus branch; resync /focus [nodead,harm] (replaces sticky noexists).
 local CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY = "/clearfocus [@focus,dead]\n"
   .. "/cleartarget [dead,harm]\n"
@@ -658,7 +658,7 @@ function CM.IsExcludedFromTargetingSpell(spellId)
     or SpellListContains(CM.DB.char.excludeFromTargetingSpells, spellId)
 end
 
--- Helpful: Enemies Only = do not /tar. Any = reticle /tar helpable mouseover, NPCs, players
+-- Helpful: Ignore Friendlies = do not /tar. Any = reticle /tar helpable mouseover, NPCs, players
 -- (not unfiltered mouseover — that would /tar a hostile and drop a cycled ally).
 local CLICKCAST_PRE_LINE_ALLY_HELP = "/clearfocus [@focus,dead]"
 local CLICKCAST_PRE_LINE_ALLY_HELP_ANY = "/clearfocus [@focus,dead]\n"

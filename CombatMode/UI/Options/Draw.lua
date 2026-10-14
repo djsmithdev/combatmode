@@ -119,6 +119,11 @@ UI.Colors = {
   sliderTrack = { 0.227, 0.196, 0.161, 1.0 }, -- #3A3229
   -- Input wells (text fields, editor filters): darkest surface.
   inputBg = { 0.055, 0.047, 0.040, 1.0 }, -- #0E0C0A
+  -- Strips inside an input well (code box line numbers / status line): a notch lighter than inputBg.
+  inputStrip = { 0.090, 0.077, 0.066, 1.0 }, -- #171310
+  -- The code box's error line: a dark red strip with softer red text on it.
+  errorStrip = { 0.200, 0.075, 0.070, 1.0 }, -- #331312
+  errorStripText = { 0.980, 0.640, 0.600 }, -- #FAA399
   -- Hover / highlight (rows, tabs, menu items): a copper glow. A dark copper-tinted fill, a touch
   -- see-through so the panel art shows, with a copper outline that is brighter at the top.
   hoverFill = { 0.160, 0.118, 0.080, 0.32 },

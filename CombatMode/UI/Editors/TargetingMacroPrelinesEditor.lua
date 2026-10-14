@@ -4,13 +4,13 @@
 --  What it does: Standalone editor (CM.OpenTargetingMacroPrelinesEditor) for customizing
 --  the targeting prelines injected into click-cast macros. Shows all four preline fields
 --  (normal any/enemy + Auto Target Lock any/enemy); inactive fields use the disabled
---  watermark overlay based on Auto Target Lock and Enemies Only.
+--  watermark overlay based on Auto Target Lock and Ignore Friendlies.
 --  Architecture / how it works:
 --    • Defaults from TargetingMacroBuilder.TargetingMacroPrelinesDefaults.
 --    • Override keys: targetingMacroPrelineAnyOverride / EnemyOverride,
 --      AutoLockAnyOverride / AutoLockEnemyOverride.
---    • Active field = Auto Target Lock mode × Enemies Only; others stay visible but
---      stamped Inactive (same pattern as the Enemies Only pair overlay).
+--    • Active field = Auto Target Lock mode × Ignore Friendlies; others stay visible but
+--      stamped Inactive (same pattern as the Ignore Friendlies pair overlay).
 --    • Max length = CM.TargetingMacroPrelineMaxLen (255 − worst /click − newline);
 --      EditBox SetMaxLetters + validate refuse oversized input.
 --    • Reset clears all four overrides. Combat-guarded open; uses CM.UI CreateWindow.
@@ -96,10 +96,10 @@ local function FieldWatermark(forAutoLock, forEnemyOnly)
     end
     if forEnemyOnly then
       if not EnemyOnly() then
-        return "Inactive — Enemies Only is OFF"
+        return "Inactive — Ignore Friendlies is OFF"
       end
     elseif EnemyOnly() then
-      return "Inactive — Enemies Only is ON"
+      return "Inactive — Ignore Friendlies is ON"
     end
     return "Inactive"
   end
@@ -122,7 +122,7 @@ local function Build()
     allowColors = true,
     text = "Customize the targeting prelines injected before each ability when Reticle Targeting is enabled."
       .. "\n\n• Only the preline matching your current "
-      .. UI.AccentWrap("Enemies Only")
+      .. UI.AccentWrap("Ignore Friendlies")
       .. " X "
       .. UI.AccentWrap("Auto Target Lock")
       .. " settings is active."
@@ -139,7 +139,7 @@ local function Build()
   })
 
   local function StateLines(enemiesOn, autoLockOn)
-    return "Enemies Only: "
+    return "Ignore Friendlies: "
       .. UI.OnOffWrap(enemiesOn)
       .. "\nAuto Target Lock: "
       .. UI.OnOffWrap(autoLockOn)
@@ -150,7 +150,7 @@ local function Build()
       label = opts.label,
       labelAllowColors = true,
       labelSize = UI.Fonts.small,
-      -- Enemies Only / Auto Target Lock state, shown as the small muted helper under the label.
+      -- Ignore Friendlies / Auto Target Lock state, shown as the small muted helper under the label.
       desc = opts.state,
       descAllowColors = true,
       multiline = 4,
@@ -164,7 +164,7 @@ local function Build()
   end
 
   AddPrelineField({
-    label = "Preline: Target Enemies Only + No Auto Lock",
+    label = "Preline: Ignore Friendlies + No Auto Lock",
     state = StateLines(true, false),
     get = function()
       return CM.DB.global.targetingMacroPrelineEnemyOverride or defaults.enemy or ""
@@ -176,7 +176,7 @@ local function Build()
     watermarkWhenDisabled = FieldWatermark(false, true),
   })
   AddPrelineField({
-    label = "Preline: Target Enemies Only + Auto Lock",
+    label = "Preline: Ignore Friendlies + Auto Lock",
     state = StateLines(true, true),
     get = function()
       return CM.DB.global.targetingMacroPrelineAutoLockEnemyOverride or defaults.autoLockEnemy or ""

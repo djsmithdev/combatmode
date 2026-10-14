@@ -1,10 +1,11 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabGeneral.lua — OPTIONS TAB — Mouse Look / Camera / Interact
 ---------------------------------------------------------------------------------------
---  What it does: Wires General-tab controls to freelook and interact binds:
---  Mouse Look keybind, pulseCursor, hideTooltip, turn speed, sheath weapons,
---  vignette; Camera Features (respectMotionSickness, dynamic pitch, shoulder
---  offset, disable offset with mouselook); Interact keybind + interactUnit.
+--  What it does: Wires Mouse Look tab controls (tab id "general") to freelook and interact binds:
+--  Mouse Look keybind, Interact keybind + interactUnit (right under it),
+--  pulseCursor, hideTooltip, sheath weapons, vignette; Camera Features
+--  (respectMotionSickness, turn speed, dynamic pitch, shoulder offset,
+--  disable offset with mouselook).
 --  Architecture / how it works:
 --    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed, dynamicPitch,
 --      dynamicPitchStrength, vignette,
@@ -125,7 +126,7 @@ end
 
 UI.Options.AddTab({
   id = "general",
-  label = "General",
+  label = "Mouse Look",
   build = function(ctx)
     ctx:Header("MOUSE LOOK")
 
@@ -139,6 +140,32 @@ UI.Options.AddTab({
         CM.TryApplyBindingChange("mouse look keybinding", function()
           CM.AssignNamedKeybind("Combat Mode - Mouse Look", key)
         end)
+      end,
+    })
+    ctx:Keybind({
+      label = "Interact Keybind",
+      desc = "Tap to interact with the unit chosen below.",
+      get = function()
+        return GetInteractBindingKey()
+      end,
+      set = function(key)
+        ApplyInteractKeybind(key)
+      end,
+    })
+    ctx:Dropdown({
+      label = "Interact Unit",
+      desc = "Which unit will be interacted with when the key is pressed.",
+      values = INTERACT_UNIT_VALUES,
+      order = INTERACT_UNIT_ORDER,
+      get = function()
+        return CM.DB.global.interactUnit or "target"
+      end,
+      set = function(value)
+        local key = GetInteractBindingKey()
+        CM.DB.global.interactUnit = value
+        if key then
+          ApplyInteractKeybind(key)
+        end
       end,
     })
     -- macOS only: on other clients the stuck-cursor freeze does not occur, so this
@@ -157,25 +184,6 @@ UI.Options.AddTab({
         end,
       })
     end
-    ctx:Slider({
-      label = "Turn Speed",
-      desc = "Controls how quickly the camera turns while using Mouse Look.",
-      min = 10,
-      max = 180,
-      step = 10,
-      default = 100,
-      watermarkWhenDisabled = CameraFeatureWatermark,
-      get = function()
-        return CM.DB.global.mouseLookSpeed
-      end,
-      set = function(value)
-        CM.DB.global.mouseLookSpeed = value
-        CM.SetMouseLookSpeed()
-      end,
-      disabled = function()
-        return CM.CameraOwner ~= nil
-      end,
-    })
     ctx:Toggle({
       label = "Cursor Pulse",
       desc = "Flash the cursor when Mouse Look is turned off.",
@@ -243,6 +251,25 @@ UI.Options.AddTab({
         if CM.ApplyMotionSicknessProtectionState then
           CM.ApplyMotionSicknessProtectionState()
         end
+      end,
+    })
+    ctx:Slider({
+      label = "Turn Speed",
+      desc = "Controls how quickly the camera turns while using Mouse Look.",
+      min = 10,
+      max = 180,
+      step = 10,
+      default = 100,
+      watermarkWhenDisabled = CameraFeatureWatermark,
+      get = function()
+        return CM.DB.global.mouseLookSpeed
+      end,
+      set = function(value)
+        CM.DB.global.mouseLookSpeed = value
+        CM.SetMouseLookSpeed()
+      end,
+      disabled = function()
+        return CM.CameraOwner ~= nil
       end,
     })
     ctx:Toggle({
@@ -326,36 +353,6 @@ UI.Options.AddTab({
       end,
       disabled = function()
         return CM.SteadyCam or RespectMotionSicknessOn()
-      end,
-    })
-
-    ctx:Gap()
-    ctx:Header("INTERACT")
-
-    ctx:Keybind({
-      label = "Interact Keybind",
-      desc = "Tap to interact with the unit chosen below.",
-      get = function()
-        return GetInteractBindingKey()
-      end,
-      set = function(key)
-        ApplyInteractKeybind(key)
-      end,
-    })
-    ctx:Dropdown({
-      label = "Interact Unit",
-      desc = "Which unit will be interacted with when the key is pressed.",
-      values = INTERACT_UNIT_VALUES,
-      order = INTERACT_UNIT_ORDER,
-      get = function()
-        return CM.DB.global.interactUnit or "target"
-      end,
-      set = function(value)
-        local key = GetInteractBindingKey()
-        CM.DB.global.interactUnit = value
-        if key then
-          ApplyInteractKeybind(key)
-        end
       end,
     })
   end,
