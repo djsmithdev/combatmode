@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.2] - 2026-10-14
+
+### Added
+
+- **Frame picker** for **Extra Frames** (Auto Unlock). Click the inspect button at the top right of the field, then click any window on screen to add it; everything else is dimmed and the frame under your cursor is named in a popup.
+- The **setup wizard** now asks for the essentials before moving on: your Mouse Look, Interact, Target Lock, Cycle Lock and Ally Cycle keys show up as check marks that fill in once the key is bound, and Next stays disabled until they are.
+
+### Changed
+
+- **Extra Frames** (Auto Unlock) is now a pill list like Unlock Mounts. Type to get suggestions from Blizzard and addon frames; each frame shows the WoW logo (Blizzard) or its addon's icon, and suggestions tell you which frames are open right now. Your saved frames carry over, and new installs start with an empty list.
+- Rewrote and tightened the setup wizard's text, gave its last step an accent-colored **Finish** button, and made it fade smoothly between steps.
+
 ## [5.0.1] - 2026-10-14
 
 ### Added
@@ -613,7 +625,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.0.1...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.0.2...HEAD
+[5.0.2]: https://github.com/djsmithdev/combatmode/compare/5.0.1...5.0.2
 [5.0.1]: https://github.com/djsmithdev/combatmode/compare/5.0.0...5.0.1
 [5.0.0]: https://github.com/djsmithdev/combatmode/compare/4.8.2...5.0.0
 [4.8.2]: https://github.com/djsmithdev/combatmode/compare/4.8.1...4.8.2

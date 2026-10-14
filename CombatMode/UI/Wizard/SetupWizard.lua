@@ -7,6 +7,8 @@
 --  spell lists) and presses Next. Started by the welcome popup on first install and by the cog
 --  next to the version number in the options header (after a confirmation).
 --  Architecture / how it works:
+--    • Tasks: a step can ask for actions (a key bound, ...). They show as a check list in the balloon
+--      and Next / Finish stay disabled until every one is done; Skip tour always works.
 --    • Steps are data (STEPS): tab id, then either one control label (plus optional `also`
 --      labels) or a whole section by header title, with a title and text. Options.FocusControl /
 --      Options.FocusSection select the tab, scroll to it and return the frame(s) to highlight;
@@ -26,6 +28,7 @@ local _G = _G
 -- WoW API
 local C_Timer = _G.C_Timer
 local CreateFrame = _G.CreateFrame
+local GetBindingKey = _G.GetBindingKey
 local InCombatLockdown = _G.InCombatLockdown
 
 -- Lua stdlib
@@ -42,78 +45,133 @@ local SETTLE_DELAY = 0.15 -- lets a tab switch start its scroll before it is che
 local SCROLL_POLL = 0.05
 local SCROLL_MAX_WAIT = 1.5 -- give up waiting for the scroll to land after this long
 
--- A step highlights either one control (`label`, plus `also` controls on the same tab) or a whole
--- section (`section` = its header title). The order follows the sidebar tabs after the Mouse Look
--- section.
+local function Bound(command)
+  return GetBindingKey(command) ~= nil
+end
+
+-- A step highlights a whole section (`section` = its header title). `tasks` are the actions the
+-- step asks for: each shows as a check mark that fills in once `done()` is true, and Next stays
+-- disabled until all are. The order follows the sidebar tabs after the Mouse Look section.
 local STEPS = {
   {
     tab = "general",
     section = "MOUSE LOOK",
     title = "Mouse Look",
-    body = "Mouse Look turns your mouse into your camera and puts the crosshair at the centre of the screen. "
-      .. "Set the key that toggles it, and the key that interacts with NPCs and objects without leaving it.",
+    body = "Lock your cursor to the center of the screen and steer by moving the mouse, "
+      .. "no more holding right-click. Set a key to toggle it, and one to interact with "
+      .. "whatever you're aiming at.",
+    tasks = {
+      {
+        label = "Set a Mouse Look key",
+        done = function()
+          return Bound("Combat Mode - Mouse Look")
+        end,
+      },
+      {
+        label = "Set an Interact key",
+        done = function()
+          return Bound("INTERACTMOUSEOVER") or Bound("INTERACTTARGET")
+        end,
+      },
+    },
   },
   {
     tab = "general",
     section = "CAMERA FEATURES",
     title = "Camera Features",
-    body = "Fine-tune the camera while in Mouse Look: motion sickness protection, turn speed, "
-      .. "dynamic pitch and shoulder offset. Turn off or adjust anything you don't like.",
+    body = "Fine-tune the camera while in Mouse Look. Turn off or adjust anything you don't like.",
   },
   {
     tab = "crosshair",
     section = "CROSSHAIR",
     title = "Crosshair",
-    body = "The on-screen reticle you aim with. Turn it on, choose its look and cast feedback, "
-      .. "and set its size and position.",
+    body = "The heart of Action Combat Mode: a reactive crosshair that adapts to your target and "
+      .. "combat state in real time and gives rich feedback as you fight. Make it yours.",
   },
   {
     tab = "crosshair",
     section = "INTERACTION HUD",
     title = "Interaction HUD",
-    body = "Shows a prompt next to the crosshair for what you can interact with. Choose where it sits.",
+    body = "When your reticle passes over an NPC, quest object or other interactable, a "
+      .. "range-aware indicator appears beside the crosshair. Choose where it sits.",
   },
   {
     tab = "crosshair",
     section = "COMBAT ASSIST",
     title = "Combat Assist",
-    body = "Shows the game's suggested next ability beside the crosshair. Choose where it sits.",
+    body = "Shows the rotation helper's next ability beside the crosshair, with cast-success "
+      .. "feedback, so you can keep your eyes off the action bar.",
   },
   {
     tab = "reticle",
     section = "RETICLE TARGETING",
     title = "Reticle Targeting",
-    body = "Targets whatever is under your crosshair when you cast, replacing tab-targeting. "
-      .. "Cast at Crosshair lists spells that are aimed where the crosshair points, like ground-targeted "
-      .. "and area spells. Changing the main toggle reloads the UI.",
+    body = "Replaces tab-targeting: you target whatever is under your crosshair. It also casts "
+      .. "ground-targeted and area abilities exactly where you aim. Changing the main toggle "
+      .. "reloads the UI.",
   },
   {
     tab = "reticle",
     section = "TARGET LOCK",
     title = "Target Lock",
-    body = "Locks the reticle to your target so it can't swap away. Set the keys, then tap to lock "
-      .. "and tap again to unlock.",
+    body = "Lock onto a target so the reticle can't swap away, and tap again to release it. "
+      .. "While locked, the cycle keys jump to nearby enemies. Set your keys.",
+    -- These keys can't be set while Reticle Targeting is off, so they don't block then.
+    tasks = {
+      {
+        label = "Set a Target Lock key",
+        done = function()
+          return not CM.DB.char.reticleTargeting or Bound("Combat Mode - Toggle Focus Target")
+        end,
+      },
+      {
+        label = "Set a Cycle Lock - Next key",
+        done = function()
+          return not CM.DB.char.reticleTargeting or Bound("Combat Mode - Cycle Focus Next")
+        end,
+      },
+      {
+        label = "Set a Cycle Lock - Previous key",
+        done = function()
+          return not CM.DB.char.reticleTargeting or Bound("Combat Mode - Cycle Focus Previous")
+        end,
+      },
+    },
   },
   {
     tab = "clickcasting",
     section = "CLICK CASTING",
     title = "Click Casting",
-    body = "Bind spells or macros to your mouse buttons while in Mouse Look. "
-      .. "Pick a modifier (Base, Shift, Ctrl, Alt) at the top, then set what Left Click and Right Click do.",
+    body = "Bind actions to your mouse clicks while in Mouse Look. Pick a modifier (Base, Shift, "
+      .. "Ctrl, Alt) at the top, then set what Left Click and Right Click do.",
   },
   {
     tab = "autocursorunlock",
     section = "AUTO UNLOCK",
     title = "Auto Unlock",
-    body = "Frees your cursor automatically when you open windows like bags or the map, "
-      .. "and locks it again when you close them.",
+    body = "Frees your cursor when you open windows like bags or the map, and locks it again "
+      .. "when you close them. Add any extra windows that should trigger it.",
   },
   {
     tab = "allycycle",
     section = "ALLY CYCLE",
     title = "Ally Cycle",
     body = "Select group members without leaving Mouse Look: helpful spells go to the ally, "
-      .. "harmful ones keep hitting your enemy target. Set the keys here.",
+      .. "harmful ones keep hitting your enemy target. Set your cycle keys.",
+    tasks = {
+      {
+        label = "Set an Ally Cycle - Next key",
+        done = function()
+          return Bound(CM.AllyCycleBindUp or "Combat Mode - Ally Cycle Next")
+        end,
+      },
+      {
+        label = "Set an Ally Cycle - Previous key",
+        done = function()
+          return Bound(CM.AllyCycleBindDown or "Combat Mode - Ally Cycle Previous")
+        end,
+      },
+    },
   },
   {
     tab = "allycycle",
@@ -125,7 +183,7 @@ local STEPS = {
     tab = "advanced",
     section = "FORCE LOCK",
     title = "Force Lock",
-    body = "For advanced users: a custom Lua condition that keeps Mouse Look locked while it is true.",
+    body = "Advanced: a custom Lua condition that keeps Mouse Look locked while it is true.",
   },
   {
     tab = "advanced",
@@ -143,8 +201,9 @@ local STEPS = {
     tab = "advanced",
     section = "RETICLE TARGETING",
     title = "Targeting Editors",
-    body = "Open the CVar editor and the Targeting Macro Prelines editor. Editing these can break "
-      .. "Reticle Targeting and Target Lock, so only touch them if you know what you are doing.",
+    body = "Fine-tune how Reticle Targeting behaves with the CVar and Targeting Macro Prelines "
+      .. "editors. Editing these can break Reticle Targeting and Target Lock, so only touch "
+      .. "them if you know what you are doing.",
   },
 }
 
@@ -224,6 +283,7 @@ function ShowStep(i)
       nextLabel = last and "Finish" or "Next",
       isLast = last,
       canGoBack = i > 1,
+      tasks = step.tasks,
       clip = Options.GetTabScroll(step.tab),
       onNext = function()
         Options.CancelKeybindCapture()

@@ -77,6 +77,8 @@ UI.Colors = {
   grey = { 0.612, 0.588, 0.549 },
   -- Caution / destructive callouts (Advanced editor warning, etc.).
   warning = { 0.820, 0.350, 0.350 },
+  -- Done / available (wizard check marks, "open" labels). toggleOn is the copper accent, not green.
+  success = { 0.380, 0.760, 0.440 },
 
   -- Toggle track fill when on: the accent. Off uses trackOff.
   toggleOn = { 0.816, 0.541, 0.322, 1.0 },
@@ -165,6 +167,8 @@ end
 -- Toggle-track green / dim grey for ON·OFF state chips in labels and descriptions.
 UI.Colors.onMarkup =
   RgbToCffMarkup(UI.Colors.toggleOn[1], UI.Colors.toggleOn[2], UI.Colors.toggleOn[3])
+UI.Colors.successMarkup =
+  RgbToCffMarkup(UI.Colors.success[1], UI.Colors.success[2], UI.Colors.success[3])
 UI.Colors.offMarkup =
   RgbToCffMarkup(UI.Colors.textDim[1], UI.Colors.textDim[2], UI.Colors.textDim[3])
 

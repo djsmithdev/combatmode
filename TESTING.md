@@ -13,6 +13,7 @@ Use this checklist for feature work and regressions.
 ## Setup wizard
 - New character (or Debug Mode on, then `/reload`): welcome popup → OKAY opens the options window and starts the tour (Mouse Look section, Camera Features, then one whole section per step in tab order: Crosshair, Interaction HUD, Combat Assist, Reticle Targeting, Target Lock, Click Casting, Auto Unlock, Ally Cycle, Ally HUD, and the four Advanced sections).
 - Each step scrolls to its setting or section, dims the rest of the screen (the cut-out stays inside the tab's visible area for tall sections), outlines it and shows a balloon (on screen, readable). The highlighted setting is fully usable: setting a keybind there matches the tab afterwards.
+- Steps that ask for an action (Mouse Look: Mouse Look + Interact keys; Target Lock: Target Lock + Cycle Lock Next / Previous keys, not required while Reticle Targeting is off; Ally Cycle: Next + Previous keys) show a check list in the balloon. Checks fill green as soon as the key is bound (already-bound keys start checked), and Next stays dimmed and disabled until all are done. Skip tour and Back always work.
 - Back / Next / Skip tour / ESC work; Finish ends it. Switching tabs by hand hides the dim until the next step.
 - Cog left of the version chip: tooltip, confirm dialog, Yes restarts the tour, No does nothing. Version chip and search box still lay out correctly.
 - Starting in combat waits for combat to end; entering combat mid-tour ends it. Existing characters (`seenWarning` set) are not prompted.
@@ -68,6 +69,7 @@ Use this checklist for feature work and regressions.
 - Assist cast-success does not double-fire from assisted-action + `UNIT_SPELLCAST_SUCCEEDED`.
 
 ## Cursor unlock and cursor pulse
+- Auto Unlock → Extra Frames is a pill list: typing a frame name suggests Blizzard / addon frames (right-hand label says which, and "open" if visible), Enter adds free text, × removes. Inspect button at the top right: cursor becomes the cast cursor, the screen dims (same look as the wizard tour) except the window under the cursor, which is outlined, with its name in a banner, left click adds it, right click / Esc cancels; the options window itself is never offered. Chips, suggestions and the picker popup show the WoW logo for Blizzard frames and the owning addon's AddOns-list icon for addon frames (question-mark icon if the addon has none). Existing saved frames show as pills; an added frame unlocks the cursor while it is visible.
 
 - Trigger configured unlock conditions (UI panels/custom Lua if applicable).
 - Confirm mouselook unlocks when expected and relocks when expected.

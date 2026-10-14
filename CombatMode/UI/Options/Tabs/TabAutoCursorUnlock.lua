@@ -2,7 +2,8 @@
 --  UI/Options/Tabs/TabAutoCursorUnlock.lua — OPTIONS TAB — frame watch / conditions
 ---------------------------------------------------------------------------------------
 --  What it does: DB-only wiring for Auto Unlock: frameWatching, mount multi-select,
---  and extra watchlist frame names. The customCondition Lua box lives on Advanced.
+--  and extra watchlist frame names (frame-name pill multi-select with suggestions).
+--  The customCondition Lua box lives on Advanced.
 --  No direct freelook calls — predicates read these keys each update.
 --  Architecture / how it works:
 --    • DB.global.frameWatching, mountsToUnlock (CSV → table), watchlist.
@@ -51,13 +52,10 @@ UI.Options.AddTab({
       end,
     })
     ctx:Gap()
-    ctx:TextInput({
+    ctx:FrameMultiSelect({
       label = "Extra Frames",
-      desc = "Extra frame names that trigger an auto unlock.\nUse "
-        .. UI.SlashWrap("/fstack")
-        .. " to find names.",
-      descAllowColors = true,
-      multiline = 4,
+      desc = "Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, "
+        .. "or use the inspect button to click a window on screen.",
       get = function()
         return tconcat(CM.DB.global.watchlist or {}, ", ")
       end,

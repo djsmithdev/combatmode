@@ -121,19 +121,11 @@ return false
     bindings = DefaultBindings,
     -- auto unlock
     frameWatching = true,
+    -- Icons of the Extra Frames chips, remembered because their frames may not exist yet after a reload.
+    frameIcons = {},
     mountsToUnlock = "61447, 122708, 264058, 465235, 457485, 61425",
-    watchlist = {
-      "PawnUIFrame",
-      "SortedPrimaryFrame",
-      "WeakAurasOptions",
-      "DUIQuestFrame",
-      "Narci_Vignette",
-      "EnhanceQoLConfigCenterFrame",
-      "LWDialogFrame",
-      "TAV_CoreFrame",
-      "EQOLQuickCastVisual",
-      "WeakTextures_MainFrame",
-    },
+    -- Extra frame names the player adds themselves (Auto Unlock tab); empty on a fresh install.
+    watchlist = {},
     customCondition = "",
     -- When true, force-unlock applies once per time the snippet becomes true.
     customConditionOnce = false,

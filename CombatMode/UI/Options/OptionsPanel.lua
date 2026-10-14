@@ -254,6 +254,9 @@ local function NewLayout(content, width, clip)
   function ctx:MountMultiSelect(o)
     return self:Place(UI.MakeMountMultiSelect(self.content, o), o)
   end
+  function ctx:FrameMultiSelect(o)
+    return self:Place(UI.MakeFrameMultiSelect(self.content, o), o)
+  end
   function ctx:Button(o)
     local control = UI.MakeButton(self.content, o)
     -- Row-style option buttons share the toggle/dropdown layout (title left, control right).

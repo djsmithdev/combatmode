@@ -2827,8 +2827,14 @@ end
 --    resolveToken(token)        -> { token, spellId, name, icon } or nil
 --    filterSuggestions(query, selectedIds, selectedNames) -> { entry, ... }
 --    placeholder                -> string (edit box placeholder)
---  Public wrappers (MakeSpellMultiSelect, MakeMountMultiSelect) pass the right
---  resolver.
+--    byToken (optional)         -> true when chips are identified and stored by their text
+--                                  `token` (frame names) instead of a numeric `spellId`
+--    pickFrame (optional)       -> function(onPick): adds a magnifier button at the box's top
+--                                  right that calls it; onPick(token) adds the picked entry
+--  An entry may carry `icon` (texture path / file ID) or `atlas` (atlas name) for its chip and
+--  suggestion row, and a suggestion may carry `detail`: a short dim label shown at the row's right.
+--  Public wrappers (MakeSpellMultiSelect, MakeMountMultiSelect, MakeFrameMultiSelect) pass the
+--  right resolver.
 --  Related: UI/Options/SpellMultiSelect.lua, UI/Options/MountMultiSelect.lua,
 --  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/Tabs/TabAutoCursorUnlock.lua
 ---------------------------------------------------------------------------------------
@@ -2856,6 +2862,16 @@ local function RoundIcon(host, icon, size)
   icon:AddMaskTexture(mask)
 end
 
+--- Sets a chip / row icon from an entry: an atlas, or a texture (zoomed like RoundIcon does).
+local function ApplyEntryIcon(tex, e)
+  if e.atlas then
+    tex:SetAtlas(e.atlas)
+  else
+    tex:SetTexture(e.icon)
+    tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  end
+end
+
 function UI.MakePillMultiSelect(parent, opts, resolver)
   local row = CreateFrame("Frame", nil, parent)
   -- AddRowLabel is Widgets-local; use AttachOptionText path via a label we create here.
@@ -2879,9 +2895,18 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
   -- CreateMultilineEditScroll uses.
   local pillScroll, pillContent, pillBar = UI.CreateScrollFrame(box)
   pillScroll:SetPoint("TOPLEFT", box, "TOPLEFT", 8, -6)
-  pillScroll:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -18, 6)
-  pillBar:SetPoint("TOPRIGHT", box, "TOPRIGHT", -6, -8)
-  pillBar:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -6, 8)
+  -- Boxes with a pick button keep their pills clear of it.
+  -- Same layout as the code box with its "?" icon: the icon sits in the corner and the scrollbar
+  -- starts below it.
+  pillScroll:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", resolver.pickFrame and -26 or -18, 6)
+  pillBar:SetPoint(
+    "TOPRIGHT",
+    box,
+    "TOPRIGHT",
+    resolver.pickFrame and -4 or -6,
+    resolver.pickFrame and -28 or -8
+  )
+  pillBar:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", resolver.pickFrame and -4 or -6, 8)
 
   local control = {
     frame = row,
@@ -2900,6 +2925,7 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
   local suggestMenu
   local suggestCloser
   local suggestItems = {}
+  local pickButton
 
   local edit = CreateFrame("EditBox", nil, pillContent)
   edit:SetAutoFocus(false)
@@ -2959,7 +2985,13 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
     local parts = {}
     local seen = {}
     for _, e in ipairs(list) do
-      if e.spellId and e.spellId > 0 and not seen[e.spellId] then
+      if resolver.byToken then
+        local key = e.token and strlower(e.token)
+        if key and not seen[key] then
+          seen[key] = true
+          parts[#parts + 1] = e.token
+        end
+      elseif e.spellId and e.spellId > 0 and not seen[e.spellId] then
         seen[e.spellId] = true
         parts[#parts + 1] = tostring(e.spellId)
       end
@@ -3001,8 +3033,9 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
         local e = entries[i]
         local name = e.name or e.token or ""
         pill.text:SetText(name)
-        if e.icon then
-          pill.icon:SetTexture(e.icon)
+        local hasIcon = e.icon or e.atlas
+        if hasIcon then
+          ApplyEntryIcon(pill.icon, e)
           pill.icon:Show()
           pill.text:ClearAllPoints()
           pill.text:SetPoint("LEFT", pill.icon, "RIGHT", 3, 0)
@@ -3013,7 +3046,7 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
         end
         local textW = pill.text:GetStringWidth() or 0
         local w = PILL_PAD_X * 2 + 12 + textW -- × button space
-        if e.icon then
+        if hasIcon then
           w = w + PILL_ICON_SIZE + 3
         end
         w = min(w, maxW)
@@ -3109,15 +3142,30 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
   end
 
   local function AddEntry(entry)
-    if not entry or not entry.spellId or entry.spellId <= 0 or IsAlreadySelected(entry) then
+    if not entry or IsAlreadySelected(entry) then
       return false
     end
-    entries[#entries + 1] = {
-      token = tostring(entry.spellId),
-      spellId = entry.spellId,
-      name = entry.name or tostring(entry.spellId),
-      icon = entry.icon,
-    }
+    if resolver.byToken then
+      if not entry.token or entry.token == "" then
+        return false
+      end
+      entries[#entries + 1] = {
+        token = entry.token,
+        name = entry.name or entry.token,
+        icon = entry.icon,
+        atlas = entry.atlas,
+      }
+    else
+      if not entry.spellId or entry.spellId <= 0 then
+        return false
+      end
+      entries[#entries + 1] = {
+        token = tostring(entry.spellId),
+        spellId = entry.spellId,
+        name = entry.name or tostring(entry.spellId),
+        icon = entry.icon,
+      }
+    end
     edit:SetText("")
     control._reflowPills()
     Commit()
@@ -3139,6 +3187,37 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
     else
       pickingSuggestion = false
     end
+  end
+
+  -- Inspect button at the top right: pick a frame straight from the screen instead of typing it.
+  if resolver.pickFrame then
+    pickButton = CreateFrame("Button", nil, box)
+    pickButton:SetSize(20, 20)
+    pickButton:SetPoint("TOPRIGHT", box, "TOPRIGHT", -3, -4)
+    pickButton:SetFrameLevel(box:GetFrameLevel() + 5)
+    local pickIcon = pickButton:CreateTexture(nil, "ARTWORK")
+    pickIcon:SetAllPoints()
+    pickIcon:SetAtlas("decor-controls-inspect-default")
+    pickIcon:SetAlpha(0.75)
+    pickButton:SetScript("OnEnter", function()
+      pickIcon:SetAlpha(1)
+    end)
+    pickButton:SetScript("OnLeave", function()
+      pickIcon:SetAlpha(0.75)
+    end)
+    pickButton:SetScript("OnClick", function()
+      if Options.IsDisabled(opts) then
+        return
+      end
+      CloseSuggest()
+      resolver.pickFrame(function(token)
+        local entry = resolver.resolveToken(token)
+        if entry then
+          AddEntry(entry)
+        end
+      end)
+    end)
+    UI.AttachTooltip(pickButton, "Pick a frame on screen", "ANCHOR_TOP")
   end
 
   local function EnsureSuggestMenu()
@@ -3211,10 +3290,14 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
         item.icon:SetSize(PILL_ICON_SIZE, PILL_ICON_SIZE)
         item.icon:SetPoint("LEFT", item, "LEFT", 6, 0)
         RoundIcon(item, item.icon, PILL_ICON_SIZE)
+        item.detail = UI.CreateFontString(item, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
+        item.detail:SetPoint("RIGHT", item, "RIGHT", -8, 0)
+        item.detail:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
         item.text = UI.CreateFontString(item, "OVERLAY", UI.Fonts.button, "GameFontHighlightSmall")
         item.text:SetPoint("LEFT", item.icon, "RIGHT", 6, 0)
         item.text:SetPoint("RIGHT", item, "RIGHT", -6, 0)
         item.text:SetJustifyH("LEFT")
+        item.text:SetWordWrap(false)
         item.text:SetTextColor(C.text[1], C.text[2], C.text[3])
         item:SetScript("OnEnter", function(self)
           self.hl:Show()
@@ -3233,18 +3316,22 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
       local m = matches[i]
       item.entry = m
       item.text:SetText(m.name or m.token)
-      if m.icon then
-        item.icon:SetTexture(m.icon)
+      item.detail:SetText(m.detail or "")
+      -- The name ends before the dim detail label (when there is one) so they never overlap.
+      local textRight = m.detail and item.detail or item
+      local textRightPad = m.detail and -8 or -6
+      local textRightPoint = m.detail and "LEFT" or "RIGHT"
+      if m.icon or m.atlas then
+        ApplyEntryIcon(item.icon, m)
         item.icon:Show()
         item.text:ClearAllPoints()
         item.text:SetPoint("LEFT", item.icon, "RIGHT", 6, 0)
-        item.text:SetPoint("RIGHT", item, "RIGHT", -6, 0)
       else
         item.icon:Hide()
         item.text:ClearAllPoints()
         item.text:SetPoint("LEFT", item, "LEFT", 8, 0)
-        item.text:SetPoint("RIGHT", item, "RIGHT", -6, 0)
       end
+      item.text:SetPoint("RIGHT", textRight, textRightPoint, textRightPad, 0)
       item:ClearAllPoints()
       item:SetPoint("TOPLEFT", suggestMenu.content, "TOPLEFT", 0, -(i - 1) * PILL_SUGGEST_ITEM_H)
       item:SetPoint("TOPRIGHT", suggestMenu.content, "TOPRIGHT", 0, -(i - 1) * PILL_SUGGEST_ITEM_H)
@@ -3332,7 +3419,7 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
       local leftover = strtrim(self:GetText() or "")
       if leftover ~= "" then
         local entry = resolver.resolveToken(leftover)
-        if entry and entry.spellId then
+        if entry and (entry.spellId or resolver.byToken) then
           PickSuggestion(entry)
         end
       else
@@ -3372,6 +3459,9 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
       edit:SetEnabled(not disabled)
     end
     box:SetAlpha(disabled and (C.disabledAlpha or 0.5) or 1)
+    if pickButton then
+      pickButton:SetEnabled(not disabled)
+    end
     if row.label then
       row.label:SetAlpha(disabled and (C.disabledAlpha or 0.5) or 1)
     end

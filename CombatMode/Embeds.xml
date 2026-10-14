@@ -53,6 +53,7 @@
     <Script file="UI\Options\Widgets.lua"/>
     <Script file="UI\Options\SpellMultiSelect.lua"/>
     <Script file="UI\Options\MountMultiSelect.lua"/>
+    <Script file="UI\Options\FrameMultiSelect.lua"/>
     <Script file="UI\Options\OptionsPanel.lua"/>
     <Script file="UI\Options\OptionsSearch.lua"/>
     <Script file="UI\Options\ColorPickerDialog.lua"/>

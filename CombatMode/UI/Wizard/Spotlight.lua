@@ -5,14 +5,16 @@
 --  to it with a title, a short explanation, step counter and Back / Next / Skip controls. Used
 --  by the setup wizard's tour (UI/Wizard/SetupWizard.lua).
 --  Architecture / how it works:
---    • The dim is four rectangles around the hole (top / bottom / left / right) and an accent
---      outline marks the hole. Nothing is mouse-blocking: the highlighted widget (and the rest
+--    • The dim is UI.CreateDimHole: four rectangles around the hole (top / bottom / left / right)
+--      and an accent outline marking it (the frame picker reuses it). Nothing is mouse-blocking: the highlighted widget (and the rest
 --      of the options window) stays fully usable, so the player can change settings mid-tour.
 --    • The target is one frame or a list of frames (the hole is their union); the dim hides
 --      while no target is visible (e.g. the player switched tabs) and returns when it is.
 --    • An OnUpdate re-reads the target's screen rect every frame, so the hole follows the
 --      widget while the options tab is still scrolling it into view.
 --    • The balloon sits right of the hole, else left, else below / above, clamped on screen.
+--    • Tasks: a step can list actions (label + done()) shown as a check list under the text; Next /
+--      Finish stay disabled until every one is done (re-checked a few times a second).
 --    • Between steps the whole spotlight fades out (UI.FadeOutSpotlight) while the options tab scrolls
 --      to the next target, and fades back in with it (UI.ShowSpotlight), so it never visibly chases a
 --      moving widget.
@@ -30,6 +32,7 @@ local InCombatLockdown = _G.InCombatLockdown
 local UIParent = _G.UIParent
 
 -- Lua stdlib
+local ipairs = _G.ipairs
 local max = _G.math.max
 local min = _G.math.min
 
@@ -46,20 +49,22 @@ local SCREEN_MARGIN = 12
 local BTN_W = 88
 local ROOT_LEVEL = 9000
 local FADE_TIME = 0.15
+local TASK_H = 20
+local TASK_GAP = 10
+local TASK_POLL_S = 0.2
+local CHECK_TEXTURE = "Interface/Buttons/UI-CheckBox-Check"
 
 local spotlight
 
-local function Build()
-  local root = CreateFrame("Frame", "CombatModeSpotlight", UIParent)
-  root:SetAllPoints(UIParent)
-  root:SetFrameStrata("FULLSCREEN_DIALOG")
-  root:SetFrameLevel(ROOT_LEVEL)
-  root:Hide()
-
+--- A screen dim with a rectangular hole and an accent outline around it (four mouse-transparent
+--- dim rectangles plus four outline edges, all children of `parent`, above frame level `level`).
+--- `hole.Layout(left, right, top, bottom)` cuts the hole (UIParent units); with no rect it dims the
+--- whole screen. `hole.SetShown(false)` hides all of it. Used by the tour and the frame picker.
+function UI.CreateDimHole(parent, level)
   local pieces = {}
   for i = 1, 4 do
-    local piece = CreateFrame("Frame", nil, root)
-    piece:SetFrameLevel(ROOT_LEVEL + 1)
+    local piece = CreateFrame("Frame", nil, parent)
+    piece:SetFrameLevel(level + 1)
     piece:EnableMouse(false)
     local tex = piece:CreateTexture(nil, "BACKGROUND")
     tex:SetAllPoints()
@@ -68,8 +73,8 @@ local function Build()
   end
 
   -- Outline only (four edges): the highlighted widget inside stays untouched and readable.
-  local ring = CreateFrame("Frame", nil, root)
-  ring:SetFrameLevel(ROOT_LEVEL + 2)
+  local ring = CreateFrame("Frame", nil, parent)
+  ring:SetFrameLevel(level + 2)
   ring:EnableMouse(false)
   local function Edge(p1, p2)
     local edge = ring:CreateTexture(nil, "OVERLAY")
@@ -86,6 +91,107 @@ local function Build()
   edgeLeft:SetWidth(RING_W)
   local edgeRight = Edge("TOPRIGHT", "BOTTOMRIGHT")
   edgeRight:SetWidth(RING_W)
+
+  local hole = {}
+
+  function hole.SetShown(shown)
+    for i = 1, #pieces do
+      pieces[i]:SetShown(shown)
+    end
+    ring:SetShown(shown)
+  end
+
+  function hole.Layout(left, right, top, bottom)
+    local top_, bottom_, left_, right_ = pieces[1], pieces[2], pieces[3], pieces[4]
+    if not left then
+      top_:ClearAllPoints()
+      top_:SetAllPoints(UIParent)
+      top_:Show()
+      bottom_:Hide()
+      left_:Hide()
+      right_:Hide()
+      ring:Hide()
+      return
+    end
+    hole.SetShown(true)
+    top_:ClearAllPoints()
+    top_:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0, top)
+    top_:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", 0, 0)
+    bottom_:ClearAllPoints()
+    bottom_:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0, 0)
+    bottom_:SetPoint("TOPRIGHT", UIParent, "BOTTOMRIGHT", 0, bottom)
+    left_:ClearAllPoints()
+    left_:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0, bottom)
+    left_:SetPoint("TOPRIGHT", UIParent, "BOTTOMLEFT", left, top)
+    right_:ClearAllPoints()
+    right_:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", right, bottom)
+    right_:SetPoint("TOPRIGHT", UIParent, "BOTTOMRIGHT", 0, top)
+    ring:ClearAllPoints()
+    ring:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
+    ring:SetPoint("TOPRIGHT", UIParent, "BOTTOMLEFT", right, top)
+  end
+
+  return hole
+end
+
+--- Re-evaluates the step's tasks: marks each row and enables Next / Finish once all are done.
+local function RefreshTasks(self)
+  local allDone = true
+  for i, task in ipairs(self.tasks) do
+    local row = self.taskRows[i]
+    local done = task.done() and true or false
+    allDone = allDone and done
+    if row then
+      row.check:SetShown(done)
+      if done then
+        row.label:SetTextColor(C.success[1], C.success[2], C.success[3])
+      else
+        row.label:SetTextColor(C.text[1], C.text[2], C.text[3])
+      end
+    end
+  end
+  for _, button in ipairs({ self.next, self.finish }) do
+    button:SetEnabled(allDone)
+    button:SetAlpha(allDone and 1 or 0.45)
+  end
+end
+
+local function EnsureTaskRow(self, i)
+  local row = self.taskRows[i]
+  if row then
+    return row
+  end
+  row = CreateFrame("Frame", nil, self.taskHost)
+  row:SetHeight(TASK_H)
+  row:SetPoint("TOPLEFT", self.taskHost, "TOPLEFT", 0, -(i - 1) * TASK_H)
+  row:SetPoint("TOPRIGHT", self.taskHost, "TOPRIGHT", 0, -(i - 1) * TASK_H)
+  local box = CreateFrame("Frame", nil, row, "BackdropTemplate")
+  box:SetSize(14, 14)
+  box:SetPoint("LEFT", row, "LEFT", 0, 0)
+  UI.StyleRounded(box, C.inputBg, C.cardBorder, 3, 1)
+  row.check = box:CreateTexture(nil, "OVERLAY")
+  row.check:SetTexture(CHECK_TEXTURE)
+  row.check:SetDesaturated(true)
+  row.check:SetVertexColor(C.success[1], C.success[2], C.success[3])
+  row.check:SetPoint("CENTER", box, "CENTER", 0, 0)
+  row.check:SetSize(20, 20)
+  row.check:Hide()
+  row.label = UI.CreateFontString(row, "OVERLAY", UI.Fonts.base, "GameFontHighlight")
+  row.label:SetPoint("LEFT", box, "RIGHT", 8, 0)
+  row.label:SetJustifyH("LEFT")
+  row.label:SetTextColor(C.text[1], C.text[2], C.text[3])
+  self.taskRows[i] = row
+  return row
+end
+
+local function Build()
+  local root = CreateFrame("Frame", "CombatModeSpotlight", UIParent)
+  root:SetAllPoints(UIParent)
+  root:SetFrameStrata("FULLSCREEN_DIALOG")
+  root:SetFrameLevel(ROOT_LEVEL)
+  root:Hide()
+
+  local hole = UI.CreateDimHole(root, ROOT_LEVEL)
 
   local balloon = CreateFrame("Frame", nil, root)
   balloon:SetFrameLevel(ROOT_LEVEL + 10)
@@ -112,6 +218,12 @@ local function Build()
   body:SetJustifyV("TOP")
   body:SetWordWrap(true)
   body:SetTextColor(C.text[1], C.text[2], C.text[3])
+
+  -- Check list of the actions a step asks for (rows are created on demand).
+  local taskHost = CreateFrame("Frame", nil, balloon)
+  taskHost:SetPoint("TOPLEFT", body, "BOTTOMLEFT", 0, -TASK_GAP)
+  taskHost:SetPoint("TOPRIGHT", body, "BOTTOMRIGHT", 0, -TASK_GAP)
+  taskHost:SetHeight(1)
 
   local step = UI.CreateFontString(balloon, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
   step:SetPoint("TOPRIGHT", balloon, "TOPRIGHT", -BALLOON_PAD, -(BALLOON_PAD + 3))
@@ -145,8 +257,6 @@ local function Build()
 
   local self = {
     root = root,
-    pieces = pieces,
-    ring = ring,
     balloon = balloon,
     title = title,
     body = body,
@@ -155,6 +265,9 @@ local function Build()
     next = nextButton,
     finish = finishButton,
     skip = skip,
+    taskHost = taskHost,
+    taskRows = {},
+    tasks = {},
   }
 
   back:SetScript("OnClick", function()
@@ -217,6 +330,13 @@ local function Build()
         end
       end
     end
+    if #self.tasks > 0 then
+      self.taskElapsed = (self.taskElapsed or 0) + (elapsed or 0)
+      if self.taskElapsed >= TASK_POLL_S then
+        self.taskElapsed = 0
+        RefreshTasks(self)
+      end
+    end
     -- While fading out for the next step the layout stays frozen where it was, so the old
     -- highlight does not follow its widget as the tab scrolls away.
     local targets = self.targets
@@ -249,12 +369,8 @@ local function Build()
         left = nil
       end
     end
-    local visible = left ~= nil
-    for i = 1, #pieces do
-      pieces[i]:SetShown(visible)
-    end
-    ring:SetShown(visible)
-    if not visible then
+    if not left then
+      hole.SetShown(false)
       lastKey = nil
       return
     end
@@ -269,24 +385,7 @@ local function Build()
     end
     lastKey = key
 
-    -- Four dim rectangles around the hole.
-    local top_, bottom_, left_, right_ = pieces[1], pieces[2], pieces[3], pieces[4]
-    top_:ClearAllPoints()
-    top_:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0, top)
-    top_:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", 0, 0)
-    bottom_:ClearAllPoints()
-    bottom_:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0, 0)
-    bottom_:SetPoint("TOPRIGHT", UIParent, "BOTTOMRIGHT", 0, bottom)
-    left_:ClearAllPoints()
-    left_:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0, bottom)
-    left_:SetPoint("TOPRIGHT", UIParent, "BOTTOMLEFT", left, top)
-    right_:ClearAllPoints()
-    right_:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", right, bottom)
-    right_:SetPoint("TOPRIGHT", UIParent, "BOTTOMRIGHT", 0, top)
-
-    ring:ClearAllPoints()
-    ring:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
-    ring:SetPoint("TOPRIGHT", UIParent, "BOTTOMLEFT", right, top)
+    hole.Layout(left, right, top, bottom)
 
     -- Balloon: right of the hole, else left, else below / above; clamped on screen.
     local balloonH = balloon:GetHeight()
@@ -318,7 +417,7 @@ local function Build()
 end
 
 --- Shows the spotlight on `target` (a frame, or a list of frames) with the balloon described by `opts`:
---- { title, body, step ("3 / 7"), nextLabel, isLast (shows the accent Finish button), canGoBack, clip (frame the hole is cut to), onNext, onBack, onSkip }.
+--- { title, body, step ("3 / 7"), nextLabel, isLast (shows the accent Finish button), canGoBack, tasks ({ label, done() } list that gates Next / Finish), clip (frame the hole is cut to), onNext, onBack, onSkip }.
 function UI.ShowSpotlight(target, opts)
   spotlight = spotlight or Build()
   local s = spotlight
@@ -335,9 +434,26 @@ function UI.ShowSpotlight(target, opts)
   s.finish:SetShown(opts.isLast and true or false)
   s.back:SetShown(opts.canGoBack and true or false)
 
-  -- Title + rule + body + button row.
+  -- Task check list under the text.
+  s.tasks = opts.tasks or {}
+  for i, task in ipairs(s.tasks) do
+    local row = EnsureTaskRow(s, i)
+    row.label:SetText(task.label)
+    row:Show()
+  end
+  for i = #s.tasks + 1, #s.taskRows do
+    s.taskRows[i]:Hide()
+  end
+  local tasksH = #s.tasks > 0 and (TASK_GAP + #s.tasks * TASK_H) or 0
+  s.taskHost:SetHeight(max(tasksH - TASK_GAP, 1))
+  s.taskElapsed = 0
+  RefreshTasks(s)
+
+  -- Title + rule + body + tasks + button row.
   local bodyH = s.body:GetStringHeight() or 40
-  s.balloon:SetHeight(BALLOON_PAD + 22 + 6 + 1 + 10 + bodyH + 14 + UI.Sizes.control + BALLOON_PAD)
+  s.balloon:SetHeight(
+    BALLOON_PAD + 22 + 6 + 1 + 10 + bodyH + tasksH + 14 + UI.Sizes.control + BALLOON_PAD
+  )
 
   s.root.cmResetLayout()
   -- Always fade in from invisible, so the move to the new target is never seen.
