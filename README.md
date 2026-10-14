@@ -7,72 +7,41 @@
 <strong>Action Combat Mode</strong> brings modern action-game controls to <em>World of Warcraft</em>, replacing traditional tab-targeting with intuitive aiming, more engaging controls, and immersive combat.
 </p>
 
-<p align="center">
-  <img src="media/previewPic.png">
-</p>
-
 <br />
 
 ## <img width="20" height="20" src="media/cmlogo.svg"> FEATURES
-
-### Mouse Look
-Lock your cursor to the center of the screen and control your character by simply moving the mouse—no more holding right-click to turn. Toggle Mouse Look on permanently, or hold a key to temporarily free the cursor whenever you need it.
-
-<p align="center">
-  <img src="media/mouse_look.gif">
-</p>
-
-### Reticle Targeting
-Target enemies by simply aiming at them. Action Combat Mode's reticle targeting replaces traditional tab-targeting with an action-inspired system that also supports automatic ground targeting for AoE abilities, casting them exactly where you aim.
 
 <p align="center">
   <img src="media/reticle_targeting.gif">
 </p>
 
-### Dynamic Crosshair
-The crosshair is the heart of Action Combat Mode—a fully reactive, intelligent HUD that adapts to your target and combat state in real time, delivers rich contextual feedback, and is fully customizable.
-
 <p align="center">
-  <img src="media/crosshair.gif">
+  <img src="media/mouse_look.gif">
 </p>
-
-### Click Casting
-Bind left-click, right-click, and modifier combinations directly to your rotation. While Mouse Look is active, every click becomes an instant spell cast, giving you up to eight actions at your fingertips without touching your action bars.
 
 <p align="center">
   <img src="media/click_casting.gif">
 </p>
 
-### Target Lock & Cycle
-Lock onto a target with a single tap to prevent the reticle from switching unexpectedly. Tap again to release it. While locked, use the mouse wheel to cycle nearby enemies, making it easy to prioritize targets in crowded encounters.
+<p align="center">
+  <img src="media/crosshair.gif">
+</p>
 
 <p align="center">
   <img src="media/target_lock.gif">
 </p>
 
-### Ally Cycle
-Ally Cycle lets you attack enemies and assist allies simultaneously by allowing selection of group members while in Mouse Look. Bind Cycle Up/Down to quickly step through the roster. When an ally is selected, helpful spells are cast on them, while harmful spells continue to target your hostile Crosshair target.
-
 <p align="center">
   <img src="media/ally_cycle.gif">
 </p>
-
-### Combat Assist
-Displays Blizzard's Assisted Combat next-cast suggestion directly beside the crosshair, complete with satisfying cast-success feedback. Keep your rotation readable without staring at the action bar.
 
 <p align="center">
   <img src="media/combat_assist.gif">
 </p>
 
-### Interaction HUD
-When your reticle passes over an NPC, quest object, or other interactable, a contextual, range-aware indicator appears beside the crosshair so you always know when something is within reach.
-
 <p align="center">
   <img src="media/interaction_hud.gif">
 </p>
-
-### Auto Unlock
-Mouse Look automatically disengages whenever you open bags, the map, your character panel, or other interface windows, then seamlessly resumes when you're finished. You can even define your own UI frames and custom conditions to trigger Auto Unlock.
 
 <p align="center">
   <img src="media/auto_unlock.gif">

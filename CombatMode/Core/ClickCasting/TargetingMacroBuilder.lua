@@ -32,6 +32,9 @@
 --      reject stale override 121–132 after dismount, else page/bonus or MultiBar slot).
 --      IsSlotMacro / BuildClickCastMacroText / BindingOverrides use this so paged /
 --      bonus / secondary bar macros are not misclassified as page-1 spells.
+--    • Single-Button Assistant (Assisted Combat) buttons are detected live
+--      (C_ActionBar.IsAssistedCombatAction, assistant spell id fallback) and always get the
+--      harmful targeting route instead of being classified by their churning suggested spell.
 --    • Click frame map from CM.Constants.ClickCastBars (ACTIONBUTTON + MultiBar 1–7).
 --  Does not: Own SecureActionButton frames or SetOverrideBinding (BindingOverrides).
 --  Related: Core/ClickCasting/BindingOverrides.lua,
@@ -46,6 +49,7 @@ local _G = _G
 
 -- WoW API
 local C_ActionBar = _G.C_ActionBar
+local C_AssistedCombat = _G.C_AssistedCombat
 local C_CVar = _G.C_CVar
 local C_Spell = _G.C_Spell
 local C_SpellBook = _G.C_SpellBook
@@ -691,6 +695,29 @@ local function GetAllyCycleHarmPostLine()
 end
 
 --- Classify spell for Ally Cycle routing. Dual help+harm → help (stick to ally).
+--- True for a Single-Button Assistant (Assisted Combat) action button. Its slot shows whichever
+--- spell is currently suggested, and that churns (and is a non-combat or placeholder spell right
+--- after loading), so classifying it by spell would leave the targeting pre-line off. The slot
+--- check is live (not the cached slot set), with the assistant spell id as a fallback.
+local function IsAssistedCombatButton(slot, spellId)
+  if slot and C_ActionBar and C_ActionBar.IsAssistedCombatAction then
+    local ok, isAssisted = pcall(C_ActionBar.IsAssistedCombatAction, slot)
+    if ok and isAssisted then
+      return true
+    end
+  end
+  if slot and CM.IsAssistedCombatActionSlot and CM.IsAssistedCombatActionSlot(slot) then
+    return true
+  end
+  if spellId and C_AssistedCombat and C_AssistedCombat.GetActionSpell then
+    local ok, assistantSpell = pcall(C_AssistedCombat.GetActionSpell)
+    if ok and assistantSpell and assistantSpell == spellId then
+      return true
+    end
+  end
+  return false
+end
+
 local function GetAllyCycleSpellRoute(spellId)
   if not spellId or type(spellId) ~= "number" or spellId <= 0 then
     return nil
@@ -730,12 +757,12 @@ local function FriendlyPreservingHelpPreLine()
   return CLICKCAST_PRE_LINE_ALLY_HELP_ANY
 end
 
-local function GetClickCastPreLine(spellId)
+local function GetClickCastPreLine(spellId, routeOverride)
   if not CM.DB.char.reticleTargeting then
     return nil
   end
 
-  local route = GetAllyCycleSpellRoute(spellId)
+  local route = routeOverride or GetAllyCycleSpellRoute(spellId)
 
   -- Helpful: Reticle Targeting friendly-preserving path (not Ally Cycle–gated).
   if route == "help" then
@@ -784,14 +811,14 @@ local function GetClickCastPreLine(spellId)
   return GetOverride("targetingMacroPrelineAnyOverride") or CLICKCAST_PRE_LINE_ANY
 end
 
-local function GetClickCastPostLine(spellId)
+local function GetClickCastPostLine(spellId, routeOverride)
   if not CM.DB.char.reticleTargeting then
     return nil
   end
   if not (AllyCycleKeysBound() and AllyCycleInGroup()) then
     return nil
   end
-  if GetAllyCycleSpellRoute(spellId) ~= "harm" then
+  if (routeOverride or GetAllyCycleSpellRoute(spellId)) ~= "harm" then
     return nil
   end
   return GetAllyCycleHarmPostLine()
@@ -845,18 +872,24 @@ function CM.BuildClickCastMacroText(bindingValue)
 
   -- Classify from the currently displayed slot (paged / bonus / override-aware).
   -- Macros: no pre-line so the macro runs as written (e.g. [mod:shift], [@cursor]).
-  local atype, id = CM.GetDisplayedActionSlotInfo(bindingValue)
+  local atype, id, slot = CM.GetDisplayedActionSlotInfo(bindingValue)
   local spellIdForPreline
+  -- Single-Button Assistant: its slot spell is whatever is suggested right now, so it is never
+  -- classified by spell. It gets the harmful targeting route and skips the spell-based exclude /
+  -- cast-at-cursor / combat-spell checks (which would otherwise drop the pre-line whenever the
+  -- suggestion is a non-combat or placeholder spell, e.g. right after loading).
+  local isAssistedButton = false
   if atype == "macro" then
     return castLine
   end
   if atype then
     local idNum = tonumber(id)
+    isAssistedButton = IsAssistedCombatButton(slot, idNum)
     -- Auto-swing / Pet Attack IDs can show up as non-spell action types.
-    if atype ~= "spell" and not IsAutoSwingSpell(idNum) then
+    if not isAssistedButton and atype ~= "spell" and not IsAutoSwingSpell(idNum) then
       return castLine
     end
-    if idNum and idNum > 0 then
+    if idNum and idNum > 0 and not isAssistedButton then
       spellIdForPreline = idNum
     end
     -- Special action bar abilities (override, bonus, shapeshift): don't inject pre-line, just click the button directly
@@ -864,12 +897,16 @@ function CM.BuildClickCastMacroText(bindingValue)
       return castLine
     end
     -- Spell in blacklist (e.g. self-cast defensives): don't apply targeting pre-line.
-    if spellIdForPreline and CM.IsExcludedFromTargetingSpell(spellIdForPreline) then
+    if
+      not isAssistedButton
+      and spellIdForPreline
+      and CM.IsExcludedFromTargetingSpell(spellIdForPreline)
+    then
       return castLine
     end
     -- Ground-targeted spell from whitelist: use /cast [@cursor] only (no pre-line).
     -- Must run before ShouldInjectTargetingForSpell: many ground spells are neither helpful nor harmful per C_Spell API.
-    if spellIdForPreline and CM.IsCastAtCursorSpell(spellIdForPreline) then
+    if not isAssistedButton and spellIdForPreline and CM.IsCastAtCursorSpell(spellIdForPreline) then
       local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellIdForPreline)
       local spellName = spellInfo and spellInfo.name
       if spellName and spellName ~= "" then
@@ -878,7 +915,7 @@ function CM.BuildClickCastMacroText(bindingValue)
       return "/cast [@cursor] spell:" .. spellIdForPreline
     end
     -- Non-combat spells (e.g. mounts) shouldn't get the targeting pre-line.
-    if not ShouldInjectTargetingForSpell(spellIdForPreline) then
+    if not isAssistedButton and not ShouldInjectTargetingForSpell(spellIdForPreline) then
       return castLine
     end
   end
@@ -897,8 +934,9 @@ function CM.BuildClickCastMacroText(bindingValue)
     return pre and (pre .. "\n" .. swapCmd) or swapCmd
   end
 
-  local pre = GetClickCastPreLine(spellIdForPreline)
-  local post = GetClickCastPostLine(spellIdForPreline)
+  local routeOverride = isAssistedButton and "harm" or nil
+  local pre = GetClickCastPreLine(spellIdForPreline, routeOverride)
+  local post = GetClickCastPostLine(spellIdForPreline, routeOverride)
   -- Do not prefix pre-line with [nooverridebar]; that can be misinterpreted in combat and echo to chat.
   local text = castLine
   if pre then
