@@ -1701,6 +1701,7 @@ function UI.MakeDropdown(parent, opts)
   local FILTER_MIN = 12
   local MAX_ROWS = 12
   local menu
+  local selectedTint -- colour of the current value (opts.valueColors), nil for the default
 
   local function CloseMenu()
     if menu then
@@ -1755,6 +1756,8 @@ function UI.MakeDropdown(parent, opts)
         local item = EnsureItem(shown)
         item.id = id
         item.text:SetText(labelText)
+        local tint = opts.valueColors and opts.valueColors[id] or C.text
+        item.text:SetTextColor(tint[1], tint[2], tint[3])
         item:ClearAllPoints()
         item:SetPoint("TOPLEFT", menu.content, "TOPLEFT", 0, -(shown - 1) * ITEM_H)
         item:SetPoint("TOPRIGHT", menu.content, "TOPRIGHT", 0, -(shown - 1) * ITEM_H)
@@ -1892,6 +1895,8 @@ function UI.MakeDropdown(parent, opts)
     menu:SetWidth(width)
 
     menu.headerText:SetText(text:GetText() or "")
+    local headerTint = selectedTint or C.text
+    menu.headerText:SetTextColor(headerTint[1], headerTint[2], headerTint[3])
     local top = -HEADER_H - MENU_PAD
     if useFilter then
       menu.filter:Show()
@@ -1952,9 +1957,19 @@ function UI.MakeDropdown(parent, opts)
     return ""
   end
 
+  -- The hover wiring (UI.WireControlHover) reads this table on every enter / leave, so tint it in
+  -- place rather than replacing it.
+  local textColors = button.cmControlText
+  local baseIdle, baseHover = textColors.idle, textColors.hover
+
   function control.Refresh()
     local value = opts.get and opts.get()
     text:SetText(DisplayText(value))
+    -- opts.valueColors tints chosen values (labels are plain text here, markup is stripped).
+    selectedTint = opts.valueColors and opts.valueColors[value]
+    textColors.idle = selectedTint or baseIdle
+    textColors.hover = selectedTint or baseHover
+    text:SetTextColor(textColors.idle[1], textColors.idle[2], textColors.idle[3])
     local disabled = IsDisabled(opts)
     button:SetEnabled(not disabled)
     local a = disabled and DISABLED_A or 1

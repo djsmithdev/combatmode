@@ -44,6 +44,7 @@ local OVERRIDE_ORDER = {
 }
 local ACTION_VALUES
 local ACTION_ORDER
+local ACTION_COLORS -- value -> rgb: Combat Mode's own actions (copper) and changed Blizzard ones (blue)
 
 local MODIFIER_GROUPS = {
   { id = "base", label = "Base", modifier = nil },
@@ -58,8 +59,17 @@ local function BuildActionValues()
   end
   ACTION_VALUES = {}
   ACTION_ORDER = {}
+  ACTION_COLORS = {}
   for _, id in ipairs(OVERRIDE_ORDER) do
     ACTION_VALUES[id] = CM.Constants.OverrideActions[id]
+    ACTION_COLORS[id] = C.accent
+    tinsert(ACTION_ORDER, id)
+  end
+  -- Blizzard actions Combat Mode changes (pings, raid markers): blue, right after our own copper
+  -- ones, so both are easy to tell from the plain Blizzard actions below.
+  for _, id in ipairs(CM.Constants.BlizzardActionOrder) do
+    ACTION_VALUES[id] = _G["BINDING_NAME_" .. id] or id
+    ACTION_COLORS[id] = C.slash
     tinsert(ACTION_ORDER, id)
   end
   for _, id in ipairs(CM.Constants.ActionsToProcess) do
@@ -124,6 +134,7 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas, leadingIconText
     charSpecific = CharScopedBindings,
     values = ACTION_VALUES,
     order = ACTION_ORDER,
+    valueColors = ACTION_COLORS,
     display = ActionDisplay,
     get = function()
       return Binding(slot).value

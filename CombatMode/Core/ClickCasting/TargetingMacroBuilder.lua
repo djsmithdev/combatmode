@@ -23,8 +23,12 @@
 --      Unclassified + cycle keys bound → treated as help. Harmful + cycle keys →
 --      ENEMY / AUTO_LOCK_ENEMY (including solo). Auto-swing uses /startattack or
 --      /cast ! or /petattack after /tar. Restore `/targetlasttarget [harm]` is
---      in-group only when cycle keys are bound (not Auto Lock).
---    • CM.TargetingMacroPrelineMaxLen = 255 − worst /click cast − newline; editor enforces.
+--      in-group only when cycle keys are bound (not Auto Lock). Its preline also clears a dead
+--      focus, falling back to a variant without that line when the whole macro would not fit in 255
+--      (SLIMMER_PRELINE: ElvUI / Bartender with key-down).
+--    • The /click line omits /click's default args (LeftButton, key-up) and only adds
+--      "LeftButton 1" for addon bars with key-down on. CM.TargetingMacroPrelineMaxLen =
+--      255 − worst /click cast − newline (140); editor enforces.
 --    • IsCastAtCursorSpell / IsExcludedFromTargetingSpell read char CSV spell-ID lists;
 --      builtin skyriding IDs from Constants.ReticleTargetingBuiltinExcludeSpellIds.
 --    • GetEffectiveBarButtonFrameName uses AddonActionBarResolver for third-party bars.
@@ -209,16 +213,22 @@ local function IsAddonActionButtonFrame(frameName)
   return frameName:match("^BT4Button") ~= nil or frameName:match("^ElvUI_Bar") ~= nil
 end
 
--- Some clients/setups ignore `/click ActionButtonN LeftButton 0|1` (down arg) on Blizzard bars, causing the
--- macro to do nothing. For addon action buttons (Bartender/ElvUI), the down arg matters to match
--- ActionButtonUseKeyDown. So we only append it for known addon button frames.
-local function FormatClickLine(frameName, mouseButton)
-  local btn = mouseButton or "LeftButton"
-  if IsAddonActionButtonFrame(frameName) then
-    local kd = GetActionButtonUseKeyDownMacroSuffix()
-    return "/click " .. frameName .. " " .. btn .. " " .. kd
+-- Frame state the macro checks at run time to click the override-bar button instead of the main bar's.
+local CLICK_BAR_STATE_CONDITIONS = "[overridebar][possessbar][shapeshift][vehicleui]"
+
+-- Arguments after the frame name. /click defaults to LeftButton and to a key-up click (a down arg of
+-- 0 is the same as none), so they are left out to keep the macro short. Some addon action buttons
+-- (Bartender/ElvUI) need the down arg to match ActionButtonUseKeyDown for secure clicks to fire,
+-- so only for them and only when key-down is on we pass "LeftButton 1" (down needs the button).
+local function ClickArgs(frameName)
+  if IsAddonActionButtonFrame(frameName) and GetActionButtonUseKeyDownMacroSuffix() == "1" then
+    return " LeftButton 1"
   end
-  return "/click " .. frameName .. " " .. btn
+  return ""
+end
+
+local function FormatClickLine(frameName)
+  return "/click " .. frameName .. ClickArgs(frameName)
 end
 
 -- Auto Attack / Auto Shot / Shoot / Pet Attack are combat swings, not IsSpellHarmful.
@@ -515,9 +525,14 @@ end
 -- limit is 255 (patch 11.0.2). Same patch: macrotext cannot /click another
 -- macro-executing button — do not split onto a second type=macro SecureActionButton.
 local SECURE_MACROTEXT_MAX = 255
--- Longest cast line BuildClickCastMacroText emits today: ACTIONBUTTON conditional
--- /click with ElvUI primary bar (ElvUI_Bar1Button12) + ActionButtonUseKeyDown suffix.
-local CLICKCAST_WORST_CAST_LINE_LEN = 125
+-- Longest cast line BuildClickCastMacroText emits: the ACTIONBUTTON conditional /click with the
+-- override frame (OverrideActionBarButton12) and an ElvUI primary bar (ElvUI_Bar1Button12) that
+-- needs the key-down arg.
+local CLICKCAST_WORST_CAST_LINE_LEN = #(
+  "/click "
+  .. CLICK_BAR_STATE_CONDITIONS
+  .. " OverrideActionBarButton12; ElvUI_Bar1Button12 LeftButton 1"
+)
 -- Max editable preline so pre + newline + worst cast stays within SECURE_MACROTEXT_MAX.
 CM.TargetingMacroPrelineMaxLen = SECURE_MACROTEXT_MAX - CLICKCAST_WORST_CAST_LINE_LEN - 1
 
@@ -554,10 +569,12 @@ local CLICKCAST_PRE_LINE_AUTO_LOCK_ANY = "/clearfocus [@focus,dead]\n"
   .. "/focus [nodead]"
 
 -- Auto Target Lock ON, Ignore Friendlies ON:
--- ,nodead on focus branch; resync /focus [nodead,harm] (replaces sticky noexists).
+-- ,nodead on the focus and mouseover branches (a dead hostile under the reticle is not picked up);
+-- resync /focus [nodead,harm] (replaces sticky noexists). Mounted (skyriding) abilities are
+-- excluded from targeting by the builtin exclude list, so there is no [nomounted] here.
 local CLICKCAST_PRE_LINE_AUTO_LOCK_ENEMY = "/clearfocus [@focus,dead]\n"
   .. "/cleartarget [dead,harm]\n"
-  .. "/tar [@focus,harm,nodead][@mouseover,harm][@anyenemy]\n"
+  .. "/tar [@focus,harm,nodead][@mouseover,harm,nodead][@anyenemy]\n"
   .. "/focus [nodead,harm]"
 
 -- Export defaults so the prelines editor can show a starting point even when no override exists.
@@ -664,11 +681,20 @@ local CLICKCAST_PRE_LINE_ALLY_HELP = "/clearfocus [@focus,dead]"
 local CLICKCAST_PRE_LINE_ALLY_HELP_ANY = "/clearfocus [@focus,dead]\n"
   .. "/tar [nomounted,@mouseover,help,nodead][nomounted,@softinteract,exists][nomounted,@anyfriend,exists]"
 
--- Slimmer than ENEMY (no dead-focus clear) so pre + /click + /targetlasttarget
--- fits the 255-char cap. Keeps [@focus,harm] so hostile Target Lock still wins /tar.
-local CLICKCAST_PRE_LINE_ALLY_HARM_RESTORE = "/cleartarget [dead,harm]\n"
+-- Same as ENEMY (clears a dead focus too). Keeps [@focus,harm] so hostile Target Lock still wins
+-- /tar. With the /targetlasttarget post-line this can overflow the 255-char cap on setups with a
+-- long /click line (ElvUI / Bartender with key-down), so it falls back to the slimmer variant below
+-- (no dead-focus clear) whenever the whole macro would not fit.
+local CLICKCAST_PRE_LINE_ALLY_HARM_RESTORE_SLIM = "/cleartarget [dead,harm]\n"
   .. "/tar [@focus,harm];[nomounted,@mouseover,harm,nodead][nomounted,@anyenemy]"
+local CLICKCAST_PRE_LINE_ALLY_HARM_RESTORE = "/clearfocus [@focus,dead]\n"
+  .. CLICKCAST_PRE_LINE_ALLY_HARM_RESTORE_SLIM
 local CLICKCAST_POST_LINE_ALLY_HARM_RESTORE = "/targetlasttarget [harm]"
+
+-- Prelines with a slimmer stand-in, used when the assembled macro is over SECURE_MACROTEXT_MAX.
+local SLIMMER_PRELINE = {
+  [CLICKCAST_PRE_LINE_ALLY_HARM_RESTORE] = CLICKCAST_PRE_LINE_ALLY_HARM_RESTORE_SLIM,
+}
 
 local function AllyCycleRestoreAfterHarm()
   return CM.IsAllyCycleRestoreAfterHarm and CM.IsAllyCycleRestoreAfterHarm()
@@ -854,20 +880,16 @@ function CM.BuildClickCastMacroText(bindingValue)
     local regularFrame = FindPrimaryBarButtonFrame(buttonNum) or ("ActionButton" .. buttonNum)
 
     local overrideFrame = "OverrideActionBarButton" .. buttonNum
-    local overrideClick = IsAddonActionButtonFrame(overrideFrame)
-        and (overrideFrame .. " LeftButton " .. GetActionButtonUseKeyDownMacroSuffix())
-      or (overrideFrame .. " LeftButton")
-
-    local regularClick = IsAddonActionButtonFrame(regularFrame)
-        and (regularFrame .. " LeftButton " .. GetActionButtonUseKeyDownMacroSuffix())
-      or (regularFrame .. " LeftButton")
-
-    castLine = "/click [overridebar][possessbar][shapeshift][vehicleui] "
-      .. overrideClick
+    castLine = "/click "
+      .. CLICK_BAR_STATE_CONDITIONS
+      .. " "
+      .. overrideFrame
+      .. ClickArgs(overrideFrame)
       .. "; "
-      .. regularClick
+      .. regularFrame
+      .. ClickArgs(regularFrame)
   else
-    castLine = FormatClickLine(effectiveFrame, "LeftButton")
+    castLine = FormatClickLine(effectiveFrame)
   end
 
   -- Classify from the currently displayed slot (paged / bonus / override-aware).
@@ -938,12 +960,21 @@ function CM.BuildClickCastMacroText(bindingValue)
   local pre = GetClickCastPreLine(spellIdForPreline, routeOverride)
   local post = GetClickCastPostLine(spellIdForPreline, routeOverride)
   -- Do not prefix pre-line with [nooverridebar]; that can be misinterpreted in combat and echo to chat.
-  local text = castLine
-  if pre then
-    text = pre .. "\n" .. text
+  local function Assemble(preLine)
+    local text = castLine
+    if preLine then
+      text = preLine .. "\n" .. text
+    end
+    if post then
+      text = text .. "\n" .. post
+    end
+    return text
   end
-  if post then
-    text = text .. "\n" .. post
+  local text = Assemble(pre)
+  -- A preline with a slimmer stand-in gives way when the whole macro would not fit in 255.
+  local slimmer = pre and SLIMMER_PRELINE[pre]
+  if slimmer and #text > SECURE_MACROTEXT_MAX then
+    text = Assemble(slimmer)
   end
   return text
 end

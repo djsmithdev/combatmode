@@ -2,13 +2,15 @@
 --  Core/Runtime/Bootstrap.lua — RUNTIME — enable sequencing
 ---------------------------------------------------------------------------------------
 --  What it does: Ordered startup for feature modules after DB is ready: CVar snapshot,
---  apply overrides, wildcard frame tracking, crosshair + cursor pulse, account macros,
+--  apply overrides, wildcard frame tracking, crosshair + cursor pulse, legacy macro cleanup,
 --  MOVEANDSTEER → Mouse Look rebind, toggle-focus bind, focus-cycle wheel refresh,
 --  Ally Cycle init. Also RestorePriorBindings for uninstall (BUTTON1/BUTTON2 camera
 --  defaults only).
 --  Architecture / how it works:
 --    • BootstrapFeatureModules() is the enable-time sequence Runtime calls.
---    • CreateTargetMacros from Constants.Macros — creates missing, updates existing.
+--    • RemoveLegacyMacros — Combat Mode no longer creates CM_ macros (the click-cast actions
+--      run Constants.Macros text from proxy buttons); older versions did, so delete leftovers that
+--      still hold our original text and are not on an action bar.
 --    • UnbindMoveAndSteer via TryApplyBindingChange + SaveBindings.
 --  Does not: Own ongoing freelook OnUpdate or EventRouter dispatch.
 --  Related: Core/Runtime/Runtime.lua, Core/Runtime/CVarManager.lua,
@@ -20,17 +22,20 @@ local _, CM = ...
 local _G = _G
 
 -- WoW API
-local CreateMacro = _G.CreateMacro
-local EditMacro = _G.EditMacro
+local DeleteMacro = _G.DeleteMacro
+local GetActionInfo = _G.GetActionInfo
+local GetMacroBody = _G.GetMacroBody
+local GetMacroIndexByName = _G.GetMacroIndexByName
+local InCombatLockdown = _G.InCombatLockdown
 local GetBindingKey = _G.GetBindingKey
 local GetCurrentBindingSet = _G.GetCurrentBindingSet
-local GetMacroInfo = _G.GetMacroInfo
 local SaveBindings = _G.SaveBindings
 local SetBinding = _G.SetBinding
 local UIParent = _G.UIParent
 
 -- Lua stdlib
 local pairs = _G.pairs
+local strtrim = _G.strtrim
 
 -- Suppress the experimental CVar confirmation popup so Mouse Look camera CVars
 -- (shoulder, dynamic pitch) don't trigger a dialog on every login/reload.
@@ -42,15 +47,39 @@ else
   UIParent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
 end
 
-local function CreateTargetMacros()
-  local macroIcon = "ability_hisek_aim"
+local MAX_ACTION_SLOT = 180
 
+local function NormalizeMacroText(text)
+  text = (text or ""):gsub("\r", "")
+  return strtrim(text)
+end
+
+local function IsMacroOnActionBar(macroIndex)
+  for slot = 1, MAX_ACTION_SLOT do
+    local actionType, id = GetActionInfo(slot)
+    if actionType == "macro" and id == macroIndex then
+      return true
+    end
+  end
+  return false
+end
+
+--- Older versions created account macros named like CM.Constants.Macros. Delete the ones still
+--- holding our original text (an edited macro is the player's) and not placed on an action bar.
+local function RemoveLegacyMacros()
+  if InCombatLockdown() then
+    return
+  end
   for macroName, macroText in pairs(CM.Constants.Macros) do
-    if CM.MacroExists(macroName) then
-      local _, existingIcon = GetMacroInfo(macroName)
-      EditMacro(macroName, macroName, existingIcon or macroIcon, macroText)
-    else
-      CreateMacro(macroName, macroIcon, macroText, false)
+    local index = GetMacroIndexByName(macroName)
+    if
+      index
+      and index > 0
+      and NormalizeMacroText(GetMacroBody(index)) == NormalizeMacroText(macroText)
+      and not IsMacroOnActionBar(index)
+    then
+      DeleteMacro(index)
+      CM.DebugPrint("Removed legacy macro " .. macroName)
     end
   end
 end
@@ -104,7 +133,7 @@ function CM.BootstrapFeatureModules()
   CM.CreateCrosshair()
   CM.InitializeCursorPulse()
   CM.InitializeVignette()
-  CreateTargetMacros()
+  RemoveLegacyMacros()
   CM.ApplyToggleFocusTargetBinding()
   CM.ApplyCycleFocusBindings()
   if CM.InitializeAllyCycle then

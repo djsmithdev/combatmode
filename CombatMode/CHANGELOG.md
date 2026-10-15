@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Extra Frames** (Auto Unlock) is now a pill list like Unlock Mounts. Type to get suggestions from Blizzard and addon frames; each frame shows the WoW logo (Blizzard) or its addon's icon, and suggestions tell you which frames are open right now. Your saved frames carry over, and new installs start with an empty list.
+- The **Targeting Macro Prelines** editor now allows **140** characters per preline (was 129): the trailing `/click` line leaves out arguments the game already defaults to.
+- **Auto Target Lock** (with Ignore Friendlies) no longer picks up a dead hostile under your crosshair, and the Ally Cycle "restore after a harmful cast" macro now clears a dead Target Lock too when there is room for it.
+- Combat Mode no longer creates `CM_...` macros in your macro list. Its click-cast actions (Clear Target, Clear Focus, Start Attack, Pet Attack, Toggle Focus) now run from hidden buttons, and leftover unmodified `CM_` macros from older versions are removed once (edited ones, or ones on an action bar, are kept).
+- The **Ping, Attack, Warning, On My Way and Assist** actions in **Click Casting** now ping the unit under your crosshair. The **raid marker** actions mark your target, or the unit under the crosshair when you have no target. Combat Mode's own actions (copper) and these changed Blizzard ones (blue) are listed first in the action dropdown.
 - Rewrote and tightened the setup wizard's text, gave its last step an accent-colored **Finish** button, and made it fade smoothly between steps.
 
 ## [5.0.1] - 2026-10-14

@@ -85,37 +85,31 @@ local STEPS = {
     tab = "crosshair",
     section = "CROSSHAIR",
     title = "Crosshair",
-    body = "The heart of Action Combat Mode: a reactive crosshair that adapts to your target and "
-      .. "combat state in real time and gives rich feedback as you fight. Make it yours.",
+    body = "A reactive, fully customizable crosshair that adapts to your target and combat state. Choose its look, size and position.",
   },
   {
     tab = "crosshair",
     section = "INTERACTION HUD",
     title = "Interaction HUD",
-    body = "When your reticle passes over an NPC, quest object or other interactable, a "
-      .. "range-aware indicator appears beside the crosshair. Choose where it sits.",
+    body = "A range-aware indicator appears beside the crosshair when your reticle passes over an interactable. Choose where it sits.",
   },
   {
     tab = "crosshair",
     section = "COMBAT ASSIST",
     title = "Combat Assist",
-    body = "Shows the rotation helper's next ability beside the crosshair, with cast-success "
-      .. "feedback, so you can keep your eyes off the action bar.",
+    body = "Shows Blizzard's next-cast suggestion beside the crosshair with cast feedback, so you can keep your eyes off the action bar. Choose where it sits.",
   },
   {
     tab = "reticle",
     section = "RETICLE TARGETING",
     title = "Reticle Targeting",
-    body = "Replaces tab-targeting: you target whatever is under your crosshair. It also casts "
-      .. "ground-targeted and area abilities exactly where you aim. Changing the main toggle "
-      .. "reloads the UI.",
+    body = "Target enemies by aiming at them, with ground targeting for AoE abilities. Changing the main toggle reloads the UI.",
   },
   {
     tab = "reticle",
     section = "TARGET LOCK",
     title = "Target Lock",
-    body = "Lock onto a target so the reticle can't swap away, and tap again to release it. "
-      .. "While locked, the cycle keys jump to nearby enemies. Set your keys.",
+    body = "Lock onto a target with one tap and tap again to release it. While locked, the cycle keys jump to nearby enemies. Set your keys.",
     -- These keys can't be set while Reticle Targeting is off, so they don't block then.
     tasks = {
       {
@@ -149,15 +143,13 @@ local STEPS = {
     tab = "autocursorunlock",
     section = "AUTO UNLOCK",
     title = "Auto Unlock",
-    body = "Frees your cursor when you open windows like bags or the map, and locks it again "
-      .. "when you close them. Add any extra windows that should trigger it.",
+    body = "Mouse Look pauses when you open bags, the map or other windows, then resumes. Add any extra windows that should trigger it.",
   },
   {
     tab = "allycycle",
     section = "ALLY CYCLE",
     title = "Ally Cycle",
-    body = "Select group members without leaving Mouse Look: helpful spells go to the ally, "
-      .. "harmful ones keep hitting your enemy target. Set your cycle keys.",
+    body = "Attack enemies and assist allies at once by cycling group members in Mouse Look: helpful spells go to the ally, harmful ones keep hitting your enemy target. Set your cycle keys.",
     tasks = {
       {
         label = "Set an Ally Cycle - Next key",

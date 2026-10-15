@@ -38,7 +38,7 @@ local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed
 local window
 
 local function PrelineMaxLen()
-  return CM.TargetingMacroPrelineMaxLen or 129
+  return CM.TargetingMacroPrelineMaxLen or 140
 end
 
 local function NormalizeInput(value)

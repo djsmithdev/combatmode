@@ -157,6 +157,8 @@ function UI.AccentWrap(text)
 end
 
 -- Chat-slash hint blue (same as Esc → Options → AddOns bridge hints).
+-- RGB of the slashMarkup tint, for text that cannot carry colour markup (dropdown values).
+UI.Colors.slash = { 0x69 / 255, 0xcc / 255, 0xf0 / 255 }
 UI.Colors.slashMarkup = "|cff69ccf0"
 
 --- Wraps a slash command (or any text) in the shared chat-hint blue |cff…|r markup.

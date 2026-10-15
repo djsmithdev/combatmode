@@ -10,6 +10,12 @@
 --    • SetNewBinding / OverrideDefaultButtons / ResetBindingOverride — per-slot secure
 --      attributes + SetMouselookOverrideBinding / SetOverrideBindingClick. STARTATTACK
 --      / PETATTACK are reticle /tar + /startattack or /petattack (not raw Blizzard binds).
+--      Clear Target / Clear Focus / Start Attack / Pet Attack / Toggle Focus run their
+--      CM.Constants.Macros text from the key's CombatModeClickCast proxy (CLICK binding), so
+--      no CM_ macros are created in the player's macro list. The Ping System actions (Ping,
+--      Attack, Warning, On My Way, Assist) and the raid markers do the same with
+--      CM.Constants.BlizzardActionMacros: they act on the unit under the crosshair (markers: the
+--      hard target first), only while Mouse Look is on.
 --      Auto Attack / Auto Shot / Shoot / Pet Attack bar slots use /startattack or
 --      /cast ! / /petattack after /tar so a swap cannot toggle the swing off.
 --    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run
@@ -447,6 +453,21 @@ local function ClickCastMouseButton(key)
   return key:match("BUTTON2") and "RightButton" or "LeftButton"
 end
 
+-- Click-cast action values that run a macro text of ours (not a player macro): the CM.Constants.Macros
+-- texts, and the Blizzard bindings we replace (CM.Constants.BlizzardActionMacros: pings and raid
+-- markers, which then act on the unit under the crosshair).
+local ACTION_MACRO_TEXTS = {
+  CLEARTARGET = CM.Constants.Macros.CM_ClearTarget,
+  CLEARFOCUS = CM.Constants.Macros.CM_ClearFocus,
+  STARTATTACK = CM.Constants.Macros.CM_StartAttack,
+  PETATTACK = CM.Constants.Macros.CM_PetAttack,
+  TOGGLEFOCUSANY = CM.Constants.Macros.CM_ToggleFocusAny,
+  TOGGLEFOCUSENEMY = CM.Constants.Macros.CM_ToggleFocusEnemy,
+}
+for value, text in pairs(CM.Constants.BlizzardActionMacros) do
+  ACTION_MACRO_TEXTS[value] = text
+end
+
 function CM.SetNewBinding(buttonSettings)
   if not buttonSettings.enabled then
     return
@@ -456,18 +477,15 @@ function CM.SetNewBinding(buttonSettings)
   local valueToUse
   if value == "MACRO" then
     valueToUse = "MACRO " .. buttonSettings.macroName
-  elseif value == "CLEARTARGET" then
-    valueToUse = "MACRO CM_ClearTarget"
-  elseif value == "CLEARFOCUS" then
-    valueToUse = "MACRO CM_ClearFocus"
-  elseif value == "STARTATTACK" then
-    valueToUse = "MACRO CM_StartAttack"
-  elseif value == "PETATTACK" then
-    valueToUse = "MACRO CM_PetAttack"
-  elseif value == "TOGGLEFOCUSANY" then
-    valueToUse = "MACRO CM_ToggleFocusAny"
-  elseif value == "TOGGLEFOCUSENEMY" then
-    valueToUse = "MACRO CM_ToggleFocusEnemy"
+  elseif ACTION_MACRO_TEXTS[value] then
+    -- Combat Mode's own click-cast actions: their macro text goes on this key's proxy button and
+    -- the key clicks it, so nothing has to exist in the player's macro list.
+    local frame = ClickCastFramesByKey[key]
+    local macroText = ACTION_MACRO_TEXTS[value]
+    if frame and macroText then
+      SetClickCastFrameMacro(frame, macroText)
+      valueToUse = "CLICK " .. frame:GetName() .. ":" .. ClickCastMouseButton(key)
+    end
   else
     -- When reticle targeting is off, no macro wrapping: use raw binding (no pre-line, no castAtCursor/excludeFromTargeting).
     if not CM.DB.char.reticleTargeting then

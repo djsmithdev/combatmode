@@ -5,7 +5,8 @@
 --  BLIZZARD_EVENTS category lists for EventRouter, ClickCastBars / ActionsToProcess /
 --  OverrideActions / ButtonsToOverride for click-cast UI and secure overrides.
 --  Architecture / how it works:
---    • Macros: CM_ClearTarget/Focus, CM_ToggleFocus{Any,Enemy}
+--    • Macros (texts only; run from secure proxy buttons, never created in the player's
+--      macro list): CM_ClearTarget/Focus, CM_ToggleFocus{Any,Enemy}
 --      (target-first-then-mouseover on lock; clear focus + target on unlock),
 --      CM_CycleFocusEnemy{Next,Prev}, CM_StartAttack / CM_PetAttack (hostile /tar
 --      then /startattack or /petattack; hides raw Blizzard STARTATTACK / PETATTACK)
@@ -49,6 +50,39 @@ CM.Constants.Macros = {
   CM_StartAttack = "/tar [@focus,harm];[nomounted,@mouseover,harm,nodead][nomounted,@anyenemy]\n/startattack",
   CM_PetAttack = "/tar [@focus,harm];[nomounted,@mouseover,harm,nodead][nomounted,@anyenemy]\n/petattack",
 }
+
+-- Blizzard bindings that Combat Mode replaces in Click Casting with a macro of its own (keyed by
+-- binding name, listed first and tinted in the action dropdown). Both act on the unit under the
+-- crosshair (@mouseover); the markers prefer the hard target and only use the unit under the
+-- crosshair when there is none.
+--  • Ping System: /ping types are the locale-independent numbers 1 Attack, 2 Warning, 3 On My Way,
+--    4 Assist; no type is the contextual ping (Blizzard's "Ping"). Unit pings only: /ping @cursor
+--    would use the real cursor position, which stays where the cursor was before Mouse Look.
+--  • Raid target markers: /tm <1-8, 0 clears>.
+CM.Constants.BlizzardActionMacros = {
+  TOGGLEPINGLISTENER = "/ping [@mouseover,exists]",
+  PINGATTACK = "/ping [@mouseover,exists] 1",
+  PINGWARNING = "/ping [@mouseover,exists] 2",
+  PINGONMYWAY = "/ping [@mouseover,exists] 3",
+  PINGASSIST = "/ping [@mouseover,exists] 4",
+}
+CM.Constants.BlizzardActionOrder = {
+  "TOGGLEPINGLISTENER",
+  "PINGATTACK",
+  "PINGWARNING",
+  "PINGONMYWAY",
+  "PINGASSIST",
+}
+for marker = 1, 8 do
+  local id = "RAIDTARGET" .. marker
+  CM.Constants.BlizzardActionMacros[id] = "/tm [@target,exists] "
+    .. marker
+    .. "; [@mouseover,exists] "
+    .. marker
+  CM.Constants.BlizzardActionOrder[#CM.Constants.BlizzardActionOrder + 1] = id
+end
+CM.Constants.BlizzardActionMacros.RAIDTARGETNONE = "/tm [@target,exists] 0; [@mouseover,exists] 0"
+CM.Constants.BlizzardActionOrder[#CM.Constants.BlizzardActionOrder + 1] = "RAIDTARGETNONE"
 
 -- EVENTS TO BE TRACKED
 CM.Constants.BLIZZARD_EVENTS = {
