@@ -54,7 +54,7 @@ UI.Options.AddTab({
   label = "Advanced",
   newFeatureFlag = true,
   build = function(ctx)
-    ctx:Header({ text = "FORCE LOCK", newFeatureFlag = true })
+    ctx:Header({ text = "FORCE LOCK" })
     ctx:TextInput({
       label = "Custom Condition",
       desc = "Custom Lua code that, while evaluating to true, forces Mouse Look to remain locked.",
@@ -108,7 +108,6 @@ return false
     })
     ctx:Toggle({
       label = "Unlock Once",
-      newFeatureFlag = true,
       desc = "Force Mouse Look to unlock only when the condition first becomes true. A manual lock remains in effect until the condition becomes false and then true again.",
       get = function()
         return CM.DB.global.customConditionOnce == true
@@ -122,7 +121,6 @@ return false
     ctx:Header("CROSSHAIR")
     ctx:Dropdown({
       label = "Situational Appearance",
-      newFeatureFlag = true,
       desc = "Texture utilized by the crosshair while the Situational Condition returns true.",
       values = situationalValues,
       order = appearanceOrder,
