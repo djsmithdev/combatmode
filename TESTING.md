@@ -30,6 +30,7 @@ Use this checklist for feature work and regressions.
 
 ## Reticle and targeting CVars
 
+- **Target Outline** (Reticle Targeting tab): with Reticle Targeting on, `/run print(GetCVar("Outline"), GetCVar("outlineMouseOverFadeDuration"), GetCVar("outlineSelectionFadeDuration"))` prints `3 3600 3600`. The outline is strong on the target and on the unit under the crosshair, including when the hovered unit becomes your target; units you sweep across leave no lingering outline. Toggle it off: `Outline` 0 and fades 0.9 / 0.32; on: back to the preset. Disabling Reticle Targeting / Uninstall restores the previous values. The three rows show (with descriptions) in the CVar editor.
 - Enable/disable reticle-related settings and confirm visual/state updates.
 - Confirm targeted CVars change only when feature requires it.
 - Disable feature and ensure CVars/state restore path behaves correctly.

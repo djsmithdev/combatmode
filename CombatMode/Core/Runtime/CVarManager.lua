@@ -13,7 +13,9 @@
 --      RestorePriorCVars used by Uninstall; restoringCVars suppresses re-snapshot.
 --      N.B. a populated priorCVarSnapshot in the DB is never overwritten (prevents
 --      contaminating the snapshot with CM's own CVar values on subsequent logins).
---    • GetEffectiveReticleTargetingCVarValues = preset ∪ global.reticleTargetingCVarOverrides.
+--    • GetEffectiveReticleTargetingCVarValues = preset ∪ global.reticleTargetingCVarOverrides;
+--      global.reticleOutline == false swaps the outline CVars for Outline 0 + Blizzard's
+--      fades. ApplyReticleOutlineCVars writes just those (Target Outline toggle).
 --    • ApplyMouseLookCamera / ClearMouseLookCamera — lock vs unlock (shoulder; MS via gate).
 --    • SetDynamicPitch — sticky with the option; strength is global.dynamicPitchStrength
 --      (ground pad). Flying pad is that value times Flying/Base so the air tilt stays
@@ -47,6 +49,7 @@ local _G = _G
 local CreateFrame = _G.CreateFrame
 local GetCVar = _G.C_CVar.GetCVar
 local GetCVarDefault = _G.C_CVar.GetCVarDefault
+local InCombatLockdown = _G.InCombatLockdown
 local IsFlying = _G.IsFlying
 local IsMounted = _G.IsMounted
 local UnitExists = _G.UnitExists
@@ -198,7 +201,32 @@ function CM.GetEffectiveReticleTargetingCVarValues()
     end
   end
 
+  -- Target Outline off: outlines disabled, selection fade back to Blizzard's (editor overrides of
+  -- these are ignored while the option is off).
+  local g = CM.DB and CM.DB.global
+  if g and g.reticleOutline == false then
+    local blizzard = CM.Constants.BlizzardReticleTargetingCVarValues
+    for _, cvar in ipairs(CM.Constants.ReticleOutlineCVarNames) do
+      resolved[cvar] = blizzard[cvar]
+    end
+    resolved["Outline"] = 0
+  end
+
   return resolved
+end
+
+--- Writes just the outline CVars (preset, or the "off" values) after the Target Outline option
+--- changes. Out of combat and only while Reticle Targeting is on (otherwise the CVars are not ours).
+function CM.ApplyReticleOutlineCVars()
+  if InCombatLockdown() or not (CM.DB and CM.DB.char and CM.DB.char.reticleTargeting) then
+    return
+  end
+  local effective = CM.GetEffectiveReticleTargetingCVarValues()
+  local subset = {}
+  for _, cvar in ipairs(CM.Constants.ReticleOutlineCVarNames) do
+    subset[cvar] = effective[cvar]
+  end
+  CM.SetCVars(subset)
 end
 
 function CM.SetCVar(name, value)

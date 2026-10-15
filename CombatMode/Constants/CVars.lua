@@ -7,7 +7,8 @@
 --  ManagedCVarNames as the union used for prior snapshots. Also lists
 --  ReticleTargetingCVarEditorExcluded keys the editor must not show.
 --  Architecture / how it works:
---    • ReticleTargetingCVarValues — SoftTarget*, deselectOnClick, CursorStickyCentering, etc.
+--    • ReticleTargetingCVarValues — SoftTarget*, deselectOnClick, CursorStickyCentering, the
+--      outline CVars (Outline + selection / mouseover fades; ReticleOutlineCVarNames), etc.
 --    • InteractionHUDSoftTargetCVarValues — SoftTargetInteract subset when HUD is on
 --      without full reticle targeting. SoftTargetIconInteract/GameObject are never written.
 --      SoftTargetIconEnemy stays in the full reticle preset only.
@@ -53,6 +54,15 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["SoftTargetNameplateEnemy"] = 0, -- Always show nameplates  for soft target enemy.
   -- SoftTarget Icon (enemy only — Interact/GameObject left to Accessibility / player).
   ["SoftTargetIconEnemy"] = 0,
+  -- Outline (the glow on quest objectives / mouseover / target). Switched by Target Outline
+  -- (global.reticleOutline): off forces Outline 0 and Blizzard's fade defaults. A fade is how long
+  -- the outline stays bright before settling dim. Both the target and the mouseover fade are long so
+  -- the outline is strong on the target and on the unit under the crosshair (a short mouseover fade
+  -- starts it dim and wins over the target outline, e.g. when the hovered unit becomes the target).
+  -- The soft-interact fade is left at Blizzard's.
+  ["Outline"] = 3, -- 0 = off, 1 = quest objectives, 2 = + mouseover, 3 = + target
+  ["outlineMouseOverFadeDuration"] = 3600, -- Blizzard 0.9
+  ["outlineSelectionFadeDuration"] = 3600, -- Blizzard 0.32
   -- cursor centering
   ["CursorFreelookCentering"] = 0, -- !BUG: needs to be set to 0 initially because Blizzard broke something in 10.2, otherwise it wll cause the camera to jolt the equivalent vector to the centered cursor position from where your cursor was before locking.
   ["CursorStickyCentering"] = 1, -- !BUG: we can't use it due to the issue described above. Fore more info, see: https://github.com/Stanzilla/WoWUIBugs/issues/504
@@ -120,6 +130,16 @@ CM.Constants.BlizzardReticleTargetingCVarValues = {
   ["SoftTargetInteractRange"] = 10,
   ["SoftTargetIconEnemy"] = 0,
   ["CursorStickyCentering"] = 0,
+  ["Outline"] = 2,
+  ["outlineMouseOverFadeDuration"] = 0.9,
+  ["outlineSelectionFadeDuration"] = 0.32,
+}
+
+-- The CVars the Target Outline option (global.reticleOutline) owns.
+CM.Constants.ReticleOutlineCVarNames = {
+  "Outline",
+  "outlineMouseOverFadeDuration",
+  "outlineSelectionFadeDuration",
 }
 
 -- Full Blizzard reset for Mouse Look camera-related CVars (uninstall fallback).

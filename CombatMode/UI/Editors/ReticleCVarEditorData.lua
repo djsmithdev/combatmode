@@ -92,6 +92,9 @@ local fallbackDescriptions = {
   SoftTargetFriendRange = "Max range to soft target friends (limited to tab targeting range).",
   SoftTargetNameplateEnemy = "Always show nameplates for soft enemy target.",
   SoftTargetIconEnemy = "Show icon for soft enemy target.",
+  Outline = "Outline mode. 0 = off, 1 = quest objectives, 2 = + mouseover, 3 = + target. Ignored while Target Outline is off.",
+  outlineMouseOverFadeDuration = "Seconds the mouseover outline stays bright before settling dim. A very large value keeps it strong; a short one starts it dim and it can dim the target outline.",
+  outlineSelectionFadeDuration = "Seconds the target outline stays bright before settling dim. A very large value keeps it strong; 0 starts it dim.",
 }
 
 local function BuildDescriptionMap()

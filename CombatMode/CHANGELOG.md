@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.3] - 2026-10-15
+
+### Added
+
+- **Target Outline** (Reticle Targeting): show an outline effect on your target.
+
 ## [5.0.2] - 2026-10-14
 
 ### Added
@@ -629,7 +635,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.0.2...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.0.3...HEAD
+[5.0.3]: https://github.com/djsmithdev/combatmode/compare/5.0.2...5.0.3
 [5.0.2]: https://github.com/djsmithdev/combatmode/compare/5.0.1...5.0.2
 [5.0.1]: https://github.com/djsmithdev/combatmode/compare/5.0.0...5.0.1
 [5.0.0]: https://github.com/djsmithdev/combatmode/compare/4.8.2...5.0.0

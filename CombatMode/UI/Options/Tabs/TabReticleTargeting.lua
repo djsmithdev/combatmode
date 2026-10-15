@@ -9,7 +9,8 @@
 --    • DB.char: reticleTargeting, reticleTargetingEnemyOnly, autoTargetLockOnAttack,
 --      macroInjectionClickCastOnly, stickyCrosshair, excludeFromTargetingSpells,
 --      castAtCursorSpells.
---    • DB.global: showTargetLockMarker, autofocusLockedTarget.
+--    • DB.global: showTargetLockMarker, autofocusLockedTarget, reticleOutline (Target Outline:
+--      Outline CVars via CM.ApplyReticleOutlineCVars).
 --    • macroInjectionClickCastOnly disabled/forced when ThirdPartyActionBarsActive.
 --    • Spell lists stored as spell-ID CSV; membership in TargetingMacroBuilder.
 --    • Target Lock keybinds go through TryApplyBindingChange + AssignNamedKeybind.
@@ -37,6 +38,7 @@ local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed
 UI.Options.AddTab({
   id = "reticle",
   label = "Reticle Targeting",
+  newFeatureFlag = true,
   build = function(ctx)
     ctx:Header("RETICLE TARGETING")
 
@@ -91,6 +93,21 @@ UI.Options.AddTab({
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting or CM.ThirdPartyActionBarsActive == true
+      end,
+    })
+    ctx:Toggle({
+      label = "Target Outline",
+      desc = "Show an outline effect on your target.",
+      newFeatureFlag = true,
+      get = function()
+        return CM.DB.global.reticleOutline ~= false
+      end,
+      set = function(value)
+        CM.DB.global.reticleOutline = value
+        CM.ApplyReticleOutlineCVars()
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
       end,
     })
     ctx:Gap()

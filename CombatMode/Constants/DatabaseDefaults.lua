@@ -85,6 +85,8 @@ CM.Constants.DatabaseDefaults = {
     sheathWeaponsWithMouselook = false,
     interactUnit = "target",
     showTargetLockMarker = true,
+    -- Reticle Targeting: outline preset (Outline 3, no fades). false = Outline 0 + Blizzard fades.
+    reticleOutline = true,
     autofocusLockedTarget = false, -- Target Focus Enemy while focus exists
     -- crosshair
     crosshair = true,
