@@ -81,7 +81,7 @@ local fallbackDescriptions = {
   SoftTargetForce = "Auto-set target to match soft target. 1 = for enemies, 2 = for friends.",
   SoftTargetMatchLocked = "Match appropriate soft target to locked target. 1 = hard locked target only, 2 = for targets you attack ",
   SoftTargetWithLocked = "Allows soft target selection while player has a locked target. 2 = always do soft targeting.",
-  SoftTargetEnemy = "Sets when enemy soft targeting should be enabled. 0=off, 1=gamepad, 2=KBM, 3=always.",
+  SoftTargetEnemy = "Sets when enemy soft targeting should be enabled. 0=off, 1=gamepad, 2=KBM, 3=always. Needed to pick a target through friendlies standing in front of an enemy; with 0, casts only reach enemies directly under the crosshair or your hard target.",
   SoftTargetEnemyArc = "Enemy reticle yaw arc. 0 = strict forward, 1 = wider forward arc, 2 = can be anywhere in front.",
   SoftTargetEnemyRange = "Max range to soft target enemies (limited to tab targeting range).",
   SoftTargetInteract = "Sets when soft interact should be enabled. 0=off, 1=gamepad, 2=KBM, 3=always.",

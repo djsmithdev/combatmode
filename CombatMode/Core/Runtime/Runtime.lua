@@ -4,7 +4,7 @@
 --  What it does: Receives the AddOn namespace (`local addonName, CM = ...`), optional
 --  `_G.CM` alias, TOC METADATA, native CombatModeDB merge, slash `/acm` `/actioncombatmode`,
 --  lifecycle (ADDON_LOADED / PLAYER_LOGIN → OnInitialize / OnEnable), Rematch
---  coordination, throttled CombatMode_OnUpdate (free-look + crosshair reaction),
+--  coordination, throttled CombatMode_OnUpdate (ReconcileFreeLook + crosshair reaction),
 --  welcome/changelog scheduling, and UninstallCombatMode.
 --  Architecture / how it works:
 --    • InitDatabase merges Constants.DatabaseDefaults into global + char["Name - Realm"],
@@ -450,6 +450,33 @@ This is (in most cases) extremely excessive, hence why we're adding a throttle.
 --
 local ON_UPDATE_INTERVAL = 0.15
 local TIME_SINCE_LAST_UPDATE = 0
+
+--- Free-look half of the tick: unlock when something wants the cursor, otherwise (re)lock.
+--- Also run straight from CURRENT_SPELL_CAST_CHANGED so a ground spell frees the cursor (and
+--- placing or cancelling it re-locks) without waiting for the next throttled tick.
+--- Returns true when the caller may go on to the crosshair updates.
+function CM.ReconcileFreeLook()
+  if CM.IsDefaultMouseActionBeingUsed() then
+    return false
+  end
+
+  local isMouselooking = IsMouselooking()
+
+  if CM.ShouldFreeLookBeOff() then
+    CM.UnlockFreeLook()
+    return false
+  end
+
+  -- OPie may rematch mouselook itself after freeing CursorFreelookCentering; a plain
+  -- LockFreeLook no-ops when already looking and leaves the cursor visible.
+  if not (CM.RematchFreeLookAfterOpieIfNeeded and CM.RematchFreeLookAfterOpieIfNeeded()) then
+    if not isMouselooking then
+      CM.LockFreeLook()
+    end
+  end
+  return true
+end
+
 function _G.CombatMode_OnUpdate(_, elapsed)
   -- Making this thread-safe by keeping track of the last update cycle
   TIME_SINCE_LAST_UPDATE = TIME_SINCE_LAST_UPDATE + elapsed
@@ -459,23 +486,8 @@ function _G.CombatMode_OnUpdate(_, elapsed)
     TIME_SINCE_LAST_UPDATE = 0
 
     CM.Profile("CombatMode_OnUpdate:fullTick", function()
-      if CM.IsDefaultMouseActionBeingUsed() then
+      if not CM.ReconcileFreeLook() then
         return
-      end
-
-      local isMouselooking = IsMouselooking()
-
-      if CM.ShouldFreeLookBeOff() then
-        CM.UnlockFreeLook()
-        return
-      end
-
-      -- OPie may rematch mouselook itself after freeing CursorFreelookCentering; a plain
-      -- LockFreeLook no-ops when already looking and leaves the cursor visible.
-      if not (CM.RematchFreeLookAfterOpieIfNeeded and CM.RematchFreeLookAfterOpieIfNeeded()) then
-        if not isMouselooking then
-          CM.LockFreeLook()
-        end
       end
 
       CM.Profile("UpdateCrosshairReaction", CM.UpdateCrosshairReaction)

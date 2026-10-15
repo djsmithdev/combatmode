@@ -20,6 +20,7 @@ Use this checklist for feature work and regressions.
 
 ## Core and mouselook
 
+- **Ground spells:** press an AoE/ground spell (green circle): the cursor appears at once, not after a short delay; placing it or cancelling (Esc / right click) re-locks Mouse Look at once.
 - Toggle CombatMode on/off and verify mouselook enters/exits correctly.
 - Verify no stuck mouselook after opening/closing common UI panels.
 - Test transitions in and out of combat; no protected-action errors.

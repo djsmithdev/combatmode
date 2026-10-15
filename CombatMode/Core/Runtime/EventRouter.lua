@@ -7,6 +7,8 @@
 --  crosshair cast feedback, Assisted Highlight cast hooks, and Ally Cycle roster/bindings.
 --  Architecture / how it works:
 --    • BuildEventCategoryMap / GetEventCategoryMap used at enable time.
+--    • FREELOOK_RECONCILE_EVENTS (CURRENT_SPELL_CAST_CHANGED) → CM.ReconcileFreeLook, the same
+--      check the tick runs, so ground-spell placement frees / re-locks the cursor immediately.
 --    • REFRESH_BINDINGS_EVENTS coalesced via C_Timer so one RefreshClickCastMacros runs
 --      after bursts (also Toggle Focus + Ally Cycle side effects). Self-echo events
 --      during apply are suppressed; Assisted Combat suggestion slots and unchanged
@@ -155,6 +157,11 @@ local function HandleEventByCategory(category, event, ...)
     end,
     LOCK_EVENTS = function()
       CM.LockFreeLook()
+    end,
+    FREELOOK_RECONCILE_EVENTS = function()
+      if CM.ReconcileFreeLook then
+        CM.ReconcileFreeLook()
+      end
     end,
     REMATCH_EVENTS = function()
       if CM.RuntimeRematch then

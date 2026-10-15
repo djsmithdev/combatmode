@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Target Outline** (Reticle Targeting): show an outline effect on your target.
 
+### Changed
+
+- The cursor now appears and disappears instantly when you pick up or place a ground-targeted spell.
+
 ## [5.0.2] - 2026-10-14
 
 ### Added

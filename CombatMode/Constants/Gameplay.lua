@@ -10,7 +10,7 @@
 --      (target-first-then-mouseover on lock; clear focus + target on unlock),
 --      CM_CycleFocusEnemy{Next,Prev}, CM_StartAttack / CM_PetAttack (hostile /tar
 --      then /startattack or /petattack; hides raw Blizzard STARTATTACK / PETATTACK)
---    • BLIZZARD_EVENTS groups: UNLOCK/LOCK/REMATCH, FRIENDLY_TARGETING,
+--    • BLIZZARD_EVENTS groups: UNLOCK/LOCK/FREELOOK_RECONCILE/REMATCH, FRIENDLY_TARGETING,
 --      UNCATEGORIZED, REFRESH_BINDINGS (bars/vehicles/CVAR_UPDATE), FOCUS_LOCK,
 --      CAST_FEEDBACK (player cast/channel), ASSISTED_HIGHLIGHT
 --      (ASSISTED_COMBAT_ACTION_SPELL_CAST), FOCUS_NAMEPLATE (nameplate add/remove for
@@ -96,6 +96,10 @@ CM.Constants.BLIZZARD_EVENTS = {
   },
   -- Events that fire LockFreeLook()
   LOCK_EVENTS = { "CINEMATIC_STOP", "STOP_MOVIE" },
+  -- Events that run the free-look check right away instead of waiting for the next tick
+  FREELOOK_RECONCILE_EVENTS = {
+    "CURRENT_SPELL_CAST_CHANGED", -- Ground spell (green circle) started / placed / cancelled
+  },
   -- Events that fire Rematch()
   REMATCH_EVENTS = {
     "PLAYER_ENTERING_WORLD", -- Loading Cvars on every reload
