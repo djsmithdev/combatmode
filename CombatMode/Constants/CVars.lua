@@ -36,7 +36,7 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["enableMouseoverCast"] = 0, -- Disabling to avoid issues with targeting macro preline priority
   -- SoftTarget General
   ["SoftTargetForce"] = 0, -- Auto-set target to match soft target. 1 = for enemies, 2 = for friends | 0 = soft targets are not auto-promoted to hard target
-  ["SoftTargetMatchLocked"] = 0, -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack | 0 = soft target is not forced to match the locked target
+  ["SoftTargetMatchLocked"] = 1, -- Match appropriate soft target to locked target. 1 = hard locked only, 2 = targets you attack | 1 = soft target follows your hard target while you have one (aiming at another enemy does not move it)
   ["SoftTargetWithLocked"] = 2, -- Allows soft target selection while player has a locked target | 2 = soft selection is not suppressed while locked target is present
   -- SoftTarget Enemy
   ["SoftTargetEnemy"] = 3, -- Sets when enemy soft targeting should be enabled. 0=off, 1=gamepad, 2=KBM, 3=always
@@ -63,6 +63,12 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["Outline"] = 3, -- 0 = off, 1 = quest objectives, 2 = + mouseover, 3 = + target
   ["outlineMouseOverFadeDuration"] = 3600, -- Blizzard 0.9
   ["outlineSelectionFadeDuration"] = 3600, -- Blizzard 0.32
+  -- Soft Targeting indicator: the selection circle under a unit and the floating name Blizzard
+  -- shows on the soft target. Switched by Hide Soft Targeting Indicator
+  -- (global.reticleHideSoftIndicator): the soft target follows the player, not the (shifted)
+  -- crosshair, so its indicator can sit on a different unit than the one under the crosshair.
+  ["ObjectSelectionCircle"] = 0, -- Blizzard 1
+  ["UnitNameFocused"] = 0, -- Blizzard 1
   -- cursor centering
   ["CursorFreelookCentering"] = 0, -- !BUG: needs to be set to 0 initially because Blizzard broke something in 10.2, otherwise it wll cause the camera to jolt the equivalent vector to the centered cursor position from where your cursor was before locking.
   ["CursorStickyCentering"] = 1, -- !BUG: we can't use it due to the issue described above. Fore more info, see: https://github.com/Stanzilla/WoWUIBugs/issues/504
@@ -75,6 +81,13 @@ CM.Constants.ReticleTargetingCVarEditorExcluded = {
   ["enableMouseoverCast"] = true,
   ["deselectOnClick"] = true,
   ["interactKeyWarningTutorial"] = true,
+  -- Owned by the Target Outline / Hide Soft Targeting Indicator toggles; an editor row would
+  -- conflict with them.
+  ["Outline"] = true,
+  ["outlineMouseOverFadeDuration"] = true,
+  ["outlineSelectionFadeDuration"] = true,
+  ["ObjectSelectionCircle"] = true,
+  ["UnitNameFocused"] = true,
 }
 
 -- Minimal SoftTarget CVars so the Interaction HUD (softinteract) works when Reticle Targeting
@@ -133,6 +146,8 @@ CM.Constants.BlizzardReticleTargetingCVarValues = {
   ["Outline"] = 2,
   ["outlineMouseOverFadeDuration"] = 0.9,
   ["outlineSelectionFadeDuration"] = 0.32,
+  ["ObjectSelectionCircle"] = 1,
+  ["UnitNameFocused"] = 1,
 }
 
 -- The CVars the Target Outline option (global.reticleOutline) owns.
@@ -140,6 +155,12 @@ CM.Constants.ReticleOutlineCVarNames = {
   "Outline",
   "outlineMouseOverFadeDuration",
   "outlineSelectionFadeDuration",
+}
+
+-- The CVars the Hide Soft Targeting Indicator option (global.reticleHideSoftIndicator) owns.
+CM.Constants.ReticleSoftIndicatorCVarNames = {
+  "ObjectSelectionCircle",
+  "UnitNameFocused",
 }
 
 -- Full Blizzard reset for Mouse Look camera-related CVars (uninstall fallback).

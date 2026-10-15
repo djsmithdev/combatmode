@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Target Outline** (Reticle Targeting): show an outline effect on your target.
+- **Hide Soft Targeting Indicator** (Advanced › Reticle Targeting): hides the indicator Blizzard shows on your soft target, which can sit off the crosshair with a high Shoulder Offset.
 
 ### Changed
 
 - The cursor now appears and disappears instantly when you pick up or place a ground-targeted spell.
+- Reticle Targeting: your soft target now stays on your hard target while you have one.
 
 ## [5.0.2] - 2026-10-14
 

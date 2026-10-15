@@ -20,6 +20,8 @@ Use this checklist for feature work and regressions.
 
 ## Core and mouselook
 
+- **Hide Soft Targeting Indicator** (Advanced tab, Reticle Targeting section): with Reticle Targeting on, `/run print(GetCVar("ObjectSelectionCircle"), GetCVar("UnitNameFocused"))` prints `0 0`; the soft target shows no circle or floating name, while your hard target, focus and mouseover units keep theirs. Toggle it off: both go back to 1 (circle and name return); on: back to 0. Soft targeting itself (`SoftTargetEnemy` 3) is unchanged, so a friendly in front of an enemy still does not stop casts. Disabling Reticle Targeting / Uninstall restores the previous values.
+- **SoftTargetMatchLocked 1** (Reticle Targeting preset): `/run print(GetCVar("SoftTargetMatchLocked"))` prints `1`; with a hard target, the soft target stays on it while you aim at other enemies; with no hard target it follows your aim as before.
 - **Ground spells:** press an AoE/ground spell (green circle): the cursor appears at once, not after a short delay; placing it or cancelling (Esc / right click) re-locks Mouse Look at once.
 - Toggle CombatMode on/off and verify mouselook enters/exits correctly.
 - Verify no stuck mouselook after opening/closing common UI panels.
@@ -31,7 +33,7 @@ Use this checklist for feature work and regressions.
 
 ## Reticle and targeting CVars
 
-- **Target Outline** (Reticle Targeting tab): with Reticle Targeting on, `/run print(GetCVar("Outline"), GetCVar("outlineMouseOverFadeDuration"), GetCVar("outlineSelectionFadeDuration"))` prints `3 3600 3600`. The outline is strong on the target and on the unit under the crosshair, including when the hovered unit becomes your target; units you sweep across leave no lingering outline. Toggle it off: `Outline` 0 and fades 0.9 / 0.32; on: back to the preset. Disabling Reticle Targeting / Uninstall restores the previous values. The three rows show (with descriptions) in the CVar editor.
+- **Target Outline** (Reticle Targeting tab): with Reticle Targeting on, `/run print(GetCVar("Outline"), GetCVar("outlineMouseOverFadeDuration"), GetCVar("outlineSelectionFadeDuration"))` prints `3 3600 3600`. The outline is strong on the target and on the unit under the crosshair, including when the hovered unit becomes your target; units you sweep across leave no lingering outline. Toggle it off: `Outline` 0 and fades 0.9 / 0.32; on: back to the preset. Disabling Reticle Targeting / Uninstall restores the previous values.
 - Enable/disable reticle-related settings and confirm visual/state updates.
 - Confirm targeted CVars change only when feature requires it.
 - Disable feature and ensure CVars/state restore path behaves correctly.

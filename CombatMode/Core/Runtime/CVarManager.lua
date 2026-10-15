@@ -16,6 +16,9 @@
 --    • GetEffectiveReticleTargetingCVarValues = preset ∪ global.reticleTargetingCVarOverrides;
 --      global.reticleOutline == false swaps the outline CVars for Outline 0 + Blizzard's
 --      fades. ApplyReticleOutlineCVars writes just those (Target Outline toggle).
+--      global.reticleHideSoftIndicator == false puts ObjectSelectionCircle / UnitNameFocused back
+--      to Blizzard's values (these CVars are hidden from the CVar editor); ApplyReticleSoftIndicatorCVars writes
+--      just those (Hide Soft Targeting Indicator toggle).
 --    • ApplyMouseLookCamera / ClearMouseLookCamera — lock vs unlock (shoulder; MS via gate).
 --    • SetDynamicPitch — sticky with the option; strength is global.dynamicPitchStrength
 --      (ground pad). Flying pad is that value times Flying/Base so the air tilt stays
@@ -201,8 +204,8 @@ function CM.GetEffectiveReticleTargetingCVarValues()
     end
   end
 
-  -- Target Outline off: outlines disabled, selection fade back to Blizzard's (editor overrides of
-  -- these are ignored while the option is off).
+  -- Target Outline off: outlines disabled, selection fade back to Blizzard's (these CVars are
+  -- excluded from the CVar editor, so there are no overrides to honor).
   local g = CM.DB and CM.DB.global
   if g and g.reticleOutline == false then
     local blizzard = CM.Constants.BlizzardReticleTargetingCVarValues
@@ -210,6 +213,15 @@ function CM.GetEffectiveReticleTargetingCVarValues()
       resolved[cvar] = blizzard[cvar]
     end
     resolved["Outline"] = 0
+  end
+
+  -- Hide Soft Targeting Indicator off: circle and name back to Blizzard's (also excluded from
+  -- the CVar editor).
+  if g and g.reticleHideSoftIndicator == false then
+    local blizzard = CM.Constants.BlizzardReticleTargetingCVarValues
+    for _, cvar in ipairs(CM.Constants.ReticleSoftIndicatorCVarNames) do
+      resolved[cvar] = blizzard[cvar]
+    end
   end
 
   return resolved
@@ -224,6 +236,20 @@ function CM.ApplyReticleOutlineCVars()
   local effective = CM.GetEffectiveReticleTargetingCVarValues()
   local subset = {}
   for _, cvar in ipairs(CM.Constants.ReticleOutlineCVarNames) do
+    subset[cvar] = effective[cvar]
+  end
+  CM.SetCVars(subset)
+end
+
+--- Writes just the soft target indicator CVars after the Hide Soft Targeting Indicator option
+--- changes. Out of combat and only while Reticle Targeting is on (otherwise the CVars are not ours).
+function CM.ApplyReticleSoftIndicatorCVars()
+  if InCombatLockdown() or not (CM.DB and CM.DB.char and CM.DB.char.reticleTargeting) then
+    return
+  end
+  local effective = CM.GetEffectiveReticleTargetingCVarValues()
+  local subset = {}
+  for _, cvar in ipairs(CM.Constants.ReticleSoftIndicatorCVarNames) do
     subset[cvar] = effective[cvar]
   end
   CM.SetCVars(subset)
