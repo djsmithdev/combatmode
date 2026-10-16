@@ -16,9 +16,13 @@
 --    • GetEffectiveReticleTargetingCVarValues = preset ∪ global.reticleTargetingCVarOverrides;
 --      global.reticleOutline == false swaps the outline CVars for Outline 0 + Blizzard's
 --      fades. ApplyReticleOutlineCVars writes just those (Target Outline toggle).
---      global.reticleHideSoftIndicator == false puts ObjectSelectionCircle / UnitNameFocused back
---      to Blizzard's values (these CVars are hidden from the CVar editor); ApplyReticleSoftIndicatorCVars writes
---      just those (Hide Soft Targeting Indicator toggle).
+--      global.selectionCircleMode (Selection Circle) drives ObjectSelectionCircle /
+--      UnitNameFocused (both hidden from the CVar editor): "target" = the circle while a hard
+--      target exists, "locked" = while it is also your focus (Target Lock), both only while
+--      SoftTargetMatchLocked is 1 (the soft target then sits on that target); "soft" = Blizzard's
+--      circle and name; "hidden" = none. ApplyReticleSelectionCircleCVars writes just those on
+--      option changes and PLAYER_TARGET_CHANGED / PLAYER_FOCUS_CHANGED; turning the circle on waits
+--      until the soft target is on the hard target so it never slides over.
 --    • ApplyMouseLookCamera / ClearMouseLookCamera — lock vs unlock (shoulder; MS via gate).
 --    • SetDynamicPitch — sticky with the option; strength is global.dynamicPitchStrength
 --      (ground pad). Flying pad is that value times Flying/Base so the air tilt stays
@@ -49,13 +53,16 @@ local _, CM = ...
 local _G = _G
 
 -- WoW API
+local C_Timer = _G.C_Timer
 local CreateFrame = _G.CreateFrame
 local GetCVar = _G.C_CVar.GetCVar
 local GetCVarDefault = _G.C_CVar.GetCVarDefault
+local GetTime = _G.GetTime
 local InCombatLockdown = _G.InCombatLockdown
 local IsFlying = _G.IsFlying
 local IsMounted = _G.IsMounted
 local UnitExists = _G.UnitExists
+local UnitIsUnit = _G.UnitIsUnit
 
 -- Always resolve through the live C_CVar.SetCVar so hooksecurefunc consumers
 -- (e.g. Reticle CVar editor attribution) see Combat Mode writes. A load-time
@@ -70,6 +77,7 @@ local math = _G.math
 local min = math.min
 local next = _G.next
 local pairs = _G.pairs
+local pcall = _G.pcall
 local tonumber = _G.tonumber
 local type = _G.type
 local tostring = _G.tostring
@@ -136,8 +144,26 @@ function CM.EnsurePriorCVarSnapshot()
   CM.CapturePriorCVarSnapshot()
 end
 
---- Restore CVars from the pre-CM snapshot. Falls back to hard-coded Blizzard tables
---- when no snapshot exists.
+local BLIZZARD_CVAR_TABLES = {
+  "BlizzardReticleTargetingCVarValues",
+  "BlizzardMouseLookCameraCVarValues",
+  "BlizzardTargetFocusCVarValues",
+}
+
+--- Blizzard's own value for a managed CVar, or nil when the hard-coded tables do not list it.
+local function BlizzardCVarDefault(name)
+  for _, tableName in ipairs(BLIZZARD_CVAR_TABLES) do
+    local value = CM.Constants[tableName][name]
+    if value ~= nil then
+      return value
+    end
+  end
+  return nil
+end
+
+--- Restore CVars from the pre-CM snapshot; managed CVars missing from it (added by an update
+--- after the snapshot was taken) and every CVar when no snapshot exists fall back to the
+--- hard-coded Blizzard tables.
 function CM.RestorePriorCVars()
   local globalDB = CM.DB and CM.DB.global
   local snap = globalDB and globalDB.priorCVarSnapshot
@@ -146,6 +172,14 @@ function CM.RestorePriorCVars()
   if SnapshotIsPopulated(snap) then
     for name, value in pairs(snap) do
       SetCVar(name, value)
+    end
+    for _, name in ipairs(CM.Constants.ManagedCVarNames) do
+      if snap[name] == nil then
+        local fallback = BlizzardCVarDefault(name)
+        if fallback ~= nil then
+          SetCVar(name, fallback)
+        end
+      end
     end
     -- Freelook centering must never linger after uninstall; force off even if missing.
     SetCVar("CursorFreelookCentering", snap.CursorFreelookCentering or 0)
@@ -190,6 +224,18 @@ function CM.GetReticleTargetingCVarOverrides()
   return t
 end
 
+--- Whether two existing units are the same unit. Comparisons can be restricted ("secret") in
+--- some situations: any error counts as no match.
+local function UnitsMatch(unitA, unitB)
+  if not (UnitExists(unitA) and UnitExists(unitB)) then
+    return false
+  end
+  local ok, same = pcall(function()
+    return UnitIsUnit(unitA, unitB) == true
+  end)
+  return ok and same == true
+end
+
 function CM.GetEffectiveReticleTargetingCVarValues()
   local resolved = {}
   local defaults = CM.Constants.ReticleTargetingCVarValues
@@ -215,13 +261,27 @@ function CM.GetEffectiveReticleTargetingCVarValues()
     resolved["Outline"] = 0
   end
 
-  -- Hide Soft Targeting Indicator off: circle and name back to Blizzard's (also excluded from
-  -- the CVar editor).
-  if g and g.reticleHideSoftIndicator == false then
-    local blizzard = CM.Constants.BlizzardReticleTargetingCVarValues
-    for _, cvar in ipairs(CM.Constants.ReticleSoftIndicatorCVarNames) do
-      resolved[cvar] = blizzard[cvar]
-    end
+  -- Selection circle (and name), hidden by the preset. The soft target follows the player, not the
+  -- (shifted) crosshair, so Blizzard's circle on it can sit on a different unit than the crosshair.
+  -- "target" / "locked" light the circle only while SoftTargetMatchLocked is 1: the soft target then
+  -- sits on the hard target, so the circle cannot land elsewhere. "soft" is Blizzard's own.
+  local mode = g and g.selectionCircleMode
+  if mode ~= "locked" and mode ~= "soft" and mode ~= "hidden" then
+    mode = "target"
+  end
+  local matchLocked = tonumber(resolved["SoftTargetMatchLocked"]) == 1
+  local showCircle = mode == "soft"
+  if mode == "target" then
+    showCircle = matchLocked and UnitExists("target")
+  elseif mode == "locked" then
+    showCircle = matchLocked and UnitsMatch("focus", "target")
+  end
+  local blizzard = CM.Constants.BlizzardReticleTargetingCVarValues
+  if showCircle then
+    resolved["ObjectSelectionCircle"] = blizzard["ObjectSelectionCircle"]
+  end
+  if mode == "soft" then
+    resolved["UnitNameFocused"] = blizzard["UnitNameFocused"]
   end
 
   return resolved
@@ -241,18 +301,76 @@ function CM.ApplyReticleOutlineCVars()
   CM.SetCVars(subset)
 end
 
---- Writes just the soft target indicator CVars after the Hide Soft Targeting Indicator option
---- changes. Out of combat and only while Reticle Targeting is on (otherwise the CVars are not ours).
-function CM.ApplyReticleSoftIndicatorCVars()
-  if InCombatLockdown() or not (CM.DB and CM.DB.char and CM.DB.char.reticleTargeting) then
-    return
+-- The circle waits until the soft target is on the hard target: when a target is set the soft
+-- target is still on the previous unit for a moment, and the circle would be seen sliding over.
+-- Polled every SELECTION_CIRCLE_POLL_SEC for at most SELECTION_CIRCLE_MAX_WAIT_SEC, then given up
+-- (the circle stays off rather than risking the wrong unit).
+local SELECTION_CIRCLE_POLL_SEC = 0.02
+local SELECTION_CIRCLE_MAX_WAIT_SEC = 0.5
+local SOFT_UNITS = { "softenemy", "softfriend", "softinteract" }
+local selectionCircleToken = 0
+
+--- True when the hard target is also a soft target, or when no soft target exists at all (the
+--- circle then cannot land on another unit).
+local function SoftTargetOnTarget()
+  local anySoft = false
+  for _, unit in ipairs(SOFT_UNITS) do
+    if UnitExists(unit) then
+      anySoft = true
+      if UnitsMatch(unit, "target") then
+        return true
+      end
+    end
   end
+  return not anySoft
+end
+
+--- Writes the selection circle CVars whose effective value differs from the current one.
+--- Turning the circle on waits for SoftTargetOnTarget (`pollStart` is when the wait began; not in
+--- "soft" mode, where Blizzard's circle is wanted wherever the soft target is); turning it off is
+--- immediate. A newer call supersedes a pending poll. UnitNameFocused is refused in combat
+--- (logged as ADDON_ACTION_BLOCKED), so it is skipped there.
+local function ApplySelectionCircleCVars(pollStart)
+  selectionCircleToken = selectionCircleToken + 1
   local effective = CM.GetEffectiveReticleTargetingCVarValues()
+  local softMode = CM.DB.global.selectionCircleMode == "soft"
+  local inCombat = InCombatLockdown()
   local subset = {}
-  for _, cvar in ipairs(CM.Constants.ReticleSoftIndicatorCVarNames) do
-    subset[cvar] = effective[cvar]
+  local waitForSoftTarget = false
+  for _, cvar in ipairs(CM.Constants.ReticleSelectionCircleCVarNames) do
+    local wanted = tonumber(effective[cvar])
+    local blocked = inCombat and cvar == "UnitNameFocused"
+    if not blocked and tonumber(GetCVar(cvar)) ~= wanted then
+      local circleOn = cvar == "ObjectSelectionCircle" and wanted == 1 and not softMode
+      if circleOn and not SoftTargetOnTarget() then
+        waitForSoftTarget = true
+      else
+        subset[cvar] = effective[cvar]
+      end
+    end
   end
-  CM.SetCVars(subset)
+  if next(subset) then
+    CM.SetCVars(subset)
+  end
+  if waitForSoftTarget then
+    local startedAt = pollStart or GetTime()
+    if GetTime() - startedAt < SELECTION_CIRCLE_MAX_WAIT_SEC then
+      local token = selectionCircleToken
+      C_Timer.After(SELECTION_CIRCLE_POLL_SEC, function()
+        if token == selectionCircleToken then
+          ApplySelectionCircleCVars(startedAt)
+        end
+      end)
+    end
+  end
+end
+
+--- Syncs the selection circle CVars after the Selection Circle option changes and on every
+--- target / focus change. Only while Reticle Targeting is on (otherwise the CVars are not ours).
+function CM.ApplyReticleSelectionCircleCVars()
+  if CM.DB and CM.DB.char and CM.DB.char.reticleTargeting then
+    ApplySelectionCircleCVars()
+  end
 end
 
 function CM.SetCVar(name, value)

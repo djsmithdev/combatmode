@@ -11,6 +11,7 @@
 --      CM_CycleFocusEnemy{Next,Prev}, CM_StartAttack / CM_PetAttack (hostile /tar
 --      then /startattack or /petattack; hides raw Blizzard STARTATTACK / PETATTACK)
 --    • BLIZZARD_EVENTS groups: UNLOCK/LOCK/FREELOOK_RECONCILE/REMATCH, FRIENDLY_TARGETING,
+--      SELECTION_CIRCLE,
 --      UNCATEGORIZED, REFRESH_BINDINGS (bars/vehicles/CVAR_UPDATE), FOCUS_LOCK,
 --      CAST_FEEDBACK (player cast/channel), ASSISTED_HIGHLIGHT
 --      (ASSISTED_COMBAT_ACTION_SPELL_CAST), FOCUS_NAMEPLATE (nameplate add/remove for
@@ -132,6 +133,11 @@ CM.Constants.BLIZZARD_EVENTS = {
     "UNIT_EXITED_VEHICLE", -- Player exited a vehicle (alternative)
     "CVAR_UPDATE", -- ActionButtonUseKeyDown etc.; click-cast macro LeftButton phase must stay in sync
     "PLAYER_SPECIALIZATION_CHANGED", -- Ally Cycle restore-after-harm follows healer spec until toggled
+  },
+  -- Selection circle: show/hide it with the hard target / focus
+  SELECTION_CIRCLE_EVENTS = {
+    "PLAYER_TARGET_CHANGED",
+    "PLAYER_FOCUS_CHANGED",
   },
   -- Events for focus lock detection
   FOCUS_LOCK_EVENTS = {

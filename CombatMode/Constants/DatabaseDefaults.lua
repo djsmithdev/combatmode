@@ -87,9 +87,10 @@ CM.Constants.DatabaseDefaults = {
     showTargetLockMarker = true,
     -- Reticle Targeting: outline preset (Outline 3, no fades). false = Outline 0 + Blizzard fades.
     reticleOutline = true,
-    -- Reticle Targeting: hide the soft target's circle and name (ObjectSelectionCircle 0,
-    -- UnitNameFocused 0). false = Blizzard's values.
-    reticleHideSoftIndicator = true,
+    -- Reticle Targeting: which target gets Blizzard's selection circle (ObjectSelectionCircle).
+    -- "target" = your hard target; "locked" = only your Target Lock (focus); "soft" = Blizzard's
+    -- circle and name on the soft target; "hidden" = none.
+    selectionCircleMode = "target",
     autofocusLockedTarget = false, -- Target Focus Enemy while focus exists
     -- crosshair
     crosshair = true,

@@ -1308,6 +1308,7 @@ local function EnsureTipLine(index)
   if value.SetNonSpaceWrap then
     value:SetNonSpaceWrap(true)
   end
+  -- Optional red note under the value (entry.warning, stacked tips only); created on first use.
   line = { label = label, value = value }
   tipLinePool[index] = line
   return line
@@ -1357,8 +1358,10 @@ local function PositionTooltip(owner, anchor)
 end
 
 --- Shows the themed config tooltip beside `owner`.
---- `content` is a string, a table `{ title?, text?, lines? }`, or a function returning either.
---- `lines` entries are `{ label, value, kind? }` (`kind = "warn"` uses warning color).
+--- `content` is a string, a table `{ title?, text?, lines?, stacked? }`, or a function returning
+--- either. `lines` entries are `{ label, value, kind? }` (`kind = "warn"` uses warning color); they
+--- are laid out as label / value columns, or with the label above its value when `stacked` is set
+--- (then an entry may also carry `warning`, a note in the warning colour under its value).
 function UI.ShowTooltip(owner, content, anchor)
   content = ResolveTooltipContent(content)
   if not content then
@@ -1392,6 +1395,9 @@ function UI.ShowTooltip(owner, content, anchor)
   for _, line in ipairs(tipLinePool) do
     line.label:Hide()
     line.value:Hide()
+    if line.warning then
+      line.warning:Hide()
+    end
   end
 
   local y = TIP_PAD_Y
@@ -1452,10 +1458,22 @@ function UI.ShowTooltip(owner, content, anchor)
         line.label:SetTextColor(dim[1], dim[2], dim[3], 1)
         line.label:Show()
 
+        local labelH = max(line.label:GetStringHeight(), UI.Fonts.desc + 2)
         local labelW = line.label:GetStringWidth()
-        local valueW = max(48, textW - labelW - 6)
+        local stacked = content.stacked == true
+        local valueW = stacked and textW or max(48, textW - labelW - 6)
         line.value:ClearAllPoints()
-        line.value:SetPoint("TOPLEFT", tipFrame, "TOPLEFT", TIP_PAD_X + labelW + 6, -y)
+        if stacked then
+          -- Label on top (full brightness), its text below in the dim colour.
+          local text = UI.Colors.text
+          line.label:SetTextColor(text[1], text[2], text[3], 1)
+          if not warn then
+            valColor = dim
+          end
+          line.value:SetPoint("TOPLEFT", tipFrame, "TOPLEFT", TIP_PAD_X, -(y + labelH + 1))
+        else
+          line.value:SetPoint("TOPLEFT", tipFrame, "TOPLEFT", TIP_PAD_X + labelW + 6, -y)
+        end
         line.value:SetWidth(valueW)
         line.value:SetText(UI.StripColors(valueText) or valueText)
         line.value:SetTextColor(valColor[1], valColor[2], valColor[3], 1)
@@ -1465,8 +1483,36 @@ function UI.ShowTooltip(owner, content, anchor)
         if valueH < 1 then
           valueH = UI.Fonts.desc + 2
         end
-        local labelH = max(line.label:GetStringHeight(), UI.Fonts.desc + 2)
-        y = y + max(labelH, valueH) + 2
+        if stacked then
+          y = y + labelH + 1 + valueH
+          if entry.warning then
+            if not line.warning then
+              line.warning =
+                UI.CreateFontString(tipFrame, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
+              line.warning:SetJustifyH("LEFT")
+              line.warning:SetJustifyV("TOP")
+              line.warning:SetWordWrap(true)
+              if line.warning.SetNonSpaceWrap then
+                line.warning:SetNonSpaceWrap(true)
+              end
+            end
+            local red = UI.Colors.warning
+            line.warning:ClearAllPoints()
+            line.warning:SetPoint("TOPLEFT", tipFrame, "TOPLEFT", TIP_PAD_X, -(y + TIP_GAP))
+            line.warning:SetWidth(textW)
+            line.warning:SetText(UI.StripColors(tostring(entry.warning)) or tostring(entry.warning))
+            line.warning:SetTextColor(red[1], red[2], red[3], 1)
+            line.warning:Show()
+            local warningH = line.warning:GetStringHeight()
+            if warningH < 1 then
+              warningH = UI.Fonts.desc + 2
+            end
+            y = y + TIP_GAP + warningH
+          end
+          y = y + TIP_GAP + 2
+        else
+          y = y + max(labelH, valueH) + 2
+        end
       end
     end
   end

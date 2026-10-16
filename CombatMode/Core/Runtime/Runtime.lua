@@ -10,7 +10,8 @@
 --    • InitDatabase merges Constants.DatabaseDefaults into global + char["Name - Realm"],
 --      then coerces Forever-style 1/0 flags to real booleans (CM.DbBool / NormalizeBools)
 --      wherever defaults declare a boolean — so == true / ~= false / if x stay correct.
---      Also drops leftover global.partyRadial (feature removed in 4.7.0).
+--      Also drops leftover global.partyRadial (feature removed in 4.7.0) and turns the old
+--      reticleHideSoftIndicator toggle into global.selectionCircleMode.
 --      Rewrites the shipped situational default (dead-or-stealth + Arrows) to
 --      dead-only + Invisible when the saved values still match that default.
 --    • GetBindingsLocation → "global" vs "char" from useGlobalBindings.
@@ -309,6 +310,12 @@ function CM.InitDatabase()
   -- Party Radial removed in 4.7.0; drop leftover settings so they do not linger in SV.
   if sv.global then
     sv.global.partyRadial = nil
+    -- 5.0.3's Hide Soft Targeting Indicator toggle became the Selection Circle dropdown.
+    if sv.global.reticleHideSoftIndicator ~= nil then
+      local hidden = CM.DbBool(sv.global.reticleHideSoftIndicator, true)
+      sv.global.selectionCircleMode = hidden and "target" or "soft"
+      sv.global.reticleHideSoftIndicator = nil
+    end
     local oldSituational = 'local deadOrGhost = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")\n'
       .. "local isPlayerStealthed = IsStealthed and IsStealthed()\n"
       .. "if deadOrGhost or isPlayerStealthed then\n"

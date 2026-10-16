@@ -63,10 +63,12 @@ CM.Constants.ReticleTargetingCVarValues = {
   ["Outline"] = 3, -- 0 = off, 1 = quest objectives, 2 = + mouseover, 3 = + target
   ["outlineMouseOverFadeDuration"] = 3600, -- Blizzard 0.9
   ["outlineSelectionFadeDuration"] = 3600, -- Blizzard 0.32
-  -- Soft Targeting indicator: the selection circle under a unit and the floating name Blizzard
-  -- shows on the soft target. Switched by Hide Soft Targeting Indicator
-  -- (global.reticleHideSoftIndicator): the soft target follows the player, not the (shifted)
-  -- crosshair, so its indicator can sit on a different unit than the one under the crosshair.
+  -- Selection circle under a unit and the floating name Blizzard shows on the soft target. The
+  -- soft target follows the player, not the (shifted) crosshair, so its circle can sit on a
+  -- different unit than the one under the crosshair. The preset value is the hidden state; Selection
+  -- Circle (global.selectionCircleMode) turns the circle on for your hard target (or only your
+  -- Target Lock) while SoftTargetMatchLocked pins the soft target to it, or hands Blizzard's circle
+  -- and name back ("soft"). UnitNameFocused is blocked in combat, so it only follows the mode.
   ["ObjectSelectionCircle"] = 0, -- Blizzard 1
   ["UnitNameFocused"] = 0, -- Blizzard 1
   -- cursor centering
@@ -81,8 +83,8 @@ CM.Constants.ReticleTargetingCVarEditorExcluded = {
   ["enableMouseoverCast"] = true,
   ["deselectOnClick"] = true,
   ["interactKeyWarningTutorial"] = true,
-  -- Owned by the Target Outline / Hide Soft Targeting Indicator toggles; an editor row would
-  -- conflict with them.
+  -- Owned by the Target Outline / Selection Circle options; an editor row would conflict with
+  -- them.
   ["Outline"] = true,
   ["outlineMouseOverFadeDuration"] = true,
   ["outlineSelectionFadeDuration"] = true,
@@ -157,8 +159,8 @@ CM.Constants.ReticleOutlineCVarNames = {
   "outlineSelectionFadeDuration",
 }
 
--- The CVars the Hide Soft Targeting Indicator option (global.reticleHideSoftIndicator) owns.
-CM.Constants.ReticleSoftIndicatorCVarNames = {
+-- The CVars the Selection Circle option (global.selectionCircleMode) owns.
+CM.Constants.ReticleSelectionCircleCVarNames = {
   "ObjectSelectionCircle",
   "UnitNameFocused",
 }

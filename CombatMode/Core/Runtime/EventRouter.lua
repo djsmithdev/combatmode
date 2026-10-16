@@ -18,6 +18,8 @@
 --      OnAssistedHighlightSpellCast(spellID).
 --    • FRIENDLY_TARGETING_EVENTS: Ally Cycle combat end flush +
 --      FlushDeferredBindingChanges / FlushPendingClickCastRefresh on PLAYER_REGEN_ENABLED.
+--    • SELECTION_CIRCLE_EVENTS (PLAYER_TARGET_CHANGED / PLAYER_FOCUS_CHANGED) →
+--      ApplyReticleSelectionCircleCVars (the selection circle).
 --    • FOCUS_LOCK_EVENTS → UpdateFocusNameplateMarker + OnCrosshairFocusLockEvent +
 --      SyncTargetFocusFromFocusUnit.
 --    • FOCUS_NAMEPLATE_EVENTS → OnFocusNameplateMarkerEvent (ADD/REMOVE).
@@ -233,6 +235,9 @@ local function HandleEventByCategory(category, event, ...)
       if CM.InvalidateAssistedHighlightKeybindCache then
         CM.InvalidateAssistedHighlightKeybindCache()
       end
+    end,
+    SELECTION_CIRCLE_EVENTS = function()
+      CM.ApplyReticleSelectionCircleCVars()
     end,
     FOCUS_LOCK_EVENTS = function()
       -- Nameplate transfer suppresses the center reticle before reaction tint/scale.

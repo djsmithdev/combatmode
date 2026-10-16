@@ -7,9 +7,7 @@
 --  Architecture / how it works:
 --    • DB.global: customLockCondition, customLockConditionOnce, customCondition,
 --      customConditionOnce, crosshairSituationalCondition,
---      crosshairSituationalAppearance, reticleHideSoftIndicator (Hide Soft Targeting Indicator:
---      circle/name CVars via CM.ApplyReticleSoftIndicatorCVars). Widgets only read/write those
---      keys.
+--      crosshairSituationalAppearance. Widgets only read/write those keys.
 --    • Force-lock / force-unlock are evaluated by ShouldFreeLookBeOff. The
 --      situational snippet is evaluated by the crosshair; appearance and condition
 --      set() refresh the crosshair. Both are disabled when the crosshair is off.
@@ -52,7 +50,6 @@ situationalValues.Invisible = "Invisible"
 UI.Options.AddTab({
   id = "advanced",
   label = "Advanced",
-  newFeatureFlag = true,
   build = function(ctx)
     ctx:Header({ text = "FORCE LOCK" })
     ctx:TextInput({
@@ -192,21 +189,6 @@ return false
           CM.OpenTargetingMacroPrelinesEditor()
         end,
       },
-    })
-    ctx:Toggle({
-      label = "Hide Soft Targeting Indicator",
-      desc = "Hides the indicator Blizzard shows on your soft target, which can sit off the crosshair with a high Shoulder Offset.",
-      newFeatureFlag = true,
-      get = function()
-        return CM.DB.global.reticleHideSoftIndicator ~= false
-      end,
-      set = function(value)
-        CM.DB.global.reticleHideSoftIndicator = value
-        CM.ApplyReticleSoftIndicatorCVars()
-      end,
-      disabled = function()
-        return not CM.DB.char.reticleTargeting
-      end,
     })
   end,
 })

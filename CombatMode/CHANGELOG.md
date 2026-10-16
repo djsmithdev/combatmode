@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.4] - 2026-10-16
+
+### Fixed
+
+- The red selection circle under your target is back. The **Hide Soft Targeting Indicator** option from 5.0.3 hid it for every target.
+- **Uninstall** now also puts back Blizzard's settings for options added after you first installed the addon, such as the selection circle.
+
+### Changed
+
+- **Hide Soft Targeting Indicator** is now **Selection Circle** (Reticle Targeting). By default your selected target gets its circle; you can also limit it to your Target Lock, show Blizzard's own soft target circle and name, or hide it.
+
 ## [5.0.3] - 2026-10-15
 
 ### Added
@@ -641,7 +652,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.0.3...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.0.4...HEAD
+[5.0.4]: https://github.com/djsmithdev/combatmode/compare/5.0.3...5.0.4
 [5.0.3]: https://github.com/djsmithdev/combatmode/compare/5.0.2...5.0.3
 [5.0.2]: https://github.com/djsmithdev/combatmode/compare/5.0.1...5.0.2
 [5.0.1]: https://github.com/djsmithdev/combatmode/compare/5.0.0...5.0.1

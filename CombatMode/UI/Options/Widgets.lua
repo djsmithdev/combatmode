@@ -8,7 +8,9 @@
 --    • UI.Options.controls registry; Options.Sync() refreshes values + disabled state.
 --    • Sliders: opts.default; right-click resets to that value. Minus/plus icons
 --      step by opts.step (dim until hover) and stop at min/max.
---    • Dropdown menus match the select's laid-out width.
+--    • Dropdown menus match the select's laid-out width. opts.helpTooltip adds a round "?"
+--      badge left of the select (control.widgetLeftInset keeps the layout room) that shows
+--      the tooltip on hover.
 --    • Layout helpers (NewLayout) used by tabs and nested hosts (e.g. Camera/DynamicCam).
 --    • charSpecific badge + tooltips for per-character settings.
 --    • newFeatureFlag — shared "NEW" atlas badge (Alliance) beside section/option titles;
@@ -853,6 +855,8 @@ local function AttachOptionText(control, row, opts, widgetH)
     end
 
     local widget = control.widget
+    -- Room kept free left of the widget for something that hangs off it (the dropdown "?").
+    local leftInset = control.widgetLeftInset or 0
     local icon = control.icon
     local leadingIcon = control.leadingIcon
     local iconHeight = icon and (control.iconHeight or control.iconSize or DEFAULT_ICON_SIZE) or 0
@@ -896,7 +900,8 @@ local function AttachOptionText(control, row, opts, widgetH)
 
     if control.descBelow then
       -- Top band: title left + control right; helper full-width below.
-      local labelW = max(width - (2 * padX) - iconLead - CONTROL_GAP - (control.widgetW or 40), 40)
+      local labelW =
+        max(width - (2 * padX) - iconLead - CONTROL_GAP - (control.widgetW or 40) - leftInset, 40)
       row.label:SetWidth(labelW)
       local labelH = row.label:GetStringHeight()
       local bandH = max(labelH, control.widgetH, iconsHeight)
@@ -1013,7 +1018,7 @@ local function AttachOptionText(control, row, opts, widgetH)
             "TOPLEFT",
             row,
             "TOPLEFT",
-            padX + textW + iconLead + CONTROL_GAP,
+            padX + textW + iconLead + CONTROL_GAP + leftInset,
             -widgetTop
           )
         end
@@ -1637,6 +1642,11 @@ end
 ---------------------------------------------------------------------------------------
 --                                   DROPDOWN                                        --
 ---------------------------------------------------------------------------------------
+local HELP_BADGE_SIZE = 20
+local HELP_BADGE_GAP = 6
+
+--- `opts.helpTooltip` (string, `{ title?, text?, lines? }` or a function returning either; see
+--- UI.ShowTooltip) adds a round "?" badge to the left of the select that shows it on hover.
 function UI.MakeDropdown(parent, opts)
   local row = CreateFrame("Frame", nil, parent)
   row:SetHeight(ROW_H)
@@ -1674,6 +1684,21 @@ function UI.MakeDropdown(parent, opts)
     widgetH = UI.Sizes.control,
     widgetFill = true,
   }
+
+  if opts.helpTooltip then
+    local helpBtn = CreateFrame("Button", nil, row)
+    helpBtn:SetSize(HELP_BADGE_SIZE, HELP_BADGE_SIZE)
+    helpBtn:SetPoint("RIGHT", button, "LEFT", -HELP_BADGE_GAP, 0)
+    local help = CreateGlyphBadge(helpBtn, HELP_BADGE_SIZE, "?", 2, 0, nil, C.textDim)
+    helpBtn:SetScript("OnEnter", function()
+      help:SetHover(true)
+    end)
+    helpBtn:SetScript("OnLeave", function()
+      help:SetHover(false)
+    end)
+    UI.AttachTooltip(helpBtn, opts.helpTooltip, "ANCHOR_RIGHT")
+    control.widgetLeftInset = HELP_BADGE_SIZE + HELP_BADGE_GAP
+  end
 
   local function orderedIds()
     if opts.order then

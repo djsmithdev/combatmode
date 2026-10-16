@@ -10,7 +10,8 @@
 --      macroInjectionClickCastOnly, stickyCrosshair, excludeFromTargetingSpells,
 --      castAtCursorSpells.
 --    • DB.global: showTargetLockMarker, autofocusLockedTarget, reticleOutline (Target Outline:
---      Outline CVars via CM.ApplyReticleOutlineCVars).
+--      Outline CVars via CM.ApplyReticleOutlineCVars), selectionCircleMode (Selection Circle
+--      dropdown: circle / name CVars via CM.ApplyReticleSelectionCircleCVars).
 --    • macroInjectionClickCastOnly disabled/forced when ThirdPartyActionBarsActive.
 --    • Spell lists stored as spell-ID CSV; membership in TargetingMacroBuilder.
 --    • Target Lock keybinds go through TryApplyBindingChange + AssignNamedKeybind.
@@ -32,6 +33,14 @@ local ReloadUI = _G.ReloadUI
 local strtrim = _G.strtrim
 
 local UI = CM.UI
+
+local SELECTION_CIRCLE_VALUES = {
+  target = "Any Hard Target",
+  locked = "Locked Target Only",
+  soft = "Soft Target (Blizzard)",
+  hidden = "Hidden",
+}
+local SELECTION_CIRCLE_ORDER = { "target", "locked", "soft", "hidden" }
 
 local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed?"
 
@@ -105,6 +114,41 @@ UI.Options.AddTab({
       set = function(value)
         CM.DB.global.reticleOutline = value
         CM.ApplyReticleOutlineCVars()
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Dropdown({
+      label = "Selection Circle",
+      desc = "Which target gets Blizzard's selection circle underneath their feet.",
+      helpTooltip = {
+        title = "Selection Circle",
+        stacked = true,
+        lines = {
+          {
+            label = "Any Hard Target",
+            value = "The circle under whatever you have targeted, enemy or friendly.",
+          },
+          { label = "Locked Target Only", value = "The circle only under your Target Lock." },
+          {
+            label = "Soft Target (Blizzard)",
+            value = "Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocused.",
+            warning = "Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account.",
+          },
+          { label = "Hidden", value = "No selection circle." },
+        },
+      },
+      newFeatureFlag = true,
+      values = SELECTION_CIRCLE_VALUES,
+      order = SELECTION_CIRCLE_ORDER,
+      get = function()
+        local mode = CM.DB.global.selectionCircleMode
+        return SELECTION_CIRCLE_VALUES[mode] and mode or "target"
+      end,
+      set = function(value)
+        CM.DB.global.selectionCircleMode = value
+        CM.ApplyReticleSelectionCircleCVars()
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting
