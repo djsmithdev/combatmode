@@ -21,7 +21,6 @@ local _G = _G
 -- WoW API
 local CreateColor = _G.CreateColor
 local CreateFrame = _G.CreateFrame
-local C_Texture = _G.C_Texture
 local GameTooltip = _G.GameTooltip
 local GetCursorPosition = _G.GetCursorPosition
 local UIParent = _G.UIParent
@@ -37,8 +36,6 @@ local abs = _G.math.abs
 local floor = _G.math.floor
 local max = _G.math.max
 local min = _G.math.min
-
-local CORNER_MASK = "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
 
 CM.UI = CM.UI or {}
 local UI = CM.UI
@@ -485,7 +482,7 @@ function UI.StyleRounded(frame, fill, border, radius, fillInset)
   return frame
 end
 
---- Soft drop shadow around a window, cut from one pre-blurred texture (assets/shadow.tga: a
+--- Soft drop shadow around a window, cut from one pre-blurred texture (Assets/ui/shadow.tga: a
 --- rounded box with a gaussian falloff, so the fade is perfectly smooth). It lives in a child
 --- frame given a LOWER frame level than the window, so it draws behind the window's own fill
 --- (a parent's textures otherwise draw under its child frames). The texture's box matches the
@@ -558,7 +555,7 @@ local WINDOW_ART_ATLAS = "evergreen-weeklyrewards-frame-back"
 -- Inner shadow over the whole window (dark toward the edges), same stretch and rounding.
 local WINDOW_INNER_SHADOW_ATLAS = "evergreen-weeklyrewards-frame-back-shadow"
 local function AddWindowArt(frame, atlas, radius, inset, subLevel)
-  local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas)
+  local info = CM.GetAtlasInfo(atlas)
   local file = info and (info.file or info.filename)
   if not file then
     return
@@ -687,7 +684,7 @@ function UI.AddMetalBorder(frame)
   end
   local info = {}
   for key, atlas in pairs(METAL) do
-    local atlasInfo = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas)
+    local atlasInfo = CM.GetAtlasInfo(atlas)
     if not atlasInfo then
       return nil
     end
@@ -709,7 +706,7 @@ function UI.AddMetalBorder(frame)
 
   local function piece(key)
     local tex = border:CreateTexture(nil, "OVERLAY")
-    tex:SetAtlas(METAL[key], true)
+    CM.SetAtlas(tex, METAL[key], true)
     tex:SetVertexColor(METAL_TINT[1], METAL_TINT[2], METAL_TINT[3])
     return tex
   end
@@ -752,9 +749,7 @@ end
 --- atlas at the zone's position inside `window`, so the shadow reads as one continuous layer
 --- across the whole panel.
 function UI.AddZoneShadow(zone, window)
-  local info = C_Texture
-    and C_Texture.GetAtlasInfo
-    and C_Texture.GetAtlasInfo(WINDOW_INNER_SHADOW_ATLAS)
+  local info = CM.GetAtlasInfo(WINDOW_INNER_SHADOW_ATLAS)
   local file = info and (info.file or info.filename)
   if not file then
     return
@@ -1029,8 +1024,8 @@ function UI.StyleSearchBox(box)
   local icon = box:CreateTexture(nil, "ARTWORK")
   icon:SetSize(14, 14)
   icon:SetPoint("LEFT", box, "LEFT", 9, 0)
-  if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(SEARCH_ATLAS) then
-    icon:SetAtlas(SEARCH_ATLAS)
+  if CM.GetAtlasInfo(SEARCH_ATLAS) then
+    CM.SetAtlas(icon, SEARCH_ATLAS)
     -- Desaturate then tint so the magnifier reads as the theme's cream.
     icon:SetDesaturated(true)
     icon:SetVertexColor(colors.text[1], colors.text[2], colors.text[3])
@@ -1188,29 +1183,14 @@ function UI.CreateIconLinkButton(parent, texturePath, url, tooltip, label, size)
   return btn
 end
 
---- Circular alpha mask that stays smooth when scaled. TempPortraitAlphaMask is the
---- fallback on clients that do not ship CircleMaskScalable. Returns the fraction of the
---- mask texture covered by the visible disc (the scalable mask leaves a small margin;
---- the portrait fallback fills it), so callers can size the mask to a wanted radius.
+--- Circular alpha mask that stays smooth when scaled (the shipped CircleMaskScalable). Returns the
+--- fraction of the mask texture covered by the visible disc (the art leaves a small margin), so
+--- callers can size the mask to a wanted radius.
 local SCALABLE_DISC_FRAC = 60 / 64
 
 function UI.SetCircleMask(mask)
-  local atlas = "CircleMaskScalable"
-  if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas) then
-    mask:SetAtlas(atlas, false, "LINEAR")
-    return SCALABLE_DISC_FRAC
-  end
-  local ok = mask:SetTexture(
-    "Interface\\Common\\CircleMaskScalable",
-    "CLAMPTOBLACKADDITIVE",
-    "CLAMPTOBLACKADDITIVE",
-    "LINEAR"
-  )
-  if ok then
-    return SCALABLE_DISC_FRAC
-  end
-  mask:SetTexture(CORNER_MASK, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-  return 1
+  CM.SetAtlasMask(mask, "CircleMaskScalable")
+  return SCALABLE_DISC_FRAC
 end
 
 --- Circular texture: a solid color clipped by CircleMaskScalable (toggle knobs).

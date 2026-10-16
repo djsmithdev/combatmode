@@ -193,7 +193,7 @@ local function UpdateRoleIcon(unit)
   end
   local atlas = Target and Target.GetRoleAtlas and Target.GetRoleAtlas(unit)
   if atlas and roleIcon.SetAtlas then
-    roleIcon:SetAtlas(atlas)
+    CM.SetAtlas(roleIcon, atlas)
     roleIcon:Show()
   else
     roleIcon:Hide()
@@ -442,7 +442,7 @@ local function EnsureFrames()
 
     hudShadow = cluster:CreateTexture(nil, "BACKGROUND")
     hudShadow:SetDrawLayer("BACKGROUND", -1)
-    hudShadow:SetAtlas(L.shadowAtlas or "PetJournal-BattleSlot-Shadow")
+    CM.SetAtlas(hudShadow, L.shadowAtlas or "PetJournal-BattleSlot-Shadow")
     hudShadow:SetBlendMode("BLEND")
     hudShadow:SetVertexColor(0, 0, 0, 1)
     hudShadow:SetAlpha(L.shadowAlpha or 0.7)

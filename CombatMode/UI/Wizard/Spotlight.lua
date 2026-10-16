@@ -59,7 +59,7 @@ local FADE_TIME = 0.15
 local TASK_H = 20
 local TASK_GAP = 10
 local TASK_POLL_S = 0.2
-local CHECK_TEXTURE = "Interface/Buttons/UI-CheckBox-Check"
+local CHECK_TEXTURE = CM.Constants.CheckMark
 
 local spotlight
 

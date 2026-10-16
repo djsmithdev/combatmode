@@ -28,7 +28,6 @@ local _G = _G
 
 -- WoW API
 local C_Timer = _G.C_Timer
-local C_Texture = _G.C_Texture
 local CreateFrame = _G.CreateFrame
 local InCombatLockdown = _G.InCombatLockdown
 local UIParent = _G.UIParent
@@ -894,12 +893,12 @@ local function BuildShell()
   -- window frame and divider) with a background atlas behind the logo.
   brand:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
   brand:SetPoint("BOTTOMRIGHT", frame, "TOPLEFT", SIDEBAR_W - 4, -60)
-  if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(BRAND_BG_ATLAS) then
+  if CM.GetAtlasInfo(BRAND_BG_ATLAS) then
     -- Drawn larger than the cell and clipped to it, so the atlas fills the container (its own
     -- soft edges / padding fall outside the visible area).
     brand:SetClipsChildren(true)
     local brandBg = brand:CreateTexture(nil, "BACKGROUND")
-    brandBg:SetAtlas(BRAND_BG_ATLAS, false)
+    CM.SetAtlas(brandBg, BRAND_BG_ATLAS, false)
     brandBg:SetPoint("TOPLEFT", brand, "TOPLEFT", -BRAND_BG_BLEED_X, BRAND_BG_BLEED_Y)
     brandBg:SetPoint("BOTTOMRIGHT", brand, "BOTTOMRIGHT", BRAND_BG_BLEED_X, -BRAND_BG_BLEED_Y)
   end
@@ -942,7 +941,7 @@ local function BuildShell()
   cog:SetSize(CHIP_H, CHIP_H)
   cog:SetPoint("LEFT", chip, "RIGHT", 8, 0)
   local cogIcon = cog:CreateTexture(nil, "OVERLAY")
-  cogIcon:SetAtlas("QuestLog-icon-setting", false)
+  CM.SetAtlas(cogIcon, "QuestLog-icon-setting", false)
   cogIcon:SetSize(CHIP_H - 16, CHIP_H - 16)
   cogIcon:SetPoint("CENTER")
   cog:SetScript("OnEnter", function(self)

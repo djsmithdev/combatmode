@@ -8,11 +8,11 @@
 ## Interface-Classic: 11509
 ## Version: 5.0.5
 
-## Title: |A:::|a|TInterface\Addons\CombatMode\assets\cmtitle:26:55|t
+## Title: |A:::|a|TInterface\Addons\CombatMode\Assets\branding\cmtitle:26:55|t
 ## Notes: Action Combat Mode brings modern action-game controls to World of Warcraft, replacing traditional tab-targeting with intuitive aiming, more engaging controls, and immersive combat.
 ## Author: justice7ca, sampconrad
 
-## IconTexture: Interface\AddOns\CombatMode\assets\cmlogo
+## IconTexture: Interface\AddOns\CombatMode\Assets\branding\cmlogo
 
 ## DefaultState: enabled
 ## LoadOnDemand: 0

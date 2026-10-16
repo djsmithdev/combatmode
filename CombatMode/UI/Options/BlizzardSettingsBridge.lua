@@ -27,7 +27,7 @@ local C_XMLUtil = _G.C_XMLUtil
 local type = _G.type
 
 -- Same wordmark markup as CombatMode.toc Title (AddOns list + settings sidebar).
-local CATEGORY_NAME = "|A:::|a|TInterface\\Addons\\CombatMode\\assets\\cmtitle:26:55|t"
+local CATEGORY_NAME = "|A:::|a|TInterface\\Addons\\CombatMode\\Assets\\branding\\cmtitle:26:55|t"
 
 local function CategoryDisplayName()
   local fromToc = CM.METADATA and CM.METADATA["TITLE"]
@@ -65,7 +65,8 @@ local function RegisterBlizzardAddOnCategory()
   -- One top-down chain from above center; no mixed absolute CENTER anchors.
   local titleArt = optionsFrame:CreateTexture(nil, "ARTWORK")
   titleArt:SetTexture(
-    (CM.Constants and CM.Constants.Title) or "Interface\\AddOns\\CombatMode\\assets\\cmtitle"
+    (CM.Constants and CM.Constants.Title)
+      or "Interface\\AddOns\\CombatMode\\Assets\\branding\\cmtitle"
   )
   titleArt:SetSize(CM.Constants.TitleSize(74 * 2))
   titleArt:SetPoint("TOP", optionsFrame, "CENTER", 0, 170)

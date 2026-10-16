@@ -29,7 +29,6 @@ local _G = _G
 local CreateColor = _G.CreateColor
 local CreateFrame = _G.CreateFrame
 local C_Timer = _G.C_Timer
-local C_Texture = _G.C_Texture
 local GetCurrentKeyBoardFocus = _G.GetCurrentKeyBoardFocus
 local IsMouseButtonDown = _G.IsMouseButtonDown
 local UIParent = _G.UIParent
@@ -767,7 +766,7 @@ local function AttachOptionText(control, row, opts, widgetH)
     local iconHeight = opts.iconHeight or opts.iconSize or DEFAULT_ICON_SIZE
     local iconWidth = opts.iconWidth or opts.iconSize or iconHeight
     local icon = row:CreateTexture(nil, "ARTWORK")
-    icon:SetAtlas(opts.iconAtlas)
+    CM.SetAtlas(icon, opts.iconAtlas)
     icon:SetSize(iconWidth, iconHeight)
     control.icon = icon
     control.iconWidth = iconWidth
@@ -1287,7 +1286,7 @@ function UI.MakeSlider(parent, opts)
     local button = CreateFrame("Button", nil, host)
     button:SetSize(18, 18)
     local icon = button:CreateTexture(nil, "ARTWORK")
-    icon:SetAtlas(atlas, true)
+    CM.SetAtlas(icon, atlas, true)
     local iconH = icon:GetHeight() or 16
     local iconW = icon:GetWidth() or 16
     if iconH > 0 then
@@ -1666,7 +1665,7 @@ function UI.MakeDropdown(parent, opts)
 
   -- The atlas arrow is gold; desaturate and tint it to the dim text colour.
   local arrow = button:CreateTexture(nil, "OVERLAY")
-  arrow:SetAtlas("UI-Journeys-Delve-Arrow-down-pressed", true)
+  CM.SetAtlas(arrow, "UI-Journeys-Delve-Arrow-down-pressed", true)
   arrow:SetDesaturated(true)
   arrow:SetVertexColor(C.textDim[1], C.textDim[2], C.textDim[3])
   local arrowH = arrow:GetHeight() or 14
@@ -1853,7 +1852,7 @@ function UI.MakeDropdown(parent, opts)
     headerText:SetJustifyH("LEFT")
     headerText:SetTextColor(C.text[1], C.text[2], C.text[3])
     local headerArrow = header:CreateTexture(nil, "OVERLAY")
-    headerArrow:SetAtlas("UI-Journeys-Delve-Arrow-down-pressed", true)
+    CM.SetAtlas(headerArrow, "UI-Journeys-Delve-Arrow-down-pressed", true)
     headerArrow:SetDesaturated(true)
     headerArrow:SetVertexColor(C.textDim[1], C.textDim[2], C.textDim[3])
     local ah = headerArrow:GetHeight() or 14
@@ -2748,9 +2747,7 @@ function UI.MakeHeader(parent, textOrOpts)
   -- Rule under the title: the header atlas across the full width (capped to stay a line), or
   -- the fading accent hairline when the atlas is not available. The atlas has a centre
   -- ornament, so the title sits above its full height instead of on it.
-  local atlasInfo = C_Texture
-    and C_Texture.GetAtlasInfo
-    and C_Texture.GetAtlasInfo(HEADER_RULE_ATLAS)
+  local atlasInfo = CM.GetAtlasInfo(HEADER_RULE_ATLAS)
   local ruleH = atlasInfo and min(max(atlasInfo.height or 8, 1), HEADER_RULE_MAX_H) or 0
   local headerH = atlasInfo and (ruleH + 24) or 28
   local titleY = atlasInfo and (ruleH + 4) or 5
@@ -2771,7 +2768,7 @@ function UI.MakeHeader(parent, textOrOpts)
 
   if atlasInfo then
     local rule = frame:CreateTexture(nil, "ARTWORK")
-    rule:SetAtlas(HEADER_RULE_ATLAS, false)
+    CM.SetAtlas(rule, HEADER_RULE_ATLAS, false)
     rule:SetHeight(ruleH)
     rule:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0)
     rule:SetWidth(200)
@@ -2905,7 +2902,7 @@ end
 --- Sets a chip / row icon from an entry: an atlas, or a texture (zoomed like RoundIcon does).
 local function ApplyEntryIcon(tex, e)
   if e.atlas then
-    tex:SetAtlas(e.atlas)
+    CM.SetAtlas(tex, e.atlas)
   else
     tex:SetTexture(e.icon)
     tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
@@ -3237,7 +3234,7 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
     pickButton:SetFrameLevel(box:GetFrameLevel() + 5)
     local pickIcon = pickButton:CreateTexture(nil, "ARTWORK")
     pickIcon:SetAllPoints()
-    pickIcon:SetAtlas("decor-controls-inspect-default")
+    CM.SetAtlas(pickIcon, "decor-controls-inspect-default")
     pickIcon:SetAlpha(0.75)
     pickButton:SetScript("OnEnter", function()
       pickIcon:SetAlpha(1)

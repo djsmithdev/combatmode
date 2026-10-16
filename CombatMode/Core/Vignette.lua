@@ -9,7 +9,7 @@
 --  Constants.MouseLookCameraFadeDuration.
 --  Architecture / how it works:
 --    • Frame parented to UIParent at BACKGROUND strata, non-interactive.
---    • Resolves the atlas via C_Texture.GetAtlasInfo then applies via
+--    • Resolves the shipped atlas via CM.GetAtlasInfo then applies via
 --      SetTexture(FileID) + SetTexCoord — the canonical equivalent of SetAtlas
 --      but with explicit control over the region and screen sizing.
 --    • InitializeVignette() called from Bootstrap on startup.
@@ -26,7 +26,6 @@ local _, CM = ...
 local _G = _G
 
 -- WoW API
-local C_Texture = _G.C_Texture
 local CreateFrame = _G.CreateFrame
 local UIParent = _G.UIParent
 
@@ -125,7 +124,7 @@ function CM.InitializeVignette()
   vignetteTexture = vignetteFrame:CreateTexture(nil, "ARTWORK")
   vignetteTexture:SetAllPoints(vignetteFrame)
 
-  local info = C_Texture.GetAtlasInfo(VIGNETTE_ATLAS)
+  local info = CM.GetAtlasInfo(VIGNETTE_ATLAS)
   if info and info.file then
     vignetteTexture:SetTexture(info.file)
     vignetteTexture:SetTexCoord(

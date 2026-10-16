@@ -17,7 +17,6 @@ local _, CM = ...
 local _G = _G
 
 -- WoW API
-local GetAtlasInfo = _G.C_Texture and _G.C_Texture.GetAtlasInfo
 
 -- Lua stdlib
 local issecretvalue = _G.issecretvalue
@@ -222,12 +221,12 @@ local function ShowCycleArrow(dir)
   end
   -- Next is roster "up" → down arrow traveling down. Previous is "down" → up arrow traveling up.
   local atlas = (dir == "down") and ARROW_UP or ARROW_DOWN
-  if GetAtlasInfo and not GetAtlasInfo(atlas) then
+  if not CM.GetAtlasInfo(atlas) then
     HideCycleArrow()
     return
   end
   local L = HostLayout() or {}
-  cycleArrow:SetAtlas(atlas, false)
+  CM.SetAtlas(cycleArrow, atlas, false)
   cycleArrow:SetAlpha(1)
   cycleArrow:Show()
   cycleArrowTravelSign = (dir == "down") and 1 or -1

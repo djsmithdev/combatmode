@@ -44,7 +44,7 @@ local PICKER_BODY_H = WHEEL_SIZE + INPUT_ROW_GAP + INPUT_ROW_H
 local DIALOG_W = 400
 local DIALOG_H = 44 + 16 + PICKER_BODY_H + 14 + 28 + 16
 
-local THUMB_ATLAS = "Interface/Buttons/UI-ColorPicker-Buttons"
+local THUMB_ATLAS = CM.Constants.ColorPickerThumbs
 
 local dialog
 local standalonePicker

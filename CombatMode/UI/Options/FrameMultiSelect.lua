@@ -76,7 +76,7 @@ local function IsOwnFrame(name)
 end
 
 local BLIZZARD_ICON_ATLAS = "friends-icon-addFriend-logo-WoW"
-local FALLBACK_ADDON_ICON = "Interface/ICONS/INV_Misc_QuestionMark" -- addon without an icon
+local FALLBACK_ADDON_ICON = CM.Constants.UnknownAddonIcon -- addon without an icon
 local iconCache = {} -- frame name -> { atlas = } / { icon = } (false: no icon)
 
 --- The icon of the addon `addon` as the AddOns list shows it, or nil.
@@ -372,7 +372,7 @@ local function BuildPicker()
     end
     pickerIconFor = key
     if icon.atlas then
-      bannerIcon:SetAtlas(icon.atlas)
+      CM.SetAtlas(bannerIcon, icon.atlas)
     else
       bannerIcon:SetTexture(icon.icon)
       bannerIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)

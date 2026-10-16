@@ -116,21 +116,23 @@ function Keybinds.FormatKeybindText(bindingKey)
   return AbbreviateKey(bindingKey) or bindingKey
 end
 
--- Native mouse atlases are 52x69 (Interface/HelpFrame/NewPlayerExperienceParts).
--- |A:atlas:height:width| must keep that aspect; modifier BLPs stay square.
+-- The mouse art is the shipped 52x69 Blizzard atlas (Assets/atlas). |T file:height:width|t must
+-- keep that aspect; modifier BLPs stay square.
 local CLICK_MOD_ICON_SIZE = 28
 local CLICK_MOUSE_ICON_HEIGHT = 28
 local CLICK_MOUSE_ICON_WIDTH = math.floor(CLICK_MOUSE_ICON_HEIGHT * 52 / 69 + 0.5) -- 21
-local CLICK_ICON_LEFT = "|A:newplayertutorial-icon-mouse-leftbutton:"
-  .. CLICK_MOUSE_ICON_HEIGHT
-  .. ":"
-  .. CLICK_MOUSE_ICON_WIDTH
-  .. "|a"
-local CLICK_ICON_RIGHT = "|A:newplayertutorial-icon-mouse-rightbutton:"
-  .. CLICK_MOUSE_ICON_HEIGHT
-  .. ":"
-  .. CLICK_MOUSE_ICON_WIDTH
-  .. "|a"
+local function MouseIconMarkup(atlasName)
+  local info = CM.GetAtlasInfo(atlasName)
+  return "|T"
+    .. info.file
+    .. ":"
+    .. CLICK_MOUSE_ICON_HEIGHT
+    .. ":"
+    .. CLICK_MOUSE_ICON_WIDTH
+    .. "|t"
+end
+local CLICK_ICON_LEFT = MouseIconMarkup("newplayertutorial-icon-mouse-leftbutton")
+local CLICK_ICON_RIGHT = MouseIconMarkup("newplayertutorial-icon-mouse-rightbutton")
 
 local function ModifierTextureMarkup(path)
   if not path or path == "" then

@@ -125,7 +125,7 @@ local function GetMarkerTexturePath()
   if type(obj) == "table" and type(obj.Active) == "string" then
     return obj.Active
   end
-  return "Interface\\AddOns\\CombatMode\\assets\\crosshairDefault-hit.blp"
+  return CM.Constants.CrosshairTextureObj.Default.Active
 end
 
 local function ApplyTexture(tex, resetColor)

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Interaction HUD** is now the **Interactable Indicator** toggle. It and the Next-cast Suggestion share one Position, Scale and Distance setting.
 - New look for the Assist HUD: a copper glow, animation and frame matching the options window, and the keybind and name text now use the window's text colors with an outline.
 - The **Shoulder Offset** slider now goes from -15 to 15 (it was -2 to 2).
+- The Blizzard art the addon draws with (window frame, health bar, icons, HUD ring and more) is now shipped with the addon instead of read from the game, so it looks the same on every client. The `Assets` folder is organized into `branding`, `crosshair`, `assisthud`, `ui` and `atlas`.
 - The setup wizard now leaves the crosshair and HUD previews undimmed and outlined on the Crosshair, Assist HUD, Ally Cycle and Ally HUD steps, and moves its balloon out of their way.
 
 ## [5.0.4] - 2026-10-16

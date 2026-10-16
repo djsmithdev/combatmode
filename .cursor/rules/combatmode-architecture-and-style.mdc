@@ -11,7 +11,7 @@ Ownership detail lives in **Lua file headers**. Load order: **`STRUCTURE.md`** +
 
 - `CombatMode/CombatMode.toc` — metadata, `SavedVariables: CombatModeDB`
 - `CombatMode/Embeds.xml` — script load order + root frame `OnEvent` / `OnUpdate`
-- `CombatMode/Constants/` — static tables (`Namespace.lua` first)
+- `CombatMode/Constants/` — static tables (`Namespace.lua` first). Blizzard atlases are shipped as TGAs in `Assets/atlas/` and drawn through `CM.SetAtlas` / `CM.SetAtlasMask` / `CM.GetAtlasInfo` (`Constants/Atlas.lua`); never call `SetAtlas` with a client atlas for addon art. Art folders: `Assets/{branding,crosshair,assisthud,ui,atlas}`
 - `CombatMode/Core/{Runtime,FreeLook,Crosshair,ClickCasting,AllyCycle,Dev}/` — runtime by domain; `Dev/` holds developer tools (profiler) with no production impact when idle. Vignette lives under `Core/Vignette.lua` (fades with Mouse Look).
 - `CombatMode/UI/{Options,Changelog,Editors}/` — options toolkit/tabs, in-game changelog, secondary editors
 - `CombatMode/Bindings.xml` — keybind declarations

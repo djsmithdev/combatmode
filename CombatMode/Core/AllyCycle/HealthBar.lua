@@ -152,17 +152,17 @@ local function CreateHealthBarLCR(
   xOff
 )
   local left = bar:CreateTexture(nil, drawLayer, nil, subLevel)
-  left:SetAtlas(leftAtlas, false)
+  CM.SetAtlas(left, leftAtlas, false)
   left:SetSize(endW, height)
   left:SetPoint("LEFT", bar, "LEFT", -xOff, 0)
 
   local right = bar:CreateTexture(nil, drawLayer, nil, subLevel)
-  right:SetAtlas(rightAtlas, false)
+  CM.SetAtlas(right, rightAtlas, false)
   right:SetSize(endW, height)
   right:SetPoint("RIGHT", bar, "RIGHT", xOff, 0)
 
   local center = bar:CreateTexture(nil, drawLayer, nil, subLevel)
-  center:SetAtlas(centerAtlas, false)
+  CM.SetAtlas(center, centerAtlas, false)
   center:SetHeight(height)
   center:SetPoint("LEFT", left, "RIGHT")
   center:SetPoint("RIGHT", right, "LEFT")
@@ -171,11 +171,12 @@ local function CreateHealthBarLCR(
 end
 
 local function ApplyHealthBarFill(bar, atlas)
-  bar:SetStatusBarTexture(atlas)
+  local info = CM.GetAtlasInfo(atlas)
+  bar:SetStatusBarTexture(info and info.file or atlas)
   local fillTex = bar:GetStatusBarTexture()
   if fillTex then
     if fillTex.SetAtlas then
-      fillTex:SetAtlas(atlas, false)
+      CM.SetAtlas(fillTex, atlas, false)
     end
     fillTex:SetHorizTile(true)
   end
@@ -292,7 +293,7 @@ function HealthBar.Create(parent)
 
   local function MakeGlow(atlas, point, relative)
     local tex = glowFrame:CreateTexture(nil, "OVERLAY", nil, 3)
-    tex:SetAtlas(atlas, false)
+    CM.SetAtlas(tex, atlas, false)
     tex:SetSize(borderEndW, borderH)
     tex:SetBlendMode("ADD")
     tex:SetVertexColor(glowR, glowG, glowB, 1)
@@ -303,7 +304,7 @@ function HealthBar.Create(parent)
   local glowLeft = MakeGlow("widgetstatusbar-glowleft", "LEFT", borderLeft)
   local glowRight = MakeGlow("widgetstatusbar-glowright", "RIGHT", borderRight)
   local glowCenter = glowFrame:CreateTexture(nil, "OVERLAY", nil, 3)
-  glowCenter:SetAtlas("widgetstatusbar-glowcenter", false)
+  CM.SetAtlas(glowCenter, "widgetstatusbar-glowcenter", false)
   glowCenter:SetBlendMode("ADD")
   glowCenter:SetVertexColor(glowR, glowG, glowB, 1)
   glowCenter:SetHeight(borderH)
@@ -315,7 +316,7 @@ function HealthBar.Create(parent)
   bar.glowRight = glowRight
 
   local spark = bar:CreateTexture(nil, "OVERLAY", nil, 2)
-  spark:SetAtlas("widgetstatusbar-spark", false)
+  CM.SetAtlas(spark, "widgetstatusbar-spark", false)
   spark:SetSize(6, barH + 4)
   spark:SetBlendMode("ADD")
   spark:Hide()

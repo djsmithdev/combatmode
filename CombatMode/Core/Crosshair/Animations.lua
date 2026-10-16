@@ -53,7 +53,7 @@ local PulseTexture = PulseFrame:CreateTexture(nil, "BACKGROUND")
 function CM.InitializeCursorPulse()
   PulseFrame:SetSize(0, 0)
   PulseFrame:Hide()
-  PulseTexture:SetAtlas(PULSE_ATLAS, true)
+  CM.SetAtlas(PulseTexture, PULSE_ATLAS, true)
   PulseTexture:SetVertexColor(1, 1, 1, 1)
   PulseTexture:SetAllPoints()
 end

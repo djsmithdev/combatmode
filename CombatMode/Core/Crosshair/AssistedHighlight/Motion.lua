@@ -190,7 +190,7 @@ function Motion.PlayProcEffectForSpell(spellID)
   if anim and anim:IsPlaying() then
     anim:Stop()
   end
-  visual.ProcLoop:SetAtlas(PROC_ATLAS)
+  CM.SetAtlas(visual.ProcLoop, PROC_ATLAS)
   visual.ProcLoop:SetAlpha(1)
   visual.ProcLoop:Show()
   if anim then
@@ -247,7 +247,7 @@ function Motion.LayoutProcEffect(icon, expand)
     return
   end
   LayoutShellAroundIcon(visual.ProcLoop, icon, expand)
-  visual.ProcLoop:SetAtlas(PROC_ATLAS)
+  CM.SetAtlas(visual.ProcLoop, PROC_ATLAS)
 end
 
 local function UpdateGlowBreath(elapsed)

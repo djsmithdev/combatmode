@@ -113,7 +113,7 @@ function Interact.ApplyCursorTexture(icon)
     return true
   end
   if not SetUnitCursorTexture(icon, "softinteract", nil, true) then
-    icon:SetAtlas("mechagon-projects")
+    CM.SetAtlas(icon, "mechagon-projects")
   end
   local filePath = icon:GetTextureFilePath()
   if Interact.IsSecretValue(filePath) then

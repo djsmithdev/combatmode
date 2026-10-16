@@ -101,7 +101,7 @@ local function SetAtlasFixedSize(texture, atlasName)
   if not (texture and atlasName) then
     return
   end
-  texture:SetAtlas(atlasName, false)
+  CM.SetAtlas(texture, atlasName, false)
 end
 
 local function CalculateShellExpand(iconSize)
@@ -281,7 +281,7 @@ local function EnsureAssistedHighlight()
   AssistedHighlightFrame.icon:SetTexCoord(0, 1, 0, 1)
 
   AssistedHighlightFrame.iconMask = AssistedHighlightVisual:CreateMaskTexture()
-  SetAtlasFixedSize(AssistedHighlightFrame.iconMask, assets.AssistedSpellIconMask)
+  CM.SetAtlasMask(AssistedHighlightFrame.iconMask, assets.AssistedSpellIconMask)
   AssistedHighlightFrame.icon:AddMaskTexture(AssistedHighlightFrame.iconMask)
 
   -- Cooldown swipe + successPulse (Feedback) — between icon mask and glow, matching
@@ -315,7 +315,7 @@ local function EnsureAssistedHighlight()
   AssistedHighlightVisual.ProcLoop = AssistedHighlightVisual:CreateTexture(nil, "OVERLAY")
   AssistedHighlightVisual.ProcLoop:SetDrawLayer("OVERLAY", 2)
   AssistedHighlightVisual.ProcLoop:SetBlendMode("ADD")
-  AssistedHighlightVisual.ProcLoop:SetAtlas(procAtlas)
+  CM.SetAtlas(AssistedHighlightVisual.ProcLoop, procAtlas)
   AssistedHighlightVisual.ProcLoop:SetPoint("CENTER", AssistedHighlightFrame.icon, "CENTER", 0, 0)
   AssistedHighlightVisual.ProcLoop:Hide()
 
@@ -630,7 +630,7 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
     SetAtlasFixedSize(AssistedHighlightFrame.background, assets.AssistedSpellIconBackground)
     SetTextureSmooth(AssistedHighlightFrame.glow, assets.AssistedSpellIconGlow)
     SetTextureSmooth(AssistedHighlightFrame.frame, assets.AssistedSpellIconFrame)
-    SetAtlasFixedSize(AssistedHighlightFrame.iconMask, assets.AssistedSpellIconMask)
+    CM.SetAtlasMask(AssistedHighlightFrame.iconMask, assets.AssistedSpellIconMask)
 
     AssistedHighlightFrame.background:SetAlpha(1)
     AssistedHighlightFrame.frame:SetAlpha(1)

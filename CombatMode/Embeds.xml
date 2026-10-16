@@ -7,6 +7,7 @@
     <Script file="Constants\Namespace.lua"/>
     <Script file="Constants\CVars.lua"/>
     <Script file="Constants\Assets.lua"/>
+    <Script file="Constants\Atlas.lua"/>
     <Script file="Constants\Gameplay.lua"/>
     <Script file="Constants\DatabaseDefaults.lua"/>
     <Script file="Constants\FrameWatch.lua"/>

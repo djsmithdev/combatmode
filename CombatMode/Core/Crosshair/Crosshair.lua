@@ -215,7 +215,7 @@ local function GetFocusLockIdleTexturePath()
   if type(obj) == "table" and type(obj.Base) == "string" then
     return obj.Base
   end
-  return "Interface\\AddOns\\CombatMode\\assets\\crosshairDot.blp"
+  return CM.Constants.CrosshairTextureObj.Dot.Base
 end
 
 local function GetFocusLockIdleColor()
@@ -403,7 +403,7 @@ local DebugCrosshairFrame = CreateFrame("Frame", "CombatModeDebugCrosshairFrame"
 DebugCrosshairFrame:SetFrameStrata("DIALOG")
 DebugCrosshairFrame:SetFrameLevel(0)
 local DebugCrosshairTexture = DebugCrosshairFrame:CreateTexture(nil, "OVERLAY")
-DebugCrosshairTexture:SetTexture("Interface\\AddOns\\CombatMode\\assets\\crosshairX.blp")
+DebugCrosshairTexture:SetTexture(CM.Constants.CrosshairTextureObj.X.Base)
 DebugCrosshairTexture:SetAllPoints(DebugCrosshairFrame)
 DebugCrosshairTexture:SetBlendMode("BLEND")
 DebugCrosshairTexture:SetVertexColor(0, 1, 0, 1)

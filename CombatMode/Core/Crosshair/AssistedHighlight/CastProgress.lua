@@ -262,7 +262,7 @@ local function ApplyCooldownMask()
   local mask = cd.swipeMask
   if not mask then
     mask = cd:CreateMaskTexture()
-    mask:SetAtlas(CM.Constants.AssistedSpellIconMask, false)
+    CM.SetAtlasMask(mask, CM.Constants.AssistedSpellIconMask)
     mask:SetAllPoints(cd)
     cd.swipeMask = mask
   end

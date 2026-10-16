@@ -6,8 +6,9 @@
 --  appearance select values and reaction color tables the Crosshair tab and runtime read.
 --  Architecture / how it works:
 --    • `PopupMsg` / `BasePrintMsg` — welcome modal + print prefix (version from METADATA).
---  • Logo/Title BLPs, window shadow TGA, Discord/GitHub/Sponsor icons + community URLs, AssistedSpellIcon*,
---      ModifierKey{Ctrl,Shift,Alt} BLPs under Interface\AddOns\CombatMode\assets\.
+--    • Art lives under Interface\AddOns\CombatMode\Assets\: branding\ (logo, title, Discord/GitHub/
+--      Sponsor icons), crosshair\ (reticle BLP pairs), assisthud\ (AssistedSpellIcon*, ModifierKey{Ctrl,
+--      Shift,Alt}), ui\ (window shadow TGA) and atlas\ (shipped Blizzard atlases, Constants/Atlas.lua).
 --    • CrosshairTextureObj entries pair active/inactive BLPs; AppearanceSelectValues
 --      drives the Crosshair options dropdown. CrosshairSituationalHidden is the
 --      Advanced-only Invisible choice (no texture).
@@ -54,9 +55,13 @@ CM.Constants.BasePrintMsg = CM.METADATA["TITLE"]
   .. CM.METADATA["VERSION"]
   .. "|r"
 
-local assetsFolderPath = "Interface\\AddOns\\CombatMode\\assets\\"
-CM.Constants.Logo = assetsFolderPath .. "cmlogo.blp"
-CM.Constants.Title = assetsFolderPath .. "cmtitle.blp"
+local assetsFolderPath = "Interface\\AddOns\\CombatMode\\Assets\\"
+local brandingPath = assetsFolderPath .. "branding\\"
+local crosshairPath = assetsFolderPath .. "crosshair\\"
+local assistHudPath = assetsFolderPath .. "assisthud\\"
+local uiPath = assetsFolderPath .. "ui\\"
+CM.Constants.Logo = brandingPath .. "cmlogo.blp"
+CM.Constants.Title = brandingPath .. "cmtitle.blp"
 -- The title art is stored squashed in the 256x64 texture canvas (with empty space above and
 -- below the lettering), so it must be displayed at this aspect, not the file's 4:1. 2.1 was
 -- measured from the in-game render against the mockup (2.7 looked stretched sideways).
@@ -67,28 +72,33 @@ function CM.Constants.TitleSize(height)
 end
 -- Soft window drop shadow: 128x128 TGA, a blurred rounded box (box 48..80, radius 10) sliced as
 -- 9 pieces by UI.AddWindowShadow.
-CM.Constants.Shadow = assetsFolderPath .. "shadow.tga"
-CM.Constants.DiscordIcon = assetsFolderPath .. "discord.blp"
-CM.Constants.GitHubIcon = assetsFolderPath .. "github.blp"
-CM.Constants.SponsorIcon = assetsFolderPath .. "sponsor.blp"
+CM.Constants.Shadow = uiPath .. "shadow.tga"
+-- Blizzard textures shipped as TGAs (so they do not depend on the client): color picker thumbs
+-- (64x16 sheet), the wizard check mark and the frame picker's fallback addon icon.
+CM.Constants.ColorPickerThumbs = uiPath .. "colorpicker-buttons.tga"
+CM.Constants.CheckMark = uiPath .. "checkbox-check.tga"
+CM.Constants.UnknownAddonIcon = uiPath .. "question-mark.tga"
+CM.Constants.DiscordIcon = brandingPath .. "discord.blp"
+CM.Constants.GitHubIcon = brandingPath .. "github.blp"
+CM.Constants.SponsorIcon = brandingPath .. "sponsor.blp"
 CM.Constants.DiscordURL = "https://www.discord.gg/5mwBSmz"
 CM.Constants.GitHubURL = "https://github.com/djsmithdev/combatmode"
 CM.Constants.SponsorsURL = "https://github.com/sponsors/sampconrad"
 -- Combat Assist icon shell: background and mask are Blizzard atlases; the frame (84x74 TGA, ring
 -- on the left with a pointer on the right), glow and cooldown swipe are addon textures.
 CM.Constants.AssistedSpellIconBackground = "UI-Journeys-Delve-rewardicon-ring-BG"
-CM.Constants.AssistedSpellIconGlow = assetsFolderPath .. "spell-glow.blp"
-CM.Constants.AssistedSpellIconFrame = assetsFolderPath .. "spell-frame.tga"
+CM.Constants.AssistedSpellIconGlow = assistHudPath .. "spell-glow.blp"
+CM.Constants.AssistedSpellIconFrame = assistHudPath .. "spell-frame.tga"
 CM.Constants.AssistedSpellIconMask = "UI-Journeys-Delve-rewardicon-ring-Mask"
-CM.Constants.AssistedSpellIconCooldownSwipe = assetsFolderPath .. "spell-swipe.blp"
-CM.Constants.ModifierKeyCtrl = assetsFolderPath .. "key-ctrl.blp"
-CM.Constants.ModifierKeyShift = assetsFolderPath .. "key-shift.blp"
-CM.Constants.ModifierKeyAlt = assetsFolderPath .. "key-alt.blp"
+CM.Constants.AssistedSpellIconCooldownSwipe = assistHudPath .. "spell-swipe.blp"
+CM.Constants.ModifierKeyCtrl = assistHudPath .. "key-ctrl.blp"
+CM.Constants.ModifierKeyShift = assistHudPath .. "key-shift.blp"
+CM.Constants.ModifierKeyAlt = assistHudPath .. "key-alt.blp"
 
 --[[
   CROSSHAIR TEXTURES
   To add custom textures, you'll need two .BLP textures: one for the active and one for the inactive states.
-  Place them in the the CombatMode/assets folder and rename them as follows:
+  Place them in the CombatMode/Assets/crosshair folder and rename them as follows:
   Base texture = "crosshairASSETNAME.blp"
   Hit texture = "crosshairASSETNAME-hit.blp"
   Where "ASSETNAME" is the name you want to be displayed on the dropdown.
@@ -118,8 +128,8 @@ local crosshairAssetNames = {
 for _, assetName in ipairs(crosshairAssetNames) do
   CM.Constants.CrosshairTextureObj[assetName] = {
     Name = assetName,
-    Base = assetsFolderPath .. "crosshair" .. assetName .. ".blp",
-    Active = assetsFolderPath .. "crosshair" .. assetName .. "-hit.blp",
+    Base = crosshairPath .. "crosshair" .. assetName .. ".blp",
+    Active = crosshairPath .. "crosshair" .. assetName .. "-hit.blp",
   }
   CM.Constants.CrosshairAppearanceSelectValues[assetName] = assetName
 end
