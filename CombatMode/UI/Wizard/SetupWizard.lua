@@ -15,6 +15,8 @@
 --      UI.ShowSpotlight (Spotlight.lua) dims around them (cut to the tab's visible area) and
 --      shows the balloon.
 --    • The dim never blocks the mouse, so every option keeps working while a step is shown.
+--    • Steps marked `preview` (Crosshair, Assist HUD, Ally HUD) also leave the live crosshair / HUD
+--      preview undimmed with its own outline, and the balloon keeps clear of it.
 --    • char.seenWizard is set when the tour finishes or is skipped (Skip / ESC).
 --    • Combat: Start waits for combat to end; entering combat mid-tour ends the tour.
 --  Does not: Cover every option (only the basics and the major features), or own any setting
@@ -84,20 +86,16 @@ local STEPS = {
   {
     tab = "crosshair",
     section = "CROSSHAIR",
+    preview = true,
     title = "Crosshair",
     body = "A reactive, fully customizable crosshair that adapts to your target and combat state. Choose its look, size and position.",
   },
   {
     tab = "crosshair",
-    section = "INTERACTION HUD",
-    title = "Interaction HUD",
-    body = "A range-aware indicator appears beside the crosshair when your reticle passes over an interactable. Choose where it sits.",
-  },
-  {
-    tab = "crosshair",
-    section = "COMBAT ASSIST",
-    title = "Combat Assist",
-    body = "Shows Blizzard's next-cast suggestion beside the crosshair with cast feedback, so you can keep your eyes off the action bar. Choose where it sits.",
+    section = "ASSIST HUD",
+    preview = true,
+    title = "Assist HUD",
+    body = "One HUD beside the crosshair. On a hostile it shows the Assisted Highlight's next-cast suggestion with cast feedback; on an interactable it shows its icon, name and your Interact key. Choose where it sits.",
   },
   {
     tab = "reticle",
@@ -168,6 +166,7 @@ local STEPS = {
   {
     tab = "allycycle",
     section = "ALLY HUD",
+    preview = true,
     title = "Ally HUD",
     body = "Shows the selected ally next to the crosshair. Choose where it sits and how big it is.",
   },
@@ -198,6 +197,21 @@ local STEPS = {
       .. "them if you know what you are doing.",
   },
 }
+
+-- Frames of the live crosshair + HUD preview the Crosshair / Ally Cycle tabs force on screen. Steps
+-- marked `preview` leave them undimmed (outlined) and keep the balloon off them.
+local function PreviewFrames()
+  local frames = {}
+  local function Add(frame)
+    if frame then
+      frames[#frames + 1] = frame
+    end
+  end
+  Add(_G.CombatModeCrosshairFrame)
+  Add(CM.GetAssistedHighlightFrame and CM.GetAssistedHighlightFrame())
+  Add(_G.CombatModeAllyCycleHUD)
+  return frames
+end
 
 local active = false
 local current = 0
@@ -277,6 +291,7 @@ function ShowStep(i)
       canGoBack = i > 1,
       tasks = step.tasks,
       clip = Options.GetTabScroll(step.tab),
+      alsoHighlight = step.preview and PreviewFrames or nil,
       onNext = function()
         Options.CancelKeybindCapture()
         ShowStep(i + 1)

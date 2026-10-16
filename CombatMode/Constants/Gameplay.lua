@@ -163,6 +163,10 @@ CM.Constants.BLIZZARD_EVENTS = {
   ASSISTED_HIGHLIGHT_EVENTS = {
     "ASSISTED_COMBAT_ACTION_SPELL_CAST",
   },
+  -- Soft-interact target changed: refresh the interaction mode of the crosshair HUD
+  INTERACT_HUD_EVENTS = {
+    "PLAYER_SOFT_INTERACT_CHANGED",
+  },
 }
 
 -- Action-bar bindings for click-cast dropdown + reticle /click injection.

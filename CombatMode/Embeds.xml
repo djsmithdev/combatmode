@@ -29,10 +29,8 @@
     <Script file="Core\Vignette.lua"/>
     <!-- CROSSHAIR (+ companions) -->
     <Script file="Core\Crosshair\Animations.lua"/>
-    <Script file="Core\Crosshair\InteractionHUD\Target.lua"/>
-    <Script file="Core\Crosshair\InteractionHUD\Visual.lua"/>
-    <Script file="Core\Crosshair\InteractionHUD\HUD.lua"/>
     <Script file="Core\Crosshair\AssistedHighlight\Keybinds.lua"/>
+    <Script file="Core\Crosshair\AssistedHighlight\Interact.lua"/>
     <Script file="Core\Crosshair\AssistedHighlight\Motion.lua"/>
     <Script file="Core\Crosshair\AssistedHighlight\CastProgress.lua"/>
     <Script file="Core\Crosshair\AssistedHighlight\Feedback.lua"/>

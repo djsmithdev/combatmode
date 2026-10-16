@@ -11,7 +11,7 @@ Use this checklist for feature work and regressions.
 - For API-sensitive changes, verify WoW API/event signatures via MCP tools first (or manual fallback in `RELEASE.md`).
 
 ## Setup wizard
-- New character (or Debug Mode on, then `/reload`): welcome popup → OKAY opens the options window and starts the tour (Mouse Look section, Camera Features, then one whole section per step in tab order: Crosshair, Interaction HUD, Combat Assist, Reticle Targeting, Target Lock, Click Casting, Auto Unlock, Ally Cycle, Ally HUD, and the four Advanced sections).
+- New character (or Debug Mode on, then `/reload`): welcome popup → OKAY opens the options window and starts the tour (Mouse Look section, Camera Features, then one whole section per step in tab order: Crosshair, Assist HUD, Reticle Targeting, Target Lock, Click Casting, Auto Unlock, Ally Cycle, Ally HUD, and the four Advanced sections).
 - Each step scrolls to its setting or section, dims the rest of the screen (the cut-out stays inside the tab's visible area for tall sections), outlines it and shows a balloon (on screen, readable). The highlighted setting is fully usable: setting a keybind there matches the tab afterwards.
 - Steps that ask for an action (Mouse Look: Mouse Look + Interact keys; Target Lock: Target Lock + Cycle Lock Next / Previous keys, not required while Reticle Targeting is off; Ally Cycle: Next + Previous keys) show a check list in the balloon. Checks fill green as soon as the key is bound (already-bound keys start checked), and Next stays dimmed and disabled until all are done. Skip tour and Back always work.
 - Back / Next / Skip tour / ESC work; Finish ends it. Switching tabs by hand hides the dim until the next step.
@@ -72,6 +72,14 @@ Use this checklist for feature work and regressions.
 - Cycle to another enemy; confirm cycle sound cue.
 - **Nameplate marker:** while locked, center reticle becomes a static Dot; hit marker (Active texture for your Appearance) appears on the locked unit’s nameplate health bar; unlock restores the reactive reticle and clears the marker instantly.
 - In a **dungeon/instance**, lock / cycle / unlock with no Lua errors (focus identity may be secret under taint).
+
+## Assist HUD (Next-cast Suggestion + Interactable Indicator)
+
+- Setup wizard, Crosshair / Assist HUD / Ally Cycle / Ally HUD steps: the crosshair + HUD preview is not dimmed and has an accent outline; the balloon never covers it (it moves beside / below / to a screen corner). Other steps look as before.
+
+- Aim at an NPC/object/mailbox with no hostile: icon, name beside it, Interact key in the corner badge (hidden when unbound); icon dims out of range.
+- Hostile hard target or hostile under the crosshair, in or out of combat: spell suggestion + keybinds; wins over an interactable.
+- "Next-cast Suggestion" (Always / Only In Combat / Hidden) and "Interactable Indicator" disable only their mode; Position/Scale/Distance apply to both. Old saved variables load without errors.
 
 ## Crosshair cast feedback & Combat Assist
 

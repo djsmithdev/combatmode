@@ -4,6 +4,8 @@
 --  What it does: Owns IconMask chrome beside the crosshair (Left/Right via
 --  assistedHighlightSide, default RIGHT; icon size 40): frame creation, shell layout,
 --  visibility gates, and public Apply / Update / Init APIs. Wires Motion + Feedback.
+--  One HUD, two modes: assist (hostile hard target / under crosshair: suggested spell +
+--  keybinds) and interact (softinteract: cursor art, name, interact key; Interact.lua).
 --  Architecture / how it works:
 --    • EnsureAssistedHighlight creates chrome, Feedback.CreateTextures, ProcLoop,
 --      then Motion.Attach + Feedback.Attach (Feedback attaches CastProgress).
@@ -24,11 +26,16 @@ local _G = _G
 -- WoW API
 local CreateFrame = _G.CreateFrame
 local UnitAffectingCombat = _G.UnitAffectingCombat
+local UnitCanAttack = _G.UnitCanAttack
+local UnitExists = _G.UnitExists
+local UnitIsDead = _G.UnitIsDead
 
 local C_AssistedCombat = _G.C_AssistedCombat
 local C_Spell = _G.C_Spell
 
 -- Lua stdlib
+local ipairs = _G.ipairs
+local issecretvalue = _G.issecretvalue
 local math = _G.math
 local pcall = _G.pcall
 local tonumber = _G.tonumber
@@ -42,6 +49,18 @@ local suggestedSpellCacheTime
 local Keybinds = CM.AssistedHighlightKeybinds
 local Motion = CM.AssistedHighlightMotion
 local Feedback = CM.AssistedHighlightFeedback
+local Interact = CM.AssistedHighlightInteract
+
+-- Units whose hostility switches the HUD to its assist (spell) mode.
+local HOSTILE_FOCUS_UNITS = { "target", "mouseover" }
+-- Interaction mode: name label width cap, icon alpha by range.
+local NAME_MAX_WIDTH = 280
+-- Proc FlipBook key for interaction mode (any value that is not a spell id).
+local INTERACT_PROC_KEY = "interact"
+local INTERACT_ICON_ALPHA_IN_RANGE = 0.9
+local INTERACT_ICON_ALPHA_OUT_OF_RANGE = 0.5
+-- Assist mode: whole-HUD opacity while the suggested spell is out of range.
+local ASSIST_OUT_OF_RANGE_ALPHA = 0.4
 
 local crosshairFrame
 local crosshairTexture
@@ -53,12 +72,16 @@ local AssistedHighlightAnimDriver
 -- Shell layout (IconMask)
 local ICON_MASK_BASE_SIZE = 32
 local ICON_MASK_BASE_EXPAND = 6
-local SHADOW_SCALE = 1.5
 local ICON_SIZE = 40
 local ASSIST_OFFSET_X = CM.Constants.CrosshairCompanionOffsetX
 
 local lastAppliedSide
 local lastShownSpellID
+-- Range-dim alpha targets, eased toward by the AnimDriver (snapped while the HUD is hidden).
+local ALPHA_LERP_SPEED = 12
+local frameAlphaTarget = 1
+local iconAlphaTarget = 1
+local hudMode -- "assist" | "interact" | nil (what the chrome currently shows)
 
 ---------------------------------------------------------------------------------------
 --                         SHARED HELPERS (SHELL / TEXTURE)                          --
@@ -73,6 +96,14 @@ local function SetTextureSmooth(texture, texturePath)
   end
 end
 
+-- useAtlasSize=false: LayoutShellAroundIcon owns the size.
+local function SetAtlasFixedSize(texture, atlasName)
+  if not (texture and atlasName) then
+    return
+  end
+  texture:SetAtlas(atlasName, false)
+end
+
 local function CalculateShellExpand(iconSize)
   local expand = math.floor((iconSize / ICON_MASK_BASE_SIZE) * ICON_MASK_BASE_EXPAND + 0.5)
   if expand < 0 then
@@ -81,13 +112,46 @@ local function CalculateShellExpand(iconSize)
   return expand
 end
 
-local function LayoutShellAroundIcon(region, icon, expand)
+-- Blizzard ring atlases fill their canvas edge to edge (the old art had padding), so they are
+-- shrunk about the icon center. Tune this to resize them.
+local ATLAS_SHELL_SCALE = 0.85
+-- The glow is sized separately from the ring art; tune to resize it.
+local GLOW_SHELL_SCALE = 0.9
+
+local function LayoutAtlasShellAroundIcon(region, icon, expand, scale)
   if not (region and icon) then
     return
   end
+  local shell = (icon:GetWidth() + expand * 2) * scale
   region:ClearAllPoints()
-  region:SetPoint("TOPLEFT", icon, "TOPLEFT", -expand, expand)
-  region:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", expand, -expand)
+  region:SetPoint("CENTER", icon, "CENTER", 0, 0)
+  region:SetSize(shell, shell)
+end
+
+-- spell-frame.tga is 84x74: a ring (56px across, centered 5px left of the canvas center) with a
+-- pointer on the right. The ring is sized to the shell and the pointer faces the crosshair, i.e.
+-- mirrored when the icon sits on the crosshair's right.
+local FRAME_TEX_W = 84
+local FRAME_TEX_H = 74
+local FRAME_RING_DIAMETER = 56
+local FRAME_RING_OFFSET_X = 5
+-- Ring size relative to the icon + shell (the bg/mask sit at ATLAS_SHELL_SCALE); tune to resize.
+local FRAME_SHELL_SCALE = 0.76
+
+local function LayoutPointerFrame(region, icon, expand, side)
+  if not (region and icon) then
+    return
+  end
+  local k = (icon:GetWidth() + expand * 2) * FRAME_SHELL_SCALE / FRAME_RING_DIAMETER
+  local faceLeft = side ~= "LEFT"
+  region:ClearAllPoints()
+  region:SetSize(FRAME_TEX_W * k, FRAME_TEX_H * k)
+  region:SetPoint("CENTER", icon, "CENTER", (faceLeft and -1 or 1) * FRAME_RING_OFFSET_X * k, 0)
+  if faceLeft then
+    region:SetTexCoord(1, 0, 0, 1)
+  else
+    region:SetTexCoord(0, 1, 0, 1)
+  end
 end
 
 local function BindCompanions()
@@ -151,6 +215,38 @@ end
 ---------------------------------------------------------------------------------------
 --                              FRAME CREATION / OnUpdate                            --
 ---------------------------------------------------------------------------------------
+local function EaseAlpha(region, target, step)
+  local current = region:GetAlpha()
+  if math.abs(current - target) < 0.01 then
+    if current ~= target then
+      region:SetAlpha(target)
+    end
+    return
+  end
+  region:SetAlpha(current + (target - current) * step)
+end
+
+--- Sets the range-dim targets; snaps when the HUD is not visible yet so it fades in dimmed.
+local function SetAlphaTargets(frameAlpha, iconAlpha)
+  frameAlphaTarget = frameAlpha
+  iconAlphaTarget = iconAlpha
+  local frame = AssistedHighlightFrame
+  if Motion and Motion.GetFadeMode and Motion.GetFadeMode() == "hidden" then
+    frame:SetAlpha(frameAlpha)
+    frame.icon:SetAlpha(iconAlpha)
+  end
+end
+
+local function TickHudAlpha(elapsed)
+  local frame = AssistedHighlightFrame
+  if not frame then
+    return
+  end
+  local step = math.min(1, elapsed * ALPHA_LERP_SPEED)
+  EaseAlpha(frame, frameAlphaTarget, step)
+  EaseAlpha(frame.icon, iconAlphaTarget, step)
+end
+
 local function EnsureAssistedHighlight()
   if AssistedHighlightFrame then
     return
@@ -172,16 +268,10 @@ local function EnsureAssistedHighlight()
   AssistedHighlightVisual:SetPoint("CENTER", AssistedHighlightFrame, "CENTER", 0, 0)
   AssistedHighlightVisual:Hide()
 
-  -- Backdrop shadow (same atlas as LFG role icons; larger so soft edge extends).
-  AssistedHighlightFrame.shadow = AssistedHighlightVisual:CreateTexture(nil, "BACKGROUND")
-  AssistedHighlightFrame.shadow:SetDrawLayer("BACKGROUND", -1)
-  AssistedHighlightFrame.shadow:SetAtlas("Radial_Wheel_BG_Small")
-  AssistedHighlightFrame.shadow:SetAlpha(1)
-
   -- BACKGROUND: dark beveled well
   AssistedHighlightFrame.background = AssistedHighlightVisual:CreateTexture(nil, "BACKGROUND")
   AssistedHighlightFrame.background:SetDrawLayer("BACKGROUND", 0)
-  SetTextureSmooth(AssistedHighlightFrame.background, assets.AssistedSpellIconBackground)
+  SetAtlasFixedSize(AssistedHighlightFrame.background, assets.AssistedSpellIconBackground)
   AssistedHighlightFrame.background:SetVertexColor(1, 1, 1, 1)
 
   -- ARTWORK: circular-masked spell icon
@@ -191,11 +281,7 @@ local function EnsureAssistedHighlight()
   AssistedHighlightFrame.icon:SetTexCoord(0, 1, 0, 1)
 
   AssistedHighlightFrame.iconMask = AssistedHighlightVisual:CreateMaskTexture()
-  AssistedHighlightFrame.iconMask:SetTexture(
-    assets.AssistedSpellIconMask,
-    "CLAMPTOBLACKADDITIVE",
-    "CLAMPTOBLACKADDITIVE"
-  )
+  SetAtlasFixedSize(AssistedHighlightFrame.iconMask, assets.AssistedSpellIconMask)
   AssistedHighlightFrame.icon:AddMaskTexture(AssistedHighlightFrame.iconMask)
 
   -- Cooldown swipe + successPulse (Feedback) — between icon mask and glow, matching
@@ -205,9 +291,9 @@ local function EnsureAssistedHighlight()
   end
 
   local glowMin = (Motion and Motion.GLOW_ANIM_MIN_ALPHA) or 0.45
-  local glowR = (Motion and Motion.GLOW_COLOR_R) or 0.44
-  local glowG = (Motion and Motion.GLOW_COLOR_G) or 0.98
-  local glowB = (Motion and Motion.GLOW_COLOR_B) or 1
+  local glowR = (Motion and Motion.GLOW_COLOR_R) or 0.816
+  local glowG = (Motion and Motion.GLOW_COLOR_G) or 0.541
+  local glowB = (Motion and Motion.GLOW_COLOR_B) or 0.322
   local procAtlas = (Motion and Motion.PROC_ATLAS) or "UF-RogueCP-Slash-Blue"
 
   -- ARTWORK+1: cyan breath glow
@@ -247,6 +333,15 @@ local function EnsureAssistedHighlight()
   AssistedHighlightFrame.keybindText:SetShadowOffset(1, -1)
   AssistedHighlightFrame.keybindText:Hide()
 
+  -- The interactable's name gets its own label (outline + slug) so the click-cast icon label
+  -- is never restyled: inline |T / |A icons vanish when their FontString's font is churned.
+  AssistedHighlightFrame.nameText =
+    AssistedHighlightVisual:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+  AssistedHighlightFrame.nameText:SetDrawLayer("OVERLAY", 5)
+  AssistedHighlightFrame.nameText:SetWordWrap(false)
+  AssistedHighlightFrame.nameText:SetText("")
+  AssistedHighlightFrame.nameText:Hide()
+
   AssistedHighlightFrame.cornerKeybindText =
     AssistedHighlightVisual:CreateFontString(nil, "OVERLAY")
   AssistedHighlightFrame.cornerKeybindText:SetDrawLayer("OVERLAY", 6)
@@ -261,6 +356,7 @@ local function EnsureAssistedHighlight()
 
   AssistedHighlightAnimDriver:SetScript("OnUpdate", function(_, elapsed)
     CM.Profile("Assist:AnimDriver", function()
+      TickHudAlpha(elapsed)
       CM.ProfileEvent("Feedback.Tick")
       if Feedback and Feedback.Tick and Feedback.Tick(elapsed) then
         return
@@ -324,30 +420,76 @@ function CM.InvalidateSuggestedSpellCache()
   suggestedSpellID = nil
 end
 
-local function ShouldShowAssistedHighlightIcon()
-  if not (CM.DB and CM.DB.global) then
+local function PublicBool(v)
+  if issecretvalue and issecretvalue(v) then
     return false
   end
-  local enabled = CM.DB.global.assistedHighlightEnabled
-  if enabled == nil then
-    enabled = CM.Constants.DatabaseDefaults.global.assistedHighlightEnabled
-  end
-  if not enabled then
-    return false
-  end
-  if CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive() then
-    return true
-  end
+  return v and true or false
+end
+
+--- Crosshair visible, unmounted and mouselooking: shared by both HUD modes.
+local function PassesCrosshairGate()
   if not CM.IsCrosshairEnabled() or CM.IsCrosshairMounted() then
     return false
   end
   if not (crosshairTexture and crosshairTexture.IsShown and crosshairTexture:IsShown()) then
     return false
   end
-  if not CM.IsMouselooking() then
+  return CM.IsMouselooking()
+end
+
+--- Hostile hard target or hostile under the crosshair: the assist mode owns the HUD.
+--- Returns the unit token so the range check can use it.
+local function GetHostileFocusUnit()
+  for _, unit in ipairs(HOSTILE_FOCUS_UNITS) do
+    if
+      UnitExists(unit)
+      and PublicBool(UnitCanAttack("player", unit))
+      and not PublicBool(UnitIsDead(unit))
+    then
+      return unit
+    end
+  end
+  return nil
+end
+
+--- False only when the game says the spell is out of range of `unit` (nil = no range / unknown;
+--- secret results count as in range).
+local function IsSuggestedSpellInRange(spellID, unit)
+  if not (C_Spell and C_Spell.IsSpellInRange and spellID and unit) then
+    return true
+  end
+  local ok, inRange = pcall(C_Spell.IsSpellInRange, spellID, unit)
+  if not ok or (issecretvalue and issecretvalue(inRange)) then
+    return true
+  end
+  return inRange ~= false
+end
+
+--- "always" | "combat" | "hidden" (global.assistedHighlightMode; unknown values read as default).
+function CM.GetAssistedHighlightMode()
+  local mode = CM.DB and CM.DB.global and CM.DB.global.assistedHighlightMode
+  if mode == "always" or mode == "combat" or mode == "hidden" then
+    return mode
+  end
+  return CM.Constants.DatabaseDefaults.global.assistedHighlightMode
+end
+
+local function ShouldShowAssistedHighlightIcon()
+  if not (CM.DB and CM.DB.global) then
     return false
   end
-  if not (UnitAffectingCombat and UnitAffectingCombat("player")) then
+  local mode = CM.GetAssistedHighlightMode()
+  if mode == "hidden" then
+    return false
+  end
+  if CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive() then
+    return true
+  end
+  if not PassesCrosshairGate() then
+    return false
+  end
+  if mode == "combat" and not (UnitAffectingCombat and UnitAffectingCombat("player")) then
     return false
   end
   if not IsAssistedCombatHighlightCVarEnabled() then
@@ -409,7 +551,6 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
   else
     AssistedHighlightFrame:SetPoint("LEFT", crosshairFrame, "CENTER", gap, 0)
   end
-  AssistedHighlightFrame:SetAlpha(1)
   local assistScale = tonumber(g.assistedHighlightScale) or d.assistedHighlightScale or 1
   if assistScale < 0.5 then
     assistScale = 0.5
@@ -421,8 +562,10 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
   -- Click-cast keybind flips with cluster side; keyboard stays top-right on the icon.
   do
     local keyGap = expand
-    local clickLabel = AssistedHighlightFrame.keybindText
-    if clickLabel then
+    for _, clickLabel in ipairs({
+      AssistedHighlightFrame.keybindText,
+      AssistedHighlightFrame.nameText,
+    }) do
       clickLabel:ClearAllPoints()
       if side == "LEFT" then
         clickLabel:SetPoint("RIGHT", AssistedHighlightFrame.icon, "LEFT", -keyGap, 0)
@@ -434,8 +577,8 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
     end
     local keyboardLabel = AssistedHighlightFrame.cornerKeybindText
     if keyboardLabel then
-      local ox = (Keybinds and Keybinds.KEYBOARD_OFFSET_X) or 10
-      local oy = (Keybinds and Keybinds.KEYBOARD_OFFSET_Y) or 12
+      local ox = (Keybinds and Keybinds.KEYBOARD_OFFSET_X) or 13
+      local oy = (Keybinds and Keybinds.KEYBOARD_OFFSET_Y) or 15
       keyboardLabel:ClearAllPoints()
       keyboardLabel:SetPoint("CENTER", AssistedHighlightFrame.icon, "CENTER", ox, oy)
       keyboardLabel:SetJustifyH("CENTER")
@@ -456,38 +599,44 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
     AssistedHighlightFrame.icon:ClearAllPoints()
     AssistedHighlightFrame.icon:SetPoint("CENTER", AssistedHighlightVisual, "CENTER", 0, 0)
 
-    local shadowSize = size * SHADOW_SCALE
-    AssistedHighlightFrame.shadow:ClearAllPoints()
-    AssistedHighlightFrame.shadow:SetSize(shadowSize, shadowSize)
-    AssistedHighlightFrame.shadow:SetPoint("CENTER", AssistedHighlightFrame.icon, "CENTER", 0, 0)
-
-    LayoutShellAroundIcon(AssistedHighlightFrame.iconMask, AssistedHighlightFrame.icon, expand)
-    LayoutShellAroundIcon(AssistedHighlightFrame.background, AssistedHighlightFrame.icon, expand)
+    LayoutAtlasShellAroundIcon(
+      AssistedHighlightFrame.iconMask,
+      AssistedHighlightFrame.icon,
+      expand,
+      ATLAS_SHELL_SCALE
+    )
+    LayoutAtlasShellAroundIcon(
+      AssistedHighlightFrame.background,
+      AssistedHighlightFrame.icon,
+      expand,
+      ATLAS_SHELL_SCALE
+    )
     if Feedback and Feedback.LayoutCastProgressSwipe then
       Feedback.LayoutCastProgressSwipe(AssistedHighlightFrame.icon, expand)
     end
-    LayoutShellAroundIcon(AssistedHighlightFrame.glow, AssistedHighlightFrame.icon, expand)
-    LayoutShellAroundIcon(AssistedHighlightFrame.frame, AssistedHighlightFrame.icon, expand)
+    LayoutAtlasShellAroundIcon(
+      AssistedHighlightFrame.glow,
+      AssistedHighlightFrame.icon,
+      expand,
+      GLOW_SHELL_SCALE
+    )
+    LayoutPointerFrame(AssistedHighlightFrame.frame, AssistedHighlightFrame.icon, expand, side)
     if Motion and Motion.LayoutProcEffect then
       Motion.LayoutProcEffect(AssistedHighlightFrame.icon, expand)
     end
 
     -- Re-apply textures when layout changes (ApplyOptions path).
     local assets = CM.Constants
-    SetTextureSmooth(AssistedHighlightFrame.background, assets.AssistedSpellIconBackground)
+    SetAtlasFixedSize(AssistedHighlightFrame.background, assets.AssistedSpellIconBackground)
     SetTextureSmooth(AssistedHighlightFrame.glow, assets.AssistedSpellIconGlow)
     SetTextureSmooth(AssistedHighlightFrame.frame, assets.AssistedSpellIconFrame)
-    AssistedHighlightFrame.iconMask:SetTexture(
-      assets.AssistedSpellIconMask,
-      "CLAMPTOBLACKADDITIVE",
-      "CLAMPTOBLACKADDITIVE"
-    )
+    SetAtlasFixedSize(AssistedHighlightFrame.iconMask, assets.AssistedSpellIconMask)
 
     AssistedHighlightFrame.background:SetAlpha(1)
     AssistedHighlightFrame.frame:SetAlpha(1)
-    local glowR = (Motion and Motion.GLOW_COLOR_R) or 0.44
-    local glowG = (Motion and Motion.GLOW_COLOR_G) or 0.98
-    local glowB = (Motion and Motion.GLOW_COLOR_B) or 1
+    local glowR = (Motion and Motion.GLOW_COLOR_R) or 0.816
+    local glowG = (Motion and Motion.GLOW_COLOR_G) or 0.541
+    local glowB = (Motion and Motion.GLOW_COLOR_B) or 0.322
     AssistedHighlightFrame.glow:SetVertexColor(glowR, glowG, glowB, 1)
     -- Do not set glow alpha here — breath OnUpdate owns it.
     -- Do not restart the one-shot proc FlipBook on layout changes.
@@ -497,21 +646,82 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
       fontSize,
       _G.GameFontNormalSmall
     )
+    CM.SetFontStringFromTemplate(AssistedHighlightFrame.nameText, fontSize, _G.GameFontNormalSmall)
     if Keybinds then
       Keybinds.ApplyClickCastKeybindStyle(AssistedHighlightFrame.keybindText)
+      Keybinds.ApplyNameStyle(AssistedHighlightFrame.nameText)
       Keybinds.ApplyKeyboardKeybindStyle(AssistedHighlightFrame.cornerKeybindText)
     end
   end
 end
 
-local function ShowAssistedHighlightContent(texture, keybindText, keybindStyle, spellID)
+local function HasText(text)
+  if text == nil then
+    return false
+  end
+  return (issecretvalue and issecretvalue(text)) or text ~= ""
+end
+
+local function IsSecret(v)
+  return issecretvalue and issecretvalue(v)
+end
+
+--- clickText: click-cast icons beside the icon. nameText: the interactable's name, same spot.
+--- cornerText: keyboard badge on the icon (spell key, or the interact key).
+local function SetHudLabels(clickText, cornerText, nameText)
+  local frame = AssistedHighlightFrame
+  if HasText(clickText) then
+    frame.keybindText:SetText(clickText)
+    if Keybinds then
+      Keybinds.ApplyClickCastKeybindStyle(frame.keybindText)
+    end
+    frame.keybindText:Show()
+  else
+    frame.keybindText:SetText("")
+    frame.keybindText:Hide()
+  end
+  if HasText(nameText) then
+    frame.nameText:SetText(nameText)
+    if Keybinds then
+      Keybinds.ApplyNameStyle(frame.nameText)
+    end
+    -- Names can be long (or secret and unmeasurable): cap the width and truncate.
+    local width = NAME_MAX_WIDTH
+    if not IsSecret(nameText) then
+      width = math.min(width, frame.nameText:GetUnboundedStringWidth())
+    end
+    frame.nameText:SetWidth(width)
+    frame.nameText:Show()
+  else
+    frame.nameText:SetText("")
+    frame.nameText:Hide()
+  end
+  if HasText(cornerText) then
+    if Keybinds then
+      Keybinds.ApplyKeyboardKeybindStyle(frame.cornerKeybindText)
+    end
+    frame.cornerKeybindText:SetText(cornerText)
+    frame.cornerKeybindText:Show()
+  else
+    frame.cornerKeybindText:SetText("")
+    frame.cornerKeybindText:Hide()
+  end
+end
+
+local function ShowAssistedHighlightContent(texture, keybindText, keybindStyle, spellID, inRange)
   lastShownSpellID = spellID
   if Feedback and Feedback.RememberShownSpell then
     Feedback.RememberShownSpell(spellID)
   end
+  SetAlphaTargets(inRange == false and ASSIST_OUT_OF_RANGE_ALPHA or 1, 1)
+  if hudMode ~= "assist" then
+    hudMode = "assist"
+    if Motion and Motion.SetEffectTint then
+      Motion.SetEffectTint(Motion.GLOW_COLOR_R, Motion.GLOW_COLOR_G, Motion.GLOW_COLOR_B, true)
+    end
+  end
   AssistedHighlightFrame.icon:SetTexture(texture)
   AssistedHighlightFrame.icon:Show()
-  AssistedHighlightFrame.shadow:Show()
   AssistedHighlightFrame.background:Show()
   AssistedHighlightFrame.glow:Show()
   AssistedHighlightFrame.frame:Show()
@@ -520,27 +730,10 @@ local function ShowAssistedHighlightContent(texture, keybindText, keybindStyle, 
   end
 
   local styleClick = Keybinds and Keybinds.STYLE_CLICKCAST or "clickcast"
-  if keybindText and keybindText ~= "" then
-    if keybindStyle == styleClick then
-      AssistedHighlightFrame.keybindText:SetText(keybindText)
-      AssistedHighlightFrame.cornerKeybindText:SetText("")
-      AssistedHighlightFrame.cornerKeybindText:Hide()
-      if Keybinds then
-        Keybinds.ApplyClickCastKeybindStyle(AssistedHighlightFrame.keybindText)
-      end
-      AssistedHighlightFrame.keybindText:Show()
-    else
-      AssistedHighlightFrame.cornerKeybindText:SetText(keybindText)
-      AssistedHighlightFrame.keybindText:SetText("")
-      AssistedHighlightFrame.keybindText:Hide()
-      if Keybinds then
-        Keybinds.ApplyKeyboardKeybindStyle(AssistedHighlightFrame.cornerKeybindText)
-      end
-      AssistedHighlightFrame.cornerKeybindText:Show()
-    end
+  if keybindStyle == styleClick then
+    SetHudLabels(keybindText, nil, nil)
   else
-    AssistedHighlightFrame.keybindText:Hide()
-    AssistedHighlightFrame.cornerKeybindText:Hide()
+    SetHudLabels(nil, keybindText, nil)
   end
 
   if Motion and Motion.RequestShow then
@@ -550,6 +743,39 @@ local function ShowAssistedHighlightContent(texture, keybindText, keybindStyle, 
   -- changes would falsely treat a normal finish as a cancel).
   if Feedback and Feedback.UpdateCastProgressSwipe then
     Feedback.UpdateCastProgressSwipe()
+  end
+end
+
+--- Interaction mode: same chrome, the softinteract cursor art as the icon, the interactable's
+--- name beside it and the interact key in the corner badge. Gold glow + proc FlipBook (plays
+--- once when the HUD appears, not on every refresh); no spell or swipe.
+local function ShowInteractContent()
+  local frame = AssistedHighlightFrame
+  if hudMode ~= "interact" then
+    hudMode = "interact"
+    lastShownSpellID = nil
+    if Feedback and Feedback.StopAll then
+      Feedback.StopAll()
+    end
+    if Motion and Motion.StopProcEffect then
+      Motion.StopProcEffect()
+    end
+    if Motion and Motion.SetEffectTint then
+      Motion.SetEffectTint(Motion.GLOW_COLOR_R, Motion.GLOW_COLOR_G, Motion.GLOW_COLOR_B, true)
+    end
+  end
+  local inRange = Interact.ApplyCursorTexture(frame.icon)
+  SetAlphaTargets(1, inRange and INTERACT_ICON_ALPHA_IN_RANGE or INTERACT_ICON_ALPHA_OUT_OF_RANGE)
+  frame.icon:Show()
+  frame.background:Show()
+  frame.glow:Show()
+  frame.frame:Show()
+  if Motion and Motion.PlayProcEffectForSpell then
+    Motion.PlayProcEffectForSpell(INTERACT_PROC_KEY)
+  end
+  SetHudLabels(nil, Interact.GetInteractKeyText(), Interact.GetUnitName())
+  if Motion and Motion.RequestShow then
+    Motion.RequestShow()
   end
 end
 
@@ -582,49 +808,52 @@ function CM.UpdateCrosshairAssistedHighlight()
     return
   end
 
-  if not ShouldShowAssistedHighlightIcon() then
-    if Motion and Motion.RequestHide then
-      Motion.RequestHide()
+  -- Assist mode wins whenever a hostile is the hard target or under the crosshair.
+  local hostileUnit = ShouldShowAssistedHighlightIcon() and GetHostileFocusUnit()
+  if hostileUnit then
+    local spellID = GetSuggestedAssistedSpellID()
+    local texture
+    if spellID and C_Spell and C_Spell.GetSpellInfo then
+      local ok, info = pcall(C_Spell.GetSpellInfo, spellID)
+      texture = ok and info and info.iconID or nil
     end
+    if texture then
+      CM.ApplyCrosshairAssistedHighlightOptions()
+
+      local keybindText, keybindStyle
+      if Keybinds and Keybinds.GetClickCastDisplayForSpell then
+        keybindText, keybindStyle = Keybinds.GetClickCastDisplayForSpell(spellID)
+      end
+      if not keybindText and Keybinds then
+        keybindText = Keybinds.FormatKeybindText(Keybinds.GetFirstBindingKeyForSpell(spellID))
+        keybindStyle = keybindText and Keybinds.STYLE_KEYBOARD or nil
+      end
+
+      ShowAssistedHighlightContent(
+        texture,
+        keybindText,
+        keybindStyle,
+        spellID,
+        IsSuggestedSpellInRange(spellID, hostileUnit)
+      )
+      return
+    end
+  end
+
+  if CM.IsInteractionHUDEnabled() and PassesCrosshairGate() and Interact.HasTarget() then
+    CM.ApplyCrosshairAssistedHighlightOptions()
+    ShowInteractContent()
     return
   end
 
-  local spellID = GetSuggestedAssistedSpellID()
-  if not spellID then
-    if Motion and Motion.RequestHide then
-      Motion.RequestHide()
-    end
-    return
+  if Motion and Motion.RequestHide then
+    Motion.RequestHide()
   end
+end
 
-  if not (C_Spell and C_Spell.GetSpellInfo) then
-    if Motion and Motion.RequestHide then
-      Motion.RequestHide()
-    end
-    return
-  end
-  local ok, info = pcall(C_Spell.GetSpellInfo, spellID)
-  info = ok and info or nil
-  local texture = info and info.iconID
-  if not texture then
-    if Motion and Motion.RequestHide then
-      Motion.RequestHide()
-    end
-    return
-  end
-
-  CM.ApplyCrosshairAssistedHighlightOptions()
-
-  local keybindText, keybindStyle
-  if Keybinds and Keybinds.GetClickCastDisplayForSpell then
-    keybindText, keybindStyle = Keybinds.GetClickCastDisplayForSpell(spellID)
-  end
-  if not keybindText and Keybinds then
-    keybindText = Keybinds.FormatKeybindText(Keybinds.GetFirstBindingKeyForSpell(spellID))
-    keybindStyle = keybindText and Keybinds.STYLE_KEYBOARD or nil
-  end
-
-  ShowAssistedHighlightContent(texture, keybindText, keybindStyle, spellID)
+--- The chrome frame (nil until first shown); the setup wizard outlines it during the preview.
+function CM.GetAssistedHighlightFrame()
+  return AssistedHighlightFrame
 end
 
 function CM.InitAssistedHighlight(opts)

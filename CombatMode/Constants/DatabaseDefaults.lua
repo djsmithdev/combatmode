@@ -98,13 +98,11 @@ CM.Constants.DatabaseDefaults = {
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
     crosshairScale = 1.0,
     crosshairY = 100,
-    -- interaction HUD
+    -- crosshair HUD: interaction mode toggle (layout is shared with combat assist)
     interactionHUD = true,
-    interactionHUDSide = "LEFT",
-    interactionHUDScale = 1.0,
-    interactionHUDPadding = 24,
     -- combat assist
-    assistedHighlightEnabled = true,
+    -- "always" | "combat" | "hidden"
+    assistedHighlightMode = "always",
     assistedHighlightSide = "RIGHT",
     assistedHighlightScale = 1.0,
     assistedHighlightPadding = 24,

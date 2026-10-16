@@ -35,11 +35,11 @@ Unit identity and many measures can be **secret** in instances while execution i
 - **Identity:** prefer `UnitExists`, `UnitIsUnit`, plate/frame identity — not GUID string equality. Focus lock sounds use existence + event order, not GUID diffs.
 - **Cast GUID match:** if either side is secret, treat as compatible for the single in-flight cast; deferred cancel uses a **public generation token**, not `pendingGUID ~= castGUID` (see `Animations`, `AssistedHighlight/CastProgress`).
 - **Health / dead styling:** prefer `UnitHealthPercent` + color curves and `C_CurveUtil.EvaluateColorFromBoolean` when available; never compare raw secret health fractions for control flow.
-- **Presence without GUID compare:** `UnitExists` first; if you must read GUID, use `issecretvalue(guid)` as presence, never `guid ~= nil` as a compare on secrets (see `InteractionHUD/Target.HasTarget`).
+- **Presence without GUID compare:** `UnitExists` first; if you must read GUID, use `issecretvalue(guid)` as presence, never `guid ~= nil` as a compare on secrets (see `AssistedHighlight/Interact.HasTarget`).
 
 ### Reference modules
 
-`Core/Crosshair/Crosshair.lua`, `FocusNameplateMarker.lua`, `InteractionHUD/Target.lua` + `HUD.lua`, `AssistedHighlight/CastProgress.lua`, `Animations.lua`, `Core/AllyCycle/{Target,HealthBar,Motion,HUD}.lua`.
+`Core/Crosshair/Crosshair.lua`, `FocusNameplateMarker.lua`, `AssistedHighlight/Interact.lua`, `AssistedHighlight/CastProgress.lua`, `Animations.lua`, `Core/AllyCycle/{Target,HealthBar,Motion,HUD}.lua`.
 
 ## Taint-avoidance practices
 

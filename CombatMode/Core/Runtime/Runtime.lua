@@ -11,7 +11,9 @@
 --      then coerces Forever-style 1/0 flags to real booleans (CM.DbBool / NormalizeBools)
 --      wherever defaults declare a boolean — so == true / ~= false / if x stay correct.
 --      Also drops leftover global.partyRadial (feature removed in 4.7.0) and turns the old
---      reticleHideSoftIndicator toggle into global.selectionCircleMode.
+--      reticleHideSoftIndicator toggle into global.selectionCircleMode, and drops the
+--      assistedHighlightEnabled toggle into global.assistedHighlightMode, and drops the
+--      interactionHUDSide / Scale / Padding keys (Interaction HUD merged into Combat Assist).
 --      Rewrites the shipped situational default (dead-or-stealth + Arrows) to
 --      dead-only + Invisible when the saved values still match that default.
 --    • GetBindingsLocation → "global" vs "char" from useGlobalBindings.
@@ -310,6 +312,16 @@ function CM.InitDatabase()
   -- Party Radial removed in 4.7.0; drop leftover settings so they do not linger in SV.
   if sv.global then
     sv.global.partyRadial = nil
+    -- The Combat Assist on/off toggle became the always / only in combat / hidden dropdown.
+    if sv.global.assistedHighlightEnabled ~= nil then
+      local on = CM.DbBool(sv.global.assistedHighlightEnabled, true)
+      sv.global.assistedHighlightMode = on and "always" or "hidden"
+      sv.global.assistedHighlightEnabled = nil
+    end
+    -- The Interaction HUD merged into the Combat Assist HUD; it shares that HUD's layout.
+    sv.global.interactionHUDSide = nil
+    sv.global.interactionHUDScale = nil
+    sv.global.interactionHUDPadding = nil
     -- 5.0.3's Hide Soft Targeting Indicator toggle became the Selection Circle dropdown.
     if sv.global.reticleHideSoftIndicator ~= nil then
       local hidden = CM.DbBool(sv.global.reticleHideSoftIndicator, true)

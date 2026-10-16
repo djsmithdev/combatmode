@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.5] - 2026-10-16
+
+### Added
+
+- The Interaction HUD and Combat Assist are now a single **Assist HUD** (Crosshair tab). On a hostile (hard target or under the crosshair) it shows the Assisted Highlight's next-cast suggestion with your keybind. On an interactable it shows the interaction icon, its name and your Interact key, with a glow and a short animation when it appears.
+- The **Next-cast Suggestion** fades out while the suggested spell is out of range of your target.
+
+### Changed
+
+- **Combat Assist** is now the **Next-cast Suggestion** dropdown: **Always**, **Only In Combat** or **Hidden** (it was an on/off toggle). An existing On becomes Always, so it now also shows outside combat.
+- **Interaction HUD** is now the **Interactable Indicator** toggle. It and the Next-cast Suggestion share one Position, Scale and Distance setting.
+- New look for the Assist HUD: a copper glow, animation and frame matching the options window, and the keybind and name text now use the window's text colors with an outline.
+- The **Shoulder Offset** slider now goes from -15 to 15 (it was -2 to 2).
+- The setup wizard now leaves the crosshair and HUD previews undimmed and outlined on the Crosshair, Assist HUD, Ally Cycle and Ally HUD steps, and moves its balloon out of their way.
+
 ## [5.0.4] - 2026-10-16
 
 ### Fixed
@@ -652,7 +667,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.0.4...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.0.5...HEAD
+[5.0.5]: https://github.com/djsmithdev/combatmode/compare/5.0.4...5.0.5
 [5.0.4]: https://github.com/djsmithdev/combatmode/compare/5.0.3...5.0.4
 [5.0.3]: https://github.com/djsmithdev/combatmode/compare/5.0.2...5.0.3
 [5.0.2]: https://github.com/djsmithdev/combatmode/compare/5.0.1...5.0.2

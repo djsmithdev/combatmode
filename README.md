@@ -82,7 +82,7 @@ Action Combat Mode is organized by **domain**. Runtime lives under `CombatMode/C
 |--------|------|
 | **Runtime** | AddOn shell, events, CVars, binding queue, bootstrap (`Core/Runtime/`) |
 | **FreeLook** | Mouse look / mouselook state + auto cursor unlock |
-| **Crosshair** | Reticle, Interaction HUD, Combat Assist, Target Lock focus marker, cast animations |
+| **Crosshair** | Reticle, Assist HUD (next-cast suggestion and interactable indicator), Target Lock focus marker, cast animations |
 | **ClickCasting** | Mouse override bindings + targeting macro builder |
 | **AllyCycle** | Party/raid ally cycling + Ally HUD (secure UP/DOWN, help/harm macros) |
 | **Options toolkit** | Standalone options window + editors (`UI/Options/`, `UI/Editors/`) |

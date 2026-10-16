@@ -38,12 +38,14 @@ local actionSlotCommandMap
 
 local KEYBOARD_KEYBIND_FONT = "Fonts\\FRIZQT__.TTF"
 local KEYBOARD_KEYBIND_FONT_SIZE = 15
-local KEYBOARD_KEYBIND_FONT_FLAGS = "OUTLINE"
+-- SetSmoothScaling exists on FontString when the SLUG flag is supported (Midnight+).
+local HAS_SLUG = _G.CreateFrame("Frame"):CreateFontString().SetSmoothScaling ~= nil
+local KEYBOARD_KEYBIND_FONT_FLAGS = HAS_SLUG and "OUTLINE, SLUG" or "OUTLINE"
 
 Keybinds.STYLE_CLICKCAST = "clickcast"
 Keybinds.STYLE_KEYBOARD = "keyboard"
-Keybinds.KEYBOARD_OFFSET_X = 10
-Keybinds.KEYBOARD_OFFSET_Y = 12
+Keybinds.KEYBOARD_OFFSET_X = 13
+Keybinds.KEYBOARD_OFFSET_Y = 15
 
 local COMPACT_KEY_MAP = {
   ["CTRL"] = "Ctrl",
@@ -245,7 +247,13 @@ function CM.IsAssistedCombatActionSlot(slot)
   return BuildAssistedActionSlotSet()[slot] == true
 end
 
-local function GetFirstActionSlotForSpell(spellID)
+-- FindSpellActionButtons intermittently returns nothing for a spell that is on the bars (seen
+-- flipping between slot and nil several times a second for the same spell), which made the
+-- click-cast icon blink. The last good slot is reused for a short grace window.
+local SLOT_GRACE_SEC = 1.5
+local lastGoodSlot = {} -- spellID -> { slot, time }
+
+local function LookupFirstActionSlotForSpell(spellID)
   if not (spellID and C_ActionBar and C_ActionBar.FindSpellActionButtons) then
     return nil
   end
@@ -286,6 +294,28 @@ local function GetFirstActionSlotForSpell(spellID)
     end
   end
   return firstSlot or firstSlotIncludingAssisted
+end
+
+local function GetFirstActionSlotForSpell(spellID)
+  local slot = LookupFirstActionSlotForSpell(spellID)
+  if not spellID then
+    return slot
+  end
+  local now = _G.GetTime()
+  if slot then
+    local entry = lastGoodSlot[spellID]
+    if entry then
+      entry[1], entry[2] = slot, now
+    else
+      lastGoodSlot[spellID] = { slot, now }
+    end
+    return slot
+  end
+  local entry = lastGoodSlot[spellID]
+  if entry and now - entry[2] <= SLOT_GRACE_SEC then
+    return entry[1]
+  end
+  return nil
 end
 
 local function ActionSlotToBindingName(actionSlot)
@@ -368,6 +398,26 @@ function Keybinds.GetFirstBindingKeyForSpell(spellID)
   return key1 or key2
 end
 
+-- Cream title color of the options panel (UI.Colors.text, #F1E6D3) for the interactable name.
+local TEXT_COLOR = { 0.945, 0.902, 0.827 }
+-- Muted description grey (UI.Colors.textDim, #9C968C) for the keybind badge.
+local KEY_COLOR = { 0.612, 0.588, 0.549 }
+
+-- Outline + slug + soft 1px shadow, shared by both HUD texts.
+local function ApplyOutlineSlug(label, font, size, color)
+  if font and size then
+    label:SetFont(font, size, KEYBOARD_KEYBIND_FONT_FLAGS)
+  end
+  if HAS_SLUG then
+    label:SetSmoothScaling(true)
+  end
+  color = color or TEXT_COLOR
+  label:SetTextColor(color[1], color[2], color[3], 1)
+  label:SetShadowColor(0, 0, 0, 0.5)
+  label:SetShadowOffset(1, -1)
+end
+
+--- Click-cast label: only inline |T / |A icons, so it keeps the plain font path (no slug).
 function Keybinds.ApplyClickCastKeybindStyle(label)
   if not label then
     return
@@ -377,12 +427,18 @@ function Keybinds.ApplyClickCastKeybindStyle(label)
   label:SetShadowOffset(1, -1)
 end
 
+--- Interactable name: outline + slug, keeps the label's current font and size.
+function Keybinds.ApplyNameStyle(label)
+  if not label then
+    return
+  end
+  local font, size = label:GetFont()
+  ApplyOutlineSlug(label, font, size, TEXT_COLOR)
+end
+
 function Keybinds.ApplyKeyboardKeybindStyle(label)
   if not label then
     return
   end
-  label:SetFont(KEYBOARD_KEYBIND_FONT, KEYBOARD_KEYBIND_FONT_SIZE, KEYBOARD_KEYBIND_FONT_FLAGS)
-  label:SetTextColor(1, 1, 1, 1)
-  label:SetShadowColor(0, 0, 0, 0)
-  label:SetShadowOffset(0, 0)
+  ApplyOutlineSlug(label, KEYBOARD_KEYBIND_FONT, KEYBOARD_KEYBIND_FONT_SIZE, KEY_COLOR)
 end

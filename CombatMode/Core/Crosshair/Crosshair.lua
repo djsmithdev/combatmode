@@ -3,8 +3,8 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Owns the CombatModeCrosshairFrame container/texture, reaction-state
 --  tinting, Create/Display/ApplyPosition, CursorCenteredYPos sync from crosshairY, and
---  options preview that forces Interaction HUD + Assisted Highlight companions visible.
---  Inits InteractionHUD, AssistedHighlight, and Animations; routes cast terminals to
+--  options preview that forces the Assisted Highlight / Interaction companion HUD visible.
+--  Inits AssistedHighlight (incl. interaction mode) and Animations; routes cast terminals to
 --  Animations (SUCCEEDED also notifies AssistedHighlight via EventRouter).
 --  Architecture / how it works:
 --    • DB.global.crosshair / appearance / crosshairScale / Y;
@@ -30,9 +30,8 @@
 --      enabled via CM.IsTargetLockEnabled; nameplate transfer visual lives in
 --      FocusNameplateMarker) / Uncategorized / Rematch hooks from EventRouter / Runtime.
 --  Does not: Own SoftTarget CVar writes, assist FlipBook / cast feedback motion, or freelook lock.
---  Related: Core/Crosshair/Animations.lua, Core/Crosshair/InteractionHUD/HUD.lua
---  (and sibling Target/Visual), Core/Crosshair/AssistedHighlight/Assist.lua
---  (and sibling Keybinds/Motion/CastProgress/Feedback), Core/Crosshair/FocusNameplateMarker.lua,
+--  Related: Core/Crosshair/Animations.lua, Core/Crosshair/AssistedHighlight/Assist.lua
+--  (and sibling Keybinds/Interact/Motion/CastProgress/Feedback), Core/Crosshair/FocusNameplateMarker.lua,
 --  Core/Runtime/CVarManager.lua, Core/Runtime/EventRouter.lua, Core/Runtime/UserLuaCondition.lua, UI/Options/Tabs/TabCrosshair.lua,
 --  UI/Editors/CrosshairColorsEditor.lua, Constants/Assets.lua
 ---------------------------------------------------------------------------------------
@@ -80,7 +79,6 @@ local CrosshairVisualFrame = CreateFrame("Frame", nil, CrosshairFrame)
 local CrosshairTexture = CrosshairVisualFrame:CreateTexture(nil, "OVERLAY")
 local CrosshairAnimation = CrosshairVisualFrame:CreateAnimationGroup()
 CM.CreateCrosshairScaleAnimation(CrosshairAnimation)
-CM.InitInteractionHUD({ crosshairFrame = CrosshairFrame, crosshairTexture = CrosshairTexture })
 if CM.InitAssistedHighlight then
   CM.InitAssistedHighlight({ crosshairFrame = CrosshairFrame, crosshairTexture = CrosshairTexture })
 end
@@ -372,7 +370,6 @@ function CM.DisplayCrosshair(shouldShow)
   if CM.UpdateCrosshairAssistedHighlight then
     CM.UpdateCrosshairAssistedHighlight()
   end
-  CM.RefreshInteractionHUD()
   if CM.RefreshAllyCycleHUD then
     CM.RefreshAllyCycleHUD()
   end
@@ -400,8 +397,6 @@ function CM.CreateCrosshair()
   SetCrosshairAppearance("base")
   CM.ApplyCrosshairAssistedHighlightOptions()
   CM.UpdateCrosshairAssistedHighlight()
-  CM.ApplyInteractionHUDLayout()
-  CM.RefreshInteractionHUD()
 end
 
 local DebugCrosshairFrame = CreateFrame("Frame", "CombatModeDebugCrosshairFrame", UIParent)

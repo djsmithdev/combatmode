@@ -13,6 +13,9 @@
 --    • An OnUpdate re-reads the target's screen rect every frame, so the hole follows the
 --      widget while the options tab is still scrolling it into view.
 --    • The balloon sits right of the hole, else left, else below / above, clamped on screen.
+--    • Steps that show the live crosshair / HUD preview pass `alsoHighlight` (a function returning
+--      frames): their union becomes a second hole with its own outline (so the crosshair is not
+--      dimmed), and the balloon moves to a spot that covers neither hole.
 --    • Tasks: a step can list actions (label + done()) shown as a check list under the text; Next /
 --      Finish stay disabled until every one is done (re-checked a few times a second).
 --    • Between steps the whole spotlight fades out (UI.FadeOutSpotlight) while the options tab scrolls
@@ -35,6 +38,7 @@ local UIParent = _G.UIParent
 local ipairs = _G.ipairs
 local max = _G.math.max
 local min = _G.math.min
+local sort = _G.table.sort
 
 local UI = CM.UI
 local C = UI.Colors
@@ -42,6 +46,9 @@ local C = UI.Colors
 local DIM_ALPHA = 0.62
 local RING_W = 2 -- accent outline thickness
 local HOLE_PAD = 6 -- breathing room between the highlighted widget and the dim
+-- Extra room around the live preview (crosshair + HUD): the HUD's key / name text hangs outside its frame.
+local EXTRA_PAD_X = 100
+local EXTRA_PAD_Y = 16
 local BALLOON_W = 320
 local BALLOON_PAD = 14
 local BALLOON_GAP = 16 -- distance from the hole to the balloon
@@ -73,36 +80,129 @@ function UI.CreateDimHole(parent, level)
   end
 
   -- Outline only (four edges): the highlighted widget inside stays untouched and readable.
-  local ring = CreateFrame("Frame", nil, parent)
-  ring:SetFrameLevel(level + 2)
-  ring:EnableMouse(false)
-  local function Edge(p1, p2)
-    local edge = ring:CreateTexture(nil, "OVERLAY")
-    edge:SetColorTexture(C.accent[1], C.accent[2], C.accent[3], 0.95)
-    edge:SetPoint(p1, ring, p1)
-    edge:SetPoint(p2, ring, p2)
-    return edge
+  local function MakeRing()
+    local r = CreateFrame("Frame", nil, parent)
+    r:SetFrameLevel(level + 2)
+    r:EnableMouse(false)
+    local function Edge(p1, p2)
+      local edge = r:CreateTexture(nil, "OVERLAY")
+      edge:SetColorTexture(C.accent[1], C.accent[2], C.accent[3], 0.95)
+      edge:SetPoint(p1, r, p1)
+      edge:SetPoint(p2, r, p2)
+      return edge
+    end
+    Edge("TOPLEFT", "TOPRIGHT"):SetHeight(RING_W)
+    Edge("BOTTOMLEFT", "BOTTOMRIGHT"):SetHeight(RING_W)
+    Edge("TOPLEFT", "BOTTOMLEFT"):SetWidth(RING_W)
+    Edge("TOPRIGHT", "BOTTOMRIGHT"):SetWidth(RING_W)
+    return r
   end
-  local edgeTop = Edge("TOPLEFT", "TOPRIGHT")
-  edgeTop:SetHeight(RING_W)
-  local edgeBottom = Edge("BOTTOMLEFT", "BOTTOMRIGHT")
-  edgeBottom:SetHeight(RING_W)
-  local edgeLeft = Edge("TOPLEFT", "BOTTOMLEFT")
-  edgeLeft:SetWidth(RING_W)
-  local edgeRight = Edge("TOPRIGHT", "BOTTOMRIGHT")
-  edgeRight:SetWidth(RING_W)
+  local ring = MakeRing()
+
+  -- Pools for LayoutRects (several holes): dim rectangles and outlines created on demand.
+  local multiPieces = {}
+  local multiRings = {}
 
   local hole = {}
+
+  local function HideMulti()
+    for i = 1, #multiPieces do
+      multiPieces[i]:Hide()
+    end
+    for i = 1, #multiRings do
+      multiRings[i]:Hide()
+    end
+  end
 
   function hole.SetShown(shown)
     for i = 1, #pieces do
       pieces[i]:SetShown(shown)
     end
     ring:SetShown(shown)
+    if not shown then
+      HideMulti()
+    end
+  end
+
+  --- Cuts several holes at once: `rects` = list of { left, right, top, bottom } in UIParent
+  --- units. The screen is cut into vertical bands at every hole edge and each band dims whatever
+  --- its holes do not cover.
+  function hole.LayoutRects(rects)
+    for i = 1, #pieces do
+      pieces[i]:Hide()
+    end
+    ring:Hide()
+    local screenW, screenH = UIParent:GetWidth(), UIParent:GetHeight()
+    local xs = { 0, screenW }
+    for _, r in ipairs(rects) do
+      xs[#xs + 1] = r.left
+      xs[#xs + 1] = r.right
+    end
+    sort(xs)
+    local used = 0
+    local function Dim(x1, x2, y1, y2)
+      used = used + 1
+      local piece = multiPieces[used]
+      if not piece then
+        piece = CreateFrame("Frame", nil, parent)
+        piece:SetFrameLevel(level + 1)
+        piece:EnableMouse(false)
+        local tex = piece:CreateTexture(nil, "BACKGROUND")
+        tex:SetAllPoints()
+        tex:SetColorTexture(0, 0, 0, DIM_ALPHA)
+        multiPieces[used] = piece
+      end
+      piece:ClearAllPoints()
+      piece:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", x1, y1)
+      piece:SetPoint("TOPRIGHT", UIParent, "BOTTOMLEFT", x2, y2)
+      piece:Show()
+    end
+    for k = 1, #xs - 1 do
+      local x1, x2 = xs[k], xs[k + 1]
+      if x2 > x1 then
+        local spans = {}
+        for _, r in ipairs(rects) do
+          if r.left <= x1 and r.right >= x2 then
+            spans[#spans + 1] = r
+          end
+        end
+        sort(spans, function(a, b)
+          return a.bottom < b.bottom
+        end)
+        local y = 0
+        for _, r in ipairs(spans) do
+          if r.bottom > y then
+            Dim(x1, x2, y, r.bottom)
+          end
+          y = max(y, r.top)
+        end
+        if y < screenH then
+          Dim(x1, x2, y, screenH)
+        end
+      end
+    end
+    for i = used + 1, #multiPieces do
+      multiPieces[i]:Hide()
+    end
+    for i, r in ipairs(rects) do
+      local outline = multiRings[i]
+      if not outline then
+        outline = MakeRing()
+        multiRings[i] = outline
+      end
+      outline:ClearAllPoints()
+      outline:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", r.left, r.bottom)
+      outline:SetPoint("TOPRIGHT", UIParent, "BOTTOMLEFT", r.right, r.top)
+      outline:Show()
+    end
+    for i = #rects + 1, #multiRings do
+      multiRings[i]:Hide()
+    end
   end
 
   function hole.Layout(left, right, top, bottom)
     local top_, bottom_, left_, right_ = pieces[1], pieces[2], pieces[3], pieces[4]
+    HideMulti()
     if not left then
       top_:ClearAllPoints()
       top_:SetAllPoints(UIParent)
@@ -182,6 +282,32 @@ local function EnsureTaskRow(self, i)
   row.label:SetTextColor(C.text[1], C.text[2], C.text[3])
   self.taskRows[i] = row
   return row
+end
+
+--- Union rect (UIParent units, padded) of the visible frames in `frames`, or nil when none show.
+local function ExtraRect(frames)
+  local left, right, top, bottom
+  for i = 1, #frames do
+    local frame = frames[i]
+    local l, r, t, b = frame:GetLeft(), frame:GetRight(), frame:GetTop(), frame:GetBottom()
+    if frame:IsVisible() and l and r and t and b then
+      local scale = frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
+      left = left and min(left, l * scale) or l * scale
+      right = right and max(right, r * scale) or r * scale
+      bottom = bottom and min(bottom, b * scale) or b * scale
+      top = top and max(top, t * scale) or t * scale
+    end
+  end
+  if not left then
+    return nil
+  end
+  local screenW, screenH = UIParent:GetWidth(), UIParent:GetHeight()
+  return {
+    left = max(left - EXTRA_PAD_X, 0),
+    right = min(right + EXTRA_PAD_X, screenW),
+    bottom = max(bottom - EXTRA_PAD_Y, 0),
+    top = min(top + EXTRA_PAD_Y, screenH),
+  }
 end
 
 local function Build()
@@ -379,33 +505,72 @@ local function Build()
     bottom = max(bottom - HOLE_PAD, 0)
     top = min(top + HOLE_PAD, screenH)
 
+    -- The live crosshair / HUD preview (if the step shows one): union of its visible frames.
+    local extra = self.alsoHighlight and ExtraRect(self.alsoHighlight())
     local key = left + right * 3 + top * 7 + bottom * 11
+    if extra then
+      key = key + extra.left * 13 + extra.right * 17 + extra.top * 19 + extra.bottom * 23
+    end
     if key == lastKey then
       return
     end
     lastKey = key
 
-    hole.Layout(left, right, top, bottom)
+    local main = { left = left, right = right, top = top, bottom = bottom }
+    local rects = { main }
+    if extra then
+      rects[2] = extra
+    end
+    hole.LayoutRects(rects)
 
-    -- Balloon: right of the hole, else left, else below / above; clamped on screen.
+    -- Balloon: right of the hole, else left, else below / above; clamped on screen. With a
+    -- preview shown it must also keep clear of the crosshair / HUD, so it takes the first spot
+    -- (beside, below or above the widget, then a screen corner) that covers neither hole.
     local balloonH = balloon:GetHeight()
+    local function Clamp(px, py)
+      return max(SCREEN_MARGIN, min(px, screenW - BALLOON_W - SCREEN_MARGIN)),
+        max(balloonH + SCREEN_MARGIN, min(py, screenH - SCREEN_MARGIN))
+    end
+    local function Covers(px, py, r)
+      return px < r.right + BALLOON_GAP
+        and px + BALLOON_W > r.left - BALLOON_GAP
+        and py > r.bottom - BALLOON_GAP
+        and py - balloonH < r.top + BALLOON_GAP
+    end
+    local midY = (top + bottom) / 2 + balloonH / 2
+    local midX = (left + right) / 2 - BALLOON_W / 2
+    local candidates = {
+      { right + BALLOON_GAP, midY },
+      { left - BALLOON_GAP - BALLOON_W, midY },
+      { midX, bottom - BALLOON_GAP },
+      { midX, top + BALLOON_GAP + balloonH },
+      { screenW, screenH },
+      { 0, screenH },
+      { screenW, 0 },
+      { 0, 0 },
+    }
     local x, y
-    if right + BALLOON_GAP + BALLOON_W + SCREEN_MARGIN <= screenW then
-      x = right + BALLOON_GAP
-      y = (top + bottom) / 2 + balloonH / 2
-    elseif left - BALLOON_GAP - BALLOON_W - SCREEN_MARGIN >= 0 then
-      x = left - BALLOON_GAP - BALLOON_W
-      y = (top + bottom) / 2 + balloonH / 2
-    else
-      x = (left + right) / 2 - BALLOON_W / 2
-      if bottom - BALLOON_GAP - balloonH >= SCREEN_MARGIN then
-        y = bottom - BALLOON_GAP
-      else
-        y = top + BALLOON_GAP + balloonH
+    for i = 1, #candidates do
+      local cx, cy = Clamp(candidates[i][1], candidates[i][2])
+      if not Covers(cx, cy, main) and not (extra and Covers(cx, cy, extra)) then
+        x, y = cx, cy
+        break
       end
     end
-    x = max(SCREEN_MARGIN, min(x, screenW - BALLOON_W - SCREEN_MARGIN))
-    y = max(balloonH + SCREEN_MARGIN, min(y, screenH - SCREEN_MARGIN))
+    if not x then
+      -- Nothing clears both holes: keep the classic placement beside the widget.
+      local px, py
+      if right + BALLOON_GAP + BALLOON_W + SCREEN_MARGIN <= screenW then
+        px, py = right + BALLOON_GAP, midY
+      elseif left - BALLOON_GAP - BALLOON_W - SCREEN_MARGIN >= 0 then
+        px, py = left - BALLOON_GAP - BALLOON_W, midY
+      elseif bottom - BALLOON_GAP - balloonH >= SCREEN_MARGIN then
+        px, py = midX, bottom - BALLOON_GAP
+      else
+        px, py = midX, top + BALLOON_GAP + balloonH
+      end
+      x, y = Clamp(px, py)
+    end
     balloon:ClearAllPoints()
     balloon:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
   end)
@@ -417,12 +582,13 @@ local function Build()
 end
 
 --- Shows the spotlight on `target` (a frame, or a list of frames) with the balloon described by `opts`:
---- { title, body, step ("3 / 7"), nextLabel, isLast (shows the accent Finish button), canGoBack, tasks ({ label, done() } list that gates Next / Finish), clip (frame the hole is cut to), onNext, onBack, onSkip }.
+--- { title, body, step ("3 / 7"), nextLabel, isLast (shows the accent Finish button), canGoBack, tasks ({ label, done() } list that gates Next / Finish), clip (frame the hole is cut to), alsoHighlight (function returning the live preview frames to leave undimmed), onNext, onBack, onSkip }.
 function UI.ShowSpotlight(target, opts)
   spotlight = spotlight or Build()
   local s = spotlight
   s.targets = target.GetLeft and { target } or target
   s.clip = opts.clip
+  s.alsoHighlight = opts.alsoHighlight
   s.onNext, s.onBack, s.onSkip = opts.onNext, opts.onBack, opts.onSkip
 
   s.title:SetText(opts.title or "")
@@ -469,6 +635,7 @@ function UI.HideSpotlight()
   if spotlight then
     spotlight.targets = nil
     spotlight.clip = nil
+    spotlight.alsoHighlight = nil
     spotlight.fadeTo = nil
     spotlight.frozen = false
     spotlight.root:SetAlpha(1)

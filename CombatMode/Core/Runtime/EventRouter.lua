@@ -277,6 +277,11 @@ local function HandleEventByCategory(category, event, ...)
         CM.OnAssistedHighlightAssistedActionCast()
       end
     end,
+    INTERACT_HUD_EVENTS = function()
+      if CM.UpdateCrosshairAssistedHighlight then
+        CM.UpdateCrosshairAssistedHighlight()
+      end
+    end,
   }
 
   if eventHandlers[category] then

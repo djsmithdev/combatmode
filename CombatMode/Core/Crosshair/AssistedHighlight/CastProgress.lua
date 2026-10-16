@@ -138,14 +138,8 @@ local function SetVisualAlpha(alpha)
   end
 end
 
-local function LayoutShellAroundIcon(region, icon, expand)
-  if not (region and icon) then
-    return
-  end
-  region:ClearAllPoints()
-  region:SetPoint("TOPLEFT", icon, "TOPLEFT", -expand, expand)
-  region:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", expand, -expand)
-end
+-- Swipe size relative to the icon + shell (the ring atlases sit at 0.85 of it); tune to resize.
+local SWIPE_SHELL_SCALE = 0.9
 
 local function IsPreviewActive()
   return CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive()
@@ -260,9 +254,17 @@ CastProgress.IsAssistVisibleForCastFeedback = IsAssistVisibleForCastFeedback
 local function ApplyCooldownMask()
   local frame = HostFrame()
   local cd = frame and frame.cooldown
-  local mask = frame and frame.iconMask
-  if not (cd and mask) or cd.cooldownMaskAttached then
+  if not cd or cd.cooldownMaskAttached then
     return
+  end
+  -- Own mask (same shape as the icon mask) that follows the swipe's size, so the swipe can be
+  -- larger than the icon mask without being clipped by it.
+  local mask = cd.swipeMask
+  if not mask then
+    mask = cd:CreateMaskTexture()
+    mask:SetAtlas(CM.Constants.AssistedSpellIconMask, false)
+    mask:SetAllPoints(cd)
+    cd.swipeMask = mask
   end
   local maskedAny = false
   local regionCount = select("#", cd:GetRegions())
@@ -358,7 +360,10 @@ function CastProgress.LayoutCastProgressSwipe(icon, expand)
   if not (cd and icon) then
     return
   end
-  LayoutShellAroundIcon(cd, icon, expand)
+  local shell = (icon:GetWidth() + expand * 2) * SWIPE_SHELL_SCALE
+  cd:ClearAllPoints()
+  cd:SetPoint("CENTER", icon, "CENTER", 0, 0)
+  cd:SetSize(shell, shell)
   ApplyCooldownMask()
 end
 

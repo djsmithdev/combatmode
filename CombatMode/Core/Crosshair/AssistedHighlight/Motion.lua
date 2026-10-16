@@ -48,10 +48,14 @@ local PROC_FLIP_FRAMES = 18
 -- Match Blizzard RogueComboPointBar SlashFB FlipBook duration (.57).
 local PROC_PLAY_DURATION = 0.57
 
-Motion.GLOW_COLOR_R = 0.44
-Motion.GLOW_COLOR_G = 0.98
-Motion.GLOW_COLOR_B = 1
+-- Glow / proc FlipBook / frame tint for both HUD modes: the options panel's copper accent
+-- (UI.Colors.accent, #D08A52).
+Motion.GLOW_COLOR_R = 0.816
+Motion.GLOW_COLOR_G = 0.541
+Motion.GLOW_COLOR_B = 0.322
 Motion.GLOW_ANIM_MIN_ALPHA = GLOW_ANIM_MIN_ALPHA
+-- How far the metal frame moves from white toward the tint (1 = full copper, 0 = untinted).
+local FRAME_TINT_STRENGTH = 0.4
 Motion.PROC_ATLAS = PROC_ATLAS
 Motion.PROC_PREVIEW_SPELL_ID = -1
 
@@ -169,7 +173,7 @@ function Motion.EnsureProcAnimations()
   visual.ProcLoopFlip = flipAnim
 end
 
---- Plays the proc FlipBook once in reverse when `spellID` changes.
+--- Plays the proc FlipBook once in reverse when `spellID` (any key) changes.
 function Motion.PlayProcEffectForSpell(spellID)
   local visual = HostVisual()
   if not (visual and visual.ProcLoop) then
@@ -191,6 +195,34 @@ function Motion.PlayProcEffectForSpell(spellID)
   visual.ProcLoop:Show()
   if anim then
     anim:Play(true)
+  end
+end
+
+--- Tints the glow, the proc FlipBook and (non-default tint only) the metal frame ring. The FlipBook
+--- atlas is blue art, so a non-default tint desaturates it first (a vertex color alone would
+--- multiply the blue channel away).
+function Motion.SetEffectTint(r, g, b, desaturateProc)
+  local frame = HostFrame()
+  if frame and frame.glow then
+    frame.glow:SetVertexColor(r, g, b, 1)
+  end
+  if frame and frame.frame then
+    if desaturateProc then
+      local k = FRAME_TINT_STRENGTH
+      frame.frame:SetVertexColor(1 - k + k * r, 1 - k + k * g, 1 - k + k * b, 1)
+    else
+      frame.frame:SetVertexColor(1, 1, 1, 1)
+    end
+  end
+  local visual = HostVisual()
+  if visual and visual.ProcLoop then
+    visual.ProcLoop:SetDesaturated(desaturateProc and true or false)
+    visual.ProcLoop:SetVertexColor(
+      desaturateProc and r or 1,
+      desaturateProc and g or 1,
+      desaturateProc and b or 1,
+      1
+    )
   end
 end
 

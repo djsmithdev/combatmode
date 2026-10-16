@@ -2,21 +2,19 @@
 --  UI/Options/Tabs/TabCrosshair.lua — OPTIONS TAB — Crosshair + HUD + Assist
 ---------------------------------------------------------------------------------------
 --  What it does: Wires crosshair enable/cast feedback/appearance/scale/Y,
---  Interaction HUD enable + side + scale + distance, and Combat Assist enable +
---  side + scale + distance. Situational appearance and its Lua condition are
+--  the single Assist HUD (Next-cast Suggestion + Interactable Indicator, shared side + scale +
+--  distance). Situational appearance and its Lua condition are
 --  edited on Advanced. Live preview via SetCrosshairOptionsPreview onSelect/onDeselect;
 --  when HUD turns on without reticle targeting, applies ConfigInteractionHUDSoftTarget.
 --  Architecture / how it works:
 --    • DB.global: crosshair*, crosshairScale, crosshairReactionColors,
 --      crosshairSituationalCondition, crosshairSituationalAppearance,
---      interactionHUD / Side / Scale / Padding, assistedHighlightEnabled / Side / Scale / Padding
---      (Padding sliders labeled Distance).
+--      interactionHUD, assistedHighlightMode / Side / Scale / Padding
+--      (Padding slider labeled Distance).
 --    • set() → DisplayCrosshair / CreateCrosshair / CancelCrosshairCastFeedback /
---      ApplyInteractionHUDLayout / RefreshInteractionHUD /
 --      ApplyCrosshairAssistedHighlightOptions / UpdateCrosshairAssistedHighlight.
 --  Does not: Own freelook state machine or click-cast slot table UI.
---  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/InteractionHUD/HUD.lua,
---  Core/Crosshair/AssistedHighlight/Assist.lua, Core/Crosshair/Animations.lua,
+--  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight/Assist.lua, Core/Crosshair/Animations.lua,
 --  Core/Runtime/CVarManager.lua, UI/Editors/CrosshairColorsEditor.lua,
 --  UI/Options/Tabs/TabAdvanced.lua, Constants/Assets.lua, Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
@@ -40,7 +38,8 @@ local function CrosshairOff()
 end
 
 local function AssistOff()
-  return CrosshairOff() or not CM.DB.global.assistedHighlightEnabled
+  return CrosshairOff()
+    or not (CM.GetAssistedHighlightMode() ~= "hidden" or CM.DB.global.interactionHUD)
 end
 
 local function RefreshAssist()
@@ -55,6 +54,7 @@ end
 UI.Options.AddTab({
   id = "crosshair",
   label = "Crosshair",
+  newFeatureFlag = true,
   onSelect = function()
     CM.SetCrosshairOptionsPreview(true)
   end,
@@ -149,10 +149,28 @@ UI.Options.AddTab({
     })
 
     ctx:Gap()
-    ctx:Header("INTERACTION HUD")
+    ctx:Header({ text = "ASSIST HUD", newFeatureFlag = true })
+    ctx:Dropdown({
+      label = "Next-cast Suggestion",
+      desc = "Show the Assisted Highlight's next-cast suggestion while aiming at a target.",
+      values = {
+        always = "Always",
+        combat = "Only In Combat",
+        hidden = "Hidden",
+      },
+      order = { "always", "combat", "hidden" },
+      get = function()
+        return CM.GetAssistedHighlightMode()
+      end,
+      set = function(value)
+        CM.DB.global.assistedHighlightMode = value
+        RefreshAssist()
+      end,
+      disabled = CrosshairOff,
+    })
     ctx:Toggle({
-      label = "Interaction HUD",
-      desc = "Show a prompt outside of combat for nearby interactables.",
+      label = "Interactable Indicator",
+      desc = "Show an indicator while aiming at an interactable unit or object.",
       get = function()
         return CM.DB.global.interactionHUD
       end,
@@ -161,107 +179,13 @@ UI.Options.AddTab({
         if value and CM.IsCrosshairEnabled() and not CM.DB.char.reticleTargeting then
           CM.ConfigInteractionHUDSoftTarget()
         end
-        if CM.RefreshInteractionHUD then
-          CM.RefreshInteractionHUD()
-        end
-      end,
-      disabled = CrosshairOff,
-    })
-    ctx:Dropdown({
-      label = "Position",
-      desc = "Which side of the crosshair the Interaction HUD appears on.",
-      values = {
-        LEFT = "Left",
-        RIGHT = "Right",
-      },
-      order = { "LEFT", "RIGHT" },
-      get = function()
-        return CM.DB.global.interactionHUDSide
-          or CM.Constants.DatabaseDefaults.global.interactionHUDSide
-      end,
-      set = function(value)
-        CM.DB.global.interactionHUDSide = value
-        if CM.ApplyInteractionHUDLayout then
-          CM.ApplyInteractionHUDLayout()
-        end
-        if CM.RefreshInteractionHUD then
-          CM.RefreshInteractionHUD()
-        end
-      end,
-      disabled = function()
-        return CrosshairOff() or not CM.DB.global.interactionHUD
-      end,
-    })
-    ctx:Slider({
-      label = "Scale",
-      desc = "Scales the size of the Interaction HUD.",
-      min = 0.5,
-      max = 1.5,
-      step = 0.05,
-      default = 1,
-      get = function()
-        return CM.DB.global.interactionHUDScale
-          or CM.Constants.DatabaseDefaults.global.interactionHUDScale
-          or 1
-      end,
-      set = function(value)
-        CM.DB.global.interactionHUDScale = value
-        if CM.ApplyInteractionHUDLayout then
-          CM.ApplyInteractionHUDLayout()
-        end
-        if CM.RefreshInteractionHUD then
-          CM.RefreshInteractionHUD()
-        end
-      end,
-      disabled = function()
-        return CrosshairOff() or not CM.DB.global.interactionHUD
-      end,
-    })
-    ctx:Slider({
-      label = "Distance",
-      desc = "Distance between the Interaction HUD and the crosshair.",
-      min = 0,
-      max = 128,
-      step = 1,
-      default = 24,
-      get = function()
-        local v = CM.DB.global.interactionHUDPadding
-        if v == nil then
-          v = CM.Constants.DatabaseDefaults.global.interactionHUDPadding
-        end
-        return v or 24
-      end,
-      set = function(value)
-        CM.DB.global.interactionHUDPadding = value
-        if CM.ApplyInteractionHUDLayout then
-          CM.ApplyInteractionHUDLayout()
-        end
-        if CM.RefreshInteractionHUD then
-          CM.RefreshInteractionHUD()
-        end
-      end,
-      disabled = function()
-        return CrosshairOff() or not CM.DB.global.interactionHUD
-      end,
-    })
-
-    ctx:Gap()
-    ctx:Header("COMBAT ASSIST")
-    ctx:Toggle({
-      label = "Combat Assist",
-      desc = "Show Blizzard's next-spell suggestion during combat.",
-      get = function()
-        return CM.DB.global.assistedHighlightEnabled
-      end,
-      set = function(value)
-        CM.DB.global.assistedHighlightEnabled = value
         RefreshAssist()
       end,
       disabled = CrosshairOff,
     })
     ctx:Dropdown({
       label = "Position",
-      desc = "Which side of the crosshair the Combat Assist icon appears on.",
+      desc = "Which side of the crosshair the HUD appears on.",
       values = {
         LEFT = "Left",
         RIGHT = "Right",
@@ -279,7 +203,7 @@ UI.Options.AddTab({
     })
     ctx:Slider({
       label = "Scale",
-      desc = "Scales the size of the Combat Assist.",
+      desc = "Scales the size of the HUD.",
       min = 0.5,
       max = 1.5,
       step = 0.05,
@@ -297,7 +221,7 @@ UI.Options.AddTab({
     })
     ctx:Slider({
       label = "Distance",
-      desc = "Distance between the Combat Assist and the crosshair.",
+      desc = "Distance between the HUD and the crosshair.",
       min = 0,
       max = 128,
       step = 1,
