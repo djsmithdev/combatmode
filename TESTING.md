@@ -46,7 +46,7 @@ Use this checklist for feature work and regressions.
 
 ## Click casting
 
-- **Ping and marker actions:** the action dropdown lists Combat Mode's own actions first, then the changed Blizzard ones (Ping, Attack, Warning, On My Way, Assist, Raid Target 1-8 / None) in blue, then the rest. Ours are copper. In Mouse Look, each ping pings the unit under the crosshair (nothing happens with no unit; "Ping" alone is a contextual ping and no longer opens the wheel in Mouse Look). Raid Target N marks your hard target, or the unit under the crosshair when you have none (None clears it). Out of Mouse Look the buttons keep their normal behavior.
+- **Ping and marker actions:** the action dropdown lists Action Combat Mode's own actions first, then the changed Blizzard ones (Ping, Attack, Warning, On My Way, Assist, Raid Target 1-8 / None) in blue, then the rest. Ours are copper. In Mouse Look, each ping pings the unit under the crosshair (nothing happens with no unit; "Ping" alone is a contextual ping and no longer opens the wheel in Mouse Look). Raid Target N marks your hard target, or the unit under the crosshair when you have none (None clears it). Out of Mouse Look the buttons keep their normal behavior.
 - **No CM_ macros:** open the macro list (`/macro`): there are no `CM_ClearTarget` / `CM_ToggleFocus*` / `CM_StartAttack` / ... entries (unmodified leftovers from older versions are deleted once on login; an edited one, or one on an action bar, is kept). Click-cast mouse actions **Clear Target, Clear Focus, Start Attack, Pet Attack, Toggle Focus Any / Enemy** still work from their mouse buttons (with key-down off they fire on release).
 - **Shorter /click line:** the macros no longer pass `LeftButton` (default) or a key-up `0`. Press bar keys and click-cast mouse buttons in and out of combat on Blizzard bars, and with ElvUI / Bartender with `ActionButtonUseKeyDown` 0 and 1 — they must still target and cast. Enter a vehicle / override bar in combat: keys 1–6 fire the override abilities. Preline editor: a 140-character preline saves and works, 141 is rejected.
 - Auto Target Lock + Ignore Friendlies: a dead hostile under the crosshair is not targeted or focused. Ally Cycle with "restore after harm" on, in a group: a dead Target Lock is cleared on the next harmful cast (Blizzard bars; ElvUI / Bartender with key-down keep the older shorter macro).
@@ -75,7 +75,7 @@ Use this checklist for feature work and regressions.
 
 ## Flip Camera keybind
 
-- Mouse Look tab → Flip Camera Keybind (below Interact Unit): bind a key; it also shows under Combat Mode in the Key Bindings screen.
+- Mouse Look tab → Flip Camera Keybind (below Interact Unit): bind a key; it also shows under Action Combat Mode in the Key Bindings screen.
 - Tap the key: the camera flips 180° around the character and stays; tap again: it flips back.
 - Hold the key (about 0.3s+): the camera flips while held and flips back on release. No Lua errors, also in combat.
 

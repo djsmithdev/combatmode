@@ -50,6 +50,11 @@ UI.Options.AddTab({
   newFeatureFlag = true,
   build = function(ctx)
     ctx:Header("RETICLE TARGETING")
+    ctx:Description({
+      text = "",
+      warning = "Warning: Reticle Targeting does not work on actions that are macros. "
+        .. "A macro cannot call or click another macro, so the Reticle Targeting logic cannot be applied to them.",
+    })
 
     ctx:Toggle({
       label = "Enable Reticle Targeting",
