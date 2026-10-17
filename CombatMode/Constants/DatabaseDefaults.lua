@@ -69,9 +69,9 @@ local DefaultBindings = {
     macroName = "",
   },
   altbutton2 = {
-    enabled = true,
+    enabled = false,
     key = "ALT-BUTTON2",
-    value = "TOGGLEFOCUSANY",
+    value = "CLEARFOCUS",
     macroName = "",
   },
   toggle = { key = "Combat Mode - Mouse Look", value = "BUTTON3" },
@@ -169,6 +169,9 @@ return false
     reticleTargeting = true,
     reticleTargetingEnemyOnly = true,
     autoTargetLockOnAttack = false,
+    -- Target Lock key: "toggle" = lock / tap again to unlock; "switch" = lock the unit under the
+    -- crosshair (replacing any lock), tap with nothing under the crosshair to unlock.
+    targetLockBehavior = "toggle",
     macroInjectionClickCastOnly = false,
     excludeFromTargetingSpells = "871, 45438, 642, 198589",
     castAtCursorSpells = "6544, 204596, 189110, 1234796, 190356, 207684",

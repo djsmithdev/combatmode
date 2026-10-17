@@ -6,8 +6,9 @@
 --  OverrideActions / ButtonsToOverride for click-cast UI and secure overrides.
 --  Architecture / how it works:
 --    • Macros (texts only; run from secure proxy buttons, never created in the player's
---      macro list): CM_ClearTarget/Focus, CM_ToggleFocus{Any,Enemy}
---      (target-first-then-mouseover on lock; clear focus + target on unlock),
+--      macro list): CM_ClearTarget/Focus, CM_ToggleFocus{Any,Enemy} + CM_SwitchFocus{Any,Enemy} (Target Lock key)
+--      (Toggle: target-first-then-mouseover on lock, clear focus + target on unlock; Switch: the unit
+--      under the crosshair becomes the lock, an empty crosshair unlocks),
 --      CM_CycleFocusEnemy{Next,Prev}, CM_StartAttack / CM_PetAttack (hostile /tar
 --      then /startattack or /petattack; hides raw Blizzard STARTATTACK / PETATTACK)
 --    • BLIZZARD_EVENTS groups: UNLOCK/LOCK/FREELOOK_RECONCILE/REMATCH, FRIENDLY_TARGETING,
@@ -44,6 +45,11 @@ CM.Constants.Macros = {
   -- (or harm/nodead/etc.) so unlock / fallthrough works. [] = focus player last.
   CM_ToggleFocusAny = "/cleartarget [@focus,exists]\n/focus [@focus,exists] none; [@target,exists]; [@mouseover,exists][]\n/tar [@focus,exists]",
   CM_ToggleFocusEnemy = "/cleartarget [@focus,exists]\n/focus [@focus,exists] none; [@target,harm,nodead]; [@mouseover,harm,nodead][]\n/tar [@focus,exists]",
+  -- Target Lock "Switch" behavior: the unit under the crosshair becomes the lock (replacing any
+  -- current one); an empty crosshair unlocks. The Enemy variant ignores a friendly / dead unit under
+  -- the crosshair (the lock stays: cleartarget + the focus re-target below restore the same target).
+  CM_SwitchFocusAny = "/cleartarget [@focus,exists]\n/focus [@mouseover,exists]; [@mouseover,noexists] none\n/tar [@focus,exists]",
+  CM_SwitchFocusEnemy = "/cleartarget [@focus,exists]\n/focus [@mouseover,harm,nodead]; [@mouseover,noexists] none\n/tar [@focus,exists]",
   -- Mouse-wheel Target Lock cycle (nearest / previous enemy, then focus).
   CM_CycleFocusEnemyNext = "/targetenemy [@focus,exists]\n/focus [@target,exists]",
   CM_CycleFocusEnemyPrev = "/targetenemy [@focus,exists] 1\n/focus [@target,exists]",
@@ -329,8 +335,6 @@ CM.Constants.OverrideActions = {
   CLEARFOCUS = "|cff69ccf0Clear Focus|r",
   STARTATTACK = "|cff69ccf0Start Attack|r",
   PETATTACK = "|cff69ccf0Pet Attack|r",
-  TOGGLEFOCUSANY = "|cff69ccf0Toggle Focus Any|r",
-  TOGGLEFOCUSENEMY = "|cff69ccf0Toggle Focus Enemy|r",
   MACRO = "|cff69ccf0Run MACRO|r",
 }
 

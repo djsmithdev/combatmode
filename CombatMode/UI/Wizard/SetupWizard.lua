@@ -109,7 +109,7 @@ local STEPS = {
     tab = "reticle",
     section = "TARGET LOCK",
     title = "Target Lock",
-    body = "Lock onto a target with one tap and tap again to release it. While locked, the cycle keys jump to nearby enemies. Set your keys.",
+    body = "Lock onto a target with one tap so the reticle stops swapping. Choose whether tapping again unlocks (Toggle) or moves the lock to whatever is under the crosshair (Switch Target). While locked, the cycle keys jump to nearby enemies. Set your keys.",
     -- These keys can't be set while Reticle Targeting is off, so they don't block then.
     tasks = {
       {

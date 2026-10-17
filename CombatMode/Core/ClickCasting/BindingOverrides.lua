@@ -24,7 +24,8 @@
 --      ActionButton/MultiBar; SetOverrideBindingClick the live frame for Bonus /
 --      Override / TempShapeshift. Slot type from CM.GetDisplayedActionSlotInfo
 --      (paged / bonus aware; rejects stale override attrs after dismount).
---    • ApplyToggleFocusTargetBinding — Combat Mode Target Lock keybind (always clears
+--    • ApplyToggleFocusTargetBinding — Action Combat Mode Target Lock keybind; its macro is chosen from
+--      char.targetLockBehavior (Toggle / Switch Target) x reticleTargetingEnemyOnly (always clears
 --      override owner first so stolen keys cannot leave a stale click override). No-ops
 --      install when char.reticleTargeting is off (CM.IsTargetLockEnabled).
 --    • Mid-combat RefreshClickCastMacros / ApplyGroundCastKeyOverrides /
@@ -259,8 +260,13 @@ local function UpdateToggleFocusTargetMacroText()
   end
   local char_config = CM.DB.char
   local macros_const = CM.Constants.Macros
-  local macroText = char_config.reticleTargetingEnemyOnly and macros_const.CM_ToggleFocusEnemy
-    or macros_const.CM_ToggleFocusAny
+  local enemyOnly = char_config.reticleTargetingEnemyOnly
+  local macroText
+  if char_config.targetLockBehavior == "switch" then
+    macroText = enemyOnly and macros_const.CM_SwitchFocusEnemy or macros_const.CM_SwitchFocusAny
+  else
+    macroText = enemyOnly and macros_const.CM_ToggleFocusEnemy or macros_const.CM_ToggleFocusAny
+  end
   ToggleFocusTargetButton:SetAttribute("macrotext", macroText)
 end
 
@@ -461,8 +467,6 @@ local ACTION_MACRO_TEXTS = {
   CLEARFOCUS = CM.Constants.Macros.CM_ClearFocus,
   STARTATTACK = CM.Constants.Macros.CM_StartAttack,
   PETATTACK = CM.Constants.Macros.CM_PetAttack,
-  TOGGLEFOCUSANY = CM.Constants.Macros.CM_ToggleFocusAny,
-  TOGGLEFOCUSENEMY = CM.Constants.Macros.CM_ToggleFocusEnemy,
 }
 for value, text in pairs(CM.Constants.BlizzardActionMacros) do
   ACTION_MACRO_TEXTS[value] = text

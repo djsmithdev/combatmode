@@ -2,7 +2,8 @@
 --  UI/Options/Tabs/TabClickCasting.lua — OPTIONS TAB — click-cast slot overrides
 ---------------------------------------------------------------------------------------
 --  What it does: Wires the eight mouse click-cast slots (base + shift/ctrl/alt) with
---  enable, key, action dropdown (OverrideActions including Start Attack / Pet Attack + ActionsToProcess),
+--  enable, key, action dropdown (OverrideActions: Clear Target / Focus, Start Attack / Pet Attack + ActionsToProcess;
+--  Target Lock lives on its own keybind, not here),
 --  optional macro
 --  name, and useGlobalBindings. Applies via SetNewBinding / ResetBindingOverride.
 --  Architecture / how it works:
@@ -38,8 +39,6 @@ local OVERRIDE_ORDER = {
   "CLEARTARGET",
   "STARTATTACK",
   "PETATTACK",
-  "TOGGLEFOCUSANY",
-  "TOGGLEFOCUSENEMY",
   "MACRO",
 }
 local ACTION_VALUES

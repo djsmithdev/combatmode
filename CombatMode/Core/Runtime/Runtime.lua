@@ -10,10 +10,11 @@
 --    • InitDatabase merges Constants.DatabaseDefaults into global + char["Name - Realm"],
 --      then coerces Forever-style 1/0 flags to real booleans (CM.DbBool / NormalizeBools)
 --      wherever defaults declare a boolean — so == true / ~= false / if x stay correct.
---      Also drops leftover global.partyRadial (feature removed in 4.7.0) and turns the old
---      reticleHideSoftIndicator toggle into global.selectionCircleMode, and drops the
---      assistedHighlightEnabled toggle into global.assistedHighlightMode, and drops the
---      interactionHUDSide / Scale / Padding keys (Interaction HUD merged into Combat Assist).
+--      Also drops leftover global.partyRadial (feature removed in 4.7.0), turns the old
+--      reticleHideSoftIndicator toggle into global.selectionCircleMode and the
+--      assistedHighlightEnabled toggle into global.assistedHighlightMode, drops the
+--      interactionHUDSide / Scale / Padding keys (Interaction HUD merged into Combat Assist), and
+--      turns off click-cast slots that used the removed Toggle Focus Any / Enemy actions.
 --      Rewrites the shipped situational default (dead-or-stealth + Arrows) to
 --      dead-only + Invisible when the saved values still match that default.
 --    • GetBindingsLocation → "global" vs "char" from useGlobalBindings.
@@ -242,6 +243,21 @@ function CM.DbBool(value, default)
 end
 
 --- Where defaults declare a boolean, rewrite Forever 1/0 (and keep real bools) in place.
+-- Click-cast Toggle Focus Any / Enemy were removed (the Target Lock key replaces them): turn off any
+-- slot still using one so no removed action stays selected.
+local REMOVED_CLICK_CAST_ACTIONS = { TOGGLEFOCUSANY = true, TOGGLEFOCUSENEMY = true }
+local function DropRemovedClickCastActions(bindings)
+  if type(bindings) ~= "table" then
+    return
+  end
+  for _, setting in pairs(bindings) do
+    if type(setting) == "table" and REMOVED_CLICK_CAST_ACTIONS[setting.value] then
+      setting.enabled = false
+      setting.value = "CLEARFOCUS"
+    end
+  end
+end
+
 local function NormalizeBools(dest, defaults)
   if type(dest) ~= "table" or type(defaults) ~= "table" then
     return
@@ -307,6 +323,13 @@ function CM.InitDatabase()
   local charKey = GetCharKey()
   sv.char[charKey] = MergeDefaults(sv.char[charKey] or {}, defaults.char or {})
   NormalizeBools(sv.char[charKey], defaults.char or {})
+  -- Removed click-cast actions: every saved binding set (account-wide and each character).
+  DropRemovedClickCastActions(sv.global.bindings)
+  for _, charDb in pairs(sv.char) do
+    if type(charDb) == "table" then
+      DropRemovedClickCastActions(charDb.bindings)
+    end
+  end
 
   BindDatabaseViews(sv, charKey)
   -- Party Radial removed in 4.7.0; drop leftover settings so they do not linger in SV.

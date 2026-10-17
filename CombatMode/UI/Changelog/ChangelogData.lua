@@ -20,11 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The Interaction HUD and Combat Assist are now a single **Assist HUD** (Crosshair tab). On a hostile (hard target or under the crosshair) it shows the Assisted Highlight's next-cast suggestion with your keybind. On an interactable it shows the interaction icon, its name and your Interact key, with a glow and a short animation when it appears.
 - The **Next-cast Suggestion** fades out while the suggested spell is out of range of your target.
+- **Target Lock Behavior** (Reticle Targeting): choose **Toggle** (tap to lock, tap again to unlock, as before) or **Switch Target** (tap while aiming at a unit to move the lock to it, tap with nothing under the crosshair to unlock). Made for arenas and battlegrounds where you need to switch locks in one press.
 - A **Flip Camera** keybind in the Mouse Look section, below the Interact Unit option. Like Mouse Look it works both ways: tap to flip the camera around your character and press again to flip back, or hold to flip it only while the key is held.
 
 ### Changed
 
 - **Combat Assist** is now the **Next-cast Suggestion** dropdown: **Always**, **Only In Combat** or **Hidden** (it was an on/off toggle). An existing On becomes Always, so it now also shows outside combat.
+- The **Toggle Focus Any / Enemy** click-cast actions are removed; the Target Lock key replaces them. A click-cast slot that used one (including the old default Alt + Right Click) is turned off.
 - **Interaction HUD** is now the **Interactable Indicator** toggle. It and the Next-cast Suggestion share one Position, Scale and Distance setting.
 - New look for the Assist HUD: a copper glow, animation and frame matching the options window, and the keybind and name text now use the window's text colors with an outline.
 - The **Shoulder Offset** slider now goes from -15 to 15 (it was -2 to 2).

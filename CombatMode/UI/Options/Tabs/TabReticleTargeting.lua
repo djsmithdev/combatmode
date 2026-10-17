@@ -7,6 +7,7 @@
 --  The CVar and macro-preline editors live on Advanced.
 --  Architecture / how it works:
 --    • DB.char: reticleTargeting, reticleTargetingEnemyOnly, autoTargetLockOnAttack,
+--      targetLockBehavior (Target Lock Behavior dropdown: toggle / switch),
 --      macroInjectionClickCastOnly, stickyCrosshair, excludeFromTargetingSpells,
 --      castAtCursorSpells.
 --    • DB.global: showTargetLockMarker, autofocusLockedTarget, reticleOutline (Target Outline:
@@ -41,6 +42,12 @@ local SELECTION_CIRCLE_VALUES = {
   hidden = "Hidden",
 }
 local SELECTION_CIRCLE_ORDER = { "target", "locked", "soft", "hidden" }
+
+local TARGET_LOCK_BEHAVIOR_VALUES = {
+  toggle = "Toggle",
+  switch = "Switch Target",
+}
+local TARGET_LOCK_BEHAVIOR_ORDER = { "toggle", "switch" }
 
 local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed?"
 
@@ -205,7 +212,7 @@ UI.Options.AddTab({
 
     ctx:Keybind({
       label = "Target Lock Keybind",
-      desc = "Tap to lock the reticle to your target, preventing it from swapping. Tap again to unlock.",
+      desc = "Lock the reticle to a target, preventing it from swapping. What a tap does depends on Target Lock Behavior below.",
       get = function()
         return (GetBindingKey("Combat Mode - Toggle Focus Target"))
       end,
@@ -213,6 +220,39 @@ UI.Options.AddTab({
         CM.TryApplyBindingChange("target lock keybinding", function()
           CM.AssignNamedKeybind("Combat Mode - Toggle Focus Target", key)
         end)
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting
+      end,
+    })
+    ctx:Dropdown({
+      label = "Target Lock Behavior",
+      desc = "What the Target Lock key does when you press it.",
+      helpTooltip = {
+        title = "Target Lock Behavior",
+        stacked = true,
+        lines = {
+          {
+            label = "Toggle",
+            value = "Locks your target, or the unit under the crosshair. Tap again to unlock.",
+          },
+          {
+            label = "Switch Target",
+            value = "Locks the unit under the crosshair, replacing any current lock. Tap with nothing under the crosshair to unlock. Aiming at the unit you already locked keeps the lock.",
+            warning = "With Ignore Friendlies on, a friendly or dead unit under the crosshair is ignored: the lock stays where it is.",
+          },
+        },
+      },
+      newFeatureFlag = true,
+      values = TARGET_LOCK_BEHAVIOR_VALUES,
+      order = TARGET_LOCK_BEHAVIOR_ORDER,
+      get = function()
+        local mode = CM.DB.char.targetLockBehavior
+        return TARGET_LOCK_BEHAVIOR_VALUES[mode] and mode or "toggle"
+      end,
+      set = function(value)
+        CM.DB.char.targetLockBehavior = value
+        CM.ApplyToggleFocusTargetBinding()
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting
