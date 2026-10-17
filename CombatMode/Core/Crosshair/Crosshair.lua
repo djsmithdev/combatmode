@@ -39,6 +39,7 @@ local _, CM = ...
 local _G = _G
 
 -- WoW API
+local CanLootUnit = _G.CanLootUnit
 local CreateFrame = _G.CreateFrame
 local GetCursorPosition = _G.GetCursorPosition
 local InCombatLockdown = _G.InCombatLockdown
@@ -46,7 +47,10 @@ local IsMounted = _G.IsMounted
 local UIParent = _G.UIParent
 local UnitCanAttack = _G.UnitCanAttack
 local UnitExists = _G.UnitExists
+local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
+local UnitGUID = _G.UnitGUID
 local UnitIsGameObject = _G.UnitIsGameObject
+local UnitIsUnit = _G.UnitIsUnit
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitReaction = _G.UnitReaction
 local PlaySound = _G.PlaySound
@@ -54,6 +58,7 @@ local SOUNDKIT = _G.SOUNDKIT
 
 -- Lua stdlib
 local issecretvalue = _G.issecretvalue
+local pcall = _G.pcall
 local type = _G.type
 
 -- Public boolean when not secret; nil when unknown/secret (cannot branch on it).
@@ -429,6 +434,22 @@ DebugCrosshairUpdater:SetScript("OnUpdate", function()
   end
 end)
 
+--- A dead unit with loot: the interact target, or (public GUID only) the game says it can be looted.
+local function IsLootableCorpse(unitID)
+  if UnitExists("softinteract") and PublicBool(UnitIsUnit(unitID, "softinteract")) then
+    return true
+  end
+  if not (CanLootUnit and UnitGUID) then
+    return false
+  end
+  local guid = UnitGUID(unitID)
+  if (issecretvalue and issecretvalue(guid)) or not guid then
+    return false
+  end
+  local ok, hasLoot = pcall(CanLootUnit, guid)
+  return ok and PublicBool(hasLoot) == true
+end
+
 local function GetUnitReactionType(unitID)
   if not unitID then
     return "base"
@@ -440,6 +461,11 @@ local function GetUnitReactionType(unitID)
   local isTargetObject = PublicBool(UnitIsGameObject(unitID))
   if isTargetObject then
     return "object"
+  end
+  -- A dead (or ghost) unit is not a target: base reticle, not the hostile / friendly tint, unless
+  -- it can be looted (then it reads as an interactable, the yellow object state).
+  if PublicBool(UnitIsDeadOrGhost(unitID)) then
+    return IsLootableCorpse(unitID) and "object" or "base"
   end
   local reaction = UnitReaction("player", unitID)
   -- Secret reaction numbers cannot be compared; keep base appearance.

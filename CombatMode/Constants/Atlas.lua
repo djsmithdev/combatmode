@@ -15,6 +15,7 @@
 --      drawn from its TGA (tiling edges use REPEAT wrap), anything else falls back to the
 --      client atlas (e.g. icons other addons declare).
 --    • CM.SetAtlasMask(mask, name): MaskTexture version (black-additive clamp).
+--    • CM.GetCursorIconFile(name): shipped, re-centered copy of a soft-interact cursor icon.
 --  Does not: Own any widget or decide where an atlas is used.
 --  Related: Constants/Assets.lua, UI/Options/Draw.lua, UI/Options/Widgets.lua, Core/*
 ---------------------------------------------------------------------------------------
@@ -161,6 +162,101 @@ local ATLASES = {
   ["widgetstatusbar-glowright"] = { file = "widgetstatusbar-glowright", w = 34, h = 31 },
   ["widgetstatusbar-spark"] = { file = "widgetstatusbar-spark", w = 8, h = 32 },
 }
+
+-- Soft-interact cursor icons (the game applies one of these atlases for the thing under the
+-- crosshair), each re-centered on its canvas when exported. Lowercase "crosshair_<type>_64" keys. Only the
+-- in-range art is shipped: the game's "unable" (out of range) versions are the same shape, greyed, so
+-- they map to the in-range file and the HUD desaturates / dims it.
+local CURSOR_PATH = ATLAS_PATH .. "cursor\\"
+local CURSOR_ICONS = {
+  ["crosshair_architect_64"] = true,
+  ["crosshair_attack_64"] = true,
+  ["crosshair_axe_64"] = true,
+  ["crosshair_bastionteleporter_64"] = true,
+  ["crosshair_broom_64"] = true,
+  ["crosshair_buy_64"] = true,
+  ["crosshair_campaignquest_64"] = true,
+  ["crosshair_campaignquestturnin_64"] = true,
+  ["crosshair_cast_64"] = true,
+  ["crosshair_crosshairs_64"] = true,
+  ["crosshair_directions_64"] = true,
+  ["crosshair_disarmtrap_64"] = true,
+  ["crosshair_driver_64"] = true,
+  ["crosshair_enchant_64"] = true,
+  ["crosshair_engineerskin_64"] = true,
+  ["crosshair_fishing_64"] = true,
+  ["crosshair_gatherherbs_64"] = true,
+  ["crosshair_grabbinghand_64"] = true,
+  ["crosshair_gunner_64"] = true,
+  ["crosshair_holdinghand_64"] = true,
+  ["crosshair_important_64"] = true,
+  ["crosshair_importantturnin_64"] = true,
+  ["crosshair_innkeeper_64"] = true,
+  ["crosshair_inspect_64"] = true,
+  ["crosshair_interact_64"] = true,
+  ["crosshair_legendaryquest_64"] = true,
+  ["crosshair_legendaryquestturnin_64"] = true,
+  ["crosshair_lock_64"] = true,
+  ["crosshair_lootall_64"] = true,
+  ["crosshair_mail_64"] = true,
+  ["crosshair_mappincursor_64"] = true,
+  ["crosshair_mine_64"] = true,
+  ["crosshair_missions_64"] = true,
+  ["crosshair_openhand_64"] = true,
+  ["crosshair_openhandglow_64"] = true,
+  ["crosshair_palette_64"] = true,
+  ["crosshair_petting_64"] = true,
+  ["crosshair_picklock_64"] = true,
+  ["crosshair_pickup_64"] = true,
+  ["crosshair_point_64"] = true,
+  ["crosshair_pvp_64"] = true,
+  ["crosshair_quest_64"] = true,
+  ["crosshair_questinteract_64"] = true,
+  ["crosshair_questturnin_64"] = true,
+  ["crosshair_recurring_64"] = true,
+  ["crosshair_recurringturnin_64"] = true,
+  ["crosshair_reforge_64"] = true,
+  ["crosshair_repair_64"] = true,
+  ["crosshair_repairnpc_64"] = true,
+  ["crosshair_sawblade_64"] = true,
+  ["crosshair_skin_64"] = true,
+  ["crosshair_skinalliance_64"] = true,
+  ["crosshair_skinhorde_64"] = true,
+  ["crosshair_speak_64"] = true,
+  ["crosshair_stablemaster_64"] = true,
+  ["crosshair_taxi_64"] = true,
+  ["crosshair_thumbsup_64"] = true,
+  ["crosshair_track_64"] = true,
+  ["crosshair_trainer_64"] = true,
+  ["crosshair_transmogrify_64"] = true,
+  ["crosshair_ui-cursor-move_64"] = true,
+  ["crosshair_ui-cursor-size_64"] = true,
+  ["crosshair_ui-cursor-sizeleft_64"] = true,
+  ["crosshair_ui-cursor-sizeright_64"] = true,
+  ["crosshair_vehichlecursor_64"] = true,
+  ["crosshair_wildpet_64"] = true,
+  ["crosshair_wildpetcapturable_64"] = true,
+  ["crosshair_workorders_64"] = true,
+  ["crosshair_wrapper_64"] = true,
+  ["crosshair_wrapperturnin_64"] = true,
+}
+
+--- Shipped file for the cursor art the game reports (e.g. "Cursor Crosshair_CampaignQuest_64", with or
+--- without the "Cursor " prefix; case-insensitive), or nil when we do not ship that icon.
+function CM.GetCursorIconFile(reportedName)
+  if type(reportedName) ~= "string" then
+    return nil
+  end
+  local key = (reportedName:lower():gsub("^cursor ", ""))
+  key = key:gsub("^crosshair_unable", "crosshair_")
+  -- The game picks the size from the player's cursor size setting (32 / 48 / 64 / 96 / 128). The art is
+  -- the same at every size, so all of them use the shipped 64 px copy.
+  key = key:gsub("_%d+$", "_64")
+  if CURSOR_ICONS[key] then
+    return CURSOR_PATH .. key
+  end
+  return nil
+end
 
 local infoCache = {}
 

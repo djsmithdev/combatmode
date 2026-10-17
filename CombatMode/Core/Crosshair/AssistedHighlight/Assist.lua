@@ -55,6 +55,9 @@ local Interact = CM.AssistedHighlightInteract
 local HOSTILE_FOCUS_UNITS = { "target", "mouseover" }
 -- Interaction mode: name label width cap, icon alpha by range.
 local NAME_MAX_WIDTH = 280
+-- Interaction mode draws the cursor art on its own, smaller texture: it is full-canvas art, so at the
+-- spell icon size (and masked to the ring) it looks zoomed in.
+local INTERACT_ICON_SIZE = 32
 -- Proc FlipBook key for interaction mode (any value that is not a spell id).
 local INTERACT_PROC_KEY = "interact"
 local INTERACT_ICON_ALPHA_IN_RANGE = 0.9
@@ -234,6 +237,7 @@ local function SetAlphaTargets(frameAlpha, iconAlpha)
   if Motion and Motion.GetFadeMode and Motion.GetFadeMode() == "hidden" then
     frame:SetAlpha(frameAlpha)
     frame.icon:SetAlpha(iconAlpha)
+    frame.interactIcon:SetAlpha(iconAlpha)
   end
 end
 
@@ -245,6 +249,7 @@ local function TickHudAlpha(elapsed)
   local step = math.min(1, elapsed * ALPHA_LERP_SPEED)
   EaseAlpha(frame, frameAlphaTarget, step)
   EaseAlpha(frame.icon, iconAlphaTarget, step)
+  EaseAlpha(frame.interactIcon, iconAlphaTarget, step)
 end
 
 local function EnsureAssistedHighlight()
@@ -283,6 +288,19 @@ local function EnsureAssistedHighlight()
   AssistedHighlightFrame.iconMask = AssistedHighlightVisual:CreateMaskTexture()
   CM.SetAtlasMask(AssistedHighlightFrame.iconMask, assets.AssistedSpellIconMask)
   AssistedHighlightFrame.icon:AddMaskTexture(AssistedHighlightFrame.iconMask)
+
+  -- Interaction mode icon (cursor art): smaller than the spell icon and unmasked, so it is not zoomed.
+  AssistedHighlightFrame.interactIcon = AssistedHighlightVisual:CreateTexture(nil, "ARTWORK")
+  AssistedHighlightFrame.interactIcon:SetDrawLayer("ARTWORK", 0)
+  AssistedHighlightFrame.interactIcon:SetSize(INTERACT_ICON_SIZE, INTERACT_ICON_SIZE)
+  AssistedHighlightFrame.interactIcon:SetPoint(
+    "CENTER",
+    AssistedHighlightFrame.icon,
+    "CENTER",
+    0,
+    0
+  )
+  AssistedHighlightFrame.interactIcon:Hide()
 
   -- Cooldown swipe + successPulse (Feedback) — between icon mask and glow, matching
   -- prior create order so swipe draws under the breath glow / frame chrome.
@@ -722,6 +740,7 @@ local function ShowAssistedHighlightContent(texture, keybindText, keybindStyle, 
   end
   AssistedHighlightFrame.icon:SetTexture(texture)
   AssistedHighlightFrame.icon:Show()
+  AssistedHighlightFrame.interactIcon:Hide()
   AssistedHighlightFrame.background:Show()
   AssistedHighlightFrame.glow:Show()
   AssistedHighlightFrame.frame:Show()
@@ -764,9 +783,12 @@ local function ShowInteractContent()
       Motion.SetEffectTint(Motion.GLOW_COLOR_R, Motion.GLOW_COLOR_G, Motion.GLOW_COLOR_B, true)
     end
   end
-  local inRange = Interact.ApplyCursorTexture(frame.icon)
+  local inRange = Interact.ApplyCursorTexture(frame.interactIcon)
+  -- Out of range reads as the game's greyed "unable" art: the shipped icon is the in-range art.
+  frame.interactIcon:SetDesaturated(not inRange)
   SetAlphaTargets(1, inRange and INTERACT_ICON_ALPHA_IN_RANGE or INTERACT_ICON_ALPHA_OUT_OF_RANGE)
-  frame.icon:Show()
+  frame.icon:Hide()
+  frame.interactIcon:Show()
   frame.background:Show()
   frame.glow:Show()
   frame.frame:Show()

@@ -13,8 +13,8 @@
 --    • An OnUpdate re-reads the target's screen rect every frame, so the hole follows the
 --      widget while the options tab is still scrolling it into view.
 --    • The balloon sits right of the hole, else left, else below / above, clamped on screen.
---    • Steps that show the live crosshair / HUD preview pass `alsoHighlight` (a function returning
---      frames): their union becomes a second hole with its own outline (so the crosshair is not
+--    • Steps that show a live crosshair / HUD preview pass `alsoHighlight` (a function returning
+--      that element's frames and its padding): their union becomes a second hole with its own outline (so the crosshair is not
 --      dimmed), and the balloon moves to a spot that covers neither hole.
 --    • Tasks: a step can list actions (label + done()) shown as a check list under the text; Next /
 --      Finish stay disabled until every one is done (re-checked a few times a second).
@@ -36,6 +36,8 @@ local UIParent = _G.UIParent
 
 -- Lua stdlib
 local ipairs = _G.ipairs
+local floor = _G.math.floor
+local format = _G.string.format
 local max = _G.math.max
 local min = _G.math.min
 local sort = _G.table.sort
@@ -46,9 +48,6 @@ local C = UI.Colors
 local DIM_ALPHA = 0.62
 local RING_W = 2 -- accent outline thickness
 local HOLE_PAD = 6 -- breathing room between the highlighted widget and the dim
--- Extra room around the live preview (crosshair + HUD): the HUD's key / name text hangs outside its frame.
-local EXTRA_PAD_X = 100
-local EXTRA_PAD_Y = 16
 local BALLOON_W = 320
 local BALLOON_PAD = 14
 local BALLOON_GAP = 16 -- distance from the hole to the balloon
@@ -284,8 +283,9 @@ local function EnsureTaskRow(self, i)
   return row
 end
 
---- Union rect (UIParent units, padded) of the visible frames in `frames`, or nil when none show.
-local function ExtraRect(frames)
+--- Union rect (UIParent units, padded by padX / padY) of the visible frames in `frames`, or nil when none show.
+local function ExtraRect(frames, padX, padY)
+  padX, padY = padX or 14, padY or 14
   local left, right, top, bottom
   for i = 1, #frames do
     local frame = frames[i]
@@ -303,10 +303,10 @@ local function ExtraRect(frames)
   end
   local screenW, screenH = UIParent:GetWidth(), UIParent:GetHeight()
   return {
-    left = max(left - EXTRA_PAD_X, 0),
-    right = min(right + EXTRA_PAD_X, screenW),
-    bottom = max(bottom - EXTRA_PAD_Y, 0),
-    top = min(top + EXTRA_PAD_Y, screenH),
+    left = max(left - padX, 0),
+    right = min(right + padX, screenW),
+    bottom = max(bottom - padY, 0),
+    top = min(top + padY, screenH),
   }
 end
 
@@ -582,7 +582,7 @@ local function Build()
 end
 
 --- Shows the spotlight on `target` (a frame, or a list of frames) with the balloon described by `opts`:
---- { title, body, step ("3 / 7"), nextLabel, isLast (shows the accent Finish button), canGoBack, tasks ({ label, done() } list that gates Next / Finish), clip (frame the hole is cut to), alsoHighlight (function returning the live preview frames to leave undimmed), onNext, onBack, onSkip }.
+--- { title, body, step ("3 / 7"), nextLabel, isLast (shows the accent Finish button), canGoBack, tasks ({ label, done() } list that gates Next / Finish), warning (red caution under the text), clip (frame the hole is cut to), alsoHighlight (function returning the live preview frames to leave undimmed), onNext, onBack, onSkip }.
 function UI.ShowSpotlight(target, opts)
   spotlight = spotlight or Build()
   local s = spotlight
@@ -592,7 +592,20 @@ function UI.ShowSpotlight(target, opts)
   s.onNext, s.onBack, s.onSkip = opts.onNext, opts.onBack, opts.onSkip
 
   s.title:SetText(opts.title or "")
-  s.body:SetText(opts.body or "")
+  local bodyText = opts.body or ""
+  if opts.warning then
+    -- A caution under the text, in the options window's warning red.
+    local w = C.warning
+    bodyText = bodyText
+      .. format(
+        "\n\n|cff%02x%02x%02x%s|r",
+        floor(w[1] * 255 + 0.5),
+        floor(w[2] * 255 + 0.5),
+        floor(w[3] * 255 + 0.5),
+        opts.warning
+      )
+  end
+  s.body:SetText(bodyText)
   s.step:SetText(opts.step or "")
   s.next.text:SetText(opts.nextLabel or "Next")
   s.next:SetShown(not opts.isLast)

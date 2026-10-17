@@ -24,6 +24,7 @@ local _, CM = ...
 local _G = _G
 
 -- WoW API
+local CreateFrame = _G.CreateFrame
 local GetBindingKey = _G.GetBindingKey
 local GetUnitName = _G.GetUnitName
 local SetUnitCursorTexture = _G.SetUnitCursorTexture
@@ -106,21 +107,44 @@ function Interact.GetUnitName()
   end
 end
 
---- Stamps the softinteract cursor art onto `icon`; returns inRange (false for "unable" art).
---- Path/id probes are secret-safe (no strfind / table-key on secrets under taint).
+-- The game's cursor art is applied to this hidden texture first, just to read which icon it picked.
+local probe
+local function Probe()
+  if not probe then
+    local host = CreateFrame("Frame")
+    host:Hide()
+    probe = host:CreateTexture()
+  end
+  return probe
+end
+
+--- Draws the softinteract cursor icon on `icon`; returns inRange (false for "unable" art). Our
+--- shipped, re-centered copy is used when we have the icon the game picked (the game's own art is
+--- not centered on its canvas), otherwise the game's art is applied directly.
+--- Path / id probes are secret-safe (no strfind / table-key on secrets under taint).
 function Interact.ApplyCursorTexture(icon)
   if not icon then
     return true
   end
-  if not SetUnitCursorTexture(icon, "softinteract", nil, true) then
+  local source = Probe()
+  if not SetUnitCursorTexture(source, "softinteract", nil, true) then
     CM.SetAtlas(icon, "mechagon-projects")
-  end
-  local filePath = icon:GetTextureFilePath()
-  if Interact.IsSecretValue(filePath) then
     return true
   end
+  local filePath = source:GetTextureFilePath()
+  if Interact.IsSecretValue(filePath) then
+    SetUnitCursorTexture(icon, "softinteract", nil, true)
+    return true
+  end
+  local shipped = type(filePath) == "string" and CM.GetCursorIconFile(filePath)
+  if shipped then
+    icon:SetTexture(shipped)
+    icon:SetTexCoord(0, 1, 0, 1)
+  else
+    SetUnitCursorTexture(icon, "softinteract", nil, true)
+  end
   if type(filePath) ~= "string" or strfind(filePath, "FileData") then
-    local fileId = icon:GetTextureFileID()
+    local fileId = source:GetTextureFileID()
     if Interact.IsSecretValue(fileId) then
       return true
     end
@@ -129,7 +153,7 @@ function Interact.ApplyCursorTexture(icon)
   if type(filePath) ~= "string" then
     return true
   end
-  if CURSOR_UNABLE[filePath] or strfind(filePath, "Unable") then
+  if CURSOR_UNABLE[filePath] or strfind(filePath:lower(), "unable", 1, true) then
     return false
   end
   return true

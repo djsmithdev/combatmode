@@ -15,8 +15,8 @@
 --      UI.ShowSpotlight (Spotlight.lua) dims around them (cut to the tab's visible area) and
 --      shows the balloon.
 --    • The dim never blocks the mouse, so every option keeps working while a step is shown.
---    • Steps marked `preview` (Crosshair, Assist HUD, Ally HUD) also leave the live crosshair / HUD
---      preview undimmed with its own outline, and the balloon keeps clear of it.
+--    • Steps marked `preview` (Crosshair, Assist HUD, Ally HUD) also leave that one live element
+--      (crosshair, Assist HUD or Ally HUD) undimmed with its own outline, and the balloon keeps clear.
 --    • char.seenWizard is set when the tour finishes or is skipped (Skip / ESC).
 --    • Combat: Start waits for combat to end; entering combat mid-tour ends the tour.
 --  Does not: Cover every option (only the basics and the major features), or own any setting
@@ -51,6 +51,7 @@ local function Bound(command)
   return GetBindingKey(command) ~= nil
 end
 
+-- A step may also carry `warning`: a caution shown in red under the text.
 -- A step highlights a whole section (`section` = its header title). `tasks` are the actions the
 -- step asks for: each shows as a check mark that fills in once `done()` is true, and Next stays
 -- disabled until all are. The order follows the sidebar tabs after the Mouse Look section.
@@ -86,22 +87,23 @@ local STEPS = {
   {
     tab = "crosshair",
     section = "CROSSHAIR",
-    preview = true,
+    preview = "crosshair",
     title = "Crosshair",
     body = "A reactive, fully customizable crosshair that adapts to your target and combat state. Choose its look, size and position.",
   },
   {
     tab = "crosshair",
     section = "ASSIST HUD",
-    preview = true,
+    preview = "assist",
     title = "Assist HUD",
-    body = "One HUD beside the crosshair. On a hostile it shows the Assisted Highlight's next-cast suggestion with cast feedback; on an interactable it shows its icon, name and your Interact key. Choose where it sits.",
+    body = "Aim at an enemy and the HUD next to your crosshair suggests your next spell and shows its key. Aim at something you can interact with and it shows its name and your Interact key instead. Turn either on or off, and set its side, size and distance from the crosshair.",
   },
   {
     tab = "reticle",
     section = "RETICLE TARGETING",
     title = "Reticle Targeting",
-    body = "Target enemies by aiming at them, with ground targeting for AoE abilities. Changing the main toggle reloads the UI.",
+    body = "Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.",
+    warning = "Turning Reticle Targeting on or off reloads the UI.",
   },
   {
     tab = "reticle",
@@ -166,7 +168,7 @@ local STEPS = {
   {
     tab = "allycycle",
     section = "ALLY HUD",
-    preview = true,
+    preview = "ally",
     title = "Ally HUD",
     body = "Shows the selected ally next to the crosshair. Choose where it sits and how big it is.",
   },
@@ -192,25 +194,43 @@ local STEPS = {
     tab = "advanced",
     section = "RETICLE TARGETING",
     title = "Targeting Editors",
-    body = "Fine-tune how Reticle Targeting behaves with the CVar and Targeting Macro Prelines "
-      .. "editors. Editing these can break Reticle Targeting and Target Lock, so only touch "
-      .. "them if you know what you are doing.",
+    body = "Fine-tune how Reticle Targeting works with the CVar and Targeting Macro Prelines editors.",
+    warning = "Editing these can break Reticle Targeting and Target Lock. Only change them if you know what you are doing.",
   },
 }
 
 -- Frames of the live crosshair + HUD preview the Crosshair / Ally Cycle tabs force on screen. Steps
 -- marked `preview` leave them undimmed (outlined) and keep the balloon off them.
-local function PreviewFrames()
-  local frames = {}
-  local function Add(frame)
-    if frame then
-      frames[#frames + 1] = frame
-    end
-  end
-  Add(_G.CombatModeCrosshairFrame)
-  Add(CM.GetAssistedHighlightFrame and CM.GetAssistedHighlightFrame())
-  Add(_G.CombatModeAllyCycleHUD)
-  return frames
+-- Per `preview` kind: the frame to leave undimmed and how far to pad around it (the Assist HUD's key /
+-- name text hangs outside its frame, so it gets room on the sides).
+local PREVIEW_KINDS = {
+  crosshair = {
+    frame = function()
+      return _G.CombatModeCrosshairFrame
+    end,
+    padX = 14,
+    padY = 14,
+  },
+  assist = {
+    frame = function()
+      return CM.GetAssistedHighlightFrame and CM.GetAssistedHighlightFrame()
+    end,
+    padX = 90,
+    padY = 14,
+  },
+  ally = {
+    frame = function()
+      return _G.CombatModeAllyCycleHUD
+    end,
+    padX = 16,
+    padY = 14,
+  },
+}
+
+local function PreviewFrames(kind)
+  local def = PREVIEW_KINDS[kind]
+  local frame = def and def.frame()
+  return frame and { frame } or {}, def and def.padX, def and def.padY
 end
 
 local active = false
@@ -285,13 +305,16 @@ function ShowStep(i)
     UI.ShowSpotlight(targets, {
       title = step.title,
       body = step.body,
+      warning = step.warning,
       step = i .. " / " .. #STEPS,
       nextLabel = last and "Finish" or "Next",
       isLast = last,
       canGoBack = i > 1,
       tasks = step.tasks,
       clip = Options.GetTabScroll(step.tab),
-      alsoHighlight = step.preview and PreviewFrames or nil,
+      alsoHighlight = step.preview and function()
+        return PreviewFrames(step.preview)
+      end or nil,
       onNext = function()
         Options.CancelKeybindCapture()
         ShowStep(i + 1)

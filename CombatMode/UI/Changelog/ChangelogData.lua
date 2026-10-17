@@ -29,7 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The **Shoulder Offset** slider now goes from -15 to 15 (it was -2 to 2).
 - **Ally Cycle** is available on WoW Forever again. Forever's early beta could not run the secure code it needs, so it was turned off there; that has since been fixed.
 - The Blizzard art the addon draws with (window frame, health bar, icons, HUD ring and more) is now shipped with the addon instead of read from the game, so it looks the same on every client. The `Assets` folder is organized into `branding`, `crosshair`, `assisthud`, `ui` and `atlas`.
-- The setup wizard now leaves the crosshair and HUD previews undimmed and outlined on the Crosshair, Assist HUD, Ally Cycle and Ally HUD steps, and moves its balloon out of their way.
+- The setup wizard now leaves the crosshair and HUD previews undimmed and outlined (one element per step: the crosshair, the Assist HUD or the Ally HUD), and moves its balloon out of their way.
+
+### Fixed
+
+- The crosshair now returns to its base (white) look when the unit under it is dead, instead of staying red or colored. A corpse you can loot shows the yellow interactable look.
+- Interactable icons on the Assist HUD (quests, mining, herbs, skinning, locks and more) are centered in the ring; the game's own cursor art is off-center.
 
 ## [5.0.4] - 2026-10-16
 
