@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The Interaction HUD and Combat Assist are now a single **Assist HUD** (Crosshair tab). On a hostile (hard target or under the crosshair) it shows the Assisted Highlight's next-cast suggestion with your keybind. On an interactable it shows the interaction icon, its name and your Interact key, with a glow and a short animation when it appears.
 - The **Next-cast Suggestion** fades out while the suggested spell is out of range of your target.
+- A **Flip Camera** keybind in the Mouse Look section, below the Interact Unit option. Like Mouse Look it works both ways: tap to flip the camera around your character and press again to flip back, or hold to flip it only while the key is held.
 
 ### Changed
 

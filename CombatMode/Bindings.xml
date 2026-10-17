@@ -4,6 +4,11 @@
 			CombatMode_CursorModeKey(keystate)
 		end
 	</Binding>
+	<Binding name="Combat Mode - Flip Camera" description="Tap to flip the camera around your character, hold to flip it only while held" category="|A:::|a|TInterface\Addons\CombatMode\Assets\branding\cmtitle:26:55|t" runOnUp="true">
+		if keystate == "down" or keystate == "up" then
+			CombatMode_FlipCameraKey(keystate)
+		end
+	</Binding>
 	<Binding name="Combat Mode - Reset Mouse Look" description="Recover the cursor if it gets stuck after switching windows (re-grabs and releases Mouse Look)" category="|A:::|a|TInterface\Addons\CombatMode\Assets\branding\cmtitle:26:55|t">
 		CombatMode_ResetMouseLook()
 	</Binding>

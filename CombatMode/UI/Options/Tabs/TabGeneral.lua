@@ -2,7 +2,7 @@
 --  UI/Options/Tabs/TabGeneral.lua — OPTIONS TAB — Mouse Look / Camera / Interact
 ---------------------------------------------------------------------------------------
 --  What it does: Wires Mouse Look tab controls (tab id "general") to freelook and interact binds:
---  Mouse Look keybind, Interact keybind + interactUnit (right under it),
+--  Mouse Look keybind, Interact keybind + interactUnit, Flip Camera keybind,
 --  pulseCursor, hideTooltip, sheath weapons, vignette; Camera Features
 --  (respectMotionSickness, turn speed, dynamic pitch, shoulder offset,
 --  disable offset with mouselook).
@@ -166,6 +166,18 @@ UI.Options.AddTab({
         if key then
           ApplyInteractKeybind(key)
         end
+      end,
+    })
+    ctx:Keybind({
+      label = "Flip Camera Keybind",
+      desc = "Tap to flip the camera 180° around your character. Hold to flip it only while the key is held.",
+      get = function()
+        return (GetBindingKey("Combat Mode - Flip Camera"))
+      end,
+      set = function(key)
+        CM.TryApplyBindingChange("flip camera keybinding", function()
+          CM.AssignNamedKeybind("Combat Mode - Flip Camera", key)
+        end)
       end,
     })
     -- macOS only: on other clients the stuck-cursor freeze does not occur, so this

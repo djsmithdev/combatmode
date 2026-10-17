@@ -73,6 +73,12 @@ Use this checklist for feature work and regressions.
 - **Nameplate marker:** while locked, center reticle becomes a static Dot; hit marker (Active texture for your Appearance) appears on the locked unit’s nameplate health bar; unlock restores the reactive reticle and clears the marker instantly.
 - In a **dungeon/instance**, lock / cycle / unlock with no Lua errors (focus identity may be secret under taint).
 
+## Flip Camera keybind
+
+- Mouse Look tab → Flip Camera Keybind (below Interact Unit): bind a key; it also shows under Combat Mode in the Key Bindings screen.
+- Tap the key: the camera flips 180° around the character and stays; tap again: it flips back.
+- Hold the key (about 0.3s+): the camera flips while held and flips back on release. No Lua errors, also in combat.
+
 ## Assist HUD (Next-cast Suggestion + Interactable Indicator)
 
 - Setup wizard, Crosshair / Assist HUD / Ally Cycle / Ally HUD steps: the crosshair + HUD preview is not dimmed and has an accent outline; the balloon never covers it (it moves beside / below / to a screen corner). Other steps look as before.

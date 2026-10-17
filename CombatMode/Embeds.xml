@@ -25,6 +25,7 @@
     <Script file="Core\ClickCasting\BindingOverrides.lua"/>
     <!-- FREE LOOK -->
     <Script file="Core\FreeLook\FreeLookController.lua"/>
+    <Script file="Core\FreeLook\FlipCamera.lua"/>
     <Script file="Core\FreeLook\AutoCursorUnlock.lua"/>
     <!-- VIGNETTE: screen edge darkening; fades with Mouse Look -->
     <Script file="Core\Vignette.lua"/>

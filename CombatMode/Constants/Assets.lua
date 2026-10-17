@@ -39,6 +39,7 @@ CM.Constants.PopupMsg = "Welcome to Action Combat Mode!\n\n"
 -- they stay as they are; these globals only change the text shown for them.
 local BINDING_DISPLAY_NAMES = {
   "Mouse Look",
+  "Flip Camera",
   "Reset Mouse Look",
   "Ally Cycle Next",
   "Ally Cycle Previous",
