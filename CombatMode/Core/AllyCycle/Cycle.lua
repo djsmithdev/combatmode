@@ -12,6 +12,8 @@
 --    • GetAllyCycleIndex for the HUD (reuses a child scratch table); NotifyCycle on
 --      advance (not restore) plays a quiet UI tick (softer than Target Lock cycle).
 --    • CM.Profile keys: AllyCycle:GetIndex / ApplyBindings / RefreshRoster.
+--    • Away members: offline or in another zone / instance are skipped (away-<unit> attributes
+--      mirrored by CM.RefreshAllyCycleAvailability out of combat; distance alone never skips).
 --    • No client gating: Forever Beta once could not compile secure snippets (fixed in the
 --      beta's first weeks, WoWUIBugs#892), so Ally Cycle runs on every supported client.
 --  Does not: Own HUD chrome or click-cast prelines.
@@ -28,6 +30,9 @@ local GetBindingKey = _G.GetBindingKey
 local GetNormalizedRealmName = _G.GetNormalizedRealmName
 local GetRealmName = _G.GetRealmName
 local InCombatLockdown = _G.InCombatLockdown
+local IsInGroup = _G.IsInGroup
+local C_Map = _G.C_Map
+local C_Timer = _G.C_Timer
 local PlaySound = _G.PlaySound
 local SOUNDKIT = _G.SOUNDKIT
 local SecureHandlerSetFrameRef = _G.SecureHandlerSetFrameRef
@@ -35,6 +40,8 @@ local SecureHandlerWrapScript = _G.SecureHandlerWrapScript
 local SetOverrideBindingClick = _G.SetOverrideBindingClick
 local UIParent = _G.UIParent
 local UnitExists = _G.UnitExists
+local UnitIsConnected = _G.UnitIsConnected
+local UnitIsVisible = _G.UnitIsVisible
 local UnitIsUnit = _G.UnitIsUnit
 local UnitName = _G.UnitName
 
@@ -216,7 +223,7 @@ if SecureHandlerWrapScript then
       local takeNext = false
 
       -- RestrictedEnv: no UnitIsUnit. Restore lastUnit if target is gone / not assistable.
-      if lastUnit and UnitExists(lastUnit)
+      if lastUnit and UnitExists(lastUnit) and not self:GetAttribute("away-" .. lastUnit)
         and (not UnitExists("target") or not PlayerCanAssist("target"))
       then
         chosen = lastUnit
@@ -230,10 +237,16 @@ if SecureHandlerWrapScript then
           local unit = member and member:GetAttribute("unit")
           local isSelf = unit == "player" or (selfUnit and unit == selfUnit)
           if unit and UnitExists(unit) and not (skipPlayer and isSelf) then
-            if not firstUnit then
+            -- away-<unit>: offline / in another zone or instance (set out of combat by
+            -- CM.RefreshAllyCycleAvailability). A skipped lastUnit still moves the cursor on.
+            local away = self:GetAttribute("away-" .. unit)
+            if away then
+              self:CallMethod("DebugCycle", "skipped " .. unit)
+            end
+            if not away and not firstUnit then
               firstUnit = unit
             end
-            if takeNext then
+            if takeNext and not away then
               chosen = unit
               break
             end
@@ -248,6 +261,8 @@ if SecureHandlerWrapScript then
         chosen = firstUnit
       end
 
+      self:CallMethod("DebugCycle", "chose " .. (chosen or "nobody"))
+
       if chosen and UnitExists(chosen) then
         local advanced = (not lastUnit) or (chosen ~= lastUnit)
         self:SetAttribute("unit", chosen)
@@ -261,6 +276,11 @@ if SecureHandlerWrapScript then
       end
     ]]
   )
+end
+
+-- Debug Mode only: what the secure snippet saw / picked on the last press.
+function CycleButton:DebugCycle(text)
+  CM.DebugPrint("Ally Cycle press: " .. tostring(text))
 end
 
 function CycleButton:NotifyCycle(direction)
@@ -282,6 +302,9 @@ local function RefreshAllyCycleRosterImpl()
   end
   if GroupDesc and not GroupDesc:IsShown() then
     GroupDesc:Show()
+  end
+  if CM.RefreshAllyCycleAvailability then
+    CM.RefreshAllyCycleAvailability()
   end
   CM.DebugPrint("Ally Cycle roster refreshed")
 end
@@ -347,6 +370,136 @@ local function IsPlayerUnit(unit)
   return PublicBool(UnitIsUnit(unit, "player")) == true
 end
 
+-- Members the cycle skips: offline, or in another zone / instance. The restricted snippet cannot
+-- call UnitIsConnected / UnitIsVisible / map APIs, and attributes on the secure button cannot change
+-- in combat, so this runs here and is mirrored to `away-<unit>` attributes out of combat only.
+-- Distance alone never flags anyone (an ally far away at the pull must stay cycle-able once they
+-- arrive mid-fight): "not visible" only counts together with being on another map.
+local awayUnits = {} -- unit token -> true while flagged (mirrors the away-<unit> attributes)
+local seenUnits = {}
+local pendingAvailability = false
+
+local lastLoggedAway = {}
+
+local function Show(v)
+  if v == nil then
+    return "nil"
+  end
+  if IsSecret(v) then
+    return "secret"
+  end
+  return tostring(v)
+end
+
+-- Debug Mode only: what the availability check saw for `unit`, printed when it changes.
+local function DebugLogAway(unit, connected, visible, theirs, mine, away)
+  if not (CM.DB and CM.DB.global and CM.DB.global.debugMode) then
+    return
+  end
+  local line = "connected="
+    .. Show(connected)
+    .. " visible="
+    .. Show(visible)
+    .. " map="
+    .. Show(theirs)
+    .. " myMap="
+    .. Show(mine)
+    .. " away="
+    .. tostring(away)
+  if lastLoggedAway[unit] ~= line then
+    lastLoggedAway[unit] = line
+    CM.DebugPrint("Ally Cycle " .. unit .. " (" .. Show(UnitName(unit)) .. "): " .. line)
+  end
+end
+
+local function IsMemberAway(unit)
+  if IsPlayerUnit(unit) then
+    return false
+  end
+  local connected = UnitIsConnected and UnitIsConnected(unit)
+  local visible = UnitIsVisible and UnitIsVisible(unit)
+  local getMap = C_Map and C_Map.GetBestMapForUnit
+  local theirs, mine
+  if getMap then
+    theirs, mine = getMap(unit), getMap("player")
+  end
+  local away = false
+  if PublicBool(connected) == false then
+    away = true
+  elseif PublicBool(visible) == false and getMap then
+    -- Secret / unknown results fail soft (available).
+    if not (IsSecret(theirs) or IsSecret(mine) or mine == nil) then
+      away = theirs ~= mine
+    end
+  end
+  DebugLogAway(unit, connected, visible, theirs, mine, away)
+  return away
+end
+
+local function SetMemberAway(unit, away)
+  if (awayUnits[unit] or false) == away then
+    return false
+  end
+  awayUnits[unit] = away or nil
+  CycleButton:SetAttribute("away-" .. unit, away or nil)
+  CM.DebugPrint(
+    "Ally Cycle flag away-"
+      .. unit
+      .. " = "
+      .. tostring(away)
+      .. " (button reads "
+      .. tostring(CycleButton:GetAttribute("away-" .. unit))
+      .. ")"
+  )
+  return true
+end
+
+function CM.RefreshAllyCycleAvailability()
+  if InCombatLockdown and InCombatLockdown() then
+    pendingAvailability = true
+    return
+  end
+  pendingAvailability = false
+  if not GroupAsc then
+    return
+  end
+  local changed = false
+  wipe(seenUnits)
+  local children = CollectHeaderChildren(GroupAsc)
+  for _, child in ipairs(children) do
+    local unit = child.GetAttribute and child:GetAttribute("unit")
+    if unit then
+      seenUnits[unit] = true
+      local exists = UnitExists(unit)
+      local away = (IsSecret(exists) or exists) and IsMemberAway(unit) or false
+      if SetMemberAway(unit, away) then
+        changed = true
+      end
+    end
+  end
+  for unit in pairs(awayUnits) do
+    if not seenUnits[unit] and SetMemberAway(unit, false) then
+      changed = true
+    end
+  end
+  if changed and CM.RefreshAllyCycleHUD then
+    CM.RefreshAllyCycleHUD()
+  end
+end
+
+-- Another member's zone / connection can change with no event (walking through a portal in an
+-- instance, a delayed disconnect), so recheck about once a second while grouped and out of combat.
+if C_Timer and C_Timer.NewTicker then
+  C_Timer.NewTicker(1, function()
+    if
+      pendingAvailability
+      or (IsInGroup and IsInGroup() and not (InCombatLockdown and InCombatLockdown()))
+    then
+      CM.RefreshAllyCycleAvailability()
+    end
+  end)
+end
+
 local function GetAllyCycleIndexImpl(unit)
   unit = unit or "target"
   local total = 0
@@ -361,7 +514,7 @@ local function GetAllyCycleIndexImpl(unit)
     if slot then
       local exists = UnitExists(slot)
       if IsSecret(exists) or exists then
-        if not skipSelf or not IsPlayerUnit(slot) then
+        if (not skipSelf or not IsPlayerUnit(slot)) and not awayUnits[slot] then
           total = total + 1
           if unit and UnitIsUnit and PublicBool(UnitIsUnit(slot, unit)) == true then
             current = total

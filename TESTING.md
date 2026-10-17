@@ -106,6 +106,8 @@ Use this checklist for feature work and regressions.
 
 ## Ally Cycle
 
+- **Away members:** in a group, an ally who logs out, or is in another zone / instance, is skipped by Ally Cycle Next / Previous (and the HUD count drops) within about a second while out of combat; they are included again when they return. An ally who is just far away in the same zone is **not** skipped (including one who arrives mid-combat). Someone who disconnects during a fight is skipped after combat ends. If every other member is away, pressing does nothing (no Lua error).
+
 - Options → Ally Cycle tab: bind Up/Down, toggle Skip Self / Keep Ally After Harm / Ally HUD / side / scale / Distance; no Lua errors on open. Forever Beta: Ally Cycle runs like Retail (no watermark); log in, reload and fight in a group with no secure-snippet / RestrictedExecution errors.
 - Ally Cycle in party/raid: Up/Down cycles members in combat; HUD shows only with a party/raid hard target (self only when Skip Self is off); Interact on a friendly NPC must not flash the HUD; unbound keys = inert.
 - Helpful click-cast (Reticle Targeting; **no Ally Cycle binds required** — Forever / unbound too): Ignore Friendlies on — keeps a friendly hard target (hostile under the reticle does not steal); Ignore Friendlies off — `/tar`s helpable mouseover / `@softinteract` / `@anyfriend`, not a hostile. Ally Cycle keys bound (including solo): harmful still `/tar`s `@anyenemy`; Keep Ally After Harm restores in group.

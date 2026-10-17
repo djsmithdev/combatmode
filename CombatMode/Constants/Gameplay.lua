@@ -169,6 +169,12 @@ CM.Constants.BLIZZARD_EVENTS = {
   ASSISTED_HIGHLIGHT_EVENTS = {
     "ASSISTED_COMBAT_ACTION_SPELL_CAST",
   },
+  -- Ally Cycle skips offline / other-zone members: recheck when connection or zone changes
+  ALLY_AVAILABILITY_EVENTS = {
+    "UNIT_CONNECTION",
+    "ZONE_CHANGED_NEW_AREA",
+    "PLAYER_ENTERING_WORLD",
+  },
   -- Soft-interact target changed: refresh the interaction mode of the crosshair HUD
   INTERACT_HUD_EVENTS = {
     "PLAYER_SOFT_INTERACT_CHANGED",

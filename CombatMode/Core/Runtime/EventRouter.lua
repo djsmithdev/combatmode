@@ -277,6 +277,11 @@ local function HandleEventByCategory(category, event, ...)
         CM.OnAssistedHighlightAssistedActionCast()
       end
     end,
+    ALLY_AVAILABILITY_EVENTS = function()
+      if CM.RefreshAllyCycleAvailability then
+        CM.RefreshAllyCycleAvailability()
+      end
+    end,
     INTERACT_HUD_EVENTS = function()
       if CM.UpdateCrosshairAssistedHighlight then
         CM.UpdateCrosshairAssistedHighlight()
