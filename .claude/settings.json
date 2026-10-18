@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File ./scripts/claude-format-hook.ps1",
+            "command": "pwsh -NoProfile -File \"$CLAUDE_PROJECT_DIR/scripts/claude-format-hook.ps1\"",
             "timeout": 15
           }
         ]
