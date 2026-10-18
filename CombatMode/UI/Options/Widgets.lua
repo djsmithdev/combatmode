@@ -8,9 +8,15 @@
 --    • UI.Options.controls registry; Options.Sync() refreshes values + disabled state.
 --    • Sliders: opts.default; right-click resets to that value. Minus/plus icons
 --      step by opts.step (dim until hover) and stop at min/max.
---    • Dropdown menus match the select's laid-out width. opts.helpTooltip adds a round "?"
+--    • Dropdown menus match the select's laid-out width. opts.itemInfo(id) -> { icon|atlas, detail, detailColor }
+--      adds a round icon and a dim right-hand tag to menu rows and the closed select; values/order
+--      may be functions (re-read on open). opts.helpTooltip adds a round "?"
 --      badge left of the select (control.widgetLeftInset keeps the layout room) that shows
 --      the tooltip on hover.
+--    • Text inputs: multiline opts.lockedPrefix (string|function) pins dim,
+--      non-editable text above the editable area in the same well (Macro Composer preline);
+--      opts.lockedWidthHint sizes its wrapped height; opts.textFrac overrides the
+--      label/box split; opts.onTextChanged fires on every edit; a function-valued opts.desc refreshes on Sync.
 --    • Layout helpers (NewLayout) used by tabs and nested hosts (e.g. Camera/DynamicCam).
 --    • charSpecific badge + tooltips for per-character settings.
 --    • newFeatureFlag — shared "NEW" atlas badge (Alliance) beside section/option titles;
@@ -1641,6 +1647,28 @@ end
 ---------------------------------------------------------------------------------------
 --                                   DROPDOWN                                        --
 ---------------------------------------------------------------------------------------
+local PILL_ICON_SIZE = 18
+--- Makes a spell / mount icon round: zooms in slightly (hides the icon's own square border)
+--- and clips it to a circle. Used by the chips in the list and by the suggestion menu rows.
+local function RoundIcon(host, icon, size)
+  icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  local mask = host:CreateMaskTexture()
+  local frac = UI.SetCircleMask(mask) or 1
+  mask:SetSize(size / frac, size / frac)
+  mask:SetPoint("CENTER", icon, "CENTER", 0, 0)
+  icon:AddMaskTexture(mask)
+end
+
+--- Sets a chip / row icon from an entry: an atlas, or a texture (zoomed like RoundIcon does).
+local function ApplyEntryIcon(tex, e)
+  if e.atlas then
+    CM.SetAtlas(tex, e.atlas)
+  else
+    tex:SetTexture(e.icon)
+    tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  end
+end
+
 local HELP_BADGE_SIZE = 20
 local HELP_BADGE_GAP = 6
 
@@ -1659,6 +1687,27 @@ function UI.MakeDropdown(parent, opts)
   text:SetPoint("LEFT", button, "LEFT", 8, 0)
   text:SetPoint("RIGHT", button, "RIGHT", -22, 0)
   text:SetJustifyH("LEFT")
+  text:SetWordWrap(false)
+  -- Round icon of the chosen value (opts.itemInfo), when it has one.
+  local selIcon = button:CreateTexture(nil, "ARTWORK")
+  selIcon:SetSize(PILL_ICON_SIZE, PILL_ICON_SIZE)
+  selIcon:SetPoint("LEFT", button, "LEFT", 6, 0)
+  RoundIcon(button, selIcon, PILL_ICON_SIZE)
+  selIcon:Hide()
+
+  --- Shows `info`'s icon on `icon` and starts `fs` after it (or at the plain inset without one).
+  local function PlaceSelectedIcon(icon, fs, host, info)
+    fs:ClearAllPoints()
+    if info and (info.icon or info.atlas) then
+      ApplyEntryIcon(icon, info)
+      icon:Show()
+      fs:SetPoint("LEFT", icon, "RIGHT", 6, 0)
+    else
+      icon:Hide()
+      fs:SetPoint("LEFT", host, "LEFT", 8, 0)
+    end
+    fs:SetPoint("RIGHT", host, "RIGHT", -22, 0)
+  end
   UI.WireControlHover(button, text, function()
     return IsDisabled(opts)
   end)
@@ -1699,12 +1748,24 @@ function UI.MakeDropdown(parent, opts)
     control.widgetLeftInset = HELP_BADGE_SIZE + HELP_BADGE_GAP
   end
 
+  -- opts.values / opts.order may be functions, re-read each time the menu opens (live lists).
+  local function Values()
+    if type(opts.values) == "function" then
+      return opts.values()
+    end
+    return opts.values
+  end
+
   local function orderedIds()
-    if opts.order then
-      return opts.order
+    local order = opts.order
+    if type(order) == "function" then
+      order = order()
+    end
+    if order then
+      return order
     end
     local ids = {}
-    for id in pairs(opts.values) do
+    for id in pairs(Values()) do
       tinsert(ids, id)
     end
     tsort(ids)
@@ -1742,10 +1803,19 @@ function UI.MakeDropdown(parent, opts)
     item = CreateFrame("Button", nil, menu.content)
     item:SetHeight(ITEM_H)
     item.hl = UI.CreateRoundedHover(item, item)
+    -- Optional round icon on the left and dim detail tag on the right (opts.itemInfo).
+    item.icon = item:CreateTexture(nil, "ARTWORK")
+    item.icon:SetSize(PILL_ICON_SIZE, PILL_ICON_SIZE)
+    item.icon:SetPoint("LEFT", item, "LEFT", 6, 0)
+    RoundIcon(item, item.icon, PILL_ICON_SIZE)
+    item.icon:Hide()
+    item.detail = UI.CreateFontString(item, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
+    item.detail:SetPoint("RIGHT", item, "RIGHT", -8, 0)
     item.text = UI.CreateFontString(item, "OVERLAY", UI.Fonts.button, "GameFontHighlightSmall")
     item.text:SetPoint("LEFT", item, "LEFT", 8, 0)
     item.text:SetPoint("RIGHT", item, "RIGHT", -8, 0)
     item.text:SetJustifyH("LEFT")
+    item.text:SetWordWrap(false)
     item.text:SetTextColor(C.text[1], C.text[2], C.text[3])
     item:SetScript("OnEnter", function(self)
       self.hl:Show()
@@ -1766,10 +1836,11 @@ function UI.MakeDropdown(parent, opts)
 
   local function Populate(filterText)
     local ids = orderedIds()
+    local values = Values()
     filterText = filterText and strlower(filterText) or ""
     local shown = 0
     for _, id in ipairs(ids) do
-      local labelText = UI.StripColors(opts.values[id]) or id
+      local labelText = UI.StripColors(values[id]) or id
       local match = filterText == ""
       if not match then
         match = strfind(strlower(labelText), filterText, 1, true) ~= nil
@@ -1782,6 +1853,27 @@ function UI.MakeDropdown(parent, opts)
         item.text:SetText(labelText)
         local tint = opts.valueColors and opts.valueColors[id] or C.text
         item.text:SetTextColor(tint[1], tint[2], tint[3])
+        local info = opts.itemInfo and opts.itemInfo(id)
+        item.text:ClearAllPoints()
+        if info and (info.icon or info.atlas) then
+          ApplyEntryIcon(item.icon, info)
+          item.icon:Show()
+          item.text:SetPoint("LEFT", item.icon, "RIGHT", 6, 0)
+        else
+          item.icon:Hide()
+          item.text:SetPoint("LEFT", item, "LEFT", 8, 0)
+        end
+        if info and info.detail then
+          local dc = info.detailColor or C.textDim
+          item.detail:SetText(info.detail)
+          item.detail:SetTextColor(dc[1], dc[2], dc[3])
+          item.detail:Show()
+          item.text:SetPoint("RIGHT", item.detail, "LEFT", -8, 0)
+        else
+          item.detail:SetText("")
+          item.detail:Hide()
+          item.text:SetPoint("RIGHT", item, "RIGHT", -8, 0)
+        end
         item:ClearAllPoints()
         item:SetPoint("TOPLEFT", menu.content, "TOPLEFT", 0, -(shown - 1) * ITEM_H)
         item:SetPoint("TOPRIGHT", menu.content, "TOPRIGHT", 0, -(shown - 1) * ITEM_H)
@@ -1850,7 +1942,14 @@ function UI.MakeDropdown(parent, opts)
     headerText:SetPoint("LEFT", header, "LEFT", 8, 0)
     headerText:SetPoint("RIGHT", header, "RIGHT", -22, 0)
     headerText:SetJustifyH("LEFT")
+    headerText:SetWordWrap(false)
     headerText:SetTextColor(C.text[1], C.text[2], C.text[3])
+    local headerIcon = header:CreateTexture(nil, "ARTWORK")
+    headerIcon:SetSize(PILL_ICON_SIZE, PILL_ICON_SIZE)
+    headerIcon:SetPoint("LEFT", header, "LEFT", 6, 0)
+    RoundIcon(header, headerIcon, PILL_ICON_SIZE)
+    headerIcon:Hide()
+    menu.headerIcon = headerIcon
     local headerArrow = header:CreateTexture(nil, "OVERLAY")
     CM.SetAtlas(headerArrow, "UI-Journeys-Delve-Arrow-down-pressed", true)
     headerArrow:SetDesaturated(true)
@@ -1919,6 +2018,13 @@ function UI.MakeDropdown(parent, opts)
     menu:SetWidth(width)
 
     menu.headerText:SetText(text:GetText() or "")
+    local currentValue = opts.get and opts.get()
+    PlaceSelectedIcon(
+      menu.headerIcon,
+      menu.headerText,
+      menu.header,
+      opts.itemInfo and currentValue and opts.itemInfo(currentValue) or nil
+    )
     local headerTint = selectedTint or C.text
     menu.headerText:SetTextColor(headerTint[1], headerTint[2], headerTint[3])
     local top = -HEADER_H - MENU_PAD
@@ -1972,7 +2078,8 @@ function UI.MakeDropdown(parent, opts)
     if value == nil then
       return ""
     end
-    if opts.values[value] then
+    -- Function-valued lists are only enumerated when the menu opens; opts.display covers the rest.
+    if type(opts.values) ~= "function" and opts.values[value] then
       return UI.StripColors(opts.values[value]) or ""
     end
     if opts.display then
@@ -1989,6 +2096,12 @@ function UI.MakeDropdown(parent, opts)
   function control.Refresh()
     local value = opts.get and opts.get()
     text:SetText(DisplayText(value))
+    PlaceSelectedIcon(
+      selIcon,
+      text,
+      button,
+      opts.itemInfo and value and opts.itemInfo(value) or nil
+    )
     -- opts.valueColors tints chosen values (labels are plain text here, markup is stripped).
     selectedTint = opts.valueColors and opts.valueColors[value]
     textColors.idle = selectedTint or baseIdle
@@ -2306,6 +2419,31 @@ function UI.MakeKeybind(parent, opts)
   return Register(control)
 end
 
+--- Line-number strip down the left edge of a code-style well. Returns the strip fill, the
+--- clipping frame that scrolls with `scroll` and the FontString holding the numbers.
+local function BuildCodeGutter(box, scroll, stripRadius)
+  local gutterZone =
+    UI.CreateZone(box, C.inputStrip, stripRadius, { TOPLEFT = true, BOTTOMLEFT = true })
+  gutterZone:SetWidth(CODE_GUTTER_W)
+  gutterZone:SetPoint("TOPLEFT", box, "TOPLEFT", CODE_STRIP_INSET, -CODE_STRIP_INSET)
+  gutterZone:SetPoint("BOTTOMLEFT", box, "BOTTOMLEFT", CODE_STRIP_INSET, CODE_STRIP_INSET)
+  -- The numbers live in a frame that clips them to the editor's visible rows and scrolls
+  -- them with it.
+  local gutterClip = CreateFrame("Frame", nil, box)
+  gutterClip:SetPoint("TOPRIGHT", scroll, "TOPLEFT", -CODE_GUTTER_GAP, 0)
+  gutterClip:SetPoint("BOTTOMRIGHT", scroll, "BOTTOMLEFT", -CODE_GUTTER_GAP, 0)
+  gutterClip:SetFrameLevel(gutterZone:GetFrameLevel() + 2) -- numbers above the strip fill
+  gutterClip:SetWidth(CODE_GUTTER_W)
+  gutterClip:SetClipsChildren(true)
+  local gutterFs =
+    UI.CreateFontString(gutterClip, "OVERLAY", UI.Fonts.input, "GameFontHighlightSmall")
+  gutterFs:SetPoint("TOPRIGHT", gutterClip, "TOPRIGHT", -4, 0)
+  gutterFs:SetJustifyH("RIGHT")
+  gutterFs:SetJustifyV("TOP")
+  gutterFs:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3], 0.8)
+  return gutterZone, gutterClip, gutterFs
+end
+
 ---------------------------------------------------------------------------------------
 --                                  TEXT INPUT                                       --
 ---------------------------------------------------------------------------------------
@@ -2322,15 +2460,44 @@ function UI.MakeTextInput(parent, opts)
 
   local edit
   local helpBtn
+  local lockedFs
+  local lockedH = 0
   -- Code boxes keep a line-number strip on the left, so their editor starts further right.
-  local scrollLeft = (multiline and opts.lua)
+  local scrollLeft = (multiline and (opts.lua or opts.macro))
       and (CODE_STRIP_INSET + CODE_GUTTER_W + CODE_GUTTER_GAP)
     or 8
   if multiline then
     local scrollRight = opts.helpUrl and 26 or 16
     local barTop = opts.helpUrl and 28 or 6
     local scroll, mlEdit, bar = UI.CreateMultilineEditScroll(box)
-    scroll:SetPoint("TOPLEFT", box, "TOPLEFT", scrollLeft, -6)
+    -- Locked prefix: dim, non-editable text pinned to the top of the same well (e.g. the
+    -- targeting preline above a composed macro); the editable area starts below it.
+    local prefixSrc = opts.lockedPrefix
+    local prefixText = type(prefixSrc) == "function" and prefixSrc() or prefixSrc
+    if type(prefixText) == "string" and prefixText ~= "" then
+      lockedFs = UI.CreateFontString(box, "OVERLAY", UI.Fonts.input, "GameFontHighlightSmall")
+      lockedFs:SetPoint("TOPLEFT", box, "TOPLEFT", scrollLeft + 2, -8)
+      lockedFs:SetPoint("TOPRIGHT", box, "TOPRIGHT", -16, -8)
+      lockedFs:SetJustifyH("LEFT")
+      lockedFs:SetJustifyV("TOP")
+      lockedFs:SetWordWrap(true)
+      -- Dimmed accent so the locked text reads apart from the grey placeholder.
+      lockedFs:SetTextColor(C.accent[1], C.accent[2], C.accent[3], 0.6)
+      -- Height is fixed at build from a width hint (the box width is not known yet), so the
+      -- whole prefix shows wrapped rather than clipped with an ellipsis.
+      if opts.lockedWidthHint then
+        lockedFs:SetWidth(opts.lockedWidthHint)
+      end
+      lockedFs:SetText(prefixText)
+      lockedH = lockedFs:GetStringHeight() + 6
+      boxHeight = boxHeight + lockedH
+      box:SetHeight(boxHeight)
+      local sep = UI.CreateLine(box, false, C.divider, "ends")
+      sep:SetHeight(1)
+      sep:SetPoint("TOPLEFT", box, "TOPLEFT", 8, -(8 + lockedH - 3))
+      sep:SetPoint("TOPRIGHT", box, "TOPRIGHT", -8, -(8 + lockedH - 3))
+    end
+    scroll:SetPoint("TOPLEFT", box, "TOPLEFT", scrollLeft, -(6 + lockedH))
     scroll:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -scrollRight, 6)
     bar:SetPoint("TOPRIGHT", box, "TOPRIGHT", -4, -barTop)
     bar:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", -4, 6)
@@ -2341,25 +2508,7 @@ function UI.MakeTextInput(parent, opts)
       local stripRadius = max(UI.Radius.button - CODE_STRIP_INSET, 0)
 
       -- Line numbers: a slightly lighter strip down the left edge of the well.
-      local gutterZone =
-        UI.CreateZone(box, C.inputStrip, stripRadius, { TOPLEFT = true, BOTTOMLEFT = true })
-      gutterZone:SetWidth(CODE_GUTTER_W)
-      gutterZone:SetPoint("TOPLEFT", box, "TOPLEFT", CODE_STRIP_INSET, -CODE_STRIP_INSET)
-      gutterZone:SetPoint("BOTTOMLEFT", box, "BOTTOMLEFT", CODE_STRIP_INSET, CODE_STRIP_INSET)
-      -- The numbers live in a frame that clips them to the editor's visible rows and scrolls
-      -- them with it.
-      local gutterClip = CreateFrame("Frame", nil, box)
-      gutterClip:SetPoint("TOPRIGHT", scroll, "TOPLEFT", -CODE_GUTTER_GAP, 0)
-      gutterClip:SetPoint("BOTTOMRIGHT", scroll, "BOTTOMLEFT", -CODE_GUTTER_GAP, 0)
-      gutterClip:SetFrameLevel(gutterZone:GetFrameLevel() + 2) -- numbers above the strip fill
-      gutterClip:SetWidth(CODE_GUTTER_W)
-      gutterClip:SetClipsChildren(true)
-      local gutterFs =
-        UI.CreateFontString(gutterClip, "OVERLAY", UI.Fonts.input, "GameFontHighlightSmall")
-      gutterFs:SetPoint("TOPRIGHT", gutterClip, "TOPRIGHT", -4, 0)
-      gutterFs:SetJustifyH("RIGHT")
-      gutterFs:SetJustifyV("TOP")
-      gutterFs:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3], 0.8)
+      local gutterZone, gutterClip, gutterFs = BuildCodeGutter(box, scroll, stripRadius)
 
       -- One-line diagnostic (syntax error / unknown API name) in a reddish strip along the bottom
       -- of the well; the editor and the numbers shrink to make room while it is shown.
@@ -2463,7 +2612,7 @@ function UI.MakeTextInput(parent, opts)
     widgetH = boxHeight,
     widgetFill = true,
     -- Multiline boxes get the larger column (~60%); single-line keeps the default split.
-    textFrac = multiline and 0.40 or nil,
+    textFrac = opts.textFrac or (multiline and 0.40 or nil),
   }
 
   -- Optional inert placeholder: a dim overlay FontString shown only while the edit is
@@ -2472,13 +2621,13 @@ function UI.MakeTextInput(parent, opts)
   local placeholderText = opts.placeholder and UI.StripColors(opts.placeholder) or nil
   if placeholderText and placeholderText ~= "" then
     placeholderFs = UI.CreateFontString(box, "OVERLAY", UI.Fonts.input, "GameFontHighlightSmall")
-    placeholderFs:SetPoint("TOPLEFT", box, "TOPLEFT", scrollLeft + 2, -8)
+    placeholderFs:SetPoint("TOPLEFT", box, "TOPLEFT", scrollLeft + 2, -(8 + lockedH))
     placeholderFs:SetPoint(
       "TOPRIGHT",
       box,
       "TOPRIGHT",
       multiline and (opts.helpUrl and -26 or -16) or -10,
-      -8
+      -(8 + lockedH)
     )
     placeholderFs:SetJustifyH("LEFT")
     placeholderFs:SetJustifyV("TOP")
@@ -2525,11 +2674,23 @@ function UI.MakeTextInput(parent, opts)
   end
 
   edit:HookScript("OnEditFocusLost", commit)
-  edit:HookScript("OnTextChanged", updatePlaceholder)
+  edit:HookScript("OnTextChanged", function()
+    updatePlaceholder()
+    if opts.onTextChanged then
+      opts.onTextChanged(edit:GetText())
+    end
+  end)
 
   function control.Refresh()
     if not edit:HasFocus() then
       edit:SetText((opts.get and opts.get()) or "")
+    end
+    if control.desc and type(opts.desc) == "function" then
+      local raw = opts.desc() or ""
+      control.desc:SetText(opts.descAllowColors and raw or UI.StripColors(raw))
+    end
+    if lockedFs and type(opts.lockedPrefix) == "function" then
+      lockedFs:SetText(opts.lockedPrefix() or "")
     end
     updatePlaceholder()
     local disabled = IsDisabled(opts)
@@ -2879,7 +3040,6 @@ local PILL_BOX_H = 93
 local PILL_H = 24
 local PILL_GAP = 7
 local PILL_PAD_X = 6
-local PILL_ICON_SIZE = 18
 local PILL_TEXT_SIZE = UI.Fonts.input
 local PILL_BOX_PAD = 8
 local PILL_MAX_VISIBLE_ROWS = 8
@@ -2887,27 +3047,6 @@ local PILL_SUGGEST_ITEM_H = 22
 local PILL_MENU_PAD = 4
 local PILL_BAR_GUTTER = 10
 local PILL_DEBOUNCE_S = 0.06
-
---- Makes a spell / mount icon round: zooms in slightly (hides the icon's own square border)
---- and clips it to a circle. Used by the chips in the list and by the suggestion menu rows.
-local function RoundIcon(host, icon, size)
-  icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-  local mask = host:CreateMaskTexture()
-  local frac = UI.SetCircleMask(mask) or 1
-  mask:SetSize(size / frac, size / frac)
-  mask:SetPoint("CENTER", icon, "CENTER", 0, 0)
-  icon:AddMaskTexture(mask)
-end
-
---- Sets a chip / row icon from an entry: an atlas, or a texture (zoomed like RoundIcon does).
-local function ApplyEntryIcon(tex, e)
-  if e.atlas then
-    CM.SetAtlas(tex, e.atlas)
-  else
-    tex:SetTexture(e.icon)
-    tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-  end
-end
 
 function UI.MakePillMultiSelect(parent, opts, resolver)
   local row = CreateFrame("Frame", nil, parent)

@@ -271,6 +271,40 @@ local function FilterSuggestions(query, selectedIds, selectedNames)
   return out
 end
 
+--- Spellbook names containing `query` (names starting with it first), as { spellId, name, icon }.
+--- Used by the macro editor's autocomplete; passive spells are already left out of the index.
+function UI.SearchSpellNames(query, limit)
+  EnsureSpellIndex()
+  local q = strlower(strtrim(query or ""))
+  local out = {}
+  if q == "" then
+    return out
+  end
+  local starts, contains = {}, {}
+  for _, sp in ipairs(spellList) do
+    local pos = strfind(sp.nameLower, q, 1, true)
+    if pos == 1 then
+      starts[#starts + 1] = sp
+    elseif pos then
+      contains[#contains + 1] = sp
+    end
+  end
+  local function ByName(a, b)
+    return a.nameLower < b.nameLower
+  end
+  table.sort(starts, ByName)
+  table.sort(contains, ByName)
+  for _, list in ipairs({ starts, contains }) do
+    for _, sp in ipairs(list) do
+      if #out >= (limit or MAX_MATCHES) then
+        return out
+      end
+      out[#out + 1] = { spellId = sp.spellId, name = sp.name, icon = sp.icon }
+    end
+  end
+  return out
+end
+
 ---------------------------------------------------------------------------------------
 --                              MAKE SPELL MULTI-SELECT                              --
 ---------------------------------------------------------------------------------------

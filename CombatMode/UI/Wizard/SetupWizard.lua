@@ -102,14 +102,32 @@ local STEPS = {
     tab = "reticle",
     section = "RETICLE TARGETING",
     title = "Reticle Targeting",
-    body = "Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.",
+    body = "Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting. Ignore Friendlies makes it skip allies.",
     warning = "Turning Reticle Targeting on or off reloads the UI.",
+  },
+  {
+    tab = "reticle",
+    label = "Excluded Spells",
+    title = "Excluded Spells",
+    body = "Spells that should skip the Reticle Targeting logic and act on your current target as usual. Type a spell name or ID to add it.",
+  },
+  {
+    tab = "reticle",
+    label = "Cast at Crosshair",
+    title = "Cast at Crosshair",
+    body = "Ground-targeted spells that should be cast at the crosshair location instead of your target. Type a spell name or ID to add it.",
+  },
+  {
+    tab = "reticle",
+    label = "Reticle Targeting Macros",
+    title = "Reticle Targeting Macros",
+    body = "Action buttons that are macros cannot inherit Reticle Targeting on their own. Press + to open the Macro Composer, write your macro there and it gets the targeting logic added for you. Then drag it from this list onto your action bars; right-click an icon to edit it.",
   },
   {
     tab = "reticle",
     section = "TARGET LOCK",
     title = "Target Lock",
-    body = "Lock onto a target with one tap so the reticle stops swapping. Choose whether tapping again unlocks (Toggle) or moves the lock to whatever is under the crosshair (Switch Target). While locked, the cycle keys jump to nearby enemies. Set your keys.",
+    body = "Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies. Target Lock Behavior decides whether tapping again unlocks (Toggle) or moves the lock to whatever is under the crosshair (Switch Target). Set your keys.",
     -- These keys can't be set while Reticle Targeting is off, so they don't block then.
     tasks = {
       {
@@ -133,6 +151,12 @@ local STEPS = {
     },
   },
   {
+    tab = "reticle",
+    section = "TARGETING INDICATORS",
+    title = "Targeting Indicators",
+    body = "Choose how your target is marked in the world: an outline around it, and which target gets Blizzard's selection circle under its feet.",
+  },
+  {
     tab = "clickcasting",
     section = "CLICK CASTING",
     title = "Click Casting",
@@ -141,9 +165,21 @@ local STEPS = {
   },
   {
     tab = "autocursorunlock",
-    section = "AUTO UNLOCK",
+    label = "Auto Unlock",
     title = "Auto Unlock",
-    body = "Mouse Look pauses when you open bags, the map or other windows, then resumes. Add any extra windows that should trigger it.",
+    body = "Mouse Look pauses when you open bags, the map or other windows, then resumes.",
+  },
+  {
+    tab = "autocursorunlock",
+    label = "Unlock Mounts",
+    title = "Unlock Mounts",
+    body = "Mounts that should release the cursor while you are mounted on them. Search for a mount to add it.",
+  },
+  {
+    tab = "autocursorunlock",
+    label = "Extra Frames",
+    title = "Extra Frames",
+    body = "Add any other windows that should pause Mouse Look when they open. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen.",
   },
   {
     tab = "allycycle",

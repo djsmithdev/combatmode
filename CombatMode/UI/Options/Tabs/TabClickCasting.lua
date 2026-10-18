@@ -4,8 +4,8 @@
 --  What it does: Wires the eight mouse click-cast slots (base + shift/ctrl/alt) with
 --  enable, key, action dropdown (OverrideActions: Clear Target / Focus, Start Attack / Pet Attack + ActionsToProcess;
 --  Target Lock lives on its own keybind, not here),
---  optional macro
---  name, and useGlobalBindings. Applies via SetNewBinding / ResetBindingOverride.
+--  Run MACRO picker: a dropdown of the player's macros (icon + Reticle Targeting tag), and useGlobalBindings.
+--  Applies via SetNewBinding / ResetBindingOverride.
 --  Architecture / how it works:
 --    • Reads/writes CM.DB[GetBindingsLocation()].bindings[slot].
 --    • char.useGlobalBindings toggles whether char or global bindings table is edited.
@@ -20,6 +20,7 @@ local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
+local GetMacroInfo = _G.GetMacroInfo
 
 -- Lua stdlib
 local ipairs = _G.ipairs
@@ -27,6 +28,7 @@ local pairs = _G.pairs
 local floor = _G.math.floor
 local max = _G.math.max
 local tinsert = _G.table.insert
+local unpack = _G.unpack
 
 local UI = CM.UI
 local C = UI.Colors
@@ -146,24 +148,52 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas, leadingIconText
       return not Binding(slot).enabled
     end,
   })
-  layout:TextInput({
-    label = "Macro Name",
-    desc = "Macro to run for this click.",
+  layout:Dropdown({
+    label = "Macro",
+    -- Re-read each time the menu opens so new / deleted macros show up.
+    values = function()
+      local values = {}
+      for _, macro in ipairs(CM.EnumerateMacros()) do
+        values[macro.name] = macro.name
+      end
+      return values
+    end,
+    order = function()
+      local order = {}
+      for _, macro in ipairs(CM.EnumerateMacros()) do
+        order[#order + 1] = macro.name
+      end
+      return order
+    end,
+    display = function(value)
+      if value == nil or value == "" then
+        return "Select a macro"
+      end
+      return value
+    end,
+    -- Round macro icon on the left; right-hand tag says whether it carries the targeting preline.
+    itemInfo = function(id)
+      if id == "" then
+        return nil
+      end
+      local _, icon, body = GetMacroInfo(id)
+      if not icon then
+        return nil
+      end
+      if CM.IsComposedMacroBody(body) then
+        return { icon = icon, detail = "Reticle Targeting", detailColor = C.accent }
+      end
+      return { icon = icon, detail = "No targeting" }
+    end,
     get = function()
       return Binding(slot).macroName
     end,
     set = function(value)
-      Binding(slot).macroName = value
-      CM.SetNewBinding(Binding(slot))
+      local binding = Binding(slot)
+      binding.macroName = value
+      CM.SetNewBinding(binding)
     end,
-    validate = function(value)
-      if value ~= "" and not CM.MacroExists(value) then
-        Binding(slot).macroName = ""
-        return "No macro found with that name."
-      end
-      return true
-    end,
-    -- Only shown once the Action is set to Run Macro; the rows below move up when hidden.
+    -- Only shown once Action is set to Run Macro; rows below move up when hidden.
     hidden = function()
       return Binding(slot).value ~= "MACRO"
     end,
@@ -214,9 +244,15 @@ local function BuildGroupPanel(parent, width, modifier, group, tabSearch)
     leadingIconTexture
   )
   layout:Finish()
-  panel:SetHeight(-layout.y + 8)
-  -- Collapse the Macro Name rows that start hidden (bindings are loaded at build time).
+  --- Height of the rows currently visible (the Macro row only shows for Run MACRO).
+  function panel.FitHeight()
+    local h = max(1, -layout.y - layout.gap)
+    panel:SetHeight(h)
+    return h
+  end
+  -- Collapse the Macro rows that start hidden (bindings are loaded at build time).
   layout:Reflow()
+  panel.FitHeight()
   return panel
 end
 
@@ -294,18 +330,47 @@ UI.Options.AddTab({
 
     local panels = {}
     local panelHost = CreateFrame("Frame", nil, segmentHost)
-    local hostH = 0
     for _, group in ipairs(MODIFIER_GROUPS) do
       local panel = BuildGroupPanel(panelHost, contentW, group.modifier, group, ctx.search)
       panel:SetPoint("TOPLEFT", panelHost, "TOPLEFT", 0, 0)
       panel:Hide()
       panel:SetAlpha(1)
       panels[group.id] = panel
-      hostH = max(hostH, panel:GetHeight() or 0)
     end
-    panelHost:SetSize(contentW, hostH)
+    panelHost:SetWidth(contentW)
 
     local activeGroupId
+    local sepGap = 8
+    local segmentItem -- the ctx placement record for segmentHost, resized as rows show / hide
+    local lastBase -- visible content height last applied to ctx.content (nil while building)
+
+    --- Re-places the rows and grows / shrinks the tab content to the visible height.
+    local function Resize()
+      ctx:Reflow()
+      if lastBase then
+        local base = -ctx.y - ctx.gap
+        if base ~= lastBase then
+          ctx.content:SetHeight(ctx.content:GetHeight() + base - lastBase)
+          lastBase = base
+        end
+      end
+    end
+
+    -- Sizes the segment area to the visible panel (the Macro row only shows for Run MACRO).
+    local function FitSegments()
+      local panel = panels[activeGroupId]
+      if not panel then
+        return
+      end
+      local h = panel.FitHeight()
+      panelHost:SetHeight(h)
+      local total = 34 + sepGap + 1 + sepGap + h
+      segmentHost:SetHeight(total)
+      if segmentItem and segmentItem.height ~= total then
+        segmentItem.height = total
+        Resize()
+      end
+    end
 
     local function ShowGroup(id)
       if activeGroupId == id then
@@ -327,6 +392,7 @@ UI.Options.AddTab({
       if incoming then
         incoming:Show()
       end
+      FitSegments()
     end
 
     local bar, selectGroup = BuildSegmentBar(segmentHost, contentW, MODIFIER_GROUPS, ShowGroup)
@@ -336,7 +402,6 @@ UI.Options.AddTab({
 
     -- Hairline under the segment bar so the modifier tabs read separately from the
     -- Left/Right click options below (same treatment as the sidebar footer divider).
-    local sepGap = 8
     local sep = UI.CreateLine(segmentHost, false, C.divider, "ends")
     sep:SetHeight(1)
     sep:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", 0, -sepGap)
@@ -344,7 +409,12 @@ UI.Options.AddTab({
 
     panelHost:SetPoint("TOPLEFT", sep, "BOTTOMLEFT", 0, -sepGap)
 
-    segmentHost:SetHeight(bar:GetHeight() + sepGap + 1 + sepGap + hostH)
+    FitSegments()
     ctx:PlaceFrame(segmentHost, segmentHost:GetHeight())
+    segmentItem = ctx.items[#ctx.items]
+    lastBase = -ctx.y - ctx.gap
+
+    -- Hidden Macro rows change the panel height; refit and resize the tab content.
+    UI.Options.AddReflowHook(FitSegments)
   end,
 })

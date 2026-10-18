@@ -40,10 +40,12 @@
 --      (C_ActionBar.IsAssistedCombatAction, assistant spell id fallback) and always get the
 --      harmful targeting route instead of being classified by their churning suggested spell.
 --    • Click frame map from CM.Constants.ClickCastBars (ACTIONBUTTON + MultiBar 1–7).
+--    • CM.GetActiveTargetingPreline() — settings-only preline (no per-spell routing), shared
+--      with the Run MACRO composer (ComposedMacros.lua).
 --  Does not: Own SecureActionButton frames or SetOverrideBinding (BindingOverrides).
 --  Related: Core/ClickCasting/BindingOverrides.lua,
 --  Core/AllyCycle/{AllyCycle,Cycle}.lua,
---  UI/Editors/TargetingMacroPrelinesEditor.lua,
+--  Core/ClickCasting/ComposedMacros.lua, UI/Editors/TargetingMacroPrelinesEditor.lua,
 --  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/SpellMultiSelect.lua,
 --  Constants/DatabaseDefaults.lua, Constants/Gameplay.lua,
 --  Core/ClickCasting/AddonActionBarResolver.lua
@@ -783,28 +785,9 @@ local function FriendlyPreservingHelpPreLine()
   return CLICKCAST_PRE_LINE_ALLY_HELP_ANY
 end
 
-local function GetClickCastPreLine(spellId, routeOverride)
-  if not CM.DB.char.reticleTargeting then
-    return nil
-  end
-
-  local route = routeOverride or GetAllyCycleSpellRoute(spellId)
-
-  -- Helpful: Reticle Targeting friendly-preserving path (not Ally Cycle–gated).
-  if route == "help" then
-    return FriendlyPreservingHelpPreLine()
-  end
-
-  -- Harmful + cycle keys: enemy / restore-aware preline (including solo).
-  if AllyCycleKeysBound() and route == "harm" then
-    return GetAllyCycleHarmPreLine()
-  end
-
-  -- Unclassified + cycle keys: treat as help (same as when cycling is on).
-  if AllyCycleKeysBound() then
-    return FriendlyPreservingHelpPreLine()
-  end
-
+-- Settings-only preline (Ignore Friendlies x Auto Target Lock, honoring editor overrides).
+-- No per-spell ally-cycle routing; shared with the macro composer.
+function CM.GetActiveTargetingPreline()
   local function GetOverride(key)
     local v = CM.DB and CM.DB.global and CM.DB.global[key]
     if type(v) ~= "string" then
@@ -835,6 +818,31 @@ local function GetClickCastPreLine(spellId, routeOverride)
       or CLICKCAST_PRE_LINE_AUTO_LOCK_ANY
   end
   return GetOverride("targetingMacroPrelineAnyOverride") or CLICKCAST_PRE_LINE_ANY
+end
+
+local function GetClickCastPreLine(spellId, routeOverride)
+  if not CM.DB.char.reticleTargeting then
+    return nil
+  end
+
+  local route = routeOverride or GetAllyCycleSpellRoute(spellId)
+
+  -- Helpful: Reticle Targeting friendly-preserving path (not Ally Cycle–gated).
+  if route == "help" then
+    return FriendlyPreservingHelpPreLine()
+  end
+
+  -- Harmful + cycle keys: enemy / restore-aware preline (including solo).
+  if AllyCycleKeysBound() and route == "harm" then
+    return GetAllyCycleHarmPreLine()
+  end
+
+  -- Unclassified + cycle keys: treat as help (same as when cycling is on).
+  if AllyCycleKeysBound() then
+    return FriendlyPreservingHelpPreLine()
+  end
+
+  return CM.GetActiveTargetingPreline()
 end
 
 local function GetClickCastPostLine(spellId, routeOverride)

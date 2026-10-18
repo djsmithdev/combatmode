@@ -16,6 +16,8 @@
 --      booleans wherever these defaults declare a boolean (CM.DbBool / NormalizeBools).
 --    • MigrateMouseLookCameraDB (CVarManager) seeds shoulder/dynamicPitch from legacy
 --      Action Camera profile keys once after merge.
+--    • global.composedMacros maps macro name -> the body the Macro Composer wrote after the
+--      preline (ComposedMacros.lua auto-rebuilds those macros when the preline changes).
 --    • DefaultBindings seeds button1/2 + shift/ctrl/alt mouse slots and Mouse Look toggle.
 --  Does not: Migrate saved data or apply CVars/bindings at runtime (CVarManager does).
 --  Related: Core/Runtime/Runtime.lua, Core/Runtime/CVarManager.lua,
@@ -113,6 +115,7 @@ CM.Constants.DatabaseDefaults = {
     targetingMacroPrelineEnemyOverride = nil,
     targetingMacroPrelineAutoLockAnyOverride = nil,
     targetingMacroPrelineAutoLockEnemyOverride = nil,
+    composedMacros = {},
     crosshairReactionColors = {},
     crosshairSituationalCondition = [[
 local deadOrGhost = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")

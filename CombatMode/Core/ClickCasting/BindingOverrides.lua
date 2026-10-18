@@ -37,9 +37,11 @@
 --    • UpdateFocusCycleWheelBindings — alias for ApplyCycleFocusBindings.
 --    • AssignNamedKeybind / ClearInteractOrphansOnKey — shared options keybind helpers.
 --    • Combat-safe via BindingQueue when options change mid-combat.
+--    • RefreshClickCastMacros also runs CM.RebuildComposedMacros so composer-built
+--      macros follow the active preline (lockdown refreshes are queued, flushed on regen).
 --  Does not: Resolve ElvUI/BT4 frame names (AddonActionBarResolver) or build preline text
 --  (TargetingMacroBuilder).
---  Related: Core/ClickCasting/TargetingMacroBuilder.lua,
+--  Related: Core/ClickCasting/TargetingMacroBuilder.lua, Core/ClickCasting/ComposedMacros.lua,
 --  Core/ClickCasting/AddonActionBarResolver.lua, Core/Runtime/BindingQueue.lua,
 --  Core/Runtime/EventRouter.lua, Core/Runtime/Bootstrap.lua,
 --  UI/Options/Tabs/TabClickCasting.lua, UI/Options/Tabs/TabGeneral.lua, Constants/Gameplay.lua
@@ -435,6 +437,10 @@ function CM.RefreshClickCastMacros()
     -- This refreshes both keyboard bindings (via ApplyGroundCastKeyOverrides) and mouse button bindings (via OverrideDefaultButtons)
     CM.OverrideDefaultButtons()
     CM.ApplyGroundCastKeyOverrides()
+    -- Keep Run MACRO macros built via the Macro Composer in step with the active preline.
+    if CM.RebuildComposedMacros then
+      CM.RebuildComposedMacros()
+    end
   end)
 end
 

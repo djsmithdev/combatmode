@@ -22,6 +22,7 @@
     <!-- CLICK CASTING -->
     <Script file="Core\ClickCasting\AddonActionBarResolver.lua"/>
     <Script file="Core\ClickCasting\TargetingMacroBuilder.lua"/>
+    <Script file="Core\ClickCasting\ComposedMacros.lua"/>
     <Script file="Core\ClickCasting\BindingOverrides.lua"/>
     <!-- FREE LOOK -->
     <Script file="Core\FreeLook\FreeLookController.lua"/>
@@ -78,6 +79,7 @@
     <Script file="UI\Editors\ReticleCVarEditorData.lua"/>
     <Script file="UI\Editors\ReticleCVarEditorPanel.lua"/>
     <Script file="UI\Editors\TargetingMacroPrelinesEditor.lua"/>
+    <Script file="UI\Editors\ComposedMacroEditor.lua"/>
     <Script file="UI\Editors\CrosshairColorsEditor.lua"/>
     <!-- FRAME -->
     <Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
