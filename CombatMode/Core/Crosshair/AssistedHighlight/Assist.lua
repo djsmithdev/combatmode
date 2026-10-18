@@ -652,9 +652,14 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
 
     AssistedHighlightFrame.background:SetAlpha(1)
     AssistedHighlightFrame.frame:SetAlpha(1)
-    local glowR = (Motion and Motion.GLOW_COLOR_R) or 0.816
-    local glowG = (Motion and Motion.GLOW_COLOR_G) or 0.541
-    local glowB = (Motion and Motion.GLOW_COLOR_B) or 0.322
+    local glowR, glowG, glowB = 0.816, 0.541, 0.322
+    if Motion then
+      if hudMode == "interact" then
+        glowR, glowG, glowB = Motion.GLOW_COLOR_R, Motion.GLOW_COLOR_G, Motion.GLOW_COLOR_B
+      else
+        glowR, glowG, glowB = Motion.ASSIST_COLOR_R, Motion.ASSIST_COLOR_G, Motion.ASSIST_COLOR_B
+      end
+    end
     AssistedHighlightFrame.glow:SetVertexColor(glowR, glowG, glowB, 1)
     -- Do not set glow alpha here — breath OnUpdate owns it.
     -- Do not restart the one-shot proc FlipBook on layout changes.
@@ -735,7 +740,12 @@ local function ShowAssistedHighlightContent(texture, keybindText, keybindStyle, 
   if hudMode ~= "assist" then
     hudMode = "assist"
     if Motion and Motion.SetEffectTint then
-      Motion.SetEffectTint(Motion.GLOW_COLOR_R, Motion.GLOW_COLOR_G, Motion.GLOW_COLOR_B, true)
+      Motion.SetEffectTint(
+        Motion.ASSIST_COLOR_R,
+        Motion.ASSIST_COLOR_G,
+        Motion.ASSIST_COLOR_B,
+        true
+      )
     end
   end
   AssistedHighlightFrame.icon:SetTexture(texture)

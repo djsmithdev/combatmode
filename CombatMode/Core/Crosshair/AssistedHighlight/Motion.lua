@@ -48,11 +48,14 @@ local PROC_FLIP_FRAMES = 18
 -- Match Blizzard RogueComboPointBar SlashFB FlipBook duration (.57).
 local PROC_PLAY_DURATION = 0.57
 
--- Glow / proc FlipBook / frame tint for both HUD modes: the options panel's copper accent
--- (UI.Colors.accent, #D08A52).
+-- Glow / proc FlipBook / frame tint. Interactable mode uses the options panel's copper accent
+-- (UI.Colors.accent, #D08A52); next-cast suggestion mode uses cyan-blue.
 Motion.GLOW_COLOR_R = 0.816
 Motion.GLOW_COLOR_G = 0.541
 Motion.GLOW_COLOR_B = 0.322
+Motion.ASSIST_COLOR_R = 0.3
+Motion.ASSIST_COLOR_G = 0.8
+Motion.ASSIST_COLOR_B = 1
 Motion.GLOW_ANIM_MIN_ALPHA = GLOW_ANIM_MIN_ALPHA
 -- How far the metal frame moves from white toward the tint (1 = full copper, 0 = untinted).
 local FRAME_TINT_STRENGTH = 0.4
