@@ -139,5 +139,5 @@ Built-in `Core/Dev/FunctionProfiler.lua` provides per-function CPU + memory prof
 - If keybind writes were changed, verify in-combat changes defer and apply automatically after leaving combat.
 - For contributor lint/format checks, use helper by default: `pwsh ./scripts/lint-changed.ps1`.
 - Equivalent direct gate: `pre-commit run --files <changed files>`.
-- When bumping a version: update `CombatMode/CombatMode.toc` `## Version`, `CombatMode/CHANGELOG.md`, then `pwsh ./scripts/sync-changelog-to-lua.ps1` (agents ask first — see `AGENTS.md` / change checklist).
+- When bumping a version: update `CombatMode/CombatMode.toc` `## Version`, `CombatMode/CHANGELOG.md`, then `pwsh ./scripts/sync-changelog-to-lua.ps1` (agents ask first — see `CLAUDE.md` / the `finish-change` skill).
 - Reserve full-repo gate for release prep: `pre-commit run --all-files`.

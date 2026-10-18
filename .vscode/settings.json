@@ -79,9 +79,6 @@
     "table": "disable",
     "utf8": "disable"
   },
-  "Lua.workspace.library": [
-    "c:\\Users\\sampc\\.cursor\\extensions\\ketho.wow-api-0.22.3\\Annotations\\Core"
-  ],
   "Lua.workspace.ignoreDir": [
     "CombatMode/Libs"
   ],

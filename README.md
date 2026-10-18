@@ -87,7 +87,7 @@ Action Combat Mode is organized by **domain**. Runtime lives under `CombatMode/C
 | **AllyCycle** | Party/raid ally cycling + Ally HUD (secure UP/DOWN, help/harm macros) |
 | **Options toolkit** | Standalone options window + editors (`UI/Options/`, `UI/Editors/`) |
 
-Load order and public entry points: **[STRUCTURE.md](STRUCTURE.md)**. Agent/contributor rules: **[AGENTS.md](AGENTS.md)**.
+Load order and public entry points: **[STRUCTURE.md](STRUCTURE.md)**. Agent/contributor rules: **[CLAUDE.md](CLAUDE.md)**.
 
 <br />
 

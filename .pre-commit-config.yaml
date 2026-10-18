@@ -17,3 +17,9 @@ repos:
         types: [lua]
         files: ^CombatMode/.*\.lua$
         exclude: ^CombatMode/Libs/
+      - id: changelog-synced
+        name: changelog synced to ChangelogData.lua
+        entry: pwsh -NoProfile -File scripts/check-changelog-synced.ps1
+        language: system
+        files: ^CombatMode/(CHANGELOG\.md|UI/Changelog/ChangelogData\.lua)$
+        pass_filenames: false

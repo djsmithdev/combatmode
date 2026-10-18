@@ -1,11 +1,11 @@
 # CombatMode add-on layout
 
 High-level domain map: [README — Architecture](README.md#architecture).
-Detailed folder map and ownership: [architecture rule](.cursor/rules/combatmode-architecture-and-style.mdc).
+Folder map and per-domain notes: [`.claude/rules/`](.claude/rules/) (`architecture-and-style.md`, `domain-*.md`); ownership per module lives in each Lua file header.
 Load order is defined in [`CombatMode/Embeds.xml`](CombatMode/Embeds.xml) (included
 from [`CombatMode/CombatMode.toc`](CombatMode/CombatMode.toc)).
 
-When you move or rename modules, update this file, `Embeds.xml`, the architecture rule, and touched Lua headers in the same change (see [docs-sync rule](.cursor/rules/combatmode-docs-and-headers-stay-in-sync.mdc)).
+When you move or rename modules, update this file, `Embeds.xml`, the matching `.claude/rules/domain-*.md` note, and touched Lua headers in the same change (see `CLAUDE.md`, "Working agreements").
 
 ## Load order (scripts)
 
@@ -22,7 +22,7 @@ When you move or rename modules, update this file, `Embeds.xml`, the architectur
 5. **CombatMode/Core/ClickCasting/**, **FreeLook/**, **Crosshair/**, **AllyCycle/** — feature modules (see `Embeds.xml` for exact order). **Vignette.lua** loads after FreeLook (fades with Mouse Look).
 6. **CombatMode/UI/Options/** — options window toolkit: **Draw.lua** then **LuaCodeBox.lua** (Lua coloring, auto-indent, syntax / unknown-API diagnostics and name suggestions for `lua = true` text inputs) then **Widgets.lua** then **SpellMultiSelect.lua** then **MountMultiSelect.lua** and **FrameMultiSelect.lua** (all define `CM.UI` pieces), then **OptionsPanel.lua** (defines `CM.UI.Options.AddTab` / `CM.UI.CreateWindow` / `CM.OpenOptions`), then **OptionsSearch.lua** (title-bar search: index, dropdown, navigation), then **ColorPickerDialog.lua** (themed `ColorSelect` picker for swatches), then **BlizzardSettingsBridge.lua** (AddOns panel shortcut), then **Tabs/Tab*.lua** (each registers a tab via `AddTab`).
 7. **CombatMode/UI/Wizard/** — first-run setup wizard: **Spotlight.lua** (`UI.ShowSpotlight`: dimmed screen with a hole around one widget plus an explanation balloon) then **SetupWizard.lua** (`CM.Wizard.Start`: a guided tour through the real options tabs via `Options.FocusControl`, one setting per step). Started by the first-login welcome popup (`char.seenWizard`) and the cog beside the version chip in the options header.
-8. **CombatMode/UI/Changelog/** — **ChangelogNamespace.lua** first (defines `CM.Config`), then **ChangelogData.lua** + **ChangelogPanel.lua**; and **CombatMode/UI/Editors/** — the standalone editors (**ReticleCVarEditorData/Panel.lua**, **TargetingMacroPrelinesEditor.lua**, **CrosshairColorsEditor.lua**). Both load after the `UI/Options` toolkit they consume.
+8. **CombatMode/UI/Changelog/** — **ChangelogNamespace.lua** first (defines `CM.Config`), then **ChangelogData.lua** + **ChangelogPanel.lua**; and **CombatMode/UI/Editors/** — the standalone editors (**ReticleCVarEditorData/Panel.lua**, **TargetingMacroPrelinesEditor.lua**, **ComposedMacroEditor.lua** (Run MACRO composer; `Core/ClickCasting/ComposedMacros.lua` builds preline + body macros), **CrosshairColorsEditor.lua**). Both load after the `UI/Options` toolkit they consume.
 8. **Frame** — `CombatModeFrame` XML in `CombatMode/Embeds.xml`; `OnEvent` / `OnUpdate` call globals defined in Core. Events are registered on this frame during `CM:OnEnable()`.
 
 ## Public entry points

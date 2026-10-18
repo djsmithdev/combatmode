@@ -1,0 +1,14 @@
+---
+description: Options window toolkit, search, theme, wizard and editors
+paths:
+  - "CombatMode/UI/**"
+---
+
+# Options UI
+
+- **Options** — standalone `CombatModeOptionsFrame` (`CM.OpenOptions` / `/acm`), not Blizzard settings; tabs wire to existing `CM.*` + `CM.DB` only. Advanced holds force-lock / force-unlock Lua, the crosshair situational appearance and condition, and the Reticle CVar + macro-preline editor buttons.
+- **Options search** — `UI/Options/OptionsSearch.lua`: title-bar box that indexes `Options.controls` by the `control.search` metadata the ctx layout attaches (label, desc, tab, segment group). New searchable options need a `label` (and optional `desc`) on their `ctx:` call; editor windows without a search context are not indexed. Navigation uses `Options.SelectTabById`, `Options.RegisterSegmentSelector` and `Options.GetTabScroll`.
+- **Options preview:** tab `onSelect`/`onDeselect`; Crosshair → `CM.SetCrosshairOptionsPreview`; Ally Cycle → `CM.SetAllyCycleOptionsPreview`.
+- **Theme:** warm dark palette in `UI/Options/Draw.lua` (`UI.Colors`): copper accent (`#D08A52`) for headers, selected tab, toggles on (`toggleOn`), input values and NEW badges; near-black brown panels with a warm-brown `cardBorder`; cream `text`. Use tokens, not literal RGB, in every window (options, dialogs, editors, changelog). `UI.StripColors` removes inline markup from option strings. Shared primitives in `Draw.lua` — reuse them, do not restyle per widget: `UI.StyleControl` + `UI.WireControlHover` (every button-like control; `"primary"` for the solid accent button), `UI.StyleField` (input wells), `UI.CreateZone` (window background zones), `UI.StyleWindow` (frame + shadow via `UI.AddWindowShadow`), `UI.CreateRoundedHover`, `UI.StyleRounded`. Title art is drawn at `CM.Constants.TitleSize(height)` (true ~2.7:1 aspect, not the 4:1 file).
+- **Editors/Changelog load order:** standalone editors (`UI/Editors/*`) and the changelog panel load after the `UI/Options` toolkit they consume (`ChangelogNamespace.lua` → `ChangelogData.lua` → `ChangelogPanel.lua`). `ChangelogData.lua` is generated from `CombatMode/CHANGELOG.md` by `scripts/sync-changelog-to-lua.ps1`; never edit it by hand.
+- **Wizard** — `UI/Wizard/Spotlight.lua` (`UI.ShowSpotlight`: dimmed screen with a hole around one widget plus an explanation balloon) → `SetupWizard.lua` (`CM.Wizard.Start`: a tour through the real options tabs via `Options.FocusControl`, one setting per step; per-step highlight, balloon and warning text). Started by the first-login popup (`char.seenWizard`) and the cog beside the version chip. New first-run-relevant options need a step or an update to the existing one.

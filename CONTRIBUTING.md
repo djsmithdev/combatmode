@@ -32,7 +32,7 @@ Start here before large refactors. Prefer the owning module over new files.
 Retail can return **secret** values. Comparing them with `==` / using them as table keys / truncating them for display can error or taint.
 
 - Prefer `UnitExists("unit")`, plate identity (`GetNamePlateForUnit`), and `issecretvalue` / `canaccessvalue` / `PublicBool`-style helpers already used in Crosshair / Ally Cycle HUD / Focus marker.
-- Full guardrails: `.cursor/rules/combatmode-lua-safety.mdc` (Secret values section).
+- Full guardrails: `.claude/rules/lua-safety.md` (Secret values section).
 - When unsure, look at nearby code in the same module rather than inventing a new pattern.
 
 ### Keep docs cold
@@ -43,10 +43,14 @@ If you **move**, **rename**, or **re-order** modules:
 |--------|-----|
 | `CombatMode/Embeds.xml` | Load order |
 | `STRUCTURE.md` | Human map |
-| `.cursor/rules/combatmode-architecture-and-style.mdc` | Agent module map |
+| `.claude/rules/domain-*.md` | Per-domain gotchas for AI agents |
 | Touched file headers | What this module owns / does not |
 
-Policy: `.cursor/rules/combatmode-docs-and-headers-stay-in-sync.mdc`. Do **not** leave STRUCTURE or headers stale after a move.
+Policy: see "Working agreements" in `CLAUDE.md`. Do **not** leave STRUCTURE or headers stale after a move.
+
+## Working with Claude Code
+
+`CLAUDE.md` (project brief), `.claude/rules/` (path-scoped Lua safety and per-domain notes) and `.claude/skills/` (`/finish-change`, `/changelog`, `/new-option`, `/new-module`, `/release`) load automatically in Claude Code. The `wow-api` MCP server (`.mcp.json`, launched by `scripts/wow-api-mcp.ps1`) needs the Ketho "WoW API" VS Code extension installed. Edited Lua files are auto-formatted with StyLua by a hook.
 
 ## Default local workflow
 

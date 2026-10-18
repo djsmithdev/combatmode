@@ -14,20 +14,6 @@
       ],
       "group": "build",
       "problemMatcher": []
-    },
-    {
-      "label": "Package CombatMode Zip",
-      "type": "shell",
-      "command": "powershell",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}\\scripts\\package.ps1"
-      ],
-      "group": "build",
-      "problemMatcher": []
     }
   ]
 }

@@ -1,0 +1,19 @@
+---
+description: Click casting, Reticle Targeting prelines, composed macros, Target Lock bindings
+paths:
+  - "CombatMode/Core/ClickCasting/**"
+  - "CombatMode/Constants/DatabaseDefaults.lua"
+  - "CombatMode/UI/Options/Tabs/TabClickCasting.lua"
+  - "CombatMode/UI/Options/Tabs/TabReticleTargeting.lua"
+  - "CombatMode/UI/Editors/**"
+---
+
+# Click casting and Reticle Targeting
+
+- **BindingOverrides** — click-cast / Target Lock secure buttons; Cycle Lock Next/Previous as dedicated Bindings.xml keys (`ApplyCycleFocusBindings` + `SetOverrideBindingClick`; defaults Shift+mouse-wheel). Macro slots skip the reticle proxy (`CM.GetDisplayedActionSlotInfo`); Bonus/Override/TempShapeshift macros use `SetOverrideBindingClick` on the live frame.
+- **ComposedMacros** (`Core/ClickCasting/ComposedMacros.lua`) — the Run MACRO dropdown (existing macros with icon + Reticle Targeting tag; top entry "Create New Macro" opens `UI/Editors/ComposedMacroEditor.lua`) writes a real WoW macro = `CM.GetActiveTargetingPreline()` + user body (255 cap, no `/click` reserve), stores `binding.composedMacroBody`, and `RebuildComposedMacros` (from `RefreshClickCastMacros`) re-edits it when the preline changes. Never name macros with a `CM_` prefix (`RemoveLegacyMacros` deletes them).
+- **Nested macro /click:** SecureActionButton `macrotext` cannot `/click` another macro button (silent no-op). Classify bar slots with `CM.GetDisplayedActionSlotInfo` (live frame action; reject stale override 121–132 after dismount; else page/bonus or MultiBar slot) — not hard-coded slots 1–12.
+- **Help/harm routing (TargetingMacroBuilder):** helpful + Ignore Friendlies → no `/tar` (not keys-gated; Forever / unbound); helpful + Any → `/tar` `[help]` mouseover / `@softinteract` / `@anyfriend` (hostiles do not steal a friendly hard target); harmful → enemy `/tar` when cycle keys bound (including solo); no last-ally retarget except optional restore-after-harm. Restore-after-harm: slim harm `/tar` (keeps `[@focus,harm]`) + `/targetlasttarget [harm]` (`IsAllyCycleRestoreAfterHarm`; healer spec default until toggled; skipped when Auto Target Lock is on).
+- Standalone editor windows (`UI/Editors/*`) register in `Embeds.xml` after the `UI/Options` toolkit; keep `CM.Open*` combat-guarded where frames are created. When changing reticle CVar presets or exclusions, update `Constants/CVars.lua`, `UI/Editors/ReticleCVarEditorData.lua` and `Core/Runtime/CVarManager.lua` together.
+- **TargetingMacroBuilder** — builds the macrotext injected into click-cast proxies: `CM.BuildClickCastMacroText(bindingValue)` (no-op when `reticleTargeting` is off), preline variants (any / enemy-only × plain / auto-lock) with user overrides from `global.targetingMacroPreline*Override` (edited in `UI/Editors/TargetingMacroPrelinesEditor.lua`, effective after reload), optional ally-restore post-line, `/click` bar button or `/cast [@cursor]` for ground spells, and the cast-at-cursor / exclude spell lists. Hard limit: **255 characters** (`SECURE_MACROTEXT_MAX`); long macros fall back to `SLIMMER_PRELINE` (matters for ElvUI/Bartender with key-down). Auto-lock prelines also re-sync `/focus` so a sticky empty focus can't leave a dead lock.
+- **AddonActionBarResolver** — maps ACTIONBUTTON / MULTIACTIONBAR1–7 to ElvUI / Bartender4 / Dominos button frames and forces `macroInjectionClickCastOnly` when those addons are loaded (caches cleared on binding refresh). It doesn't set bindings or build macro text.

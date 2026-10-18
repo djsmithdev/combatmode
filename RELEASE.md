@@ -4,7 +4,7 @@ Use this checklist when preparing a release build.
 
 ## 1) Version and metadata
 
-Version bumps are opt-in during day-to-day work (agents ask; see `AGENTS.md`). For a release tag, confirm the bump happened:
+Version bumps are opt-in during day-to-day work (agents ask; see `CLAUDE.md`). For a release tag, confirm the bump happened:
 
 - Addon version in `CombatMode/CombatMode.toc` matches the latest dated section in `CombatMode/CHANGELOG.md`.
 - Verify `## Interface` lists current Mainline, Forever, and Classic flavor builds (comma-delimited so each client accepts the unsuffixed TOC).

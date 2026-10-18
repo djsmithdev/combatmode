@@ -3,14 +3,15 @@ package-as: CombatMode
 changelog-title: CombatMode
 manual-changelog: CHANGELOG.md
 ignore:
-  - .cursor
+  - .claude
+  - .mcp.json
+  - CLAUDE.md
   - .github
   - .vscode
   - scripts
   - media
   - dist
   - agent-transcripts
-  - AGENTS.md
   - CONTRIBUTING.md
   - README.md
   - RELEASE.md

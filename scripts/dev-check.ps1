@@ -51,11 +51,11 @@ Test-FileExists -Path ".pre-commit-config.yaml"
 
 Write-Host ""
 Write-Host "== Optional MCP check =="
-if (Test-Path ".cursor/mcp.json") {
-    Write-Host "[PASS] Found .cursor/mcp.json"
+if (Test-Path ".mcp.json") {
+    Write-Host "[PASS] Found .mcp.json"
 }
 else {
-    Write-Host "[WARN] .cursor/mcp.json not found (MCP optional for local lint/format)"
+    Write-Host "[WARN] .mcp.json not found (MCP optional for local lint/format)"
 }
 
 if (-not $allToolsOk) {
