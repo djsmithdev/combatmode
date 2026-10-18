@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The Blizzard art the addon draws with (window frame, health bar, icons, HUD ring and more) is now shipped with the addon instead of read from the game, so it looks the same on every client. The `Assets` folder is organized into `branding`, `crosshair`, `assisthud`, `ui` and `atlas`.
 - The setup wizard has new steps for Excluded Spells, Cast at Crosshair, Reticle Targeting Macros, Targeting Indicators, Unlock Mounts and Extra Frames, and updated Target Lock text.
 - The setup wizard now leaves the crosshair and HUD previews undimmed and outlined (one element per step: the crosshair, the Assist HUD or the Ally HUD), and moves its balloon out of their way.
+- The **setup wizard** now runs once for existing installs too, not just new ones: the first time you log in after updating, it starts on its own, and the changelog opens when you finish or skip it. The welcome and the wizard are now remembered per account instead of per character, so your other characters don't repeat them.
 
 ### Fixed
 

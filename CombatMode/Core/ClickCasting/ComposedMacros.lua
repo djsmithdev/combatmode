@@ -14,6 +14,8 @@
 --    • CM.RebuildComposedMacros — re-edits registered macros whose text no longer matches the
 --      active preline (Auto Target Lock / Ignore Friendlies / preline override changes).
 --      Runs from RefreshClickCastMacros and at login; skipped in combat.
+--      Macros not saved by the composer but opening with an older ACM preline get just that
+--      first part swapped (CM.RebuildUnregisteredMacros).
 --    • CM.EnumerateMacros / CM.IsComposedMacroBody feed the Click Casting macro dropdown
 --      (icon + whether a macro opens with an ACM targeting preline); CM.EnumerateComposedMacros
 --      lists only those, for the draggable Reticle Targeting Macros shelf.
@@ -224,6 +226,9 @@ function CM.RebuildComposedMacros()
       end
     end
   end
+  if CM.RebuildUnregisteredMacros then
+    CM.RebuildUnregisteredMacros()
+  end
 end
 
 --- Every macro the player owns (general + character) as { name, icon, body }, sorted by name.
@@ -273,12 +278,33 @@ local function MatchingPreline(body)
       end
     end
   end
+  -- Longest match wins: one preline can be a prefix of another.
+  local best
   for _, pre in pairs(candidates) do
-    if pre ~= "" and body:sub(1, #pre) == pre then
-      return pre
+    if pre ~= "" and body:sub(1, #pre) == pre and (not best or #pre > #best) then
+      best = pre
     end
   end
-  return nil
+  return best
+end
+
+--- Macros that open with an older ACM preline but were never saved by the composer (so they
+--- are not in the registry): swap just the leading preline for the active one.
+function CM.RebuildUnregisteredMacros()
+  local active = Preline()
+  if active == "" then
+    return
+  end
+  local registry = Registry()
+  for _, macro in ipairs(CM.EnumerateMacros()) do
+    local pre = MatchingPreline(macro.body)
+    if pre and pre ~= active and registry[macro.name] == nil then
+      local text = active .. macro.body:sub(#pre + 1)
+      if #text <= MACRO_MAX then
+        EditMacro(macro.name, nil, nil, text)
+      end
+    end
+  end
 end
 
 function CM.IsComposedMacroBody(body)

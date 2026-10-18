@@ -134,6 +134,10 @@ function CM.BootstrapFeatureModules()
   CM.InitializeCursorPulse()
   CM.InitializeVignette()
   RemoveLegacyMacros()
+  -- Settings that change the preline reload the UI, so bring composed macros up to date here.
+  if CM.RebuildComposedMacros then
+    CM.RebuildComposedMacros()
+  end
   CM.ApplyToggleFocusTargetBinding()
   CM.ApplyCycleFocusBindings()
   if CM.InitializeAllyCycle then
