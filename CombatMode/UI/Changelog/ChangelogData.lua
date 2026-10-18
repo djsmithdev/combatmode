@@ -14,10 +14,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [5.0.5] - 2026-10-16
+## [5.1.0] - 2026-10-18
 
 ### Added
 
+- **Reticle Targeting Macros** (Reticle Targeting tab): a list of your macros that begin with the Reticle Targeting logic, shown as icons. Drag one onto an action bar (or click it to pick it up) and it follows your bar swaps. Right-click an icon to edit it. Macros on action bars cannot inherit Reticle Targeting on their own, so this replaces having to copy the preline into them by hand.
+- **Macro Composer**: press **+** at the end of the Reticle Targeting Macros list to write a macro. The preline matching your current Reticle Targeting settings is added automatically as a locked, highlighted first line, with a live character counter for the 255-character macro limit. Saving creates a real WoW macro (a character macro, or a general one with Account-Wide Binds), and editing it can also rename or delete it. Macros made this way are updated automatically when Ignore Friendlies, Auto Target Lock or the preline changes.
+- The click-cast **Run MACRO** dropdown now lists your existing macros with their icons, and tags the ones that carry Reticle Targeting.
 - The Interaction HUD and Combat Assist are now a single **Assist HUD** (Crosshair tab). On a hostile (hard target or under the crosshair) it shows the Assisted Highlight's next-cast suggestion with your keybind. On an interactable it shows the interaction icon, its name and your Interact key, with a glow and a short animation when it appears.
 - The **Next-cast Suggestion** fades out while the suggested spell is out of range of your target.
 - **Ally Cycle** now skips group members who are offline or in another zone or instance, since you can't cast on them. Someone far away in the same zone is still included. Changes are picked up out of combat, so a member who disconnects mid-fight is skipped once combat ends.
@@ -26,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Target Outline** and **Selection Circle** moved to their own **Targeting Indicators** section at the bottom of the Reticle Targeting tab. In Target Lock, **Target Lock Behavior** now sits below the Cycle Lock keys.
 - **Combat Assist** is now the **Next-cast Suggestion** dropdown: **Always**, **Only In Combat** or **Hidden** (it was an on/off toggle). An existing On becomes Always, so it now also shows outside combat.
 - The **Toggle Focus Any / Enemy** click-cast actions are removed; the Target Lock key replaces them. A click-cast slot that used one (including the old default Alt + Right Click) is turned off.
 - **Interaction HUD** is now the **Interactable Indicator** toggle. It and the Next-cast Suggestion share one Position, Scale and Distance setting.
@@ -33,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The **Shoulder Offset** slider now goes from -15 to 15 (it was -2 to 2).
 - **Ally Cycle** is available on WoW Forever again. Forever's early beta could not run the secure code it needs, so it was turned off there; that has since been fixed.
 - The Blizzard art the addon draws with (window frame, health bar, icons, HUD ring and more) is now shipped with the addon instead of read from the game, so it looks the same on every client. The `Assets` folder is organized into `branding`, `crosshair`, `assisthud`, `ui` and `atlas`.
+- The setup wizard has new steps for Excluded Spells, Cast at Crosshair, Reticle Targeting Macros, Targeting Indicators, Unlock Mounts and Extra Frames, and updated Target Lock text.
 - The setup wizard now leaves the crosshair and HUD previews undimmed and outlined (one element per step: the crosshair, the Assist HUD or the Ally HUD), and moves its balloon out of their way.
 
 ### Fixed
