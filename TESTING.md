@@ -16,7 +16,7 @@ Use this checklist for feature work and regressions.
 - Steps that ask for an action (Mouse Look: Mouse Look + Interact keys; Target Lock: Target Lock + Cycle Lock Next / Previous keys, not required while Reticle Targeting is off; Ally Cycle: Next + Previous keys) show a check list in the balloon. Checks fill green as soon as the key is bound (already-bound keys start checked), and Next stays dimmed and disabled until all are done. Skip tour and Back always work.
 - Back / Next / Skip tour / ESC work; Finish ends it. Switching tabs by hand hides the dim until the next step.
 - Cog left of the version chip: tooltip, confirm dialog, Yes restarts the tour, No does nothing. Version chip and search box still lay out correctly.
-- Starting in combat waits for combat to end; entering combat mid-tour ends it. Existing characters (`seenWarning` set) are not prompted.
+- Starting in combat waits for combat to end; entering combat mid-tour ends it. An existing account (`global.seenWarning` set, `global.seenWizard` false) gets the tour once at login without the welcome modal, then the changelog opens when it ends; alts don't repeat it.
 
 ## Core and mouselook
 

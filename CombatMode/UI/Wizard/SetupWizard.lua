@@ -17,7 +17,7 @@
 --    • The dim never blocks the mouse, so every option keeps working while a step is shown.
 --    • Steps marked `preview` (Crosshair, Assist HUD, Ally HUD) also leave that one live element
 --      (crosshair, Assist HUD or Ally HUD) undimmed with its own outline, and the balloon keeps clear.
---    • char.seenWizard is set when the tour finishes or is skipped (Skip / ESC).
+--    • global.seenWizard is set when the tour finishes or is skipped (Skip / ESC).
 --    • Combat: Start waits for combat to end; entering combat mid-tour ends the tour.
 --  Does not: Cover every option (only the basics and the major features), or own any setting
 --      (the tabs do).
@@ -296,8 +296,14 @@ function Wizard.Finish()
   StopWatchingCombat()
   UI.HideSpotlight()
   Options.CancelKeybindCapture()
-  CM.DB.char.seenWizard = true
+  CM.DB.global.seenWizard = true
   Options.Sync()
+  -- Upgrades see the changelog after the tour (no-op when this version was already seen).
+  C_Timer.After(0.5, function()
+    if CM.Config and CM.Config.MaybeShowChangelogOnNewVersion then
+      CM.Config.MaybeShowChangelogOnNewVersion()
+    end
+  end)
 end
 
 local ShowStep

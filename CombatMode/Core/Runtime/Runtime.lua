@@ -148,8 +148,25 @@ local function DisplayPopup()
   -- Debug Mode re-plays the first-install welcome on every reload so the themed
   -- welcome modal can be verified without wiping SavedVariables.
   local debugMode = CM.DB.global and CM.DB.global.debugMode
-  if (CM.DB.char.seenWarning and not debugMode) or not (CM.UI and CM.UI.ShowWelcome) then
+  if not (CM.UI and CM.UI.ShowWelcome) then
     return false
+  end
+  if CM.DB.global.seenWarning and not debugMode then
+    -- Account that never saw the setup wizard (installed before it existed): run the tour
+    -- once, without the welcome modal. Finishing or skipping sets seenWizard, and the
+    -- wizard then opens the changelog if this version has not been seen.
+    if CM.DB.global.seenWizard or not (CM.Wizard and CM.Wizard.Start) then
+      return false
+    end
+    C_Timer.After(0.75, function()
+      if CM.DB.global.seenWizard or not (CM.Wizard and CM.Wizard.Start) then
+        ScheduleChangelogIfNewVersion()
+        return
+      end
+      CM.DebugPrint("Starting setup wizard for an existing install")
+      CM.Wizard.Start()
+    end)
+    return true
   end
 
   -- Defer past Blizzard's load-end CloseSpecialWindows / UI reset. Showing a modal
@@ -161,16 +178,16 @@ local function DisplayPopup()
     if not (CM.UI and CM.UI.ShowWelcome) then
       return
     end
-    if CM.DB.char.seenWarning and not (CM.DB.global and CM.DB.global.debugMode) then
+    if CM.DB.global.seenWarning and not (CM.DB.global and CM.DB.global.debugMode) then
       ScheduleChangelogIfNewVersion()
       return
     end
     CM.DebugPrint("Showing first-install welcome modal")
     CM.UI.ShowWelcome(CM.Constants.PopupMsg, function()
-      CM.DB.char.seenWarning = true
+      CM.DB.global.seenWarning = true
       -- New installs go through the setup wizard (it opens the options panel for its tour);
       -- if it is unavailable fall back to just opening the panel.
-      if CM.Wizard and CM.Wizard.Start and (not CM.DB.char.seenWizard or debugMode) then
+      if CM.Wizard and CM.Wizard.Start and (not CM.DB.global.seenWizard or debugMode) then
         -- A new install (or reset) has nothing to catch up on, so the changelog stays out of
         -- the wizard's way: count this version as seen instead of opening it beside the tour.
         CM.DB.global.lastSeenChangelogVersion = CM.METADATA["VERSION"]
@@ -332,6 +349,20 @@ function CM.InitDatabase()
   end
 
   BindDatabaseViews(sv, charKey)
+  -- Welcome / setup wizard flags moved from per-character to account-wide: any character
+  -- that already saw them counts for the whole account.
+  for _, charDb in pairs(sv.char) do
+    if type(charDb) == "table" then
+      if charDb.seenWarning ~= nil then
+        sv.global.seenWarning = sv.global.seenWarning or charDb.seenWarning == true
+        charDb.seenWarning = nil
+      end
+      if charDb.seenWizard ~= nil then
+        sv.global.seenWizard = sv.global.seenWizard or CM.DbBool(charDb.seenWizard, false)
+        charDb.seenWizard = nil
+      end
+    end
+  end
   -- Party Radial removed in 4.7.0; drop leftover settings so they do not linger in SV.
   if sv.global then
     sv.global.partyRadial = nil

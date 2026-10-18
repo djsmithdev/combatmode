@@ -159,13 +159,15 @@ return false
       restoreAllyAfterHarm = false,
       restoreAllyAfterHarmSet = false,
     },
+    -- first run, account-wide: welcome modal dismissed; setup wizard finished or skipped
+    -- (accounts that predate the wizard get it once at login)
+    seenWarning = false,
+    seenWizard = false,
     -- dev
     silenceAlerts = true,
     debugMode = false,
   },
   char = {
-    -- setup wizard (UI/Wizard/SetupWizard.lua): set once it has been finished or skipped
-    seenWizard = false,
     -- mouse look camera
     shoulderOffset = 1.2,
     -- reticle targeting
