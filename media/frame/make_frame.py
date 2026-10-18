@@ -136,7 +136,7 @@ def build(cw, ch):
     return final, SHADOW_REACH + BT
 
 
-LOGO_PATH = os.path.join(HERE, "..", "..", "CombatMode", "assets", "cmtitle.blp")
+LOGO_PATH = os.path.join(HERE, "..", "..", "CombatMode", "Assets", "branding", "cmtitle.blp")
 LOGO_HEIGHT = 34  # px, the lettering only (the art's empty margins are cropped away)
 LOGO_MARGIN = 14  # distance from the metal band to the logo
 

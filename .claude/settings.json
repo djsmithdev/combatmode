@@ -19,7 +19,8 @@
       "Read(CombatMode/Libs/**)",
       "Read(CombatMode/Assets/**)",
       "Read(CombatMode/UI/Changelog/ChangelogData.lua)",
-      "Read(media/**)",
+      "Read(media/**/*.gif)",
+      "Read(media/**/*.png)",
       "Read(dist/**)"
     ]
   },

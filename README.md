@@ -28,19 +28,15 @@
 </p>
 
 <p align="center">
+  <img src="media/assist_hud.gif">
+</p>
+
+<p align="center">
   <img src="media/target_lock.gif">
 </p>
 
 <p align="center">
   <img src="media/ally_cycle.gif">
-</p>
-
-<p align="center">
-  <img src="media/combat_assist.gif">
-</p>
-
-<p align="center">
-  <img src="media/interaction_hud.gif">
 </p>
 
 <p align="center">
@@ -55,16 +51,11 @@ Grab it on [**CurseForge**](https://www.curseforge.com/wow/addons/combat-mode) o
 
 ## <img width="20" height="20" src="media/cmlogo.svg"> INSTRUCTIONS
 
-After installing the AddOn, you'll be greeted by this message upon your first login on each character:
+After installing the AddOn, you'll be greeted by this message. Click Okay to proceed and follow the Setup Wizard.
 
 <p align="center">
   <img src="media/welcome_msg.png">
 </p>
-
-1. Click Okay to proceed or go to Game Menu (ESC) > Options > AddOns > Action Combat Mode.
-2. In the options panel, you'll be able to configure the addon to your liking.
-
-<strong>Please, take your time reading what each option does, their tooltips and dev notes. They answer the majority of the most commonly asked questions.</strong>
 
 <br />
 
