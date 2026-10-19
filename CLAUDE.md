@@ -25,7 +25,7 @@ Action-combat controls for World of Warcraft: Mouse Look + a reticle replace tab
 ## Working agreements
 
 - **Ask before** committing, bumping `## Version` in the TOC, pushing, or posting to GitHub. Changelog entries go in the current version section (then run the sync script). Recipes: `/finish-change`, `/changelog`, `/release`, `/new-option`, `/new-module`. Audits: `/secret-audit`, `/secure-audit`. Test plan: `/ingame-test`.
-- **WoW API facts:** `wow-api` MCP first (`lookup_api`, `get_event`, `get_enum`, `list_deprecated`…), then existing code, then warcraft.wiki.gg. Say so if the MCP is down.
+- **WoW API facts:** `wow-api` MCP first (`lookup_api`, `get_event`, `get_enum`, `list_deprecated`…), then existing code, then Blizzard's UI source (`https://github.com/Gethe/wow-ui-source`: default frame/template/mixin behavior; branches `live`, `ptr`, `beta` for patch diffs), then warcraft.wiki.gg. Say so if the MCP is down.
 - **Headers:** every edited/new `CombatMode/**.lua` keeps the header: `Path/File.lua — DOMAIN — title`, then *What it does / Architecture / Does not / Related*.
 - **Architecture moves** (rename, move responsibility, load order) update `Embeds.xml`, `STRUCTURE.md`, the matching `domain-*.md` and the touched headers in the same change. Prefer API-preserving moves.
 - Keep edits in the owning module; extend existing `CM.*` APIs; preserve slash commands and keybinds unless asked.
