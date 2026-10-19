@@ -14,8 +14,10 @@
 --    • CM.Profile keys: AllyCycle:GetIndex / ApplyBindings / RefreshRoster.
 --    • Away members: offline or in another zone / instance are skipped (away-<unit> attributes
 --      mirrored by CM.RefreshAllyCycleAvailability out of combat; distance alone never skips).
---    • No client gating: Forever Beta once could not compile secure snippets (fixed in the
---      beta's first weeks, WoWUIBugs#892), so Ally Cycle runs on every supported client.
+--    • Forever Beta (interface 16xxx) cannot compile secure snippets; headers stay
+--      hidden and wrap/binds no-op. Detect via GetBuildInfo, not loadstring_untainted
+--      (that global is not addon-visible on Mainline either, and is not available on Forever)
+--      or WOW_PROJECT_ID (Forever reports as Mainline).
 --  Does not: Own HUD chrome or click-cast prelines.
 --  Related: Core/AllyCycle/{Target,HealthBar,Motion,HUD,AllyCycle}.lua, Core/ClickCasting/BindingOverrides.lua,
 --  Core/Runtime/BindingQueue.lua, UI/Options/Tabs/TabAllyCycle.lua, Bindings.xml
@@ -27,6 +29,7 @@ local _G = _G
 local ClearOverrideBindings = _G.ClearOverrideBindings
 local CreateFrame = _G.CreateFrame
 local GetBindingKey = _G.GetBindingKey
+local GetBuildInfo = _G.GetBuildInfo
 local GetNormalizedRealmName = _G.GetNormalizedRealmName
 local GetRealmName = _G.GetRealmName
 local InCombatLockdown = _G.InCombatLockdown
@@ -51,6 +54,15 @@ local issecretvalue = _G.issecretvalue
 local select = _G.select
 local tostring = _G.tostring
 local wipe = _G.wipe
+
+-- Forever 1.60.x TOC is 16xxx. Classic Era is 115xx; Mainline is 12xxxx.
+-- RestrictedExecution is broken on that client; do not probe loadstring_untainted
+-- (nil in addon _G on Retail too — that disabled Ally Cycle everywhere).
+local interfaceVersion = (GetBuildInfo and select(4, GetBuildInfo())) or 0
+local FOREVER_CLIENT = type(interfaceVersion) == "number"
+  and interfaceVersion >= 16000
+  and interfaceVersion < 20000
+local SECURE_SNIPPETS_OK = not FOREVER_CLIENT
 
 local BIND_UP = "Combat Mode - Ally Cycle Next"
 local BIND_DOWN = "Combat Mode - Ally Cycle Previous"
@@ -91,9 +103,13 @@ local function CreateGroupHeader(name, sortDir)
   header:SetAttribute("sortMethod", "INDEX")
   header:SetAttribute("sortDir", sortDir or "ASC")
   header:SetAttribute("template", "SecureUnitButtonTemplate")
-  header:SetAttribute("initialConfigFunction", INITIAL_CONFIG)
-  -- SecureGroupHeaderTemplate only populates while shown.
-  header:Show()
+  if SECURE_SNIPPETS_OK then
+    header:SetAttribute("initialConfigFunction", INITIAL_CONFIG)
+    -- SecureGroupHeaderTemplate only populates while shown.
+    header:Show()
+  else
+    header:Hide()
+  end
   return header
 end
 
@@ -109,13 +125,20 @@ SelfHeader:SetAttribute("showParty", true)
 SelfHeader:SetAttribute("showPlayer", true)
 SelfHeader:SetAttribute("showSolo", true)
 SelfHeader:SetAttribute("template", "SecureUnitButtonTemplate")
-SelfHeader:SetAttribute("initialConfigFunction", INITIAL_CONFIG)
-SelfHeader:Show()
+if SECURE_SNIPPETS_OK then
+  SelfHeader:SetAttribute("initialConfigFunction", INITIAL_CONFIG)
+  SelfHeader:Show()
+else
+  SelfHeader:Hide()
+end
 
 local GroupAsc = CreateGroupHeader("CombatModeAllyCycleGroupAsc", "ASC")
 local GroupDesc = CreateGroupHeader("CombatModeAllyCycleGroupDesc", "DESC")
 
 local function EnsureSelfHeaderNameList()
+  if not SECURE_SNIPPETS_OK then
+    return
+  end
   if InCombatLockdown and InCombatLockdown() then
     return
   end
@@ -168,13 +191,17 @@ function CycleButton:PrepareCycle()
   end
 end
 
+function CM.IsAllyCycleSecureAvailable()
+  return SECURE_SNIPPETS_OK
+end
+
 if SecureHandlerSetFrameRef then
   SecureHandlerSetFrameRef(CycleButton, "selfHeader", SelfHeader)
   SecureHandlerSetFrameRef(CycleButton, "groupAsc", GroupAsc)
   SecureHandlerSetFrameRef(CycleButton, "groupDesc", GroupDesc)
 end
 
-if SecureHandlerWrapScript then
+if SECURE_SNIPPETS_OK and SecureHandlerWrapScript then
   SecureHandlerWrapScript(
     CycleButton,
     "OnClick",
@@ -293,6 +320,9 @@ function CycleButton:NotifyCycle(direction)
 end
 
 local function RefreshAllyCycleRosterImpl()
+  if not SECURE_SNIPPETS_OK then
+    return
+  end
   EnsureSelfHeaderNameList()
   if SelfHeader and not SelfHeader:IsShown() then
     SelfHeader:Show()
@@ -572,6 +602,15 @@ local function ApplyAllyCycleBindingsImpl()
 end
 
 function CM.ApplyAllyCycleBindings()
+  if not SECURE_SNIPPETS_OK then
+    if not InCombatLockdown() then
+      ClearOverrideBindings(OverrideOwner)
+    end
+    if CM.RefreshAllyCycleHUD then
+      CM.RefreshAllyCycleHUD()
+    end
+    return
+  end
   if InCombatLockdown() then
     if CM.TryApplyBindingChange then
       CM.TryApplyBindingChange("ally cycle bindings", function()

@@ -12,7 +12,7 @@
 --      adds a round icon and a dim right-hand tag to menu rows and the closed select; values/order
 --      may be functions (re-read on open). opts.helpTooltip adds a round "?"
 --      badge left of the select (control.widgetLeftInset keeps the layout room) that shows
---      the tooltip on hover.
+--      the tooltip on hover. ESC closes the open menu only (its own keyboard handler), not the window.
 --    • Text inputs: multiline opts.lockedPrefix (string|function) pins dim,
 --      non-editable text above the editable area in the same well (Macro Composer preline);
 --      opts.lockedWidthHint sizes its wrapped height; opts.textFrac overrides the
@@ -36,6 +36,7 @@ local CreateColor = _G.CreateColor
 local CreateFrame = _G.CreateFrame
 local C_Timer = _G.C_Timer
 local GetCurrentKeyBoardFocus = _G.GetCurrentKeyBoardFocus
+local InCombatLockdown = _G.InCombatLockdown
 local IsMouseButtonDown = _G.IsMouseButtonDown
 local UIParent = _G.UIParent
 
@@ -1988,7 +1989,28 @@ function UI.MakeDropdown(parent, opts)
     menu.bar = bar
 
     closer:SetScript("OnClick", CloseMenu)
-    menu:SetScript("OnHide", function()
+    -- ESC closes only the menu. The menu is not in UISpecialFrames, so without a keyboard
+    -- handler ESC would reach CloseSpecialWindows and close the options window underneath it
+    -- (leaving the menu open). Every other key still reaches the game.
+    menu:SetScript("OnKeyDown", function(self, key)
+      if InCombatLockdown() then
+        return
+      end
+      if key == "ESCAPE" then
+        self:SetPropagateKeyboardInput(false)
+        CloseMenu()
+      else
+        self:SetPropagateKeyboardInput(true)
+      end
+    end)
+    menu:SetScript("OnShow", function(self)
+      self:EnableKeyboard(true)
+      if not InCombatLockdown() then
+        self:SetPropagateKeyboardInput(true)
+      end
+    end)
+    menu:SetScript("OnHide", function(self)
+      self:EnableKeyboard(false)
       closer:Hide()
     end)
   end

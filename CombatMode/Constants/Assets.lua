@@ -6,8 +6,8 @@
 --  appearance select values and reaction color tables the Crosshair tab and runtime read.
 --  Architecture / how it works:
 --    • `PopupMsg` / `BasePrintMsg` — welcome modal + print prefix (version from METADATA).
---    • Art lives under Interface\AddOns\CombatMode\Assets\: branding\ (logo, title, Discord/GitHub/
---      Sponsor icons), crosshair\ (reticle BLP pairs), assisthud\ (AssistedSpellIcon*, ModifierKey{Ctrl,
+--    • Art lives under Interface\AddOns\CombatMode\Assets\: branding\ (logo, title, Discord/GitHub
+--      icons), crosshair\ (reticle BLP pairs), assisthud\ (AssistedSpellIcon*, ModifierKey{Ctrl,
 --      Shift,Alt}), ui\ (window shadow TGA) and atlas\ (shipped Blizzard atlases, Constants/Atlas.lua).
 --    • CrosshairTextureObj entries pair active/inactive BLPs; AppearanceSelectValues
 --      drives the Crosshair options dropdown. CrosshairSituationalHidden is the
@@ -81,10 +81,8 @@ CM.Constants.CheckMark = uiPath .. "checkbox-check.tga"
 CM.Constants.UnknownAddonIcon = uiPath .. "question-mark.tga"
 CM.Constants.DiscordIcon = brandingPath .. "discord.blp"
 CM.Constants.GitHubIcon = brandingPath .. "github.blp"
-CM.Constants.SponsorIcon = brandingPath .. "sponsor.blp"
 CM.Constants.DiscordURL = "https://www.discord.gg/5mwBSmz"
 CM.Constants.GitHubURL = "https://github.com/djsmithdev/combatmode"
-CM.Constants.SponsorsURL = "https://github.com/sponsors/sampconrad"
 -- Combat Assist icon shell: background and mask are Blizzard atlases; the frame (84x74 TGA, ring
 -- on the left with a pointer on the right), glow and cooldown swipe are addon textures.
 CM.Constants.AssistedSpellIconBackground = "UI-Journeys-Delve-rewardicon-ring-BG"

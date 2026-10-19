@@ -740,11 +740,12 @@ local function ShowAssistedHighlightContent(texture, keybindText, keybindStyle, 
   if hudMode ~= "assist" then
     hudMode = "assist"
     if Motion and Motion.SetEffectTint then
+      -- Assist keeps the FlipBook's original blue art (no desaturate); glow is cyan.
       Motion.SetEffectTint(
         Motion.ASSIST_COLOR_R,
         Motion.ASSIST_COLOR_G,
         Motion.ASSIST_COLOR_B,
-        true
+        false
       )
     end
   end

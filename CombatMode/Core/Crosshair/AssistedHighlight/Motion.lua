@@ -201,7 +201,7 @@ function Motion.PlayProcEffectForSpell(spellID)
   end
 end
 
---- Tints the glow, the proc FlipBook and (non-default tint only) the metal frame ring. The FlipBook
+--- Tints the glow (and the FlipBook when desaturateProc) with r/g/b; the metal frame ring is always copper. The FlipBook
 --- atlas is blue art, so a non-default tint desaturates it first (a vertex color alone would
 --- multiply the blue channel away).
 function Motion.SetEffectTint(r, g, b, desaturateProc)
@@ -210,12 +210,14 @@ function Motion.SetEffectTint(r, g, b, desaturateProc)
     frame.glow:SetVertexColor(r, g, b, 1)
   end
   if frame and frame.frame then
-    if desaturateProc then
-      local k = FRAME_TINT_STRENGTH
-      frame.frame:SetVertexColor(1 - k + k * r, 1 - k + k * g, 1 - k + k * b, 1)
-    else
-      frame.frame:SetVertexColor(1, 1, 1, 1)
-    end
+    -- The metal frame stays copper in both modes; only glow and FlipBook follow r/g/b.
+    local k = FRAME_TINT_STRENGTH
+    frame.frame:SetVertexColor(
+      1 - k + k * Motion.GLOW_COLOR_R,
+      1 - k + k * Motion.GLOW_COLOR_G,
+      1 - k + k * Motion.GLOW_COLOR_B,
+      1
+    )
   end
   local visual = HostVisual()
   if visual and visual.ProcLoop then

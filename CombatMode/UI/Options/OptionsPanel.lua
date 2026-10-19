@@ -1000,16 +1000,6 @@ local function BuildShell()
   )
   discordBtn:SetPoint("RIGHT", githubBtn, "LEFT", -14, 0)
 
-  local sponsorsBtn = UI.CreateIconLinkButton(
-    frame,
-    CM.Constants.SponsorIcon,
-    CM.Constants.SponsorsURL,
-    "Sponsor Development",
-    "Sponsors",
-    HEADER_BUTTON_SIZE
-  )
-  sponsorsBtn:SetPoint("RIGHT", discordBtn, "LEFT", -14, 0)
-
   -- Sidebar/content divider
   local divider = UI.CreateLine(chrome, true, C.divider, "ends")
   divider:SetWidth(1)

@@ -14,6 +14,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.1] - 2026-10-19
+
+### Fixed
+
+- The Assist HUD frame stays copper in both modes. The blue next-cast tint now applies only to the glow, and the animation keeps its original colors.
+- Pressing **Esc** with the **Run MACRO** dropdown open now closes only the dropdown. Before, it closed the whole options window and left the dropdown open.
+- **Ally Cycle** is turned off again on WoW Forever. Forever still cannot run the secure code it needs, which caused errors; the Ally Cycle tab shows it as unavailable there.
+
 ## [5.1.0] - 2026-10-18
 
 ### Added
@@ -26,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Ally Cycle** now skips group members who are offline or in another zone or instance, since you can't cast on them. Someone far away in the same zone is still included. Changes are picked up out of combat, so a member who disconnects mid-fight is skipped once combat ends.
 - **Target Lock Behavior** (Reticle Targeting): choose **Toggle** (tap to lock, tap again to unlock, as before) or **Switch Target** (tap while aiming at a unit to move the lock to it, tap with nothing under the crosshair to unlock). Made for arenas and battlegrounds where you need to switch locks in one press.
 - A **Flip Camera** keybind in the Mouse Look section, below the Interact Unit option. Like Mouse Look it works both ways: tap to flip the camera around your character and press again to flip back, or hold to flip it only while the key is held.
+- **Ally Cycle** is available on WoW Forever again. Forever's early beta could not run the secure code it needs, so it was turned off there; that has since been fixed.
 
 ### Changed
 
@@ -35,7 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Interaction HUD** is now the **Interactable Indicator** toggle. It and the Next-cast Suggestion share one Position, Scale and Distance setting.
 - New look for the Assist HUD: a copper glow, animation and frame matching the options window, and the keybind and name text now use the window's text colors with an outline.
 - The **Shoulder Offset** slider now goes from -15 to 15 (it was -2 to 2).
-- **Ally Cycle** is available on WoW Forever again. Forever's early beta could not run the secure code it needs, so it was turned off there; that has since been fixed.
 - The Blizzard art the addon draws with (window frame, health bar, icons, HUD ring and more) is now shipped with the addon instead of read from the game, so it looks the same on every client. The `Assets` folder is organized into `branding`, `crosshair`, `assisthud`, `ui` and `atlas`.
 - The setup wizard has new steps for Excluded Spells, Cast at Crosshair, Reticle Targeting Macros, Targeting Indicators, Unlock Mounts and Extra Frames, and updated Target Lock text.
 - The setup wizard now leaves the crosshair and HUD previews undimmed and outlined (one element per step: the crosshair, the Assist HUD or the Ally HUD), and moves its balloon out of their way.
