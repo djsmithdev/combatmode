@@ -43,11 +43,23 @@ local tabButtons = {}
 local activeKey = "hostile"
 local switchingTab
 
+--- Re-tints everything that previews the reaction colors: the Appearance rows' tiles and the
+--- Crosshair Textures editor (cards + presets).
+local function RefreshColorPreviews()
+  if UI.Options and UI.Options.Sync then
+    UI.Options.Sync()
+  end
+  if CM.RefreshCrosshairTextureEditor then
+    CM.RefreshCrosshairTextureEditor()
+  end
+end
+
 local function SetReactionColor(key, r, g, b, a)
   local globalDb = CM.DB.global
   globalDb.crosshairReactionColors = globalDb.crosshairReactionColors or {}
   globalDb.crosshairReactionColors[key] = { r, g, b, a }
   CM.RefreshCrosshairAppearance()
+  RefreshColorPreviews()
 end
 
 local function UpdateTabStyles()
@@ -176,6 +188,7 @@ local function Build()
   resetBtn:SetScript("OnClick", function()
     if activeKey then
       CM.ResetCrosshairReactionColor(activeKey)
+      RefreshColorPreviews()
       SelectReactionTab(activeKey)
     end
   end)

@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------
 --  UI/Options/Tabs/TabCrosshair.lua — OPTIONS TAB — Crosshair + HUD + Assist
 ---------------------------------------------------------------------------------------
---  What it does: Wires crosshair enable/cast feedback/appearance/scale/Y,
+--  What it does: Wires crosshair enable/cast feedback/appearance (a row with texture
+--  two clickable texture tiles opening CM.OpenCrosshairTextureEditor)/scale/Y,
 --  the single Assist HUD (Next-cast Suggestion + Interactable Indicator, shared side + scale +
 --  distance). Situational appearance and its Lua condition are
 --  edited on Advanced. Live preview via SetCrosshairOptionsPreview onSelect/onDeselect;
@@ -15,23 +16,15 @@
 --      ApplyCrosshairAssistedHighlightOptions / UpdateCrosshairAssistedHighlight.
 --  Does not: Own freelook state machine or click-cast slot table UI.
 --  Related: Core/Crosshair/Crosshair.lua, Core/Crosshair/AssistedHighlight/Assist.lua, Core/Crosshair/Animations.lua,
---  Core/Runtime/CVarManager.lua, UI/Editors/CrosshairColorsEditor.lua,
+--  Core/Runtime/CVarManager.lua, UI/Editors/CrosshairColorsEditor.lua, UI/Editors/CrosshairTextureEditor.lua,
 --  UI/Options/Tabs/TabAdvanced.lua, Constants/Assets.lua, Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
 
 -- Lua stdlib
-local pairs = _G.pairs
-local tsort = _G.table.sort
 
 local UI = CM.UI
-
-local appearanceOrder = {}
-for name in pairs(CM.Constants.CrosshairAppearanceSelectValues) do
-  appearanceOrder[#appearanceOrder + 1] = name
-end
-tsort(appearanceOrder)
 
 local function CrosshairOff()
   return not CM.IsCrosshairEnabled()
@@ -90,18 +83,32 @@ UI.Options.AddTab({
       end,
       disabled = CrosshairOff,
     })
-    ctx:Dropdown({
+    ctx:Button({
+      layout = "row",
       label = "Appearance",
-      desc = "Texture utilized by the crosshair. For most options, there's an active and inactive variant.",
-      values = CM.Constants.CrosshairAppearanceSelectValues,
-      order = appearanceOrder,
-      get = function()
-        return CM.DB.global.crosshairAppearance and CM.DB.global.crosshairAppearance.Name
-          or "Default"
+      newFeatureFlag = true,
+      desc = "Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset.",
+      tiles = {
+        { slot = "base", caption = "Inactive", tint = "base" },
+        { slot = "active", caption = "Active", tint = "hostile" },
+        { slot = "mounted", caption = "Mounted", tint = "base" },
+        { slot = "lock", caption = "Disabled", tint = "base" },
+      },
+      previews = function()
+        local appearance = CM.Constants.NormalizeCrosshairAppearance(
+          CM.DB.global.crosshairAppearance
+        ) or CM.Constants.CrosshairTextureObj.Default
+        local byId = CM.Constants.CrosshairTextureById
+        local default = byId[CM.Constants.CrosshairIdleDefaultId]
+        return {
+          base = appearance.Base,
+          active = appearance.Active,
+          mounted = (byId[CM.DB.global.crosshairMountedId] or default).path,
+          lock = (byId[CM.DB.global.crosshairTargetLockId] or default).path,
+        }
       end,
-      set = function(value)
-        CM.DB.global.crosshairAppearance = CM.Constants.CrosshairTextureObj[value]
-        CM.CreateCrosshair()
+      func = function(slot)
+        CM.OpenCrosshairTextureEditor("main", slot)
       end,
       disabled = CrosshairOff,
     })

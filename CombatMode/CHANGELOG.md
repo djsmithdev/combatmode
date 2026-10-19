@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.2] - 2026-10-19
+
+### Added
+
+- **Crosshair Textures editor**: **Appearance** (Crosshair tab) and **Situational Appearance** (Advanced tab) now open a texture browser instead of a dropdown. Pick the **Inactive** and **Active** texture separately from over 200 new crosshairs (plus the existing ones), or apply one of five preset pairs (Arrows, Default, Diamond, Ornated, Triangle) in one click. Appearance also gets separate **Mounted** and **Disabled** textures for the reticle shown while mounted or while Target Lock holds it (the Dot by default). Every state has an **eye button** (top-right of its card) that hides the crosshair for just that state; this replaces the Invisible situational choice (hiding both states does the same). The older Bracket, Cross, Dot, Inverted Y, Line, Split, Square and X presets are gone (the new set has equivalents); anyone who had one selected falls back to Default.
+
 ## [5.1.1] - 2026-10-19
 
 ### Fixed

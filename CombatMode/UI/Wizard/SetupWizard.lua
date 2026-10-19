@@ -237,26 +237,31 @@ local STEPS = {
 
 -- Frames of the live crosshair + HUD preview the Crosshair / Ally Cycle tabs force on screen. Steps
 -- marked `preview` leave them undimmed (outlined) and keep the balloon off them.
--- Per `preview` kind: the frame to leave undimmed and how far to pad around it (the Assist HUD's key /
--- name text hangs outside its frame, so it gets room on the sides).
+-- Per `preview` kind: the frames to leave undimmed and how far to pad around them (the Assist HUD's key /
+-- name text hangs outside its frame, so those labels are listed too instead of padding the frame wide,
+-- which would swallow the crosshair).
 local PREVIEW_KINDS = {
   crosshair = {
-    frame = function()
-      return _G.CombatModeCrosshairFrame
+    frames = function()
+      return { _G.CombatModeCrosshairFrame }
     end,
     padX = 14,
     padY = 14,
   },
   assist = {
-    frame = function()
-      return CM.GetAssistedHighlightFrame and CM.GetAssistedHighlightFrame()
+    frames = function()
+      local frame = CM.GetAssistedHighlightFrame and CM.GetAssistedHighlightFrame()
+      if not frame then
+        return {}
+      end
+      return { frame, frame.keybindText, frame.nameText }
     end,
-    padX = 90,
+    padX = 14,
     padY = 14,
   },
   ally = {
-    frame = function()
-      return _G.CombatModeAllyCycleHUD
+    frames = function()
+      return { _G.CombatModeAllyCycleHUD }
     end,
     padX = 16,
     padY = 14,
@@ -265,8 +270,7 @@ local PREVIEW_KINDS = {
 
 local function PreviewFrames(kind)
   local def = PREVIEW_KINDS[kind]
-  local frame = def and def.frame()
-  return frame and { frame } or {}, def and def.padX, def and def.padY
+  return def and def.frames() or {}, def and def.padX, def and def.padY
 end
 
 local active = false

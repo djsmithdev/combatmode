@@ -115,15 +115,12 @@ local function GetFocusColor()
 end
 
 local function GetMarkerTexturePath()
+  -- The player's Active texture; Default's hit art when they hid Active (the marker is Target
+  -- Lock feedback with its own toggle, so it is never left empty).
   local appearance = CM.DB and CM.DB.global and CM.DB.global.crosshairAppearance
-  if type(appearance) == "table" and type(appearance.Active) == "string" then
-    return appearance.Active
-  end
-  local obj = CM.Constants
-    and CM.Constants.CrosshairTextureObj
-    and CM.Constants.CrosshairTextureObj.Default
-  if type(obj) == "table" and type(obj.Active) == "string" then
-    return obj.Active
+  local active = type(appearance) == "table" and appearance.Active
+  if type(active) == "string" and active ~= "" then
+    return active
   end
   return CM.Constants.CrosshairTextureObj.Default.Active
 end

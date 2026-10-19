@@ -243,18 +243,9 @@ local function ApplyCrosshairAppearanceToWidget(
 
   local appearance = CrosshairAppearance
   if CM.IsCrosshairSituationalActive and CM.IsCrosshairSituationalActive() then
-    local situational = CM.DB.global.crosshairSituationalAppearance
-    local hidden = type(situational) == "table" and situational.Hidden
-    local hasBase = type(situational) == "table" and situational.Base
-    if not hidden and not hasBase then
-      local name = (type(situational) == "table" and situational.Name)
-        or (type(situational) == "string" and situational)
-        or "Arrows"
-      situational = CM.Constants.CrosshairTextureObj and CM.Constants.CrosshairTextureObj[name]
-      if not situational then
-        situational = CM.Constants.CrosshairTextureObj and CM.Constants.CrosshairTextureObj.Arrows
-      end
-    end
+    -- InitDatabase and the editor already store normalized tables (or the Hidden constant).
+    local situational =
+      CM.Constants.NormalizeCrosshairAppearance(CM.DB.global.crosshairSituationalAppearance)
     if situational then
       appearance = situational
     end
@@ -289,7 +280,8 @@ local function ApplyCrosshairAppearanceToWidget(
   local textureToUse = state == "base" and appearance.Base or appearance.Active
   local reverseAnimation = state == "base" and true or false
 
-  targetTexture:SetTexture(textureToUse)
+  -- An empty path is a slot the player chose to hide: draw nothing for that state.
+  targetTexture:SetTexture(textureToUse ~= "" and textureToUse or nil)
   if previewMode or (state ~= "mounted" and CM.IsMouselooking()) then
     targetTexture:Show()
   end

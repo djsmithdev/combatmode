@@ -11,6 +11,8 @@
 --    • Force-lock / force-unlock are evaluated by ShouldFreeLookBeOff. The
 --      situational snippet is evaluated by the crosshair; appearance and condition
 --      set() refresh the crosshair. Both are disabled when the crosshair is off.
+--    • Situational Appearance is a row (one clickable tile per state, "Hidden" when a state is hidden) that opens
+--      CM.OpenCrosshairTextureEditor("situational").
 --    • Editor buttons call CM.OpenReticleTargetingCVarEditor and
 --      CM.OpenTargetingMacroPrelinesEditor. Code boxes include a ? that opens
 --      the API docs copy-link popup.
@@ -18,7 +20,7 @@
 --      windows.
 --  Related: Core/FreeLook/FreeLookController.lua, Core/FreeLook/AutoCursorUnlock.lua,
 --  Core/Crosshair/Crosshair.lua, Core/Runtime/UserLuaCondition.lua,
---  UI/Editors/ReticleCVarEditorPanel.lua, UI/Editors/TargetingMacroPrelinesEditor.lua,
+--  UI/Editors/ReticleCVarEditorPanel.lua, UI/Editors/TargetingMacroPrelinesEditor.lua, UI/Editors/CrosshairTextureEditor.lua,
 --  UI/Options/Tabs/TabGeneral.lua, UI/Options/Tabs/TabAutoCursorUnlock.lua,
 --  UI/Options/Tabs/TabCrosshair.lua, UI/Options/Tabs/TabReticleTargeting.lua
 ---------------------------------------------------------------------------------------
@@ -26,26 +28,10 @@ local _, CM = ...
 local _G = _G
 
 -- Lua stdlib
-local pairs = _G.pairs
-local tinsert = _G.table.insert
-local tsort = _G.table.sort
 
 local UI = CM.UI
 
 local API_DOCS_URL = "https://warcraft.wiki.gg/wiki/World_of_Warcraft_API"
-
-local appearanceOrder = {}
-for name in pairs(CM.Constants.CrosshairAppearanceSelectValues) do
-  appearanceOrder[#appearanceOrder + 1] = name
-end
-tsort(appearanceOrder)
-tinsert(appearanceOrder, 1, "Invisible")
-
-local situationalValues = {}
-for name in pairs(CM.Constants.CrosshairAppearanceSelectValues) do
-  situationalValues[name] = name
-end
-situationalValues.Invisible = "Invisible"
 
 UI.Options.AddTab({
   id = "advanced",
@@ -116,27 +102,25 @@ return false
 
     ctx:Gap()
     ctx:Header("CROSSHAIR")
-    ctx:Dropdown({
+    ctx:Button({
+      layout = "row",
       label = "Situational Appearance",
-      desc = "Texture utilized by the crosshair while the Situational Condition returns true.",
-      values = situationalValues,
-      order = appearanceOrder,
-      get = function()
-        return CM.DB.global.crosshairSituationalAppearance
-            and CM.DB.global.crosshairSituationalAppearance.Name
-          or "Invisible"
+      newFeatureFlag = true,
+      desc = "Textures utilized by the crosshair while the Situational Condition returns true.",
+      tiles = {
+        { slot = "base", caption = "Inactive", tint = "base" },
+        { slot = "active", caption = "Active", tint = "hostile" },
+      },
+      previews = function()
+        local appearance =
+          CM.Constants.NormalizeCrosshairAppearance(CM.DB.global.crosshairSituationalAppearance)
+        if not appearance or appearance.Hidden then
+          return { base = "", active = "" }
+        end
+        return { base = appearance.Base, active = appearance.Active }
       end,
-      set = function(value)
-        if value == "Invisible" then
-          CM.DB.global.crosshairSituationalAppearance = CM.Constants.CrosshairSituationalHidden
-        else
-          CM.DB.global.crosshairSituationalAppearance = CM.Constants.CrosshairTextureObj[value]
-        end
-        if CM.RefreshCrosshairAppearance then
-          CM.RefreshCrosshairAppearance()
-        else
-          CM.CreateCrosshair()
-        end
+      func = function(slot)
+        CM.OpenCrosshairTextureEditor("situational", slot)
       end,
       disabled = function()
         return not CM.IsCrosshairEnabled()

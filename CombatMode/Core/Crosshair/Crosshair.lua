@@ -12,11 +12,11 @@
 --      tints (mounted = defaults; focus → hostile).
 --    • crosshairSituationalCondition — user Lua; when true, Animations uses
 --      crosshairSituationalAppearance (default Invisible) while reaction tint/scale stay normal.
---      Appearance Hidden (Invisible) hides the reticle texture only. Mounted idle and
---      Target Lock still override unless the condition is active (Target Lock always
---      keeps its idle Dot).
+--      Appearance Hidden (both situational slots hidden) hides the reticle texture only. A slot
+--      the player hid has an empty path and draws nothing. The Mounted idle texture is skipped
+--      while the condition is active; Target Lock always keeps its own idle texture.
 --    • IsCrosshairMounted — returns IsMounted() (always-on; no DB toggle). When mounted,
---      UpdateCrosshairReaction sets a static base appearance (inactive dot) unless
+--      UpdateCrosshairReaction sets the static Mounted texture (crosshairMountedId) unless
 --      crosshairSituationalCondition is true (then full reaction + situational appearance).
 --    • UpdateCrosshairReaction — hostile/friendly/dead/gameobject under mouse or soft
 --      target; drives texture + Animations reaction scale. Presence via UnitExists;
@@ -213,14 +213,20 @@ function CM.IsFocusLockReticleSuppressed()
   return focusLockReticleSuppressed
 end
 
+--- Idle texture: the player's Mounted pick while mounted (unless situational overrides), else
+--- their Target Lock pick. Dot when unset or unknown. Returns nil for a hidden slot.
 local function GetFocusLockIdleTexturePath()
-  local obj = CM.Constants
-    and CM.Constants.CrosshairTextureObj
-    and CM.Constants.CrosshairTextureObj.Dot
-  if type(obj) == "table" and type(obj.Base) == "string" then
-    return obj.Base
+  local byId = CM.Constants.CrosshairTextureById
+  local global = CM.DB.global
+  local id = global.crosshairTargetLockId
+  if CM.IsCrosshairMounted() and not CM.IsCrosshairSituationalActive() then
+    id = global.crosshairMountedId
   end
-  return CM.Constants.CrosshairTextureObj.Dot.Base
+  local entry = byId[id] or byId[CM.Constants.CrosshairIdleDefaultId]
+  if entry.path == "" then
+    return nil
+  end
+  return entry.path
 end
 
 local function GetFocusLockIdleColor()
@@ -408,7 +414,7 @@ local DebugCrosshairFrame = CreateFrame("Frame", "CombatModeDebugCrosshairFrame"
 DebugCrosshairFrame:SetFrameStrata("DIALOG")
 DebugCrosshairFrame:SetFrameLevel(0)
 local DebugCrosshairTexture = DebugCrosshairFrame:CreateTexture(nil, "OVERLAY")
-DebugCrosshairTexture:SetTexture(CM.Constants.CrosshairTextureObj.X.Base)
+DebugCrosshairTexture:SetTexture(CM.Constants.CrosshairTextureObj.Diamond.Base)
 DebugCrosshairTexture:SetAllPoints(DebugCrosshairFrame)
 DebugCrosshairTexture:SetBlendMode("BLEND")
 DebugCrosshairTexture:SetVertexColor(0, 1, 0, 1)

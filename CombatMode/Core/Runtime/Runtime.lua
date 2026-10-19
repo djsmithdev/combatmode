@@ -331,8 +331,24 @@ function CM.InitDatabase()
   _G.CombatModeDB = _G.CombatModeDB or {}
   local sv = _G.CombatModeDB
 
+  -- Saved crosshair appearances are resolved before the merge: MergeDefaults would graft the
+  -- default table's other keys (BaseId/ActiveId, or Hidden on the situational one) onto a saved
+  -- table of a different shape. NormalizeCrosshairAppearance rebuilds them from the catalog ids.
+  local savedGlobal = type(sv.global) == "table" and sv.global or {}
+  local savedAppearance = savedGlobal.crosshairAppearance
+  local savedSituational = savedGlobal.crosshairSituationalAppearance
+
   sv.global = MergeDefaults(sv.global or {}, defaults.global or {})
   NormalizeBools(sv.global, defaults.global or {})
+  if savedAppearance ~= nil then
+    sv.global.crosshairAppearance = CM.Constants.NormalizeCrosshairAppearance(savedAppearance)
+      or CM.Constants.CrosshairTextureObj.Default
+  end
+  if savedSituational ~= nil then
+    sv.global.crosshairSituationalAppearance = CM.Constants.NormalizeCrosshairAppearance(
+      savedSituational
+    ) or CM.Constants.CrosshairSituationalHidden
+  end
 
   if type(sv.char) ~= "table" then
     sv.char = {}

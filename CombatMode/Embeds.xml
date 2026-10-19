@@ -81,6 +81,7 @@
     <Script file="UI\Editors\TargetingMacroPrelinesEditor.lua"/>
     <Script file="UI\Editors\ComposedMacroEditor.lua"/>
     <Script file="UI\Editors\CrosshairColorsEditor.lua"/>
+    <Script file="UI\Editors\CrosshairTextureEditor.lua"/>
     <!-- FRAME -->
     <Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
         <Scripts>

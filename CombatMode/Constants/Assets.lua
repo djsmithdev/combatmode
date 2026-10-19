@@ -9,9 +9,11 @@
 --    • Art lives under Interface\AddOns\CombatMode\Assets\: branding\ (logo, title, Discord/GitHub
 --      icons), crosshair\ (reticle BLP pairs), assisthud\ (AssistedSpellIcon*, ModifierKey{Ctrl,
 --      Shift,Alt}), ui\ (window shadow TGA) and atlas\ (shipped Blizzard atlases, Constants/Atlas.lua).
---    • CrosshairTextureObj entries pair active/inactive BLPs; AppearanceSelectValues
---      drives the Crosshair options dropdown. CrosshairSituationalHidden is the
---      Advanced-only Invisible choice (no texture).
+--    • CrosshairTextureObj entries are curated active/inactive presets. CrosshairTextures
+--      (+ ById / IdByPath) is the per-texture catalog (preset BLPs + the pack TGAs)
+--      the Crosshair Textures editor browses; MakeCrosshairAppearance / NormalizeCrosshairAppearance
+--      build and migrate the saved { Name, Base, Active, BaseId, ActiveId } table.
+--      CrosshairSituationalHidden is the Advanced-only Invisible choice (no texture).
 --    • CrosshairReactionColors (defaults only — runtime tints use
 --      CM.GetCrosshairReactionColor), CrosshairCastBreak (shared interrupt VFX), and
 --      CrosshairCompanionOffsetX (default companion Distance fallback).
@@ -26,6 +28,8 @@ local _, CM = ...
 local _G = _G
 
 local ipairs = _G.ipairs
+local format = _G.string.format
+local tsort = _G.table.sort
 
 -- Body only: the welcome modal (CM.UI.ShowWelcome) draws the wordmark header itself.
 -- Slash commands keep inline color: blue for options (/acm, /actioncombatmode).
@@ -96,45 +100,142 @@ CM.Constants.ModifierKeyAlt = assistHudPath .. "key-alt.blp"
 
 --[[
   CROSSHAIR TEXTURES
-  To add custom textures, you'll need two .BLP textures: one for the active and one for the inactive states.
-  Place them in the CombatMode/Assets/crosshair folder and rename them as follows:
-  Base texture = "crosshairASSETNAME.blp"
-  Hit texture = "crosshairASSETNAME-hit.blp"
-  Where "ASSETNAME" is the name you want to be displayed on the dropdown.
-  Then just add that same "ASSETNAME" to the CrosshairTextureObj table below:
-  This is case sensitive!
+  Two layers:
+    • Presets (CrosshairTextureObj): the shipped active/inactive BLP pairs.
+    • Catalog (CrosshairTextures): every individual texture the player can pick for Inactive /
+      Active separately in the Crosshair Textures editor: the preset BLPs plus the
+      pack (Assets/crosshair/pack/crosshair-NNN.tga, 128x128 white glyphs).
+  A chosen appearance is { Name, Base, Active, BaseId, ActiveId }; build it with
+  CM.Constants.MakeCrosshairAppearance so paths always come from the catalog ids.
 ]]
 --
 CM.Constants.CrosshairTextureObj = {}
-CM.Constants.CrosshairAppearanceSelectValues = {}
+CM.Constants.CrosshairTextures = {}
+CM.Constants.CrosshairTextureById = {}
+CM.Constants.CrosshairTextureIdByPath = {}
 
 local crosshairAssetNames = {
   "Arrows",
-  "Bracket",
-  "Cross",
   "Default",
   "Diamond",
-  "Dot",
-  "InvertedY",
-  "Line",
   "Ornated",
-  "Split",
-  "Square",
   "Triangle",
-  "X",
 }
+
+-- Idle reticle (mounted / Target Lock held): default texture and its catalog id. The player
+-- can pick any catalog texture for it (global.crosshairMountedId / crosshairTargetLockId); the Dot is a plain catalog entry.
+CM.Constants.CrosshairDotTexture = crosshairPath .. "crosshairDot.blp"
+CM.Constants.CrosshairIdleDefaultId = "Dot"
+
+local PACK_COUNT = 200
+
+local function AddCrosshairTexture(id, path, label, group)
+  local entry = { id = id, path = path, label = label, group = group }
+  local list = CM.Constants.CrosshairTextures
+  list[#list + 1] = entry
+  CM.Constants.CrosshairTextureById[id] = entry
+  CM.Constants.CrosshairTextureIdByPath[path] = id
+end
+
+-- "none" marks a slot the player hid (empty path: nothing is drawn). Resolvable by id/path but
+-- not part of the CrosshairTextures catalog, so the editor grid never lists it.
+CM.Constants.CrosshairNoneId = "none"
+do
+  local noneEntry = { id = "none", path = "", label = "Hidden", group = "none" }
+  CM.Constants.CrosshairTextureById.none = noneEntry
+  CM.Constants.CrosshairTextureIdByPath[""] = "none"
+end
 
 for _, assetName in ipairs(crosshairAssetNames) do
   CM.Constants.CrosshairTextureObj[assetName] = {
     Name = assetName,
     Base = crosshairPath .. "crosshair" .. assetName .. ".blp",
     Active = crosshairPath .. "crosshair" .. assetName .. "-hit.blp",
+    BaseId = assetName,
+    ActiveId = assetName .. "-hit",
   }
-  CM.Constants.CrosshairAppearanceSelectValues[assetName] = assetName
+end
+
+-- Catalog order: curated first (Default, then alphabetical presets), then the pack.
+do
+  local curated = {}
+  for _, assetName in ipairs(crosshairAssetNames) do
+    curated[#curated + 1] = assetName
+  end
+  tsort(curated, function(a, b)
+    if (a == "Default") ~= (b == "Default") then
+      return a == "Default"
+    end
+    return a < b
+  end)
+  for _, assetName in ipairs(curated) do
+    local file = crosshairPath .. "crosshair" .. assetName
+    AddCrosshairTexture(assetName, file .. ".blp", assetName, "curated")
+    AddCrosshairTexture(
+      assetName .. "-hit",
+      file .. "-hit.blp",
+      assetName .. " (active)",
+      "curated"
+    )
+  end
+  AddCrosshairTexture(
+    CM.Constants.CrosshairIdleDefaultId,
+    CM.Constants.CrosshairDotTexture,
+    "Dot",
+    "curated"
+  )
+  for i = 0, PACK_COUNT - 1 do
+    local n = format("%03d", i)
+    AddCrosshairTexture(
+      "pack-" .. n,
+      crosshairPath .. "pack\\crosshair-" .. n .. ".tga",
+      "Pack #" .. n,
+      "pack"
+    )
+  end
+end
+
+--- Builds a crosshair appearance from two catalog ids (Inactive/Base, Active). Returns nil when
+--- either id is unknown. `Name` is the preset name when the pair matches a preset, else "Custom".
+function CM.Constants.MakeCrosshairAppearance(baseId, activeId)
+  local byId = CM.Constants.CrosshairTextureById
+  local base, active = byId[baseId], byId[activeId]
+  if not (base and active) then
+    return nil
+  end
+  local name = "Custom"
+  local preset = CM.Constants.CrosshairTextureObj[baseId]
+  if preset and preset.ActiveId == activeId then
+    name = preset.Name
+  end
+  return {
+    Name = name,
+    Base = base.path,
+    Active = active.path,
+    BaseId = baseId,
+    ActiveId = activeId,
+  }
+end
+
+--- Normalizes a saved appearance (any older shape) to the current one. Returns nil when it can't
+--- be resolved; Hidden (Invisible) tables pass through unchanged.
+function CM.Constants.NormalizeCrosshairAppearance(saved)
+  if type(saved) ~= "table" then
+    return nil
+  end
+  if saved.Hidden then
+    return saved
+  end
+  local byPath = CM.Constants.CrosshairTextureIdByPath
+  -- Paths first: they are what older versions saved, and always agree with ids on new saves.
+  local baseId = byPath[saved.Base] or saved.BaseId
+  local activeId = byPath[saved.Active] or saved.ActiveId
+  local normalized = baseId and activeId and CM.Constants.MakeCrosshairAppearance(baseId, activeId)
+  return normalized or CM.Constants.CrosshairTextureObj[saved.Name]
 end
 
 -- Situational-only. Not a texture; the reticle hides while the condition is true.
--- Kept out of CrosshairAppearanceSelectValues so the main Appearance dropdown cannot select it.
+-- Not in the texture catalog; only the Situational Appearance editor offers it.
 CM.Constants.CrosshairSituationalHidden = {
   Name = "Invisible",
   Hidden = true,

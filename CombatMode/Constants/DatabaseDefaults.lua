@@ -98,6 +98,8 @@ CM.Constants.DatabaseDefaults = {
     crosshair = true,
     crosshairCastFeedback = true,
     crosshairAppearance = CM.Constants.CrosshairTextureObj.Default,
+    crosshairMountedId = CM.Constants.CrosshairIdleDefaultId, -- texture while mounted
+    crosshairTargetLockId = CM.Constants.CrosshairIdleDefaultId, -- texture while Target Lock holds
     crosshairScale = 1.0,
     crosshairY = 100,
     -- crosshair HUD: interaction mode toggle (layout is shared with combat assist)

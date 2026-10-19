@@ -625,6 +625,29 @@ local function CreateGlyphBadge(parent, size, glyph, dx, dy, fontSize, color)
   return badge
 end
 
+--- Round badge (same chrome as the "?" help button) holding a texture icon instead of a glyph.
+--- Returns the badge with badge:SetHover(on) and badge:SetIcon(path). `parent` is the (square)
+--- button that hosts it; `size` is the outer diameter.
+function UI.CreateIconBadge(parent, size, texturePath)
+  local badge = CreateGlyphBadge(parent, size, "", 0, 0, nil, C.textDim)
+  local icon = parent:CreateTexture(nil, "OVERLAY")
+  icon:SetPoint("TOPLEFT", parent, "TOPLEFT", 1, -1)
+  icon:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -1, 1)
+  icon:SetTexture(texturePath)
+  icon:SetVertexColor(C.textDim[1], C.textDim[2], C.textDim[3], 1)
+  local baseHover = badge.SetHover
+  function badge.SetHover(self, on)
+    baseHover(self, on)
+    local c = on and C.text or C.textDim
+    icon:SetVertexColor(c[1], c[2], c[3], 1)
+  end
+  function badge.SetIcon(_, path)
+    icon:SetTexture(path)
+  end
+  badge.icon = icon
+  return badge
+end
+
 local SetMenuBarActive = UI.SetMenuBarActive
 -- Section headers and the description under them keep their original inset (no row padding).
 local HEADER_PAD_X = 4
@@ -2833,7 +2856,128 @@ local function MakeOptionRowButton(parent, opts)
   return control
 end
 
+---------------------------------------------------------------------------------------
+--                                 TEXTURE PAIR                                      --
+---------------------------------------------------------------------------------------
+--- `layout = "row"` + `tiles = { { slot, caption, tint }, ... }` + `previews = function()
+--- return { [slot] = texturePath, ... } end`: title left, a framed tile per entry on the right
+--- (crosshair states, tinted with the reaction colors, captioned underneath). Each tile is a
+--- button: `opts.func(slot)`. A slot whose path is empty (hidden) shows "Hidden" instead of a texture.
+local TILE = 44
+local TILE_GLYPH = 32
+local TILE_GAP = 8
+local TILE_CAPTION_H = 14
+local function MakeTexturePairRow(parent, opts)
+  local row = CreateFrame("Frame", nil, parent)
+  row:SetHeight(ROW_H)
+  AddRowLabel(row, opts.label)
+
+  local tileCount = #opts.tiles
+  local holderW = (tileCount * TILE) + ((tileCount - 1) * TILE_GAP)
+  local holderH = TILE + 4 + TILE_CAPTION_H
+  local holder = CreateFrame("Frame", nil, row)
+  holder:SetSize(holderW, holderH)
+
+  local tiles = {}
+  local function MakeTile(slot, caption, tintState)
+    local button = CreateFrame("Button", nil, holder)
+    button:SetSize(TILE, TILE)
+    button:EnableMouse(true)
+    UI.StyleControl(button)
+    local glyph = button:CreateTexture(nil, "ARTWORK")
+    glyph:SetSize(TILE_GLYPH, TILE_GLYPH)
+    glyph:SetPoint("CENTER")
+    local label = UI.CreateFontString(holder, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
+    label:SetPoint("TOP", button, "BOTTOM", 0, -4)
+    label:SetText(caption)
+    label:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
+    local hiddenText =
+      UI.CreateFontString(button, "OVERLAY", UI.Fonts.desc - 1, "GameFontHighlightSmall")
+    hiddenText:SetPoint("CENTER")
+    hiddenText:SetText("Hidden")
+    hiddenText:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+    button:SetScript("OnEnter", function(self)
+      if not IsDisabled(opts) then
+        self:cmControlHover(true)
+      end
+    end)
+    button:SetScript("OnLeave", function(self)
+      self:cmControlHover(false)
+    end)
+    button:SetScript("OnClick", function()
+      if not IsDisabled(opts) and opts.func then
+        opts.func(slot)
+      end
+    end)
+    tiles[slot] = { button = button, glyph = glyph, tint = tintState, hidden = hiddenText }
+  end
+  for _, spec in ipairs(opts.tiles) do
+    MakeTile(spec.slot, spec.caption, spec.tint)
+  end
+
+  -- The holder fills the widget column (same width as a regular button); tiles share it equally.
+  local function LayoutTiles()
+    local width = holder:GetWidth()
+    if not width or width < holderW then
+      width = holderW
+    end
+    local tileW = (width - (tileCount - 1) * TILE_GAP) / tileCount
+    for i, spec in ipairs(opts.tiles) do
+      tiles[spec.slot].button:SetSize(tileW, TILE)
+      tiles[spec.slot].button:ClearAllPoints()
+      tiles[spec.slot].button:SetPoint(
+        "TOPLEFT",
+        holder,
+        "TOPLEFT",
+        (i - 1) * (tileW + TILE_GAP),
+        0
+      )
+    end
+  end
+  holder:SetScript("OnSizeChanged", LayoutTiles)
+  LayoutTiles()
+
+  local control = {
+    frame = row,
+    height = ROW_H,
+    widget = holder,
+    widgetH = holderH,
+    widgetW = holderW,
+    widgetFill = true,
+  }
+
+  function control.Refresh()
+    local paths = opts.previews()
+    for slot, tile in pairs(tiles) do
+      local path = paths[slot]
+      local isHidden = path == nil or path == ""
+      tile.glyph:SetShown(not isHidden)
+      tile.hidden:SetShown(isHidden)
+      if not isHidden then
+        tile.glyph:SetTexture(path)
+        local c = CM.GetCrosshairReactionColor(tile.tint)
+        tile.glyph:SetVertexColor(c[1], c[2], c[3], 1)
+      end
+    end
+    local disabled = IsDisabled(opts)
+    local a = disabled and DISABLED_A or 1
+    row.label:SetAlpha(a)
+    holder:SetAlpha(a)
+    SetDescAlpha(control, a)
+    ClearHoverIfDisabled(row, disabled)
+  end
+  Register(control)
+  control.Refresh()
+
+  AddRowHover(row, opts, holder)
+  AttachOptionText(control, row, opts, holderH)
+  return control
+end
+
 function UI.MakeButton(parent, opts)
+  if opts.layout == "row" and opts.previews and opts.tiles then
+    return MakeTexturePairRow(parent, opts)
+  end
   if opts.layout == "row" then
     return MakeOptionRowButton(parent, opts)
   end

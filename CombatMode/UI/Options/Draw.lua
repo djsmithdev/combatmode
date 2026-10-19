@@ -1338,8 +1338,8 @@ local function PositionTooltip(owner, anchor)
 end
 
 --- Shows the themed config tooltip beside `owner`.
---- `content` is a string, a table `{ title?, text?, lines?, stacked? }`, or a function returning
---- either. `lines` entries are `{ label, value, kind? }` (`kind = "warn"` uses warning color); they
+--- `content` is a string, a table `{ title?, text?, dim?, lines?, stacked? }` (`dim` draws `text`
+--- in the dim colour), or a function returning either. `lines` entries are `{ label, value, kind? }` (`kind = "warn"` uses warning color); they
 --- are laid out as label / value columns, or with the label above its value when `stacked` is set
 --- (then an entry may also carry `warning`, a note in the warning colour under its value).
 function UI.ShowTooltip(owner, content, anchor)
@@ -1405,6 +1405,8 @@ function UI.ShowTooltip(owner, content, anchor)
     tipBody:SetPoint("TOPLEFT", tipFrame, "TOPLEFT", TIP_PAD_X, -y)
     tipBody:SetWidth(textW)
     tipBody:SetText(UI.StripColors(body) or body)
+    local bodyColor = content.dim and UI.Colors.textDim or UI.Colors.text
+    tipBody:SetTextColor(bodyColor[1], bodyColor[2], bodyColor[3], 1)
     tipBody:Show()
     local bh = tipBody:GetStringHeight()
     if bh < 1 then
