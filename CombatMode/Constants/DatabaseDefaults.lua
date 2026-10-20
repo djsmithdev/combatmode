@@ -71,9 +71,9 @@ local DefaultBindings = {
     macroName = "",
   },
   altbutton2 = {
-    enabled = false,
+    enabled = true,
     key = "ALT-BUTTON2",
-    value = "CLEARFOCUS",
+    value = "TOGGLEFOCUSANY",
     macroName = "",
   },
   toggle = { key = "Combat Mode - Mouse Look", value = "BUTTON3" },

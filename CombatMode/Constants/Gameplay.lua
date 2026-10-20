@@ -341,6 +341,8 @@ CM.Constants.OverrideActions = {
   CLEARFOCUS = "|cff69ccf0Clear Focus|r",
   STARTATTACK = "|cff69ccf0Start Attack|r",
   PETATTACK = "|cff69ccf0Pet Attack|r",
+  TOGGLEFOCUSANY = "|cff69ccf0Toggle Focus Any|r",
+  TOGGLEFOCUSENEMY = "|cff69ccf0Toggle Focus Enemy|r",
   MACRO = "|cff69ccf0Run MACRO|r",
 }
 

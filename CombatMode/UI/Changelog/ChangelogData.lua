@@ -14,6 +14,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.3] - 2026-10-20
+
+### Added
+
+- The **Toggle Focus Any** and **Toggle Focus Enemy** click-cast actions are back in the Click Casting list. They always tap to lock and tap again to unlock, whatever Target Lock Behavior is set to. New installs get Alt + Right Click on Toggle Focus Any again; slots turned off since 5.1.0 stay off until you pick an action.
+
 ## [5.1.2] - 2026-10-19
 
 ### Added

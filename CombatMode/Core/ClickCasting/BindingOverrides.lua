@@ -473,6 +473,8 @@ local ACTION_MACRO_TEXTS = {
   CLEARFOCUS = CM.Constants.Macros.CM_ClearFocus,
   STARTATTACK = CM.Constants.Macros.CM_StartAttack,
   PETATTACK = CM.Constants.Macros.CM_PetAttack,
+  TOGGLEFOCUSANY = CM.Constants.Macros.CM_ToggleFocusAny,
+  TOGGLEFOCUSENEMY = CM.Constants.Macros.CM_ToggleFocusEnemy,
 }
 for value, text in pairs(CM.Constants.BlizzardActionMacros) do
   ACTION_MACRO_TEXTS[value] = text
