@@ -173,7 +173,15 @@ UI.Options.AddTab({
         CM.DB.global.assistedHighlightMode = value
         RefreshAssist()
       end,
-      disabled = CrosshairOff,
+      disabled = function()
+        return CrosshairOff() or not CM.IsRetailClient
+      end,
+      watermarkWhenDisabled = function()
+        if not CM.IsRetailClient then
+          return "Only available on Retail"
+        end
+        return nil
+      end,
     })
     ctx:Toggle({
       label = "Interactable Indicator",

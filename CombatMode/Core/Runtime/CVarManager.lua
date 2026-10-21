@@ -793,7 +793,7 @@ local function ApplyDynamicPitchPads()
   local g = CM.DB and CM.DB.global
   local strength = g and tonumber(g.dynamicPitchStrength)
   if strength == nil then
-    strength = baseDefault
+    strength = CONSTS.MouseLookCameraPitchDefault or 0
   end
   if strength < minPad then
     strength = minPad

@@ -132,7 +132,8 @@ return false
     frameWatching = true,
     -- Icons of the Extra Frames chips, remembered because their frames may not exist yet after a reload.
     frameIcons = {},
-    mountsToUnlock = "61447, 122708, 264058, 465235, 457485, 61425",
+    -- Prefilled with the known vendor mounts on Mainline only; every other client starts empty.
+    mountsToUnlock = CM.IsRetailClient and "61447, 122708, 264058, 465235, 457485, 61425" or "",
     -- Extra frame names the player adds themselves (Auto Unlock tab); empty on a fresh install.
     watchlist = {},
     customCondition = "",
@@ -184,8 +185,8 @@ return false
     -- crosshair (replacing any lock), tap with nothing under the crosshair to unlock.
     targetLockBehavior = "toggle",
     macroInjectionClickCastOnly = false,
-    excludeFromTargetingSpells = "871, 45438, 642, 198589",
-    castAtCursorSpells = "6544, 204596, 189110, 1234796, 190356, 207684",
+    excludeFromTargetingSpells = "",
+    castAtCursorSpells = "",
     -- click casting
     useGlobalBindings = false,
     bindings = DefaultBindings,

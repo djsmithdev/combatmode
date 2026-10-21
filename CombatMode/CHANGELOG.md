@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Next-cast Suggestion** is now disabled on clients other than Retail, where Blizzard's Assisted Highlight does not exist.
+- **Excluded Spells** and **Cast at Crosshair** now start empty on a fresh install, and **Unlock Mounts** is only prefilled with the known vendor mounts on Retail (other clients start empty). Existing lists are kept.
+- **Pitch Strength** now defaults to 0 for new installs (it was 0.4). Anyone who already set a value keeps it.
 - Config tabs are reordered: Mouse Look, Crosshair, Reticle Targeting, Click Casting, Radial Menu, Ally Cycle, Auto Unlock, Advanced.
 - The setup wizard follows the new tab order, and its Click Casting, Radial Menu and Auto Unlock parts first highlight the whole section before walking through its options. Click Casting now explains switching modifier tabs and choosing Left and Right Click actions, and Auto Unlock no longer has a separate toggle step.
 

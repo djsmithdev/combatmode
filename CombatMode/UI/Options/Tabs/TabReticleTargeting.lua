@@ -34,7 +34,6 @@ local CreateFrame = _G.CreateFrame
 local GetBindingKey = _G.GetBindingKey
 local InCombatLockdown = _G.InCombatLockdown
 local PickupMacro = _G.PickupMacro
-local ReloadUI = _G.ReloadUI
 
 -- Lua stdlib
 local floor = _G.math.floor
@@ -264,6 +263,7 @@ UI.Options.AddTab({
       charSpecific = true,
       confirm = true,
       confirmText = RELOAD_CONFIRM,
+      reload = true,
       get = function()
         return CM.DB.char.reticleTargeting
       end,
@@ -274,7 +274,7 @@ UI.Options.AddTab({
         else
           CM.ConfigReticleTargeting("blizzard")
         end
-        ReloadUI()
+        CM.ReloadUI()
       end,
     })
     ctx:Toggle({
@@ -283,12 +283,13 @@ UI.Options.AddTab({
       charSpecific = true,
       confirm = true,
       confirmText = RELOAD_CONFIRM,
+      reload = true,
       get = function()
         return CM.DB.char.reticleTargetingEnemyOnly
       end,
       set = function(value)
         CM.DB.char.reticleTargetingEnemyOnly = value
-        ReloadUI()
+        CM.ReloadUI()
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting
@@ -300,12 +301,13 @@ UI.Options.AddTab({
       charSpecific = true,
       confirm = true,
       confirmText = RELOAD_CONFIRM,
+      reload = true,
       get = function()
         return CM.DB.char.macroInjectionClickCastOnly
       end,
       set = function(value)
         CM.DB.char.macroInjectionClickCastOnly = value
-        ReloadUI()
+        CM.ReloadUI()
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting or CM.ThirdPartyActionBarsActive == true
@@ -473,12 +475,13 @@ UI.Options.AddTab({
       charSpecific = true,
       confirm = true,
       confirmText = RELOAD_CONFIRM,
+      reload = true,
       get = function()
         return CM.DB.char.autoTargetLockOnAttack
       end,
       set = function(value)
         CM.DB.char.autoTargetLockOnAttack = value
-        ReloadUI()
+        CM.ReloadUI()
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting

@@ -110,6 +110,8 @@ CM.Constants.InteractionHUDSoftTargetCVarValues = {
 -- https://warcraft.wiki.gg/wiki/CVar_ActionCam
 CM.Constants.MouseLookCameraPitchBase = 0.4
 CM.Constants.MouseLookCameraPitchFlying = 0.75
+-- Pitch Strength when the player never set one (Base/Flying above only give the flying ratio).
+CM.Constants.MouseLookCameraPitchDefault = 0
 -- Slider range for the ground pad. Flying stays at Flying/Base times the chosen strength.
 CM.Constants.MouseLookCameraPitchStrengthMin = 0
 CM.Constants.MouseLookCameraPitchStrengthMax = 1

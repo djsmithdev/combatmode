@@ -421,6 +421,15 @@ function CM.InitDatabase()
   end
 end
 
+--- ReloadUI is protected for addon code. Confirm dialogs flagged `reload` run their handler from a
+--- secure "/reload" button's PreClick (CM.secureReloadArmed), so the handler's reload is a no-op there.
+function CM.ReloadUI()
+  if CM.secureReloadArmed then
+    return
+  end
+  ReloadUI()
+end
+
 function CM:OnResetDB()
   CM.DebugPrint("Reseting Action Combat Mode settings.")
   local defaults = CM.Constants.DatabaseDefaults
@@ -444,7 +453,7 @@ function CM:OnResetDB()
     sv.global.priorCVarSnapshot = priorCVars
   end
   BindDatabaseViews(sv, charKey)
-  ReloadUI()
+  CM.ReloadUI()
 end
 
 --- Full leave path: restore pre-CM CVars, reset left/right click to Blizzard camera
@@ -477,7 +486,7 @@ function CM.UninstallCombatMode()
       .. "|cff909090: restored your previous camera/targeting settings and default mouse camera binds, then disabled the addon.|r"
   )
   DisableAddOn(addonName)
-  ReloadUI()
+  CM.ReloadUI()
 end
 
 ---------------------------------------------------------------------------------------

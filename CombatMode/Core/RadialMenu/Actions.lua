@@ -554,8 +554,11 @@ Command(
   true
 )
 
--- Classic-family clients (Era, TBC, Wrath, Cata, Mists; Forever reports as Mainline and keeps the
--- Retail path). Some of their micro buttons work from OnMouseDown/Up behind an IsMouseOver() check
+local build = _G.GetBuildInfo and select(4, _G.GetBuildInfo()) or 0
+local IS_FOREVER = type(build) == "number" and build >= 16000 and build < 20000
+
+-- Classic-family clients (Era, TBC, Wrath, Cata, Mists, and some Forever builds that no longer report as
+-- Mainline). Some of their micro buttons work from OnMouseDown/Up behind an IsMouseOver() check
 -- (Character, Group Finder), so a "/click" does nothing; the others can be replaced by an addon
 -- (GW2 UI hooks the Spellbook), so clicking the Blizzard button opens both windows. These actions call
 -- the global toggle instead (so replacements win) through the insecure proxy, not in combat.
@@ -568,7 +571,18 @@ if _G.WOW_PROJECT_ID ~= _G.WOW_PROJECT_MAINLINE then
   }
   for _, def in ipairs(DEFINITIONS) do
     local toggle = CLASSIC_TOGGLES[def.id]
-    if toggle then
+    -- Forever has the Retail-style micro buttons, and the addon-run toggle taints its panels (secret
+    -- health / mana compares error), so it keeps the secure /click when the button exists.
+    local hasButton = false
+    if IS_FOREVER then
+      for _, name in ipairs(def.click or {}) do
+        if _G[name] then
+          hasButton = true
+          break
+        end
+      end
+    end
+    if toggle and not hasButton then
       def.click = nil
       def.requires = toggle[1]
       def.noCombat = true

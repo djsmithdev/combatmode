@@ -306,12 +306,12 @@ UI.Options.AddTab({
       min = CM.Constants.MouseLookCameraPitchStrengthMin,
       max = CM.Constants.MouseLookCameraPitchStrengthMax,
       step = 0.05,
-      default = CM.Constants.MouseLookCameraPitchBase,
+      default = CM.Constants.MouseLookCameraPitchDefault,
       watermarkWhenDisabled = CameraFeatureWatermark,
       get = function()
         local value = CM.DB.global.dynamicPitchStrength
         if type(value) ~= "number" then
-          return CM.Constants.MouseLookCameraPitchBase
+          return CM.Constants.MouseLookCameraPitchDefault
         end
         return value
       end,

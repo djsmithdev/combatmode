@@ -792,6 +792,7 @@ local function BuildSidebarFooter()
     width = "full",
     confirm = true,
     confirmText = "Reset all Action Combat Mode settings to defaults and reload?",
+    reload = true,
     func = function()
       CM:OnResetDB()
     end,
@@ -802,6 +803,7 @@ local function BuildSidebarFooter()
     danger = true,
     confirm = true,
     confirmText = "Uninstall Action Combat Mode?\n\nThis will restore your previous camera and targeting settings, disable the addon, and reload.",
+    reload = true,
     func = function()
       if CM.UninstallCombatMode then
         CM.UninstallCombatMode()

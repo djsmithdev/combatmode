@@ -216,6 +216,52 @@ end
 -- Exposed so the setup wizard's windows can reuse the dialog button look.
 UI.CreateDialogButton = CreateDialogButton
 
+--- Transparent secure "/reload" button laid over the Yes button (see UI.Confirm).
+local function CreateSecureReloadButton(dialog)
+  local accept = dialog.accept
+  local secure = CreateFrame("Button", nil, dialog, "SecureActionButtonTemplate")
+  -- Registered for both edges (the CVar picks which one the template acts on); only the release runs.
+  secure:RegisterForClicks("AnyUp", "AnyDown")
+  secure:SetAttribute("useOnKeyDown", false)
+  secure:SetAttribute("type", "macro")
+  secure:SetAttribute("macrotext", "/reload")
+  secure:SetAllPoints(accept)
+  secure:SetFrameLevel(accept:GetFrameLevel() + 5)
+  secure:Hide()
+  secure:SetScript("OnEnter", function()
+    local onEnter = accept:GetScript("OnEnter")
+    if onEnter then
+      onEnter(accept)
+    end
+  end)
+  secure:SetScript("OnLeave", function()
+    local onLeave = accept:GetScript("OnLeave")
+    if onLeave then
+      onLeave(accept)
+    end
+  end)
+  secure:SetScript("PreClick", function(_, _, down)
+    if down then
+      return
+    end
+    local handler = dialog.onAccept
+    CM.secureReloadArmed = true
+    if handler then
+      handler()
+    end
+    CM.secureReloadArmed = false
+  end)
+  secure:SetScript("PostClick", function(_, _, down)
+    if down then
+      return
+    end
+    dialog.onAccept = nil
+    dialog:Hide()
+  end)
+  dialog.secureReload = secure
+  return secure
+end
+
 --- Builds the single reusable confirm window. The full-screen blocker underneath makes
 --- the dialog modal without dismissing it on an outside click, so the choice stays
 --- explicit; ESC and the No button cancel.
@@ -287,13 +333,22 @@ end
 
 --- Lays out, positions and shows the shared modal. `single` collapses the button row to
 --- one centered Okay (UI.Notify); otherwise Yes/No are paired (UI.Confirm).
-local function ShowDialog(text, single, onAccept, onClose)
+local function ShowDialog(text, single, onAccept, onClose, reload)
   confirmDialog = confirmDialog or BuildConfirmDialog()
   local dialog = confirmDialog
 
   dialog.message:SetText(UI.StripColors(text) or "")
   dialog.onAccept = onAccept
   dialog.onClose = onClose
+
+  -- Secure overlays can't be created or shown in combat; the plain button then does its best.
+  local secure = dialog.secureReload
+  if reload and not secure and not InCombatLockdown() then
+    secure = CreateSecureReloadButton(dialog)
+  end
+  if secure and not InCombatLockdown() then
+    secure:SetShown(reload and not single)
+  end
 
   dialog.accept:ClearAllPoints()
   if single then
@@ -332,8 +387,11 @@ end
 
 --- Themed replacement for Blizzard's StaticPopup confirm: a branded modal window whose
 --- body text is stripped of color markup like every other option string.
-function UI.Confirm(text, onAccept)
-  ShowDialog(text, false, onAccept, nil)
+--- `reload = true` marks a confirm whose accepted action reloads the UI: ReloadUI is protected for
+--- addon code, so the Yes button is covered by a secure "/reload" button and the handler (which
+--- should call CM.ReloadUI) runs in its PreClick.
+function UI.Confirm(text, onAccept, reload)
+  ShowDialog(text, false, onAccept, nil, reload)
 end
 
 --- Single-button informational modal (generic Notify). Prefer UI.ShowWelcome for the
@@ -1266,7 +1324,7 @@ function UI.MakeToggle(parent, opts)
       Options.Sync()
     end
     if opts.confirm then
-      UI.Confirm(opts.confirmText or "Are you sure?", apply)
+      UI.Confirm(opts.confirmText or "Are you sure?", apply, opts.reload)
     else
       apply()
     end
@@ -2204,10 +2262,22 @@ function UI.MakeDropdown(parent, opts)
     button:SetAlpha(a)
     SetDescAlpha(control, a)
     ClearHoverIfDisabled(row, disabled)
+    -- Like the slider, the select is hidden while its disabled notice is shown.
+    button:SetShown(not SyncStamp(control, opts, disabled))
   end
 
   AddRowHover(row, opts, button)
   AttachOptionText(control, row, opts, UI.Sizes.control)
+
+  -- Optional stamp over the row while disabled (string or function returning string/nil).
+  local markOpt = opts.watermarkWhenDisabled
+  local markInitial = type(markOpt) == "function" and markOpt() or markOpt
+  if type(markInitial) == "string" and markInitial ~= "" then
+    control.watermark = UI.CreateRowStamp(row, markInitial)
+  elseif type(markOpt) == "function" then
+    control.watermark = UI.CreateRowStamp(row, "Unavailable")
+  end
+
   return Register(control)
 end
 
@@ -2863,7 +2933,7 @@ local function MakeOptionRowButton(parent, opts)
       return
     end
     if opts.confirm then
-      UI.Confirm(opts.confirmText or "Are you sure?", opts.func)
+      UI.Confirm(opts.confirmText or "Are you sure?", opts.func, opts.reload)
     else
       opts.func()
     end
@@ -3048,7 +3118,7 @@ function UI.MakeButton(parent, opts)
       return
     end
     if opts.confirm then
-      UI.Confirm(opts.confirmText or "Are you sure?", opts.func)
+      UI.Confirm(opts.confirmText or "Are you sure?", opts.func, opts.reload)
     else
       opts.func()
     end

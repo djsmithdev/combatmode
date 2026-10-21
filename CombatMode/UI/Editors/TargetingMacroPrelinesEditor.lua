@@ -24,7 +24,6 @@ local _G = _G
 
 -- WoW API
 local InCombatLockdown = _G.InCombatLockdown
-local ReloadUI = _G.ReloadUI
 
 -- Lua stdlib
 local strtrim = _G.strtrim
@@ -218,20 +217,22 @@ local function Build()
       label = "Reset to Defaults",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
+      reload = true,
       func = function()
         CM.DB.global.targetingMacroPrelineAnyOverride = nil
         CM.DB.global.targetingMacroPrelineEnemyOverride = nil
         CM.DB.global.targetingMacroPrelineAutoLockAnyOverride = nil
         CM.DB.global.targetingMacroPrelineAutoLockEnemyOverride = nil
-        ReloadUI()
+        CM.ReloadUI()
       end,
     },
     {
       label = "Apply Changes",
       confirm = true,
       confirmText = RELOAD_CONFIRM,
+      reload = true,
       func = function()
-        ReloadUI()
+        CM.ReloadUI()
       end,
     },
   })

@@ -486,6 +486,9 @@ end
 
 --- "always" | "combat" | "hidden" (global.assistedHighlightMode; unknown values read as default).
 function CM.GetAssistedHighlightMode()
+  if not CM.IsRetailClient then
+    return "hidden" -- the next-cast suggestion only exists on Retail
+  end
   local mode = CM.DB and CM.DB.global and CM.DB.global.assistedHighlightMode
   if mode == "always" or mode == "combat" or mode == "hidden" then
     return mode
