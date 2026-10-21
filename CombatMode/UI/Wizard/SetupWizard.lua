@@ -190,13 +190,11 @@ local STEPS = {
     label = "Radial Menu Keybind",
     title = "Radial Menu Key",
     body = "Pick the key you hold to open the wheel.",
-    -- Not usable on Forever (no secure snippets), so the key can't be asked for there.
     tasks = {
       {
         label = "Set a Radial Menu key",
         done = function()
-          return (CM.IsRadialMenuSecureAvailable and not CM.IsRadialMenuSecureAvailable())
-            or Bound("Combat Mode - Radial Menu")
+          return Bound("Combat Mode - Radial Menu")
         end,
       },
     },

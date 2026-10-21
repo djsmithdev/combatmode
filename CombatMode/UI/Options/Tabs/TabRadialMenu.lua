@@ -13,7 +13,6 @@
 --    • The wheel row is a custom frame (ctx:PlaceFrame) with a pool of 8 slice buttons; it
 --      redraws from the DB on every Options.Sync (registered as a control).
 --    • No master toggle: an unbound key disables the radial menu.
---    • Forever (not IsRadialMenuSecureAvailable): ctx:WatermarkPage over the tab.
 --  Does not: Store wheels (Core/RadialMenu/Data.lua) or draw the in-game wheel (View.lua).
 --  Related: Core/RadialMenu/{Data,Actions}.lua, UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
@@ -854,10 +853,6 @@ UI.Options.AddTab({
           section = ctx.section,
         },
       })
-    end
-
-    if CM.IsRadialMenuSecureAvailable and not CM.IsRadialMenuSecureAvailable() then
-      ctx:WatermarkPage("Unavailable on WoW Forever")
     end
   end,
 })

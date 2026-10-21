@@ -7,7 +7,6 @@
 --    • DB.global.allyCycle; onSelect/onDeselect → SetAllyCycleOptionsPreview.
 --    • Skip Self → skipPlayer + ApplyAllyCycleBindings (secure attribute).
 --    • Keep Ally After Harm → SetAllyCycleRestoreAfterHarm + RefreshClickCastMacros.
---    • Forever (not IsAllyCycleSecureAvailable): ctx:WatermarkPage over the tab.
 --  Does not: Own secure roster or build click-cast macrotext.
 --  Related: Core/AllyCycle/{Cycle,Target,HealthBar,Motion,HUD,AllyCycle}.lua, Constants/DatabaseDefaults.lua,
 --  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/OptionsPanel.lua
@@ -209,9 +208,5 @@ UI.Options.AddTab({
         ApplyHud()
       end,
     })
-
-    if CM.IsAllyCycleSecureAvailable and not CM.IsAllyCycleSecureAvailable() then
-      ctx:WatermarkPage("Unavailable on WoW Forever")
-    end
   end,
 })

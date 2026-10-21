@@ -18,8 +18,6 @@
 --      The slice button's post body closes the wheel. Pre-bodies return (newbutton, message).
 --    • The insecure side only reads: CM.IsRadialMenuOpen, CM.RadialCurrent, CM.RadialAimSlot;
 --      the wheel calls Wheel:RadialChanged() when the page turns (View repaints).
---    • Forever (interface 16xxx) cannot compile secure snippets: nothing is built there
---      (CM.IsRadialMenuSecureAvailable() → false), same gate as Ally Cycle.
 --  Does not: Draw anything (View.lua), edit wheels (Data.lua), or define UI actions (Actions.lua).
 --  Related: Core/RadialMenu/{Data,Actions,View,RadialMenu}.lua, Core/AllyCycle/Cycle.lua,
 --  Core/Runtime/BindingQueue.lua, Core/FreeLook/FreeLookController.lua, Bindings.xml
@@ -31,7 +29,6 @@ local _G = _G
 local ClearOverrideBindings = _G.ClearOverrideBindings
 local CreateFrame = _G.CreateFrame
 local GetBindingKey = _G.GetBindingKey
-local GetBuildInfo = _G.GetBuildInfo
 local GetCursorPosition = _G.GetCursorPosition
 local InCombatLockdown = _G.InCombatLockdown
 local SecureHandlerSetFrameRef = _G.SecureHandlerSetFrameRef
@@ -47,18 +44,6 @@ local wipe = _G.wipe
 
 local LAYOUT = CM.RadialLayout
 local BIND_NAME = "Combat Mode - Radial Menu"
-
--- Forever 1.60.x TOC is 16xxx (see Core/AllyCycle/Cycle.lua).
-local interfaceVersion = (GetBuildInfo and select(4, GetBuildInfo())) or 0
-local SECURE_SNIPPETS_OK = not (
-  type(interfaceVersion) == "number"
-  and interfaceVersion >= 16000
-  and interfaceVersion < 20000
-)
-
-function CM.IsRadialMenuSecureAvailable()
-  return SECURE_SNIPPETS_OK
-end
 
 local Wheel
 local KeyButton
@@ -192,7 +177,7 @@ local PAGE_PRE = [[
 ---------------------------------------------------------------------------------------
 -- Frames
 ---------------------------------------------------------------------------------------
-if SECURE_SNIPPETS_OK and SecureHandlerWrapScript then
+if SecureHandlerWrapScript then
   Wheel = CreateFrame("Frame", "CombatModeRadialWheel", UIParent, "SecureHandlerBaseTemplate")
   Wheel:SetSize(LAYOUT.FRAME, LAYOUT.FRAME)
   Wheel:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
