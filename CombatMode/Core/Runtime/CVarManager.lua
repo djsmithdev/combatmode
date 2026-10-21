@@ -255,7 +255,12 @@ function CM.GetEffectiveReticleTargetingCVarValues()
   -- Target Outline off: outlines disabled, selection fade back to Blizzard's (these CVars are
   -- excluded from the CVar editor, so there are no overrides to honor).
   local g = CM.DB and CM.DB.global
-  if g and g.reticleOutline == false then
+  if not CM.IsRetailClient then
+    -- Forever accepts these CVars but draws no target outline (tested in game), so leave them alone.
+    for _, cvar in ipairs(CM.Constants.ReticleOutlineCVarNames) do
+      resolved[cvar] = nil
+    end
+  elseif g and g.reticleOutline == false then
     local blizzard = CM.Constants.BlizzardReticleTargetingCVarValues
     for _, cvar in ipairs(CM.Constants.ReticleOutlineCVarNames) do
       resolved[cvar] = blizzard[cvar]

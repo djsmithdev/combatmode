@@ -543,7 +543,13 @@ UI.Options.AddTab({
         CM.ApplyReticleOutlineCVars()
       end,
       disabled = function()
-        return not CM.DB.char.reticleTargeting
+        return not CM.DB.char.reticleTargeting or not CM.IsRetailClient
+      end,
+      watermarkWhenDisabled = function()
+        if not CM.IsRetailClient then
+          return "Only available on Retail"
+        end
+        return nil
       end,
     })
     ctx:Dropdown({
