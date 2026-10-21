@@ -69,6 +69,12 @@ You can report bugs, request features and provide feedback over on our [**Discor
 
 <br />
 
+## <img width="20" height="20" src="media/cmlogo.svg"> LICENSE
+
+Free to use, not to redistribute or sell. Contributions through pull requests are welcome. See the [LICENSE](LICENSE) for the full terms.
+
+<br />
+
 ## <img width="20" height="20" src="media/cmlogo.svg"> ARCHITECTURE
 
 Action Combat Mode is organized by **domain**. Runtime lives under `CombatMode/Core/`; settings under `CombatMode/UI/`; static tables under `CombatMode/Constants/`.

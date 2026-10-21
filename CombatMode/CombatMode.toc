@@ -25,6 +25,8 @@
 ## X-Wago: addons.wago.io/addons/combat-mode
 ## X-Github: github.com/djsmithdev/combatmode
 ## X-Discord: discord.gg/5mwBSmz
+## X-Donate: BuyMeACoffee:https://buymeacoffee.com/sampc
+## X-License: Custom (see LICENSE)
 
 # Imports
 Embeds.xml
