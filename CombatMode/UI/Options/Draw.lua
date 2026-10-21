@@ -23,6 +23,7 @@ local CreateColor = _G.CreateColor
 local CreateFrame = _G.CreateFrame
 local GameTooltip = _G.GameTooltip
 local GetCursorPosition = _G.GetCursorPosition
+local InCombatLockdown = _G.InCombatLockdown
 local UIParent = _G.UIParent
 
 -- Lua stdlib
@@ -1585,10 +1586,34 @@ function UI.AttachTooltip(widget, content, anchor)
   end)
 end
 
---- Registers a named frame so pressing ESC closes it (standard Blizzard pattern).
-function UI.EnableEscClose(frame, globalName)
+--- Makes ESC close a named frame. By default the frame handles ESC itself instead of joining
+--- UISpecialFrames: opening a Blizzard panel runs CloseSpecialWindows, which would dismiss it (and
+--- ACM windows are meant to stay open next to the spellbook, bags... for drag and drop). Other keys
+--- still reach the game. `keepSpecial` keeps the Blizzard pattern for short-lived modal dialogs.
+function UI.EnableEscClose(frame, globalName, keepSpecial)
   _G[globalName] = frame
-  tinsert(_G.UISpecialFrames, globalName)
+  if keepSpecial then
+    tinsert(_G.UISpecialFrames, globalName)
+    return
+  end
+  frame:EnableKeyboard(true)
+  frame:HookScript("OnShow", function(self)
+    if not InCombatLockdown() then
+      self:SetPropagateKeyboardInput(true)
+    end
+  end)
+  frame:HookScript("OnKeyDown", function(self, key)
+    -- Propagation can't change in combat: the window keeps passing keys through and ignores ESC.
+    if InCombatLockdown() then
+      return
+    end
+    if key == "ESCAPE" then
+      self:SetPropagateKeyboardInput(false)
+      self:Hide()
+    else
+      self:SetPropagateKeyboardInput(true)
+    end
+  end)
 end
 
 --- Makes `frame` draggable by `handle`. When `persist` is true the anchor is saved to

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The options window and its editors stay open when you open the spellbook, bags or other game panels, so you can drag spells and items from them straight onto a Radial Menu slice. Esc still closes the window.
 - **Toggle Focus Any** and **Toggle Focus Enemy** click-cast actions now follow **Target Lock Behavior** (tap to lock or hold) and update when you change it.
 
 ## [5.1.3] - 2026-10-20

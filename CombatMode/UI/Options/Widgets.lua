@@ -276,7 +276,7 @@ local function BuildConfirmDialog()
     end
   end)
 
-  UI.EnableEscClose(dialog, "CombatModeConfirmDialog")
+  UI.EnableEscClose(dialog, "CombatModeConfirmDialog", true)
 
   dialog.blocker = blocker
   dialog.message = message
@@ -434,7 +434,7 @@ local function BuildCopyLinkDialog()
     edit:HighlightText()
   end)
 
-  UI.EnableEscClose(dialog, "CombatModeCopyLinkDialog")
+  UI.EnableEscClose(dialog, "CombatModeCopyLinkDialog", true)
 
   dialog.blocker = blocker
   dialog.message = message
@@ -2032,9 +2032,9 @@ function UI.MakeDropdown(parent, opts)
     menu.bar = bar
 
     closer:SetScript("OnClick", CloseMenu)
-    -- ESC closes only the menu. The menu is not in UISpecialFrames, so without a keyboard
-    -- handler ESC would reach CloseSpecialWindows and close the options window underneath it
-    -- (leaving the menu open). Every other key still reaches the game.
+    -- ESC closes only the menu: without a keyboard handler here ESC would reach the options
+    -- window's own ESC handler underneath and close it (leaving the menu open). Every other key
+    -- still reaches the game.
     menu:SetScript("OnKeyDown", function(self, key)
       if InCombatLockdown() then
         return
