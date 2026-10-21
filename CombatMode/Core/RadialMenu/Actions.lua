@@ -428,6 +428,21 @@ Command(
   true
 )
 
+-- Classic Era's CharacterMicroButton works from OnMouseDown/Up (and needs the mouse over it), so a
+-- "/click" does nothing there: run ToggleCharacter through the insecure proxy instead (not in
+-- combat). Scoped to the Era project id; Retail (and Forever, which reports as Mainline) keep the click.
+do
+  local character = DEFINITIONS[1]
+  if _G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC then
+    character.click = nil
+    character.requires = "ToggleCharacter"
+    character.noCombat = true
+    character.run = function()
+      Call("ToggleCharacter", "PaperDollFrame")
+    end
+  end
+end
+
 -- Client availability: panels and commands that the running client doesn't have (Classic / Forever
 -- lack many Retail windows) are hidden from the editor and skipped by the wheel. `click` lists micro
 -- buttons (first one that exists is clicked); `requires` names a global the action needs.

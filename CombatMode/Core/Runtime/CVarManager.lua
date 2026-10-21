@@ -34,6 +34,8 @@
 --      and suppress Dynamic Pitch / Shoulder Offset / Target Focus CVar writes (options stay
 --      saved; turning Protection off re-applies them).
 --    • SetShoulderOffset — tweens test_cameraOverShoulder with Vignette duration.
+--    • SwapShoulder — keybind: negates char.shoulderOffset (tweened), or the live CVar when
+--      DynamicCam / SteadyCam own it.
 --      Intent (slider / DC snapshot) is separate from the live blend. Optional
 --      global.shoulderFollowsMouseLook (default off): when on, ease with Mouse Look
 --      chrome; when off, keep configured offset always. DynamicCam + follow: drive only
@@ -750,6 +752,35 @@ function CM.SetShoulderOffset()
   else
     CM.DebugPrint("Shoulder Offset target " .. tostring(desired))
   end
+end
+
+--- Swap shoulders (the keybind): mirror the shoulder to the other side of the character.
+--- Works with other camera addons too: when we drive the CVar, the configured offset is negated and
+--- tweened (through 0); when DynamicCam / SteadyCam own it, the live CVar is negated directly.
+function CM.SwapShoulder()
+  local char = CM.DB and CM.DB.char
+  if not char then
+    return
+  end
+  -- Keep the saved side in step so it survives the next Shoulder Offset refresh and relog.
+  char.shoulderOffset = -(tonumber(char.shoulderOffset) or 1.2)
+  EnsureShoulderOffsetDriver()
+  if DesiredShoulderOffset() ~= nil then
+    -- A DynamicCam restore target (after unlock→0) is a captured value, so mirror it too.
+    if dcRestore ~= nil then
+      dcRestore = -dcRestore
+    end
+    CM.SetShoulderOffset()
+    return
+  end
+  RelinquishShoulderToLive()
+  local live = ReadShoulderCVar()
+  CM.SetCVar(SHOULDER_CVAR, -live)
+  shoulderCurrent = -live
+end
+
+function _G.CombatMode_SwapShoulder()
+  CM.SwapShoulder()
 end
 
 local function ApplyDynamicPitchPads()

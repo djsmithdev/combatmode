@@ -44,6 +44,7 @@ CM.Constants.PopupMsg = "Welcome to Action Combat Mode!\n\n"
 local BINDING_DISPLAY_NAMES = {
   "Mouse Look",
   "Flip Camera",
+  "Swap Shoulder",
   "Reset Mouse Look",
   "Ally Cycle Next",
   "Ally Cycle Previous",

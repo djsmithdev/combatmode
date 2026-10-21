@@ -9,6 +9,9 @@
 			CombatMode_FlipCameraKey(keystate)
 		end
 	</Binding>
+	<Binding name="Combat Mode - Swap Shoulder" description="Mirror the camera's Shoulder Offset to the other side of your character" category="|A:::|a|TInterface\Addons\CombatMode\Assets\branding\cmtitle:26:55|t">
+		CombatMode_SwapShoulder()
+	</Binding>
 	<Binding name="Combat Mode - Reset Mouse Look" description="Recover the cursor if it gets stuck after switching windows (re-grabs and releases Mouse Look)" category="|A:::|a|TInterface\Addons\CombatMode\Assets\branding\cmtitle:26:55|t">
 		CombatMode_ResetMouseLook()
 	</Binding>

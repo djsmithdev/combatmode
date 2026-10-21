@@ -127,6 +127,7 @@ end
 UI.Options.AddTab({
   id = "general",
   label = "Mouse Look",
+  newFeatureFlag = true,
   build = function(ctx)
     ctx:Header("MOUSE LOOK")
 
@@ -365,6 +366,19 @@ UI.Options.AddTab({
       end,
       disabled = function()
         return CM.SteadyCam or RespectMotionSicknessOn()
+      end,
+    })
+    ctx:Keybind({
+      label = "Swap Shoulder Keybind",
+      desc = "Press to mirror Shoulder Offset to the other side of your character.",
+      newFeatureFlag = true,
+      get = function()
+        return (GetBindingKey("Combat Mode - Swap Shoulder"))
+      end,
+      set = function(key)
+        CM.TryApplyBindingChange("swap shoulder keybinding", function()
+          CM.AssignNamedKeybind("Combat Mode - Swap Shoulder", key)
+        end)
       end,
     })
   end,
