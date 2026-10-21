@@ -51,6 +51,8 @@ local IsMouseButtonDown = _G.IsMouseButtonDown
 local IsMouselooking = _G.IsMouselooking
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
+local PlaySound = _G.PlaySound
+local SOUNDKIT = _G.SOUNDKIT
 local SpellIsTargeting = _G.SpellIsTargeting
 local ToggleSheath = _G.ToggleSheath
 
@@ -375,11 +377,25 @@ local function StartFreeLookFresh()
   CM.DebugPrint("Free Look Enabled")
 end
 
+-- One soft click (checkbox-on) when Mouse Look turns on / off (quick re-locks stay silent).
+local FREELOOK_SOUND = (SOUNDKIT and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON) or 856
+local SOUND_GAP = 0.15
+local lastSoundTime = 0
+
+local function PlayFreeLookSound()
+  local now = GetTime()
+  if PlaySound and now - lastSoundTime >= SOUND_GAP then
+    lastSoundTime = now
+    PlaySound(FREELOOK_SOUND, "Master", true)
+  end
+end
+
 function CM.LockFreeLook()
   if IsMouselooking() then
     return
   end
   StartFreeLookFresh()
+  PlayFreeLookSound()
   -- Returning to intentional Mouse Look (e.g. after Auto Cursor Unlock).
   if not FreeLookOverride then
     ApplyWeaponsSheathed(false)
@@ -393,6 +409,7 @@ function CM.UnlockFreeLook()
   cmMouselookActive = false
   RunUnlockFreeLookDeferredUI()
   MouselookStop()
+  PlayFreeLookSound()
 
   if CM.DB.global.pulseCursor then
     CM.ShowCursorPulse()

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Radial Menu**: hold a key, move the mouse toward a slice and release to use it. Build up to 5 wheels of 8 slices (saved per character) in the new **Radial Menu** tab, which shows the wheel: click a slice to choose what it does, drop a spell, item, toy, mount or macro on it, right-click to remove it, and use the centre **+** and **-** to add or remove wheels. Each wheel can be renamed and has its own highlight colour, page dots under the name show which wheel is open, and scrolling the mouse wheel switches wheels while it is open (Escape cancels). New characters start with Interface, Emotes and Misc wheels. Unbound by default: pick a key in the tab. Subtle sounds play when the wheel opens, closes, changes slice or wheel, and when you use a slice. Not available on WoW Forever.
+- Soft click sounds now play when Mouse Look turns on and off.
 - **Swap Shoulder** keybind: mirrors your **Shoulder Offset** to the other side of the character, easing across. Find it in the Key Bindings under Action Combat Mode.
 - The **Action** dropdown in Click Casting now groups its choices under **Action Combat Mode**, **Modified Blizzard Actions** and **Blizzard Actions** headers.
 
