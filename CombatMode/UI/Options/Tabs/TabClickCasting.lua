@@ -48,6 +48,12 @@ local OVERRIDE_ORDER = {
 local ACTION_VALUES
 local ACTION_ORDER
 local ACTION_COLORS -- value -> rgb: Combat Mode's own actions (copper) and changed Blizzard ones (blue)
+-- Non-clickable section titles inside the Action dropdown (ids sit in ACTION_ORDER).
+local ACTION_HEADERS = {
+  __combatmode = "Action Combat Mode",
+  __changed = "Modified Blizzard Actions",
+  __blizzard = "Blizzard Actions",
+}
 
 local MODIFIER_GROUPS = {
   { id = "base", label = "Base", modifier = nil },
@@ -63,6 +69,10 @@ local function BuildActionValues()
   ACTION_VALUES = {}
   ACTION_ORDER = {}
   ACTION_COLORS = {}
+  for header, title in pairs(ACTION_HEADERS) do
+    ACTION_VALUES[header] = title
+  end
+  tinsert(ACTION_ORDER, "__combatmode")
   for _, id in ipairs(OVERRIDE_ORDER) do
     ACTION_VALUES[id] = CM.Constants.OverrideActions[id]
     ACTION_COLORS[id] = C.accent
@@ -70,11 +80,13 @@ local function BuildActionValues()
   end
   -- Blizzard actions Combat Mode changes (pings, raid markers): blue, right after our own copper
   -- ones, so both are easy to tell from the plain Blizzard actions below.
+  tinsert(ACTION_ORDER, "__changed")
   for _, id in ipairs(CM.Constants.BlizzardActionOrder) do
     ACTION_VALUES[id] = _G["BINDING_NAME_" .. id] or id
     ACTION_COLORS[id] = C.slash
     tinsert(ACTION_ORDER, id)
   end
+  tinsert(ACTION_ORDER, "__blizzard")
   for _, id in ipairs(CM.Constants.ActionsToProcess) do
     if id ~= "STARTATTACK" and id ~= "PETATTACK" and not ACTION_VALUES[id] then
       local name = _G["BINDING_NAME_" .. id]
@@ -137,6 +149,7 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas, leadingIconText
     charSpecific = CharScopedBindings,
     values = ACTION_VALUES,
     order = ACTION_ORDER,
+    headers = ACTION_HEADERS,
     valueColors = ACTION_COLORS,
     display = ActionDisplay,
     get = function()
@@ -401,6 +414,15 @@ UI.Options.AddTab({
     bar:SetPoint("TOPLEFT", segmentHost, "TOPLEFT", 0, 0)
     -- Options search uses this to switch segments before scrolling to a result.
     UI.Options.RegisterSegmentSelector("clickcasting", selectGroup)
+    -- Lets the setup wizard (and search) point at the whole tabs + click options block.
+    UI.Options.RegisterControl({
+      frame = segmentHost,
+      search = {
+        label = "Click Binds",
+        desc = "Base, Shift, Ctrl and Alt each have their own Left and Right Click actions.",
+        tab = "clickcasting",
+      },
+    })
 
     -- Hairline under the segment bar so the modifier tabs read separately from the
     -- Left/Right click options below (same treatment as the sidebar footer divider).

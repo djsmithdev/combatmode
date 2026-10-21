@@ -50,6 +50,7 @@ local BINDING_DISPLAY_NAMES = {
   "Toggle Focus Target",
   "Cycle Focus Next",
   "Cycle Focus Previous",
+  "Radial Menu",
 }
 for _, label in ipairs(BINDING_DISPLAY_NAMES) do
   _G["BINDING_NAME_Combat Mode - " .. label] = "Action Combat Mode - " .. label

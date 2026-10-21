@@ -179,6 +179,16 @@ CM.Constants.BLIZZARD_EVENTS = {
   INTERACT_HUD_EVENTS = {
     "PLAYER_SOFT_INTERACT_CHANGED",
   },
+  -- Radial Menu: repaint cooldowns / counts while open; re-store slices when known spells change
+  RADIAL_MENU_EVENTS = {
+    "SPELL_UPDATE_COOLDOWN",
+    "BAG_UPDATE_COOLDOWN",
+    "BAG_UPDATE_DELAYED",
+    "SPELL_UPDATE_USABLE", -- Slice usability (resources, form)
+    "PLAYER_REGEN_DISABLED", -- Combat-blocked actions grey out
+    "PLAYER_REGEN_ENABLED",
+    "SPELLS_CHANGED",
+  },
 }
 
 -- Action-bar bindings for click-cast dropdown + reticle /click injection.

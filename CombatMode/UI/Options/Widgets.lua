@@ -51,6 +51,7 @@ local max = _G.math.max
 local min = _G.math.min
 local strfind = _G.string.find
 local strlower = _G.string.lower
+local strupper = _G.string.upper
 local strtrim = _G.string.trim
 local tconcat = _G.table.concat
 local tremove = _G.table.remove
@@ -1696,6 +1697,8 @@ end
 local HELP_BADGE_SIZE = 20
 local HELP_BADGE_GAP = 6
 
+--- `opts.headers` (`{ [id] = title }`) turns those ids in `opts.order` into non-clickable section
+--- headers with a divider above (hidden while filtering).
 --- `opts.helpTooltip` (string, `{ title?, text?, lines? }` or a function returning either; see
 --- UI.ShowTooltip) adds a round "?" badge to the left of the select that shows it on hover.
 function UI.MakeDropdown(parent, opts)
@@ -1842,12 +1845,17 @@ function UI.MakeDropdown(parent, opts)
     item.text:SetWordWrap(false)
     item.text:SetTextColor(C.text[1], C.text[2], C.text[3])
     item:SetScript("OnEnter", function(self)
-      self.hl:Show()
+      if not self.isHeader then
+        self.hl:Show()
+      end
     end)
     item:SetScript("OnLeave", function(self)
       self.hl:Hide()
     end)
     item:SetScript("OnClick", function(self)
+      if self.isHeader then
+        return
+      end
       CloseMenu()
       if opts.set then
         opts.set(self.id)
@@ -1866,7 +1874,8 @@ function UI.MakeDropdown(parent, opts)
     for _, id in ipairs(ids) do
       local labelText = UI.StripColors(values[id]) or id
       local match = filterText == ""
-      if not match then
+      local header = opts.headers and opts.headers[id]
+      if not match and not header then
         match = strfind(strlower(labelText), filterText, 1, true) ~= nil
           or strfind(strlower(id), filterText, 1, true) ~= nil
       end
@@ -1874,10 +1883,21 @@ function UI.MakeDropdown(parent, opts)
         shown = shown + 1
         local item = EnsureItem(shown)
         item.id = id
-        item.text:SetText(labelText)
-        local tint = opts.valueColors and opts.valueColors[id] or C.text
+        item.isHeader = header ~= nil
+        if not item.rule then
+          -- Same gradient hairline that separates the header from the list.
+          item.rule = UI.CreateLine(item, false, C.divider, "ends")
+          item.rule:SetHeight(1)
+          item.rule:SetPoint("TOPLEFT", item, "TOPLEFT", 4, 0)
+          item.rule:SetPoint("TOPRIGHT", item, "TOPRIGHT", -4, 0)
+        end
+        item.rule:SetShown(header ~= nil and shown > 1)
+        item.hl:Hide()
+        item.text:SetJustifyH(header and "CENTER" or "LEFT")
+        item.text:SetText(header and strupper(labelText) or labelText)
+        local tint = header and C.textDim or opts.valueColors and opts.valueColors[id] or C.text
         item.text:SetTextColor(tint[1], tint[2], tint[3])
-        local info = opts.itemInfo and opts.itemInfo(id)
+        local info = not header and opts.itemInfo and opts.itemInfo(id)
         item.text:ClearAllPoints()
         if info and (info.icon or info.atlas) then
           ApplyEntryIcon(item.icon, info)
@@ -2035,10 +2055,16 @@ function UI.MakeDropdown(parent, opts)
     menu:SetScript("OnHide", function(self)
       self:EnableKeyboard(false)
       closer:Hide()
+      -- Callers that open the menu beside another frame (OpenAt) learn when it goes away.
+      if control.onClosed then
+        control.onClosed()
+      end
     end)
   end
 
-  local function OpenMenu()
+  -- `anchor` / `headerLabel` / `width` let a caller open the same menu beside another frame
+  -- (control.OpenAt); by default it expands out of the select itself.
+  local function OpenMenu(anchor, headerLabel, anchorWidth)
     EnsureMenu()
     local count = #orderedIds()
     local useFilter = count > FILTER_MIN
@@ -2053,7 +2079,9 @@ function UI.MakeDropdown(parent, opts)
       menuScale = 1
     end
     local width
-    if left and right and right > left then
+    if anchorWidth then
+      width = anchorWidth
+    elseif left and right and right > left then
       local buttonScale = button:GetEffectiveScale() or 1
       width = (right - left) * buttonScale / menuScale
     else
@@ -2062,7 +2090,7 @@ function UI.MakeDropdown(parent, opts)
 
     menu:SetWidth(width)
 
-    menu.headerText:SetText(text:GetText() or "")
+    menu.headerText:SetText(headerLabel or text:GetText() or "")
     local currentValue = opts.get and opts.get()
     PlaceSelectedIcon(
       menu.headerIcon,
@@ -2096,7 +2124,11 @@ function UI.MakeDropdown(parent, opts)
 
     menu:ClearAllPoints()
     -- Cover the select exactly; the header row stands in for it.
-    menu:SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
+    if anchor then
+      menu:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 10, 0)
+    else
+      menu:SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
+    end
     menu.closer:Show()
     menu:Show()
     menu:Raise()
@@ -2115,6 +2147,14 @@ function UI.MakeDropdown(parent, opts)
       OpenMenu()
     end
   end)
+
+  --- Opens the menu beside `anchor` (header shows `headerLabel`) instead of over the select.
+  function control.OpenAt(anchor, headerLabel, anchorWidth)
+    if menu and menu:IsShown() then
+      CloseMenu()
+    end
+    OpenMenu(anchor, headerLabel, anchorWidth)
+  end
 
   -- Selected-value text: menu offers opts.values, but the stored value can be outside
   -- that set (e.g. click-cast defaults like ACTIONBUTTON1). opts.display maps those to a

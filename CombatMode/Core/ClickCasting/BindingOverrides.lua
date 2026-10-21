@@ -473,9 +473,20 @@ local ACTION_MACRO_TEXTS = {
   CLEARFOCUS = CM.Constants.Macros.CM_ClearFocus,
   STARTATTACK = CM.Constants.Macros.CM_StartAttack,
   PETATTACK = CM.Constants.Macros.CM_PetAttack,
-  TOGGLEFOCUSANY = CM.Constants.Macros.CM_ToggleFocusAny,
-  TOGGLEFOCUSENEMY = CM.Constants.Macros.CM_ToggleFocusEnemy,
 }
+-- Toggle Focus click-cast actions follow Target Lock Behavior (Toggle / Switch Target).
+local FOCUS_ACTION_MACRO_KEYS = {
+  TOGGLEFOCUSANY = { toggle = "CM_ToggleFocusAny", switch = "CM_SwitchFocusAny" },
+  TOGGLEFOCUSENEMY = { toggle = "CM_ToggleFocusEnemy", switch = "CM_SwitchFocusEnemy" },
+}
+local function ActionMacroText(value)
+  local focus = FOCUS_ACTION_MACRO_KEYS[value]
+  if focus then
+    local behavior = CM.DB.char.targetLockBehavior == "switch" and "switch" or "toggle"
+    return CM.Constants.Macros[focus[behavior]]
+  end
+  return ACTION_MACRO_TEXTS[value]
+end
 for value, text in pairs(CM.Constants.BlizzardActionMacros) do
   ACTION_MACRO_TEXTS[value] = text
 end
@@ -489,11 +500,11 @@ function CM.SetNewBinding(buttonSettings)
   local valueToUse
   if value == "MACRO" then
     valueToUse = "MACRO " .. buttonSettings.macroName
-  elseif ACTION_MACRO_TEXTS[value] then
+  elseif ActionMacroText(value) then
     -- Combat Mode's own click-cast actions: their macro text goes on this key's proxy button and
     -- the key clicks it, so nothing has to exist in the player's macro list.
     local frame = ClickCastFramesByKey[key]
-    local macroText = ACTION_MACRO_TEXTS[value]
+    local macroText = ActionMacroText(value)
     if frame and macroText then
       SetClickCastFrameMacro(frame, macroText)
       valueToUse = "CLICK " .. frame:GetName() .. ":" .. ClickCastMouseButton(key)

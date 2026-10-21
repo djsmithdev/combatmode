@@ -38,9 +38,6 @@ local actionSlotCommandMap
 
 local KEYBOARD_KEYBIND_FONT = "Fonts\\FRIZQT__.TTF"
 local KEYBOARD_KEYBIND_FONT_SIZE = 15
--- SetSmoothScaling exists on FontString when the SLUG flag is supported (Midnight+).
-local HAS_SLUG = _G.CreateFrame("Frame"):CreateFontString().SetSmoothScaling ~= nil
-local KEYBOARD_KEYBIND_FONT_FLAGS = HAS_SLUG and "OUTLINE, SLUG" or "OUTLINE"
 
 Keybinds.STYLE_CLICKCAST = "clickcast"
 Keybinds.STYLE_KEYBOARD = "keyboard"
@@ -407,16 +404,9 @@ local KEY_COLOR = { 0.612, 0.588, 0.549 }
 
 -- Outline + slug + soft 1px shadow, shared by both HUD texts.
 local function ApplyOutlineSlug(label, font, size, color)
-  if font and size then
-    label:SetFont(font, size, KEYBOARD_KEYBIND_FONT_FLAGS)
-  end
-  if HAS_SLUG then
-    label:SetSmoothScaling(true)
-  end
+  CM.ApplyOutlineSlug(label, font, size)
   color = color or TEXT_COLOR
   label:SetTextColor(color[1], color[2], color[3], 1)
-  label:SetShadowColor(0, 0, 0, 0.5)
-  label:SetShadowOffset(1, -1)
 end
 
 --- Click-cast label: only inline |T / |A icons, so it keeps the plain font path (no slug).

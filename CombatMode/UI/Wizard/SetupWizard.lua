@@ -160,26 +160,55 @@ local STEPS = {
     tab = "clickcasting",
     section = "CLICK CASTING",
     title = "Click Casting",
-    body = "Bind actions to your mouse clicks while in Mouse Look. Pick a modifier (Base, Shift, "
-      .. "Ctrl, Alt) at the top, then set what Left Click and Right Click do.",
+    body = "Click Casting turns your mouse clicks into actions while in Mouse Look, such as casting "
+      .. "your action bar spells with Left and Right Click.",
   },
   {
-    tab = "autocursorunlock",
-    label = "Auto Unlock",
-    title = "Auto Unlock",
-    body = "Mouse Look pauses when you open bags, the map or other windows, then resumes.",
+    tab = "clickcasting",
+    label = "Account-Wide Binds",
+    title = "Account-Wide Binds",
+    body = "Choose whether these binds are shared by every character or kept per character.",
   },
   {
-    tab = "autocursorunlock",
-    label = "Unlock Mounts",
-    title = "Unlock Mounts",
-    body = "Mounts that should release the cursor while you are mounted on them. Search for a mount to add it.",
+    tab = "clickcasting",
+    label = "Click Binds",
+    title = "Click Binds",
+    body = "Each tab holds its own binds: Base is a plain click, while Shift, Ctrl and Alt apply when you "
+      .. "hold that key. Click a tab to switch to it. Switch a click on to override it in Mouse Look, then "
+      .. "open its Action dropdown to pick what it does. Pick Run MACRO to run one of your own macros.",
   },
   {
-    tab = "autocursorunlock",
-    label = "Extra Frames",
-    title = "Extra Frames",
-    body = "Add any other windows that should pause Mouse Look when they open. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen.",
+    tab = "radialmenu",
+    section = "RADIAL MENU",
+    title = "Radial Menu",
+    body = "A wheel of your own spells, items, macros, emotes and interface shortcuts that works in combat. "
+      .. "Hold its key, move the mouse toward a slice and release to use it; release in the centre to cancel. "
+      .. "Scroll the mouse wheel while it is open to turn to another wheel.",
+  },
+  {
+    tab = "radialmenu",
+    label = "Radial Menu Keybind",
+    title = "Radial Menu Key",
+    body = "Pick the key you hold to open the wheel.",
+    -- Not usable on Forever (no secure snippets), so the key can't be asked for there.
+    tasks = {
+      {
+        label = "Set a Radial Menu key",
+        done = function()
+          return (CM.IsRadialMenuSecureAvailable and not CM.IsRadialMenuSecureAvailable())
+            or Bound("Combat Mode - Radial Menu")
+        end,
+      },
+    },
+  },
+  {
+    tab = "radialmenu",
+    label = "Radial Menu Wheels",
+    title = "Your Wheels",
+    body = "Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it. "
+      .. "Right-click a slice to remove it, and use Add Slice for more (up to 8 per wheel). "
+      .. "Make up to 5 wheels: switch with the arrows, rename one by clicking its name, and use + and - "
+      .. "in the centre to add or remove one. Three come ready to use.",
   },
   {
     tab = "allycycle",
@@ -207,6 +236,25 @@ local STEPS = {
     preview = "ally",
     title = "Ally HUD",
     body = "Shows the selected ally next to the crosshair. Choose where it sits and how big it is.",
+  },
+  {
+    tab = "autocursorunlock",
+    section = "AUTO UNLOCK",
+    title = "Auto Unlock",
+    body = "Mouse Look pauses when you open bags, the map or other windows, then resumes. It can also "
+      .. "step aside on certain mounts or for frames you add.",
+  },
+  {
+    tab = "autocursorunlock",
+    label = "Unlock Mounts",
+    title = "Unlock Mounts",
+    body = "Mounts that should release the cursor while you are mounted on them. Search for a mount to add it.",
+  },
+  {
+    tab = "autocursorunlock",
+    label = "Extra Frames",
+    title = "Extra Frames",
+    body = "Add any other windows that should pause Mouse Look when they open. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen.",
   },
   {
     tab = "advanced",

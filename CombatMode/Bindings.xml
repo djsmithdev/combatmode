@@ -18,6 +18,9 @@
 	<Binding name="Combat Mode - Ally Cycle Previous" description="Cycle to the previous group member" category="|A:::|a|TInterface\Addons\CombatMode\Assets\branding\cmtitle:26:55|t">
 		CombatMode_AllyCycleDown()
 	</Binding>
+	<Binding name="Combat Mode - Radial Menu" description="Hold to open your radial menu, flick toward a slice and release to use it" header="Radial Menu" category="|A:::|a|TInterface\Addons\CombatMode\Assets\branding\cmtitle:26:55|t" runOnUp="true">
+		-- Handled by a secure override click (Core/RadialMenu/Secure.lua), which wins over this body.
+	</Binding>
 	<Binding name="Combat Mode - Toggle Focus Target" description="Lock the reticle to a target (behavior set in Reticle Targeting options)" header="Reticle Targeting" category="|A:::|a|TInterface\Addons\CombatMode\Assets\branding\cmtitle:26:55|t">
 		CombatMode_ToggleFocusTarget()
 	</Binding>

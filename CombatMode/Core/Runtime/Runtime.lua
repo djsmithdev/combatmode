@@ -127,6 +127,28 @@ function CM.SetFontStringFromTemplate(fontString, pixelSize, templateFontObject)
   fontString:SetFont(path, pixelSize, flags)
 end
 
+-- SetSmoothScaling exists on FontString when the SLUG flag is supported (Midnight+).
+local HAS_SLUG = _G.CreateFrame("Frame"):CreateFontString().SetSmoothScaling ~= nil
+
+--- The addon's shared text look (HUDs, radial menu): outline + slug, smooth scaling and a soft
+--- 1px drop shadow. Keeps the label's current font and size unless `font` / `size` are given.
+--- Colour is the caller's business. Mirrors UI.ApplyOutlineFont in the UI addon.
+function CM.ApplyOutlineSlug(label, font, size)
+  if not label then
+    return
+  end
+  local currentFont, currentSize = label:GetFont()
+  font, size = font or currentFont, size or currentSize
+  if font and size then
+    label:SetFont(font, size, HAS_SLUG and "OUTLINE, SLUG" or "OUTLINE")
+  end
+  if HAS_SLUG then
+    label:SetSmoothScaling(true)
+  end
+  label:SetShadowColor(0, 0, 0, 0.5)
+  label:SetShadowOffset(1, -1)
+end
+
 local function OpenConfigPanel()
   -- Standalone options window (UI/Options/OptionsPanel.lua). Combat guard is
   -- handled inside CM.OpenOptions.

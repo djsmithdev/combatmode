@@ -120,6 +120,9 @@ local function RunClickCastBindingRefresh()
       if CM.ApplyAllyCycleBindings then
         CM.ApplyAllyCycleBindings()
       end
+      if CM.RadialRefresh then
+        CM.RadialRefresh()
+      end
     end
     if clickCastRefreshReason == "GROUP_ROSTER_UPDATE" and CM.OnAllyCycleGroupRosterUpdate then
       CM.OnAllyCycleGroupRosterUpdate()
@@ -285,6 +288,11 @@ local function HandleEventByCategory(category, event, ...)
     INTERACT_HUD_EVENTS = function()
       if CM.UpdateCrosshairAssistedHighlight then
         CM.UpdateCrosshairAssistedHighlight()
+      end
+    end,
+    RADIAL_MENU_EVENTS = function()
+      if CM.OnRadialMenuEvent then
+        CM.OnRadialMenuEvent(event)
       end
     end,
   }

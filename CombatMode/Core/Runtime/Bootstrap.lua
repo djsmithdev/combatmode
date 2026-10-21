@@ -143,4 +143,7 @@ function CM.BootstrapFeatureModules()
   if CM.InitializeAllyCycle then
     CM.InitializeAllyCycle()
   end
+  if CM.InitializeRadialMenu then
+    CM.InitializeRadialMenu()
+  end
 end

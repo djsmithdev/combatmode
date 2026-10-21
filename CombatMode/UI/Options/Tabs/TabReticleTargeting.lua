@@ -77,19 +77,20 @@ local function BuildMacroShelf(parent, width, onHeight)
   shelf:SetSize(width, rowH)
 
   -- "+" at the end of the list: opens the composer. Standard control surface (gradient fill +
-  -- outline), fully rounded; the cross is two bars so it is truly centered.
+  -- outline), fully rounded, with the same plus glyph as the option sliders' step buttons.
   local plus = CreateFrame("Button", nil, shelf)
   plus:SetSize(SHELF_ICON, SHELF_ICON)
   UI.StyleControl(plus, nil, SHELF_ICON / 2)
-  local crossColor = plus.cmControlText.idle
-  local armH = plus:CreateTexture(nil, "OVERLAY")
-  armH:SetColorTexture(crossColor[1], crossColor[2], crossColor[3])
-  armH:SetSize(SHELF_ICON * 0.4, 2)
-  armH:SetPoint("CENTER")
-  local armV = plus:CreateTexture(nil, "OVERLAY")
-  armV:SetColorTexture(crossColor[1], crossColor[2], crossColor[3])
-  armV:SetSize(2, SHELF_ICON * 0.4)
-  armV:SetPoint("CENTER")
+  local glyph = plus:CreateTexture(nil, "OVERLAY")
+  CM.SetAtlas(glyph, "common-icon-plus", true)
+  local glyphH = glyph:GetHeight() or 16
+  local glyphW = glyph:GetWidth() or 16
+  if glyphH > 0 then
+    glyph:SetSize(glyphW * 12 / glyphH, 12)
+  end
+  glyph:SetPoint("CENTER")
+  glyph:SetDesaturated(true)
+  glyph:SetVertexColor(C.text[1], C.text[2], C.text[3])
   plus:HookScript("OnEnter", function(self)
     self:cmControlHover(true)
   end)
@@ -459,6 +460,8 @@ UI.Options.AddTab({
       set = function(value)
         CM.DB.char.targetLockBehavior = value
         CM.ApplyToggleFocusTargetBinding()
+        -- Click-cast Toggle Focus actions use the same behaviour.
+        CM.RefreshClickCastMacros()
       end,
       disabled = function()
         return not CM.DB.char.reticleTargeting

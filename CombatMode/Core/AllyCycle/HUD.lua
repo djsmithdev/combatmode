@@ -94,6 +94,9 @@ local LAYOUT = {
   cycleAnimFromAlpha = 0.75,
 }
 
+-- Cream, same as the Assist HUD's interaction name (Keybinds TEXT_COLOR).
+local INDEX_COLOR = { 0.945, 0.902, 0.827 }
+
 local function Layout()
   return LAYOUT
 end
@@ -213,7 +216,7 @@ local function ApplyDeadChrome(dead)
     if dead then
       indexFS:SetTextColor(0.55, 0.55, 0.55, 1)
     else
-      indexFS:SetTextColor(0.85, 0.85, 0.85, 1)
+      indexFS:SetTextColor(INDEX_COLOR[1], INDEX_COLOR[2], INDEX_COLOR[3], 1)
     end
   end
   if cycleArrow and cycleArrow.SetDesaturated then
@@ -458,8 +461,7 @@ local function EnsureFrames()
     if CM.SetFontStringFromTemplate then
       CM.SetFontStringFromTemplate(nameFS, L.nameFontSize or 11, _G.GameFontNormalSmall)
     end
-    nameFS:SetShadowColor(0, 0, 0, 1)
-    nameFS:SetShadowOffset(1, -1)
+    CM.ApplyOutlineSlug(nameFS)
 
     indexFS = cluster:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     indexFS:SetJustifyH("CENTER")
@@ -467,9 +469,8 @@ local function EnsureFrames()
     if CM.SetFontStringFromTemplate then
       CM.SetFontStringFromTemplate(indexFS, L.indexFontSize or 10, _G.GameFontNormalSmall)
     end
-    indexFS:SetShadowColor(0, 0, 0, 1)
-    indexFS:SetShadowOffset(1, -1)
-    indexFS:SetTextColor(0.85, 0.85, 0.85, 1)
+    CM.ApplyOutlineSlug(indexFS)
+    indexFS:SetTextColor(INDEX_COLOR[1], INDEX_COLOR[2], INDEX_COLOR[3], 1)
 
     local arrowS = L.cycleArrowSize or 12
     cycleArrow = cluster:CreateTexture(nil, "OVERLAY")

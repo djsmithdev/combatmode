@@ -33,6 +33,7 @@ local tostring = _G.tostring
 local gsub = _G.string.gsub
 local format = _G.string.format
 local abs = _G.math.abs
+local ceil = _G.math.ceil
 local floor = _G.math.floor
 local max = _G.math.max
 local min = _G.math.min
@@ -1248,13 +1249,14 @@ end
 local tipFrame
 local tipTitle
 local tipBody
+local tipNote
 local tipLinePool = {} -- { label = FontString, value = FontString }
 
 local TIP_PAD_X = 12
 local TIP_PAD_Y = 10
 local TIP_GAP = 4
-local TIP_SIMPLE_W = 240
-local TIP_RICH_W = 300
+local TIP_SIMPLE_W = 210
+local TIP_RICH_W = 260
 local TIP_OWNER_GAP = 8
 
 local function ResolveTooltipContent(content)
@@ -1342,13 +1344,7 @@ end
 --- in the dim colour), or a function returning either. `lines` entries are `{ label, value, kind? }` (`kind = "warn"` uses warning color); they
 --- are laid out as label / value columns, or with the label above its value when `stacked` is set
 --- (then an entry may also carry `warning`, a note in the warning colour under its value).
-function UI.ShowTooltip(owner, content, anchor)
-  content = ResolveTooltipContent(content)
-  if not content then
-    UI.HideTooltip()
-    return
-  end
-
+local function ShowTooltipAt(owner, content, anchor, fitW)
   EnsureTooltipFrame()
 
   local title = nil
@@ -1369,7 +1365,7 @@ function UI.ShowTooltip(owner, content, anchor)
   local lines = content.lines
   local hasLines = type(lines) == "table" and #lines > 0
   local rich = title ~= nil or hasLines
-  local maxW = rich and TIP_RICH_W or TIP_SIMPLE_W
+  local maxW = fitW or (rich and TIP_RICH_W or TIP_SIMPLE_W)
   local textW = maxW - TIP_PAD_X * 2
 
   for _, line in ipairs(tipLinePool) do
@@ -1465,6 +1461,12 @@ function UI.ShowTooltip(owner, content, anchor)
         if valueH < 1 then
           valueH = UI.Fonts.desc + 2
         end
+        local valueTextW = min(line.value:GetStringWidth(), valueW)
+        if stacked then
+          contentW = max(contentW, labelW, valueTextW)
+        else
+          contentW = max(contentW, labelW + 6 + valueTextW)
+        end
         if stacked then
           y = y + labelH + 1 + valueH
           if entry.warning then
@@ -1490,6 +1492,7 @@ function UI.ShowTooltip(owner, content, anchor)
               warningH = UI.Fonts.desc + 2
             end
             y = y + TIP_GAP + warningH
+            contentW = max(contentW, min(line.warning:GetStringWidth(), textW))
           end
           y = y + TIP_GAP + 2
         else
@@ -1499,10 +1502,43 @@ function UI.ShowTooltip(owner, content, anchor)
     end
   end
 
-  -- Rich tips keep a fixed max width for wrapping. Simple text tips hug content.
+  -- Optional red note (content.warning) under everything else.
+  local note = content.warning and tostring(content.warning) or nil
+  if note and note ~= "" then
+    if not tipNote then
+      tipNote = UI.CreateFontString(tipFrame, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
+      tipNote:SetJustifyH("LEFT")
+      tipNote:SetJustifyV("TOP")
+      tipNote:SetWordWrap(true)
+    end
+    local red = UI.Colors.warning
+    tipNote:ClearAllPoints()
+    tipNote:SetPoint("TOPLEFT", tipFrame, "TOPLEFT", TIP_PAD_X, -(y + TIP_GAP))
+    tipNote:SetWidth(textW)
+    tipNote:SetText(UI.StripColors(note) or note)
+    tipNote:SetTextColor(red[1], red[2], red[3], 1)
+    tipNote:Show()
+    local nh = tipNote:GetStringHeight()
+    if nh < 1 then
+      nh = UI.Fonts.desc + 2
+    end
+    contentW = max(contentW, min(tipNote:GetStringWidth(), textW))
+    y = y + TIP_GAP + nh
+  elseif tipNote then
+    tipNote:Hide()
+  end
+
+  -- Rich tips are laid out at the max width first, then re-laid out once at the width of their
+  -- widest content so they hug their text. Simple text tips hug content directly.
   local width
   if title or hasLines then
     width = maxW
+    if not fitW then
+      local fitted = max(min(ceil(contentW) + TIP_PAD_X * 2 + 2, maxW), 140)
+      if fitted < maxW - 4 then
+        return ShowTooltipAt(owner, content, anchor, fitted)
+      end
+    end
   else
     width = max(min(contentW + TIP_PAD_X * 2, TIP_SIMPLE_W), 80)
     if body then
@@ -1518,6 +1554,15 @@ function UI.ShowTooltip(owner, content, anchor)
   tipFrame:SetSize(width, max(height, TIP_PAD_Y * 2 + UI.Fonts.desc))
   PositionTooltip(owner, anchor or "ANCHOR_RIGHT")
   tipFrame:Show()
+end
+
+function UI.ShowTooltip(owner, content, anchor)
+  content = ResolveTooltipContent(content)
+  if not content then
+    UI.HideTooltip()
+    return
+  end
+  ShowTooltipAt(owner, content, anchor, nil)
 end
 
 --- Hides the themed config tooltip if shown.

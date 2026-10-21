@@ -170,6 +170,10 @@ return false
     debugMode = false,
   },
   char = {
+    -- Radial Menu wheels: { name, count, slots = { [1..8] = { kind, id } } } (see Core/RadialMenu/Data.lua)
+    radialMenu = {
+      wheels = {},
+    },
     -- mouse look camera
     shoulderOffset = 1.2,
     -- reticle targeting

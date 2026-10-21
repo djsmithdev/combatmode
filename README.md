@@ -32,6 +32,10 @@
 </p>
 
 <p align="center">
+  <img src="media/radial_menu.gif">
+</p>
+
+<p align="center">
   <img src="media/target_lock.gif">
 </p>
 

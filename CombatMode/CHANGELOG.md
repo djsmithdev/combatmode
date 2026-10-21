@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.0] - 2026-10-21
+
+### Added
+
+- **Radial Menu**: hold a key, move the mouse toward a slice and release to use it. Build up to 5 wheels of 8 slices (saved per character) in the new **Radial Menu** tab, which shows the wheel: click a slice to choose what it does, drop a spell, item, toy, mount or macro on it, right-click to remove it, and use the centre **+** and **-** to add or remove wheels. Each wheel can be renamed and has its own highlight colour, page dots under the name show which wheel is open, and scrolling the mouse wheel switches wheels while it is open (Escape cancels). New characters start with Interface, Emotes and Misc wheels. Unbound by default: pick a key in the tab. Not available on WoW Forever.
+- The **Action** dropdown in Click Casting now groups its choices under **Action Combat Mode**, **Modified Blizzard Actions** and **Blizzard Actions** headers.
+
+### Changed
+
+- Config tabs are reordered: Mouse Look, Crosshair, Reticle Targeting, Click Casting, Radial Menu, Ally Cycle, Auto Unlock, Advanced.
+- The setup wizard follows the new tab order, and its Click Casting, Radial Menu and Auto Unlock parts first highlight the whole section before walking through its options. Click Casting now explains switching modifier tabs and choosing Left and Right Click actions, and Auto Unlock no longer has a separate toggle step.
+
+### Fixed
+
+- **Toggle Focus Any** and **Toggle Focus Enemy** click-cast actions now follow **Target Lock Behavior** (tap to lock or hold) and update when you change it.
+
 ## [5.1.3] - 2026-10-20
 
 ### Added

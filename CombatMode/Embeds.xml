@@ -47,6 +47,12 @@
     <Script file="Core\AllyCycle\HUD.lua"/>
     <Script file="Core\Crosshair\Crosshair.lua"/>
     <Script file="Core\AllyCycle\AllyCycle.lua"/>
+    <!-- RADIAL MENU: Data + Actions before the secure wheel; View draws on it; façade last. -->
+    <Script file="Core\RadialMenu\Data.lua"/>
+    <Script file="Core\RadialMenu\Actions.lua"/>
+    <Script file="Core\RadialMenu\Secure.lua"/>
+    <Script file="Core\RadialMenu\View.lua"/>
+    <Script file="Core\RadialMenu\RadialMenu.lua"/>
     <!-- OPTIONS UI: custom standalone window. Draw + Widgets before
          OptionsPanel (defines AddTab/CreateWindow); Tabs register after OptionsPanel. -->
     <Script file="UI\Options\Draw.lua"/>
@@ -64,8 +70,9 @@
     <Script file="UI\Options\Tabs\TabCrosshair.lua"/>
     <Script file="UI\Options\Tabs\TabReticleTargeting.lua"/>
     <Script file="UI\Options\Tabs\TabClickCasting.lua"/>
-    <Script file="UI\Options\Tabs\TabAutoCursorUnlock.lua"/>
+    <Script file="UI\Options\Tabs\TabRadialMenu.lua"/>
     <Script file="UI\Options\Tabs\TabAllyCycle.lua"/>
+    <Script file="UI\Options\Tabs\TabAutoCursorUnlock.lua"/>
     <Script file="UI\Options\Tabs\TabAdvanced.lua"/>
     <!-- WIZARD: first-run setup pages + guided tour (needs the tabs' Binds and the options toolkit). -->
     <Script file="UI\Wizard\Spotlight.lua"/>
@@ -81,8 +88,7 @@
     <Script file="UI\Editors\TargetingMacroPrelinesEditor.lua"/>
     <Script file="UI\Editors\ComposedMacroEditor.lua"/>
     <Script file="UI\Editors\CrosshairColorsEditor.lua"/>
-    <Script file="UI\Editors\CrosshairTextureEditor.lua"/>
-    <!-- FRAME -->
+    <Script file="UI\Editors\CrosshairTextureEditor.lua"/>    <!-- FRAME -->
     <Frame name="CombatModeFrame" hidden="false" parent="UIParent" inherits="SecureHandlerStateTemplate">
         <Scripts>
             <OnUpdate function="CombatMode_OnUpdate"/>

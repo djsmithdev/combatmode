@@ -140,6 +140,9 @@ local function ShouldKeepWeaponsDrawnOnTempUnlock()
   if SpellIsTargeting() then
     return true
   end
+  if CM.IsRadialMenuOpen and CM.IsRadialMenuOpen() then
+    return true
+  end
   -- Set by AutoCursorUnlock while an OPie ring is visible (before UnlockFreeLook).
   if opieUnlockSeen then
     return true
@@ -281,6 +284,10 @@ function CM.ShouldFreeLookBeOff()
       return true
     end
     if CM.IsInPetBattle() then
+      return true
+    end
+    -- Radial Menu held open: the cursor must be free to flick toward a slice.
+    if CM.IsRadialMenuOpen and CM.IsRadialMenuOpen() then
       return true
     end
     if
