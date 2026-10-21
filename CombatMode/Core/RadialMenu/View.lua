@@ -9,6 +9,8 @@
 --    • Paint() rebuilds from CM.RadialCurrent() (page change, show, cooldown / bag events);
 --      OnUpdate only compares CM.RadialAimSlot() and re-highlights when the aim changes.
 --    • OnUpdate also animates: a short fade / grow on open and a scale-up on the aimed slice.
+--    • Quiet Blizzard UI sounds (SOUNDKIT) on open, close, aiming a new slice (throttled), turning a
+--      page, and releasing over a usable slice (Esc / centre / greyed slice = the close sound).
 --    • Never writes secure state; the child frame is insecure, so it can be updated in combat.
 --  Does not: Decide what a slice does, store wheels, or bind keys (Secure.lua / Data.lua).
 --  Related: Core/RadialMenu/{Data,Secure,RadialMenu}.lua, Core/Runtime/EventRouter.lua,
@@ -21,6 +23,9 @@ local _G = _G
 local C_Item = _G.C_Item
 local C_Spell = _G.C_Spell
 local CreateFrame = _G.CreateFrame
+local GetTime = _G.GetTime
+local IsKeyDown = _G.IsKeyDown
+local PlaySound = _G.PlaySound
 
 -- Lua stdlib
 local ipairs = _G.ipairs
@@ -33,6 +38,26 @@ local type = _G.type
 local unpack = _G.unpack
 
 local LAYOUT = CM.RadialLayout
+
+-- Sounds: quiet Blizzard UI cues (no shipped audio). Fallback ids cover clients without the SOUNDKIT name.
+local SOUNDKIT = _G.SOUNDKIT or {}
+local SOUNDS = {
+  open = SOUNDKIT.IG_MINIMAP_OPEN or 891,
+  close = SOUNDKIT.IG_MINIMAP_CLOSE or 892,
+  aim = SOUNDKIT.U_CHAT_SCROLL_BUTTON or 1115,
+  page = SOUNDKIT.IG_CHARACTER_INFO_TAB or 841,
+  confirm = SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or 856,
+}
+local AIM_SOUND_GAP = 0.05 -- seconds; a fast flick across slices doesn't machine-gun the tick
+local lastAimSound = 0
+
+local function PlayRadialSound(kind)
+  local id = SOUNDS[kind]
+  if id then
+    PlaySound(id, "SFX")
+  end
+end
+
 local AIM_WIDTH = 120
 local NAME_WIDTH = 170 -- fits the longest wheel name (LAYOUT.NAME_MAX) without truncating
 local TEXT_COLOR = { 0.945, 0.902, 0.827 }
@@ -463,6 +488,13 @@ end
 local function Highlight(aim, n)
   local first = lastAim == -1
   lastAim = aim
+  if not first and aim >= 1 then
+    local now = GetTime()
+    if now - lastAimSound >= AIM_SOUND_GAP then
+      lastAimSound = now
+      PlayRadialSound("aim")
+    end
+  end
   local center = aim < 1
   centerGoal = center and 1 or 0
   if first then
@@ -530,6 +562,7 @@ local function Paint()
   if lastPage and lastPage ~= k and openProgress >= 1 then
     swapProgress = 0
     ApplySwap(0)
+    PlayRadialSound("page")
   end
   lastPage = k
   bg:SetTexture(ART_PATH .. "bg_" .. n .. ".tga")
@@ -585,6 +618,7 @@ function CM.RadialViewShown()
   lastAim = -1
   selAngle = nil
   lastPage = nil
+  PlayRadialSound("open")
   swapProgress = 1
   swapScale = 1
   for i = 1, LAYOUT.MAX_SLICES do
@@ -667,5 +701,16 @@ end
 function CM.RadialViewHidden()
   if view then
     view:SetScript("OnUpdate", nil)
+  end
+  -- Released over a usable slice = used it; Esc, the centre or a greyed slice = just closed.
+  local entry
+  if lastAim >= 1 and not IsKeyDown("ESCAPE") then
+    local _, _, entries = CM.RadialCurrent()
+    entry = entries[lastAim]
+  end
+  if entry and not SliceUnusable(entry) then
+    PlayRadialSound("confirm")
+  else
+    PlayRadialSound("close")
   end
 end

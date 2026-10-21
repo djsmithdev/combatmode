@@ -32,6 +32,7 @@ local CreateFrame = _G.CreateFrame
 
 -- Lua stdlib
 local type = _G.type
+local unpack = _G.unpack
 
 local function Call(name, ...)
   local fn = _G[name]
@@ -160,12 +161,18 @@ local DEFINITIONS = {
     id = "gamemenu",
     label = "Game Menu",
     icon = Micromenu("gamemenu"),
-    -- MainMenuMicroButton ignores clicks unless the mouse is over it (the wheel is), and ToggleGameMenu
-    -- stops casting, which is forbidden to addon code in combat.
+    -- MainMenuMicroButton ignores clicks unless the mouse is over it (the wheel is). ToggleGameMenu
+    -- is the Esc handler: it also calls SpellStopCasting / SpellStopTargeting / ClearTarget, which are
+    -- forbidden to addon code (taint errors), so show the menu frame directly instead.
     noCombat = true,
-    requires = "ToggleGameMenu",
+    requires = "GameMenuFrame",
     run = function()
-      Call("ToggleGameMenu")
+      local menu = _G.GameMenuFrame
+      if menu:IsShown() then
+        _G.HideUIPanel(menu)
+      else
+        _G.ShowUIPanel(menu)
+      end
     end,
   },
   {
@@ -428,17 +435,27 @@ Command(
   true
 )
 
--- Classic Era's CharacterMicroButton works from OnMouseDown/Up (and needs the mouse over it), so a
--- "/click" does nothing there: run ToggleCharacter through the insecure proxy instead (not in
--- combat). Scoped to the Era project id; Retail (and Forever, which reports as Mainline) keep the click.
-do
-  local character = DEFINITIONS[1]
-  if _G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC then
-    character.click = nil
-    character.requires = "ToggleCharacter"
-    character.noCombat = true
-    character.run = function()
-      Call("ToggleCharacter", "PaperDollFrame")
+-- Classic-family clients (Era, TBC, Wrath, Cata, Mists; Forever reports as Mainline and keeps the
+-- Retail path). Some of their micro buttons work from OnMouseDown/Up behind an IsMouseOver() check
+-- (Character, Group Finder), so a "/click" does nothing; the others can be replaced by an addon
+-- (GW2 UI hooks the Spellbook), so clicking the Blizzard button opens both windows. These actions call
+-- the global toggle instead (so replacements win) through the insecure proxy, not in combat.
+if _G.WOW_PROJECT_ID ~= _G.WOW_PROJECT_MAINLINE then
+  local CLASSIC_TOGGLES = {
+    character = { "ToggleCharacter", "PaperDollFrame" },
+    spellbook = { "ToggleSpellBook", "spell" },
+    talents = { "ToggleTalentFrame" },
+    groupfinder = { "PVEFrame_ToggleFrame" },
+  }
+  for _, def in ipairs(DEFINITIONS) do
+    local toggle = CLASSIC_TOGGLES[def.id]
+    if toggle then
+      def.click = nil
+      def.requires = toggle[1]
+      def.noCombat = true
+      def.run = function()
+        Call(unpack(toggle))
+      end
     end
   end
 end
