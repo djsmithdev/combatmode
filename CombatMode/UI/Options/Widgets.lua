@@ -1941,7 +1941,7 @@ function UI.MakeDropdown(parent, opts)
     menu.scroll:SetWidth(scrollW)
     menu.scroll:SetHeight(listH)
 
-    local topPad = HEADER_H + MENU_PAD
+    local topPad = (menu.noHeader and 0 or HEADER_H) + MENU_PAD
     if menu.filter:IsShown() then
       topPad = topPad + FILTER_H + MENU_PAD
     end
@@ -2009,6 +2009,7 @@ function UI.MakeDropdown(parent, opts)
     menu.headerText = headerText
 
     local rule = UI.CreateLine(menu, false, C.divider, "ends")
+    menu.headerRule = rule
     rule:SetHeight(1)
     rule:SetPoint("TOPLEFT", menu, "TOPLEFT", 8, -HEADER_H)
     rule:SetPoint("TOPRIGHT", menu, "TOPRIGHT", -8, -HEADER_H)
@@ -2090,6 +2091,10 @@ function UI.MakeDropdown(parent, opts)
 
     menu:SetWidth(width)
 
+    -- headerLabel == false opens a plain list with no header row.
+    menu.noHeader = headerLabel == false
+    menu.header:SetShown(not menu.noHeader)
+    menu.headerRule:SetShown(not menu.noHeader)
     menu.headerText:SetText(headerLabel or text:GetText() or "")
     local currentValue = opts.get and opts.get()
     PlaceSelectedIcon(
@@ -2100,7 +2105,7 @@ function UI.MakeDropdown(parent, opts)
     )
     local headerTint = selectedTint or C.text
     menu.headerText:SetTextColor(headerTint[1], headerTint[2], headerTint[3])
-    local top = -HEADER_H - MENU_PAD
+    local top = -(menu.noHeader and 0 or HEADER_H) - MENU_PAD
     if useFilter then
       menu.filter:Show()
       menu.filter:SetText("")

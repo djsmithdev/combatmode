@@ -63,60 +63,102 @@ CM.RadialLayout = {
 
 local LAYOUT = CM.RadialLayout
 
-local HEARTHSTONE_ITEM_ID = 6948
+-- Preset wheels: first-run content, and what the editor's "+" menu can add back later.
+-- Entries are action ids (strings) or ready-made { kind, id } slots.
+local function PresetWheel(name, entries)
+  local slots = {}
+  for i, entry in ipairs(entries) do
+    slots[i] = type(entry) == "table" and entry or { kind = "action", id = entry }
+  end
+  return { name = name, count = #entries, slots = slots }
+end
 
--- First-run wheels: UI panels, emotes and a misc wheel left nearly empty to show it can grow.
+-- Keeps the ids this client has, in order, up to `limit`.
+local function AvailableIds(ids, limit)
+  local out = {}
+  for _, id in ipairs(ids) do
+    if #out < limit and CM.RadialActions.IsAvailable(id) then
+      out[#out + 1] = id
+    end
+  end
+  return out
+end
+
+local PRESETS = {
+  {
+    key = "interface",
+    label = "Interface",
+    build = function()
+      -- The first eight panels this client has; the tail only fills in on clients missing some.
+      return PresetWheel(
+        "Interface",
+        AvailableIds({
+          "character",
+          "talents",
+          "bags",
+          "professions",
+          "acmoptions",
+          "social",
+          "map",
+          "questlog",
+          "gamemenu",
+          "spellbook",
+          "achievements",
+          "guild",
+          "calendar",
+          "groupfinder",
+        }, 8)
+      )
+    end,
+  },
+  {
+    key = "emotes",
+    label = "Emotes",
+    build = function()
+      return PresetWheel("Emotes", {
+        "emote_hello",
+        "emote_thank",
+        "emote_bye",
+        "emote_cheer",
+        "emote_sit",
+        "emote_dance",
+        "emote_cry",
+        "emote_ready",
+      })
+    end,
+  },
+  {
+    key = "misc",
+    label = "Misc",
+    build = function()
+      return PresetWheel(
+        "Misc",
+        AvailableIds({
+          "readycheck",
+          "countdown",
+          "roll",
+          "duel",
+          "invitetarget",
+          "inspect",
+          "reloadui",
+          "wm3",
+        }, 8)
+      )
+    end,
+  },
+}
+
+--- { { key, label }, ... } of the preset wheels, in menu order.
+function CM.RadialPresetList()
+  return PRESETS
+end
+
 local function PresetWheels()
-  -- Entries are action ids (strings) or ready-made { kind, id } slots.
-  local function Wheel(name, entries)
-    local slots = {}
-    for i, entry in ipairs(entries) do
-      slots[i] = type(entry) == "table" and entry or { kind = "action", id = entry }
-    end
-    return { name = name, count = #entries, slots = slots }
+  local wheels = {}
+  for i, preset in ipairs(PRESETS) do
+    wheels[i] = preset.build()
   end
-  -- Interface: the first eight panels this client has, in this order (Retail gets the full list).
-  local panels = {}
-  for _, id in ipairs({
-    "character",
-    "talents",
-    "bags",
-    "professions",
-    "questlog",
-    "calendar",
-    "groupfinder",
-    "gamemenu",
-    "spellbook",
-    "achievements",
-    "social",
-    "map",
-    "guild",
-  }) do
-    if CM.RadialActions.IsAvailable(id) and #panels < 8 then
-      panels[#panels + 1] = id
-    end
-  end
-  local misc = {}
-  for _, id in ipairs({ "readycheck", "roll", "wm6", "wm3", "wm7" }) do
-    if CM.RadialActions.IsAvailable(id) then
-      misc[#misc + 1] = id
-    end
-  end
-  misc[#misc + 1] = { kind = "item", id = HEARTHSTONE_ITEM_ID }
-  return {
-    Wheel("Interface", panels),
-    Wheel("Emotes", {
-      "emote_hello",
-      "emote_thank",
-      "emote_bye",
-      "emote_cheer",
-      "emote_sit",
-      "emote_dance",
-      "emote_cry",
-      "emote_ready",
-    }),
-    Wheel("Misc", misc),
-  }
+  return wheels
 end
 
 local function RadialDb()
@@ -151,14 +193,21 @@ local function Changed()
   end
 end
 
---- New empty wheel (4 slices) appended, or inserted before `atIndex`; returns its index.
-function CM.RadialCreateWheel(atIndex)
+--- New wheel appended, or inserted before `atIndex`; returns its index. `presetKey` (see
+--- CM.RadialPresetList) fills it from a preset, otherwise it is an empty 4-slice wheel.
+function CM.RadialCreateWheel(atIndex, presetKey)
   local db = RadialDb()
   if not db or #db.wheels >= LAYOUT.MAX_WHEELS then
     return nil
   end
   local index = math.max(1, math.min(atIndex or (#db.wheels + 1), #db.wheels + 1))
-  table.insert(db.wheels, index, { name = "Wheel " .. index, count = 4, slots = {} })
+  local wheel
+  for _, preset in ipairs(PRESETS) do
+    if preset.key == presetKey then
+      wheel = preset.build()
+    end
+  end
+  table.insert(db.wheels, index, wheel or { name = "Wheel " .. index, count = 4, slots = {} })
   Changed()
   return index
 end
@@ -303,15 +352,26 @@ function CM.RadialSetSlot(index, slot, entry)
   Changed()
 end
 
-function CM.RadialMoveSlot(index, from, to)
+--- Rearranges the slices: new position `p` takes the entry that was in slot `order[p]` (a
+--- permutation of 1..count; slots may have holes).
+function CM.RadialReorderSlots(index, order)
   local wheel = CM.RadialGetWheels()[index]
   if not wheel or not wheel.slots then
     return
   end
-  if from < 1 or to < 1 or from > LAYOUT.MAX_SLICES or to > LAYOUT.MAX_SLICES then
-    return
+  local count = CM.RadialSliceCount(wheel)
+  local seen, moved = {}, {}
+  for position = 1, count do
+    local source = order[position]
+    if type(source) ~= "number" or source < 1 or source > count or seen[source] then
+      return
+    end
+    seen[source] = true
+    moved[position] = wheel.slots[source]
   end
-  wheel.slots[from], wheel.slots[to] = wheel.slots[to], wheel.slots[from]
+  for position = 1, count do
+    wheel.slots[position] = moved[position]
+  end
   Changed()
 end
 

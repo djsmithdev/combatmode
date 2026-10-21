@@ -350,7 +350,7 @@ end, true)
 -- More emotes (DoEmote is not protected).
 for _, emote in ipairs({
   { "hello", "Hello", "HELLO" },
-  { "bye", "Goodbye", "BYE" },
+  { "bye", "Bye", "BYE" },
   { "applaud", "Applaud", "APPLAUD" },
   { "shrug", "Shrug", "SHRUG" },
   { "yes", "Yes", "YES" },
@@ -394,6 +394,125 @@ Command(
   "/readycheck"
 )
 Command("roll", "Roll (1-100)", "command", Icon("INV_Misc_Dice_02"), "/roll")
+Command("reloadui", "Reload UI", "command", Icon("INV_Misc_Gear_01"), "/reload")
+-- Not protected, so the proxy button can run them (also in combat, where the game allows it).
+DEFINITIONS[#DEFINITIONS + 1] = {
+  id = "leaveparty",
+  label = "Leave Party",
+  group = "command",
+  icon = Icon("Spell_Shadow_Teleport"),
+  needsGroup = true,
+  run = function()
+    local partyInfo = _G.C_PartyInfo
+    if partyInfo and partyInfo.LeaveParty then
+      partyInfo.LeaveParty()
+    else
+      Call("LeaveParty")
+    end
+  end,
+}
+-- Unprotected API calls through the proxy button. `fns` lists { table-or-nil, name } candidates;
+-- the first that exists is called with `...` (new C_ namespace first, old global as fallback).
+local function CallApi(candidates, ...)
+  for _, candidate in ipairs(candidates) do
+    local owner = candidate[1] and _G[candidate[1]] or _G
+    local fn = type(owner) == "table" and owner[candidate[2]]
+    if type(fn) == "function" then
+      fn(...)
+      return true
+    end
+  end
+  return false
+end
+
+local function ApiCommand(id, label, icon, candidates, args, needsGroup)
+  DEFINITIONS[#DEFINITIONS + 1] = {
+    id = id,
+    label = label,
+    group = "command",
+    icon = icon,
+    needsGroup = needsGroup,
+    run = function()
+      CallApi(candidates, unpack(args or {}))
+    end,
+  }
+end
+
+ApiCommand(
+  "resetinstances",
+  "Reset Instances",
+  Icon("INV_Misc_PocketWatch_01"),
+  { { nil, "ResetInstances" } }
+)
+ApiCommand(
+  "countdown",
+  "Pull Countdown (10s)",
+  Icon("INV_Misc_PocketWatch_02"),
+  { { "C_PartyInfo", "DoCountdown" } },
+  { 10 },
+  true
+)
+ApiCommand(
+  "rolepoll",
+  "Role Check",
+  Icon("Ability_Warrior_Challange"),
+  { { nil, "InitiateRolePoll" } },
+  nil,
+  true
+)
+ApiCommand(
+  "converttoraid",
+  "Convert to Raid",
+  Icon("Achievement_Dungeon_GloryoftheRaider"),
+  { { "C_PartyInfo", "ConvertToRaid" }, { nil, "ConvertToRaid" } },
+  nil,
+  true
+)
+ApiCommand(
+  "mount",
+  "Summon Random Mount",
+  Icon("Ability_Mount_RidingHorse"),
+  { { "C_MountJournal", "SummonByID" } },
+  { 0 }
+)
+ApiCommand("screenshot", "Take Screenshot", Icon("INV_Misc_Spyglass_02"), { { nil, "Screenshot" } })
+ApiCommand(
+  "togglesheath",
+  "Sheathe / Unsheathe Weapons",
+  Icon("INV_Sword_04"),
+  { { nil, "ToggleSheath" } }
+)
+ApiCommand(
+  "lootspec",
+  "Loot Spec: Current Spec",
+  Icon("INV_Misc_Bag_10"),
+  { { nil, "SetLootSpecialization" } },
+  { 0 }
+)
+
+-- Invite the player you target (the name goes straight to the API, never compared: it can be secret).
+DEFINITIONS[#DEFINITIONS + 1] = {
+  id = "invitetarget",
+  label = "Invite Target",
+  group = "command",
+  icon = Icon("Spell_Holy_PrayerOfHealing"),
+  run = function()
+    if _G.UnitIsPlayer("target") then
+      CallApi(
+        { { "C_PartyInfo", "InviteUnit" }, { nil, "InviteUnit" } },
+        _G.GetUnitName("target", true)
+      )
+    end
+  end,
+}
+
+-- Secure slash commands, so they also work in combat as far as the command allows.
+Command("focus", "Focus Target", "command", Icon("Ability_TrueShot"), "/focus")
+Command("clearfocus", "Clear Focus", "command", Icon("Ability_Rogue_Disguise"), "/clearfocus")
+Command("cancelform", "Cancel Form", "command", Icon("Ability_Druid_CatForm"), "/cancelform")
+Command("follow", "Follow Target", "command", Icon("Ability_Tracking"), "/follow")
+Command("duel", "Duel Target", "command", Icon("Ability_Dualwield"), "/duel")
+Command("inspect", "Inspect Target", "command", Icon("INV_Misc_Spyglass_03"), "/inspect")
 Command("afk", "Toggle AFK", "command", Icon("Spell_Nature_Sleep"), "/afk")
 Command("dnd", "Toggle Do Not Disturb", "command", Icon("Spell_Holy_SealOfProtection"), "/dnd")
 Command("camp", "Camp (Log Out)", "command", Icon("INV_Misc_Bedroll_01"), "/camp", true)
