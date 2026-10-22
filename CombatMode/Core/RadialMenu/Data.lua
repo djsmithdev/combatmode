@@ -27,6 +27,7 @@ local GetMacroInfo = _G.GetMacroInfo
 -- Lua stdlib
 local ipairs = _G.ipairs
 local math = _G.math
+local select = _G.select
 local type = _G.type
 
 -- Shared by Secure.lua and View.lua. Two looks (CM.RadialStyle, global.radialStyle): "forever" is the
@@ -159,24 +160,24 @@ local PRESETS = {
     key = "interface",
     label = "Interface",
     build = function()
-      -- The first eight panels this client has; the tail only fills in on clients missing some.
+      -- Group Finder on Retail / Forever, Friends & Social on the other clients; the tail only fills in
+      -- when this client is missing some of the panels.
+      local build = _G.GetBuildInfo and select(4, _G.GetBuildInfo()) or 0
+      local modern = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE
+        or (type(build) == "number" and build >= 16000 and build < 20000)
       return PresetWheel(
         "Interface",
         AvailableIds({
-          "character",
-          "talents",
-          "bags",
-          "professions",
           "acmoptions",
-          "social",
-          "map",
+          "character",
+          "bags",
           "questlog",
           "gamemenu",
+          modern and "groupfinder" or "social",
+          "professions",
+          "talents",
+          "map",
           "spellbook",
-          "achievements",
-          "guild",
-          "calendar",
-          "groupfinder",
         }, 8)
       )
     end,
@@ -206,12 +207,10 @@ local PRESETS = {
         AvailableIds({
           "readycheck",
           "countdown",
-          "roll",
           "duel",
           "invitetarget",
           "inspect",
           "reloadui",
-          "wm3",
         }, 8)
       )
     end,
@@ -395,6 +394,25 @@ function CM.RadialDeleteWheel(index)
   Changed()
 end
 
+--- Moves wheel `from` to position `to` (the other wheels shift to make room).
+function CM.RadialMoveWheel(from, to)
+  local db = RadialDb()
+  local total = db and #db.wheels or 0
+  if
+    type(from) ~= "number"
+    or type(to) ~= "number"
+    or from == to
+    or from < 1
+    or to < 1
+    or from > total
+    or to > total
+  then
+    return
+  end
+  table.insert(db.wheels, to, table.remove(db.wheels, from))
+  Changed()
+end
+
 local function ValidEntry(entry)
   if type(entry) ~= "table" then
     return false
@@ -483,7 +501,7 @@ local function SpellIcon(id)
   return _G.GetSpellTexture and (_G.GetSpellTexture(id))
 end
 
---- name, icon (file id / path) for an entry; nil name when unknown.
+--- name, icon (file id / path), icon text, art (radial_art_ name) for an entry; nil name when unknown.
 function CM.RadialEntryInfo(entry)
   if not entry then
     return nil, nil
@@ -500,7 +518,7 @@ function CM.RadialEntryInfo(entry)
   elseif entry.kind == "action" then
     local action = CM.RadialActions and CM.RadialActions.byId[entry.id]
     if action then
-      return action.label, action.icon, action.iconText
+      return action.label, action.icon, action.iconText, action.art
     end
     return entry.id, nil
   end
@@ -516,6 +534,11 @@ local SLOT_ART_PATH = "Interface\\AddOns\\CombatMode\\Assets\\radial\\radial_slo
 local SLOT_ART_BASE = 64
 local SLOT_ART_WIDE = 128
 local SLOT_ICON_SCALE = 0.9
+-- Blizzard's radial menu icons (Assets/radial/radial_art_<name>[_disabled].tga, 128px canvases) replace
+-- the circle slot for the actions that have one; the art has a little padding, so draw it larger.
+local ART_ICON_PATH = "Interface\\AddOns\\CombatMode\\Assets\\radial\\radial_art_"
+local ART_ICON_SCALE = 1.35
+local PLAIN_ICON_SCALE = 1.1 -- icon files without padding (the logo, game menu art), still drawn without a slot
 
 --- Round slot chrome shared by the wheel and the editor: shadow and disc behind, border over
 --- everything. Sets host.icon (circle-masked), host.border and host.SetSlotState("normal" |
@@ -553,18 +576,55 @@ function CM.RadialBuildSlotChrome(host)
   host.border:SetSize(base, base)
   host.border:SetPoint("CENTER")
 
-  local state
+  -- Entries with Blizzard icon art (host.SetSlotArt) are drawn as that art alone: no disc, border or
+  -- shadow, and the disabled art when unusable.
+  host.art = over:CreateTexture(nil, "ARTWORK")
+  host.art:SetSize(size * ART_ICON_SCALE, size * ART_ICON_SCALE)
+  host.art:SetPoint("CENTER")
+  host.art:Hide()
+
+  local state = "normal"
+  local artName
+  local function Apply()
+    local plain = artName == nil
+    shadow:SetShown(plain)
+    disc:SetShown(plain)
+    host.border:SetShown(plain)
+    host.icon:SetShown(plain)
+    host.art:SetShown(not plain)
+    if plain then
+      disc:SetTexture(SLOT_ART_PATH .. "disc_" .. state .. ".tga")
+      host.border:SetTexture(SLOT_ART_PATH .. "border_" .. state .. ".tga")
+      local borderSize = state == "selected" and wide or base
+      host.border:SetSize(borderSize, borderSize)
+    elseif artName:find("\\", 1, true) then
+      -- A plain icon file (logo, game menu art): drawn alone, greyed when unusable.
+      host.art:SetTexture(artName)
+      host.art:SetDesaturated(state == "disabled")
+      host.art:SetSize(size * PLAIN_ICON_SCALE, size * PLAIN_ICON_SCALE)
+    else
+      -- radial_art_<name>[_disabled].tga; a name that already ends in _disabled is always the grey art.
+      local grey = state == "disabled" and not artName:find("_disabled$")
+      host.art:SetTexture(ART_ICON_PATH .. artName .. (grey and "_disabled" or "") .. ".tga")
+      host.art:SetDesaturated(false)
+      host.art:SetSize(size * ART_ICON_SCALE, size * ART_ICON_SCALE)
+    end
+  end
   function host.SetSlotState(newState)
     if newState == state then
       return
     end
     state = newState
-    disc:SetTexture(SLOT_ART_PATH .. "disc_" .. newState .. ".tga")
-    host.border:SetTexture(SLOT_ART_PATH .. "border_" .. newState .. ".tga")
-    local borderSize = newState == "selected" and wide or base
-    host.border:SetSize(borderSize, borderSize)
+    Apply()
   end
-  state = "normal"
+  --- `name` = a radial_art_<name> file pair, or nil for the circle slot.
+  function host.SetSlotArt(name)
+    if name == artName then
+      return
+    end
+    artName = name
+    Apply()
+  end
   return over
 end
 

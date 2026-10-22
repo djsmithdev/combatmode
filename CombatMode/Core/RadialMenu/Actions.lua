@@ -14,7 +14,10 @@
 --  `group = "emote"` (DoEmote tokens), `"command"` and `"marker"` entries are listed under their own
 --  sections in the editor. Entries with `macro = "/cmd"` (commands, raid / world markers) skip the proxy
 --  Button: the slice runs that text as its own secure macro.
---  Icons: game menu bar art (radial_icon_*.tga), the emote name written inside the circle for emotes,
+--  Icons: Blizzard radial menu icon art (radial_art_*.tga; UI panels draw it alone via the `art` field,
+--  commands show it inside the circle slot),
+--  Assist HUD cursor art (atlas/cursor/crosshair_*_64.tga): drawn alone for the UI panels Pet Journal,
+--  Housing, Currency and Great Vault, inside the circle slot for the Duel command, the emote name written inside the circle for emotes,
 --  the addon logo for Action Combat Mode options, and "portrait" (the player's 2D portrait, drawn by
 --  CM.RadialSetIcon) for Character Info.
 --  Client availability: `click = {buttons}` (micro buttons; the first one that exists is clicked, as a
@@ -47,11 +50,6 @@ local function Icon(path)
   return "Interface\\Icons\\" .. path
 end
 
--- Game menu bar art (Interface/hud/uimicromenu2x), shipped as TGA.
-local function Micromenu(name)
-  return "Interface\\AddOns\\CombatMode\\Assets\\radial\\radial_icon_" .. name
-end
-
 -- Emotes have no art: their slice shows the emote name inside the circle (sentinel icon "text").
 local TEXT_ICON = "text"
 
@@ -65,13 +63,11 @@ local DEFINITIONS = {
   {
     id = "spellbook",
     label = "Spellbook & Talents",
-    icon = Micromenu("spellbookabilities"),
     click = { "PlayerSpellsMicroButton", "SpellbookMicroButton" },
   },
   {
     id = "talents",
     label = "Talents",
-    icon = Micromenu("spectalents"),
     click = { "PlayerSpellsMicroButton", "TalentMicroButton" },
   },
   {
@@ -96,49 +92,41 @@ local DEFINITIONS = {
   {
     id = "professions",
     label = "Professions",
-    icon = Micromenu("professions"),
     click = { "ProfessionMicroButton" },
   },
   {
     id = "achievements",
     label = "Achievements",
-    icon = Micromenu("achievements"),
     click = { "AchievementMicroButton" },
   },
   {
     id = "questlog",
     label = "Quest Log",
-    icon = Micromenu("questlog"),
     click = { "QuestLogMicroButton" },
   },
   {
     id = "guild",
     label = "Guild & Communities",
-    icon = Micromenu("guildcommunities"),
     click = { "GuildMicroButton" },
   },
   {
     id = "groupfinder",
     label = "Group Finder",
-    icon = Micromenu("groupfinder"),
     click = { "LFDMicroButton", "LFGMicroButton" },
   },
   {
     id = "collections",
     label = "Warband Collection",
-    icon = Micromenu("collections"),
     click = { "CollectionsMicroButton" },
   },
   {
     id = "housing",
     label = "Housing Dashboard",
-    icon = Micromenu("housing"),
     click = { "HousingMicroButton" },
   },
   {
     id = "adventureguide",
     label = "Adventure Guide",
-    icon = Micromenu("adventureguide"),
     click = { "EJMicroButton" },
   },
   {
@@ -160,7 +148,6 @@ local DEFINITIONS = {
   {
     id = "gamemenu",
     label = "Game Menu",
-    icon = Micromenu("gamemenu"),
     -- MainMenuMicroButton ignores clicks unless the mouse is over it (the wheel is). ToggleGameMenu
     -- is the Esc handler: it also calls SpellStopCasting / SpellStopTargeting / ClearTarget, which are
     -- forbidden to addon code (taint errors), so show the menu frame directly instead.
@@ -647,6 +634,80 @@ function registry.MacroText(def)
     return name and ("/click " .. name) or nil
   end
   return def.macro or ("/click " .. def.button)
+end
+
+-- Blizzard's radial menu icon art (Assets/radial/radial_art_<name>[_disabled].tga): UI panels draw it on
+-- its own in place of the circle slot; commands (`group`) show it inside the circle as their icon. The
+-- picker lists the same art as the entry icon.
+local ART = {
+  character = "character",
+  spellbook = "spellbook",
+  talents = "talents",
+  map = "fullmap",
+  bags = "bags",
+  professions = "professions",
+  achievements = "legacy",
+  questlog = "quests",
+  guild = "guild",
+  groupfinder = "groupfinder",
+  collections = "collections",
+  adventureguide = "adventureguide",
+  calendar = "calendar",
+  social = "chat",
+  gamemenu = "gamemenu2",
+  reputation = "viewbuffs",
+  mounts = "collections",
+  toybox = "editradials",
+  clearfocus = "targeting_disabled", -- always the grey art
+  macros = "macros",
+  readycheck = "gamemenu",
+  reloadui = "editcrossbars",
+  inspect = "inspecthud",
+  invitetarget = "group",
+  leaveparty = "cancel",
+  cancelform = "cancel",
+  countdown = "stopwatch",
+  resetinstances = "clock",
+  focus = "targeting",
+}
+for _, def in ipairs(DEFINITIONS) do
+  local art = ART[def.id]
+  if art then
+    -- Only UI panels (no group) draw the art alone; commands put it inside the circle slot as their icon.
+    if not def.group then
+      def.art = art
+    end
+    def.icon = "Interface\\AddOns\\CombatMode\\Assets\\radial\\radial_art_" .. art .. ".tga"
+  end
+end
+-- Assist HUD cursor art (Assets/atlas/cursor), drawn alone like the other plain icons.
+local CURSOR_ICON = {
+  duel = "missions",
+  petjournal = "petting",
+  housing = "broom",
+  currency = "lootall",
+  greatvault = "lock",
+}
+for _, def in ipairs(DEFINITIONS) do
+  local cursor = CURSOR_ICON[def.id]
+  if cursor then
+    def.icon = "Interface\\AddOns\\CombatMode\\Assets\\atlas\\cursor\\crosshair_"
+      .. cursor
+      .. "_64.tga"
+  end
+end
+-- Icon files drawn alone (no circle slot, no padded art pair).
+local PLAIN_ICON = {
+  acmoptions = true,
+  petjournal = true,
+  housing = true,
+  currency = true,
+  greatvault = true,
+}
+for _, def in ipairs(DEFINITIONS) do
+  if PLAIN_ICON[def.id] then
+    def.art = def.icon
+  end
 end
 
 for _, def in ipairs(DEFINITIONS) do

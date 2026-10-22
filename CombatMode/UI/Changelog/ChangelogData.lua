@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Radial Menu** slices now use Blizzard's gamepad action bar button art: the slice you aim at lights up with a glowing ring, and slices that can't be used right now turn grey.
 - **Radial Menu** has a new style option: **Minimal** (default) uses Blizzard's radial menu background (soft vignette, centre ring and thin dividers) with its focus glow on the aimed slice, **Forever** keeps the original wheel.
+- **Radial Menu** UI shortcuts (Character Info, Spellbook, Talents, World Map, Bags, Professions, Quest Log, Guild, Group Finder, Collections, Adventure Guide, Calendar, Friends, Game Menu, Macros and a few more) now show Blizzard's own radial menu icon art in place of the round slot, and commands like Ready Check, Duel or Inspect use that art as the icon inside the round slot.
+- **Radial Menu** editor shows one pip per wheel under the wheel name: click a pip to select that wheel, drag it to reorder your wheels.
 
 ### Fixed
 

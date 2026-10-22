@@ -591,8 +591,9 @@ local function Paint()
       local dx, dy = CM.RadialSlotDir(i, n)
       slot.px, slot.py = LAYOUT.ICON_RADIUS * dx, LAYOUT.ICON_RADIUS * dy
       PlaceSlot(slot)
-      local _, icon, iconText = CM.RadialEntryInfo(entry)
+      local _, icon, iconText, art = CM.RadialEntryInfo(entry)
       CM.RadialSetIcon(slot.icon, icon, slot.iconLabel, iconText)
+      slot.SetSlotArt(art)
       PaintCooldown(slot, entry)
       local unusable = SliceUnusable(entry)
       slot.unusable = unusable

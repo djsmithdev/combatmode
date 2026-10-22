@@ -3,6 +3,7 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Radial Menu keybind plus a visual wheel editor inside the tab: the wheel's title
 --  sits on top with arrows either side to page through your wheels (click the title to rename it),
+--  and one pip per wheel below it (click selects, drag reorders the wheels),
 --  a "-" / "+" disc in the wheel's centre removes a wheel / opens a preset menu (Interface, Emotes,
 --  Misc, Blank Wheel) to add one, and an accent "Add Slice" slice on the wheel adds a slice.
 --  Right-click a slice removes it (never the last); drag a slice onto another to reorder; click it
@@ -49,10 +50,14 @@ local EDITOR_SCALE = 0.7
 local AREA = 360
 local TITLE_W = 140
 local TITLE_H = 32
+local PIP_SIZE = 22
+local PIP_GAP = 4
+local PIP_H = 26
 local ARROW_SIZE = 20
 -- Ring the wheel art's slices span, from the middle (art pixels, scaled by EDITOR_SCALE); the inner
 -- edge is the active style's `ring`.
 local RING_OUTER = 215
+local BG_KEEP = 600 -- art pixels of the background drawn in the editor (full width of the visible fade)
 local SLICE_BTN = 40
 local STYLE_VALUES = { forever = "Forever", minimal = "Minimal" }
 local STYLE_ORDER = { "forever", "minimal" }
@@ -339,7 +344,8 @@ end
 
 local function BuildWheelRow(ctx)
   local row = CreateFrame("Frame", nil, ctx.content)
-  local wheelTop = TITLE_H + 8
+  -- The wheel art has empty margin around its ring, so the area may overlap the pip row a little.
+  local wheelTop = TITLE_H + PIP_H - 6
   local hintTop = wheelTop + AREA + 8
   local height = hintTop + 34
   row:SetHeight(height)
@@ -360,6 +366,178 @@ local function BuildWheelRow(ctx)
     selected = math.min(#CM.RadialGetWheels(), selected + 1)
     Resync()
   end)
+
+  -- One pip per wheel under the title (the in-game wheel's page dots): click selects a wheel, drag
+  -- reorders. `pipOrder[position] = wheel index` previews the order while dragging.
+  local pipRow = CreateFrame("Frame", nil, row)
+  pipRow:SetHeight(PIP_H)
+  pipRow:SetFrameLevel(row:GetFrameLevel() + 20) -- above the wheel area, which overlaps it
+  pipRow:SetPoint("TOP", row, "TOP", 0, -(TITLE_H + 2))
+  local pips, pipOrder, pipPos = {}, nil, nil
+  local pipTotal, lastPipDrag = 0, 0
+  local pipHeld -- wheel index of the pip the mouse button is held on (pressed or dragging)
+  local PaintPips
+  -- Each pip eases toward its target spot / size / opacity (tx, tsize, talpha) so reordering, the
+  -- press lift and the dimming all glide instead of snapping.
+  local PIP_EASE = 20
+  local pipAnim = CreateFrame("Frame", nil, pipRow)
+  local function ApplyPip(pip)
+    pip:SetSize(pip.csize, pip.csize)
+    pip:SetAlpha(pip.calpha)
+    pip:ClearAllPoints()
+    pip:SetPoint("CENTER", pipRow, "LEFT", pip.cx, 0)
+  end
+  local function StepPips(_, elapsed)
+    local k = math.min(1, elapsed * PIP_EASE)
+    local moving = false
+    for index = 1, pipTotal do
+      local pip = pips[index]
+      pip.cx = pip.cx + (pip.tx - pip.cx) * k
+      pip.csize = pip.csize + (pip.tsize - pip.csize) * k
+      pip.calpha = pip.calpha + (pip.talpha - pip.calpha) * k
+      if
+        math.abs(pip.tx - pip.cx) < 0.05
+        and math.abs(pip.tsize - pip.csize) < 0.05
+        and math.abs(pip.talpha - pip.calpha) < 0.01
+      then
+        pip.cx, pip.csize, pip.calpha = pip.tx, pip.tsize, pip.talpha
+      else
+        moving = true
+      end
+      ApplyPip(pip)
+    end
+    if not moving then
+      pipAnim:SetScript("OnUpdate", nil)
+    end
+  end
+  function PaintPips()
+    local step = PIP_SIZE + PIP_GAP
+    pipRow:SetWidth(math.max(pipTotal * step - PIP_GAP, 1))
+    for position = 1, pipTotal do
+      local index = pipOrder and pipOrder[position] or position
+      local pip = pips[index]
+      local on = index == selected
+      -- The held pip grows and stays on top while the others dim.
+      local lifted = pipHeld == index
+      pip.tx = (position - 1) * step + PIP_SIZE / 2
+      pip.tsize = lifted and PIP_SIZE * 1.4 or PIP_SIZE
+      pip.talpha = pipHeld and not lifted and 0.55 or 1
+      if not pip:IsShown() or not pip.cx then
+        pip.cx, pip.csize, pip.calpha = pip.tx, pip.tsize, pip.talpha
+        ApplyPip(pip)
+      end
+      pip:SetFrameLevel(pipRow:GetFrameLevel() + (lifted and 5 or 1))
+      pip.off:SetShown(not on)
+      pip.active:SetShown(on)
+      pip.glow:SetShown(on)
+      pip.fill:SetShown(on)
+      pip:Show()
+    end
+    for index = pipTotal + 1, LAYOUT.MAX_WHEELS do
+      pips[index]:Hide()
+    end
+    pipAnim:SetScript("OnUpdate", StepPips)
+  end
+  local function PipUnderCursor()
+    local step = PIP_SIZE + PIP_GAP
+    local x = _G.GetCursorPosition() / pipRow:GetEffectiveScale() - (pipRow:GetLeft() or 0)
+    return math.max(1, math.min(pipTotal, math.floor(x / step) + 1))
+  end
+  local function EndPipDrag()
+    pipOrder, pipPos = nil, nil
+    pipRow:SetScript("OnUpdate", nil)
+  end
+  for index = 1, LAYOUT.MAX_WHEELS do
+    local pip = CreateFrame("Button", nil, pipRow)
+    pip:SetSize(PIP_SIZE, PIP_SIZE)
+    local function Layer(layer, level, file)
+      local tex = pip:CreateTexture(nil, layer, nil, level)
+      tex:SetAllPoints()
+      tex:SetTexture(ART_DIR .. file)
+      tex:SetTexCoord(8 / 64, 56 / 64, 8 / 64, 56 / 64)
+      return tex
+    end
+    pip.off = Layer("ARTWORK", 0, "pip_off.tga")
+    pip.active = Layer("ARTWORK", 1, "pip_active.tga")
+    pip.glow = Layer("BACKGROUND", 0, "pip_glow.tga")
+    pip.fill = Layer("OVERLAY", 0, "pip_fill.tga")
+    pip:Hide()
+    Tooltip(pip, "Click to select this wheel, drag to reorder")
+    pip:SetScript("OnClick", function()
+      if _G.GetTime() - lastPipDrag < 0.1 then
+        return
+      end
+      selected = index
+      Resync()
+    end)
+    pip:RegisterForDrag("LeftButton")
+    pip:SetScript("OnMouseDown", function(_, button)
+      if button == "LeftButton" then
+        pipHeld = index
+        PaintPips()
+      end
+    end)
+    pip:SetScript("OnMouseUp", function()
+      if pipHeld and not pipOrder then
+        pipHeld = nil
+        PaintPips()
+      end
+    end)
+    pip:SetScript("OnDragStart", function()
+      if pipTotal < 2 then
+        return
+      end
+      pipHeld = index
+      UI.HideTooltip()
+      selected = index
+      pipPos = index
+      pipOrder = {}
+      for position = 1, pipTotal do
+        pipOrder[position] = position
+      end
+      pipRow:SetScript("OnUpdate", function()
+        local target = PipUnderCursor()
+        while pipPos ~= target do
+          local nextPos = pipPos + (target > pipPos and 1 or -1)
+          pipOrder[pipPos], pipOrder[nextPos] = pipOrder[nextPos], pipOrder[pipPos]
+          pipPos = nextPos
+        end
+        PaintPips()
+      end)
+    end)
+    pip:SetScript("OnDragStop", function()
+      local to = pipPos
+      -- Pips are interchangeable buttons: hand each position the look of the button sitting there, so
+      -- the committed order doesn't slide them back.
+      if pipOrder then
+        local state = {}
+        for position = 1, pipTotal do
+          local from = pips[pipOrder[position]]
+          state[position] = { from.cx, from.csize, from.calpha }
+        end
+        for position = 1, pipTotal do
+          local target = pips[position]
+          target.cx, target.csize, target.calpha =
+            state[position][1], state[position][2], state[position][3]
+        end
+      end
+      EndPipDrag()
+      pipHeld = nil
+      lastPipDrag = _G.GetTime()
+      if to then
+        CM.RadialMoveWheel(index, to)
+        selected = to
+      end
+      Resync()
+    end)
+    pip:SetScript("OnHide", function()
+      pipHeld = nil
+      if pipOrder then
+        EndPipDrag()
+      end
+    end)
+    pips[index] = pip
+  end
 
   -- The wheel: background art, the slices, and the accent "Add Slice" slice in the next position.
   local area = CreateFrame("Frame", nil, row)
@@ -723,6 +901,8 @@ local function BuildWheelRow(ctx)
     selected = math.max(1, math.min(selected, total))
     local wheel = wheels[selected]
     title.text:SetText(CM.RadialWheelName(wheel, selected))
+    pipTotal = total
+    PaintPips()
     prev:SetAlpha(selected > 1 and 1 or 0.35)
     nextButton:SetAlpha(selected < total and 1 or 0.35)
     addWheel.dim = total >= LAYOUT.MAX_WHEELS
@@ -741,6 +921,12 @@ local function BuildWheelRow(ctx)
     PaintWedge()
     local style = CM.RadialStyle()
     CM.RadialPaintBackground(bg, shown, EDITOR_SCALE)
+    -- Minimal's art is a big soft vignette that overhangs the wheel area and stretches the scrolled
+    -- content; its fade is invisible past BG_KEEP art pixels, so draw only that part.
+    local keep = math.min(style.bg, BG_KEEP)
+    local margin = (1 - keep / style.bg) / 2
+    bg:SetSize(keep * EDITOR_SCALE, keep * EDITOR_SCALE)
+    bg:SetTexCoord(margin, 1 - margin, margin, 1 - margin)
     CM.RadialPlaceDividers(dividers, area, shown, EDITOR_SCALE)
     local radius = LAYOUT.ICON_RADIUS * EDITOR_SCALE
     for slot = 1, LAYOUT.MAX_SLICES do
@@ -766,7 +952,8 @@ local function BuildWheelRow(ctx)
           button:SetPoint("CENTER", area, "CENTER", button.cx, button.cy)
         end
         local entry = wheel.slots and wheel.slots[slot]
-        local _, icon, iconText = CM.RadialEntryInfo(entry)
+        local _, icon, iconText, art = CM.RadialEntryInfo(entry)
+        button.SetSlotArt(art)
         if entry and icon then
           CM.RadialSetIcon(button.icon, icon, button.iconLabel, iconText)
           button.plus:Hide()
