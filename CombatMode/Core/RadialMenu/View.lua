@@ -70,6 +70,7 @@ local PIP_SIZE = 24
 local PIP_GAP = 0
 local PIP_ROW_WIDTH = 90 -- widest the dot row may be (the centre's dead zone is 100 across)
 local PIP_Y = -22
+local PIP_ACTIVE_GROW = 0.3 -- the current wheel's dot is drawn this much bigger (scale, eased with its mix)
 local PIP_COORDS = { 8 / 64, 56 / 64, 8 / 64, 56 / 64 }
 
 local view
@@ -225,6 +226,13 @@ local function PaintPipMix(pip, mix)
   pip.active:SetAlpha(mix)
   pip.glow:SetAlpha(mix)
   pip.fill:SetAlpha(mix)
+  -- Anchor offsets are in the pip's own scaled units: divide by the scale to stay centred in place.
+  local scale = 1 + PIP_ACTIVE_GROW * mix
+  pip:SetScale(scale)
+  if pip.px then
+    pip:ClearAllPoints()
+    pip:SetPoint("CENTER", view, "CENTER", pip.px / scale, PIP_Y / scale)
+  end
 end
 
 --- Shows one dot per wheel (none for a single wheel), the current one filled.
@@ -237,19 +245,10 @@ local function PaintPips(k, total)
     local pip = pips[i]
     if i <= shown then
       pip:SetSize(size, size)
-      pip:ClearAllPoints()
-      pip:SetPoint(
-        "CENTER",
-        view,
-        "CENTER",
-        -width / 2 + size / 2 + (i - 1) * (size + PIP_GAP),
-        PIP_Y
-      )
-      -- The current dot crossfades between its idle and active art (eased in the update).
+      pip.px = -width / 2 + size / 2 + (i - 1) * (size + PIP_GAP)
+      -- The current dot crossfades between its idle and active art and grows (eased in the update).
       pip.goal = i == k and 1 or 0
-      if not pip.mix then
-        PaintPipMix(pip, pip.goal)
-      end
+      PaintPipMix(pip, pip.mix or pip.goal)
       pip:Show()
     else
       pip:Hide()
@@ -698,7 +697,8 @@ function CM.RadialViewShown()
     -- The aimed slice grows, the rest settle back; only slots still moving are touched.
     for i = 1, lastCount do
       local slot = slots[i]
-      local target = i == aim and HOVER_SCALE or 1
+      -- Unusable (disabled) slices never grow.
+      local target = (i == aim and not slot.unusable) and HOVER_SCALE or 1
       if slot.scale ~= target then
         slot.scale = slot.scale + (target - slot.scale) * math.min(1, elapsed * HOVER_SPEED)
         if math.abs(target - slot.scale) < HOVER_SETTLE then
