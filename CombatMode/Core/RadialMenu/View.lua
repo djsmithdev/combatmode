@@ -536,6 +536,17 @@ local function Highlight(aim, n)
   centerAim:SetTextColor(r, g, b, 1)
   local accent = CM.UI and CM.UI.Colors and CM.UI.Colors.accent or { 0.816, 0.541, 0.322 }
   centerName:SetTextColor(accent[1], accent[2], accent[3], 1)
+  -- Slot art: the aimed usable slice lights up (brown disc + glow ring), unusable ones go grey.
+  for i = 1, n do
+    local slot = slots[i]
+    if slot.unusable then
+      slot.SetSlotState("disabled")
+    elseif i == aim then
+      slot.SetSlotState("selected")
+    else
+      slot.SetSlotState("normal")
+    end
+  end
 end
 
 local function Paint()
@@ -579,6 +590,7 @@ local function Paint()
       CM.RadialSetIcon(slot.icon, icon, slot.iconLabel, iconText)
       PaintCooldown(slot, entry)
       local unusable = SliceUnusable(entry)
+      slot.unusable = unusable
       if entry.kind == "item" then
         local count = ItemCount(entry.id)
         slot.count:SetText(count > 1 and count or "")

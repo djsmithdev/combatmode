@@ -437,25 +437,33 @@ function CM.RadialEntryInfo(entry)
   return nil, nil
 end
 
--- Slot art (radial_slot_{border,disc}.tga): 108px images on 128px canvases. The disc spans 80 of the
--- 108px, so the art is drawn 108/80 larger than the slot to make the disc the slot's size; the border
--- carries its own soft shadow. The icon sits just under the border's body.
+-- Slot art is Blizzard's gamepad action bar circle slot (radial_slot_{disc,border}_<state>.tga, states
+-- normal / selected / disabled, plus radial_slot_shadow.tga). Discs and normal / disabled borders are
+-- 64px images that fill the slot; the selected border (yellow glow) and the shadow sit on 128px canvases
+-- around 80px / 88px art, so every texture is drawn at (canvas / 64) x the slot size. The icon sits just
+-- under the border's body.
 local SLOT_ART_PATH = "Interface\\AddOns\\CombatMode\\Assets\\radial\\radial_slot_"
-local SLOT_ART_SCALE = 108 / 80
-local SLOT_ART_COORD = 108 / 128
-local SLOT_ICON_SCALE = 0.92
+local SLOT_ART_BASE = 64
+local SLOT_ART_WIDE = 128
+local SLOT_ICON_SCALE = 0.9
 
---- Round slot chrome shared by the wheel and the editor: dark disc behind, border (with shadow) over
---- everything. Sets host.icon (circle-masked) and host.border; returns a frame above the icon /
+--- Round slot chrome shared by the wheel and the editor: shadow and disc behind, border over
+--- everything. Sets host.icon (circle-masked), host.border and host.SetSlotState("normal" |
+--- "selected" | "disabled") which swaps the disc / border art; returns a frame above the icon /
 --- cooldown for the border, labels and counts. `host` must already have its size.
 function CM.RadialBuildSlotChrome(host)
   local size = host:GetWidth()
-  local art = size * SLOT_ART_SCALE
+  local base = size
+  local wide = size * SLOT_ART_WIDE / SLOT_ART_BASE
+
+  local shadow = host:CreateTexture(nil, "BACKGROUND", nil, -2)
+  shadow:SetTexture(SLOT_ART_PATH .. "shadow.tga")
+  shadow:SetSize(wide, wide)
+  shadow:SetPoint("CENTER")
 
   local disc = host:CreateTexture(nil, "BACKGROUND", nil, -1)
-  disc:SetTexture(SLOT_ART_PATH .. "disc.tga")
-  disc:SetTexCoord(0, SLOT_ART_COORD, 0, SLOT_ART_COORD)
-  disc:SetSize(art, art)
+  disc:SetTexture(SLOT_ART_PATH .. "disc_normal.tga")
+  disc:SetSize(base, base)
   disc:SetPoint("CENTER")
 
   host.icon = host:CreateTexture(nil, "ARTWORK")
@@ -471,15 +479,27 @@ function CM.RadialBuildSlotChrome(host)
   over:SetFrameLevel(host:GetFrameLevel() + 6)
   host.over = over
   host.border = over:CreateTexture(nil, "ARTWORK")
-  host.border:SetTexture(SLOT_ART_PATH .. "border.tga")
-  host.border:SetTexCoord(0, SLOT_ART_COORD, 0, SLOT_ART_COORD)
-  host.border:SetSize(art, art)
+  host.border:SetTexture(SLOT_ART_PATH .. "border_normal.tga")
+  host.border:SetSize(base, base)
   host.border:SetPoint("CENTER")
+
+  local state
+  function host.SetSlotState(newState)
+    if newState == state then
+      return
+    end
+    state = newState
+    disc:SetTexture(SLOT_ART_PATH .. "disc_" .. newState .. ".tga")
+    host.border:SetTexture(SLOT_ART_PATH .. "border_" .. newState .. ".tga")
+    local borderSize = newState == "selected" and wide or base
+    host.border:SetSize(borderSize, borderSize)
+  end
+  state = "normal"
   return over
 end
 
 --- Paints an entry icon on a texture. The sentinel "portrait" draws the player's 2D portrait, "text" a
---- dark disc with `text` written on `label` (a FontString from CM.RadialCreateIconLabel); anything else
+--- transparent icon (the slot's disc shows) with `text` written on `label` (a FontString from CM.RadialCreateIconLabel); anything else
 --- is a file path / id.
 function CM.RadialCreateIconLabel(parent, size)
   local label = parent:CreateFontString(nil, "OVERLAY")
@@ -497,7 +517,8 @@ function CM.RadialSetIcon(texture, icon, label, text)
     label:SetText(text or "")
   end
   if icon == "text" then
-    texture:SetColorTexture(0.1, 0.09, 0.08, 1)
+    -- Transparent: the slot's disc art is the background behind the text.
+    texture:SetColorTexture(0, 0, 0, 0)
   elseif icon == "portrait" then
     if _G.SetPortraitTexture then
       _G.SetPortraitTexture(texture, "player")

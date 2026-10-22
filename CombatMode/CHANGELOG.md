@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Two new crosshair textures in the **Crosshair Textures** editor (Pack #200 and #201).
 
+### Changed
+
+- **Radial Menu** slices now use Blizzard's gamepad action bar button art: the slice you aim at lights up with a glowing ring, and slices that can't be used right now turn grey.
+
 ### Fixed
 
 - A **Force Lock** condition that is often true no longer breaks the vignette, **Shoulder Offset** and **Sheath Weapons with Mouse Look**: tapping the Mouse Look key while Force Lock is active is ignored (unless **Force Lock Once** is on), so the vignette and offset stay with Mouse Look and weapons are no longer sheathed while it is on.

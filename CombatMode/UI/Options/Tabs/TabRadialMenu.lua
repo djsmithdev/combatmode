@@ -768,11 +768,11 @@ local function BuildWheelRow(ctx)
           button.plus:Hide()
         elseif entry then
           button.iconLabel:SetText("")
-          button.icon:SetColorTexture(0.2, 0.2, 0.2, 1)
+          button.icon:SetColorTexture(0, 0, 0, 0) -- the slot disc shows through
           button.plus:Hide()
         else
           button.iconLabel:SetText("")
-          button.icon:SetColorTexture(0.12, 0.1, 0.09, 1)
+          button.icon:SetColorTexture(0, 0, 0, 0) -- the slot disc shows through
           button.plus:Show()
         end
         button:Show()
