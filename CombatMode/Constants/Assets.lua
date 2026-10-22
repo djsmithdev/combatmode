@@ -129,7 +129,7 @@ local crosshairAssetNames = {
 CM.Constants.CrosshairDotTexture = crosshairPath .. "crosshairDot.blp"
 CM.Constants.CrosshairIdleDefaultId = "Dot"
 
-local PACK_COUNT = 200
+local PACK_COUNT = 202
 
 local function AddCrosshairTexture(id, path, label, group)
   local entry = { id = id, path = path, label = label, group = group }

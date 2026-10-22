@@ -18,7 +18,10 @@
 --      frames, and vendor mounts still unlock. customLockConditionOnce latches
 --      that force to the rising edge: a manual unlock stays unlocked until the
 --      snippet goes false. customConditionOnce does the same for force-unlock:
---      a manual lock stays locked until that snippet goes false.
+--      a manual lock stays locked until that snippet goes false. Without Once, the
+--      Mouse Look keybind is ignored while force lock is true; a stale FreeLookOverride
+--      is dropped when force lock wins, and the tap poll never clears chrome or sheathes
+--      while Mouse Look is actually on.
 --    • SheathWeaponsWithMouselook: unsheath on intentional Mouse Look; sheath on
 --      tap unlock (poll detects binding release) and Auto Cursor Unlock. Hold
 --      never sheaths. Ground targeting and OPie keep weapons drawn.
@@ -127,7 +130,8 @@ local function ApplyWeaponsSheathed(wantSheathed)
     return
   end
   C_Timer.After(SHEATH_DEBOUNCE_SEC, function()
-    if token ~= pendingSheathToken then
+    -- Mouse Look came back during the delay (e.g. force lock): never sheath while looking.
+    if token ~= pendingSheathToken or IsMouselooking() then
       return
     end
     ApplyWeaponsSheathedNow(true)
@@ -230,6 +234,10 @@ local function ScheduleTapSheathPoll()
 
     -- Tap confirmed: stay unlocked and drop shoulder/vignette chrome.
     pendingTapSheath = false
+    if IsMouselooking() then
+      -- Force lock relocked before the tap resolved: this was not a permanent unlock.
+      return
+    end
     ApplyWeaponsSheathed(true)
     ClearMouseLookCameraChrome()
   end
@@ -279,6 +287,12 @@ function CM.ShouldFreeLookBeOff()
       customUnlockOnceConsumed = false
     end
     local forceUnlock = unlockCondition and not customUnlockOnceConsumed
+    if forceLock and FreeLookOverride then
+      -- Force lock consumed the manual unlock: drop the stale override and its tap poll so
+      -- chrome / sheath state cannot be changed by a tap that force lock already undid.
+      FreeLookOverride = false
+      CancelPendingTapSheath()
+    end
     if not forceLock and FreeLookOverride then
       return true
     end
@@ -396,6 +410,7 @@ function CM.LockFreeLook()
   end
   StartFreeLookFresh()
   PlayFreeLookSound()
+  CancelPendingSheath()
   -- Returning to intentional Mouse Look (e.g. after Auto Cursor Unlock).
   if not FreeLookOverride then
     ApplyWeaponsSheathed(false)
@@ -477,9 +492,12 @@ function _G.CombatMode_CursorModeKey(keystate)
       -- Unlock cursor; tap vs hold is decided after the hold threshold.
       -- Use temp unlock so chrome stays until a tap is confirmed (or re-lock on hold).
       -- Once-mode: this manual unlock suppresses force-lock until the snippet is false.
-      if
-        CM.DbBool(CM.DB.global.customLockConditionOnce, false) and CM.IsCustomLockConditionTrue()
-      then
+      if CM.IsCustomLockConditionTrue() then
+        if not CM.DbBool(CM.DB.global.customLockConditionOnce, false) then
+          -- Plain force lock always wins: there is nothing to toggle.
+          CM.DebugPrint("Cursor Mode: ignored, force lock condition is active.")
+          return
+        end
         customLockOnceConsumed = true
       end
       CursorModeShowTime = GetTime()
