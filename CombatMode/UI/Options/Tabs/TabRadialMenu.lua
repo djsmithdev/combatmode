@@ -41,8 +41,7 @@ local LAYOUT = CM.RadialLayout
 
 local BIND_NAME = "Combat Mode - Radial Menu"
 local WHEELS_LABEL = "Radial Menu Wheels"
-local ART_PATH = "Interface\\AddOns\\CombatMode\\Assets\\radial\\radial_bg_"
-local SEL_PATH = "Interface\\AddOns\\CombatMode\\Assets\\radial\\radial_sel_"
+local ART_DIR = "Interface\\AddOns\\CombatMode\\Assets\\radial\\radial_"
 local WEDGE_ALPHA = 0.7
 local HUB_GLYPH_SIZE = 18
 local HUB_ALPHA_DIM = 0.4
@@ -51,10 +50,12 @@ local AREA = 360
 local TITLE_W = 140
 local TITLE_H = 32
 local ARROW_SIZE = 20
--- Ring the wheel art's slices span, from the middle (art pixels, scaled by EDITOR_SCALE).
-local RING_INNER = 60
+-- Ring the wheel art's slices span, from the middle (art pixels, scaled by EDITOR_SCALE); the inner
+-- edge is the active style's `ring`.
 local RING_OUTER = 215
 local SLICE_BTN = 40
+local STYLE_VALUES = { forever = "Forever", minimal = "Minimal" }
+local STYLE_ORDER = { "forever", "minimal" }
 
 local selected = 1
 
@@ -209,7 +210,7 @@ local function BuildSliceButton(area, slot)
 
   local over = CM.RadialBuildSlotChrome(button)
 
-  button.iconLabel = CM.RadialCreateIconLabel(over, 11)
+  button.iconLabel = CM.RadialCreateIconLabel(over, 9)
 
   -- Same plus glyph as the option sliders' step buttons.
   button.plus = over:CreateTexture(nil, "OVERLAY")
@@ -366,8 +367,8 @@ local function BuildWheelRow(ctx)
   area:SetPoint("TOP", row, "TOP", 0, -wheelTop)
 
   local bg = area:CreateTexture(nil, "BACKGROUND")
-  bg:SetSize(LAYOUT.ART * EDITOR_SCALE, LAYOUT.ART * EDITOR_SCALE)
   bg:SetPoint("CENTER")
+  local dividers = CM.RadialCreateDividers(area)
 
   -- The next free slice itself lights up in the accent colour (the in-game highlight art, tinted)
   -- and carries the "Add Slice" label; the button is just its click area.
@@ -387,14 +388,15 @@ local function BuildWheelRow(ctx)
   -- wedgeTarget) instead of jumping.
   local wedgeCur, wedgeTarget
   local function ApplyWedge()
-    local o = LAYOUT.OVERLAY[shownCount]
+    local style = CM.RadialStyle()
+    local o = style.overlay[shownCount]
     if not (o and wedgeCur) then
       return
     end
     local a = wedgeCur
     local x = o[3] * math.cos(a) + o[4] * math.sin(a)
     local y = -o[3] * math.sin(a) + o[4] * math.cos(a)
-    hoverWedge:SetTexture(SEL_PATH .. shownCount .. ".tga")
+    hoverWedge:SetTexture(ART_DIR .. style.art .. "sel_" .. shownCount .. ".tga")
     hoverWedge:SetVertexColor(CM.RadialWheelColor(selected))
     hoverWedge:SetSize(o[1] * EDITOR_SCALE, o[2] * EDITOR_SCALE)
     hoverWedge:ClearAllPoints()
@@ -404,7 +406,7 @@ local function BuildWheelRow(ctx)
   end
 
   local function ShowHoverWedge(slot)
-    if not LAYOUT.OVERLAY[shownCount] then
+    if not CM.RadialStyle().overlay[shownCount] then
       return
     end
     wedgeTarget = CM.RadialSlotAngle(slot, shownCount)
@@ -440,7 +442,7 @@ local function BuildWheelRow(ctx)
     end
     local dx, dy = cx / scale - ax, cy / scale - ay
     local dist = math.sqrt(dx * dx + dy * dy)
-    if dist < RING_INNER * EDITOR_SCALE or dist > RING_OUTER * EDITOR_SCALE then
+    if dist < CM.RadialStyle().ring * EDITOR_SCALE or dist > RING_OUTER * EDITOR_SCALE then
       return nil
     end
     local best, bestDot
@@ -737,7 +739,9 @@ local function BuildWheelRow(ctx)
     addIndex = canAdd and (n + 1) or nil
     hovered = nil
     PaintWedge()
-    bg:SetTexture(ART_PATH .. shown .. ".tga")
+    local style = CM.RadialStyle()
+    CM.RadialPaintBackground(bg, shown, EDITOR_SCALE)
+    CM.RadialPlaceDividers(dividers, area, shown, EDITOR_SCALE)
     local radius = LAYOUT.ICON_RADIUS * EDITOR_SCALE
     for slot = 1, LAYOUT.MAX_SLICES do
       local button = buttons[slot]
@@ -782,12 +786,12 @@ local function BuildWheelRow(ctx)
       local dx, dy = CM.RadialSlotDir(n + 1, shown)
       PlaceAt(addSlice, area, dx, dy, radius)
       addSlice:Show()
-      local o = LAYOUT.OVERLAY[shown]
+      local o = style.overlay[shown]
       if o then
         local a = CM.RadialSlotAngle(n + 1, shown)
         local x = o[3] * math.cos(a) + o[4] * math.sin(a)
         local y = -o[3] * math.sin(a) + o[4] * math.cos(a)
-        wedge:SetTexture(SEL_PATH .. shown .. ".tga")
+        wedge:SetTexture(ART_DIR .. style.art .. "sel_" .. shown .. ".tga")
         wedge:SetSize(o[1] * EDITOR_SCALE, o[2] * EDITOR_SCALE)
         wedge:ClearAllPoints()
         wedge:SetPoint("CENTER", area, "CENTER", x * EDITOR_SCALE, y * EDITOR_SCALE)
@@ -834,6 +838,22 @@ UI.Options.AddTab({
           CM.AssignNamedKeybind(BIND_NAME, key)
           CM.RadialRefresh()
         end)
+      end,
+    })
+
+    ctx:Dropdown({
+      label = "Radial Menu Style",
+      newFeatureFlag = true,
+      desc = "Chose the appearance of the Radial Menu wheels.",
+      values = STYLE_VALUES,
+      order = STYLE_ORDER,
+      get = function()
+        return CM.DB.global.radialStyle or "minimal"
+      end,
+      set = function(value)
+        CM.DB.global.radialStyle = value
+        CM.RadialRefresh()
+        UI.Options.Sync()
       end,
     })
 

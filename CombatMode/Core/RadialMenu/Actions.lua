@@ -177,7 +177,7 @@ local DEFINITIONS = {
   },
   {
     id = "acmoptions",
-    label = "Action Combat Mode Options",
+    label = "ACM Options",
     icon = CM.Constants.Logo,
     run = function()
       if CM.OpenOptions then

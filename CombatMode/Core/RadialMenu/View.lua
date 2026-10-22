@@ -4,8 +4,10 @@
 --  What it does: Draws the open Radial Menu on a plain child frame of the secure wheel: the
 --  background art for the slice count, round icon slots with cooldown / count, the highlight on the slice the cursor points at, the wheel name and the wheel page dots.
 --  Architecture / how it works:
---    • Art is Assets/radial/radial_{bg,sel,off}_N.tga (N = slice count 1..8); the
---      sel / off textures are slice 1 only, moved and rotated per slice with CM.RadialLayout.OVERLAY.
+--    • Art is Assets/radial/radial_[minimal_]{bg,sel,off}_N.tga (N = slice count 1..8); which set, its
+--      size and overlay placement come from CM.RadialStyle() (global.radialStyle: Forever / Minimal).
+--      Minimal draws one radial_minimal_bg.tga plus a prerendered radial_minimal_div_N.tga (Data.lua
+--      helpers), both 1:1 so nothing is resampled. The sel / off textures are slice 1 only (sel white, tinted per wheel), moved and rotated per slice.
 --    • Paint() rebuilds from CM.RadialCurrent() (page change, show, cooldown / bag events);
 --      OnUpdate only compares CM.RadialAimSlot() and re-highlights when the aim changes.
 --    • OnUpdate also animates: a short fade / grow on open and a scale-up on the aimed slice.
@@ -75,6 +77,7 @@ local PIP_COORDS = { 8 / 64, 56 / 64, 8 / 64, 56 / 64 }
 
 local view
 local bg
+local dividers
 local sel
 local centerName
 local centerAim
@@ -129,7 +132,7 @@ local function CreateSlot(parent, index)
 
   local over = CM.RadialBuildSlotChrome(slot)
 
-  slot.iconLabel = CM.RadialCreateIconLabel(over, 12)
+  slot.iconLabel = CM.RadialCreateIconLabel(over, 10)
 
   slot.cooldown = CreateFrame("Cooldown", nil, slot, "CooldownFrameTemplate")
   slot.cooldown:SetAllPoints(slot.icon)
@@ -161,8 +164,8 @@ local function Build()
   view:SetFrameLevel(wheel:GetFrameLevel() + 1)
 
   bg = view:CreateTexture(nil, "BACKGROUND")
-  bg:SetSize(LAYOUT.ART, LAYOUT.ART)
   bg:SetPoint("CENTER")
+  dividers = CM.RadialCreateDividers(view)
 
   backdrop = view:CreateTexture(nil, "BACKGROUND", nil, 1)
   backdrop:SetTexture(ART_PATH .. "backdrop.tga")
@@ -257,23 +260,20 @@ local function PaintPips(k, total)
 end
 
 local function PlaceOverlayAt(tex, kind, n, a)
-  local o = LAYOUT.OVERLAY[n]
-  if not o then
+  local style = CM.RadialStyle()
+  local o = style.overlay[n]
+  if not o or (kind == "off" and not style.off) then
     tex:Hide()
     return
   end
   local x = o[3] * math.cos(a) + o[4] * math.sin(a)
   local y = -o[3] * math.sin(a) + o[4] * math.cos(a)
-  tex:SetTexture(ART_PATH .. kind .. "_" .. n .. ".tga")
+  tex:SetTexture(ART_PATH .. style.art .. kind .. "_" .. n .. ".tga")
   tex:SetSize(o[1], o[2])
   tex:ClearAllPoints()
   tex:SetPoint("CENTER", view, "CENTER", x, y)
   tex:SetRotation(-a)
   tex:Show()
-end
-
-local function PlaceOverlay(tex, kind, n, i)
-  PlaceOverlayAt(tex, kind, n, CM.RadialSlotAngle(i, n))
 end
 
 -- Cooldown longer than the global cooldown that is still running. Secret values (combat) can't be
@@ -548,6 +548,10 @@ local function Highlight(aim, n)
   end
 end
 
+local function PlaceOverlay(tex, kind, n, i)
+  PlaceOverlayAt(tex, kind, n, CM.RadialSlotAngle(i, n))
+end
+
 local function Paint()
   Build()
   if not view then
@@ -558,6 +562,7 @@ local function Paint()
   lastCount = n
   if n < 1 then
     bg:Hide()
+    CM.RadialPlaceDividers(dividers, view, 0, 1)
     backdrop:Hide()
     sel:Hide()
     for i = 1, LAYOUT.MAX_SLICES do
@@ -575,7 +580,8 @@ local function Paint()
     PlayRadialSound("page")
   end
   lastPage = k
-  bg:SetTexture(ART_PATH .. "bg_" .. n .. ".tga")
+  CM.RadialPaintBackground(bg, n, 1)
+  CM.RadialPlaceDividers(dividers, view, n, 1)
   bg:Show()
   backdrop:Show()
   for i = 1, LAYOUT.MAX_SLICES do

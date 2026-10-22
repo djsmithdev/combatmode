@@ -273,7 +273,7 @@ function CM.RadialAimSlot()
   local cx, cy = GetCursorPosition()
   local dx = cx / es - (left + width / 2)
   local dy = cy / es - (bottom + height / 2)
-  local dead = LAYOUT.DEAD_ZONE
+  local dead = CM.RadialStyle().dead
   if dx * dx + dy * dy <= dead * dead then
     return 0
   end
@@ -341,7 +341,7 @@ local function StoreImpl()
   if cur < 1 or cur > #lists then
     Wheel:SetAttribute("rcur", 1)
   end
-  Wheel:SetAttribute("rdead", LAYOUT.DEAD_ZONE)
+  Wheel:SetAttribute("rdead", CM.RadialStyle().dead)
   Wheel:SetAttribute("ryoff", CrosshairYOffset())
   Wheel:Execute([[ local owner = self ]] .. APPLY)
   if CM.RadialViewRefresh then

@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Radial Menu** slices now use Blizzard's gamepad action bar button art: the slice you aim at lights up with a glowing ring, and slices that can't be used right now turn grey.
+- **Radial Menu** has a new style option: **Minimal** (default) uses Blizzard's radial menu background (soft vignette, centre ring and thin dividers) with its focus glow on the aimed slice, **Forever** keeps the original wheel.
 
 ### Fixed
 

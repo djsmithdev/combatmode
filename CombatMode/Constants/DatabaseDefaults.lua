@@ -171,6 +171,8 @@ return false
     -- (accounts that predate the wizard get it once at login)
     seenWarning = false,
     seenWizard = false,
+    -- Radial Menu look: "forever" (original art) | "minimal" (Blizzard radial vignette)
+    radialStyle = "minimal",
     -- dev
     silenceAlerts = true,
     debugMode = false,

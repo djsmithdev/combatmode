@@ -29,9 +29,14 @@ local ipairs = _G.ipairs
 local math = _G.math
 local type = _G.type
 
--- Shared by Secure.lua and View.lua. The art is 512 x 512 with its crown (the ring the icons
--- sit in) from 75 to 213 from the middle; OVERLAY cuts each section overlay to slice 1 of n:
--- { width, height, x, y } with x, y the centre from the wheel's (y up).
+-- Shared by Secure.lua and View.lua. Two looks (CM.RadialStyle, global.radialStyle): "forever" is the
+-- original framed art, 512 x 512 with its crown (the ring the icons sit in) from 75 to 213 from the
+-- middle; "minimal" is Blizzard's radial vignette (a ring at 84) as one 1024 px background drawn 1:1, with
+-- the hairline dividers prerendered per slice count (512 px) and its highlight wedge (84 to 208).
+-- `overlay` places the wedge (slice 1 of n)
+-- as { width, height, x, y } with x, y the canvas centre from the wheel's (y up); `off` = the grey
+-- overlay on unusable slices (art `radial_off_N`), `bg` = drawn size, `dead` = dead zone radius,
+-- `art` = texture file prefix (radial_<art>{bg,sel}_N.tga), `ring` = editor hit ring start.
 CM.RadialLayout = {
   MAX_WHEELS = 5,
   MAX_SLICES = 8,
@@ -48,20 +53,85 @@ CM.RadialLayout = {
   },
   NAME_MAX = 10, -- wheel name length, so titles never need an ellipsis
   SLOT = 46,
-  DEAD_ZONE = 50,
-  OVERLAY = {
-    [1] = { 512, 512, 0, 0 },
-    [2] = { 512, 256, 0, 110 },
-    [3] = { 512, 256, 0, 130 },
-    [4] = { 512, 256, 0, 137 },
-    [5] = { 256, 256, 0, 140 },
-    [6] = { 256, 256, 0, 142 },
-    [7] = { 256, 256, 0, 142 },
-    [8] = { 256, 256, 0, 143 },
+  STYLES = {
+    forever = {
+      art = "",
+      perCount = true, -- radial_bg_<n>.tga per slice count
+      bg = 512,
+      dead = 50,
+      ring = 60,
+      off = true,
+      overlay = {
+        [1] = { 512, 512, 0, 0 },
+        [2] = { 512, 256, 0, 110 },
+        [3] = { 512, 256, 0, 130 },
+        [4] = { 512, 256, 0, 137 },
+        [5] = { 256, 256, 0, 140 },
+        [6] = { 256, 256, 0, 142 },
+        [7] = { 256, 256, 0, 142 },
+        [8] = { 256, 256, 0, 143 },
+      },
+    },
+    minimal = {
+      art = "minimal_",
+      perCount = false, -- one background for every count, dividers are their own texture
+      bg = 1024,
+      dead = 80, -- just inside the background's ring
+      ring = 80,
+      off = false,
+      overlay = {
+        [1] = { 512, 512, 0, -47 },
+        [2] = { 512, 256, 0, 81 },
+        [3] = { 512, 256, 0, 81 },
+        [4] = { 512, 256, 0, 81 },
+        [5] = { 256, 256, 0, 81 },
+        [6] = { 256, 256, 0, 81 },
+        [7] = { 256, 256, 0, 81 },
+        [8] = { 256, 256, 0, 81 },
+      },
+    },
   },
 }
 
 local LAYOUT = CM.RadialLayout
+
+--- The active look (global.radialStyle: "forever" | "minimal"); unknown values fall back to minimal.
+function CM.RadialStyle()
+  local g = CM.DB and CM.DB.global
+  return LAYOUT.STYLES[g and g.radialStyle or "minimal"] or LAYOUT.STYLES.minimal
+end
+
+local ART_DIR = "Interface\\AddOns\\CombatMode\\Assets\\radial\\radial_"
+local DIV_SIZE = 512 -- radial_minimal_div_<n>.tga canvas, drawn 1:1 (rotating a hairline in game blurs it)
+
+--- Draws the active look's background for `n` slices at `scale` (the options editor draws it smaller).
+function CM.RadialPaintBackground(tex, n, scale)
+  local style = CM.RadialStyle()
+  tex:SetSize(style.bg * scale, style.bg * scale)
+  tex:SetTexture(ART_DIR .. style.art .. (style.perCount and ("bg_" .. n) or "bg") .. ".tga")
+end
+
+--- The divider overlay texture of looks that draw their dividers apart from the background.
+function CM.RadialCreateDividers(parent)
+  local tex = parent:CreateTexture(nil, "BACKGROUND", nil, 1)
+  tex:SetPoint("CENTER")
+  tex:Hide()
+  return tex
+end
+
+--- Shows the dividers for `n` slices centred on `anchor`; hidden for looks that bake them in.
+function CM.RadialPlaceDividers(tex, anchor, n, scale)
+  local style = CM.RadialStyle()
+  if style.perCount or n < 2 then
+    tex:Hide()
+    return
+  end
+  tex:ClearAllPoints()
+  tex:SetPoint("CENTER", anchor, "CENTER")
+  tex:SetSize(DIV_SIZE * scale, DIV_SIZE * scale)
+  tex:SetTexture(ART_DIR .. style.art .. "div_" .. n .. ".tga")
+  tex:Show()
+end
 
 -- Preset wheels: first-run content, and what the editor's "+" menu can add back later.
 -- Entries are action ids (strings) or ready-made { kind, id } slots.
