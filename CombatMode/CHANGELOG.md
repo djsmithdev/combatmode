@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.1] - 2026-10-21
+
+### Added
+
+- **Sounds** section in the Advanced tab: switch off the cue sounds of Mouse Look, Target Lock, Radial Menu or Ally Cycle, one toggle per feature. All stay on by default.
+
+### Changed
+
+- **Target Outline** is now disabled on clients other than Retail, where it drew no outline. Action Combat Mode no longer changes the outline CVars there.
+- **Ally Cycle** is available again on Forever, now that the client provides `loadstring_untainted`.
+
 ## [5.2.0] - 2026-10-21
 
 ### Added
@@ -16,8 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Next-cast Suggestion** is now disabled on clients other than Retail, where Blizzard's Assisted Highlight does not exist.
-- **Target Outline** is now disabled on clients other than Retail, where it drew no outline. Action Combat Mode no longer changes the outline CVars there.
-- **Ally Cycle** is available again on Forever, now that the client provides `loadstring_untainted`.
 - **Excluded Spells** and **Cast at Crosshair** now start empty on a fresh install, and **Unlock Mounts** is only prefilled with the known vendor mounts on Retail (other clients start empty). Existing lists are kept.
 - **Pitch Strength** now defaults to 0 for new installs (it was 0.4). Anyone who already set a value keeps it.
 - Config tabs are reordered: Mouse Look, Crosshair, Reticle Targeting, Click Casting, Radial Menu, Ally Cycle, Auto Unlock, Advanced.

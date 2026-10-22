@@ -87,6 +87,11 @@ CM.Constants.DatabaseDefaults = {
     sheathWeaponsWithMouselook = false,
     interactUnit = "target",
     showTargetLockMarker = true,
+    -- Sounds (Advanced tab): one switch per feature that plays cues.
+    soundMouseLook = true,
+    soundTargetLock = true,
+    soundRadialMenu = true,
+    soundAllyCycle = true,
     -- Reticle Targeting: outline preset (Outline 3, no fades). false = Outline 0 + Blizzard fades.
     reticleOutline = true,
     -- Reticle Targeting: which target gets Blizzard's selection circle (ObjectSelectionCircle).

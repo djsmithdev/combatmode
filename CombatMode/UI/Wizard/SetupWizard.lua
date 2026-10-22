@@ -109,7 +109,7 @@ local STEPS = {
     tab = "reticle",
     label = "Excluded Spells",
     title = "Excluded Spells",
-    body = "Spells that should skip the Reticle Targeting logic and act on your current target as usual. Type a spell name or ID to add it.",
+    body = "Spells that should skip or don't need the Reticle Targeting logic applied to them at all. Type a spell name or ID to add it.",
   },
   {
     tab = "reticle",
@@ -253,6 +253,12 @@ local STEPS = {
     label = "Extra Frames",
     title = "Extra Frames",
     body = "Add any other windows that should pause Mouse Look when they open. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen.",
+  },
+  {
+    tab = "advanced",
+    section = "SOUNDS",
+    title = "Sounds",
+    body = "Mouse Look, Target Lock, Radial Menu and Ally Cycle play short cues. Switch off the ones you do not want, one toggle per feature.",
   },
   {
     tab = "advanced",

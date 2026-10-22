@@ -3,11 +3,14 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Wires the Advanced options tab: force-lock and force-unlock
 --  Lua, the crosshair situational appearance and condition, and buttons that open
---  the Reticle Targeting CVar editor and Targeting Macro Prelines editor.
+--  the Reticle Targeting CVar editor and Targeting Macro Prelines editor, and
+--  the Sounds toggles (one per feature that plays cues).
 --  Architecture / how it works:
 --    • DB.global: customLockCondition, customLockConditionOnce, customCondition,
 --      customConditionOnce, crosshairSituationalCondition,
---      crosshairSituationalAppearance. Widgets only read/write those keys.
+--      crosshairSituationalAppearance, soundMouseLook, soundTargetLock,
+--      soundRadialMenu, soundAllyCycle. Widgets only read/write those keys;
+--      the sound sites check them through CM.IsSoundEnabled (Runtime.lua).
 --    • Force-lock / force-unlock are evaluated by ShouldFreeLookBeOff. The
 --      situational snippet is evaluated by the crosshair; appearance and condition
 --      set() refresh the crosshair. Both are disabled when the crosshair is off.
@@ -36,7 +39,44 @@ local API_DOCS_URL = "https://warcraft.wiki.gg/wiki/World_of_Warcraft_API"
 UI.Options.AddTab({
   id = "advanced",
   label = "Advanced",
+  newFeatureFlag = true,
   build = function(ctx)
+    ctx:Header({ text = "SOUNDS", newFeatureFlag = true })
+    for _, sound in ipairs({
+      {
+        key = "soundMouseLook",
+        label = "Mouse Look Sounds",
+        desc = "Play a cue when Mouse Look turns on and off.",
+      },
+      {
+        key = "soundTargetLock",
+        label = "Target Lock Sounds",
+        desc = "Play cues when a Target Lock is set, cleared or cycled.",
+      },
+      {
+        key = "soundRadialMenu",
+        label = "Radial Menu Sounds",
+        desc = "Play cues when interacting with Radial Menu wheels.",
+      },
+      {
+        key = "soundAllyCycle",
+        label = "Ally Cycle Sounds",
+        desc = "Play a cue when Ally Cycle moves to another ally.",
+      },
+    }) do
+      ctx:Toggle({
+        label = sound.label,
+        desc = sound.desc,
+        get = function()
+          return CM.DB.global[sound.key] ~= false
+        end,
+        set = function(value)
+          CM.DB.global[sound.key] = value
+        end,
+      })
+    end
+
+    ctx:Gap()
     ctx:Header({ text = "FORCE LOCK" })
     ctx:TextInput({
       label = "Custom Condition",

@@ -149,6 +149,13 @@ function CM.ApplyOutlineSlug(label, font, size)
   label:SetShadowOffset(1, -1)
 end
 
+--- Whether a feature's cue sounds are on (`soundMouseLook`, `soundTargetLock`, `soundRadialMenu`,
+--- `soundAllyCycle` in DB.global; Advanced > Sounds). On unless explicitly switched off.
+function CM.IsSoundEnabled(key)
+  local g = CM.DB and CM.DB.global
+  return not g or g[key] ~= false
+end
+
 local function OpenConfigPanel()
   -- Standalone options window (UI/Options/OptionsPanel.lua). Combat guard is
   -- handled inside CM.OpenOptions.

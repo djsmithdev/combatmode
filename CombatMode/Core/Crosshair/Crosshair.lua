@@ -624,7 +624,7 @@ local function PlayFocusLockSounds(hasFocus)
   if not g then
     return
   end
-  if not PlaySound then
+  if not PlaySound or not CM.IsSoundEnabled("soundTargetLock") then
     return
   end
   -- Do not compare UnitGUID here — GUIDs are secret under instance taint.

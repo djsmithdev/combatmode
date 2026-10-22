@@ -282,7 +282,7 @@ function CycleButton:DebugCycle(text)
 end
 
 function CycleButton:NotifyCycle(direction)
-  if PlaySound then
+  if PlaySound and CM.IsSoundEnabled("soundAllyCycle") then
     PlaySound(ALLY_CYCLE_SOUND, "Master", true)
   end
   if CM.NotifyAllyCycleHUD then

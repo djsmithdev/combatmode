@@ -384,7 +384,7 @@ local lastSoundTime = 0
 
 local function PlayFreeLookSound()
   local now = GetTime()
-  if PlaySound and now - lastSoundTime >= SOUND_GAP then
+  if PlaySound and now - lastSoundTime >= SOUND_GAP and CM.IsSoundEnabled("soundMouseLook") then
     lastSoundTime = now
     PlaySound(FREELOOK_SOUND, "Master", true)
   end

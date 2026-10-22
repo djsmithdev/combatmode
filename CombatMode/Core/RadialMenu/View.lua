@@ -53,7 +53,7 @@ local lastAimSound = 0
 
 local function PlayRadialSound(kind)
   local id = SOUNDS[kind]
-  if id then
+  if id and CM.IsSoundEnabled("soundRadialMenu") then
     PlaySound(id, "SFX")
   end
 end
