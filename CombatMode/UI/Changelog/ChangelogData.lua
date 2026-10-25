@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Every section of the options window now has a short description of the feature under its heading.
+- **Prelines Editor** now shows a live character counter under each preline, like the Macro Composer.
 - **Setup Wizard** step text is split into short paragraphs with the key terms highlighted in the accent color, so it is easier to read.
 - **Mouse Look** tab: Cursor Pulse, Vignette Effect, Hide Tooltips and Auto Sheath moved into a new **Additional Features** section below Camera Features.
 

@@ -12,7 +12,8 @@
 --    • Active field = Auto Target Lock mode × Ignore Friendlies; others stay visible but
 --      stamped Inactive (same pattern as the Ignore Friendlies pair overlay).
 --    • Max length = CM.TargetingMacroPrelineMaxLen (255 − worst /click − newline);
---      EditBox SetMaxLetters + validate refuse oversized input.
+--      EditBox SetMaxLetters + validate refuse oversized input. Each field shows a live
+--      "used / max characters" counter under its label (like the Macro Composer).
 --    • Reset clears all four overrides. Combat-guarded open; uses CM.UI CreateWindow.
 --  Does not: Rebuild secure macrotext until reload / RefreshClickCastMacros path runs.
 --  Related: Core/ClickCasting/TargetingMacroBuilder.lua,
@@ -147,17 +148,29 @@ local function Build()
   end
 
   local function AddPrelineField(opts)
+    -- Live length of the text in the box, shown under the label like the Macro Composer's counter.
+    local used = #(opts.get() or "")
     ctx:TextInput({
       label = opts.label,
       labelAllowColors = true,
       labelSize = UI.Fonts.small,
       -- Ignore Friendlies / Auto Target Lock state, shown as the small muted helper under the label.
-      desc = opts.state,
+      desc = function()
+        local text = used .. " / " .. maxLen .. " characters"
+        if used > maxLen then
+          text = UI.AccentWrap(text) .. " (over the macro limit)"
+        end
+        return opts.state .. "\n" .. text
+      end,
       descAllowColors = true,
       multiline = 4,
       maxLetters = maxLen,
       get = opts.get,
       set = opts.set,
+      onTextChanged = function(value)
+        used = #value
+        UI.Options.Sync()
+      end,
       validate = ValidatePreline,
       disabled = opts.disabled,
       watermarkWhenDisabled = opts.watermarkWhenDisabled,
