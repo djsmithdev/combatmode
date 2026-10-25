@@ -38,6 +38,7 @@ local UIParent = _G.UIParent
 local ipairs = _G.ipairs
 local floor = _G.math.floor
 local format = _G.string.format
+local gsub = _G.string.gsub
 local max = _G.math.max
 local min = _G.math.min
 local sort = _G.table.sort
@@ -61,6 +62,17 @@ local TASK_POLL_S = 0.2
 local CHECK_TEXTURE = CM.Constants.CheckMark
 
 local spotlight
+
+--- `text` wrapped in an inline colour code for the colour token `color` ({ r, g, b } in 0..1).
+local function Colored(color, text)
+  return format(
+    "|cff%02x%02x%02x%s|r",
+    floor(color[1] * 255 + 0.5),
+    floor(color[2] * 255 + 0.5),
+    floor(color[3] * 255 + 0.5),
+    text
+  )
+end
 
 --- A screen dim with a rectangular hole and an accent outline around it (four mouse-transparent
 --- dim rectangles plus four outline edges, all children of `parent`, above frame level `level`).
@@ -582,7 +594,7 @@ local function Build()
 end
 
 --- Shows the spotlight on `target` (a frame, or a list of frames) with the balloon described by `opts`:
---- { title, body, step ("3 / 7"), nextLabel, isLast (shows the accent Finish button), canGoBack, tasks ({ label, done() } list that gates Next / Finish), warning (red caution under the text), clip (frame the hole is cut to), alsoHighlight (function returning the live preview frames to leave undimmed), onNext, onBack, onSkip }.
+--- { title, body (`{text}` is drawn in the accent colour, a blank line starts a new paragraph), step ("3 / 7"), nextLabel, isLast (shows the accent Finish button), canGoBack, tasks ({ label, done() } list that gates Next / Finish), warning (red caution under the text), clip (frame the hole is cut to), alsoHighlight (function returning the live preview frames to leave undimmed), onNext, onBack, onSkip }.
 function UI.ShowSpotlight(target, opts)
   spotlight = spotlight or Build()
   local s = spotlight
@@ -592,18 +604,17 @@ function UI.ShowSpotlight(target, opts)
   s.onNext, s.onBack, s.onSkip = opts.onNext, opts.onBack, opts.onSkip
 
   s.title:SetText(opts.title or "")
-  local bodyText = opts.body or ""
+  -- {text} in the body is drawn in the accent colour, {!text} in the warning red; "\n\n" starts a
+  -- new paragraph.
+  local bodyText = gsub(opts.body or "", "{!(.-)}", function(text)
+    return Colored(C.warning, text)
+  end)
+  bodyText = gsub(bodyText, "{(.-)}", function(text)
+    return Colored(C.accent, text)
+  end)
   if opts.warning then
     -- A caution under the text, in the options window's warning red.
-    local w = C.warning
-    bodyText = bodyText
-      .. format(
-        "\n\n|cff%02x%02x%02x%s|r",
-        floor(w[1] * 255 + 0.5),
-        floor(w[2] * 255 + 0.5),
-        floor(w[3] * 255 + 0.5),
-        opts.warning
-      )
+    bodyText = bodyText .. "\n\n" .. Colored(C.warning, opts.warning)
   end
   s.body:SetText(bodyText)
   s.step:SetText(opts.step or "")

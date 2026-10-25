@@ -10,7 +10,8 @@
 --    • Tasks: a step can ask for actions (a key bound, ...). They show as a check list in the balloon
 --      and Next / Finish stay disabled until every one is done; Skip tour always works.
 --    • Steps are data (STEPS): tab id, then either one control label (plus optional `also`
---      labels) or a whole section by header title, with a title and text. Options.FocusControl /
+--      labels) or a whole section by header title (`sectionEnd` = a later section's title where
+--      the highlight ends, so one step can cover several sections), with a title and text. Options.FocusControl /
 --      Options.FocusSection select the tab, scroll to it and return the frame(s) to highlight;
 --      UI.ShowSpotlight (Spotlight.lua) dims around them (cut to the tab's visible area) and
 --      shows the balloon.
@@ -51,6 +52,7 @@ local function Bound(command)
   return GetBindingKey(command) ~= nil
 end
 
+-- A step's `body` can use `{text}` for accent-coloured words, `{!text}` for red warning text and a blank line (`\n\n`) between paragraphs.
 -- A step may also carry `warning`: a caution shown in red under the text.
 -- A step highlights a whole section (`section` = its header title). `tasks` are the actions the
 -- step asks for: each shows as a check mark that fills in once `done()` is true, and Next stays
@@ -61,8 +63,8 @@ local STEPS = {
     section = "MOUSE LOOK",
     title = "Mouse Look",
     body = "Lock your cursor to the center of the screen and steer by moving the mouse, "
-      .. "no more holding right-click. Set a key to toggle it, and one to interact with "
-      .. "whatever you're aiming at.",
+      .. "no more holding right-click.\n\n"
+      .. "Set a {key to toggle it}, and {one to interact with} whatever you're aiming at.",
     tasks = {
       {
         label = "Set a Mouse Look key",
@@ -79,55 +81,49 @@ local STEPS = {
     },
   },
   {
-    tab = "general",
-    section = "CAMERA FEATURES",
-    title = "Camera Features",
-    body = "Fine-tune the camera while in Mouse Look. Turn off or adjust anything you don't like.",
-  },
-  {
     tab = "crosshair",
     section = "CROSSHAIR",
     preview = "crosshair",
     title = "Crosshair",
-    body = "A reactive, fully customizable crosshair that adapts to your target and combat state. Choose its look, size and position.",
+    body = "A reactive, fully customizable crosshair that adapts to your target and combat state.\n\nChoose its {look}, {size} and {position}.",
   },
   {
     tab = "crosshair",
     section = "ASSIST HUD",
     preview = "assist",
     title = "Assist HUD",
-    body = "Aim at an enemy and the HUD next to your crosshair suggests your next spell and shows its key. Aim at something you can interact with and it shows its name and your Interact key instead. Turn either on or off, and set its side, size and distance from the crosshair.",
+    body = "Aim at an enemy and the HUD next to your crosshair suggests your {next spell} and shows its key.\n\nAim at something you can interact with and it shows its {name} and your {Interact key} instead.\n\nTurn either on or off, and set its {side}, {size} and {distance} from the crosshair.",
   },
   {
     tab = "reticle",
     section = "RETICLE TARGETING",
     title = "Reticle Targeting",
-    body = "Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting. Ignore Friendlies makes it skip allies.",
+    body = "Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.\n\n{Ignore Friendlies} makes it skip allies.",
     warning = "Turning Reticle Targeting on or off reloads the UI.",
   },
   {
     tab = "reticle",
     label = "Excluded Spells",
     title = "Excluded Spells",
-    body = "Spells that should skip or don't need the Reticle Targeting logic applied to them at all. Type a spell name or ID to add it.",
+    body = "Spells that should skip or don't need the Reticle Targeting logic applied to them at all.\n\nType a {spell name or ID} to add it.",
   },
   {
     tab = "reticle",
     label = "Cast at Crosshair",
     title = "Cast at Crosshair",
-    body = "Ground-targeted spells that should be cast at the crosshair location instead of your target. Type a spell name or ID to add it.",
+    body = "Ground-targeted spells that should be cast at the crosshair location.\n\nType a {spell name or ID} to add it.",
   },
   {
     tab = "reticle",
     label = "Reticle Targeting Macros",
     title = "Reticle Targeting Macros",
-    body = "Action buttons that are macros cannot inherit Reticle Targeting on their own. Press + to open the Macro Composer, write your macro there and it gets the targeting logic added for you. Then drag it from this list onto your action bars; right-click an icon to edit it.",
+    body = "{!Action buttons that are macros cannot inherit Reticle Targeting on their own.}\n\nPress {+} to open the {Macro Composer}, write your macro there and it gets the targeting logic added for you.\n\nThen drag it from this list onto your action bars; {right-click} an icon to edit it.",
   },
   {
     tab = "reticle",
     section = "TARGET LOCK",
     title = "Target Lock",
-    body = "Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies. Target Lock Behavior decides whether tapping again unlocks (Toggle) or moves the lock to whatever is under the crosshair (Switch Target). Set your keys.",
+    body = "Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies.\n\n{Target Lock Behavior} decides whether tapping again unlocks ({Toggle}) or moves the lock to whatever is under the crosshair ({Switch Target}).\n\nSet your keys.",
     -- These keys can't be set while Reticle Targeting is off, so they don't block then.
     tasks = {
       {
@@ -151,45 +147,20 @@ local STEPS = {
     },
   },
   {
-    tab = "reticle",
-    section = "TARGETING INDICATORS",
-    title = "Targeting Indicators",
-    body = "Choose how your target is marked in the world: an outline around it, and which target gets Blizzard's selection circle under its feet.",
-  },
-  {
     tab = "clickcasting",
     section = "CLICK CASTING",
     title = "Click Casting",
-    body = "Click Casting turns your mouse clicks into actions while in Mouse Look, such as casting "
-      .. "your action bar spells with Left and Right Click.",
-  },
-  {
-    tab = "clickcasting",
-    label = "Account-Wide Binds",
-    title = "Account-Wide Binds",
-    body = "Choose whether these binds are shared by every character or kept per character.",
-  },
-  {
-    tab = "clickcasting",
-    label = "Click Binds",
-    title = "Click Binds",
-    body = "Each tab holds its own binds: Base is a plain click, while Shift, Ctrl and Alt apply when you "
-      .. "hold that key. Click a tab to switch to it. Switch a click on to override it in Mouse Look, then "
-      .. "open its Action dropdown to pick what it does. Pick Run MACRO to run one of your own macros.",
+    body = "Turn your mouse clicks into actions while in Mouse Look, such as casting your action bar "
+      .. "spells with {Left and Right Click}.\n\n"
+      .. "Pick what each click does, with or without a {modifier key}.",
   },
   {
     tab = "radialmenu",
     section = "RADIAL MENU",
     title = "Radial Menu",
-    body = "A wheel of your own spells, items, macros, emotes and interface shortcuts that works in combat. "
-      .. "Hold its key, move the mouse toward a slice and release to use it; release in the centre to cancel. "
-      .. "Scroll the mouse wheel while it is open to turn to another wheel.",
-  },
-  {
-    tab = "radialmenu",
-    label = "Radial Menu Keybind",
-    title = "Radial Menu Key",
-    body = "Pick the key you hold to open the wheel.",
+    body = "A wheel of your {spells, items, macros and shortcuts} that works in combat.\n\n"
+      .. "Hold its key, move the mouse toward a slice and release to use it.\n\n"
+      .. "{Scroll} to switch between wheels.",
     tasks = {
       {
         label = "Set a Radial Menu key",
@@ -200,19 +171,12 @@ local STEPS = {
     },
   },
   {
-    tab = "radialmenu",
-    label = "Radial Menu Wheels",
-    title = "Your Wheels",
-    body = "Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it. "
-      .. "Right-click a slice to remove it, and use Add Slice for more (up to 8 per wheel). "
-      .. "Make up to 5 wheels: switch with the arrows, rename one by clicking its name, and use + and - "
-      .. "in the centre to add or remove one. Three come ready to use.",
-  },
-  {
     tab = "allycycle",
     section = "ALLY CYCLE",
+    sectionEnd = "ALLY HUD",
+    preview = "ally",
     title = "Ally Cycle",
-    body = "Attack enemies and assist allies at once by cycling group members in Mouse Look: helpful spells go to the ally, harmful ones keep hitting your enemy target. Set your cycle keys.",
+    body = "Cycle through group members in Mouse Look so {helpful spells} go to the ally while {harmful ones} keep hitting your enemy.\n\nThe {Ally HUD} shows who is selected.\n\nSet your cycle keys.",
     tasks = {
       {
         label = "Set an Ally Cycle - Next key",
@@ -229,60 +193,18 @@ local STEPS = {
     },
   },
   {
-    tab = "allycycle",
-    section = "ALLY HUD",
-    preview = "ally",
-    title = "Ally HUD",
-    body = "Shows the selected ally next to the crosshair. Choose where it sits and how big it is.",
-  },
-  {
     tab = "autocursorunlock",
     section = "AUTO UNLOCK",
     title = "Auto Unlock",
-    body = "Mouse Look pauses when you open bags, the map or other windows, then resumes. It can also "
-      .. "step aside on certain mounts or for frames you add.",
-  },
-  {
-    tab = "autocursorunlock",
-    label = "Unlock Mounts",
-    title = "Unlock Mounts",
-    body = "Mounts that should release the cursor while you are mounted on them. Search for a mount to add it.",
-  },
-  {
-    tab = "autocursorunlock",
-    label = "Extra Frames",
-    title = "Extra Frames",
-    body = "Add any other windows that should pause Mouse Look when they open. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen.",
+    body = "Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\n"
+      .. "Add {mounts or extra windows} that should pause it too.",
   },
   {
     tab = "advanced",
     section = "SOUNDS",
-    title = "Sounds",
-    body = "Mouse Look, Target Lock, Radial Menu and Ally Cycle play short cues. Switch off the ones you do not want, one toggle per feature.",
-  },
-  {
-    tab = "advanced",
-    section = "FORCE LOCK",
-    title = "Force Lock",
-    body = "Advanced: a custom Lua condition that keeps Mouse Look locked while it is true.",
-  },
-  {
-    tab = "advanced",
-    section = "FORCE UNLOCK",
-    title = "Force Unlock",
-    body = "The opposite: a custom Lua condition that keeps Mouse Look unlocked while it is true.",
-  },
-  {
-    tab = "advanced",
-    section = "CROSSHAIR",
-    title = "Situational Crosshair",
-    body = "Swap the crosshair's appearance while a custom Lua condition is true.",
-  },
-  {
-    tab = "advanced",
-    section = "RETICLE TARGETING",
-    title = "Targeting Editors",
-    body = "Fine-tune how Reticle Targeting works with the CVar and Targeting Macro Prelines editors.",
+    sectionEnd = "RETICLE TARGETING",
+    title = "Advanced",
+    body = "Sound cues and power-user tools: {custom Lua conditions} and {Reticle Targeting editors}.",
     warning = "Editing these can break Reticle Targeting and Target Lock. Only change them if you know what you are doing.",
   },
 }
@@ -376,6 +298,15 @@ function ShowStep(i)
   local targets
   if step.section then
     targets = Options.FocusSection(step.tab, step.section)
+    -- `sectionEnd`: the highlight runs on to the end of that later section of the same tab.
+    if targets and step.sectionEnd then
+      for _, section in ipairs(Options.sections) do
+        if section.tab == step.tab and section.label == step.sectionEnd then
+          targets[2] = section.lastFrame
+          break
+        end
+      end
+    end
   else
     local frame = Options.FocusControl(step.tab, step.label, step.group)
     targets = { frame }
