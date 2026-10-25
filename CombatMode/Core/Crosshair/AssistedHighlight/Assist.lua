@@ -714,7 +714,11 @@ local function SetHudLabels(clickText, cornerText, nameText)
     -- Names can be long (or secret and unmeasurable): cap the width and truncate.
     local width = NAME_MAX_WIDTH
     if not IsSecret(nameText) then
-      width = math.min(width, frame.nameText:GetUnboundedStringWidth())
+      -- The measured width can still come back secret in instances (tainted execution).
+      local measured = frame.nameText:GetUnboundedStringWidth()
+      if measured and not IsSecret(measured) then
+        width = math.min(width, measured)
+      end
     end
     frame.nameText:SetWidth(width)
     frame.nameText:Show()

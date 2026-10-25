@@ -14,6 +14,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.4] - 2026-10-25
+
+### Fixed
+
+- The **Interaction HUD** no longer throws a "numeric conversion on a secret number value" error when leaving a dungeon or other instance.
+
 ## [5.2.3] - 2026-10-24
 
 ### Added
