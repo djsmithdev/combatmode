@@ -33,6 +33,11 @@
 --      global.respectMotionSickness (Motion Sickness Protection): restore MS from snapshot
 --      and suppress Dynamic Pitch / Shoulder Offset / Target Focus CVar writes (options stay
 --      saved; turning Protection off re-applies them).
+--    • ApplyMinCameraZoom — global.minCameraZoom; no CVar exists and the mouse wheel bypasses
+--      the CameraZoomIn global, so the CAMERAZOOMIN keys get an override click (queued out of
+--      combat, re-applied on UPDATE_BINDINGS) that stops the zoom at the minimum; a small
+--      throttled OnUpdate (shown only while the option is on) catches zoom the keys didn't cause (off at 0; applies
+--      regardless of DynamicCam / SteadyCam).
 --    • SetShoulderOffset — tweens test_cameraOverShoulder with Vignette duration.
 --    • SwapShoulder — keybind: negates char.shoulderOffset (tweened), or the live CVar when
 --      DynamicCam / SteadyCam own it.
@@ -1006,6 +1011,86 @@ function CM.SetMouseLookSpeed()
   CM.SetCVar("cameraYawMoveSpeed", XSpeed)
   CM.SetCVar("cameraPitchMoveSpeed", YSpeed)
   CM.DebugPrint("Setting Camera Turn Speed X to " .. XSpeed .. " and Y to " .. YSpeed)
+end
+
+local MIN_ZOOM_CHECK_INTERVAL = 0.03
+local minZoomFrame
+local minZoomElapsed = 0
+
+--- Pushes the camera back out when it sits closer than global.minCameraZoom (0 = off).
+local function EnforceMinCameraZoom()
+  local minZoom = CM.DB and CM.DB.global and CM.DB.global.minCameraZoom
+  if type(minZoom) ~= "number" or minZoom <= 0 then
+    return
+  end
+  local zoom = _G.GetCameraZoom()
+  if zoom < minZoom then
+    _G.CameraZoomOut(minZoom - zoom)
+  end
+end
+
+-- Zoom-in keys (the mouse wheel by default) are overridden with a plain button that stops the
+-- zoom at the minimum, so the camera never goes under it and snaps back. Blizzard's own
+-- binding zooms 1 yard per step.
+local MIN_ZOOM_STEP = 1
+local MIN_ZOOM_SETTLE = 0.3 -- GetCameraZoom lags a fresh zoom; trust our own target this long
+local minZoomOwner = CreateFrame("Frame", nil, _G.UIParent)
+local minZoomButton = CreateFrame("Button", "CombatModeMinZoomIn", minZoomOwner)
+minZoomButton:RegisterForClicks("AnyUp", "AnyDown")
+local minZoomTarget, minZoomTime = 0, 0
+
+minZoomButton:SetScript("OnClick", function()
+  local now = GetTime()
+  if now == minZoomTime then -- down and up of one wheel notch arrive together
+    return
+  end
+  local minZoom = CM.DB.global.minCameraZoom
+  local current = _G.GetCameraZoom()
+  local base = (now - minZoomTime < MIN_ZOOM_SETTLE) and minZoomTarget or current
+  local step = math.min(MIN_ZOOM_STEP, base - minZoom)
+  if step <= 0 then
+    return
+  end
+  minZoomTime = now
+  minZoomTarget = base - step
+  _G.CameraZoomIn(step)
+end)
+
+local function ApplyMinZoomBindings()
+  _G.ClearOverrideBindings(minZoomOwner)
+  local minZoom = CM.DB.global.minCameraZoom
+  if type(minZoom) ~= "number" or minZoom <= 0 then
+    return
+  end
+  for _, key in ipairs({ _G.GetBindingKey("CAMERAZOOMIN") }) do
+    _G.SetOverrideBindingClick(minZoomOwner, false, key, minZoomButton:GetName(), "LeftButton")
+  end
+end
+
+--- Minimum zoom has no CVar. The zoom-in keys are overridden (out of combat, queued
+--- otherwise) so they stop at the minimum; a small throttled poll while the option is on only
+--- catches zoom the keys didn't cause (login, other addons). Safe to call again after the
+--- slider changes or UPDATE_BINDINGS.
+function CM.ApplyMinCameraZoom()
+  CM.TryApplyBindingChange("Minimum Zoom", ApplyMinZoomBindings)
+  local minZoom = CM.DB and CM.DB.global and CM.DB.global.minCameraZoom
+  local active = type(minZoom) == "number" and minZoom > 0
+  if not minZoomFrame then
+    if not active then
+      return
+    end
+    minZoomFrame = CreateFrame("Frame")
+    minZoomFrame:SetScript("OnUpdate", function(_, elapsed)
+      minZoomElapsed = minZoomElapsed + elapsed
+      if minZoomElapsed < MIN_ZOOM_CHECK_INTERVAL then
+        return
+      end
+      minZoomElapsed = 0
+      EnforceMinCameraZoom()
+    end)
+  end
+  minZoomFrame:SetShown(active)
+  EnforceMinCameraZoom()
 end
 
 --- Restore the player's pre-Combat Mode CVars (snapshot preferred; Blizzard tables fallback).

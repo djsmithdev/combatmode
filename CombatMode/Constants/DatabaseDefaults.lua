@@ -8,7 +8,7 @@
 --  Architecture / how it works:
 --    • global: free-look / crosshair / Interaction HUD / Assisted Combat / reticle /
 --      click-cast bindings / auto-unlock / Mouse Look camera (mouseLookSpeed,
---      dynamicPitch, dynamicPitchStrength, vignette, shoulderFollowsMouseLook, respectMotionSickness,
+--      minCameraZoom, dynamicPitch, dynamicPitchStrength, vignette, shoulderFollowsMouseLook, respectMotionSickness,
 --      autofocusLockedTarget) / allyCycle / debug.
 --      Crosshair also stores crosshairSituationalCondition + crosshairSituationalAppearance.
 --    • char: reticle targeting, click-cast bindings, useGlobalBindings, shoulderOffset.
@@ -150,6 +150,8 @@ return false
     customLockConditionOnce = false,
     -- mouse look camera
     mouseLookSpeed = 100,
+    -- Closest the camera may zoom in (yards); 0 = off.
+    minCameraZoom = 3,
     dynamicPitch = true,
     vignette = true,
     -- Ease shoulder with Mouse Look chrome when on (default off = keep configured offset).

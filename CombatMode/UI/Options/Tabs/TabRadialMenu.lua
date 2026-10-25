@@ -44,6 +44,8 @@ local BIND_NAME = "Combat Mode - Radial Menu"
 local WHEELS_LABEL = "Radial Menu Wheels"
 local ART_DIR = "Interface\\AddOns\\CombatMode\\Assets\\radial\\radial_"
 local WEDGE_ALPHA = 0.7
+local DRAG_SCALE = 1.15 -- the dragged slice grows like the aimed slice of the live wheel (View.lua HOVER_SCALE)
+local DRAG_SCALE_SPEED = 18
 local HUB_GLYPH_SIZE = 18
 local HUB_ALPHA_DIM = 0.4
 local EDITOR_SCALE = 0.7
@@ -462,7 +464,12 @@ local function BuildWheelRow(ctx)
     pip.glow = Layer("BACKGROUND", 0, "pip_glow.tga")
     pip.fill = Layer("OVERLAY", 0, "pip_fill.tga")
     pip:Hide()
-    Tooltip(pip, "Click to select this wheel, drag to reorder")
+    Tooltip(pip, function()
+      return {
+        title = CM.RadialWheelName(CM.RadialGetWheels()[index], index),
+        text = "Click to select this wheel, drag to reorder",
+      }
+    end)
     pip:SetScript("OnClick", function()
       if _G.GetTime() - lastPipDrag < 0.1 then
         return
@@ -474,7 +481,14 @@ local function BuildWheelRow(ctx)
     pip:SetScript("OnMouseDown", function(_, button)
       if button == "LeftButton" then
         pipHeld = index
+        UI.HideTooltip()
         PaintPips()
+      end
+    end)
+    -- Pips slide under the cursor while dragging and re-fire OnEnter: keep the tooltip down until release.
+    pip:HookScript("OnEnter", function()
+      if pipHeld then
+        UI.HideTooltip()
       end
     end)
     pip:SetScript("OnMouseUp", function()
@@ -562,6 +576,7 @@ local function BuildWheelRow(ctx)
 
   -- Reorder drag state: `preview[position] = source slot` shows the wheel as it would end up.
   local Update, preview, dragFrom, dragTo
+  local pressed -- slice the mouse button is held on (it grows like a dragged one before any drag starts)
   -- The lit wedge turns to its slice; while a slice is dragged it glides there (wedgeCur chases
   -- wedgeTarget) instead of jumping.
   local wedgeCur, wedgeTarget
@@ -653,21 +668,44 @@ local function BuildWheelRow(ctx)
   end
   onPinChange = PaintWedge
 
+  -- Anchor offsets are in the button's own scaled units: divide by the scale to stay centred in place.
+  local function PlaceButton(button)
+    local scale = button.scale or 1
+    button:SetScale(scale)
+    button:ClearAllPoints()
+    button:SetPoint("CENTER", area, "CENTER", button.cx / scale, button.cy / scale)
+  end
+
   -- Glide animation: slice buttons and the lit wedge ease toward their targets while reordering.
+  -- The dragged slice also grows and lights up like the aimed slice of the live wheel.
   local glide = CreateFrame("Frame", nil, area)
   glide:SetScript("OnUpdate", function(_, elapsed)
     local k = 1 - math.exp(-20 * elapsed)
+    local kScale = math.min(1, elapsed * DRAG_SCALE_SPEED)
     for slot = 1, liveCount do
       local button = buttons[slot]
-      if button.cx and (button.cx ~= button.tx or button.cy ~= button.ty) then
-        if math.abs(button.tx - button.cx) + math.abs(button.ty - button.cy) < 0.3 then
-          button.cx, button.cy = button.tx, button.ty
-        else
-          button.cx = button.cx + (button.tx - button.cx) * k
-          button.cy = button.cy + (button.ty - button.cy) * k
+      if button.cx then
+        local held = (dragFrom or pressed) == slot
+        button.SetSlotState(held and "selected" or "normal")
+        local moving = button.cx ~= button.tx or button.cy ~= button.ty
+        if moving then
+          if math.abs(button.tx - button.cx) + math.abs(button.ty - button.cy) < 0.3 then
+            button.cx, button.cy = button.tx, button.ty
+          else
+            button.cx = button.cx + (button.tx - button.cx) * k
+            button.cy = button.cy + (button.ty - button.cy) * k
+          end
         end
-        button:ClearAllPoints()
-        button:SetPoint("CENTER", area, "CENTER", button.cx, button.cy)
+        local scale = button.scale or 1
+        local target = held and DRAG_SCALE or 1
+        if scale ~= target then
+          scale = scale + (target - scale) * kScale
+          button.scale = math.abs(target - scale) < 0.001 and target or scale
+          moving = true
+        end
+        if moving then
+          PlaceButton(button)
+        end
       end
     end
     if wedgeCur and wedgeTarget and wedgeCur ~= wedgeTarget then
@@ -704,6 +742,17 @@ local function BuildWheelRow(ctx)
   hit:SetScript("OnLeave", function()
     inside = false
     SetHovered(nil)
+    pressed = nil
+  end)
+  hit:SetScript("OnMouseDown", function(_, mouseButton)
+    local slot = mouseButton == "LeftButton" and SliceAtCursor() or nil
+    local wheel = CurrentWheel()
+    if slot and slot <= liveCount and wheel and wheel.slots and wheel.slots[slot] then
+      pressed = slot
+    end
+  end)
+  hit:SetScript("OnMouseUp", function()
+    pressed = nil
   end)
   hit:SetScript("OnUpdate", function()
     if dragFrom then
@@ -762,13 +811,17 @@ local function BuildWheelRow(ctx)
   end)
   hit:SetScript("OnDragStop", function()
     local order = preview
+    pressed = nil
     EndDrag()
     if order then
       CM.RadialReorderSlots(selected, order)
     end
     Resync()
   end)
-  hit:SetScript("OnHide", EndDrag)
+  hit:SetScript("OnHide", function()
+    pressed = nil
+    EndDrag()
+  end)
 
   addSlice = CreateFrame("Button", nil, area)
   addSlice:EnableMouse(false)
@@ -948,8 +1001,7 @@ local function BuildWheelRow(ctx)
         button.tx, button.ty = dx * radius, dy * radius
         if not (preview and button.cx) then
           button.cx, button.cy = button.tx, button.ty
-          button:ClearAllPoints()
-          button:SetPoint("CENTER", area, "CENTER", button.cx, button.cy)
+          PlaceButton(button)
         end
         local entry = wheel.slots and wheel.slots[slot]
         local _, icon, iconText, art = CM.RadialEntryInfo(entry)
@@ -1011,12 +1063,12 @@ UI.Options.AddTab({
     ctx:Header({ text = "RADIAL MENU", newFeatureFlag = true })
 
     ctx:Description({
-      text = "Create custom wheels for spells, items, macros, emotes, and interface shortcuts. Access them directly in Mouse Look: hold the keybind, move your mouse toward the desired slice, then release to activate it. Scroll up or down while the menu is open to switch between wheels.",
+      text = "Create quick access wheels for spells, items, macros, emotes, and interface shortcuts.",
     })
 
     ctx:Keybind({
       label = "Radial Menu Keybind",
-      desc = "Hold to open the radial menu, aim at a slice, then release to activate it.",
+      desc = "Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels.",
       get = function()
         return GetBindingKey(BIND_NAME)
       end,

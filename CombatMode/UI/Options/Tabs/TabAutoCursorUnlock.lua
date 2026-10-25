@@ -31,6 +31,9 @@ UI.Options.AddTab({
   label = "Auto Unlock",
   build = function(ctx)
     ctx:Header("AUTO UNLOCK")
+    ctx:Description(
+      "Automatically pauses Mouse Look when windows open and resumes it when they close."
+    )
     ctx:Toggle({
       label = "Auto Unlock",
       desc = "Release the cursor when UI panels open.",

@@ -14,6 +14,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.3] - 2026-10-24
+
+### Added
+
+- **Minimum Zoom** slider in the Camera Features section of the **Mouse Look** tab: the camera stops at the chosen distance when you zoom in (defaults to 3, 0 turns it off). It works with DynamicCam and SteadyCam too.
+
+### Changed
+
+- Every section of the options window now has a short description of the feature under its heading.
+- **Mouse Look** tab: Cursor Pulse, Vignette Effect, Hide Tooltips and Auto Sheath moved into a new **Additional Features** section below Camera Features.
+
+### Fixed
+
+- **Radial Menu** editor: the pip tooltip no longer shows while you click and hold or drag a pip to reorder your wheels.
+
 ## [5.2.2] - 2026-10-22
 
 ### Added

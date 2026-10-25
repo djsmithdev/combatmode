@@ -510,6 +510,7 @@ local function Rematch()
   IsCamAddonLoaded()
 
   CM.SetMouseLookSpeed()
+  CM.ApplyMinCameraZoom()
   if CM.SetDynamicPitch then
     CM.SetDynamicPitch()
   end

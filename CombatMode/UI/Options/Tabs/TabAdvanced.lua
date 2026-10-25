@@ -42,6 +42,7 @@ UI.Options.AddTab({
   newFeatureFlag = true,
   build = function(ctx)
     ctx:Header({ text = "SOUNDS", newFeatureFlag = true })
+    ctx:Description("Control the sound cues used by some of the other features.")
     for _, sound in ipairs({
       {
         key = "soundMouseLook",
@@ -78,6 +79,9 @@ UI.Options.AddTab({
 
     ctx:Gap()
     ctx:Header({ text = "FORCE LOCK" })
+    ctx:Description(
+      "An advanced option that keeps Mouse Look enabled for as long as a custom Lua condition is true."
+    )
     ctx:TextInput({
       label = "Custom Condition",
       desc = "Custom Lua code that, while evaluating to true, forces Mouse Look to remain locked.",
@@ -109,6 +113,9 @@ return false
     })
     ctx:Gap()
     ctx:Header("FORCE UNLOCK")
+    ctx:Description(
+      "The opposite of Force Lock: keeps Mouse Look off for as long as a custom Lua condition is true."
+    )
     ctx:TextInput({
       label = "Custom Condition",
       desc = "Custom Lua code that, while evaluating to true, forces Mouse Look to remain unlocked.",
@@ -142,6 +149,9 @@ return false
 
     ctx:Gap()
     ctx:Header("CROSSHAIR")
+    ctx:Description(
+      "Swaps the crosshair's appearance for as long as a custom Lua condition is true."
+    )
     ctx:Button({
       layout = "row",
       label = "Situational Appearance",

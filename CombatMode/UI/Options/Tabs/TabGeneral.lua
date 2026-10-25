@@ -3,9 +3,9 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Wires Mouse Look tab controls (tab id "general") to freelook and interact binds:
 --  Mouse Look keybind, Interact keybind + interactUnit, Flip Camera keybind,
---  pulseCursor, hideTooltip, sheath weapons, vignette; Camera Features
---  (respectMotionSickness, turn speed, dynamic pitch, shoulder offset,
---  disable offset with mouselook).
+--  Camera Features (respectMotionSickness, turn speed, minimum zoom, dynamic pitch,
+--  shoulder offset, disable offset with mouselook); Additional Features (pulseCursor,
+--  vignette, hideTooltip, sheath weapons).
 --  Architecture / how it works:
 --    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed, dynamicPitch,
 --      dynamicPitchStrength, vignette,
@@ -130,6 +130,9 @@ UI.Options.AddTab({
   newFeatureFlag = true,
   build = function(ctx)
     ctx:Header("MOUSE LOOK")
+    ctx:Description(
+      "Lock the cursor to the position of the Crosshair and steer by moving the mouse without holding right-click."
+    )
 
     ctx:Keybind({
       label = "Mouse Look Keybind",
@@ -198,56 +201,10 @@ UI.Options.AddTab({
         end,
       })
     end
-    ctx:Toggle({
-      label = "Cursor Pulse",
-      desc = "Flash the cursor when Mouse Look is turned off.",
-      get = function()
-        return CM.DB.global.pulseCursor
-      end,
-      set = function(value)
-        CM.DB.global.pulseCursor = value
-      end,
-    })
-    ctx:Toggle({
-      label = "Vignette Effect",
-      desc = "Darkens the edges of the screen while Mouse Look is on.",
-      get = function()
-        return CM.DB.global.vignette == true
-      end,
-      set = function(value)
-        if CM.SetVignetteEnabled then
-          CM.SetVignetteEnabled(value)
-        else
-          CM.DB.global.vignette = value
-        end
-      end,
-    })
-    ctx:Toggle({
-      label = "Hide Tooltips",
-      desc = "Hide tooltips while Mouse Look is on.",
-      get = function()
-        return CM.DB.global.hideTooltip
-      end,
-      set = function(value)
-        CM.DB.global.hideTooltip = value
-      end,
-      disabled = function()
-        return not CM.IsCrosshairEnabled()
-      end,
-    })
-    ctx:Toggle({
-      label = "Auto Sheath",
-      desc = "Sheath weapons automatically with Mouse Look.",
-      get = function()
-        return CM.DB.global.sheathWeaponsWithMouselook
-      end,
-      set = function(value)
-        CM.DB.global.sheathWeaponsWithMouselook = value
-      end,
-    })
 
     ctx:Gap()
     ctx:Header("CAMERA FEATURES")
+    ctx:Description("Curated camera adjustments for a more action-focused experience.")
 
     ctx:Toggle({
       label = "Motion Sickness Protection",
@@ -284,6 +241,22 @@ UI.Options.AddTab({
       end,
       disabled = function()
         return CM.CameraOwner ~= nil
+      end,
+    })
+    ctx:Slider({
+      label = "Minimum Zoom",
+      desc = "Stops the camera from zooming in closer than this distance. 0 turns it off.",
+      min = 0,
+      max = 10,
+      step = 0.5,
+      default = 3,
+      newFeatureFlag = true,
+      get = function()
+        return CM.DB.global.minCameraZoom or 3
+      end,
+      set = function(value)
+        CM.DB.global.minCameraZoom = value
+        CM.ApplyMinCameraZoom()
       end,
     })
     ctx:Toggle({
@@ -380,6 +353,58 @@ UI.Options.AddTab({
         CM.TryApplyBindingChange("swap shoulder keybinding", function()
           CM.AssignNamedKeybind("Combat Mode - Swap Shoulder", key)
         end)
+      end,
+    })
+
+    ctx:Gap()
+    ctx:Header("ADDITIONAL FEATURES")
+    ctx:Description("Extra functionalities tied to Mouse Look behaviour.")
+
+    ctx:Toggle({
+      label = "Cursor Pulse",
+      desc = "Flash the cursor when Mouse Look is turned off.",
+      get = function()
+        return CM.DB.global.pulseCursor
+      end,
+      set = function(value)
+        CM.DB.global.pulseCursor = value
+      end,
+    })
+    ctx:Toggle({
+      label = "Vignette Effect",
+      desc = "Darkens the edges of the screen while Mouse Look is on.",
+      get = function()
+        return CM.DB.global.vignette == true
+      end,
+      set = function(value)
+        if CM.SetVignetteEnabled then
+          CM.SetVignetteEnabled(value)
+        else
+          CM.DB.global.vignette = value
+        end
+      end,
+    })
+    ctx:Toggle({
+      label = "Hide Tooltips",
+      desc = "Hide tooltips while Mouse Look is on.",
+      get = function()
+        return CM.DB.global.hideTooltip
+      end,
+      set = function(value)
+        CM.DB.global.hideTooltip = value
+      end,
+      disabled = function()
+        return not CM.IsCrosshairEnabled()
+      end,
+    })
+    ctx:Toggle({
+      label = "Auto Sheath",
+      desc = "Sheath weapons automatically with Mouse Look.",
+      get = function()
+        return CM.DB.global.sheathWeaponsWithMouselook
+      end,
+      set = function(value)
+        CM.DB.global.sheathWeaponsWithMouselook = value
       end,
     })
   end,

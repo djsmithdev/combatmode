@@ -123,6 +123,9 @@ local function RunClickCastBindingRefresh()
       if CM.RadialRefresh then
         CM.RadialRefresh()
       end
+      if CM.ApplyMinCameraZoom then
+        CM.ApplyMinCameraZoom()
+      end
     end
     if clickCastRefreshReason == "GROUP_ROSTER_UPDATE" and CM.OnAllyCycleGroupRosterUpdate then
       CM.OnAllyCycleGroupRosterUpdate()

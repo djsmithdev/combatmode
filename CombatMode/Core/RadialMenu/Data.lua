@@ -168,13 +168,14 @@ local PRESETS = {
       return PresetWheel(
         "Interface",
         AvailableIds({
-          "acmoptions",
           "character",
           "bags",
+          "professions",
           "questlog",
           "gamemenu",
           modern and "groupfinder" or "social",
-          "professions",
+          -- The other clients have no calendar: the World Map takes its place.
+          modern and "calendar" or "map",
           "talents",
           "map",
           "spellbook",

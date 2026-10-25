@@ -257,6 +257,9 @@ UI.Options.AddTab({
   newFeatureFlag = true,
   build = function(ctx)
     ctx:Header("RETICLE TARGETING")
+    ctx:Description(
+      "Enables aim-based unit targeting and precise placement of ground-targeted spells and AoE abilities."
+    )
     ctx:Toggle({
       label = "Enable Reticle Targeting",
       desc = "Aim the crosshair at units to pick targets instead of tab-targeting.",
@@ -384,14 +387,14 @@ UI.Options.AddTab({
     ctx:Gap()
     ctx:Header("TARGET LOCK")
     ctx:Description({
-      text = "",
+      text = "Lock onto a target to prevent accidental switching, and cycle between units to prioritize specific enemies.",
       warning = "Warning: Target Lock uses your Focus Target. "
         .. "Anything else that sets your focus will interfere with it.",
     })
 
     ctx:Keybind({
       label = "Target Lock Keybind",
-      desc = "Lock the reticle to a target, preventing it from swapping. What a tap does depends on Target Lock Behavior below.",
+      desc = "Lock the reticle to a target, preventing it from swapping.",
       get = function()
         return (GetBindingKey("Combat Mode - Toggle Focus Target"))
       end,
@@ -532,6 +535,9 @@ UI.Options.AddTab({
 
     ctx:Gap()
     ctx:Header({ text = "TARGETING INDICATORS", newFeatureFlag = true })
+    ctx:Description(
+      "Visual indicators that highlight targets in the world for easier identification."
+    )
     ctx:Toggle({
       label = "Target Outline",
       desc = "Show an outline effect on your target.",

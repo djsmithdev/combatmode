@@ -118,6 +118,8 @@ local function Build()
 
   local maxLenMarkup = UI.AccentWrap(tostring(maxLen))
   ctx:Description({
+    justify = "LEFT",
+    color = UI.Colors.textDim,
     allowColors = true,
     text = "Customize the targeting prelines injected before each ability when Reticle Targeting is enabled."
       .. "\n\n• Only the preline matching your current "

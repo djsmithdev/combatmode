@@ -323,7 +323,9 @@ UI.Options.AddTab({
   build = function(ctx)
     BuildActionValues()
     ctx:Header("CLICK CASTING")
-    ctx:Description("Assign actions to left and right clicks during Mouse Look.")
+    ctx:Description(
+      "Assign override actions to left and right clicks that are active during Mouse Look."
+    )
     ctx:Toggle({
       label = "Account-Wide Binds",
       desc = "Share Click Casting binds across all characters.",

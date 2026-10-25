@@ -68,9 +68,7 @@ UI.Options.AddTab({
     ctx:Header({ text = "ALLY CYCLE" })
 
     ctx:Description({
-      text = "Ally Cycle lets you attack enemies and assist allies simultaneously by allowing selection of group members while in Mouse Look. "
-        .. "When an ally is selected, helpful spells are cast on them, while harmful spells continue to target your hostile Crosshair target. "
-        .. "Members who are offline or in another zone or instance are skipped.",
+      text = "Seamless combat and support by allowing helpful spells to target allies, while harmful spells remain focused on the hostile crosshair target.",
     })
 
     ctx:Keybind({
@@ -149,6 +147,7 @@ UI.Options.AddTab({
 
     ctx:Gap()
     ctx:Header({ text = "ALLY HUD" })
+    ctx:Description("A HUD displaying the group member Ally Cycle has selected.")
 
     ctx:Toggle({
       label = "Ally HUD",

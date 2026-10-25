@@ -88,6 +88,8 @@ local function Build()
   )
 
   ctx:Description({
+    justify = "LEFT",
+    color = UI.Colors.textDim,
     allowColors = true,
     text = "The targeting logic preline matching your current Reticle Targeting settings is added automatically before your lines, as the highlighted portion of the macro. To modify it, use the Prelines Editor under "
       .. UI.AccentWrap("Advanced")

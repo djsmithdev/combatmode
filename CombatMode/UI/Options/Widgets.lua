@@ -3238,12 +3238,14 @@ end
 
 function UI.MakeDescription(parent, textOrOpts)
   local text = textOrOpts
-  local color = C.textDim
+  local color = C.accent -- `color = C.textDim` (UI.Colors.textDim) for plain secondary text
   local warningText
   local warningColor = C.warning
   local allowColors = false
+  local justify = "CENTER" -- like the section headers; `justify = "LEFT"` for bulleted text
   if type(textOrOpts) == "table" then
     text = textOrOpts.text
+    justify = textOrOpts.justify or justify
     if textOrOpts.color then
       color = textOrOpts.color
     end
@@ -3262,7 +3264,7 @@ function UI.MakeDescription(parent, textOrOpts)
   local fs = UI.CreateFontString(frame, "OVERLAY", UI.Fonts.sectionDesc, "GameFontHighlightSmall")
   fs:SetPoint("TOPLEFT", frame, "TOPLEFT", HEADER_PAD_X, 0)
   fs:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -HEADER_PAD_X, 0)
-  fs:SetJustifyH("LEFT")
+  fs:SetJustifyH(justify)
   fs:SetWordWrap(true)
   local display = allowColors and text or UI.StripColors(text)
   fs:SetText(display or "")
@@ -3275,7 +3277,7 @@ function UI.MakeDescription(parent, textOrOpts)
       UI.CreateFontString(frame, "OVERLAY", UI.Fonts.sectionDesc, "GameFontHighlightSmall")
     warningFs:SetPoint("TOPLEFT", fs, "BOTTOMLEFT", 0, -2)
     warningFs:SetPoint("TOPRIGHT", fs, "BOTTOMRIGHT", 0, -2)
-    warningFs:SetJustifyH("LEFT")
+    warningFs:SetJustifyH(justify)
     warningFs:SetWordWrap(true)
     warningFs:SetText(UI.StripColors(warningText) or "")
     warningFs:SetTextColor(warningColor[1], warningColor[2], warningColor[3], warningColor[4] or 1)

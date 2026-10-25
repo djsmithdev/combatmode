@@ -56,6 +56,9 @@ UI.Options.AddTab({
   end,
   build = function(ctx)
     ctx:Header("CROSSHAIR")
+    ctx:Description(
+      "A dynamic crosshair that reacts to targets and combat states, enhancing precision and guiding Reticle Targeting."
+    )
 
     ctx:Toggle({
       label = "Enable Crosshair",
@@ -157,6 +160,9 @@ UI.Options.AddTab({
 
     ctx:Gap()
     ctx:Header({ text = "ASSIST HUD", newFeatureFlag = true })
+    ctx:Description(
+      "A HUD that guides spell rotation when targeting enemies and displays interaction prompts for objects and NPCs."
+    )
     ctx:Dropdown({
       label = "Next-cast Suggestion",
       desc = "Show the Assisted Highlight's next-cast suggestion while aiming at a target.",
