@@ -8,6 +8,7 @@
 --      HookScript OnShow / OnHide (insecure, so they also run when the wheel opens in combat).
 --    • Mouse Look handoff: CM.IsRadialMenuOpen feeds CM.ShouldFreeLookBeOff (FreeLookController),
 --      so showing the wheel frees the cursor and hiding it re-locks through CM.ReconcileFreeLook.
+--    • While the wheel is open GameTooltip is suppressed (hidden on show, re-hidden by an OnShow hook).
 --    • SPELLS_CHANGED (spec / talent swaps change spell names) re-stores the slices out of combat.
 --  Does not: Own secure frames (Secure.lua), draw (View.lua), or store wheels (Data.lua).
 --  Related: Core/RadialMenu/{Data,Actions,Secure,View}.lua, Core/FreeLook/FreeLookController.lua,
@@ -18,10 +19,17 @@ local _G = _G
 
 -- WoW API
 local C_Timer = _G.C_Timer
+local GameTooltip = _G.GameTooltip
 local InCombatLockdown = _G.InCombatLockdown
 
 local initialized = false
 local spellsChangedToken = 0
+
+local function HideGameTooltip()
+  if GameTooltip and GameTooltip:IsShown() then
+    GameTooltip:Hide()
+  end
+end
 
 local function ReconcileNow()
   if CM.ReconcileFreeLook then
@@ -38,8 +46,16 @@ function CM.InitializeRadialMenu()
     initialized = true
     wheel:HookScript("OnShow", function()
       CM.RadialViewShown()
+      HideGameTooltip()
       ReconcileNow()
     end)
+    if GameTooltip and GameTooltip.HookScript then
+      GameTooltip:HookScript("OnShow", function(tooltip)
+        if CM.IsRadialMenuOpen() then
+          tooltip:Hide()
+        end
+      end)
+    end
     wheel:HookScript("OnHide", function()
       CM.RadialViewHidden()
       ReconcileNow()
