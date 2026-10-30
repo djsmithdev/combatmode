@@ -542,8 +542,9 @@ local ART_ICON_SCALE = 1.35
 local PLAIN_ICON_SCALE = 1.1 -- icon files without padding (the logo, game menu art), still drawn without a slot
 
 --- Round slot chrome shared by the wheel and the editor: shadow and disc behind, border over
---- everything. Sets host.icon (circle-masked), host.border and host.SetSlotState("normal" |
---- "selected" | "disabled") which swaps the disc / border art; returns a frame above the icon /
+--- everything. Sets host.icon (circle-masked), host.border, host.SetSlotState("normal" |
+--- "selected" | "disabled") which swaps the disc / border art, host.SetSlotArt and host.SetSlotRing
+--- (own frame: glow only); returns a frame above the icon /
 --- cooldown for the border, labels and counts. `host` must already have its size.
 function CM.RadialBuildSlotChrome(host)
   local size = host:GetWidth()
@@ -586,15 +587,26 @@ function CM.RadialBuildSlotChrome(host)
 
   local state = "normal"
   local artName
+  local ringIcon, ringGlow
   local function Apply()
     local plain = artName == nil
-    shadow:SetShown(plain)
+    shadow:SetShown(plain and not ringIcon)
     disc:SetShown(plain)
-    host.border:SetShown(plain)
+    host.border:SetShown(plain and (not ringIcon or state == "selected"))
     host.icon:SetShown(plain)
     host.art:SetShown(not plain)
-    if plain then
+    local iconSize = ringIcon or size * SLOT_ICON_SCALE
+    host.icon:SetSize(iconSize, iconSize)
+    if plain and ringIcon then
+      -- Ring mode: the host draws its own frame; only the selected glow is kept, sized to that frame,
+      -- and the disc fills the opening so the glow doesn't show through the portrait's soft edge.
+      disc:SetTexture(SLOT_ART_PATH .. "disc_normal.tga")
+      disc:SetSize(iconSize, iconSize)
+      host.border:SetTexture(SLOT_ART_PATH .. "border_selected.tga")
+      host.border:SetSize(ringGlow, ringGlow)
+    elseif plain then
       disc:SetTexture(SLOT_ART_PATH .. "disc_" .. state .. ".tga")
+      disc:SetSize(base, base)
       host.border:SetTexture(SLOT_ART_PATH .. "border_" .. state .. ".tga")
       local borderSize = state == "selected" and wide or base
       host.border:SetSize(borderSize, borderSize)
@@ -626,6 +638,17 @@ function CM.RadialBuildSlotChrome(host)
     artName = name
     Apply()
   end
+  --- Ring mode for hosts that draw their own round frame (the Party Wheel's health ring): no shadow
+  --- or border, the normal disc behind the icon at `iconSize`, and only the selected glow, for a
+  --- frame `frameSize` across. nil restores the circle slot.
+  function host.SetSlotRing(iconSize, frameSize)
+    if iconSize == ringIcon then
+      return
+    end
+    ringIcon = iconSize
+    ringGlow = frameSize and frameSize * SLOT_ART_WIDE / SLOT_ART_BASE
+    Apply()
+  end
   return over
 end
 
@@ -642,6 +665,10 @@ function CM.RadialCreateIconLabel(parent, size)
   return label
 end
 
+-- Game icons (spells, items, Interface\Icons) have a bevelled square edge that the slot's full-size
+-- circle mask leaves showing; they are cropped by this much per side. Addon art is drawn whole.
+local GAME_ICON_TRIM = 0.08
+
 function CM.RadialSetIcon(texture, icon, label, text)
   texture:SetTexCoord(0, 1, 0, 1)
   if label then
@@ -656,6 +683,9 @@ function CM.RadialSetIcon(texture, icon, label, text)
     end
   else
     texture:SetTexture(icon or 134400)
+    if type(icon) ~= "string" or not icon:lower():find("interface\\addons\\", 1, true) then
+      texture:SetTexCoord(GAME_ICON_TRIM, 1 - GAME_ICON_TRIM, GAME_ICON_TRIM, 1 - GAME_ICON_TRIM)
+    end
   end
 end
 

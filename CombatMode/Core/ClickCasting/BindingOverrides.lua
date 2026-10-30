@@ -20,6 +20,8 @@
 --      /cast ! / /petattack after /tar so a swap cannot toggle the swing off.
 --    • ApplyGroundCastKeyOverrides — keyboard keys click the same proxy so prelines run
 --      for ACTIONBUTTON + MULTIACTIONBAR1–7 (CM.Constants.ClickCastBars).
+--      Keys whose bar slot can hold a Party Wheel spell click CombatModePartyWheelKey instead
+--      (CM.PartyWheelPrepareKey, Core/RadialMenu/PartyWheel.lua), which runs the same macro on a tap.
 --      Macro slots skip the proxy (nested macro /click is a no-op): native bind for
 --      ActionButton/MultiBar; SetOverrideBindingClick the live frame for Bonus /
 --      Override / TempShapeshift. Slot type from CM.GetDisplayedActionSlotInfo
@@ -367,7 +369,7 @@ function CM.ApplyGroundCastKeyOverrides()
     return
   end
 
-  for _, bindingName in ipairs(OrderedBindingNames) do
+  for bindingIndex, bindingName in ipairs(OrderedBindingNames) do
     local key1 = GetBindingKey(bindingName)
     local key2 = select(2, GetBindingKey(bindingName))
     local keys = { key1, key2 }
@@ -416,7 +418,23 @@ function CM.ApplyGroundCastKeyOverrides()
             local macroText = CM.BuildClickCastMacroText(bindingName)
             if frame and macroText then
               SetClickCastFrameMacro(frame, macroText)
-              ApplyGroundCastKeyboardBinding(key, frame:GetName())
+              -- Party Wheel spell on this key: the wheel's key button runs the same macro on a tap.
+              local wheelButton, wheelArg
+              if CM.PartyWheelPrepareKey then
+                wheelButton, wheelArg =
+                  CM.PartyWheelPrepareKey(bindingIndex, bindingName, macroText)
+              end
+              if wheelButton then
+                SetOverrideBindingClick(
+                  GroundCastKeyOverrideOwner,
+                  GROUND_CAST_KEY_PRIORITY,
+                  key,
+                  wheelButton,
+                  wheelArg
+                )
+              else
+                ApplyGroundCastKeyboardBinding(key, frame:GetName())
+              end
             end
           end
         end

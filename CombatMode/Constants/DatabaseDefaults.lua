@@ -184,6 +184,8 @@ return false
     radialMenu = {
       wheels = {},
     },
+    -- Party Wheel: helpful spells (spell-ID CSV) that open the group wheel while held
+    partyWheelSpells = "",
     -- mouse look camera
     shoulderOffset = 1.2,
     -- reticle targeting

@@ -9,6 +9,8 @@
 --    • fadeMode ("hidden"|"in"|"shown"|"out") owned here; GetFadeMode / SetFadeMode.
 --    • Tick(elapsed) runs UpdateFade + UpdateGlowBreath (Assist AnimDriver after Feedback).
 --    • ProcLoop: UF-RogueCP-Slash-Blue, 3x6=18 frames, 0.57s reverse once per spell change.
+--    • GlowBreathAlpha / ApplyProcFlipSettings are shared with the Party Wheel centre
+--      (Core/RadialMenu/View.lua), so both icons breathe and flip the same way.
 --  Does not: Own IconMask chrome creation, keybinds, cast swipe/press/break (siblings).
 --  Related: Core/Crosshair/AssistedHighlight/Assist.lua,
 --  Core/Crosshair/AssistedHighlight/Feedback.lua, Constants/Assets.lua
@@ -255,6 +257,18 @@ function Motion.LayoutProcEffect(icon, expand)
   CM.SetAtlas(visual.ProcLoop, PROC_ATLAS)
 end
 
+--- Glow breath alpha for a 0..1 cycle phase (one cycle = GLOW_CYCLE_DURATION seconds).
+function Motion.GlowBreathAlpha(phase)
+  local wave = 0.5 - 0.5 * cos(phase * pi * 2)
+  local waveWithStrength = ((1 - GLOW_STRENGTH) * 0.5) + (GLOW_STRENGTH * wave)
+  local range = GLOW_ANIM_MAX_ALPHA - GLOW_ANIM_MIN_ALPHA
+  return GLOW_ANIM_MIN_ALPHA + (range * waveWithStrength)
+end
+Motion.GLOW_CYCLE_DURATION = GLOW_CYCLE_DURATION
+
+--- Other hosts (Party Wheel centre) build their own proc FlipBook with the same grid / duration.
+Motion.ApplyProcFlipSettings = ApplyProcFlipSettings
+
 local function UpdateGlowBreath(elapsed)
   local frame = HostFrame()
   local glow = frame and frame.glow
@@ -266,10 +280,7 @@ local function UpdateGlowBreath(elapsed)
   if glowPhase >= 1 then
     glowPhase = glowPhase - math.floor(glowPhase)
   end
-  local wave = 0.5 - 0.5 * cos(glowPhase * pi * 2)
-  local waveWithStrength = ((1 - GLOW_STRENGTH) * 0.5) + (GLOW_STRENGTH * wave)
-  local range = GLOW_ANIM_MAX_ALPHA - GLOW_ANIM_MIN_ALPHA
-  glow:SetAlpha(GLOW_ANIM_MIN_ALPHA + (range * waveWithStrength))
+  glow:SetAlpha(Motion.GlowBreathAlpha(glowPhase))
 end
 
 function Motion.GetFadeMode()

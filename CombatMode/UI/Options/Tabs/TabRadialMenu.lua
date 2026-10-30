@@ -14,6 +14,8 @@
 --    • The wheel row is a custom frame (ctx:PlaceFrame) with a pool of 8 slice buttons; it
 --      redraws from the DB on every Options.Sync (registered as a control).
 --    • No master toggle: an unbound key disables the radial menu.
+--    • Party Wheel Spells (under the style dropdown): char.partyWheelSpells (spell-ID CSV, SpellMultiSelect) →
+--      CM.PartyWheelRefresh(true) (Core/RadialMenu/PartyWheel.lua) re-routes the bar keys.
 --  Does not: Store wheels (Core/RadialMenu/Data.lua) or draw the in-game wheel (View.lua).
 --  Related: Core/RadialMenu/{Data,Actions}.lua, UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
@@ -1093,6 +1095,26 @@ UI.Options.AddTab({
         CM.DB.global.radialStyle = value
         CM.RadialRefresh()
         UI.Options.Sync()
+      end,
+    })
+
+    ctx:SpellMultiSelect({
+      label = "Party Wheel Spells",
+      newFeatureFlag = true,
+      desc = "Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected.",
+      charSpecific = true,
+      spellFilter = CM.PartyWheelIsEligibleSpell,
+      get = function()
+        return CM.DB.char.partyWheelSpells or ""
+      end,
+      set = function(value)
+        CM.DB.char.partyWheelSpells = value and _G.strtrim(value) or ""
+        if CM.PartyWheelRefresh then
+          CM.PartyWheelRefresh(true)
+        end
+      end,
+      disabled = function()
+        return not CM.DB.char.reticleTargeting or CM.DB.char.macroInjectionClickCastOnly
       end,
     })
 

@@ -10,8 +10,13 @@
 --      so showing the wheel frees the cursor and hiding it re-locks through CM.ReconcileFreeLook.
 --    • While the wheel is open GameTooltip is suppressed (hidden on show, re-hidden by an OnShow hook).
 --    • SPELLS_CHANGED (spec / talent swaps change spell names) re-stores the slices out of combat.
+--    • Party Wheel (PartyWheel.lua): same OnShow / OnHide hooks (view kind "party"), but the view
+--      and Mouse Look only react once CM.PartyWheelStartReveal's hold delay passes; roster
+--      re-store on GROUP_ROSTER_UPDATE / UNIT_CONNECTION (offline flags) and its combat-deferred
+--      store flushed on PLAYER_REGEN_ENABLED.
 --  Does not: Own secure frames (Secure.lua), draw (View.lua), or store wheels (Data.lua).
---  Related: Core/RadialMenu/{Data,Actions,Secure,View}.lua, Core/FreeLook/FreeLookController.lua,
+--  Related: Core/RadialMenu/{Data,Actions,Secure,PartyWheel,View}.lua,
+--  Core/FreeLook/FreeLookController.lua,
 --  Core/Runtime/{Bootstrap,EventRouter}.lua, Constants/Gameplay.lua (RADIAL_MENU_EVENTS)
 ---------------------------------------------------------------------------------------
 local _, CM = ...
@@ -60,12 +65,48 @@ function CM.InitializeRadialMenu()
       CM.RadialViewHidden()
       ReconcileNow()
     end)
+    local party = CM.PartyWheelGetFrame and CM.PartyWheelGetFrame()
+    if party then
+      -- Drawn only once held (CM.PartyWheelStartReveal): a quick tap casts with no flash.
+      party:HookScript("OnShow", function()
+        CM.PartyWheelStartReveal(function()
+          CM.RadialViewShown("party")
+          HideGameTooltip()
+          ReconcileNow()
+        end)
+      end)
+      party:HookScript("OnHide", function()
+        if CM.PartyWheelStopReveal() then
+          CM.RadialViewHidden("party")
+          ReconcileNow()
+        end
+      end)
+    end
   end
   CM.RadialRefresh()
+  if CM.PartyWheelRefresh then
+    CM.PartyWheelRefresh(true)
+  end
 end
 
 --- Events from Constants/Gameplay.lua RADIAL_MENU_EVENTS.
 function CM.OnRadialMenuEvent(event)
+  if event == "GROUP_ROSTER_UPDATE" then
+    -- Party Wheel pages follow the group; in combat they wait for PLAYER_REGEN_ENABLED.
+    if CM.PartyWheelRefresh then
+      CM.PartyWheelRefresh(false)
+    end
+    return
+  end
+  if event == "UNIT_CONNECTION" then
+    -- Party Wheel offline flags (po<k>_<i>); the view greys the slice now, even in combat.
+    if CM.PartyWheelRefresh then
+      CM.PartyWheelRefresh(false)
+    end
+  end
+  if event == "PLAYER_REGEN_ENABLED" and CM.PartyWheelFlush then
+    CM.PartyWheelFlush()
+  end
   if event == "SPELLS_CHANGED" then
     if InCombatLockdown() or not C_Timer then
       return
@@ -76,6 +117,9 @@ function CM.OnRadialMenuEvent(event)
     C_Timer.After(0.5, function()
       if token == spellsChangedToken and not InCombatLockdown() then
         CM.RadialRefresh()
+        if CM.PartyWheelRefresh then
+          CM.PartyWheelRefresh(false)
+        end
       end
     end)
     return

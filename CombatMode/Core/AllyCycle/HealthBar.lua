@@ -5,7 +5,11 @@
 --  border, spark, low-HP red glow pulse). Live UNIT_HEALTH updates and options-preview
 --  appearance share the same fill/glow curves.
 --  Architecture / how it works:
---    • CM.AllyCycleHealthBar: Create, Update, ApplyPreview, SyncGlow, TickGlow, GetSize.
+--    • CM.AllyCycleHealthBar: Create, Update, ApplyPreview, SyncGlow, TickGlow, GetSize,
+--      GetFillColor (the fill tint for other widgets: the Party Wheel's health ring),
+--      GetGlowColor / GlowPulseAlpha / GetGlowPeriod (the low-HP glow, same reuse), GetDeadColor.
+--    • Dead: empty bar in the dead colour, desaturated. Offline (AllyCycleTarget.IsOffline): the
+--      last health in that look. Both hide the glow and spark and call the dead chrome.
 --    • UnitHealthPercent + color curves; never compare raw secret health fractions.
 --    • Glow pulse is OnUpdate-only; UNIT_HEALTH / MAXHEALTH only retint the bar.
 --    • CM.Profile key: AllyHUD:HealthBar (Update).
@@ -462,9 +466,16 @@ local function UpdateImpl(bar, unit, applyDeadChrome)
     return
   end
 
-  SetBarDesaturated(bar, false)
+  -- Offline: the last known health stays, drawn like the dead bar (dead colour, desaturated, no
+  -- glow / spark) with the dead chrome. Repainted every update while offline and once back.
+  local Target = CM.AllyCycleTarget
+  local offline = Target and Target.IsOffline(unit) or false
+  SetBarDesaturated(bar, offline)
   if applyDeadChrome then
-    applyDeadChrome(false)
+    applyDeadChrome(offline)
+  end
+  if offline then
+    bar._lastH = nil
   end
 
   local health = UnitHealth and UnitHealth(unit, true)
@@ -492,6 +503,18 @@ local function UpdateImpl(bar, unit, applyDeadChrome)
     bar._hbHasValue = true
   end
 
+  if offline then
+    if COLOR_HB_DEAD then
+      bar:SetStatusBarColor(COLOR_HB_DEAD:GetRGBA())
+    end
+    HideBarGlow(bar)
+    if bar.spark then
+      bar.spark:Hide()
+    end
+    bar._lastH = nil
+    return
+  end
+
   if UnitHealthPercent and HB_FILL_CURVE then
     local fillColor = UnitHealthPercent(unit, true, HB_FILL_CURVE)
     local fr, fg, fb, fa = ExtractColorRGBA(fillColor)
@@ -511,6 +534,62 @@ local function UpdateImpl(bar, unit, applyDeadChrome)
       bar.spark:Show()
     end
   end
+end
+
+-- The bar's fill colour (green / yellow / red by health) for other widgets, e.g. the Party Wheel's
+-- health ring. Channels may be secret: pass them straight to a colour setter. `pct` (public, 0..1)
+-- colours that health instead of the unit's (the ring's eased health), same steps as ApplyPreview.
+function HealthBar.GetFillColor(unit, pct)
+  if type(pct) == "number" then
+    local lowPct = HB().lowPct or 0.25
+    local color = pct <= lowPct and COLOR_HB_CRIT or (pct <= 0.5 and COLOR_HB_DMG or COLOR_HB_OK)
+    if color then
+      return color:GetRGBA()
+    end
+  end
+  if UnitHealthPercent and HB_FILL_CURVE then
+    local r, g, b, a = ExtractColorRGBA(UnitHealthPercent(unit, true, HB_FILL_CURVE))
+    if r then
+      return r, g, b, a
+    end
+  end
+  if COLOR_HB_OK then
+    return COLOR_HB_OK:GetRGBA()
+  end
+end
+
+--- The low-HP glow for other widgets (the Party Wheel's ring): r, g, b, a with a = 1 at or under
+--- lowPct, else 0. `a` may be secret: only hand it to SetVertexColor.
+function HealthBar.GetGlowColor(unit)
+  local cfg = HB()
+  local r, g, b = cfg.glowR or 1, cfg.glowG or 0.12, cfg.glowB or 0.08
+  if UnitHealthPercent and HB_GLOW_CURVE then
+    local _, _, _, a = ExtractColorRGBA(UnitHealthPercent(unit, true, HB_GLOW_CURVE))
+    if a then
+      return r, g, b, a
+    end
+  end
+  return r, g, b, 0
+end
+
+--- The low-HP glow's pulse (the bar's own min..max breathing) at `phase` 0..1, and its period.
+--- The dead / offline bar colour (r, g, b, a), for other widgets drawn desaturated with it.
+function HealthBar.GetDeadColor()
+  if COLOR_HB_DEAD then
+    return COLOR_HB_DEAD:GetRGBA()
+  end
+  return 0.45, 0.45, 0.45, 1
+end
+
+function HealthBar.GlowPulseAlpha(phase)
+  local cfg = HB()
+  local wave = 0.5 - 0.5 * math.cos((phase or 0) * math.pi * 2)
+  local lo = cfg.glowPulseMin or 0.35
+  return lo + ((cfg.glowPulseMax or 1) - lo) * wave
+end
+
+function HealthBar.GetGlowPeriod()
+  return HB().glowPulsePeriod or 1.15
 end
 
 function HealthBar.Update(bar, unit, applyDeadChrome)

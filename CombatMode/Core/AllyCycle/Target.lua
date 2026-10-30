@@ -6,7 +6,8 @@
 --  Architecture / how it works:
 --    • CM.AllyCycleTarget: IsFriendlyHardTarget, GetDisplayName, GetClassRGB,
 --      GetRoleAtlas, GetRaidTargetIndex, ApplyRaidMarker, GetIndex, FormatIndex,
---      GetRangeAlpha, IsDead, IsPlayer.
+--      GetRangeAlpha, IsDead, IsOffline, IsPlayer. GetDisplayName is the first name only ("..."
+--      when secret); the Party Wheel plates use it too.
 --    • CM.IsAllyCycleFriendlyHardTarget is implemented here (party/raid roster +
 --      Skip Self + assist). Friendly NPCs (Interact) are not HUD units.
 --    • Secret-safe: PublicBool / issecretvalue; raid index is presence not math;
@@ -31,6 +32,7 @@ local UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned
 local UnitInParty = _G.UnitInParty
 local UnitInRaid = _G.UnitInRaid
 local UnitInRange = _G.UnitInRange
+local UnitIsConnected = _G.UnitIsConnected
 local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitIsUnit = _G.UnitIsUnit
 local UnitName = _G.UnitName
@@ -136,6 +138,18 @@ function Target.IsDead(unit)
   return PublicBool(UnitIsDeadOrGhost(unit)) == true
 end
 
+--- Disconnected: only a public false from UnitIsConnected counts (secret = online).
+function Target.IsOffline(unit)
+  if not unit or not UnitIsConnected or not UnitExists(unit) then
+    return false
+  end
+  local connected = UnitIsConnected(unit)
+  if issecretvalue and issecretvalue(connected) then
+    return false
+  end
+  return connected == false
+end
+
 function Target.IsPlayer(unit)
   if not unit or not UnitIsUnit then
     return false
@@ -151,7 +165,8 @@ function Target.GetDisplayName(unit, preview)
   if IsSecret(name) or type(name) ~= "string" or name == "" then
     return preview and "Ally" or "..."
   end
-  return name
+  -- First name only (follower / companion NPCs have full names: "Brann Bronzebeard" -> "Brann").
+  return name:match("^(%S+)") or name
 end
 
 function Target.GetClassRGB(unit)

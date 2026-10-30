@@ -188,6 +188,8 @@ CM.Constants.BLIZZARD_EVENTS = {
     "PLAYER_REGEN_DISABLED", -- Combat-blocked actions grey out
     "PLAYER_REGEN_ENABLED",
     "SPELLS_CHANGED",
+    "GROUP_ROSTER_UPDATE", -- Party Wheel pages follow the group
+    "UNIT_CONNECTION", -- Party Wheel: offline members can't be picked
   },
 }
 

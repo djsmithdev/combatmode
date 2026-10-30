@@ -14,6 +14,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.3.0] - 2026-10-30
+
+### Added
+
+- **Party Wheel** (Radial Menu tab): add helpful spells to **Party Wheel Spells**, then hold one of their keys to open a wheel of your group. Flick toward a member and release to cast on them, or tap to cast normally. Each member shows their health, role and name, with the same warnings as the **Ally Cycle HUD**. In a raid, scroll to page through members.
+- Right-click now cancels the **Radial Menu** and the Party Wheel, like Esc.
+
+### Changed
+
+- The **Ally Cycle HUD** shows first names only, so follower and companion NPCs ("Brann") fit.
+- Cycling allies now plays the same click as aiming a **Radial Menu** slice, so it's easier to hear.
+- The **Ally Cycle HUD** shows "Dead" or "Offline" in place of the name. An offline target is desaturated like a dead one, keeping their last known health.
+
 ## [5.2.5] - 2026-10-26
 
 ### Fixed
@@ -791,7 +804,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.0.5...HEAD
+[Unreleased]: https://github.com/djsmithdev/combatmode/compare/5.3.0...HEAD
+[5.3.0]: https://github.com/djsmithdev/combatmode/compare/5.2.5...5.3.0
 [5.0.5]: https://github.com/djsmithdev/combatmode/compare/5.0.4...5.0.5
 [5.0.4]: https://github.com/djsmithdev/combatmode/compare/5.0.3...5.0.4
 [5.0.3]: https://github.com/djsmithdev/combatmode/compare/5.0.2...5.0.3

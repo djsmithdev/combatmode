@@ -51,6 +51,7 @@
     <Script file="Core\RadialMenu\Data.lua"/>
     <Script file="Core\RadialMenu\Actions.lua"/>
     <Script file="Core\RadialMenu\Secure.lua"/>
+    <Script file="Core\RadialMenu\PartyWheel.lua"/>
     <Script file="Core\RadialMenu\View.lua"/>
     <Script file="Core\RadialMenu\RadialMenu.lua"/>
     <!-- OPTIONS UI: custom standalone window. Draw + Widgets before

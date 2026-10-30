@@ -10,7 +10,7 @@
 --    • skipPlayer attribute set OOC from DB (RestrictedEnv cannot read CM.DB).
 --    • PrepareCycle / ResetAllyCycleCursor OOC only (SetAttribute is lockdown-blocked).
 --    • GetAllyCycleIndex for the HUD (reuses a child scratch table); NotifyCycle on
---      advance (not restore) plays a quiet UI tick (softer than Target Lock cycle).
+--      advance (not restore) plays the Radial Menu's slice-aim click.
 --    • CM.Profile keys: AllyCycle:GetIndex / ApplyBindings / RefreshRoster.
 --    • Away members: offline or in another zone / instance are skipped (away-<unit> attributes
 --      mirrored by CM.RefreshAllyCycleAvailability out of combat; distance alone never skips).
@@ -58,8 +58,8 @@ local INITIAL_CONFIG = [[
     self:SetHeight(1)
     self:EnableMouse(false)
   ]]
--- Softer than Target Lock's IG_MAINMENU_OPTION cycle tick.
-local ALLY_CYCLE_SOUND = (SOUNDKIT and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON) or 856
+-- Same click as the Radial Menu aiming a slice (RadialMenu/View.lua SOUNDS.aim).
+local ALLY_CYCLE_SOUND = (SOUNDKIT and SOUNDKIT.U_CHAT_SCROLL_BUTTON) or 1115
 
 local OverrideOwner = CreateFrame("Frame", "CombatModeAllyCycleOverrideOwner", UIParent)
 local CycleButton =

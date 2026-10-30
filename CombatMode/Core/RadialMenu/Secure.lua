@@ -13,11 +13,14 @@
 --      (CM.TryApplyBindingChange) and stored on PLAYER_REGEN_ENABLED.
 --    • Restricted snippets (wrapped OnClick on the key button): press = position the wheel at the
 --      crosshair, point the 8 slice buttons at the current wheel, show it and take MOUSEWHEEL +
---      ESCAPE while open; release = AIM (owner:GetMousePosition(), exact angle by dot product,
---      dead zone → none) then return "s<slot>" so the key button clicks that slice button.
+--      ESCAPE + BUTTON2 (right-click) while open (Esc / right-click = cancel: hide, the
+--      release then finds the wheel closed and does nothing); release = AIM
+--      (owner:GetMousePosition(), exact angle by dot product, dead zone → none) then return "s<slot>" so the key button clicks that slice button.
 --      The slice button's post body closes the wheel. Pre-bodies return (newbutton, message).
 --    • The insecure side only reads: CM.IsRadialMenuOpen, CM.RadialCurrent, CM.RadialAimSlot;
 --      the wheel calls Wheel:RadialChanged() when the page turns (View repaints).
+--    • The key press does nothing while the Party Wheel is open (frame ref "party", set by
+--      PartyWheel.lua); CM.IsRadialMenuOpen is also true for that wheel.
 --  Does not: Draw anything (View.lua), edit wheels (Data.lua), or define UI actions (Actions.lua).
 --  Related: Core/RadialMenu/{Data,Actions,View,RadialMenu}.lua, Core/AllyCycle/Cycle.lua,
 --  Core/Runtime/BindingQueue.lua, Core/FreeLook/FreeLookController.lua, Bindings.xml
@@ -118,6 +121,11 @@ local KEY_PRE = [[
     if (owner:GetAttribute("rtotal") or 0) < 1 then
       return false
     end
+    -- One wheel at a time: not while the Party Wheel is open (frame ref set by PartyWheel.lua).
+    local party = owner:GetFrameRef("party")
+    if party and party:IsShown() then
+      return false
+    end
     owner:ClearAllPoints()
     owner:SetPoint("CENTER", "$parent", "CENTER", 0, owner:GetAttribute("ryoff") or 0)
     ]] .. APPLY .. [[
@@ -125,6 +133,7 @@ local KEY_PRE = [[
     owner:SetBindingClick(true, "MOUSEWHEELUP", "CombatModeRadialPage", "UP")
     owner:SetBindingClick(true, "MOUSEWHEELDOWN", "CombatModeRadialPage", "DOWN")
     owner:SetBindingClick(true, "ESCAPE", "CombatModeRadialKey", "ESC")
+    owner:SetBindingClick(true, "BUTTON2", "CombatModeRadialKey", "ESC")
     owner:CallMethod("RadialChanged")
     return false
   end
@@ -227,8 +236,13 @@ end
 ---------------------------------------------------------------------------------------
 -- Insecure state readers
 ---------------------------------------------------------------------------------------
+--- The Radial Menu or the Party Wheel (PartyWheel.lua) is open: Mouse Look, tooltips and the
+--- view treat both the same.
 function CM.IsRadialMenuOpen()
-  return Wheel ~= nil and Wheel:IsShown()
+  if Wheel ~= nil and Wheel:IsShown() then
+    return true
+  end
+  return CM.IsPartyWheelOpen ~= nil and CM.IsPartyWheelOpen()
 end
 
 function CM.RadialGetWheelFrame()

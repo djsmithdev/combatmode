@@ -10,7 +10,9 @@
 --    • InitAllyCycleHUD({crosshairFrame}); ApplyAllyCycleHUDLayout + RefreshAllyCycleHUD.
 --    • Motion.Attach + OnUpdate Motion.Tick then HealthBar.TickGlow. Preview lerp
 --      stays here. Range via UNIT_IN_RANGE_UPDATE → Motion.ApplyRange.
---    • Raid marker / name / role applied from AllyCycleTarget (frame-free data).
+--    • Raid marker / name / role applied from AllyCycleTarget (frame-free data). Dead or
+--      offline targets desaturate the chrome and show "Dead" / "Offline" for the name
+--      (offline: HealthBar keeps the last health, desaturated; UNIT_CONNECTION refreshes).
 --    • OnUpdate is fade / slide / glow / preview only; AnchorCluster is dirty-checked.
 --    • CM.Profile keys: AllyHUD:OnUpdate / Refresh / Layout (HealthBar profiles itself).
 --  Does not: Own cycle bindings, targeting prelines, bar widget, or fade internals.
@@ -62,6 +64,9 @@ local PREVIEW_LERP_SEC = 0.4
 local previewDead = false
 local previewRaidIndex = nil
 local previewIndex = 1
+local nameUnit, namePreview -- what Refresh last showed, so the dead / offline chrome can restore it
+local OFFLINE_TEXT = _G.PLAYER_OFFLINE or "Offline"
+local DEAD_TEXT = _G.DEAD or "Dead"
 
 local LAYOUT = {
   roleIconSize = 20,
@@ -203,9 +208,44 @@ local function UpdateRoleIcon(unit)
   end
 end
 
--- FontString has no SetDesaturated — grey name/index instead. Bar desaturate is HealthBar.
+local function ApplyNameColor(unit, dead)
+  if not nameFS then
+    return
+  end
+  if dead then
+    nameFS:SetTextColor(0.55, 0.55, 0.55, 1)
+    return
+  end
+  if unit and Target and Target.GetClassRGB then
+    local r, g, b = Target.GetClassRGB(unit)
+    nameFS:SetTextColor(r, g, b, 1)
+  else
+    nameFS:SetTextColor(1, 1, 1, 1)
+  end
+end
+
+-- The name gives way to the state (Blizzard's localized strings), offline first. Called by
+-- Refresh and by the dead chrome (HealthBar.Update), so it follows UNIT_HEALTH too.
+local function ApplyName(dead)
+  if not nameFS or not nameUnit or not Target then
+    return
+  end
+  local offline = not namePreview and Target.IsOffline(nameUnit)
+  if offline then
+    nameFS:SetText(OFFLINE_TEXT)
+  elseif dead then
+    nameFS:SetText(DEAD_TEXT)
+  else
+    nameFS:SetText(Target.GetDisplayName(nameUnit, namePreview))
+  end
+  ApplyNameColor(nameUnit, dead or offline)
+end
+
+-- Dead or offline (HealthBar.Update passes either): desaturated icons, grey index / name (a
+-- FontString has no SetDesaturated). Bar desaturate is HealthBar.
 local function ApplyDeadChrome(dead)
   dead = dead and true or false
+  ApplyName(dead)
   if roleIcon and roleIcon.SetDesaturated then
     roleIcon:SetDesaturated(dead)
   end
@@ -221,22 +261,6 @@ local function ApplyDeadChrome(dead)
   end
   if cycleArrow and cycleArrow.SetDesaturated then
     cycleArrow:SetDesaturated(dead)
-  end
-end
-
-local function ApplyNameColor(unit, dead)
-  if not nameFS then
-    return
-  end
-  if dead then
-    nameFS:SetTextColor(0.55, 0.55, 0.55, 1)
-    return
-  end
-  if unit and Target and Target.GetClassRGB then
-    local r, g, b = Target.GetClassRGB(unit)
-    nameFS:SetTextColor(r, g, b, 1)
-  else
-    nameFS:SetTextColor(1, 1, 1, 1)
   end
 end
 
@@ -327,11 +351,8 @@ local function TickPreviewHealth(elapsed)
   end
 
   local nowDead = stage.dead and previewStageElapsed > PREVIEW_LERP_SEC
+  -- Its dead chrome callback also swaps the name for "Dead" (ApplyName).
   HealthBar.ApplyPreview(healthBar, previewDisplayPct, nowDead, ApplyDeadChrome)
-  if nowDead ~= previewDead then
-    previewDead = nowDead
-    ApplyNameColor("player", previewDead)
-  end
   previewDead = nowDead
   HealthBar.SyncGlow(healthBar, previewDead)
 
@@ -387,7 +408,9 @@ local function OnHudEvent(_, event, unit)
     end
     return
   end
-  if event == "UNIT_FLAGS" and (unit == "target" or unit == "player") then
+  if
+    (event == "UNIT_FLAGS" or event == "UNIT_CONNECTION") and (unit == "target" or unit == "player")
+  then
     CM.RefreshAllyCycleHUD()
     return
   end
@@ -506,6 +529,7 @@ local function EnsureFrames()
     cluster:RegisterUnitEvent("UNIT_HEALTH", "target", "player")
     cluster:RegisterUnitEvent("UNIT_MAXHEALTH", "target", "player")
     cluster:RegisterUnitEvent("UNIT_FLAGS", "target", "player")
+    cluster:RegisterUnitEvent("UNIT_CONNECTION", "target", "player")
     cluster:RegisterUnitEvent("UNIT_IN_RANGE_UPDATE", "target")
     cluster:SetScript("OnEvent", OnHudEvent)
     cluster:SetScript("OnUpdate", OnHudUpdate)
@@ -669,10 +693,10 @@ local function RefreshAllyCycleHUDImpl()
 
   local unit = preview and "player" or "target"
   local dead = preview and previewDead or (Target and Target.IsDead and Target.IsDead(unit))
-  if nameFS and Target and Target.GetDisplayName then
-    nameFS:SetText(Target.GetDisplayName(unit, preview))
-  end
-  ApplyNameColor(unit, dead)
+  -- Offline looks dead (desaturated chrome, no low-HP glow) with "Offline" for the name.
+  local offline = not preview and Target and Target.IsOffline(unit)
+  nameUnit, namePreview = unit, preview
+  ApplyName(dead)
   UpdateRoleIcon(unit)
   UpdateRaidMarker(unit)
   UpdateIndex(unit)
@@ -688,7 +712,7 @@ local function RefreshAllyCycleHUDImpl()
   end
 
   if HealthBar and HealthBar.SyncGlow then
-    HealthBar.SyncGlow(healthBar, dead)
+    HealthBar.SyncGlow(healthBar, dead or offline)
   end
   if Motion and Motion.ApplyRange then
     Motion.ApplyRange(unit, preview)

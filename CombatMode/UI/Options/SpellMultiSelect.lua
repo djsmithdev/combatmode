@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------
 --  What it does: UI.MakeSpellMultiSelect — type-ahead suggestions from the spellbook,
 --  pill chips for selected spells, storage as CSV spell IDs for Reticle Targeting exclude
---  and cast-at-crosshair lists.
+--  and cast-at-crosshair lists (and the Party Wheel list, which passes opts.spellFilter).
 --  Architecture / how it works:
 --    • Suggestion popup capped (MAX_MATCHES / visible rows); migrates legacy name tokens
 --      when resolving. Spellbook index build skips when C_SpellBook.GetSpellBookItemInfo
@@ -308,10 +308,31 @@ end
 ---------------------------------------------------------------------------------------
 --                              MAKE SPELL MULTI-SELECT                              --
 ---------------------------------------------------------------------------------------
+--- `opts.spellFilter(spellId)` (optional): spells it rejects are neither suggested nor added.
 function UI.MakeSpellMultiSelect(parent, opts)
+  local accept = opts and opts.spellFilter
+  local resolve, filter = ResolveSpellToken, FilterSuggestions
+  if accept then
+    resolve = function(token)
+      local entry = ResolveSpellToken(token)
+      if entry and entry.spellId and not accept(entry.spellId) then
+        return nil
+      end
+      return entry
+    end
+    filter = function(...)
+      local out = {}
+      for _, entry in ipairs(FilterSuggestions(...)) do
+        if not entry.spellId or accept(entry.spellId) then
+          out[#out + 1] = entry
+        end
+      end
+      return out
+    end
+  end
   return UI.MakePillMultiSelect(parent, opts, {
-    resolveToken = ResolveSpellToken,
-    filterSuggestions = FilterSuggestions,
+    resolveToken = resolve,
+    filterSuggestions = filter,
     placeholder = "Type spell name or ID…",
   })
 end
