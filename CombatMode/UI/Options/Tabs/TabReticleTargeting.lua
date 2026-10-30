@@ -224,7 +224,6 @@ local function BuildMacroShelfRow(parent, width, onHeight)
   label:SetJustifyH("LEFT")
   label:SetWidth(textW)
   label:SetText(MACRO_LABEL)
-  UI.PlaceNewFeatureBadge(UI.CreateNewFeatureBadge(row), label)
   label:SetTextColor(C.text[1], C.text[2], C.text[3])
 
   local desc = UI.CreateFontString(row, "OVERLAY", UI.Fonts.small, "GameFontNormal")
@@ -254,7 +253,6 @@ end
 UI.Options.AddTab({
   id = "reticle",
   label = "Reticle Targeting",
-  newFeatureFlag = true,
   build = function(ctx)
     ctx:Header("RETICLE TARGETING")
     ctx:Description(
@@ -455,7 +453,6 @@ UI.Options.AddTab({
           },
         },
       },
-      newFeatureFlag = true,
       values = TARGET_LOCK_BEHAVIOR_VALUES,
       order = TARGET_LOCK_BEHAVIOR_ORDER,
       get = function()
@@ -534,7 +531,7 @@ UI.Options.AddTab({
     })
 
     ctx:Gap()
-    ctx:Header({ text = "TARGETING INDICATORS", newFeatureFlag = true })
+    ctx:Header({ text = "TARGETING INDICATORS" })
     ctx:Description(
       "Visual indicators that highlight targets in the world for easier identification."
     )

@@ -185,6 +185,10 @@ local function HandleEventByCategory(category, event, ...)
         if CM.FlushPendingClickCastRefresh then
           CM.FlushPendingClickCastRefresh()
         end
+        -- The `[nocombat]` driver re-arms the Interact key as combat ends: re-check the crosshair.
+        if CM.UpdatePlayerMenu then
+          CM.UpdatePlayerMenu()
+        end
       end
     end,
     UNCATEGORIZED_EVENTS = function()

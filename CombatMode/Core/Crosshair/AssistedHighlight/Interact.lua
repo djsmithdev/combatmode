@@ -14,6 +14,9 @@
 --    • includeLowPriority=true so quest/loot soft icons still resolve when world quest
 --      effects already decorate the NPC (otherwise SetUnitCursorTexture fails and the
 --      HUD fell back to the mechagon-projects gear atlas).
+--    • GetDwelledPlayer / GetPlayerNameAndColor: the player prompt and the Interact-key menu
+--      (CM.GetPlayerUnderCrosshair from ClickCasting/PlayerMenu.lua), offered only after
+--      PLAYER_DWELL seconds on one player (public GUID identity; secret fails closed).
 --    • GetInteractKeyText reads the key bound to the primary interact command
 --      (global.interactUnit), falling back to the alternate; nil when unbound.
 --  Does not: Own HUD chrome, fade/motion, SoftTarget CVar writes, or key binding edits.
@@ -26,7 +29,10 @@ local _G = _G
 -- WoW API
 local CreateFrame = _G.CreateFrame
 local GetBindingKey = _G.GetBindingKey
+local GetClassColor = _G.GetClassColor
+local GetTime = _G.GetTime
 local GetUnitName = _G.GetUnitName
+local UnitClass = _G.UnitClass
 local SetUnitCursorTexture = _G.SetUnitCursorTexture
 local UnitExists = _G.UnitExists
 local UnitGUID = _G.UnitGUID
@@ -157,6 +163,44 @@ function Interact.ApplyCursorTexture(icon)
     return false
   end
   return true
+end
+
+-- Player prompt: the HUD only offers the player menu after the crosshair has stayed on the same
+-- player for PLAYER_DWELL seconds, so sweeping across a crowd doesn't flash a prompt per player.
+-- A short aim jitter (PLAYER_GRACE) doesn't restart the clock.
+local PLAYER_DWELL = 1
+local PLAYER_GRACE = 0.4
+local dwellGuid, dwellSince, dwellSeen
+
+--- The other player under the crosshair and whether the dwell time has passed. A secret GUID
+--- (instances) can't be told apart, so it fails closed: nil.
+function Interact.GetDwelledPlayer()
+  local now = GetTime()
+  local unit = CM.GetPlayerUnderCrosshair and CM.GetPlayerUnderCrosshair() or nil
+  local guid = unit and UnitGUID(unit) or nil
+  if guid ~= nil and not Interact.IsSecretValue(guid) then
+    if guid ~= dwellGuid then
+      dwellGuid = guid
+      dwellSince = now
+    end
+    dwellSeen = now
+    return unit, (now - dwellSince) >= PLAYER_DWELL
+  end
+  if dwellGuid and (now - (dwellSeen or 0)) > PLAYER_GRACE then
+    dwellGuid, dwellSince, dwellSeen = nil, nil, nil
+  end
+  return nil, false
+end
+
+--- Name and class colour of `unit` for the player prompt (white when the class is unknown/secret).
+function Interact.GetPlayerNameAndColor(unit)
+  local name = UsableName(UnitName(unit))
+  local r, g, b = 1, 1, 1
+  local _, classFile = UnitClass(unit)
+  if type(classFile) == "string" and not Interact.IsSecretValue(classFile) and GetClassColor then
+    r, g, b = GetClassColor(classFile)
+  end
+  return name, r or 1, g or 1, b or 1
 end
 
 --- Key bound to Interact, formatted like the keyboard badge; nil when unbound.

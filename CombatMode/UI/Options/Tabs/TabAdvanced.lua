@@ -39,9 +39,8 @@ local API_DOCS_URL = "https://warcraft.wiki.gg/wiki/World_of_Warcraft_API"
 UI.Options.AddTab({
   id = "advanced",
   label = "Advanced",
-  newFeatureFlag = true,
   build = function(ctx)
-    ctx:Header({ text = "SOUNDS", newFeatureFlag = true })
+    ctx:Header({ text = "SOUNDS" })
     ctx:Description("Control the sound cues used by some of the other features.")
     for _, sound in ipairs({
       {
@@ -155,7 +154,6 @@ return false
     ctx:Button({
       layout = "row",
       label = "Situational Appearance",
-      newFeatureFlag = true,
       desc = "Textures utilized by the crosshair while the Situational Condition returns true.",
       tiles = {
         { slot = "base", caption = "Inactive", tint = "base" },

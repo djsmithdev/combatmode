@@ -1062,7 +1062,7 @@ UI.Options.AddTab({
       CM.RadialCreateWheel()
     end
 
-    ctx:Header({ text = "RADIAL MENU", newFeatureFlag = true })
+    ctx:Header({ text = "RADIAL MENU" })
 
     ctx:Description({
       text = "Create quick access wheels for spells, items, macros, emotes, and interface shortcuts.",
@@ -1084,7 +1084,6 @@ UI.Options.AddTab({
 
     ctx:Dropdown({
       label = "Radial Menu Style",
-      newFeatureFlag = true,
       desc = "Chose the appearance of the Radial Menu wheels.",
       values = STYLE_VALUES,
       order = STYLE_ORDER,

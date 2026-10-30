@@ -14,6 +14,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.3.1] - 2026-10-30
+
+### Added
+
+- When aiming the crosshair at a player outside of combat for more than a second, the **Interact** key now opens that player's context menu (Whisper, Inspect, Trade...). NPCs, objects and yourself still interact as before. Any Blizzard context menu now also frees the cursor while it is open (with Frame Watching on).
+- The Assist HUD now shows a prompt when you aim at a player for a second. Turn it off with **Player Interaction Prompt**, under **Assist HUD**.
+
 ## [5.3.0] - 2026-10-30
 
 ### Added

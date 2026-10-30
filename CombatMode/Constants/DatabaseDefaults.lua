@@ -109,6 +109,8 @@ CM.Constants.DatabaseDefaults = {
     crosshairY = 100,
     -- crosshair HUD: interaction mode toggle (layout is shared with combat assist)
     interactionHUD = true,
+    -- Interactable Indicator also prompts for other players (portrait + name) after a short aim
+    interactionHUDPlayers = true,
     -- combat assist
     -- "always" | "combat" | "hidden"
     assistedHighlightMode = "always",

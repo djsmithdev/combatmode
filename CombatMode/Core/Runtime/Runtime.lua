@@ -592,9 +592,15 @@ function _G.CombatMode_OnUpdate(_, elapsed)
 
     CM.Profile("CombatMode_OnUpdate:fullTick", function()
       if not CM.ReconcileFreeLook() then
+        if CM.DisarmPlayerMenu then
+          CM.DisarmPlayerMenu()
+        end
         return
       end
 
+      if CM.UpdatePlayerMenu then
+        CM.Profile("UpdatePlayerMenu", CM.UpdatePlayerMenu)
+      end
       CM.Profile("UpdateCrosshairReaction", CM.UpdateCrosshairReaction)
       if CM.UpdateCrosshairAssistedHighlight then
         CM.Profile("UpdateCrosshairAssistedHighlight", CM.UpdateCrosshairAssistedHighlight)

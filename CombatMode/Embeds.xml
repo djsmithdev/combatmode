@@ -24,6 +24,7 @@
     <Script file="Core\ClickCasting\TargetingMacroBuilder.lua"/>
     <Script file="Core\ClickCasting\ComposedMacros.lua"/>
     <Script file="Core\ClickCasting\BindingOverrides.lua"/>
+    <Script file="Core\ClickCasting\PlayerMenu.lua"/>
     <!-- FREE LOOK -->
     <Script file="Core\FreeLook\FreeLookController.lua"/>
     <Script file="Core\FreeLook\FlipCamera.lua"/>

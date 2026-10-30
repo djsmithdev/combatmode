@@ -148,7 +148,8 @@ UI.Options.AddTab({
     })
     ctx:Keybind({
       label = "Interact Keybind",
-      desc = "Tap to interact with the unit chosen below.",
+      newFeatureFlag = true,
+      desc = "Tap to interact with a player or the unit chosen below.",
       get = function()
         return GetInteractBindingKey()
       end,
@@ -174,7 +175,6 @@ UI.Options.AddTab({
     })
     ctx:Keybind({
       label = "Flip Camera Keybind",
-      newFeatureFlag = true,
       desc = "Tap to flip the camera 180° around your character. Hold to flip it only while the key is held.",
       get = function()
         return (GetBindingKey("Combat Mode - Flip Camera"))
@@ -345,7 +345,6 @@ UI.Options.AddTab({
     ctx:Keybind({
       label = "Swap Shoulder Keybind",
       desc = "Press to mirror Shoulder Offset to the other side of your character.",
-      newFeatureFlag = true,
       get = function()
         return (GetBindingKey("Combat Mode - Swap Shoulder"))
       end,

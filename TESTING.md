@@ -63,6 +63,13 @@ Use this checklist for feature work and regressions.
 
 - Bind Interact to an Alt+mouse chord; bind another action that also uses Alt on a related key. Confirm Interact does **not** become Alt+Alt+key.
 - Switching Interact Unit (Crosshair vs Soft Targeted) keeps ALT+key on the other command as intended.
+- Mouse Look on, crosshair on another player, press Interact: their unit menu opens (Inspect / Follow / Trade work after the cursor moves). Closing it re-locks Mouse Look.
+- Same key on an NPC, an object, yourself, or nothing: still interacts.
+- Enter combat: the key interacts as before; leaving combat restores the menu behaviour. No `ADDON_ACTION_BLOCKED`.
+- Rebind Interact: the menu follows the new key.
+- Assist HUD > Player Interaction Prompt off (or Interactable Indicator off): no player prompt appears, the Interact key still opens the menu.
+- Interact key on a player opens their menu only after ~1 s of aim (sooner does nothing new: it interacts as before).
+- Aim at another player for about 1 s (out of combat): the Interaction HUD shows their portrait, class-coloured name and the Interact key. Sweeping across several players shows nothing until one is held; it hides in combat and when you look away.
 
 ## Target Lock (4.1.3)
 

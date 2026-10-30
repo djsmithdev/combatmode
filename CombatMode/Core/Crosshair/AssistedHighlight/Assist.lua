@@ -5,7 +5,8 @@
 --  assistedHighlightSide, default RIGHT; icon size 40): frame creation, shell layout,
 --  visibility gates, and public Apply / Update / Init APIs. Wires Motion + Feedback.
 --  One HUD, two modes: assist (hostile hard target / under crosshair: suggested spell +
---  keybinds) and interact (softinteract: cursor art, name, interact key; Interact.lua).
+--  keybinds) and interact (softinteract: cursor art, name, interact key; Interact.lua; also
+--  another player after a 1 s aim: portrait, class-coloured name, the key that opens their menu).
 --  Architecture / how it works:
 --    • EnsureAssistedHighlight creates chrome, Feedback.CreateTextures, ProcLoop,
 --      then Motion.Attach + Feedback.Attach (Feedback attaches CastProgress).
@@ -25,6 +26,8 @@ local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
+local InCombatLockdown = _G.InCombatLockdown
+local SetPortraitTexture = _G.SetPortraitTexture
 local UnitAffectingCombat = _G.UnitAffectingCombat
 local UnitCanAttack = _G.UnitCanAttack
 local UnitExists = _G.UnitExists
@@ -60,6 +63,7 @@ local NAME_MAX_WIDTH = 280
 local INTERACT_ICON_SIZE = 32
 -- Proc FlipBook key for interaction mode (any value that is not a spell id).
 local INTERACT_PROC_KEY = "interact"
+local PLAYER_PROC_KEY = "interactplayer"
 local INTERACT_ICON_ALPHA_IN_RANGE = 0.9
 local INTERACT_ICON_ALPHA_OUT_OF_RANGE = 0.5
 -- Assist mode: whole-HUD opacity while the suggested spell is out of range.
@@ -655,15 +659,18 @@ function CM.ApplyCrosshairAssistedHighlightOptions()
 
     AssistedHighlightFrame.background:SetAlpha(1)
     AssistedHighlightFrame.frame:SetAlpha(1)
-    local glowR, glowG, glowB = 0.816, 0.541, 0.322
-    if Motion then
-      if hudMode == "interact" then
-        glowR, glowG, glowB = Motion.GLOW_COLOR_R, Motion.GLOW_COLOR_G, Motion.GLOW_COLOR_B
-      else
-        glowR, glowG, glowB = Motion.ASSIST_COLOR_R, Motion.ASSIST_COLOR_G, Motion.ASSIST_COLOR_B
+    -- Player mode keeps the class colour ShowPlayerContent applied.
+    if hudMode ~= "player" then
+      local glowR, glowG, glowB = 0.816, 0.541, 0.322
+      if Motion then
+        if hudMode == "interact" then
+          glowR, glowG, glowB = Motion.GLOW_COLOR_R, Motion.GLOW_COLOR_G, Motion.GLOW_COLOR_B
+        else
+          glowR, glowG, glowB = Motion.ASSIST_COLOR_R, Motion.ASSIST_COLOR_G, Motion.ASSIST_COLOR_B
+        end
       end
+      AssistedHighlightFrame.glow:SetVertexColor(glowR, glowG, glowB, 1)
     end
-    AssistedHighlightFrame.glow:SetVertexColor(glowR, glowG, glowB, 1)
     -- Do not set glow alpha here — breath OnUpdate owns it.
     -- Do not restart the one-shot proc FlipBook on layout changes.
 
@@ -819,6 +826,57 @@ local function ShowInteractContent()
   end
 end
 
+-- Class colour last applied to the glow / FlipBook in player mode.
+local playerTintR, playerTintG, playerTintB
+
+--- Interaction mode for another player: their portrait in the (circle-masked) spell icon slot,
+--- their class-coloured name and the interact key, which opens their menu (PlayerMenu.lua).
+local function ShowPlayerContent(unit)
+  local frame = AssistedHighlightFrame
+  if hudMode ~= "player" then
+    hudMode = "player"
+    playerTintR, playerTintG, playerTintB = nil, nil, nil
+    lastShownSpellID = nil
+    if Feedback and Feedback.StopAll then
+      Feedback.StopAll()
+    end
+    if Motion and Motion.StopProcEffect then
+      Motion.StopProcEffect()
+    end
+  end
+  local name, r, g, b = Interact.GetPlayerNameAndColor(unit)
+  -- Only on a change: SetVertexColor writes the glow's alpha, which would reset its breathing
+  -- every tick and make it flicker.
+  if
+    Motion
+    and Motion.SetEffectTint
+    and (r ~= playerTintR or g ~= playerTintG or b ~= playerTintB)
+  then
+    playerTintR, playerTintG, playerTintB = r, g, b
+    -- Glow and FlipBook swipe take the player's class colour (the FlipBook is desaturated first).
+    Motion.SetEffectTint(r, g, b, true)
+  end
+  SetAlphaTargets(1, 1)
+  -- Portraits load asynchronously: re-applying keeps the picture current.
+  SetPortraitTexture(frame.icon, unit)
+  frame.icon:SetTexCoord(0, 1, 0, 1)
+  frame.icon:Show()
+  frame.interactIcon:Hide()
+  frame.background:Show()
+  frame.glow:Show()
+  frame.frame:Show()
+  if Motion and Motion.PlayProcEffectForSpell then
+    Motion.PlayProcEffectForSpell(PLAYER_PROC_KEY)
+  end
+  SetHudLabels(nil, Interact.GetInteractKeyText(), name)
+  if HasText(name) then
+    frame.nameText:SetTextColor(r, g, b)
+  end
+  if Motion and Motion.RequestShow then
+    Motion.RequestShow()
+  end
+end
+
 function CM.UpdateCrosshairAssistedHighlight()
   EnsureAssistedHighlight()
   if not AssistedHighlightFrame then
@@ -876,6 +934,26 @@ function CM.UpdateCrosshairAssistedHighlight()
         spellID,
         IsSuggestedSpellInRange(spellID, hostileUnit)
       )
+      return
+    end
+  end
+
+  -- Another player under the crosshair: prompt only once the aim has rested on them (the key
+  -- does nothing in combat, so no prompt there either).
+  if
+    CM.IsInteractionHUDEnabled()
+    and CM.IsInteractionHUDPlayersEnabled()
+    and PassesCrosshairGate()
+    and not InCombatLockdown()
+  then
+    local playerUnit, ready = Interact.GetDwelledPlayer()
+    if playerUnit then
+      if ready then
+        CM.ApplyCrosshairAssistedHighlightOptions()
+        ShowPlayerContent(playerUnit)
+      elseif Motion and Motion.RequestHide then
+        Motion.RequestHide()
+      end
       return
     end
   end

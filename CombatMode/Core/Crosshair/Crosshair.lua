@@ -179,6 +179,11 @@ function CM.IsInteractionHUDEnabled()
   return CM.DbBool(v, CM.Constants.DatabaseDefaults.global.interactionHUD)
 end
 
+function CM.IsInteractionHUDPlayersEnabled()
+  local v = CM.DB and CM.DB.global and CM.DB.global.interactionHUDPlayers
+  return CM.DbBool(v, CM.Constants.DatabaseDefaults.global.interactionHUDPlayers)
+end
+
 CM.IsCrosshairOptionsPreviewActive = false
 
 -- While Target Lock is held: center reticle becomes a static base-colored Dot (unreactive).

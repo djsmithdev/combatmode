@@ -10,7 +10,7 @@
 --  Architecture / how it works:
 --    • DB.global: crosshair*, crosshairScale, crosshairReactionColors,
 --      crosshairSituationalCondition, crosshairSituationalAppearance,
---      interactionHUD, assistedHighlightMode / Side / Scale / Padding
+--      interactionHUD, interactionHUDPlayers, assistedHighlightMode / Side / Scale / Padding
 --      (Padding slider labeled Distance).
 --    • set() → DisplayCrosshair / CreateCrosshair / CancelCrosshairCastFeedback /
 --      ApplyCrosshairAssistedHighlightOptions / UpdateCrosshairAssistedHighlight.
@@ -89,7 +89,6 @@ UI.Options.AddTab({
     ctx:Button({
       layout = "row",
       label = "Appearance",
-      newFeatureFlag = true,
       desc = "Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset.",
       tiles = {
         { slot = "base", caption = "Inactive", tint = "base" },
@@ -159,7 +158,7 @@ UI.Options.AddTab({
     })
 
     ctx:Gap()
-    ctx:Header({ text = "ASSIST HUD", newFeatureFlag = true })
+    ctx:Header({ text = "ASSIST HUD" })
     ctx:Description(
       "A HUD that guides spell rotation when targeting enemies and displays interaction prompts for objects and NPCs."
     )
@@ -203,6 +202,21 @@ UI.Options.AddTab({
         RefreshAssist()
       end,
       disabled = CrosshairOff,
+    })
+    ctx:Toggle({
+      label = "Player Interaction Prompt",
+      newFeatureFlag = true,
+      desc = "Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu.",
+      get = function()
+        return CM.IsInteractionHUDPlayersEnabled()
+      end,
+      set = function(value)
+        CM.DB.global.interactionHUDPlayers = value
+        RefreshAssist()
+      end,
+      disabled = function()
+        return CrosshairOff() or not CM.IsInteractionHUDEnabled()
+      end,
     })
     ctx:Dropdown({
       label = "Position",

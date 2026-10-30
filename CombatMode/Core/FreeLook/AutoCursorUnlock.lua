@@ -9,6 +9,8 @@
 --  Architecture / how it works:
 --    • IsUnlockFrameVisible — FramesToCheck + watchlist + wildcard tracking when
 --      DB.global.frameWatching.
+--    • Blizzard menus (unit popup, dropdowns) are unnamed, so they are detected through
+--      Menu.GetManager():IsAnyMenuOpen() (same frameWatching gate).
 --    • InitializeWildcardFrameTracking — hooks/create listeners for dynamic names.
 --    • IsVendorMountOut / IsInPetBattle / IsFeignDeathActive / IsCustomConditionTrue
 --      / IsCustomLockConditionTrue (DB.global.customLockCondition).
@@ -28,6 +30,7 @@ local GetUIPanel = _G.GetUIPanel
 -- Lua stdlib
 local ipairs = _G.ipairs
 local pairs = _G.pairs
+local pcall = _G.pcall
 local string = _G.string
 local tinsert = _G.table.insert
 
@@ -73,8 +76,29 @@ local function CursorUnlockFrameGroupVisible(frameNameGroups)
   return false
 end
 
+-- Blizzard's context menus (unit popups, dropdowns) are unnamed frames, so the frame
+-- lists can't see them; ask the menu manager instead.
+local function IsBlizzardMenuOpen()
+  local Menu = _G.Menu
+  if not (Menu and Menu.GetManager) then
+    return false
+  end
+  local ok, open = pcall(function()
+    return Menu.GetManager():IsAnyMenuOpen()
+  end)
+  if ok and open == true then
+    CM.DebugPrintThrottled("cursorUnlock", "A Blizzard menu is open, preventing re-locking.")
+    return true
+  end
+  return false
+end
+
 function CM.IsUnlockFrameVisible()
   if GetUIPanel("left") or GetUIPanel("right") or GetUIPanel("center") then
+    return true
+  end
+
+  if CM.DB.global.frameWatching and IsBlizzardMenuOpen() then
     return true
   end
 
