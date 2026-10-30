@@ -35,4 +35,4 @@ Action-combat controls for World of Warcraft: Mouse Look + a reticle replace tab
 
 - Source files are CRLF where they were created on Windows: use the Edit tool (or a script that preserves line endings). Shell heredocs/`sed` mangle backslashes in Lua path strings (`Interface\AddOns\...`).
 - Don't name addon-created macros with a `CM_` prefix (`RemoveLegacyMacros` deletes them).
-- Shipped art is TGA under `CombatMode/Assets/`; never `SetAtlas` a client atlas for addon art (use `CM.SetAtlas`).
+- Shipped art is TGA under `CombatMode/Assets/`; never `SetAtlas` a client atlas for addon art (use `CM.SetAtlas`). Run `python scripts/compress-tga.py` after adding or re-exporting a TGA (lossless RLE, idempotent, verifies pixels).
