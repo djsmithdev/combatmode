@@ -10,7 +10,7 @@
 --      step by opts.step (dim until hover) and stop at min/max.
 --    • Dropdown menus match the select's laid-out width. opts.itemInfo(id) -> { icon|atlas, detail, detailColor }
 --      adds a round icon and a dim right-hand tag to menu rows and the closed select; values/order
---      may be functions (re-read on open). opts.helpTooltip adds a round "?"
+--      may be functions (re-read on open). opts.helpTooltip (dropdowns and keybinds) adds a round "?"
 --      badge left of the select (control.widgetLeftInset keeps the layout room) that shows
 --      the tooltip on hover. ESC closes the open menu only (its own keyboard handler), not the window.
 --    • Text inputs: multiline opts.lockedPrefix (string|function) pins dim,
@@ -1783,6 +1783,26 @@ end
 local HELP_BADGE_SIZE = 20
 local HELP_BADGE_GAP = 6
 
+--- Round "?" badge left of `button` that shows `tooltip` (see UI.ShowTooltip) on hover, and
+--- reserves its room on the control. No-op without a tooltip.
+local function AddHelpBadge(control, row, button, tooltip)
+  if not tooltip then
+    return
+  end
+  local helpBtn = CreateFrame("Button", nil, row)
+  helpBtn:SetSize(HELP_BADGE_SIZE, HELP_BADGE_SIZE)
+  helpBtn:SetPoint("RIGHT", button, "LEFT", -HELP_BADGE_GAP, 0)
+  local help = CreateGlyphBadge(helpBtn, HELP_BADGE_SIZE, "?", 2, 0, nil, C.textDim)
+  helpBtn:SetScript("OnEnter", function()
+    help:SetHover(true)
+  end)
+  helpBtn:SetScript("OnLeave", function()
+    help:SetHover(false)
+  end)
+  UI.AttachTooltip(helpBtn, tooltip, "ANCHOR_RIGHT")
+  control.widgetLeftInset = HELP_BADGE_SIZE + HELP_BADGE_GAP
+end
+
 --- `opts.headers` (`{ [id] = title }`) turns those ids in `opts.order` into non-clickable section
 --- headers with a divider above (hidden while filtering).
 --- `opts.helpTooltip` (string, `{ title?, text?, lines? }` or a function returning either; see
@@ -1846,20 +1866,7 @@ function UI.MakeDropdown(parent, opts)
     widgetFill = true,
   }
 
-  if opts.helpTooltip then
-    local helpBtn = CreateFrame("Button", nil, row)
-    helpBtn:SetSize(HELP_BADGE_SIZE, HELP_BADGE_SIZE)
-    helpBtn:SetPoint("RIGHT", button, "LEFT", -HELP_BADGE_GAP, 0)
-    local help = CreateGlyphBadge(helpBtn, HELP_BADGE_SIZE, "?", 2, 0, nil, C.textDim)
-    helpBtn:SetScript("OnEnter", function()
-      help:SetHover(true)
-    end)
-    helpBtn:SetScript("OnLeave", function()
-      help:SetHover(false)
-    end)
-    UI.AttachTooltip(helpBtn, opts.helpTooltip, "ANCHOR_RIGHT")
-    control.widgetLeftInset = HELP_BADGE_SIZE + HELP_BADGE_GAP
-  end
+  AddHelpBadge(control, row, button, opts.helpTooltip)
 
   -- opts.values / opts.order may be functions, re-read each time the menu opens (live lists).
   local function Values()
@@ -2454,6 +2461,7 @@ function UI.MakeKeybind(parent, opts)
     widgetH = UI.Sizes.control,
     widgetFill = true,
   }
+  AddHelpBadge(control, row, button, opts.helpTooltip)
   local listening = false
   local NOT_BOUND = _G.NOT_BOUND or "Not Bound"
 

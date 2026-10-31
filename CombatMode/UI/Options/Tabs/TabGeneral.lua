@@ -153,6 +153,20 @@ UI.Options.AddTab({
       label = "Interact Keybind",
       newFeatureFlag = true,
       desc = "Tap to interact with a player or the unit chosen below.",
+      helpTooltip = {
+        title = "Interact Keybind",
+        stacked = true,
+        lines = {
+          {
+            label = "Players",
+            value = "Aim at a player for a second and the Assist HUD shows a prompt. Press the key then to open their context menu.",
+          },
+          {
+            label = "NPCs and objects",
+            value = "Interacts as normal with the unit chosen in Interact Unit.",
+          },
+        },
+      },
       get = function()
         return GetInteractBindingKey()
       end,
