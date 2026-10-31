@@ -84,6 +84,7 @@ CM.Constants.DatabaseDefaults = {
     -- general
     pulseCursor = true,
     hideTooltip = true,
+    tooltipModifier = "ALT", -- key that shows tooltips while Hide Tooltips is on: ALT | CTRL | SHIFT
     sheathWeaponsWithMouselook = false,
     interactUnit = "target",
     showTargetLockMarker = true,

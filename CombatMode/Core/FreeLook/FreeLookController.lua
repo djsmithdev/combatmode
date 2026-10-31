@@ -3,8 +3,8 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Owns Mouse Look lock/unlock, cursor-mode keybind behavior,
 --  ShouldFreeLookBeOff aggregation, CursorFreelookCentering bounce
---  (force CVar 0 → MouselookStart → deferred set to 1), tooltip hide while locked,
---  optional sheath-with-mouselook (intentional toggle only), and the OPie rematch
+--  (force CVar 0 → MouselookStart → deferred set to 1), tooltip hide while locked
+--  (Show Tooltips With key peeks it beside the crosshair), optional sheath-with-mouselook (intentional toggle only), and the OPie rematch
 --  latch (NotifyOpieUnlockFrameVisible / RematchFreeLookAfterOpieIfNeeded).
 --  Architecture / how it works:
 --    • LockFreeLook / UnlockFreeLook drive MouselookStart/Stop + crosshair display +
@@ -47,19 +47,27 @@ local GameTooltip = _G.GameTooltip
 local GetBindingKey = _G.GetBindingKey
 local GetSheathState = _G.GetSheathState
 local GetTime = _G.GetTime
+local GameTooltip_SetDefaultAnchor = _G.GameTooltip_SetDefaultAnchor
 local InCinematic = _G.InCinematic
+local InCombatLockdown = _G.InCombatLockdown
+local IsAltKeyDown = _G.IsAltKeyDown
+local IsControlKeyDown = _G.IsControlKeyDown
 local IsInCinematicScene = _G.IsInCinematicScene
 local IsKeyDown = _G.IsKeyDown
 local IsMouseButtonDown = _G.IsMouseButtonDown
 local IsMouselooking = _G.IsMouselooking
+local IsShiftKeyDown = _G.IsShiftKeyDown
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
 local PlaySound = _G.PlaySound
 local SOUNDKIT = _G.SOUNDKIT
 local SpellIsTargeting = _G.SpellIsTargeting
 local ToggleSheath = _G.ToggleSheath
+local UIParent = _G.UIParent
+local UnitExists = _G.UnitExists
 
 -- Lua stdlib
+local math = _G.math
 local string = _G.string
 
 -- INITIAL STATE VARIABLES
@@ -250,22 +258,158 @@ function CM.IsDefaultMouseActionBeingUsed()
   return IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
 end
 
+-- Tooltips while Mouse Look is on (Hide Tooltips): suppressed unless the Show Tooltips With key
+-- is held. Held, the player's own GameTooltip is built for the mouseover unit and pinned beside
+-- the crosshair. The game moves a tooltip it shows for a new unit to the cursor (which sits on
+-- the crosshair) every frame, so after a swap ours is hidden, rebuilt through the default
+-- anchor path (which hands it back to us) and faded in, never seen at the wrong spot.
+local TOOLTIP_OFFSET_X = 40 -- gap between the crosshair centre and the tooltip's left edge
+local TOOLTIP_FADE_IN = 0.12 -- seconds from invisible to fully shown
+local TOOLTIP_PIN_RETRIES = 10 -- frames to fight the game for the position before giving up
+
 local tooltipHidden = false
 local isTooltipHooked = false
+local tooltipPinMisses = 0
+local tooltipRebuildPending = false
+
+--- True while the key chosen in Show Tooltips With (default Alt) is held, out of combat only.
+function CM.IsTooltipModifierDown()
+  if InCombatLockdown() then
+    return false
+  end
+  local modifier = CM.DB.global.tooltipModifier
+  if modifier == "CTRL" then
+    return IsControlKeyDown()
+  elseif modifier == "SHIFT" then
+    return IsShiftKeyDown()
+  end
+  return IsAltKeyDown()
+end
+
+--- True while the tooltip is on screen because the key is held (the Assist HUD hides so they
+--- do not overlap).
+function CM.IsTooltipHeldOverCrosshair()
+  return tooltipHidden and CM.IsTooltipModifierDown() and GameTooltip:IsShown()
+end
+
+local function IsTooltipPinned(tooltip)
+  -- Offsets come back scaled by the tooltip's scale, so compare with a tolerance.
+  local point, relativeTo, relativePoint, x, y = tooltip:GetPoint(1)
+  return point == "LEFT"
+    and relativeTo == _G.CombatModeCrosshairFrame
+    and relativePoint == "CENTER"
+    and math.abs((x or 0) - TOOLTIP_OFFSET_X) < 1
+    and math.abs(y or 0) < 1
+end
+
+--- Builds GameTooltip for the mouseover unit beside the crosshair, invisible until the OnUpdate
+--- hook sees it pinned and fades it in.
+local function ShowMouseoverTooltip()
+  local crosshair = _G.CombatModeCrosshairFrame
+  if not crosshair or not UnitExists("mouseover") then
+    GameTooltip:Hide()
+    return
+  end
+  pcall(function()
+    GameTooltip:Hide()
+    -- Full alpha while the content is built: skinning addons read it as the tooltip's own alpha
+    -- (they hide GameTooltip at alpha 0 and draw a panel of their own) and restore it later.
+    GameTooltip:SetAlpha(1)
+    GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+    GameTooltip:SetUnit("mouseover")
+    GameTooltip:ClearAllPoints()
+    GameTooltip:SetPoint("LEFT", crosshair, "CENTER", TOOLTIP_OFFSET_X, 0)
+    GameTooltip:SetAlpha(0)
+  end)
+end
+
+--- MODIFIER_STATE_CHANGED / UPDATE_MOUSEOVER_UNIT: while tooltips are suppressed, holding the
+--- key shows the mouseover tooltip beside the crosshair, following the unit; releasing hides it.
+function CM.OnTooltipModifierChanged(event)
+  if not tooltipHidden then
+    return
+  end
+
+  if not CM.IsTooltipModifierDown() then
+    GameTooltip:SetAlpha(1)
+    GameTooltip:Hide()
+  elseif event == "UPDATE_MOUSEOVER_UNIT" then
+    -- Hide the game's tooltip for the new unit right away and rebuild ours from the OnUpdate
+    -- hook, before the frame is drawn. The timer covers the game showing no tooltip at all.
+    GameTooltip:SetAlpha(0)
+    tooltipRebuildPending = true
+    C_Timer.After(0, function()
+      if tooltipRebuildPending and tooltipHidden and CM.IsTooltipModifierDown() then
+        tooltipRebuildPending = false
+        ShowMouseoverTooltip()
+      end
+    end)
+  else
+    ShowMouseoverTooltip()
+  end
+
+  -- Hide / restore the Assist HUD right away instead of on the next tick.
+  if CM.UpdateCrosshairAssistedHighlight then
+    CM.UpdateCrosshairAssistedHighlight()
+  end
+end
+
+local function OnTooltipUpdate(tooltip, elapsed)
+  if not (tooltipHidden and CM.IsTooltipModifierDown()) then
+    return
+  end
+
+  if tooltipRebuildPending then
+    tooltipRebuildPending = false
+    ShowMouseoverTooltip()
+  elseif IsTooltipPinned(tooltip) then
+    tooltipPinMisses = 0
+    local alpha = tooltip:GetAlpha()
+    if alpha < 1 then
+      -- A tooltip addon that skins GameTooltip owns its alpha (it forces 0 and draws its own
+      -- panel). Probe once: if full alpha does not stick, leave it to the addon, with the full
+      -- value recorded as the one it restores.
+      tooltip:SetAlpha(1)
+      if tooltip:GetAlpha() < 1 then
+        return
+      end
+      tooltip:SetAlpha(alpha + elapsed / TOOLTIP_FADE_IN)
+    end
+  elseif tooltipPinMisses < TOOLTIP_PIN_RETRIES then
+    tooltipPinMisses = tooltipPinMisses + 1
+    tooltip:SetAlpha(0)
+    ShowMouseoverTooltip()
+  else
+    tooltip:SetAlpha(1) -- the game keeps it: show it where it is rather than never
+  end
+end
+
 local function HideTooltip(shouldHide)
   tooltipHidden = shouldHide
 
   if not isTooltipHooked then
     GameTooltip:HookScript("OnShow", function(self)
-      if tooltipHidden then
+      if tooltipHidden and not CM.IsTooltipModifierDown() then
         self:Hide()
       end
     end)
+    GameTooltip:HookScript("OnHide", function(self)
+      if not (tooltipHidden and CM.IsTooltipModifierDown()) then
+        self:SetAlpha(1)
+        tooltipPinMisses = 0
+      end
+    end)
+    GameTooltip:HookScript("OnUpdate", OnTooltipUpdate)
     isTooltipHooked = true
   end
-  -- Hide it immediately in case there's a tooltip still fading while mouse locking
-  if tooltipHidden and GameTooltip:IsShown() then
-    GameTooltip:Hide()
+
+  if tooltipHidden then
+    -- Hide it immediately in case there's a tooltip still fading while mouse locking
+    if GameTooltip:IsShown() then
+      GameTooltip:Hide()
+    end
+  else
+    GameTooltip:SetAlpha(1)
   end
 end
 

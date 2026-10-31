@@ -160,7 +160,7 @@ UI.Options.AddTab({
     ctx:Gap()
     ctx:Header({ text = "ASSIST HUD" })
     ctx:Description(
-      "A HUD that guides spell rotation when targeting enemies and displays interaction prompts for objects and NPCs."
+      "A HUD that guides spell rotation when targeting enemies and displays interaction prompts."
     )
     ctx:Dropdown({
       label = "Next-cast Suggestion",

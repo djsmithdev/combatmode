@@ -111,6 +111,12 @@ CM.Constants.BLIZZARD_EVENTS = {
   REMATCH_EVENTS = {
     "PLAYER_ENTERING_WORLD", -- Loading Cvars on every reload
   },
+  -- Show Tooltips With key pressed/released while Hide Tooltips is active
+  TOOLTIP_MODIFIER_EVENTS = {
+    "MODIFIER_STATE_CHANGED",
+    "UPDATE_MOUSEOVER_UNIT", -- Held key: the tooltip follows the unit under the crosshair
+    "PLAYER_REGEN_DISABLED", -- Entering combat hides a tooltip the held key was showing
+  },
   FRIENDLY_TARGETING_EVENTS = {
     "PLAYER_REGEN_ENABLED", -- Disabling friendly targeting when leaving combat
     "PLAYER_REGEN_DISABLED", -- Enabling friendly targeting when entering combat

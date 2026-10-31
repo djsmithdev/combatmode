@@ -886,6 +886,14 @@ function CM.UpdateCrosshairAssistedHighlight()
     return
   end
 
+  -- A tooltip summoned with the Show Tooltips With key sits beside the crosshair: yield to it.
+  if CM.IsTooltipHeldOverCrosshair and CM.IsTooltipHeldOverCrosshair() then
+    if Motion and Motion.RequestHide then
+      Motion.RequestHide()
+    end
+    return
+  end
+
   if CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive() then
     if not ShouldShowAssistedHighlightIcon() then
       if Motion and Motion.RequestHide then

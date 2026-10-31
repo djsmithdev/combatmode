@@ -176,6 +176,11 @@ local function HandleEventByCategory(category, event, ...)
         CM.RuntimeRematch()
       end
     end,
+    TOOLTIP_MODIFIER_EVENTS = function()
+      if CM.OnTooltipModifierChanged then
+        CM.OnTooltipModifierChanged(event)
+      end
+    end,
     FRIENDLY_TARGETING_EVENTS = function()
       if event == "PLAYER_REGEN_ENABLED" then
         if CM.OnAllyCycleCombatEnd then

@@ -5,9 +5,9 @@
 --  Mouse Look keybind, Interact keybind + interactUnit, Flip Camera keybind,
 --  Camera Features (respectMotionSickness, turn speed, minimum zoom, dynamic pitch,
 --  shoulder offset, disable offset with mouselook); Additional Features (pulseCursor,
---  vignette, hideTooltip, sheath weapons).
+--  vignette, hideTooltip + tooltipModifier, sheath weapons).
 --  Architecture / how it works:
---    • DB: global.pulseCursor, hideTooltip, mouseLookSpeed, dynamicPitch,
+--    • DB: global.pulseCursor, hideTooltip, tooltipModifier, mouseLookSpeed, dynamicPitch,
 --      dynamicPitchStrength, vignette,
 --      respectMotionSickness, shoulderFollowsMouseLook, sheathWeaponsWithMouselook,
 --      interactUnit; char.shoulderOffset.
@@ -49,6 +49,9 @@ local INTERACT_UNIT_VALUES = {
   target = "Soft Target - More forgiving",
 }
 local INTERACT_UNIT_ORDER = { "mouseover", "target" }
+
+local TOOLTIP_MODIFIER_VALUES = { ALT = "Alt", CTRL = "Ctrl", SHIFT = "Shift" }
+local TOOLTIP_MODIFIER_ORDER = { "ALT", "CTRL", "SHIFT" }
 
 --- Watermark for controls another camera addon owns (nil when Combat Mode owns them).
 local function CameraOwnerWatermark()
@@ -385,7 +388,7 @@ UI.Options.AddTab({
     })
     ctx:Toggle({
       label = "Hide Tooltips",
-      desc = "Hide tooltips while Mouse Look is on.",
+      desc = "Hide tooltips while Mouse Look is on, unless the key below is held.",
       get = function()
         return CM.DB.global.hideTooltip
       end,
@@ -394,6 +397,22 @@ UI.Options.AddTab({
       end,
       disabled = function()
         return not CM.IsCrosshairEnabled()
+      end,
+    })
+    ctx:Dropdown({
+      label = "Show Tooltips With",
+      newFeatureFlag = true,
+      desc = "Hold this key to show tooltips while Mouse Look is on.",
+      values = TOOLTIP_MODIFIER_VALUES,
+      order = TOOLTIP_MODIFIER_ORDER,
+      get = function()
+        return CM.DB.global.tooltipModifier or "ALT"
+      end,
+      set = function(value)
+        CM.DB.global.tooltipModifier = value
+      end,
+      disabled = function()
+        return not CM.DB.global.hideTooltip or not CM.IsCrosshairEnabled()
       end,
     })
     ctx:Toggle({
