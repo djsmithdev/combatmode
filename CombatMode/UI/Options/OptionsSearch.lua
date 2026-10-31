@@ -64,6 +64,9 @@ local BAR_GUTTER = 10 -- room reserved for the scroll bar when the list overflow
 local SCROLL_PAD = 12
 local FLASH_DURATION = 1.2
 local FLASH_ALPHA = 0.35
+local FLASH_SWEEP = 0.7 -- seconds the shine takes to cross the row
+local FLASH_SHINE_W = 90
+local FLASH_SHINE_ALPHA = 0.3
 
 local index
 local box
@@ -217,7 +220,7 @@ end
 
 --- Highlights the matched row. It is the same rounded background wash as the row hover
 --- highlight (UI.CreateRoundedHover over the same bounds, behind the row's text), in the
---- accent colour, fading out over FLASH_DURATION.
+--- accent colour, fading out over FLASH_DURATION, with a shine sweeping across it once.
 local function Flash(holder, host, topFrame, bottomFrame)
   local flash = holder.cmSearchFlash
   if not flash then
@@ -233,12 +236,15 @@ local function Flash(holder, host, topFrame, bottomFrame)
       { C.accent[1], C.accent[2], C.accent[3], FLASH_ALPHA },
       UI.Radius.control
     )
-    flash = { slice = slice, driver = bounds, elapsed = 0 }
+    local sweep = UI.CreateShineSweep(bounds, FLASH_SHINE_W, FLASH_SHINE_ALPHA)
+    flash = { slice = slice, driver = bounds, sweep = sweep, elapsed = 0 }
     bounds:SetScript("OnUpdate", function(_, elapsed)
       flash.elapsed = flash.elapsed + (elapsed or 0)
       local p = flash.elapsed / FLASH_DURATION
+      flash.sweep.SetProgress(flash.elapsed / FLASH_SWEEP)
       if p >= 1 then
         flash.slice.Hide()
+        flash.sweep.SetProgress(nil)
         bounds:Hide()
         return
       end
@@ -274,6 +280,16 @@ local function Navigate(entry)
   else
     local frame = entry.control.frame
     Flash(frame, frame, frame, frame)
+  end
+end
+
+--- Jumps to `entry` = { tab, group?, control?, section? } and flashes it; an entry with no
+--- control just opens its tab. Shared with the What's New list (WhatsNew.lua).
+function Options.NavigateTo(entry)
+  if entry.control then
+    Navigate(entry)
+  elseif entry.tab then
+    Options.SelectTabById(entry.tab)
   end
 end
 

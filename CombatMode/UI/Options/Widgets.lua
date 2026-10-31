@@ -46,6 +46,7 @@ local pairs = _G.pairs
 local tinsert = _G.table.insert
 local tsort = _G.table.sort
 local abs = _G.math.abs
+local ceil = _G.math.ceil
 local floor = _G.math.floor
 local max = _G.math.max
 local min = _G.math.min
@@ -209,12 +210,39 @@ local function CreateDialogButton(parent, label, variant)
   text:SetPoint("CENTER")
   text:SetText(UI.StripColors(label) or "")
   UI.WireControlHover(button, text)
+  if variant == "primary" then
+    -- Dark text on the accent fill: the font's black shadow smudges it.
+    text:SetShadowOffset(0, 0)
+  end
   button.text = text
   return button
 end
 
 -- Exposed so the setup wizard's windows can reuse the dialog button look.
 UI.CreateDialogButton = CreateDialogButton
+
+--- The "What's New" call-to-action: an accent button with the attention effect that toggles
+--- the What's New balloon beside `owner` (the options or changelog window). Caller positions
+--- it and decides when it is shown (see Options.HasWhatsNew).
+function UI.CreateWhatsNewButton(parent, owner, height)
+  local button = CreateFrame("Button", nil, parent)
+  UI.StyleControl(button, "primary", UI.Radius.control)
+  local label = UI.CreateFontString(button, "OVERLAY", UI.Fonts.button, "GameFontHighlightSmall")
+  label:SetText("What's New")
+  -- Dark text on the copper fill: the font's black drop shadow smudges it, so drop the shadow.
+  label:SetShadowOffset(0, 0)
+  UI.WireControlHover(button, label)
+  label:SetPoint("CENTER", button, "CENTER", 0, 0)
+  button:SetScript("OnClick", function()
+    Options.ToggleWhatsNew(owner)
+  end)
+  UI.AttachTooltip(button, "See what's new in this version", "ANCHOR_BOTTOM")
+  -- Whole, even width so the centred label lands on a pixel boundary (a half pixel blurs text).
+  local width = ceil((label:GetStringWidth() or 0) + 24)
+  button:SetSize(width + width % 2, height or UI.Sizes.search)
+  UI.SetControlAttention(button, true)
+  return button
+end
 
 --- Transparent secure "/reload" button laid over the Yes button (see UI.Confirm).
 local function CreateSecureReloadButton(dialog)
@@ -2400,6 +2428,24 @@ function UI.MakeKeybind(parent, opts)
   local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.button, "GameFontHighlightSmall")
   text:SetPoint("CENTER")
   text:SetTextColor(C.text[1], C.text[2], C.text[3])
+  local shadowX, shadowY = text:GetShadowOffset()
+
+  -- Looks: listening = accent button with the attention sweep, bound = neutral, nothing
+  -- bound = greyed (still clickable).
+  local look
+  local function applyLook(name)
+    if look == name then
+      return
+    end
+    look = name
+    UI.SetControlVariant(button, name ~= "bound" and name or nil)
+    UI.SetControlAttention(button, name == "primary")
+    if name == "primary" then
+      text:SetShadowOffset(0, 0)
+    else
+      text:SetShadowOffset(shadowX, shadowY)
+    end
+  end
 
   local control = {
     frame = row,
@@ -2412,17 +2458,15 @@ function UI.MakeKeybind(parent, opts)
   local NOT_BOUND = _G.NOT_BOUND or "Not Bound"
 
   local function applyKeybindIdle()
-    button:cmControlHover(false)
     if listening then
-      text:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
-      return
-    end
-    local key = opts.get and opts.get()
-    if key and key ~= "" then
-      text:SetTextColor(C.text[1], C.text[2], C.text[3])
+      applyLook("primary")
     else
-      text:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
+      local key = opts.get and opts.get()
+      applyLook(key and key ~= "" and "bound" or "disabled")
     end
+    button:cmControlHover(false)
+    local color = button.cmControlText.idle
+    text:SetTextColor(color[1], color[2], color[3])
   end
 
   button:SetScript("OnEnter", function(self)
@@ -2430,7 +2474,8 @@ function UI.MakeKeybind(parent, opts)
       return
     end
     self:cmControlHover(true)
-    text:SetTextColor(C.text[1], C.text[2], C.text[3])
+    local color = self.cmControlText.hover
+    text:SetTextColor(color[1], color[2], color[3])
   end)
   button:SetScript("OnLeave", function(self)
     if self:IsMouseOver() then
@@ -2518,7 +2563,7 @@ function UI.MakeKeybind(parent, opts)
     keybindCaptureStopPrevious = stopListening
     GetKeybindCaptureFrame():Show()
     text:SetText("> Press key (ESC clears) <")
-    text:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+    applyKeybindIdle()
   end
 
   button:SetScript("OnClick", function(_, mouseButton)
@@ -2566,11 +2611,11 @@ function UI.MakeKeybind(parent, opts)
     button:SetAlpha(a)
     SetDescAlpha(control, a)
     ClearHoverIfDisabled(row, disabled)
+    applyKeybindIdle()
     if not disabled and button:IsMouseOver() then
       button:cmControlHover(true)
-      text:SetTextColor(C.text[1], C.text[2], C.text[3])
-    else
-      applyKeybindIdle()
+      local color = button.cmControlText.hover
+      text:SetTextColor(color[1], color[2], color[3])
     end
   end
 

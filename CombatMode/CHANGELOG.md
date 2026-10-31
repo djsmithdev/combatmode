@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - When aiming the crosshair at a player outside of combat for more than a second, the **Interact** key now opens that player's context menu and frees the cursor (with Auto Unlock enabled). Interactions with NPCs and objects still work as before.
 - The Assist HUD now shows a prompt when you aim at a player for at least a second. Turn it off with **Player Interaction Prompt**, under **Assist HUD**.
 - **Show Tooltips With** (Mouse Look tab, Additional Features): with **Hide Tooltips** on, hold Alt (default), Ctrl or Shift to see the tooltip of what you're aiming at (out of combat only).
+- **What's New** button in the options window, next to the version: opens a list of every new option and tab. Click an entry to jump straight to it; the list stays open.
 
 ## [5.3.0] - 2026-10-30
 

@@ -377,6 +377,7 @@ local function Build()
   local finishButton = UI.CreateDialogButton(balloon, "Finish", "primary")
   finishButton:SetWidth(BTN_W + 16)
   finishButton:SetPoint("BOTTOMRIGHT", balloon, "BOTTOMRIGHT", -BALLOON_PAD, BALLOON_PAD)
+  UI.SetControlAttention(finishButton, true)
   finishButton:Hide()
 
   local skip = CreateFrame("Button", nil, balloon)

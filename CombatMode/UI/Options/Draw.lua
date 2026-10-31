@@ -906,33 +906,35 @@ end
 --- (e.g. half the height for a fully rounded pill).
 --- Adds frame:cmControlHover(on) to swap the idle/hover gradient, and
 --- frame.cmControlText = { idle = {r,g,b}, hover = {r,g,b} } for the label colours.
-function UI.StyleControl(frame, variant, radius)
+local function ApplyControlVariant(frame, variant)
   local colors = UI.Colors
   local primary = variant == "primary"
   local danger = variant == "danger"
   local a = colors.accent
   local w = colors.warning
-  local idleTop, idleBottom, hoverTop, hoverBottom, border
+  local idleTop, idleBottom, hoverTop, hoverBottom
   if primary then
     idleTop, idleBottom = Lighten(a, 0.10), Darken(a, 0.88)
     hoverTop, hoverBottom = Lighten(a, 0.22), Darken(a, 0.96)
-    border = Darken(a, 0.70)
   elseif danger then
     -- Warning red, kept dark so the white label reads (the old Uninstall look, now a gradient).
     idleTop, idleBottom = Darken(w, 0.50), Darken(w, 0.34)
     hoverTop, hoverBottom = Darken(w, 0.72), Darken(w, 0.52)
-    border = Darken(w, 0.6)
+  elseif variant == "disabled" then
+    -- Inert look (e.g. a keybind with nothing bound): flat, dim, still clickable.
+    idleTop, idleBottom = colors.controlFill, colors.controlFill
+    hoverTop, hoverBottom = colors.controlFillTop, colors.controlFill
   else
     idleTop, idleBottom = colors.controlFillTop, colors.controlFill
     hoverTop, hoverBottom = colors.buttonHoverTop, colors.buttonHover
-    border = colors.cardBorder
   end
-  UI.StyleRounded(frame, idleBottom, border, radius or UI.Radius.button, 1)
   frame:cmSetFillGradient(idleTop, idleBottom)
   if primary then
     frame:cmSetBorderGradient(Darken(a, 0.82), Darken(a, 0.58))
   elseif danger then
     frame:cmSetBorderGradient(Darken(w, 0.78), Darken(w, 0.5))
+  elseif variant == "disabled" then
+    frame:cmSetBorderGradient(colors.cardBorder, colors.cardBorder)
   else
     frame:cmSetBorderGradient(colors.controlBorderTop, colors.controlBorderBottom)
   end
@@ -947,11 +949,116 @@ function UI.StyleControl(frame, variant, radius)
     frame.cmControlText = { idle = { 0.10, 0.07, 0.04 }, hover = { 0.10, 0.07, 0.04 } }
   elseif danger then
     frame.cmControlText = { idle = { 1, 1, 1 }, hover = { 1, 1, 1 } }
+  elseif variant == "disabled" then
+    frame.cmControlText = {
+      idle = { colors.textDim[1], colors.textDim[2], colors.textDim[3] },
+      hover = { colors.text[1], colors.text[2], colors.text[3] },
+    }
   else
     frame.cmControlText = {
       idle = { colors.text[1], colors.text[2], colors.text[3] },
       hover = { colors.text[1], colors.text[2], colors.text[3] },
     }
+  end
+  frame.cmControlVariant = variant
+end
+
+function UI.StyleControl(frame, variant, radius)
+  local border = UI.Colors.cardBorder
+  if variant == "primary" then
+    border = Darken(UI.Colors.accent, 0.70)
+  elseif variant == "danger" then
+    border = Darken(UI.Colors.warning, 0.6)
+  end
+  UI.StyleRounded(frame, border, border, radius or UI.Radius.button, 1)
+  ApplyControlVariant(frame, variant)
+end
+
+--- Switches an already styled control to another variant ("primary", "danger", "disabled" or
+--- nil for the neutral look). Ends any attention effect; re-add it with UI.SetControlAttention.
+function UI.SetControlVariant(frame, variant)
+  ApplyControlVariant(frame, variant)
+  UI.SetControlAttention(frame, false)
+end
+
+local ATTENTION_CYCLE = 3.4 -- seconds per loop
+local ATTENTION_SWEEP = 0.9 -- seconds of the loop spent sweeping
+
+--- A soft white highlight band that sweeps left to right across `host`, clipped to it. Returns
+--- { clip, SetProgress(p) }: p in [0, 1) places the band (0 = just off the left edge, 1 = just
+--- off the right), anything else hides it. `width` / `alpha` shape the band (default 34 / 0.35).
+function UI.CreateShineSweep(host, width, alpha)
+  width = width or 34
+  alpha = alpha or 0.35
+  local clip = CreateFrame("Frame", nil, host)
+  clip:EnableMouse(false)
+  clip:SetPoint("TOPLEFT", host, "TOPLEFT", 1, -1)
+  clip:SetPoint("BOTTOMRIGHT", host, "BOTTOMRIGHT", -1, 1)
+  clip:SetClipsChildren(true)
+  local shine = CreateFrame("Frame", nil, clip)
+  shine:EnableMouse(false)
+  shine:SetWidth(width)
+  local rise = shine:CreateTexture(nil, "OVERLAY")
+  rise:SetPoint("TOPLEFT")
+  rise:SetPoint("BOTTOMLEFT")
+  rise:SetWidth(width / 2)
+  rise:SetColorTexture(1, 1, 1, 1)
+  rise:SetGradient("HORIZONTAL", CreateColor(1, 1, 1, 0), CreateColor(1, 1, 1, alpha))
+  local fall = shine:CreateTexture(nil, "OVERLAY")
+  fall:SetPoint("TOPRIGHT")
+  fall:SetPoint("BOTTOMRIGHT")
+  fall:SetWidth(width / 2)
+  fall:SetColorTexture(1, 1, 1, 1)
+  fall:SetGradient("HORIZONTAL", CreateColor(1, 1, 1, alpha), CreateColor(1, 1, 1, 0))
+  shine:Hide()
+
+  local sweep = { clip = clip }
+  function sweep.SetProgress(progress)
+    if progress and progress >= 0 and progress < 1 then
+      local x = progress * ((host:GetWidth() or 0) + width) - width
+      shine:ClearAllPoints()
+      shine:SetPoint("TOPLEFT", clip, "TOPLEFT", x, 0)
+      shine:SetPoint("BOTTOMLEFT", clip, "BOTTOMLEFT", x, 0)
+      shine:SetWidth(width)
+      shine:Show()
+    else
+      shine:Hide()
+    end
+  end
+  return sweep
+end
+
+--- Draws the eye to a "primary" control: a bright outline plus a soft highlight that sweeps
+--- across it every few seconds (clipped to the control). Turn off with `on = false`. Callers
+--- showing dark label text should also drop the font shadow (`label:SetShadowOffset(0, 0)`),
+--- which smudges it.
+function UI.SetControlAttention(frame, on)
+  local fx = frame.cmAttention
+  if not fx then
+    if not on then
+      return
+    end
+    fx = UI.CreateShineSweep(frame)
+    -- The loop runs on the clip frame, so it only ticks while the control is on screen.
+    local cycle = 0
+    fx.clip:SetScript("OnUpdate", function(_, elapsed)
+      cycle = (cycle + (elapsed or 0)) % ATTENTION_CYCLE
+      fx.SetProgress(cycle / ATTENTION_SWEEP)
+    end)
+    fx.reset = function()
+      cycle = 0
+    end
+    frame.cmAttention = fx
+  end
+  fx.clip:SetShown(on and true or false)
+  if on then
+    fx.reset()
+    local a = UI.Colors.accent
+    local top = { min(a[1] * 1.25, 1), min(a[2] * 1.25, 1), min(a[3] * 1.25, 1), 1 }
+    local bottom = { min(a[1] * 0.9, 1), min(a[2] * 0.9, 1), min(a[3] * 0.9, 1), 1 }
+    frame:cmSetBorderGradient(top, bottom)
+  else
+    fx.SetProgress(nil)
   end
 end
 

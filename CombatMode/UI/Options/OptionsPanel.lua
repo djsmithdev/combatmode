@@ -4,7 +4,8 @@
 --  What it does: Owns CombatModeOptionsFrame — sidebar tabs, content host, left-of-center
 --  dock, instant tab switching, and footer utilities (Silence Alerts / Debug Mode,
 --  Changelog / Reset / Uninstall).
---  Title bar carries the options search box (OptionsSearch.lua). Layout ctx tags controls
+--  Title bar carries the version chip, the What's New button (WhatsNew.lua), the setup cog and
+--  the options search box (OptionsSearch.lua). Layout ctx tags controls
 --  with search metadata (label, desc, tab, segment group) for it.
 --  Exposes CM.OpenOptions / Close / Toggle / GetOptionsFrame and UI.Options.AddTab,
 --  plus SelectTabById, GetTabScroll and RegisterSegmentSelector for search navigation.
@@ -198,6 +199,7 @@ local function NewLayout(content, width, clip)
       group = self.search.group,
       footer = self.search.footer,
       section = self.section,
+      newFeature = o.newFeatureFlag and true or nil,
     }
     return control
   end
@@ -224,6 +226,7 @@ local function NewLayout(content, width, clip)
         group = self.search.group,
         header = control,
         lastFrame = control.frame,
+        newFeature = type(text) == "table" and text.newFeatureFlag and true or nil,
       }
       Options.sections[#Options.sections + 1] = self.sectionRec
     end
@@ -937,11 +940,26 @@ local function BuildShell()
   headerDivider:SetPoint("TOPLEFT", frame, "TOPLEFT", SIDEBAR_W - 4, -3)
   -- Version chip just past the divider (same vertical centre as the header).
   chip:SetPoint("LEFT", headerDivider, "RIGHT", 16, 0)
-  -- Setup wizard cog between the version chip and the search box (same vertical centre).
+  -- What's New button right of the version chip: opens the balloon listing every option
+  -- flagged as new (WhatsNew.lua). Hidden while nothing is flagged.
+  local whatsNew = UI.CreateWhatsNewButton(titleBar, frame, CHIP_H)
+  whatsNew:SetPoint("LEFT", chip, "RIGHT", 8, 0)
+  whatsNew:Hide()
+
+  -- Setup wizard cog between the version chip / What's New button and the search box (same
+  -- vertical centre).
   local cog = CreateFrame("Button", nil, titleBar)
   UI.StyleControl(cog, nil, UI.Radius.control)
   cog:SetSize(CHIP_H, CHIP_H)
   cog:SetPoint("LEFT", chip, "RIGHT", 8, 0)
+
+  --- Shows the What's New button only while something is flagged; the cog follows it.
+  function Options.RefreshWhatsNewButton()
+    local has = Options.HasWhatsNew and Options.HasWhatsNew()
+    whatsNew:SetShown(has and true or false)
+    cog:ClearAllPoints()
+    cog:SetPoint("LEFT", has and whatsNew or chip, "RIGHT", 8, 0)
+  end
   local cogIcon = cog:CreateTexture(nil, "OVERLAY")
   CM.SetAtlas(cogIcon, "QuestLog-icon-setting", false)
   cogIcon:SetSize(CHIP_H - 16, CHIP_H - 16)
@@ -966,6 +984,7 @@ local function BuildShell()
   UI.EnableEscClose(frame, "CombatModeOptionsFrame")
 
   frame:HookScript("OnShow", function()
+    Options.RefreshWhatsNewButton()
     ActivateTab()
     RefreshActiveTabScroll()
     -- Layout heights settle after Show; refresh once more so the thumb/bar appear.
