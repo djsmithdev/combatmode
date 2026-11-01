@@ -185,6 +185,12 @@ CM.Constants.BLIZZARD_EVENTS = {
   INTERACT_HUD_EVENTS = {
     "PLAYER_SOFT_INTERACT_CHANGED",
   },
+  -- Vignette "Interacting with an NPC" condition: an NPC window (gossip, vendor, quest...) opened / closed
+  VIGNETTE_INTERACTION_EVENTS = {
+    "PLAYER_INTERACTION_MANAGER_FRAME_SHOW",
+    "PLAYER_INTERACTION_MANAGER_FRAME_HIDE",
+    "PLAYER_ENTERING_WORLD", -- No window survives a loading screen
+  },
   -- Radial Menu: repaint cooldowns / counts while open; re-store slices when known spells change
   RADIAL_MENU_EVENTS = {
     "SPELL_UPDATE_COOLDOWN",

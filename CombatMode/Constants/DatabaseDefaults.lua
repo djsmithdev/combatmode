@@ -156,7 +156,11 @@ return false
     -- Closest the camera may zoom in (yards); 0 = off.
     minCameraZoom = 3,
     dynamicPitch = true,
-    vignette = true,
+    -- Vignette shows when these are true: CSV of mouselook | combat | interaction ("" = off).
+    -- A string, not a table: MergeDefaults would graft default keys onto a saved table.
+    vignetteConditions = "mouselook",
+    -- "any" = one selected condition is enough, "all" = every selected condition must hold.
+    vignetteMatch = "any",
     -- Ease shoulder with Mouse Look chrome when on (default off = keep configured offset).
     shoulderFollowsMouseLook = false,
     -- When true, never force Motion Sickness ActionCam gates off (Accessibility honored).

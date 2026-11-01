@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.3.2] - 2026-10-31
+
+### Added
+
+- **Vignette Shows When** (Mouse Look tab, Additional Features) replaces the Vignette Effect toggle: check **Mouse Look is on**, **In combat** and/or **Talking to an NPC**, and use **Vignette Match** to show it when **Any** or **All** of them are true. Uncheck everything to turn it off. Your current setting carries over.
+
 ## [5.3.1] - 2026-10-30
 
 ### Added

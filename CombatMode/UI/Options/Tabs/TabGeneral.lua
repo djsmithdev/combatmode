@@ -5,10 +5,10 @@
 --  Mouse Look keybind, Interact keybind + interactUnit, Flip Camera keybind,
 --  Camera Features (respectMotionSickness, turn speed, minimum zoom, dynamic pitch,
 --  shoulder offset, disable offset with mouselook); Additional Features (pulseCursor,
---  vignette, hideTooltip + tooltipModifier, sheath weapons).
+--  hideTooltip + tooltipModifier, sheath weapons, vignette conditions + match).
 --  Architecture / how it works:
 --    • DB: global.pulseCursor, hideTooltip, tooltipModifier, mouseLookSpeed, dynamicPitch,
---      dynamicPitchStrength, vignette,
+--      dynamicPitchStrength, vignetteConditions (CSV), vignetteMatch,
 --      respectMotionSickness, shoulderFollowsMouseLook, sheathWeaponsWithMouselook,
 --      interactUnit; char.shoulderOffset.
 --    • Motion Sickness Protection disables ActionCam-owned Camera Features (pitch /
@@ -54,6 +54,50 @@ local TOOLTIP_MODIFIER_VALUES = { ALT = "Alt", CTRL = "Ctrl", SHIFT = "Shift" }
 local TOOLTIP_MODIFIER_ORDER = { "ALT", "CTRL", "SHIFT" }
 
 --- Watermark for controls another camera addon owns (nil when Combat Mode owns them).
+local VIGNETTE_CONDITION_VALUES = {
+  mouselook = "Mouse Look is on",
+  combat = "In combat",
+  interaction = "Talking to an NPC",
+}
+local VIGNETTE_CONDITION_ORDER = { "mouselook", "combat", "interaction" }
+local VIGNETTE_MATCH_VALUES = { any = "Any checked", all = "All checked" }
+local VIGNETTE_MATCH_ORDER = { "any", "all" }
+
+local function VignetteSelected()
+  local set = {}
+  for key in tostring(CM.DB.global.vignetteConditions or ""):gmatch("[^,]+") do
+    set[key] = true
+  end
+  return set
+end
+
+local function VignetteConditionOn(id)
+  return VignetteSelected()[id] == true
+end
+
+local function ToggleVignetteCondition(id)
+  local set = VignetteSelected()
+  set[id] = not set[id] or nil
+  local keys = {}
+  for _, key in ipairs(VIGNETTE_CONDITION_ORDER) do
+    if set[key] then
+      keys[#keys + 1] = key
+    end
+  end
+  CM.SetVignetteConditions(table.concat(keys, ","))
+end
+
+local function VignetteConditionsSummary()
+  local set = VignetteSelected()
+  local names = {}
+  for _, key in ipairs(VIGNETTE_CONDITION_ORDER) do
+    if set[key] then
+      names[#names + 1] = VIGNETTE_CONDITION_VALUES[key]
+    end
+  end
+  return #names > 0 and table.concat(names, ", ") or "Off"
+end
+
 local function CameraOwnerWatermark()
   if not CM.CameraOwner then
     return nil
@@ -387,20 +431,6 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Vignette Effect",
-      desc = "Darkens the edges of the screen while Mouse Look is on.",
-      get = function()
-        return CM.DB.global.vignette == true
-      end,
-      set = function(value)
-        if CM.SetVignetteEnabled then
-          CM.SetVignetteEnabled(value)
-        else
-          CM.DB.global.vignette = value
-        end
-      end,
-    })
-    ctx:Toggle({
       label = "Hide Tooltips",
       desc = "Hide tooltips while Mouse Look is on, unless the key below is held.",
       get = function()
@@ -437,6 +467,31 @@ UI.Options.AddTab({
       end,
       set = function(value)
         CM.DB.global.sheathWeaponsWithMouselook = value
+      end,
+    })
+    ctx:Dropdown({
+      label = "Vignette Shows When",
+      desc = "Darkens the edges of the screen while the checked situations are true.",
+      multi = true,
+      newFeatureFlag = true,
+      values = VIGNETTE_CONDITION_VALUES,
+      order = VIGNETTE_CONDITION_ORDER,
+      isOn = VignetteConditionOn,
+      toggle = ToggleVignetteCondition,
+      summary = VignetteConditionsSummary,
+      get = VignetteConditionsSummary,
+    })
+    ctx:Dropdown({
+      label = "Vignette Match",
+      desc = "Any: one checked situation is enough. All: every checked situation must be true at once.",
+      newFeatureFlag = true,
+      values = VIGNETTE_MATCH_VALUES,
+      order = VIGNETTE_MATCH_ORDER,
+      get = function()
+        return CM.DB.global.vignetteMatch == "all" and "all" or "any"
+      end,
+      set = function(value)
+        CM.SetVignetteMatch(value)
       end,
     })
   end,

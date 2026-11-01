@@ -1803,6 +1803,8 @@ local function AddHelpBadge(control, row, button, tooltip)
   control.widgetLeftInset = HELP_BADGE_SIZE + HELP_BADGE_GAP
 end
 
+--- `opts.multi` turns it into a checklist: `opts.isOn(id)`, `opts.toggle(id)` and `opts.summary()`
+--- (closed-select text) replace get/set, and the menu stays open while ids are toggled.
 --- `opts.headers` (`{ [id] = title }`) turns those ids in `opts.order` into non-clickable section
 --- headers with a divider above (hidden while filtering).
 --- `opts.helpTooltip` (string, `{ title?, text?, lines? }` or a function returning either; see
@@ -1915,6 +1917,16 @@ function UI.MakeDropdown(parent, opts)
     end
   end
 
+  --- Multi-select check: bright accent mark when on, a dim greyed one when off, so every row
+  --- reads as a switch.
+  local function PaintCheck(check, on)
+    check:Show()
+    check:SetDesaturated(not on)
+    local tint = on and C.accent or C.textDim
+    check:SetVertexColor(tint[1], tint[2], tint[3])
+    check:SetAlpha(on and 1 or 0.35)
+  end
+
   local function EnsureItem(i)
     local item = menu.items[i]
     if item then
@@ -1945,8 +1957,27 @@ function UI.MakeDropdown(parent, opts)
     item:SetScript("OnLeave", function(self)
       self.hl:Hide()
     end)
+    -- Multi-select check (opts.multi): shown on the picked rows, the menu stays open on click.
+    item.check = item:CreateTexture(nil, "OVERLAY")
+    item.check:SetSize(14, 14)
+    item.check:SetPoint("LEFT", item, "LEFT", 6, 0)
+    item.check:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
+    item.check:Hide()
     item:SetScript("OnClick", function(self)
       if self.isHeader then
+        return
+      end
+      if opts.multi then
+        if opts.toggle then
+          opts.toggle(self.id)
+        end
+        Options.Sync()
+        menu.headerText:SetText(text:GetText() or "")
+        for _, shown in ipairs(menu.items) do
+          if shown:IsShown() then
+            PaintCheck(shown.check, opts.isOn(shown.id) == true)
+          end
+        end
         return
       end
       CloseMenu()
@@ -1992,7 +2023,15 @@ function UI.MakeDropdown(parent, opts)
         item.text:SetTextColor(tint[1], tint[2], tint[3])
         local info = not header and opts.itemInfo and opts.itemInfo(id)
         item.text:ClearAllPoints()
-        if info and (info.icon or info.atlas) then
+        if opts.multi then
+          PaintCheck(item.check, opts.isOn(id) == true)
+        else
+          item.check:Hide()
+        end
+        if opts.multi then
+          item.icon:Hide()
+          item.text:SetPoint("LEFT", item, "LEFT", 26, 0)
+        elseif info and (info.icon or info.atlas) then
           ApplyEntryIcon(item.icon, info)
           item.icon:Show()
           item.text:SetPoint("LEFT", item.icon, "RIGHT", 6, 0)
@@ -2278,7 +2317,8 @@ function UI.MakeDropdown(parent, opts)
 
   function control.Refresh()
     local value = opts.get and opts.get()
-    text:SetText(DisplayText(value))
+    -- opts.multi: opts.isOn(id) / opts.toggle(id); opts.summary() is the closed-select text.
+    text:SetText(opts.multi and opts.summary() or DisplayText(value))
     PlaceSelectedIcon(
       selIcon,
       text,

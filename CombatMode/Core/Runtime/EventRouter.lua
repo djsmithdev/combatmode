@@ -181,6 +181,11 @@ local function HandleEventByCategory(category, event, ...)
         CM.OnTooltipModifierChanged(event)
       end
     end,
+    VIGNETTE_INTERACTION_EVENTS = function()
+      if CM.OnVignetteInteractionEvent then
+        CM.OnVignetteInteractionEvent(event, cvarName) -- first payload = interaction type
+      end
+    end,
     FRIENDLY_TARGETING_EVENTS = function()
       if event == "PLAYER_REGEN_ENABLED" then
         if CM.OnAllyCycleCombatEnd then

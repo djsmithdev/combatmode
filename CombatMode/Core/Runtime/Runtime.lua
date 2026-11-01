@@ -394,6 +394,12 @@ function CM.InitDatabase()
       sv.global.assistedHighlightMode = on and "always" or "hidden"
       sv.global.assistedHighlightEnabled = nil
     end
+    -- The Vignette on/off toggle became a list of conditions (empty = off).
+    if sv.global.vignette ~= nil then
+      local on = CM.DbBool(sv.global.vignette, true)
+      sv.global.vignetteConditions = on and "mouselook" or ""
+      sv.global.vignette = nil
+    end
     -- The Interaction HUD merged into the Combat Assist HUD; it shares that HUD's layout.
     sv.global.interactionHUDSide = nil
     sv.global.interactionHUDScale = nil
