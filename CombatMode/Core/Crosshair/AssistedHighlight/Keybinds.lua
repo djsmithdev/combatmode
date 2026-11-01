@@ -8,6 +8,8 @@
 --    • CM.AssistedHighlightKeybinds table: GetClickCastDisplayForSpell,
 --      FormatKeybindText / GetFirstBindingKeyForSpell, ApplyClickCast/Keyboard styles,
 --      STYLE_CLICKCAST / STYLE_KEYBOARD, preview icon markups.
+--    • FormatKeybindText follows LibKeyBound's ToShortKey like the UI action bars
+--      (SHIFT-F → SF, CTRL-BUTTON4 → CB4, MOUSEWHEELUP → WU, NUMPAD1 → N1).
 --    • ActionSlotToBindingName uses CM.Constants.ClickCastBars actionBase ranges
 --      (incl. MultiBar5–7 slots 145–180).
 --    • CM.InvalidateAssistedHighlightKeybindCache clears slot maps (EventRouter bars).
@@ -26,7 +28,6 @@ local math = _G.math
 local ipairs = _G.ipairs
 local pairs = _G.pairs
 local pcall = _G.pcall
-local table = _G.table
 local tonumber = _G.tonumber
 local type = _G.type
 
@@ -44,69 +45,78 @@ Keybinds.STYLE_KEYBOARD = "keyboard"
 Keybinds.KEYBOARD_OFFSET_X = 13
 Keybinds.KEYBOARD_OFFSET_Y = 15
 
-local COMPACT_KEY_MAP = {
-  ["CTRL"] = "Ctrl",
-  ["SHIFT"] = "Shift",
-  ["ALT"] = "Alt",
-  ["META"] = "M",
-  ["MOUSE1"] = "M1",
-  ["MOUSE2"] = "M2",
-  ["MOUSE3"] = "M3",
-  ["MOUSE4"] = "M4",
-  ["MOUSE5"] = "M5",
-  ["LEFTBUTTON"] = "M1",
-  ["RIGHTBUTTON"] = "M2",
-  ["MIDDLEBUTTON"] = "M3",
-  ["BUTTON1"] = "M1",
-  ["BUTTON2"] = "M2",
-  ["BUTTON3"] = "M3",
-  ["BUTTON4"] = "M4",
-  ["BUTTON5"] = "M5",
-  ["MOUSEWHEELUP"] = "MwU",
-  ["MOUSEWHEELDOWN"] = "MwD",
-  ["NUMPAD0"] = "N0",
-  ["NUMPAD1"] = "N1",
-  ["NUMPAD2"] = "N2",
-  ["NUMPAD3"] = "N3",
-  ["NUMPAD4"] = "N4",
-  ["NUMPAD5"] = "N5",
-  ["NUMPAD6"] = "N6",
-  ["NUMPAD7"] = "N7",
-  ["NUMPAD8"] = "N8",
-  ["NUMPAD9"] = "N9",
-  ["NUMPADDECIMAL"] = "N.",
-  ["NUMPADPLUS"] = "N+",
-  ["NUMPADMINUS"] = "N-",
-  ["NUMPADMULTIPLY"] = "N*",
-  ["NUMPADDIVIDE"] = "N/",
-  ["SPACE"] = "SpB",
-  ["BACKSPACE"] = "BS",
-  ["DELETE"] = "Del",
-  ["INSERT"] = "Ins",
-  ["HOME"] = "Hm",
-  ["END"] = "End",
-  ["PAGEUP"] = "PU",
-  ["PAGEDOWN"] = "PD",
-  ["ESCAPE"] = "Esc",
-  ["CAPSLOCK"] = "Cap",
-  ["NUMLOCK"] = "NL",
-  ["PRINTSCREEN"] = "PrS",
-  ["SCROLLLOCK"] = "SL",
-  ["PAUSE"] = "Pau",
-  ["TAB"] = "Tab",
+-- LibKeyBound English short labels (same as the UI action bars). The gsub order matches
+-- ToShortKey.
+local SHORT = {
+  ALT = "A",
+  CTRL = "C",
+  SHIFT = "S",
+  META = "M",
+  NUMPAD = "N",
+  BACKSPACE = "BS",
+  CAPSLOCK = "Cp",
+  CLEAR = "Cl",
+  DELETE = "Del",
+  END = "En",
+  HOME = "HM",
+  INSERT = "Ins",
+  MOUSEWHEELDOWN = "WD",
+  MOUSEWHEELUP = "WU",
+  NUMLOCK = "NL",
+  PAGEDOWN = "PD",
+  PAGEUP = "PU",
+  SCROLLLOCK = "SL",
+  SPACEBAR = "Sp",
+  SPACE = "Sp",
+  TAB = "Tb",
+  DOWNARROW = "Dn",
+  LEFTARROW = "Lf",
+  RIGHTARROW = "Rt",
+  UPARROW = "Up",
 }
 
-local function AbbreviateKey(raw)
-  if not raw or raw == "" then
+local function AbbreviateKey(key)
+  if type(key) ~= "string" or key == "" then
     return nil
   end
-  local parts = {}
-  for token in raw:gmatch("[^%-]+") do
-    local upper = token:upper()
-    local mapped = COMPACT_KEY_MAP[upper]
-    parts[#parts + 1] = mapped or token
+  key = key:upper():gsub(" ", "")
+  key = key:gsub("ALT%-", SHORT.ALT)
+  key = key:gsub("CTRL%-", SHORT.CTRL)
+  key = key:gsub("SHIFT%-", SHORT.SHIFT)
+  key = key:gsub("META%-", SHORT.META)
+  key = key:gsub("NUMPAD", SHORT.NUMPAD)
+  key = key:gsub("PLUS", "%+")
+  key = key:gsub("MINUS", "%-")
+  key = key:gsub("MULTIPLY", "%*")
+  key = key:gsub("DIVIDE", "%/")
+  key = key:gsub("BACKSPACE", SHORT.BACKSPACE)
+  local mouseButtons = _G.NUM_MOUSE_BUTTONS
+  if type(mouseButtons) ~= "number" or mouseButtons < 1 then
+    mouseButtons = 31
   end
-  return table.concat(parts, "+")
+  for i = 1, mouseButtons do
+    key = key:gsub("BUTTON" .. i, "B" .. i)
+  end
+  key = key:gsub("CAPSLOCK", SHORT.CAPSLOCK)
+  key = key:gsub("CLEAR", SHORT.CLEAR)
+  key = key:gsub("DELETE", SHORT.DELETE)
+  key = key:gsub("END", SHORT.END)
+  key = key:gsub("HOME", SHORT.HOME)
+  key = key:gsub("INSERT", SHORT.INSERT)
+  key = key:gsub("MOUSEWHEELDOWN", SHORT.MOUSEWHEELDOWN)
+  key = key:gsub("MOUSEWHEELUP", SHORT.MOUSEWHEELUP)
+  key = key:gsub("NUMLOCK", SHORT.NUMLOCK)
+  key = key:gsub("PAGEDOWN", SHORT.PAGEDOWN)
+  key = key:gsub("PAGEUP", SHORT.PAGEUP)
+  key = key:gsub("SCROLLLOCK", SHORT.SCROLLLOCK)
+  key = key:gsub("SPACEBAR", SHORT.SPACEBAR)
+  key = key:gsub("SPACE", SHORT.SPACE)
+  key = key:gsub("TAB", SHORT.TAB)
+  key = key:gsub("DOWNARROW", SHORT.DOWNARROW)
+  key = key:gsub("LEFTARROW", SHORT.LEFTARROW)
+  key = key:gsub("RIGHTARROW", SHORT.RIGHTARROW)
+  key = key:gsub("UPARROW", SHORT.UPARROW)
+  return key
 end
 
 function Keybinds.FormatKeybindText(bindingKey)

@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Vignette Shows When** (Mouse Look tab, Additional Features) replaces the Vignette Effect toggle: check **Mouse Look is on**, **In combat** and/or **Talking to an NPC**, and use **Vignette Match** to show it when **Any** or **All** of them are true. Uncheck everything to turn it off. Your current setting carries over.
 
+### Changed
+
+- Keybinds on the **Assist HUD** are shortened the way most action bar addons do it: Shift+F shows as "SF", mouse button 4 as "B4", mouse wheel up as "WU". The **Interact** key on the Interaction HUD uses the same short labels.
+
 ## [5.3.1] - 2026-10-30
 
 ### Added
