@@ -10,6 +10,7 @@ description: Turn the current diff into a short in-game test checklist using TES
 3. Output, kept short:
    - **Must test** — 5-10 concrete steps (what to press/click, what you should see), ordered by risk: combat-lockdown paths first (anything bound or attribute-changing, tested both out of combat and by entering combat mid-step), then instance/secret-value paths (dungeon, raid, M+), then plain UI.
    - **Needs a live client to prove** — assumptions the code can't verify offline: API behavior I inferred but didn't confirm (return values in instances, secret vs public), restricted-environment limits, client differences (Retail vs Classic/Era/Forever), `/reload` persistence of new DB keys.
+   - **Other clients pass** — 2-4 steps to repeat on Forever (and a Classic-family client when the change touches client-gated code: `CM.IsRetailClient`, `IS_FOREVER`, atlases, micro buttons, CVars, new APIs or DB keys): the addon loads with no Lua errors, the feature works or is skipped cleanly where that client lacks it, and new settings survive `/reload` (Forever may store flags as `1`/`0`). Skip it, and say so, for changes with no client-specific code.
    - **Quick regression** — only the lines from "Quick regression pass" that touch the changed domains.
    - **Debug aids** — `debugMode` / the Function Profiler (`TESTING.md` Profiling) if the change is performance-sensitive.
 4. If a changed behavior has no `TESTING.md` line, propose the line (one sentence) and add it only if the user agrees.

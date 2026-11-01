@@ -26,6 +26,8 @@ local _G = _G
 -- WoW API
 local GetPlayerAuraBySpellID = _G.C_UnitAuras.GetPlayerAuraBySpellID
 local GetUIPanel = _G.GetUIPanel
+-- Retail, Forever and Mists Classic have pet battles: check the API, not the client.
+local IsInBattle = _G.C_PetBattles and _G.C_PetBattles.IsInBattle
 
 -- Lua stdlib
 local ipairs = _G.ipairs
@@ -33,8 +35,6 @@ local pairs = _G.pairs
 local pcall = _G.pcall
 local string = _G.string
 local tinsert = _G.table.insert
-
-local ON_RETAIL_CLIENT = (_G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE)
 
 local function CursorUnlockFrameVisible(frameArr)
   local allowFrameWatching = CM.DB.global.frameWatching
@@ -152,10 +152,7 @@ function CM.IsFeignDeathActive()
 end
 
 function CM.IsInPetBattle()
-  if ON_RETAIL_CLIENT then
-    return _G.C_PetBattles.IsInBattle()
-  end
-  return false
+  return IsInBattle ~= nil and IsInBattle() == true
 end
 
 function CM.InitializeWildcardFrameTracking(frameArr)
