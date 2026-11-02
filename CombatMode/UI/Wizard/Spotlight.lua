@@ -16,6 +16,9 @@
 --    • Steps that show a live crosshair / HUD preview pass `alsoHighlight` (a function returning
 --      that element's frames and its padding): their union becomes a second hole with its own outline (so the crosshair is not
 --      dimmed), and the balloon moves to a spot that covers neither hole.
+--    • Slides: a step can pass screenshot paths; they show under the title in the README GIFs'
+--      metal frame (one shared overlay texture) and loop in order, each held SLIDE_HOLD then
+--      cross-faded into the next (the next waits underneath while the current one fades out).
 --    • Tasks: a step can list actions (label + done()) shown as a check list under the text; Next /
 --      Finish stay disabled until every one is done (re-checked a few times a second).
 --    • Between steps the whole spotlight fades out (UI.FadeOutSpotlight) while the options tab scrolls
@@ -60,6 +63,14 @@ local TASK_H = 20
 local TASK_GAP = 10
 local TASK_POLL_S = 0.2
 local CHECK_TEXTURE = CM.Constants.CheckMark
+-- Preview slides (16:9 screenshots) under the title: size, room above / below for the frame's
+-- band and glow, and the flip timing. The frame art is 680x438 for a 552x310 window, drawn at half.
+local SLIDE_W, SLIDE_H = 276, 155
+local SLIDE_TOP, SLIDE_BOTTOM = 16, 18
+local SLIDE_FRAME_W, SLIDE_FRAME_H = 340, 219
+local SLIDE_HOLD = 0.8 -- seconds each slide stays up
+local SLIDE_FADE = 0.2 -- cross-fade into the next one
+local BODY_GAP = 10 -- rule (or slides) to body text
 
 local spotlight
 
@@ -349,8 +360,26 @@ local function Build()
   rule:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
   rule:SetPoint("TOPRIGHT", balloon, "TOPRIGHT", -BALLOON_PAD, 0)
 
+  -- Preview slides: two stacked textures cross-fading (the next one waits underneath at full
+  -- alpha while the current one fades out on top) and the shared metal frame over both.
+  local slideHost = CreateFrame("Frame", nil, balloon)
+  slideHost:SetPoint("TOPLEFT", rule, "BOTTOMLEFT", 0, -SLIDE_TOP)
+  slideHost:SetPoint("TOPRIGHT", balloon, "TOPRIGHT", -BALLOON_PAD, 0)
+  slideHost:SetHeight(SLIDE_H)
+  slideHost:Hide()
+  local slideA = slideHost:CreateTexture(nil, "ARTWORK", nil, 1)
+  local slideB = slideHost:CreateTexture(nil, "ARTWORK", nil, 0)
+  for _, tex in ipairs({ slideA, slideB }) do
+    tex:SetSize(SLIDE_W, SLIDE_H)
+    tex:SetPoint("TOP", slideHost, "TOP", 0, 0)
+  end
+  local slideFrame = slideHost:CreateTexture(nil, "OVERLAY")
+  slideFrame:SetTexture(CM.Constants.WizardSlideFrame)
+  slideFrame:SetSize(SLIDE_FRAME_W, SLIDE_FRAME_H)
+  slideFrame:SetPoint("CENTER", slideA, "CENTER", 0, 0)
+
   local body = UI.CreateFontString(balloon, "OVERLAY", UI.Fonts.base, "GameFontHighlight")
-  body:SetPoint("TOPLEFT", rule, "BOTTOMLEFT", 0, -10)
+  body:SetPoint("TOPLEFT", rule, "BOTTOMLEFT", 0, -BODY_GAP)
   body:SetWidth(BALLOON_W - 2 * BALLOON_PAD)
   body:SetJustifyH("LEFT")
   body:SetJustifyV("TOP")
@@ -398,7 +427,14 @@ local function Build()
     root = root,
     balloon = balloon,
     title = title,
+    rule = rule,
     body = body,
+    slideHost = slideHost,
+    slideFront = slideA,
+    slideBack = slideB,
+    slides = {},
+    slideIndex = 1,
+    slideElapsed = 0,
     step = step,
     back = back,
     next = nextButton,
@@ -428,6 +464,31 @@ local function Build()
     if self.onSkip then
       self.onSkip()
     end
+  end)
+
+  -- Slideshow: hold each slide, then fade it out over the next one (already drawn underneath),
+  -- swap the two textures' roles and preload the one after.
+  slideHost:SetScript("OnUpdate", function(_, elapsed)
+    local slides = self.slides
+    local count = #slides
+    if count < 2 then
+      return
+    end
+    local t = self.slideElapsed + (elapsed or 0)
+    if t >= SLIDE_HOLD + SLIDE_FADE then
+      local shown, under = self.slideBack, self.slideFront
+      self.slideFront, self.slideBack = shown, under
+      shown:SetDrawLayer("ARTWORK", 1)
+      shown:SetAlpha(1)
+      under:SetDrawLayer("ARTWORK", 0)
+      under:SetAlpha(1)
+      self.slideIndex = self.slideIndex % count + 1
+      under:SetTexture(slides[self.slideIndex % count + 1])
+      t = 0
+    elseif t > SLIDE_HOLD then
+      self.slideFront:SetAlpha(1 - (t - SLIDE_HOLD) / SLIDE_FADE)
+    end
+    self.slideElapsed = t
   end)
 
   -- ESC skips; everything else keeps flowing to the game.
@@ -595,7 +656,7 @@ local function Build()
 end
 
 --- Shows the spotlight on `target` (a frame, or a list of frames) with the balloon described by `opts`:
---- { title, body (`{text}` is drawn in the accent colour, a blank line starts a new paragraph), step ("3 / 7"), nextLabel, isLast (shows the accent Finish button), canGoBack, tasks ({ label, done() } list that gates Next / Finish), warning (red caution under the text), clip (frame the hole is cut to), alsoHighlight (function returning the live preview frames to leave undimmed), onNext, onBack, onSkip }.
+--- { title, body (`{text}` is drawn in the accent colour, a blank line starts a new paragraph), slides (texture paths shown in order as a looping slideshow under the title), step ("3 / 7"), nextLabel, isLast (shows the accent Finish button), canGoBack, tasks ({ label, done() } list that gates Next / Finish), warning (red caution under the text), clip (frame the hole is cut to), alsoHighlight (function returning the live preview frames to leave undimmed), onNext, onBack, onSkip }.
 function UI.ShowSpotlight(target, opts)
   spotlight = spotlight or Build()
   local s = spotlight
@@ -618,6 +679,25 @@ function UI.ShowSpotlight(target, opts)
     bodyText = bodyText .. "\n\n" .. Colored(C.warning, opts.warning)
   end
   s.body:SetText(bodyText)
+
+  -- Preview slides between the title rule and the text, restarting at the first one.
+  local slides = opts.slides or {}
+  s.slides = slides
+  s.slideIndex, s.slideElapsed = 1, 0
+  s.body:ClearAllPoints()
+  if #slides > 0 then
+    s.slideFront:SetTexture(slides[1])
+    s.slideFront:SetAlpha(1)
+    s.slideBack:SetTexture(slides[2] or slides[1])
+    s.slideBack:SetAlpha(1)
+    s.slideHost:Show()
+    s.body:SetPoint("TOPLEFT", s.slideHost, "BOTTOMLEFT", 0, -SLIDE_BOTTOM)
+  else
+    s.slideHost:Hide()
+    s.body:SetPoint("TOPLEFT", s.rule, "BOTTOMLEFT", 0, -BODY_GAP)
+  end
+  local slidesH = #slides > 0 and (SLIDE_TOP + SLIDE_H + SLIDE_BOTTOM - BODY_GAP) or 0
+
   s.step:SetText(opts.step or "")
   s.next.text:SetText(opts.nextLabel or "Next")
   s.next:SetShown(not opts.isLast)
@@ -640,10 +720,20 @@ function UI.ShowSpotlight(target, opts)
   s.taskElapsed = 0
   RefreshTasks(s)
 
-  -- Title + rule + body + tasks + button row.
+  -- Title + rule + slides + body + tasks + button row.
   local bodyH = s.body:GetStringHeight() or 40
   s.balloon:SetHeight(
-    BALLOON_PAD + 22 + 6 + 1 + 10 + bodyH + tasksH + 14 + UI.Sizes.control + BALLOON_PAD
+    BALLOON_PAD
+      + 22
+      + 6
+      + 1
+      + BODY_GAP
+      + slidesH
+      + bodyH
+      + tasksH
+      + 14
+      + UI.Sizes.control
+      + BALLOON_PAD
   )
 
   s.root.cmResetLayout()

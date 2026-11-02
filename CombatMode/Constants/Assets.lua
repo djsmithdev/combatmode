@@ -85,6 +85,11 @@ CM.Constants.Shadow = uiPath .. "shadow.tga"
 CM.Constants.ColorPickerThumbs = uiPath .. "colorpicker-buttons.tga"
 CM.Constants.CheckMark = uiPath .. "checkbox-check.tga"
 CM.Constants.UnknownAddonIcon = uiPath .. "question-mark.tga"
+-- Setup wizard preview slides: `<key>_<n>.blp` (16:9 crops of in-game screenshots stored as 512x256 DXT1, drawn back at 16:9) and the
+-- shared frame drawn over them (680x438, transparent 552x310 window centred), both built by
+-- scripts/make-wizard-previews.py.
+CM.Constants.WizardSlidePath = assetsFolderPath .. "wizard\\"
+CM.Constants.WizardSlideFrame = assetsFolderPath .. "wizard\\preview_frame.tga"
 CM.Constants.DiscordIcon = brandingPath .. "discord.blp"
 CM.Constants.GitHubIcon = brandingPath .. "github.blp"
 CM.Constants.DiscordURL = "https://www.discord.gg/5mwBSmz"
