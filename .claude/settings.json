@@ -1,10 +1,13 @@
 {
-  "enabledMcpjsonServers": ["wow-api"],
+  "enabledMcpjsonServers": [
+    "wow-api"
+  ],
   "enableAllProjectMcpServers": true,
   "permissions": {
     "allow": [
       "Bash(pwsh ./scripts/*)",
       "Bash(pwsh -NoProfile -File ./scripts/*)",
+      "Bash(python scripts/art/compress-tga.py --check:*)",
       "Bash(stylua:*)",
       "Bash(selene:*)",
       "Bash(pre-commit run:*)",
@@ -13,10 +16,15 @@
       "Bash(git log:*)",
       "Bash(git show:*)",
       "Bash(git branch:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run list:*)"
     ],
     "deny": [
-      "Read(CombatMode/Libs/**)",
       "Read(CombatMode/Assets/**)",
       "Read(CombatMode/UI/Changelog/ChangelogData.lua)",
       "Read(media/**/*.gif)",
@@ -31,8 +39,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File \"$CLAUDE_PROJECT_DIR/scripts/claude-format-hook.ps1\"",
-            "timeout": 15
+            "command": "pwsh -NoProfile -File \"$CLAUDE_PROJECT_DIR/scripts/claude-post-edit-hook.ps1\"",
+            "timeout": 20
           }
         ]
       }

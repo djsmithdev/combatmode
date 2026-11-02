@@ -1,6 +1,15 @@
 minimum_pre_commit_version: "3.0.0"
 
+# Same gate locally (`pre-commit install`, scripts/lint-changed.ps1) and in CI (.github/workflows/ci.yml).
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=2000"]
+
   - repo: local
     hooks:
       - id: stylua
@@ -9,17 +18,15 @@ repos:
         language: system
         types: [lua]
         files: ^CombatMode/.*\.lua$
-        exclude: ^CombatMode/Libs/
       - id: selene
         name: selene
         entry: selene --config selene.toml
         language: system
         types: [lua]
         files: ^CombatMode/.*\.lua$
-        exclude: ^CombatMode/Libs/
-      - id: changelog-synced
-        name: changelog synced to ChangelogData.lua
-        entry: pwsh -NoProfile -File scripts/check-changelog-synced.ps1
+      - id: check-repo
+        name: check-repo (changelog sync, version, load order, LICENSE, TGAs)
+        entry: pwsh -NoProfile -File scripts/check-repo.ps1
         language: system
-        files: ^CombatMode/(CHANGELOG\.md|UI/Changelog/ChangelogData\.lua)$
+        always_run: true
         pass_filenames: false

@@ -1,3 +1,4 @@
+# Checks the local toolchain (StyLua, Selene, pre-commit) and that it matches the versions CI pins.
 param()
 
 $ErrorActionPreference = "Stop"
@@ -42,6 +43,20 @@ $allToolsOk = $true
 $allToolsOk = (Test-Tool -CommandName "stylua") -and $allToolsOk
 $allToolsOk = (Test-Tool -CommandName "selene") -and $allToolsOk
 $allToolsOk = (Test-Tool -CommandName "pre-commit") -and $allToolsOk
+
+Write-Host ""
+Write-Host "== Versions pinned in CI (.github/workflows/ci.yml) =="
+$ci = Join-Path (Split-Path -Parent $PSScriptRoot) ".github/workflows/ci.yml"
+if (Test-Path $ci) {
+    $ciText = Get-Content -Raw $ci
+    foreach ($tool in @("stylua", "selene")) {
+        $pinned = [regex]::Match($ciText, "(?m)^\s*$($tool.ToUpper())_VERSION:\s*""?([\d.]+)").Groups[1].Value
+        $local = if (Get-Command $tool -ErrorAction SilentlyContinue) { [regex]::Match((& $tool --version), '[\d.]+').Value }
+        if (-not $pinned) { Write-Host "[WARN] No $($tool.ToUpper())_VERSION in ci.yml" }
+        elseif ($local -eq $pinned) { Write-Host "[PASS] $tool $local matches CI" }
+        else { Write-Host "[WARN] $tool local $local, CI $pinned (formatting may differ)" }
+    }
+}
 
 Write-Host ""
 Write-Host "== Required config files =="
