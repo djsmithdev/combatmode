@@ -5,7 +5,7 @@
 --  role, class color, raid-marker index, cycle index, and range alpha.
 --  Architecture / how it works:
 --    • CM.AllyCycleTarget: IsFriendlyHardTarget, GetDisplayName, GetClassRGB,
---      GetRoleAtlas, GetRaidTargetIndex, ApplyRaidMarker, GetIndex, FormatIndex,
+--      GetClassFileRGB, GetRoleAtlas, GetRoleAtlasFor, GetRaidTargetIndex, ApplyRaidMarker, GetIndex, FormatIndex,
 --      GetRangeAlpha, IsDead, IsOffline, IsPlayer. GetDisplayName is the first name only ("..."
 --      when secret); the Party Wheel plates use it too.
 --    • CM.IsAllyCycleFriendlyHardTarget is implemented here (party/raid roster +
@@ -169,8 +169,8 @@ function Target.GetDisplayName(unit, preview)
   return name:match("^(%S+)") or name
 end
 
-function Target.GetClassRGB(unit)
-  local _, classFile = UnitClass(unit)
+--- Class colour for a class token ("MAGE"); white when unknown. The options preview uses it directly.
+function Target.GetClassFileRGB(classFile)
   if IsSecret(classFile) or type(classFile) ~= "string" then
     return 1, 1, 1
   end
@@ -181,6 +181,16 @@ function Target.GetClassRGB(unit)
     end
   end
   return 1, 1, 1
+end
+
+function Target.GetClassRGB(unit)
+  local _, classFile = UnitClass(unit)
+  return Target.GetClassFileRGB(classFile)
+end
+
+--- Role icon atlas for a role token (TANK / HEALER / DAMAGER); DPS when unknown.
+function Target.GetRoleAtlasFor(role)
+  return ROLE_ATLASES[role] or ROLE_ATLASES.DAMAGER
 end
 
 function Target.GetRoleAtlas(unit)

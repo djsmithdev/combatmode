@@ -22,10 +22,8 @@ local UI = CM.UI
 local HUD_SIDE_VALUES = {
   TOP = "Top",
   BOTTOM = "Bottom",
-  LEFT = "Left",
-  RIGHT = "Right",
 }
-local HUD_SIDE_ORDER = { "TOP", "BOTTOM", "LEFT", "RIGHT" }
+local HUD_SIDE_ORDER = { "TOP", "BOTTOM" }
 
 local function ApplyHud()
   if CM.ApplyAllyCycleHUDLayout then

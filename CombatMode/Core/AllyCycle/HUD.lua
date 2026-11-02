@@ -3,9 +3,10 @@
 ---------------------------------------------------------------------------------------
 --  What it does: Owns the Ally HUD cluster beside the crosshair for a party/raid
 --  hard target (or options preview). Self is shown only when Skip Self is off; name
---  reads "You". Wires Target, HealthBar, and Motion.
+--  reads "You". Wires Target, HealthBar, and Motion. The preview cycles stand-in
+--  members ("Ally 1..4", PREVIEW_STAGES), each with its own class colour and role.
 --  Architecture / how it works:
---    • DB.global.allyCycle (side / scale / padding); LAYOUT locals here. Padding
+--    • DB.global.allyCycle (side TOP / BOTTOM, scale, padding); LAYOUT locals here. Padding
 --      defaults to CrosshairCompanionOffsetX.
 --    • InitAllyCycleHUD({crosshairFrame}); ApplyAllyCycleHUDLayout + RefreshAllyCycleHUD.
 --    • Motion.Attach + OnUpdate Motion.Tick then HealthBar.TickGlow. Preview lerp
@@ -50,12 +51,14 @@ local previewActive = false
 local lastAnchorSide, lastAnchorScale, lastAnchorGap, lastAnchorOy
 local CONFIG_FALLBACK = { showHud = true, hudSide = "BOTTOM", scale = 1, padding = 24 }
 
+-- One stand-in party member per stage: "Ally <index>" in its class colour with its role.
 local PREVIEW_TOTAL = 4
+local PREVIEW_NAME_FORMAT = "Ally %d"
 local PREVIEW_STAGES = {
-  { pct = 1.0, dead = false, raid = nil, index = 1, dwell = 1.0 },
-  { pct = 0.7, dead = false, raid = 1, index = 2, dwell = 1.4 },
-  { pct = 0.2, dead = false, raid = 8, index = 3, dwell = 1.8 },
-  { pct = 0.0, dead = true, raid = nil, index = 4, dwell = 1.2 },
+  { pct = 1.0, dead = false, raid = nil, index = 1, dwell = 1.0, class = "PALADIN", role = "TANK" },
+  { pct = 0.7, dead = false, raid = 1, index = 2, dwell = 1.4, class = "DRUID", role = "HEALER" },
+  { pct = 0.2, dead = false, raid = 8, index = 3, dwell = 1.8, class = "MAGE", role = "DAMAGER" },
+  { pct = 0.0, dead = true, raid = nil, index = 4, dwell = 1.2, class = "ROGUE", role = "DAMAGER" },
 }
 local previewStageIndex = 1
 local previewStageElapsed = 0
@@ -65,6 +68,7 @@ local previewDead = false
 local previewRaidIndex = nil
 local previewIndex = 1
 local nameUnit, namePreview -- what Refresh last showed, so the dead / offline chrome can restore it
+local previewShownName -- last preview name text laid out (ApplyName re-measures on change)
 local OFFLINE_TEXT = _G.PLAYER_OFFLINE or "Offline"
 local DEAD_TEXT = _G.DEAD or "Dead"
 
@@ -160,14 +164,11 @@ local function AnchorCluster(offsetY)
   lastAnchorOy = oy
   cluster:SetScale(scale)
   cluster:ClearAllPoints()
-  if side == "LEFT" then
-    cluster:SetPoint("RIGHT", crosshairFrame, "CENTER", -gap, oy)
-  elseif side == "RIGHT" then
-    cluster:SetPoint("LEFT", crosshairFrame, "CENTER", gap, oy)
-  elseif side == "BOTTOM" then
-    cluster:SetPoint("TOP", crosshairFrame, "CENTER", 0, -gap + oy)
-  else
+  -- Above or below only (TOP / BOTTOM); the sides belong to the Assist HUD.
+  if side == "TOP" then
     cluster:SetPoint("BOTTOM", crosshairFrame, "CENTER", 0, gap + oy)
+  else
+    cluster:SetPoint("TOP", crosshairFrame, "CENTER", 0, -gap + oy)
   end
 end
 
@@ -195,11 +196,20 @@ function CM.SetAllyCycleOptionsPreview(enabled)
   CM.RefreshAllyCycleHUD()
 end
 
+local function PreviewStage()
+  return PREVIEW_STAGES[previewStageIndex] or PREVIEW_STAGES[1]
+end
+
 local function UpdateRoleIcon(unit)
-  if not roleIcon then
+  if not roleIcon or not Target then
     return
   end
-  local atlas = Target and Target.GetRoleAtlas and Target.GetRoleAtlas(unit)
+  local atlas
+  if previewActive then
+    atlas = Target.GetRoleAtlasFor(PreviewStage().role)
+  else
+    atlas = Target.GetRoleAtlas(unit)
+  end
   if atlas and roleIcon.SetAtlas then
     CM.SetAtlas(roleIcon, atlas)
     roleIcon:Show()
@@ -216,7 +226,10 @@ local function ApplyNameColor(unit, dead)
     nameFS:SetTextColor(0.55, 0.55, 0.55, 1)
     return
   end
-  if unit and Target and Target.GetClassRGB then
+  if namePreview and Target then
+    local r, g, b = Target.GetClassFileRGB(PreviewStage().class)
+    nameFS:SetTextColor(r, g, b, 1)
+  elseif unit and Target and Target.GetClassRGB then
     local r, g, b = Target.GetClassRGB(unit)
     nameFS:SetTextColor(r, g, b, 1)
   else
@@ -235,10 +248,20 @@ local function ApplyName(dead)
     nameFS:SetText(OFFLINE_TEXT)
   elseif dead then
     nameFS:SetText(DEAD_TEXT)
+  elseif namePreview then
+    nameFS:SetText(PREVIEW_NAME_FORMAT:format(PreviewStage().index or 1))
   else
     nameFS:SetText(Target.GetDisplayName(nameUnit, namePreview))
   end
   ApplyNameColor(nameUnit, dead or offline)
+  -- The preview swaps names / "Dead" between refreshes: re-measure so the name is never clipped.
+  if namePreview then
+    local text = nameFS:GetText()
+    if text ~= previewShownName then
+      previewShownName = text
+      CM.ApplyAllyCycleHUDLayout()
+    end
+  end
 end
 
 -- Dead or offline (HealthBar.Update passes either): desaturated icons, grey index / name (a
@@ -368,6 +391,7 @@ local function TickPreviewHealth(elapsed)
     previewRaidIndex = nextStage.raid
     UpdateIndex("player")
     UpdateRaidMarker("player")
+    UpdateRoleIcon("player")
     if Motion and Motion.StartCycle then
       Motion.StartCycle("up")
     end

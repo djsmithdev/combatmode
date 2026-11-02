@@ -13,7 +13,8 @@
 --    • AnimDriver OnUpdate: Feedback.Tick then Motion.Tick.
 --    • APIs: InitAssistedHighlight, ApplyCrosshairAssistedHighlightOptions,
 --      UpdateCrosshairAssistedHighlight. Keybind cache / cast events live in siblings.
---    • Preview: IsCrosshairPreviewActive forces placeholder icon + keybind layout.
+--    • Preview: IsCrosshairPreviewActive forces placeholder icon + keybind layout,
+--      except under the Ally Cycle tab preview (reticle + Ally HUD only).
 --    • Gap past reticle edge: assistedHighlightPadding (default CrosshairCompanionOffsetX).
 --  Does not: Own keybind resolution (Keybinds), ProcLoop/glow/fade (Motion), swipe/
 --  break (CastProgress), or press/pulse/cache (Feedback). Not Animations / SoftTarget.
@@ -509,7 +510,8 @@ local function ShouldShowAssistedHighlightIcon()
     return false
   end
   if CM.IsCrosshairPreviewActive and CM.IsCrosshairPreviewActive() then
-    return true
+    -- The Ally Cycle tab previews the reticle + Ally HUD only.
+    return not (CM.IsAllyCycleOptionsPreviewActive and CM.IsAllyCycleOptionsPreviewActive())
   end
   if not PassesCrosshairGate() then
     return false

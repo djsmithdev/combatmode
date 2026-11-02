@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Keybinds on the **Assist HUD** are shortened the way most action bar addons do it: Shift+F shows as "SF", mouse button 4 as "B4", mouse wheel up as "WU". The **Interact** key on the Interaction HUD uses the same short labels.
 - The **Setup Wizard** is shorter: the Excluded Spells and Advanced steps are gone. Both settings are still on their tabs.
+- The **Ally Cycle HUD** preview on the Ally Cycle tab now cycles through four example allies ("Ally 1" to "Ally 4"), each with its own class colour and role, instead of showing your name. It also no longer shows the Assist HUD, only the crosshair and the Ally Cycle HUD.
+- The **Ally Cycle HUD** **Position** can now only be **Top** or **Bottom**, so it never overlaps the Assist HUD. If yours was set to Left or Right, it moves to Bottom.
 
 ## [5.3.1] - 2026-10-30
 

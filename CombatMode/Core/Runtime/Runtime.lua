@@ -404,6 +404,11 @@ function CM.InitDatabase()
     sv.global.interactionHUDSide = nil
     sv.global.interactionHUDScale = nil
     sv.global.interactionHUDPadding = nil
+    -- 5.3.2: the Ally HUD lost its Left / Right positions; those move below the crosshair.
+    local allyCycle = sv.global.allyCycle
+    if type(allyCycle) == "table" and allyCycle.hudSide ~= "TOP" then
+      allyCycle.hudSide = "BOTTOM"
+    end
     -- 5.0.3's Hide Soft Targeting Indicator toggle became the Selection Circle dropdown.
     if sv.global.reticleHideSoftIndicator ~= nil then
       local hidden = CM.DbBool(sv.global.reticleHideSoftIndicator, true)
