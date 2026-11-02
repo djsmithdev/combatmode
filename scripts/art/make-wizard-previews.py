@@ -1,6 +1,6 @@
 """Build the setup wizard's preview slides and their shared frame from full-screen screenshots.
 
-    python scripts/make-wizard-previews.py [SOURCE_DIR]
+    python scripts/art/make-wizard-previews.py [SOURCE_DIR]
 
 SOURCE_DIR (default: Desktop/previews) holds one folder per feature with numbered screenshots
 (1.jpg, 2.png, ...). Each one is cropped at 16:9 (the README GIFs' ratio) around the crosshair
@@ -15,7 +15,7 @@ written file is decoded again (Pillow reads BLP) and its PSNR against the source
 
 The frame (the GIFs' metal band, inner + drop shadow and copper glow, transparent window) is one
 shared overlay, preview_frame.tga, drawn over every slide in game (UI/Wizard/Spotlight.lua); it keeps
-its soft alpha as an RLE TGA (scripts/compress-tga.py). Needs Pillow + numpy.
+its soft alpha as an RLE TGA (scripts/art/compress-tga.py). Needs Pillow + numpy.
 """
 import glob
 import os
@@ -26,8 +26,9 @@ import sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "media", "frame"))
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))
+sys.path.insert(0, HERE)
 import make_frame  # noqa: E402
 
 OUT = os.path.join(ROOT, "CombatMode", "Assets", "wizard")
@@ -218,7 +219,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     n = build_slides(source)
     build_frame()
-    subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "compress-tga.py"), OUT], check=True)
+    subprocess.run([sys.executable, os.path.join(HERE, "compress-tga.py"), OUT], check=True)
     print(f"{n} slides written to {OUT}")
 
 

@@ -1,25 +1,5 @@
-# ignore paths are relative to the -t topdir (CombatMode/).
+# Packaged by .github/workflows/release-package.yml with -t CombatMode, so only CombatMode/ ships
+# and paths here are relative to it. Repo tooling at the root never reaches the zip.
 package-as: CombatMode
-changelog-title: CombatMode
+changelog-title: Action Combat Mode
 manual-changelog: CHANGELOG.md
-ignore:
-  - .claude
-  - .mcp.json
-  - CLAUDE.md
-  - .github
-  - .vscode
-  - scripts
-  - media
-  - dist
-  - agent-transcripts
-  - CONTRIBUTING.md
-  - README.md
-  - RELEASE.md
-  - STRUCTURE.md
-  - TESTING.md
-  - selene.toml
-  - stylua.toml
-  - .styluaignore
-  - .pre-commit-config.yaml
-  - .gitignore
-  - .pkgmeta

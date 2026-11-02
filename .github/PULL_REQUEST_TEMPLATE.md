@@ -1,23 +1,23 @@
+<!-- Title: Conventional Commits, e.g. "fix(crosshair): keep the reticle after /reload" (checked by CI).
+     Target `develop`; `master` only takes the release PR from develop. -->
+
 ## Summary
 
-- Describe the user-visible change.
-- Describe key technical/runtime changes.
+-
 
-## Validation
+## Player impact
 
-- [ ] Manual tests run from `TESTING.md` for changed areas.
-- [ ] No combat-lockdown/protected-action regressions introduced.
-- [ ] Keybind/mouselook/cvar state transitions verified after `/reload`.
+<!-- What a player sees or has to do (changelog wording), or "None" for tooling-only changes. -->
 
-## WoW API checks
+## Test plan
 
-- [ ] MCP checks run (`lookup_api` / `get_event` / `list_deprecated`) for changed APIs/events.
-- [ ] If MCP unavailable, manual fallback checks run from `RELEASE.md`.
+<!-- In-game steps you ran. Claude Code: /ingame-test turns the diff into this list. -->
 
-## Scope and safety
+- [ ] Tested in game on Retail (Mainline)
+- [ ] Tested entering / leaving combat where bindings, secure frames or Mouse Look are touched
+- [ ] Tested on Forever / Classic, or the change has no client-specific code
+- [ ] `CombatMode/CHANGELOG.md` entry for player-facing changes (current version section)
 
-- [ ] Change stays within owning module(s).
-- [ ] New settings/defaults use intentional DB scope (`global` vs `char`).
-- [ ] Any load-order-sensitive files were added to `Embeds.xml`.
-- [ ] Changelog updated (if user-visible changes): `CombatMode/CHANGELOG.md`
-- [ ] If `CHANGELOG.md` changed: `scripts/sync-changelog-to-lua.ps1` run so `CombatMode/UI/Changelog/ChangelogData.lua` matches the in-game viewer
+<!-- Automatic on every PR, no need to tick: StyLua + Selene, changelog sync, TOC/changelog version,
+     Embeds.xml load order, LICENSE copies, TGA compression (ci), title format (pr-title),
+     and domain labels. -->

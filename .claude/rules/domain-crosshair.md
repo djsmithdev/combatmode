@@ -14,3 +14,5 @@ paths:
 - **Assisted Combat matching:** short recent-suggestion cache — `GetNextCastSpell` often advances before `UNIT_SPELLCAST_SUCCEEDED`.
 - **FlipBook / atlas VFX:** ship rows/cols/frames/duration next to the atlas constant in the owning Lua file (see `AssistedHighlight/Motion.lua` for `UF-RogueCP-Slash-Blue`). `C_Texture.GetAtlasInfo` does **not** return FlipBook grid layout. To discover: Blizzard UI source FlipBook XML, other retail addons calling `SetFlipBookRows/Columns/Frames` on the same atlas, then confirm in game. Do not vendor wow-ui-source trees or atlas catalogs into this repo.
 - **Options preview:** Crosshair tab → `CM.SetCrosshairOptionsPreview` via tab `onSelect`/`onDeselect`; do not reuse mouselook-gated Show/Hide.
+
+**In-game checks:** cast feedback and Assist cast-success in the open world and in a dungeon (no errors from secret cast GUID compares; no double fire from assisted action + `UNIT_SPELLCAST_SUCCEEDED`; rapid Single-Button Assistant presses don't spam it); Target Lock lock / cycle / unlock in an instance; the Situational Appearance with both slots hidden hides the reticle while its condition holds.

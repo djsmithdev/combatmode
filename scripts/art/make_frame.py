@@ -3,7 +3,7 @@ pieces shared by make_feature_panel.py and make_cta.py.
 
     python make_frame.py [CONTENT_WIDTH CONTENT_HEIGHT]     (default 640 360)
 
-Writes three files next to this script (WxH in the name is the *content* size):
+Writes three files to dist/frame/ (WxH in the name is the *content* size):
   frame_overlay_WxH.png       exactly WxH: the metal band + inner shadow, for laying OVER an image or GIF
   frame_overlay_logo_WxH.png  the same with the cmtitle logo in the bottom-right corner
   frame_band_WxH.png          the metal band hugging the content (no padding), with the shadows
@@ -12,7 +12,7 @@ down) and an inner shadow (black fading in from the inside edge, darkening the c
 is bigger than the content by the shadow reach and band; the content goes under the
 transparent window, whose top-left corner is printed when the script runs.
 
-The metal is cropped from ../welcome_msg.png (an in-game screenshot of the framed panel). Functions used by the other scripts:
+The metal is cropped from media/welcome_msg.png (an in-game screenshot of the framed panel). Functions used by the other scripts:
   band(fw, fh)         the metal band as RGBA, opaque only on the band, outer corners cut diagonally
   inner_shadow(w, h)   black fading in from every edge of a w x h opening
   outer_shadow(fw, fh) soft drop shadow around a fw x fh frame, with the frame's own rectangle cut out
@@ -25,7 +25,9 @@ from PIL import Image, ImageFilter
 from PIL.PngImagePlugin import PngInfo
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SOURCE = os.path.join(HERE, "..", "welcome_msg.png")
+ROOT = os.path.dirname(os.path.dirname(HERE))
+SOURCE = os.path.join(ROOT, "media", "welcome_msg.png")
+OUT_DIR = os.path.join(ROOT, "dist", "frame")  # generated PNGs, gitignored
 
 # Frame band in welcome_msg.png (outer rect, inclusive): the image is cropped to the band's outer edge.
 X0, Y0, X1, Y1 = 0, 0, 539, 347
@@ -136,7 +138,7 @@ def build(cw, ch):
     return final, SHADOW_REACH + BT
 
 
-LOGO_PATH = os.path.join(HERE, "..", "..", "CombatMode", "Assets", "branding", "cmtitle.blp")
+LOGO_PATH = os.path.join(ROOT, "CombatMode", "Assets", "branding", "cmtitle.blp")
 LOGO_HEIGHT = 34  # px, the lettering only (the art's empty margins are cropped away)
 LOGO_MARGIN = 14  # distance from the metal band to the logo
 
@@ -165,16 +167,17 @@ def overlay(w, h, logo=False):
 def main():
     cw = int(sys.argv[1]) if len(sys.argv) > 2 else 640
     ch = int(sys.argv[2]) if len(sys.argv) > 2 else 360
+    os.makedirs(OUT_DIR, exist_ok=True)
     ov = overlay(cw, ch)
-    ov.save(os.path.join(HERE, f"frame_overlay_{cw}x{ch}.png"))
-    overlay(cw, ch, logo=True).save(os.path.join(HERE, f"frame_overlay_logo_{cw}x{ch}.png"))
+    ov.save(os.path.join(OUT_DIR, f"frame_overlay_{cw}x{ch}.png"))
+    overlay(cw, ch, logo=True).save(os.path.join(OUT_DIR, f"frame_overlay_logo_{cw}x{ch}.png"))
     print(f"frame_overlay_logo_{cw}x{ch}.png: the same with the cmtitle logo in the bottom-right corner")
     print(f"frame_overlay_{cw}x{ch}.png: {ov.width}x{ov.height} (lay it over a {cw}x{ch} image)")
     img, origin = build(cw, ch)
     meta = PngInfo()
     meta.add_text("acm_window", f"{cw}x{ch}@{origin}")
     meta.add_text("acm_crop", str(SHADOW_REACH + 1))  # pixels from the PNG edge to the metal
-    img.save(os.path.join(HERE, f"frame_band_{cw}x{ch}.png"), pnginfo=meta)
+    img.save(os.path.join(OUT_DIR, f"frame_band_{cw}x{ch}.png"), pnginfo=meta)
     print(f"frame_band_{cw}x{ch}.png: {img.width}x{img.height}, content goes at ({origin}, {origin})")
 
 

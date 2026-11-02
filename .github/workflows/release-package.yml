@@ -1,9 +1,19 @@
 name: Release Package
 
+# Packages CombatMode/ with the BigWigs packager and uploads it to CurseForge, Wago and the GitHub
+# release for `tag`. Called by release.yml; run it by hand (Actions > Run workflow) to retry a tag.
 on:
-  release:
-    types:
-      - published
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to package (e.g. 5.3.2)
+        type: string
+        required: true
 
 permissions:
   contents: write
@@ -12,13 +22,16 @@ jobs:
   package:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0 # the packager reads tags / history for the version
 
       # release.sh requires a directory at $topdir/.git when using -t.
       - name: Point CombatMode at repository git
         run: ln -sfn ../.git CombatMode/.git
 
+      # Never add -g retail: it would upload Mainline only (the TOC's Interface-* lines tag the flavors).
       - name: Package and publish addon
         uses: BigWigsMods/packager@v2
         env:

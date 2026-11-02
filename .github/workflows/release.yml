@@ -1,0 +1,85 @@
+name: Release
+
+# Merging the develop -> master release PR publishes a release: when the TOC's "## Version" has no
+# tag yet, tag it, create the GitHub release (notes = that CHANGELOG.md section), package to
+# CurseForge / Wago / the GitHub release, then announce on Discord. Pushes whose version is already
+# tagged (docs, CI tweaks) do nothing. Releases made with GITHUB_TOKEN don't fire other workflows'
+# `release` events, so packaging and Discord run here as reusable workflows.
+on:
+  push:
+    branches: [master]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      created: ${{ steps.tag.outputs.created }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Read version from the TOC
+        id: version
+        run: |
+          version=$(grep -m1 -E '^## Version:' CombatMode/CombatMode.toc | sed -E 's/^## Version:[[:space:]]*//' | tr -d '\r[:space:]')
+          if [ -z "$version" ]; then echo "::error::No '## Version:' in CombatMode/CombatMode.toc"; exit 1; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if already released
+        id: exists
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/$VERSION" >/dev/null; then
+            echo "Tag $VERSION already exists; nothing to release."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Release checks
+        if: steps.exists.outputs.exists == 'false'
+        shell: pwsh
+        run: ./scripts/check-repo.ps1 -Release
+
+      - name: Tag and create the GitHub release
+        id: tag
+        if: steps.exists.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 scripts/changelog-section.py "$VERSION" > "$RUNNER_TEMP/notes.md"
+          gh release create "$VERSION" --target "$GITHUB_SHA" --title "$VERSION" --notes-file "$RUNNER_TEMP/notes.md"
+          echo "created=true" >> "$GITHUB_OUTPUT"
+
+  package:
+    needs: release
+    if: needs.release.outputs.created == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release-package.yml
+    with:
+      tag: ${{ needs.release.outputs.version }}
+    secrets: inherit
+
+  discord:
+    needs: [release, package]
+    if: needs.release.outputs.created == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/discord-release.yml
+    with:
+      tag: ${{ needs.release.outputs.version }}
+    secrets: inherit

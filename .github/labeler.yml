@@ -1,0 +1,34 @@
+# Path -> label map for .github/workflows/labeler.yml. Missing labels are created on first use.
+crosshair:
+  - changed-files:
+      - any-glob-to-any-file: "CombatMode/Core/Crosshair/**"
+click-casting:
+  - changed-files:
+      - any-glob-to-any-file: ["CombatMode/Core/ClickCasting/**", "CombatMode/Bindings.xml"]
+freelook:
+  - changed-files:
+      - any-glob-to-any-file: ["CombatMode/Core/FreeLook/**", "CombatMode/Core/Vignette.lua"]
+ally-cycle:
+  - changed-files:
+      - any-glob-to-any-file: "CombatMode/Core/AllyCycle/**"
+radial-menu:
+  - changed-files:
+      - any-glob-to-any-file: "CombatMode/Core/RadialMenu/**"
+options-ui:
+  - changed-files:
+      - any-glob-to-any-file: "CombatMode/UI/**"
+runtime:
+  - changed-files:
+      - any-glob-to-any-file: ["CombatMode/Core/Runtime/**", "CombatMode/Core/Dev/**", "CombatMode/Constants/**", "CombatMode/Embeds.xml", "CombatMode/CombatMode.toc"]
+assets:
+  - changed-files:
+      - any-glob-to-any-file: ["CombatMode/Assets/**", "media/**"]
+changelog:
+  - changed-files:
+      - any-glob-to-any-file: "CombatMode/CHANGELOG.md"
+tooling:
+  - changed-files:
+      - any-glob-to-any-file: ["scripts/**", ".claude/**", "CLAUDE.md", "*.toml", ".pre-commit-config.yaml", ".pkgmeta", ".mcp.json", ".vscode/**"]
+ci:
+  - changed-files:
+      - any-glob-to-any-file: ".github/**"

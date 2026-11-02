@@ -1,0 +1,54 @@
+name: Bug report
+description: Something in Action Combat Mode doesn't work as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for the report! Please install [BugSack](https://www.curseforge.com/wow/addons/bugsack) + BugGrabber so Lua errors can be copied in full.
+  - type: input
+    id: version
+    attributes:
+      label: Addon version
+      description: Shown next to the title in the options window (`/cm`).
+      placeholder: "5.3.2"
+    validations:
+      required: true
+  - type: dropdown
+    id: client
+    attributes:
+      label: Game client
+      options:
+        - Retail (Mainline)
+        - Classic (Mists / Cata / progression)
+        - Classic Era / Anniversary
+        - Forever
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include whether it happens in combat, in a dungeon / raid, while mounted, etc.
+      placeholder: |
+        1. Enable Reticle Targeting
+        2. Enter combat
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Lua error
+      description: Paste the full BugSack text, if there was one.
+      render: text
+  - type: textarea
+    id: addons
+    attributes:
+      label: Other addons
+      description: Action bar, unit frame, camera or targeting addons especially (ElvUI, Bartender, OPie, SteadyCam, ...).

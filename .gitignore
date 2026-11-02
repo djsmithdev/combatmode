@@ -1,5 +1,6 @@
 dist/
 CombatMode/.git
+__pycache__/
 
 # Claude Code local settings (machine-specific; do not commit)
 .claude/settings.local.json
