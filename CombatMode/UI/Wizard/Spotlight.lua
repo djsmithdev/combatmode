@@ -17,8 +17,9 @@
 --      that element's frames and its padding): their union becomes a second hole with its own outline (so the crosshair is not
 --      dimmed), and the balloon moves to a spot that covers neither hole.
 --    • Slides: a step can pass screenshot paths; they show under the title in the README GIFs'
---      metal frame (one shared overlay texture) and loop in order, each held SLIDE_HOLD then
---      cross-faded into the next (the next waits underneath while the current one fades out).
+--      metal frame (one shared overlay texture) and loop in order, each held SLIDE_HOLD (or the
+--      step's `slideHold`) then cross-faded over SLIDE_FADE (or `slideFade`) into the next (the
+--      next waits underneath while the current one fades out).
 --    • Tasks: a step can list actions (label + done()) shown as a check list under the text; Next /
 --      Finish stay disabled until every one is done (re-checked a few times a second).
 --    • Between steps the whole spotlight fades out (UI.FadeOutSpotlight) while the options tab scrolls
@@ -68,8 +69,8 @@ local CHECK_TEXTURE = CM.Constants.CheckMark
 local SLIDE_W, SLIDE_H = 276, 155
 local SLIDE_TOP, SLIDE_BOTTOM = 16, 18
 local SLIDE_FRAME_W, SLIDE_FRAME_H = 340, 219
-local SLIDE_HOLD = 0.8 -- seconds each slide stays up
-local SLIDE_FADE = 0.2 -- cross-fade into the next one
+local SLIDE_HOLD = 0.8 -- seconds each slide stays up, unless the step passes `slideHold`
+local SLIDE_FADE = 0.2 -- cross-fade into the next one, unless the step passes `slideFade`
 local BODY_GAP = 10 -- rule (or slides) to body text
 
 local spotlight
@@ -435,6 +436,8 @@ local function Build()
     slides = {},
     slideIndex = 1,
     slideElapsed = 0,
+    slideHold = SLIDE_HOLD,
+    slideFade = SLIDE_FADE,
     step = step,
     back = back,
     next = nextButton,
@@ -474,8 +477,9 @@ local function Build()
     if count < 2 then
       return
     end
+    local hold, fade = self.slideHold, self.slideFade
     local t = self.slideElapsed + (elapsed or 0)
-    if t >= SLIDE_HOLD + SLIDE_FADE then
+    if t >= hold + fade then
       local shown, under = self.slideBack, self.slideFront
       self.slideFront, self.slideBack = shown, under
       shown:SetDrawLayer("ARTWORK", 1)
@@ -485,8 +489,8 @@ local function Build()
       self.slideIndex = self.slideIndex % count + 1
       under:SetTexture(slides[self.slideIndex % count + 1])
       t = 0
-    elseif t > SLIDE_HOLD then
-      self.slideFront:SetAlpha(1 - (t - SLIDE_HOLD) / SLIDE_FADE)
+    elseif t > hold then
+      self.slideFront:SetAlpha(1 - (t - hold) / fade)
     end
     self.slideElapsed = t
   end)
@@ -656,7 +660,7 @@ local function Build()
 end
 
 --- Shows the spotlight on `target` (a frame, or a list of frames) with the balloon described by `opts`:
---- { title, body (`{text}` is drawn in the accent colour, a blank line starts a new paragraph), slides (texture paths shown in order as a looping slideshow under the title), step ("3 / 7"), nextLabel, isLast (shows the accent Finish button), canGoBack, tasks ({ label, done() } list that gates Next / Finish), warning (red caution under the text), clip (frame the hole is cut to), alsoHighlight (function returning the live preview frames to leave undimmed), onNext, onBack, onSkip }.
+--- { title, body (`{text}` is drawn in the accent colour, a blank line starts a new paragraph), slides (texture paths shown in order as a looping slideshow under the title), slideHold (seconds per slide, default SLIDE_HOLD), slideFade (cross-fade seconds, default SLIDE_FADE), step ("3 / 7"), nextLabel, isLast (shows the accent Finish button), canGoBack, tasks ({ label, done() } list that gates Next / Finish), warning (red caution under the text), clip (frame the hole is cut to), alsoHighlight (function returning the live preview frames to leave undimmed), onNext, onBack, onSkip }.
 function UI.ShowSpotlight(target, opts)
   spotlight = spotlight or Build()
   local s = spotlight
@@ -683,6 +687,8 @@ function UI.ShowSpotlight(target, opts)
   -- Preview slides between the title rule and the text, restarting at the first one.
   local slides = opts.slides or {}
   s.slides = slides
+  s.slideHold = opts.slideHold or SLIDE_HOLD
+  s.slideFade = opts.slideFade or SLIDE_FADE
   s.slideIndex, s.slideElapsed = 1, 0
   s.body:ClearAllPoints()
   if #slides > 0 then

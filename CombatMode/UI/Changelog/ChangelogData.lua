@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Keybinds on the **Assist HUD** are shortened the way most action bar addons do it: Shift+F shows as "SF", mouse button 4 as "B4", mouse wheel up as "WU". The **Interact** key on the Interaction HUD uses the same short labels.
+- The **Setup Wizard** is shorter: the Excluded Spells and Advanced steps are gone. Both settings are still on their tabs.
 
 ## [5.3.1] - 2026-10-30
 

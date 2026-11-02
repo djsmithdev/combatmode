@@ -16,6 +16,10 @@
 </p>
 
 <p align="center">
+  <img src="media/cast_at_crosshair.gif">
+</p>
+
+<p align="center">
   <img src="media/mouse_look.gif">
 </p>
 
@@ -33,6 +37,10 @@
 
 <p align="center">
   <img src="media/radial_menu.gif">
+</p>
+
+<p align="center">
+  <img src="media/party_wheel.gif">
 </p>
 
 <p align="center">

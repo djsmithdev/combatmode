@@ -18,7 +18,7 @@
 --    • The dim never blocks the mouse, so every option keeps working while a step is shown.
 --    • Steps marked `preview` (Crosshair, Assist HUD, Ally HUD) also leave that one live element
 --      (crosshair, Assist HUD or Ally HUD) undimmed with its own outline, and the balloon keeps clear.
---    • Steps with `slides = { key, count }` show those screenshots (Assets/wizard/<key>_<n>.blp,
+--    • Steps with `slides = { key, count[, hold[, fade]] }` show those screenshots (Assets/wizard/<key>_<n>.blp,
 --      built by scripts/make-wizard-previews.py) flipping in order inside the balloon.
 --    • global.seenWizard is set when the tour finishes or is skipped (Skip / ESC).
 --    • Combat: Start waits for combat to end; entering combat mid-tour ends the tour.
@@ -56,7 +56,7 @@ end
 
 -- A step's `body` can use `{text}` for accent-coloured words, `{!text}` for red warning text and a blank line (`\n\n`) between paragraphs.
 -- A step may also carry `warning`: a caution shown in red under the text, and `slides`: { asset key,
--- screenshot count } shown as a looping slideshow between the title and the text.
+-- screenshot count, optional seconds per slide, optional cross-fade seconds } shown as a looping slideshow between the title and the text.
 -- A step highlights a whole section (`section` = its header title). `tasks` are the actions the
 -- step asks for: each shows as a check mark that fills in once `done()` is true, and Next stays
 -- disabled until all are. The order follows the sidebar tabs after the Mouse Look section.
@@ -65,7 +65,7 @@ local STEPS = {
     tab = "general",
     section = "MOUSE LOOK",
     title = "Mouse Look",
-    slides = { "mouselook", 5 },
+    slides = { "mouselook", 5, 0.3, 0.1 },
     body = "Lock your cursor to the center of the screen and steer by moving the mouse, "
       .. "no more holding right-click.\n\n"
       .. "Set a {key to toggle it}, and {one to interact with} whatever you're aiming at.",
@@ -110,12 +110,6 @@ local STEPS = {
   },
   {
     tab = "reticle",
-    label = "Excluded Spells",
-    title = "Excluded Spells",
-    body = "Spells that should skip or don't need the Reticle Targeting logic applied to them at all.\n\nType a {spell name or ID} to add it.",
-  },
-  {
-    tab = "reticle",
     label = "Cast at Crosshair",
     title = "Cast at Crosshair",
     slides = { "castatcrosshair", 3 },
@@ -131,7 +125,7 @@ local STEPS = {
     tab = "reticle",
     section = "TARGET LOCK",
     title = "Target Lock",
-    slides = { "targetlock", 3 },
+    slides = { "targetlock", 4 },
     body = "Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies.\n\n{Target Lock Behavior} decides whether tapping again unlocks ({Toggle}) or moves the lock to whatever is under the crosshair ({Switch Target}).\n\nSet your keys.",
     -- These keys can't be set while Reticle Targeting is off, so they don't block then.
     tasks = {
@@ -168,7 +162,7 @@ local STEPS = {
     tab = "radialmenu",
     section = "RADIAL MENU",
     title = "Radial Menu",
-    slides = { "radial", 5 },
+    slides = { "radial", 4 },
     body = "A wheel of your {spells, items, macros and shortcuts} that works in combat.\n\n"
       .. "Hold its key, move the mouse toward a slice and release to use it.\n\n"
       .. "{Scroll} to switch between wheels.",
@@ -185,7 +179,7 @@ local STEPS = {
     tab = "radialmenu",
     label = "Party Wheel Spells",
     title = "Party Wheel",
-    slides = { "partywheel", 6 },
+    slides = { "partywheel", 4 },
     body = "Hold the key of a {helpful spell} listed here to open a wheel of your group members. "
       .. "Move toward one and release to cast on them, or come back to the {center} to cast on yourself.\n\n"
       .. "{Tap} the key to cast on your friendly target, or yourself if you have none.\n\n"
@@ -198,7 +192,7 @@ local STEPS = {
     sectionEnd = "ALLY HUD",
     preview = "ally",
     title = "Ally Cycle",
-    slides = { "allycycle", 5 },
+    slides = { "allycycle", 3 },
     body = "Cycle through group members in Mouse Look so {helpful spells} go to the ally while {harmful ones} keep hitting your enemy.\n\nThe {Ally HUD} shows who is selected.\n\nSet your cycle keys.",
     tasks = {
       {
@@ -219,17 +213,9 @@ local STEPS = {
     tab = "autocursorunlock",
     section = "AUTO UNLOCK",
     title = "Auto Unlock",
-    slides = { "autounlock", 2 },
+    slides = { "autounlock", 5, 0.5 },
     body = "Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\n"
       .. "Add {mounts or extra windows} that should pause it too.",
-  },
-  {
-    tab = "advanced",
-    section = "SOUNDS",
-    sectionEnd = "RETICLE TARGETING",
-    title = "Advanced",
-    body = "Sound cues and power-user tools: {custom Lua conditions} and {Reticle Targeting editors}.",
-    warning = "Editing these can break Reticle Targeting and Target Lock. Only change them if you know what you are doing.",
   },
 }
 
@@ -372,6 +358,8 @@ function ShowStep(i)
       body = step.body,
       warning = step.warning,
       slides = SlidePaths(step.slides),
+      slideHold = step.slides and step.slides[3],
+      slideFade = step.slides and step.slides[4],
       step = i .. " / " .. #STEPS,
       nextLabel = last and "Finish" or "Next",
       isLast = last,
