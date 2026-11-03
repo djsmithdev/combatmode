@@ -46,7 +46,7 @@ jobs:
           GIT_DIR: ${{ github.workspace }}/.git
         run: |
           curl -fsSL -o "$RUNNER_TEMP/release.sh" \
-            https://raw.githubusercontent.com/BigWigsMods/packager/90e603be6bcdeff99fb7061105a36b829fa70970/release.sh
+            https://raw.githubusercontent.com/BigWigsMods/packager/e50a250f8705041e40f2fa1ddcb280a686d65aa0/release.sh
           GITHUB_EVENT_NAME=push GITHUB_REF="refs/tags/$TAG" GITHUB_REF_NAME="$TAG" \
             bash "$RUNNER_TEMP/release.sh" \
             -p "${{ vars.CURSEFORGE_PROJECT_ID }}" \
