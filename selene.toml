@@ -1,5 +1,4 @@
 std = "lua51"
-exclude = ["CombatMode/Libs/**"]
 
 [rules]
 undefined_variable = "deny"   # keep strict

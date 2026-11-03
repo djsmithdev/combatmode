@@ -19,7 +19,7 @@
 --    • Steps marked `preview` (Crosshair, Assist HUD, Ally HUD) also leave that one live element
 --      (crosshair, Assist HUD or Ally HUD) undimmed with its own outline, and the balloon keeps clear.
 --    • Steps with `slides = { key, count[, hold[, fade]] }` show those screenshots (Assets/wizard/<key>_<n>.blp,
---      built by scripts/make-wizard-previews.py) flipping in order inside the balloon.
+--      built by scripts/art/make-wizard-previews.py) flipping in order inside the balloon.
 --    • global.seenWizard is set when the tour finishes or is skipped (Skip / ESC).
 --    • Combat: Start waits for combat to end; entering combat mid-tour ends the tour.
 --  Does not: Cover every option (only the basics and the major features), or own any setting
@@ -179,7 +179,7 @@ local STEPS = {
     tab = "radialmenu",
     label = "Party Wheel Spells",
     title = "Party Wheel",
-    slides = { "partywheel", 4 },
+    slides = { "partywheel", 5 },
     body = "Hold the key of a {helpful spell} listed here to open a wheel of your group members. "
       .. "Move toward one and release to cast on them, or come back to the {center} to cast on yourself.\n\n"
       .. "{Tap} the key to cast on your friendly target, or yourself if you have none.\n\n"

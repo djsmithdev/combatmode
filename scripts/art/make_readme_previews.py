@@ -1,9 +1,9 @@
 """Build the README's feature GIFs from the same screenshots as the setup wizard's slides.
 
-    python media/frame/make_readme_previews.py [SOURCE_DIR] [FEATURE ...]
+    python scripts/art/make_readme_previews.py [SOURCE_DIR] [FEATURE ...]
 
 SOURCE_DIR (default: Desktop/previews) holds one folder per feature with numbered screenshots, the
-same input as scripts/make-wizard-previews.py. Each set is cropped the same way (16:9 around the
+same input as scripts/art/make-wizard-previews.py. Each set is cropped the same way (16:9 around the
 crosshair, crop_centre from that script), shown in order with the in-game timing (SLIDE_HOLD on each
 slide, a SLIDE_FADE cross-fade into the next, looping) as a CLIP_W x CLIP_H clip, then put in its README
 panel by make_feature_panel.py (title, description, frame, glow). Writes media/<name>.gif, at the
@@ -25,7 +25,7 @@ MEDIA = os.path.join(ROOT, "media")
 DEFAULT_SOURCE = os.path.join(os.path.expanduser("~"), "Desktop", "previews")
 
 sys.dont_write_bytecode = True  # no __pycache__ next to the scripts
-_spec = importlib.util.spec_from_file_location("wizard_previews", os.path.join(ROOT, "scripts", "make-wizard-previews.py"))
+_spec = importlib.util.spec_from_file_location("wizard_previews", os.path.join(HERE, "make-wizard-previews.py"))
 wizard = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(wizard)
 

@@ -90,39 +90,19 @@ Action Combat Mode is organized by **domain**. Runtime lives under `CombatMode/C
 | Domain | Owns |
 |--------|------|
 | **Runtime** | AddOn shell, events, CVars, binding queue, bootstrap (`Core/Runtime/`) |
-| **FreeLook** | Mouse look / mouselook state + auto cursor unlock |
-| **Crosshair** | Reticle, Assist HUD (next-cast suggestion and interactable indicator), Target Lock focus marker, cast animations |
-| **ClickCasting** | Mouse override bindings + targeting macro builder |
-| **AllyCycle** | Party/raid ally cycling + Ally HUD (secure UP/DOWN, help/harm macros) |
-| **Options toolkit** | Standalone options window + editors (`UI/Options/`, `UI/Editors/`) |
+| **FreeLook** | Mouse Look state, auto cursor unlock, flip camera, vignette |
+| **Crosshair** | Reticle, Assist HUD (next-cast suggestion and interactable indicator), Target Lock marker, cast animations |
+| **ClickCasting** | Mouse/key override bindings, Reticle Targeting macros, composed macros |
+| **AllyCycle** | Party/raid ally cycling + Ally HUD (secure Next/Previous, help/harm macros) |
+| **RadialMenu** | Radial Menu wheels and the Party Wheel |
+| **Options / Wizard** | Standalone options window, editors and the first-run setup wizard (`UI/`) |
 
-Load order and public entry points: **[STRUCTURE.md](STRUCTURE.md)**. Agent/contributor rules: **[CLAUDE.md](CLAUDE.md)**.
+Load order and public entry points: **[STRUCTURE.md](STRUCTURE.md)**.
 
 <br />
 
 ## <img width="20" height="20" src="media/cmlogo.svg"> CONTRIBUTING
 
-You can submit a PR with your contributions to [**Action Combat Mode's repository on GitHub**](https://github.com/djsmithdev/combatmode).
-
-### Developer quickstart
-
-1. Clone and install the addon into your Retail `Interface/AddOns` folder for local testing.
-2. Skim the [architecture table](#architecture) above, then [STRUCTURE.md](STRUCTURE.md) for load order.
-3. Follow [CONTRIBUTING.md](CONTRIBUTING.md) — especially the **first-hour path** (change a toggle, add a constant, secret-value rules).
-4. Run a focused manual pass from [TESTING.md](TESTING.md) for your changed features.
-5. Open a PR and complete `.github/PULL_REQUEST_TEMPLATE.md`. Use [RELEASE.md](RELEASE.md) when shipping a version.
-
-### Code Style & Linting
-
-- Install [StyLua](https://github.com/JohnnyMorganz/StyLua) and [Selene](https://github.com/Kampfkarren/selene).
-- Script index helper: `pwsh ./scripts/help.ps1`
-- Setup sanity helper: `pwsh ./scripts/dev-check.ps1`
-- Default changed-files helper: `pwsh ./scripts/lint-changed.ps1`
-- Default local gate (changed files): `pre-commit run --files <changed files>`
-- Tool-specific debug checks: `stylua --check <paths>`, `selene --config selene.toml <paths>`
-- Install pre-commit hooks (recommended):
-  - `pip install pre-commit`
-  - `pre-commit install`
-  - Release prep / full sweep only: `pre-commit run --all-files`
+Pull requests to [**Action Combat Mode's repository on GitHub**](https://github.com/ThericGames/combatmode) are welcome. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup, the PR flow and the automatic checks; architecture and coding rules are in **[CLAUDE.md](CLAUDE.md)**.
 
 <br />

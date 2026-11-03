@@ -1,0 +1,8 @@
+# Art: never diff or convert line endings.
+*.tga binary
+*.blp binary
+*.gif binary
+*.png binary
+
+# Generated from CombatMode/CHANGELOG.md by scripts/sync-changelog-to-lua.ps1: collapsed in PR diffs.
+CombatMode/UI/Changelog/ChangelogData.lua linguist-generated=true

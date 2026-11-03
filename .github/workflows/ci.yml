@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master, develop]
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Bump together with your local tools; scripts/dev-check.ps1 compares against these.
+  STYLUA_VERSION: "2.4.0"
+  SELENE_VERSION: "0.30.0"
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Install StyLua, Selene and pre-commit
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL -o /tmp/stylua.zip "https://github.com/JohnnyMorganz/StyLua/releases/download/v${STYLUA_VERSION}/stylua-linux-x86_64.zip"
+          curl -fsSL -o /tmp/selene.zip "https://github.com/Kampfkarren/selene/releases/download/${SELENE_VERSION}/selene-${SELENE_VERSION}-linux.zip"
+          unzip -o -q /tmp/stylua.zip -d "$HOME/.local/bin"
+          unzip -o -q /tmp/selene.zip -d "$HOME/.local/bin"
+          chmod +x "$HOME/.local/bin/stylua" "$HOME/.local/bin/selene"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          pip install pre-commit
+
+      - uses: actions/cache@v5
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      # StyLua --check style: the stylua hook rewrites files, so a formatting miss fails with a diff.
+      - name: pre-commit (StyLua, Selene, check-repo)
+        run: pre-commit run --all-files --show-diff-on-failure --color always
+
+  release-gate:
+    name: release-gate
+    if: github.event_name == 'pull_request' && github.base_ref == 'master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # tags, to compare the TOC version against the latest release
+
+      - name: Only develop releases into master
+        if: github.head_ref != 'develop'
+        run: |
+          echo "::error::master only takes the release PR from develop (got '${{ github.head_ref }}'). Target develop instead."
+          exit 1
+
+      - name: Release checks (version bump, dated changelog section, compare link)
+        shell: pwsh
+        run: ./scripts/check-repo.ps1 -Release

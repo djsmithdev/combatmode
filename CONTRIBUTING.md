@@ -1,88 +1,31 @@
-# Contributing to CombatMode
+# Contributing to Action Combat Mode
 
-Use this guide for day-to-day contributor workflow.
+Pull requests are welcome. This page covers setup and the PR flow; the architecture and coding rules live in [CLAUDE.md](CLAUDE.md), [`.claude/rules/`](.claude/rules/) and [STRUCTURE.md](STRUCTURE.md) (written for [Claude Code](https://claude.com/claude-code), but meant for people too).
 
-## Prerequisites
+## Setup
 
-- `stylua`
-- `selene`
-- `pre-commit`
-- WoW API MCP access is preferred for API validation (manual fallback is acceptable when MCP is unavailable)
-- Script index helper: `pwsh ./scripts/help.ps1`
+1. Clone the repo and link (or copy) `CombatMode/` into your `World of Warcraft/_retail_/Interface/AddOns/` folder.
+2. Install [StyLua](https://github.com/JohnnyMorganz/StyLua), [Selene](https://github.com/Kampfkarren/selene), [PowerShell 7](https://github.com/PowerShell/PowerShell) (`pwsh`), Python 3 and [pre-commit](https://pre-commit.com) (`pip install pre-commit`).
+3. `pre-commit install`, then `pwsh ./scripts/dev-check.ps1` (checks the tools and that StyLua / Selene match the versions CI pins).
+4. Optional: the Ketho [WoW API](https://marketplace.visualstudio.com/items?itemName=ketho.wow-api) VS Code extension. It gives Lua completion, and Claude Code's `wow-api` MCP server (`.mcp.json`) reads its annotations.
 
-## First-hour path
+## Making a change
 
-Start here before large refactors. Prefer the owning module over new files.
+- Branch from `develop` and open the PR against `develop`. `master` only receives release PRs.
+- Keep the change in the module that owns the feature (each Lua file's header says what it owns). New files go in `CombatMode/Embeds.xml` in load order.
+- Two rules cause most bugs: nothing protected (bindings, secure attributes) may change in combat, and on Retail many unit values are *secret* and can't be compared. See [`.claude/rules/lua-safety.md`](.claude/rules/lua-safety.md).
+- Player-facing changes get an entry in `CombatMode/CHANGELOG.md` under the current version, then `pwsh ./scripts/sync-changelog-to-lua.ps1` (the in-game changelog reads the generated `ChangelogData.lua`).
+- Before pushing: `pwsh ./scripts/lint-changed.ps1` (run it twice; the first run reformats).
 
-### Change a toggle (options → behavior)
+## Pull requests
 
-1. Find the setting in `CombatMode/UI/Options/Tabs/Tab*.lua` (get/set closures).
-2. Confirm the DB key lives in `CombatMode/Constants/DatabaseDefaults.lua` with the right scope (`global` vs `char`).
-3. Apply behavior in the **feature module** that owns it (`Core/FreeLook`, `Core/Crosshair`, …) — not in the tab file.
-4. If enable/disable touches mouselook, CVars, or bindings: keep **apply ↔ cleanup** symmetric and combat-safe (`InCombatLockdown` / defer).
+- **Title:** [Conventional Commits](https://www.conventionalcommits.org), as in the history: `feat: ...`, `fix(crosshair): ...`, `refactor: ...`.
+- **Body:** the template asks for a summary, the player impact and what you tested in game.
+- **Automatic checks:**
+  - `ci`: StyLua, Selene and `scripts/check-repo.ps1`, which covers changelog sync, TOC vs changelog version, `Embeds.xml` load order, LICENSE copies and TGA compression;
+  - `pr-title`: the title format;
+  - domain labels.
 
-### Add a constant
+## Releases (maintainers)
 
-1. Put static tables in `CombatMode/Constants/` (the domain file that already owns that concern: Assets, CVars, …). Colocate feature-only numbers in the owning module when they are not shared.
-2. Consume via `CM.Constants.*` from feature code — avoid magic numbers in hot paths.
-3. New files must be listed in `CombatMode/Embeds.xml` **before** their consumers.
-
-### Don’t compare `UnitGUID` (and friends) as truth
-
-Retail can return **secret** values. Comparing them with `==` / using them as table keys / truncating them for display can error or taint.
-
-- Prefer `UnitExists("unit")`, plate identity (`GetNamePlateForUnit`), and `issecretvalue` / `canaccessvalue` / `PublicBool`-style helpers already used in Crosshair / Ally Cycle HUD / Focus marker.
-- Full guardrails: `.claude/rules/lua-safety.md` (Secret values section).
-- When unsure, look at nearby code in the same module rather than inventing a new pattern.
-
-### Keep docs cold
-
-If you **move**, **rename**, or **re-order** modules:
-
-| Update | Why |
-|--------|-----|
-| `CombatMode/Embeds.xml` | Load order |
-| `STRUCTURE.md` | Human map |
-| `.claude/rules/domain-*.md` | Per-domain gotchas for AI agents |
-| Touched file headers | What this module owns / does not |
-
-Policy: see "Working agreements" in `CLAUDE.md`. Do **not** leave STRUCTURE or headers stale after a move.
-
-## Working with Claude Code
-
-`CLAUDE.md` (project brief), `.claude/rules/` (path-scoped Lua safety and per-domain notes) and `.claude/skills/` (`/finish-change`, `/changelog`, `/new-option`, `/new-module`, `/release`) load automatically in Claude Code. The `wow-api` MCP server (`.mcp.json`, launched by `scripts/wow-api-mcp.ps1`) needs the Ketho "WoW API" VS Code extension installed. Edited Lua files are auto-formatted with StyLua by a hook.
-
-## Default local workflow
-
-1. Make your code changes.
-2. **Lint:**
-   - Preferred: `pwsh ./scripts/lint-changed.ps1`
-   - Equivalent: `pre-commit run --files <changed files>`
-3. **Version + changelog (when ready to bump):** agents ask before doing this; humans can wait until shipping a version or preparing a PR that should bump.
-   - Bump `## Version` in `CombatMode/CombatMode.toc` (SemVer).
-   - Update `CombatMode/CHANGELOG.md` (Keep a Changelog; match TOC version).
-   - Run `pwsh ./scripts/sync-changelog-to-lua.ps1` so `CombatMode/UI/Changelog/ChangelogData.lua` matches the in-game viewer.
-4. **Profile performance (optional):** toggle the Debug Mode ON in the options panel to start the built-in profiler, play your scenario, toggle it OFF to dump the report (see `TESTING.md`).
-5. Run focused runtime checks from `TESTING.md` for touched features.
-6. Open your PR.
-
-## When to run full-repo checks
-
-Use full sweep only for release prep or explicit maintainer request:
-
-- `pre-commit run --all-files`
-
-## API validation policy
-
-- MCP-first for changed WoW APIs/events:
-  - `lookup_api`, `list_deprecated`, `get_event`, `get_enum`
-- Manual fallback:
-  - verify changes against Warcraft Wiki API docs and event payload docs
-
-## PR minimum checklist
-
-- Changed-files lint passes (`lint-changed.ps1` / pre-commit).
-- If this PR bumps a version: TOC, `CHANGELOG.md`, and changelog sync script are all updated together.
-- Feature behavior verified with focused testing (`TESTING.md`).
-- Architecture moves updated Embeds + STRUCTURE + architecture rule + headers (see **Keep docs cold**).
-- Any process/rule/documentation updates included when workflow changed.
+Bump `## Version` in `CombatMode/CombatMode.toc`, date the changelog section and add its compare link on `develop`, then merge a `develop → master` PR with a merge commit. `.github/workflows/release.yml` tags the version, creates the GitHub release, packages to CurseForge / Wago and posts to Discord. In Claude Code, ask it to release and it walks through this.

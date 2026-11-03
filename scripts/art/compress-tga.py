@@ -1,9 +1,10 @@
 """Losslessly RLE-compress uncompressed truecolor TGAs under CombatMode/Assets.
 
-Usage: python scripts/compress-tga.py [--check] [path ...]
-Default path is CombatMode/Assets. --check only reports; without it files are
-rewritten in place, and only when the RLE result is smaller and decodes back to
-the exact same pixels. Already-RLE files are left alone, so re-running is safe.
+Usage: python scripts/art/compress-tga.py [--check] [path ...]
+Default path is CombatMode/Assets. --check only reports, and exits 1 when a
+file still needs compressing (CI uses it); without it files are rewritten in
+place, and only when the RLE result is smaller and decodes back to the exact
+same pixels. Already-RLE files are left alone, so re-running is safe.
 """
 import os
 import struct
@@ -82,9 +83,9 @@ def main():
     args = sys.argv[1:]
     write = "--check" not in args
     roots = [a for a in args if not a.startswith("--")] or [
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "CombatMode", "Assets")
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "CombatMode", "Assets")
     ]
-    before = after = failed = 0
+    before = after = failed = pending = 0
     for root in roots:
         for dp, _, fs in os.walk(root):
             for f in sorted(fs):
@@ -97,8 +98,11 @@ def main():
                 if status == "FAILED verify":
                     failed += 1
                     print("FAILED:", p)
+                elif status == "ok" and not write:
+                    pending += 1
+                    print("needs compressing:", p)
     print("%s: %.1f MB -> %.1f MB" % ("rewritten" if write else "would be", before / 1e6, after / 1e6))
-    sys.exit(1 if failed else 0)
+    sys.exit(1 if failed or pending else 0)
 
 
 main()

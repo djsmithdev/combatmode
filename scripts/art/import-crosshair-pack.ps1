@@ -20,7 +20,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$repoRoot = Split-Path -Parent $PSScriptRoot
+$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $outDir = Join-Path $repoRoot "CombatMode/Assets/crosshair/pack"
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
