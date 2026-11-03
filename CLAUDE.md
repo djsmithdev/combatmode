@@ -26,7 +26,7 @@ Action-combat controls for World of Warcraft: Mouse Look + a reticle replace tab
 
 ## Branches and CI
 
-- Work lands on `develop` through PRs to `djsmithdev/combatmode` (`/open-pr`); a `develop → master` PR is a release (`/release`), and merging it tags, packages and announces automatically (`release.yml`). Never tag or create GitHub releases by hand.
+- Work lands on `develop` through PRs to `ThericGames/combatmode` (`/open-pr`); a `develop → master` PR is a release (`/release`), and merging it tags, packages and announces automatically (`release.yml`). Never tag or create GitHub releases by hand.
 - Every PR runs `ci` (pre-commit: StyLua, Selene, `check-repo`; plus `check-repo -Release` into master), a Conventional Commits title check and path labels.
 
 ## Working agreements

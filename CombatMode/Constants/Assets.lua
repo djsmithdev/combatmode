@@ -93,7 +93,7 @@ CM.Constants.WizardSlideFrame = assetsFolderPath .. "wizard\\preview_frame.tga"
 CM.Constants.DiscordIcon = brandingPath .. "discord.blp"
 CM.Constants.GitHubIcon = brandingPath .. "github.blp"
 CM.Constants.DiscordURL = "https://www.discord.gg/5mwBSmz"
-CM.Constants.GitHubURL = "https://github.com/djsmithdev/combatmode"
+CM.Constants.GitHubURL = "https://github.com/ThericGames/combatmode"
 -- Combat Assist icon shell: background and mask are Blizzard atlases; the frame (84x74 TGA, ring
 -- on the left with a pointer on the right), glow and cooldown swipe are addon textures.
 CM.Constants.AssistedSpellIconBackground = "UI-Journeys-Delve-rewardicon-ring-BG"
