@@ -11,7 +11,7 @@ Merging a `develop → master` PR publishes the release. `.github/workflows/rele
 ## 1. Prepare on `develop`
 
 1. Pick the SemVer bump with the user. Set `## Version` in `CombatMode/CombatMode.toc`.
-2. In `CombatMode/CHANGELOG.md`, give the current section its version and date (`## [x.y.z] - YYYY-MM-DD`), add `[x.y.z]: https://github.com/djsmithdev/combatmode/compare/<previous>...x.y.z` at the bottom and move `[Unreleased]` to compare from `x.y.z`. The hook syncs `ChangelogData.lua`.
+2. In `CombatMode/CHANGELOG.md`, give the current section its version and date (`## [x.y.z] - YYYY-MM-DD`), add `[x.y.z]: https://github.com/ThericGames/combatmode/compare/<previous>...x.y.z` at the bottom and move `[Unreleased]` to compare from `x.y.z`. The hook syncs `ChangelogData.lua`.
 3. TOC sanity:
    - `## Interface` lists the current Mainline, Forever and Classic builds (comma-delimited, so each client accepts the unsuffixed TOC);
    - keep the `## Interface-{Forever,Mists,Cata,Titan,Wrath,BCC,Classic}` lines so the packager tags those flavors; never add `-g retail` to `release-package.yml` (that uploads Mainline only);
@@ -21,12 +21,12 @@ Merging a `develop → master` PR publishes the release. `.github/workflows/rele
 
 ## 2. Release PR
 
-1. Commit on `develop` (`chore: release x.y.z`), push, then `gh pr create --repo djsmithdev/combatmode --base master --head develop --title "chore: release x.y.z"`. Body: the changelog section, then a **Player impact** list (bindings, CVars, settings migrations, removed options) and the in-game areas to smoke test (`/ingame-test` on `git diff <last tag>...develop`).
+1. Commit on `develop` (`chore: release x.y.z`), push, then `gh pr create --repo ThericGames/combatmode --base master --head develop --title "chore: release x.y.z"`. Body: the changelog section, then a **Player impact** list (bindings, CVars, settings migrations, removed options) and the in-game areas to smoke test (`/ingame-test` on `git diff <last tag>...develop`).
 2. CI runs the same gate (`release-gate` job). Merge with a **merge commit** (not squash) so `develop` and `master` don't diverge.
 
 ## 3. After the merge
 
-- `gh run list --workflow release.yml --repo djsmithdev/combatmode`: release, package and discord jobs green.
+- `gh run list --workflow release.yml --repo ThericGames/combatmode`: release, package and discord jobs green.
 - The GitHub release has `CombatMode-x.y.z.zip`; new files on [CurseForge](https://www.curseforge.com/wow/addons/combat-mode) and [Wago](https://addons.wago.io/addons/combat-mode).
 - Rerun a failed step with the **Release Package** / **Discord Release Notification** workflow's *Run workflow* button (tag input).
 
