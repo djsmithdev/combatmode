@@ -16,6 +16,6 @@ Run in order; skip steps that don't apply (e.g. pure docs edits skip 1-3).
 3. **Test plan** — run `/ingame-test` for the in-game checklist.
 4. **Lint + repo checks** — `pwsh ./scripts/lint-changed.ps1`, **twice** (first run reformats with StyLua; it also runs `check-repo`: changelog sync, TOC/changelog version, `Embeds.xml` load order, LICENSE, TGA compression). Fix Selene findings (unused locals, declaration order) and any `[FAIL]`.
 5. **Docs/headers** — edited Lua files keep the standard header; ownership/load-order moves update `Embeds.xml`, `STRUCTURE.md`, the matching `.claude/rules/domain-*.md`. Standalone editors register in `Embeds.xml` after the `UI/Options` toolkit.
-6. **Version/changelog — ask first.** Don't bump the TOC or edit `CHANGELOG.md` unless the user agrees; then use the `changelog` skill. Never commit unless asked; `/open-pr` handles commit + PR when the user wants one.
+6. **Version/changelog — ask first.** Don't bump the TOC or edit `CHANGELOG.md` unless the user agrees; then use the `changelog` skill. Never commit unless asked; when the user says to, commit on `develop` (Conventional Commits title, only this change's files) and push it directly, no branch or PR.
 
 Report what was verified and what still needs an in-game check.

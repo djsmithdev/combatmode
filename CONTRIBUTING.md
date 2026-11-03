@@ -28,4 +28,4 @@ Pull requests are welcome. This page covers setup and the PR flow; the architect
 
 ## Releases (maintainers)
 
-Bump `## Version` in `CombatMode/CombatMode.toc`, date the changelog section and add its compare link on `develop`, then merge a `develop → master` PR with a merge commit. `.github/workflows/release.yml` tags the version, creates the GitHub release, packages to CurseForge / Wago and posts to Discord. In Claude Code, `/release` walks through it.
+Bump `## Version` in `CombatMode/CombatMode.toc`, date the changelog section and add its compare link on `develop`, then merge a `develop → master` PR with a merge commit. `.github/workflows/release.yml` tags the version, creates the GitHub release, packages to CurseForge / Wago and posts to Discord. In Claude Code, ask it to release and it walks through this.

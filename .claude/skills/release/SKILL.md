@@ -1,7 +1,6 @@
 ---
 name: release
-description: Prepare an addon release on develop — version bump, dated changelog section and compare links, release gate, then the develop → master PR whose merge publishes automatically. Only when the user asks to ship or finalize a version.
-disable-model-invocation: true
+description: Prepare an addon release on develop — version bump, dated changelog section and compare links, release gate, then the develop → master PR whose merge publishes automatically. Use when the user asks to release, ship or publish a version.
 ---
 
 # Release
@@ -21,7 +20,7 @@ Merging a `develop → master` PR publishes the release. `.github/workflows/rele
 
 ## 2. Release PR
 
-1. Commit on `develop` (`chore: release x.y.z`), push, then `gh pr create --repo ThericGames/combatmode --base master --head develop --title "chore: release x.y.z"`. Body: the changelog section, then a **Player impact** list (bindings, CVars, settings migrations, removed options) and the in-game areas to smoke test (`/ingame-test` on `git diff <last tag>...develop`).
+1. Commit straight to `develop` (`chore: release x.y.z`; no branch, `develop` takes direct pushes), push, then `gh pr create --repo ThericGames/combatmode --base master --head develop --title "chore: release x.y.z"`. Body: the changelog section, then a **Player impact** list (bindings, CVars, settings migrations, removed options) and the in-game areas to smoke test (`/ingame-test` on `git diff <last tag>...develop`).
 2. CI runs the same gate (`release-gate` job). Merge with a **merge commit** (not squash) so `develop` and `master` don't diverge.
 
 ## 3. After the merge
