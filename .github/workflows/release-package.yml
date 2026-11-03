@@ -31,19 +31,26 @@ jobs:
       - name: Point CombatMode at repository git
         run: ln -sfn ../.git CombatMode/.git
 
-      # Never add -g retail: it would upload Mainline only (the TOC's Interface-* lines tag the flavors).
+      # The packager's own script (BigWigsMods/packager v2, pinned), run directly instead of through the
+      # action: called from release.yml this job inherits the push-to-master context, and release.sh
+      # skips a branch push whose HEAD is already tagged ("Found future tag"). The inline GITHUB_* values
+      # make it see a tag build. Never add -g retail: it would upload Mainline only (the TOC's
+      # Interface-* lines tag the flavors).
       - name: Package and publish addon
-        uses: BigWigsMods/packager@v2
         env:
+          TAG: ${{ inputs.tag }}
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
           GIT_WORK_TREE: ${{ github.workspace }}
           GIT_DIR: ${{ github.workspace }}/.git
-        with:
-          args: >-
-            -p "${{ vars.CURSEFORGE_PROJECT_ID }}"
-            -a "${{ vars.WAGO_PROJECT_ID }}"
-            -n "CombatMode-{project-version}"
-            -t CombatMode
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/release.sh" \
+            https://raw.githubusercontent.com/BigWigsMods/packager/90e603be6bcdeff99fb7061105a36b829fa70970/release.sh
+          GITHUB_EVENT_NAME=push GITHUB_REF="refs/tags/$TAG" GITHUB_REF_NAME="$TAG" \
+            bash "$RUNNER_TEMP/release.sh" \
+            -p "${{ vars.CURSEFORGE_PROJECT_ID }}" \
+            -a "${{ vars.WAGO_PROJECT_ID }}" \
+            -n "CombatMode-{project-version}" \
+            -t CombatMode \
             -m .pkgmeta
