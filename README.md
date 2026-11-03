@@ -103,6 +103,6 @@ Load order and public entry points: **[STRUCTURE.md](STRUCTURE.md)**.
 
 ## <img width="20" height="20" src="media/cmlogo.svg"> CONTRIBUTING
 
-Pull requests to [**Action Combat Mode's repository on GitHub**](https://github.com/djsmithdev/combatmode) are welcome. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup, the PR flow and the automatic checks; architecture and coding rules are in **[CLAUDE.md](CLAUDE.md)**.
+Pull requests to [**Action Combat Mode's repository on GitHub**](https://github.com/ThericGames/combatmode) are welcome. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup, the PR flow and the automatic checks; architecture and coding rules are in **[CLAUDE.md](CLAUDE.md)**.
 
 <br />
