@@ -828,7 +828,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/ThericGames/combatmode/compare/5.3.0...HEAD
+[Unreleased]: https://github.com/ThericGames/combatmode/compare/5.3.2...HEAD
+[5.3.2]: https://github.com/ThericGames/combatmode/compare/5.3.1...5.3.2
+[5.3.1]: https://github.com/ThericGames/combatmode/compare/5.3.0...5.3.1
 [5.3.0]: https://github.com/ThericGames/combatmode/compare/5.2.5...5.3.0
 [5.0.5]: https://github.com/ThericGames/combatmode/compare/5.0.4...5.0.5
 [5.0.4]: https://github.com/ThericGames/combatmode/compare/5.0.3...5.0.4
