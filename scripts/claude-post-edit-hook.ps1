@@ -13,7 +13,7 @@ try { $payload = $raw | ConvertFrom-Json } catch { exit 0 }
 $path = $payload.tool_input.file_path
 if (-not $path -or -not (Test-Path -LiteralPath $path)) { exit 0 }
 
-$normalized = $path -replace '\', '/'
+$normalized = $path -replace '\\', '/'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
 if ($normalized -match '/CombatMode/CHANGELOG\.md$') {
