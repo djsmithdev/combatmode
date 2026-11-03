@@ -179,7 +179,7 @@ local STEPS = {
     tab = "radialmenu",
     label = "Party Wheel Spells",
     title = "Party Wheel",
-    slides = { "partywheel", 4 },
+    slides = { "partywheel", 5 },
     body = "Hold the key of a {helpful spell} listed here to open a wheel of your group members. "
       .. "Move toward one and release to cast on them, or come back to the {center} to cast on yourself.\n\n"
       .. "{Tap} the key to cast on your friendly target, or yourself if you have none.\n\n"
