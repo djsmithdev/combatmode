@@ -26,12 +26,12 @@ Action-combat controls for World of Warcraft: Mouse Look + a reticle replace tab
 
 ## Branches and CI
 
-- Work lands on `develop` through PRs to `ThericGames/combatmode` (`/open-pr`); a `develop → master` PR is a release (`/release`), and merging it tags, packages and announces automatically (`release.yml`). Never tag or create GitHub releases by hand.
+- Solo workflow on `ThericGames/combatmode`: commit and push straight to `develop` (no feature branches or PRs; its ruleset only blocks deletion and force pushes). `master` is protected: it only takes the `develop → master` PR, which is a release (`release` skill, when the user says to release), and merging it tags, packages and announces automatically (`release.yml`). Never tag or create GitHub releases by hand.
 - Every PR runs `ci` (pre-commit: StyLua, Selene, `check-repo`; plus `check-repo -Release` into master), a Conventional Commits title check and path labels.
 
 ## Working agreements
 
-- **Ask before** committing, bumping `## Version` in the TOC, pushing, or posting to GitHub. Changelog entries go in the current version section. Recipes: `/finish-change`, `/changelog`, `/open-pr`, `/release`, `/new-option`, `/new-module`. Audits: `/secret-audit`, `/secure-audit`. Test plan: `/ingame-test`.
+- **Ask before** committing, bumping `## Version` in the TOC, pushing, or posting to GitHub. Changelog entries go in the current version section. Use the skills yourself when they fit; the user won't name them: `finish-change`, `changelog`, `release`, `new-option`, `new-module`, audits `secret-audit` / `secure-audit`, test plan `ingame-test`.
 - **WoW API facts:** `wow-api` MCP first (`lookup_api`, `get_event`, `get_enum`, `list_deprecated`…), then existing code, then Blizzard's UI source (`https://github.com/Gethe/wow-ui-source`: default frame/template/mixin behavior; branches `live`, `ptr`, `beta` for patch diffs, `forever`, `classic`, `classic_era` for the other clients), then warcraft.wiki.gg. Say so if the MCP is down.
 - **Headers:** every edited/new `CombatMode/**.lua` keeps the header: `Path/File.lua — DOMAIN — title`, then *What it does / Architecture / Does not / Related*.
 - **Architecture moves** (rename, move responsibility, load order) update `Embeds.xml`, `STRUCTURE.md`, the matching `domain-*.md` and the touched headers in the same change. Prefer API-preserving moves.
