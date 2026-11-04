@@ -642,3 +642,16 @@ L["Clear World Markers"] = true
 L["Interface"] = true
 L["Misc"] = true
 L["Wheel %d"] = true
+
+-- Runtime: composed macro messages, changelog tooltip
+L["Your character macro list is full."] = true
+L["Your general macro list is full."] = true
+L["Cannot delete a macro while in combat."] = true
+L["Cannot save a macro while in combat."] = true
+L["Enter a macro name."] = true
+L["Macro names are limited to %d characters."] = true
+L["Enter the macro text to run after the targeting preline."] = true
+L["Macro is %d characters over the %d limit."] = true
+L["Macro “%s” no longer fits with the current preline; edit it from Reticle Targeting Macros."] =
+  true
+L["Click to print URL to chat"] = true

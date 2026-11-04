@@ -744,3 +744,21 @@ L["Clear World Markers"] = "공대 위치 표시 해제"
 L["Interface"] = "인터페이스"
 L["Misc"] = "기타"
 L["Wheel %d"] = "휠 %d"
+
+-- Runtime: composed macro messages, changelog tooltip
+L["Your character macro list is full."] = "캐릭터 매크로 목록이 가득 찼습니다."
+L["Your general macro list is full."] = "공용 매크로 목록이 가득 찼습니다."
+L["Cannot delete a macro while in combat."] =
+  "전투 중에는 매크로를 삭제할 수 없습니다."
+L["Cannot save a macro while in combat."] =
+  "전투 중에는 매크로를 저장할 수 없습니다."
+L["Enter a macro name."] = "매크로 이름을 입력하세요."
+L["Macro names are limited to %d characters."] =
+  "매크로 이름은 %d자까지 입력할 수 있습니다."
+L["Enter the macro text to run after the targeting preline."] =
+  "대상 지정 사전 줄 뒤에 실행할 매크로 내용을 입력하세요."
+L["Macro is %d characters over the %d limit."] =
+  "매크로가 %d자 초과했습니다 (제한 %d자)."
+L["Macro “%s” no longer fits with the current preline; edit it from Reticle Targeting Macros."] =
+  "매크로 「%s」이(가) 현재 사전 줄과 함께 들어가지 않습니다. 조준선 대상 지정 매크로에서 편집하세요."
+L["Click to print URL to chat"] = "클릭하여 URL을 대화창에 출력"

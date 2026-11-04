@@ -785,3 +785,22 @@ L["Clear World Markers"] = "Убрать метки на земле"
 L["Interface"] = "Интерфейс"
 L["Misc"] = "Разное"
 L["Wheel %d"] = "Круг %d"
+
+-- Runtime: composed macro messages, changelog tooltip
+L["Your character macro list is full."] =
+  "Список макросов вашего персонажа заполнен."
+L["Your general macro list is full."] =
+  "Список ваших общих макросов заполнен."
+L["Cannot delete a macro while in combat."] = "Нельзя удалить макрос в бою."
+L["Cannot save a macro while in combat."] =
+  "Нельзя сохранить макрос в бою."
+L["Enter a macro name."] = "Введите название макроса."
+L["Macro names are limited to %d characters."] =
+  "Название макроса не может быть длиннее %d символов."
+L["Enter the macro text to run after the targeting preline."] =
+  "Введите текст макроса, который выполнится после предстроки наведения."
+L["Macro is %d characters over the %d limit."] =
+  "Макрос превышает лимит на %d символов (лимит: %d)."
+L["Macro “%s” no longer fits with the current preline; edit it from Reticle Targeting Macros."] =
+  "Макрос «%s» больше не помещается с текущей предстрокой; измените его в разделе макросов наведения по прицелу."
+L["Click to print URL to chat"] = "Нажмите, чтобы вывести ссылку в чат"

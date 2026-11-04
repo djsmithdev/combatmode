@@ -746,3 +746,17 @@ L["Clear World Markers"] = "Weltmarkierungen entfernen"
 L["Interface"] = "Menüs"
 L["Misc"] = "Sonstiges"
 L["Wheel %d"] = "Rad %d"
+
+-- Runtime: composed macro messages, changelog tooltip
+L["Your character macro list is full."] = "Deine Charaktermakroliste ist voll."
+L["Your general macro list is full."] = "Deine allgemeine Makroliste ist voll."
+L["Cannot delete a macro while in combat."] = "Makros können im Kampf nicht gelöscht werden."
+L["Cannot save a macro while in combat."] = "Makros können im Kampf nicht gespeichert werden."
+L["Enter a macro name."] = "Gib einen Makronamen ein."
+L["Macro names are limited to %d characters."] = "Makronamen sind auf %d Zeichen begrenzt."
+L["Enter the macro text to run after the targeting preline."] =
+  "Gib den Makrotext ein, der nach der Zielvorzeile ausgeführt werden soll."
+L["Macro is %d characters over the %d limit."] = "Das Makro ist %d Zeichen über dem Limit von %d."
+L["Macro “%s” no longer fits with the current preline; edit it from Reticle Targeting Macros."] =
+  "Das Makro „%s“ passt mit der aktuellen Vorzeile nicht mehr; bearbeite es unter Fadenkreuz-Zielerfassungs-Makros."
+L["Click to print URL to chat"] = "Klicken, um die URL im Chat auszugeben"

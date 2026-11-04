@@ -723,3 +723,18 @@ L["Clear World Markers"] = "清除世界标记"
 L["Interface"] = "界面"
 L["Misc"] = "杂项"
 L["Wheel %d"] = "轮盘 %d"
+
+-- Runtime: composed macro messages, changelog tooltip
+L["Your character macro list is full."] = "你的角色宏列表已满。"
+L["Your general macro list is full."] = "你的通用宏列表已满。"
+L["Cannot delete a macro while in combat."] = "战斗中无法删除宏。"
+L["Cannot save a macro while in combat."] = "战斗中无法保存宏。"
+L["Enter a macro name."] = "请输入宏名称。"
+L["Macro names are limited to %d characters."] = "宏名称最多 %d 个字符。"
+L["Enter the macro text to run after the targeting preline."] =
+  "请输入在瞄准前置行之后执行的宏内容。"
+L["Macro is %d characters over the %d limit."] =
+  "宏超出长度上限 %d 个字符（上限 %d）。"
+L["Macro “%s” no longer fits with the current preline; edit it from Reticle Targeting Macros."] =
+  "宏“%s”与当前前置行合并后已超出长度限制；请在准星瞄准宏中编辑。"
+L["Click to print URL to chat"] = "点击将 URL 输出到聊天"

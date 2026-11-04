@@ -512,7 +512,7 @@ UI.Options.AddTab({
       desc = L["Pulls the camera toward your locked target, keeping it in focus."],
       watermarkWhenDisabled = function()
         if CM.MotionSicknessProtectionOn and CM.MotionSicknessProtectionOn() == true then
-          return "Disabled while Motion Sickness Protection is on"
+          return L["Disabled while Motion Sickness Protection is on"]
         end
         return nil
       end,

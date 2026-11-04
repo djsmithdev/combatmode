@@ -153,7 +153,7 @@ end
 -- not part of the CrosshairTextures catalog, so the editor grid never lists it.
 CM.Constants.CrosshairNoneId = "none"
 do
-  local noneEntry = { id = "none", path = "", label = "Hidden", group = "none" }
+  local noneEntry = { id = "none", path = "", label = L["Hidden"], group = "none" }
   CM.Constants.CrosshairTextureById.none = noneEntry
   CM.Constants.CrosshairTextureIdByPath[""] = "none"
 end
