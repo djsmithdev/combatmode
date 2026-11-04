@@ -486,3 +486,48 @@ L["Warning: editing these values could break Reticle Targeting and Target Lock."
   "Attention : modifier ces valeurs pourrait casser le ciblage par réticule et le verrouillage de cible."
 L["Reticle Targeting CVar Editor"] = "Éditeur de CVars du ciblage par réticule"
 L["Targeting Macro Prelines Editor"] = "Éditeur de prélignes de macro de ciblage"
+
+-- SetupWizard.lua / Spotlight.lua: setup wizard
+L["Back"] = "Retour"
+L["Next"] = "Suivant"
+L["Finish"] = "Terminer"
+L["Skip tour"] = "Passer la visite"
+L["Assist HUD"] = "HUD d'assistance"
+L["Target Lock"] = "Verrouillage de cible"
+L["Party Wheel"] = "Roue de groupe"
+L["Set a Mouse Look key"] = "Définissez une touche de vue à la souris"
+L["Set an Interact key"] = "Définissez une touche d'interaction"
+L["Set a Target Lock key"] = "Définissez une touche de verrouillage de cible"
+L["Set a Cycle Lock - Next key"] = "Définissez une touche Cycle de verrouillage – Suivant"
+L["Set a Cycle Lock - Previous key"] =
+  "Définissez une touche Cycle de verrouillage – Précédent"
+L["Set a Radial Menu key"] = "Définissez une touche du menu radial"
+L["Set an Ally Cycle - Next key"] = "Définissez une touche Cycle d'alliés – Suivant"
+L["Set an Ally Cycle - Previous key"] = "Définissez une touche Cycle d'alliés – Précédent"
+L["Turning Reticle Targeting on or off reloads the UI."] =
+  "Activer ou désactiver le ciblage par réticule recharge l'interface."
+L["Needs Reticle Targeting."] = "Nécessite le ciblage par réticule."
+L["Lock your cursor to the center of the screen and steer by moving the mouse, no more holding right-click.\n\nSet a {key to toggle it}, and {one to interact with} whatever you're aiming at."] =
+  "Verrouillez votre curseur au centre de l'écran et dirigez-vous en bougeant la souris, sans maintenir le clic droit.\n\nDéfinissez une {touche pour l'activer} et {une pour interagir} avec ce que vous visez."
+L["A reactive, fully customizable crosshair that adapts to your target and combat state.\n\nChoose its {look}, {size} and {position}."] =
+  "Un réticule réactif et entièrement personnalisable qui s'adapte à votre cible et à l'état de combat.\n\nChoisissez son {apparence}, sa {taille} et sa {position}."
+L["Aim at an enemy and the HUD next to your crosshair suggests your {next spell} and shows its key.\n\nAim at something you can interact with and it shows its {name} and your {Interact key} instead.\n\nTurn either on or off, and set its {side}, {size} and {distance} from the crosshair."] =
+  "Visez un ennemi et le HUD à côté de votre réticule suggère votre {prochain sort} et affiche sa touche.\n\nVisez quelque chose avec quoi interagir et il affiche son {nom} et votre {touche d'interaction}.\n\nActivez ou désactivez chacun, et réglez son {côté}, sa {taille} et sa {distance} par rapport au réticule."
+L["Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.\n\n{Ignore Friendlies} makes it skip allies."] =
+  "Ciblez les ennemis simplement en les visant et lancez sorts au sol et capacités de zone exactement là où pointe votre réticule, sans ciblage par tabulation.\n\n{Ignorer les amis} lui fait ignorer les alliés."
+L["Ground-targeted spells that should be cast at the crosshair location.\n\nType a {spell name or ID} to add it."] =
+  "Sorts au sol qui doivent être lancés à l'emplacement du réticule.\n\nSaisissez un {nom ou ID de sort} pour l'ajouter."
+L["{!Action buttons that are macros cannot inherit Reticle Targeting on their own.}\n\nPress {+} to open the {Macro Composer}, write your macro there and it gets the targeting logic added for you.\n\nThen drag it from this list onto your action bars; {right-click} an icon to edit it."] =
+  "{!Les boutons d'action qui sont des macros ne peuvent pas hériter seuls du ciblage par réticule.}\n\nAppuyez sur {+} pour ouvrir le {Compositeur de macros}, écrivez-y votre macro et la logique de ciblage sera ajoutée pour vous.\n\nFaites-la ensuite glisser depuis cette liste vers vos barres d'action ; {clic droit} sur une icône pour la modifier."
+L["Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies.\n\n{Target Lock Behavior} decides whether tapping again unlocks ({Toggle}) or moves the lock to whatever is under the crosshair ({Switch Target}).\n\nSet your keys."] =
+  "Verrouillez une cible d'une pression pour que le réticule cesse de changer. Une fois verrouillé, les touches de cycle passent aux ennemis proches.\n\n{Comportement du verrouillage de cible} décide si une nouvelle pression déverrouille ({Basculer}) ou déplace le verrou sur ce qui est sous le réticule ({Changer de cible}).\n\nDéfinissez vos touches."
+L["Turn your mouse clicks into actions while in Mouse Look, such as casting your action bar spells with {Left and Right Click}.\n\nPick what each click does, with or without a {modifier key}."] =
+  "Transformez vos clics de souris en actions pendant la vue à la souris, par exemple lancer les sorts de votre barre d'action avec {clic gauche et droit}.\n\nChoisissez ce que fait chaque clic, avec ou sans {touche de modification}."
+L["A wheel of your {spells, items, macros and shortcuts} that works in combat.\n\nHold its key, move the mouse toward a slice and release to use it.\n\n{Scroll} to switch between wheels."] =
+  "Une roue de vos {sorts, objets, macros et raccourcis} utilisable en combat.\n\nMaintenez sa touche, déplacez la souris vers une part et relâchez pour l'utiliser.\n\n{Faites défiler} pour passer d'une roue à l'autre."
+L["Hold the key of a {helpful spell} listed here to open a wheel of your group members. Move toward one and release to cast on them, or come back to the {center} to cast on yourself.\n\n{Tap} the key to cast on your friendly target, or yourself if you have none.\n\nType a {spell name or ID} to add it."] =
+  "Maintenez la touche d'un {sort bénéfique} listé ici pour ouvrir une roue de vos membres de groupe. Déplacez-vous vers l'un d'eux et relâchez pour lancer le sort sur lui, ou revenez au {centre} pour le lancer sur vous.\n\n{Appuyez brièvement} sur la touche pour lancer sur votre cible amie, ou sur vous-même si vous n'en avez pas.\n\nSaisissez un {nom ou ID de sort} pour l'ajouter."
+L["Cycle through group members in Mouse Look so {helpful spells} go to the ally while {harmful ones} keep hitting your enemy.\n\nThe {Ally HUD} shows who is selected.\n\nSet your cycle keys."] =
+  "Parcourez les membres du groupe en vue à la souris pour que les {sorts bénéfiques} aillent à l'allié tandis que les {sorts offensifs} continuent de frapper votre ennemi.\n\nLe {HUD d'allié} indique qui est sélectionné.\n\nDéfinissez vos touches de cycle."
+L["Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\nAdd {mounts or extra windows} that should pause it too."] =
+  "La vue à la souris se met en pause quand vous ouvrez {les sacs, la carte ou d'autres fenêtres}, puis reprend.\n\nAjoutez des {montures ou fenêtres supplémentaires} qui doivent aussi la mettre en pause."

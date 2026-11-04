@@ -469,3 +469,47 @@ L["Warning: editing these values could break Reticle Targeting and Target Lock."
   "警告：編輯這些值可能會導致準星瞄準和目標鎖定失效。"
 L["Reticle Targeting CVar Editor"] = "準星瞄準 CVar 編輯器"
 L["Targeting Macro Prelines Editor"] = "瞄準巨集前置行編輯器"
+
+-- SetupWizard.lua / Spotlight.lua: setup wizard
+L["Back"] = "上一步"
+L["Next"] = "下一步"
+L["Finish"] = "完成"
+L["Skip tour"] = "跳過導覽"
+L["Assist HUD"] = "輔助 HUD"
+L["Target Lock"] = "目標鎖定"
+L["Party Wheel"] = "隊伍輪盤"
+L["Set a Mouse Look key"] = "設定滑鼠視角按鍵"
+L["Set an Interact key"] = "設定互動按鍵"
+L["Set a Target Lock key"] = "設定目標鎖定按鍵"
+L["Set a Cycle Lock - Next key"] = "設定「循環鎖定 - 下一個」按鍵"
+L["Set a Cycle Lock - Previous key"] = "設定「循環鎖定 - 上一個」按鍵"
+L["Set a Radial Menu key"] = "設定輪盤選單按鍵"
+L["Set an Ally Cycle - Next key"] = "設定「友方循環 - 下一個」按鍵"
+L["Set an Ally Cycle - Previous key"] = "設定「友方循環 - 上一個」按鍵"
+L["Turning Reticle Targeting on or off reloads the UI."] =
+  "開啟或關閉準星瞄準會重新載入介面。"
+L["Needs Reticle Targeting."] = "需要準星瞄準。"
+L["Lock your cursor to the center of the screen and steer by moving the mouse, no more holding right-click.\n\nSet a {key to toggle it}, and {one to interact with} whatever you're aiming at."] =
+  "將游標鎖定在螢幕中央，透過移動滑鼠來轉向，無需再按住右鍵。\n\n設定一個{切換按鍵}，以及一個與瞄準目標{互動的按鍵}。"
+L["A reactive, fully customizable crosshair that adapts to your target and combat state.\n\nChoose its {look}, {size} and {position}."] =
+  "可依據目標和戰鬥狀態自動變化、完全可自訂的準星。\n\n選擇它的{外觀}、{大小}和{位置}。"
+L["Aim at an enemy and the HUD next to your crosshair suggests your {next spell} and shows its key.\n\nAim at something you can interact with and it shows its {name} and your {Interact key} instead.\n\nTurn either on or off, and set its {side}, {size} and {distance} from the crosshair."] =
+  "瞄準敵人時，準星旁的 HUD 會建議你的{下一個法術}並顯示其按鍵。\n\n瞄準可互動的目標時，則顯示其{名稱}和你的{互動按鍵}。\n\n可分別開啟或關閉，並設定它相對準星的{方位}、{大小}和{距離}。"
+L["Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.\n\n{Ignore Friendlies} makes it skip allies."] =
+  "只需瞄準即可選定敵人，並將指向性法術和範圍技能直接施放在準星所指之處，無需 Tab 選目標。\n\n{忽略友方}會讓它跳過友方。"
+L["Ground-targeted spells that should be cast at the crosshair location.\n\nType a {spell name or ID} to add it."] =
+  "應在準星位置施放的指向性法術。\n\n輸入{法術名稱或 ID}即可新增。"
+L["{!Action buttons that are macros cannot inherit Reticle Targeting on their own.}\n\nPress {+} to open the {Macro Composer}, write your macro there and it gets the targeting logic added for you.\n\nThen drag it from this list onto your action bars; {right-click} an icon to edit it."] =
+  "{!作為巨集的動作按鈕無法自行繼承準星瞄準。}\n\n點擊 {+} 開啟{巨集編輯器}，在其中編寫巨集，系統會自動為其加入瞄準邏輯。\n\n然後將它從此清單拖到你的動作列上；{右鍵點擊}圖示可進行編輯。"
+L["Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies.\n\n{Target Lock Behavior} decides whether tapping again unlocks ({Toggle}) or moves the lock to whatever is under the crosshair ({Switch Target}).\n\nSet your keys."] =
+  "一鍵鎖定目標，讓準星不再切換。鎖定期間，循環按鍵會跳到附近的敵人。\n\n{目標鎖定行為}決定再次按鍵是解除鎖定（{切換}），還是將鎖定轉移到準星下的目標（{切換目標}）。\n\n設定你的按鍵。"
+L["Turn your mouse clicks into actions while in Mouse Look, such as casting your action bar spells with {Left and Right Click}.\n\nPick what each click does, with or without a {modifier key}."] =
+  "在滑鼠視角下將滑鼠點擊變為動作，例如用{左鍵和右鍵}施放動作列上的法術。\n\n選擇每次點擊的功能，可搭配或不搭配{修飾鍵}。"
+L["A wheel of your {spells, items, macros and shortcuts} that works in combat.\n\nHold its key, move the mouse toward a slice and release to use it.\n\n{Scroll} to switch between wheels."] =
+  "在戰鬥中也可使用的{法術、物品、巨集和捷徑}輪盤。\n\n按住按鍵，將滑鼠移向某個扇區，放開即可使用。\n\n{滾動滾輪}可切換輪盤。"
+L["Hold the key of a {helpful spell} listed here to open a wheel of your group members. Move toward one and release to cast on them, or come back to the {center} to cast on yourself.\n\n{Tap} the key to cast on your friendly target, or yourself if you have none.\n\nType a {spell name or ID} to add it."] =
+  "按住此處列出的{增益法術}的按鍵，開啟隊伍成員輪盤。移向某位成員並放開即可對其施放，回到{中心}則對自己施放。\n\n{輕按}按鍵則對你的友方目標施放，沒有目標時對自己施放。\n\n輸入{法術名稱或 ID}即可新增。"
+L["Cycle through group members in Mouse Look so {helpful spells} go to the ally while {harmful ones} keep hitting your enemy.\n\nThe {Ally HUD} shows who is selected.\n\nSet your cycle keys."] =
+  "在滑鼠視角下循環切換隊伍成員，讓{增益法術}作用於友方，而{傷害法術}仍打向敵人。\n\n{友方 HUD}會顯示目前選中的成員。\n\n設定你的循環按鍵。"
+L["Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\nAdd {mounts or extra windows} that should pause it too."] =
+  "開啟{背包、地圖或其他視窗}時滑鼠視角會暫停，關閉後恢復。\n\n新增同樣需要使其暫停的{坐騎或額外框架}。"

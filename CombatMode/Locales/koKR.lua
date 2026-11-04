@@ -487,3 +487,47 @@ L["Warning: editing these values could break Reticle Targeting and Target Lock."
   "경고: 이 값을 수정하면 조준선 대상 지정과 대상 고정이 작동하지 않을 수 있습니다."
 L["Reticle Targeting CVar Editor"] = "조준선 대상 지정 CVar 편집기"
 L["Targeting Macro Prelines Editor"] = "대상 지정 매크로 프리라인 편집기"
+
+-- SetupWizard.lua / Spotlight.lua: setup wizard
+L["Back"] = "뒤로"
+L["Next"] = "다음"
+L["Finish"] = "완료"
+L["Skip tour"] = "둘러보기 건너뛰기"
+L["Assist HUD"] = "보조 HUD"
+L["Target Lock"] = "대상 고정"
+L["Party Wheel"] = "파티 휠"
+L["Set a Mouse Look key"] = "마우스 룩 단축키 지정"
+L["Set an Interact key"] = "상호작용 단축키 지정"
+L["Set a Target Lock key"] = "대상 고정 단축키 지정"
+L["Set a Cycle Lock - Next key"] = "고정 순환 - 다음 단축키 지정"
+L["Set a Cycle Lock - Previous key"] = "고정 순환 - 이전 단축키 지정"
+L["Set a Radial Menu key"] = "방사형 메뉴 단축키 지정"
+L["Set an Ally Cycle - Next key"] = "아군 순환 - 다음 단축키 지정"
+L["Set an Ally Cycle - Previous key"] = "아군 순환 - 이전 단축키 지정"
+L["Turning Reticle Targeting on or off reloads the UI."] =
+  "조준선 대상 지정을 켜거나 끄면 UI가 다시 불러와집니다."
+L["Needs Reticle Targeting."] = "조준선 대상 지정이 필요합니다."
+L["Lock your cursor to the center of the screen and steer by moving the mouse, no more holding right-click.\n\nSet a {key to toggle it}, and {one to interact with} whatever you're aiming at."] =
+  "커서를 화면 중앙에 고정하고 마우스를 움직여 방향을 조절합니다. 더 이상 오른쪽 클릭을 누르고 있을 필요가 없습니다.\n\n{전환 단축키}와 조준 중인 대상과 {상호작용하는 단축키}를 지정하세요."
+L["A reactive, fully customizable crosshair that adapts to your target and combat state.\n\nChoose its {look}, {size} and {position}."] =
+  "대상과 전투 상태에 따라 반응하는, 완전히 사용자 지정 가능한 조준점입니다.\n\n{모양}, {크기}, {위치}를 선택하세요."
+L["Aim at an enemy and the HUD next to your crosshair suggests your {next spell} and shows its key.\n\nAim at something you can interact with and it shows its {name} and your {Interact key} instead.\n\nTurn either on or off, and set its {side}, {size} and {distance} from the crosshair."] =
+  "적을 조준하면 조준점 옆의 HUD가 {다음 주문}을 추천하고 단축키를 보여줍니다.\n\n상호작용할 수 있는 대상을 조준하면 대신 그 {이름}과 {상호작용 단축키}를 보여줍니다.\n\n각각 켜거나 끌 수 있으며 조준점에 대한 {방향}, {크기}, {거리}를 설정하세요."
+L["Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.\n\n{Ignore Friendlies} makes it skip allies."] =
+  "적을 조준하는 것만으로 대상을 지정하고, 지면 지정 주문과 광역 능력을 Tab 대상 지정 없이 조준점이 가리키는 곳에 바로 사용하세요.\n\n{아군 무시}를 켜면 아군을 건너뜁니다."
+L["Ground-targeted spells that should be cast at the crosshair location.\n\nType a {spell name or ID} to add it."] =
+  "조준점 위치에 시전할 지면 지정 주문입니다.\n\n{주문 이름 또는 ID}를 입력해 추가하세요."
+L["{!Action buttons that are macros cannot inherit Reticle Targeting on their own.}\n\nPress {+} to open the {Macro Composer}, write your macro there and it gets the targeting logic added for you.\n\nThen drag it from this list onto your action bars; {right-click} an icon to edit it."] =
+  "{!매크로인 행동 버튼은 조준선 대상 지정을 스스로 적용받을 수 없습니다.}\n\n{+}를 눌러 {매크로 작성기}를 열고 매크로를 작성하면 대상 지정 로직이 자동으로 추가됩니다.\n\n그런 다음 이 목록에서 행동 단축바로 끌어다 놓으세요. 아이콘을 {오른쪽 클릭}하면 편집할 수 있습니다."
+L["Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies.\n\n{Target Lock Behavior} decides whether tapping again unlocks ({Toggle}) or moves the lock to whatever is under the crosshair ({Switch Target}).\n\nSet your keys."] =
+  "한 번 눌러 대상을 고정하면 조준점이 더 이상 대상을 바꾸지 않습니다. 고정 중에는 순환 단축키가 근처 적으로 넘어갑니다.\n\n{대상 고정 동작}은 다시 눌렀을 때 해제할지({전환}) 조준점 아래의 대상으로 고정을 옮길지({대상 교체}) 정합니다.\n\n단축키를 지정하세요."
+L["Turn your mouse clicks into actions while in Mouse Look, such as casting your action bar spells with {Left and Right Click}.\n\nPick what each click does, with or without a {modifier key}."] =
+  "마우스 룩 중에 마우스 클릭을 동작으로 바꿉니다. 예를 들어 {왼쪽·오른쪽 클릭}으로 행동 단축바의 주문을 시전할 수 있습니다.\n\n{보조 키}를 함께 쓰거나 쓰지 않고 각 클릭이 하는 일을 정하세요."
+L["A wheel of your {spells, items, macros and shortcuts} that works in combat.\n\nHold its key, move the mouse toward a slice and release to use it.\n\n{Scroll} to switch between wheels."] =
+  "전투 중에도 사용할 수 있는 {주문, 아이템, 매크로, 바로가기} 휠입니다.\n\n단축키를 누른 채 마우스를 조각 쪽으로 움직이고 놓으면 사용됩니다.\n\n{스크롤}하여 휠을 전환하세요."
+L["Hold the key of a {helpful spell} listed here to open a wheel of your group members. Move toward one and release to cast on them, or come back to the {center} to cast on yourself.\n\n{Tap} the key to cast on your friendly target, or yourself if you have none.\n\nType a {spell name or ID} to add it."] =
+  "여기에 등록된 {이로운 주문}의 단축키를 누르고 있으면 파티원 휠이 열립니다. 한 명 쪽으로 움직이고 놓으면 그에게 시전하고, {중앙}으로 돌아오면 자신에게 시전합니다.\n\n단축키를 {짧게 누르면} 우호적 대상에게, 없으면 자신에게 시전합니다.\n\n{주문 이름 또는 ID}를 입력해 추가하세요."
+L["Cycle through group members in Mouse Look so {helpful spells} go to the ally while {harmful ones} keep hitting your enemy.\n\nThe {Ally HUD} shows who is selected.\n\nSet your cycle keys."] =
+  "마우스 룩 중에 파티원을 순환하면 {이로운 주문}은 아군에게, {해로운 주문}은 계속 적에게 적용됩니다.\n\n{아군 HUD}가 선택된 대상을 보여줍니다.\n\n순환 단축키를 지정하세요."
+L["Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\nAdd {mounts or extra windows} that should pause it too."] =
+  "{가방, 지도 또는 다른 창}을 열면 마우스 룩이 일시 중지되었다가 다시 시작됩니다.\n\n마찬가지로 일시 중지시킬 {탈것이나 추가 창}을 등록하세요."

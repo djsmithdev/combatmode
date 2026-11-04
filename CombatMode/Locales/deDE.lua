@@ -487,3 +487,47 @@ L["Warning: editing these values could break Reticle Targeting and Target Lock."
   "Warnung: Das Ändern dieser Werte kann die Fadenkreuz-Zielerfassung und die Zielsperre beeinträchtigen."
 L["Reticle Targeting CVar Editor"] = "Fadenkreuz-Zielerfassung: CVar-Editor"
 L["Targeting Macro Prelines Editor"] = "Editor für Zielerfassungs-Makro-Prelines"
+
+-- SetupWizard.lua / Spotlight.lua: setup wizard
+L["Back"] = "Zurück"
+L["Next"] = "Weiter"
+L["Finish"] = "Fertig"
+L["Skip tour"] = "Tour überspringen"
+L["Assist HUD"] = "Assistenz-HUD"
+L["Target Lock"] = "Zielsperre"
+L["Party Wheel"] = "Gruppenrad"
+L["Set a Mouse Look key"] = "Mausblick-Taste festlegen"
+L["Set an Interact key"] = "Interaktionstaste festlegen"
+L["Set a Target Lock key"] = "Zielsperre-Taste festlegen"
+L["Set a Cycle Lock - Next key"] = "Taste „Sperre wechseln – Nächster“ festlegen"
+L["Set a Cycle Lock - Previous key"] = "Taste „Sperre wechseln – Vorheriger“ festlegen"
+L["Set a Radial Menu key"] = "Radialmenü-Taste festlegen"
+L["Set an Ally Cycle - Next key"] = "Taste „Verbündetenwechsel – Nächster“ festlegen"
+L["Set an Ally Cycle - Previous key"] = "Taste „Verbündetenwechsel – Vorheriger“ festlegen"
+L["Turning Reticle Targeting on or off reloads the UI."] =
+  "Das Ein- oder Ausschalten der Fadenkreuz-Zielerfassung lädt die Benutzeroberfläche neu."
+L["Needs Reticle Targeting."] = "Benötigt die Fadenkreuz-Zielerfassung."
+L["Lock your cursor to the center of the screen and steer by moving the mouse, no more holding right-click.\n\nSet a {key to toggle it}, and {one to interact with} whatever you're aiming at."] =
+  "Fixiere deinen Cursor in der Bildschirmmitte und steuere durch Mausbewegung, ohne die rechte Maustaste zu halten.\n\nLege eine {Taste zum Umschalten} fest und eine {zum Interagieren} mit dem, worauf du zielst."
+L["A reactive, fully customizable crosshair that adapts to your target and combat state.\n\nChoose its {look}, {size} and {position}."] =
+  "Ein reaktives, vollständig anpassbares Fadenkreuz, das sich an dein Ziel und den Kampfstatus anpasst.\n\nWähle {Aussehen}, {Größe} und {Position}."
+L["Aim at an enemy and the HUD next to your crosshair suggests your {next spell} and shows its key.\n\nAim at something you can interact with and it shows its {name} and your {Interact key} instead.\n\nTurn either on or off, and set its {side}, {size} and {distance} from the crosshair."] =
+  "Ziele auf einen Feind, und das HUD neben deinem Fadenkreuz schlägt deinen {nächsten Zauber} vor und zeigt dessen Taste.\n\nZiele auf etwas, mit dem du interagieren kannst, und es zeigt stattdessen dessen {Namen} und deine {Interaktionstaste}.\n\nSchalte beides ein oder aus und lege {Seite}, {Größe} und {Abstand} zum Fadenkreuz fest."
+L["Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.\n\n{Ignore Friendlies} makes it skip allies."] =
+  "Erfasse Feinde allein durch Zielen und platziere Bodenzauber und Flächenfähigkeiten genau dort, wohin dein Fadenkreuz zeigt, ganz ohne Tab-Zielwahl.\n\n{Freundliche ignorieren} lässt Verbündete aus."
+L["Ground-targeted spells that should be cast at the crosshair location.\n\nType a {spell name or ID} to add it."] =
+  "Bodenzauber, die an der Position des Fadenkreuzes gewirkt werden sollen.\n\nGib einen {Zaubernamen oder eine ID} ein, um ihn hinzuzufügen."
+L["{!Action buttons that are macros cannot inherit Reticle Targeting on their own.}\n\nPress {+} to open the {Macro Composer}, write your macro there and it gets the targeting logic added for you.\n\nThen drag it from this list onto your action bars; {right-click} an icon to edit it."] =
+  "{!Aktionsschaltflächen, die Makros sind, können die Fadenkreuz-Zielerfassung nicht von selbst übernehmen.}\n\nDrücke {+}, um den {Makro-Composer} zu öffnen. Schreibe dort dein Makro, und die Zielerfassungslogik wird automatisch ergänzt.\n\nZiehe es dann aus dieser Liste auf deine Aktionsleisten; per {Rechtsklick} auf ein Symbol bearbeitest du es."
+L["Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies.\n\n{Target Lock Behavior} decides whether tapping again unlocks ({Toggle}) or moves the lock to whatever is under the crosshair ({Switch Target}).\n\nSet your keys."] =
+  "Fixiere mit einem Tastendruck ein Ziel, damit das Fadenkreuz nicht mehr wechselt. Solange gesperrt, springen die Wechseltasten zu Feinden in der Nähe.\n\n{Verhalten der Zielsperre} legt fest, ob erneutes Drücken entsperrt ({Umschalten}) oder die Sperre auf das verschiebt, was unter dem Fadenkreuz liegt ({Ziel wechseln}).\n\nLege deine Tasten fest."
+L["Turn your mouse clicks into actions while in Mouse Look, such as casting your action bar spells with {Left and Right Click}.\n\nPick what each click does, with or without a {modifier key}."] =
+  "Verwandle deine Mausklicks im Mausblick in Aktionen, etwa um Zauber deiner Aktionsleiste per {Links- und Rechtsklick} zu wirken.\n\nWähle, was jeder Klick bewirkt, mit oder ohne {Zusatztaste}."
+L["A wheel of your {spells, items, macros and shortcuts} that works in combat.\n\nHold its key, move the mouse toward a slice and release to use it.\n\n{Scroll} to switch between wheels."] =
+  "Ein Rad mit deinen {Zaubern, Gegenständen, Makros und Kürzeln}, das auch im Kampf funktioniert.\n\nHalte die Taste, bewege die Maus zu einem Segment und lasse los, um es zu nutzen.\n\n{Scrolle}, um zwischen Rädern zu wechseln."
+L["Hold the key of a {helpful spell} listed here to open a wheel of your group members. Move toward one and release to cast on them, or come back to the {center} to cast on yourself.\n\n{Tap} the key to cast on your friendly target, or yourself if you have none.\n\nType a {spell name or ID} to add it."] =
+  "Halte die Taste eines hier aufgelisteten {hilfreichen Zaubers}, um ein Rad deiner Gruppenmitglieder zu öffnen. Bewege dich zu einem und lasse los, um ihn zu wirken, oder kehre in die {Mitte} zurück, um auf dich selbst zu wirken.\n\n{Tippe} die Taste kurz an, um auf dein freundliches Ziel zu wirken, oder auf dich selbst, wenn du keines hast.\n\nGib einen {Zaubernamen oder eine ID} ein, um ihn hinzuzufügen."
+L["Cycle through group members in Mouse Look so {helpful spells} go to the ally while {harmful ones} keep hitting your enemy.\n\nThe {Ally HUD} shows who is selected.\n\nSet your cycle keys."] =
+  "Wechsle im Mausblick durch Gruppenmitglieder, sodass {hilfreiche Zauber} den Verbündeten treffen, während {schädliche} weiter deinen Feind treffen.\n\nDas {Verbündeten-HUD} zeigt, wer ausgewählt ist.\n\nLege deine Wechseltasten fest."
+L["Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\nAdd {mounts or extra windows} that should pause it too."] =
+  "Der Mausblick pausiert, wenn du {Taschen, die Karte oder andere Fenster} öffnest, und läuft danach weiter.\n\nFüge {Reittiere oder zusätzliche Fenster} hinzu, die ihn ebenfalls pausieren sollen."

@@ -401,3 +401,46 @@ L["Modify Action Combat Mode's default Reticle Targeting CVars and Targeting Mac
 L["Warning: editing these values could break Reticle Targeting and Target Lock."] = true
 L["Reticle Targeting CVar Editor"] = true
 L["Targeting Macro Prelines Editor"] = true
+
+-- SetupWizard.lua / Spotlight.lua: setup wizard
+L["Back"] = true
+L["Next"] = true
+L["Finish"] = true
+L["Skip tour"] = true
+L["Assist HUD"] = true
+L["Target Lock"] = true
+L["Party Wheel"] = true
+L["Set a Mouse Look key"] = true
+L["Set an Interact key"] = true
+L["Set a Target Lock key"] = true
+L["Set a Cycle Lock - Next key"] = true
+L["Set a Cycle Lock - Previous key"] = true
+L["Set a Radial Menu key"] = true
+L["Set an Ally Cycle - Next key"] = true
+L["Set an Ally Cycle - Previous key"] = true
+L["Turning Reticle Targeting on or off reloads the UI."] = true
+L["Needs Reticle Targeting."] = true
+L["Lock your cursor to the center of the screen and steer by moving the mouse, no more holding right-click.\n\nSet a {key to toggle it}, and {one to interact with} whatever you're aiming at."] =
+  true
+L["A reactive, fully customizable crosshair that adapts to your target and combat state.\n\nChoose its {look}, {size} and {position}."] =
+  true
+L["Aim at an enemy and the HUD next to your crosshair suggests your {next spell} and shows its key.\n\nAim at something you can interact with and it shows its {name} and your {Interact key} instead.\n\nTurn either on or off, and set its {side}, {size} and {distance} from the crosshair."] =
+  true
+L["Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.\n\n{Ignore Friendlies} makes it skip allies."] =
+  true
+L["Ground-targeted spells that should be cast at the crosshair location.\n\nType a {spell name or ID} to add it."] =
+  true
+L["{!Action buttons that are macros cannot inherit Reticle Targeting on their own.}\n\nPress {+} to open the {Macro Composer}, write your macro there and it gets the targeting logic added for you.\n\nThen drag it from this list onto your action bars; {right-click} an icon to edit it."] =
+  true
+L["Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies.\n\n{Target Lock Behavior} decides whether tapping again unlocks ({Toggle}) or moves the lock to whatever is under the crosshair ({Switch Target}).\n\nSet your keys."] =
+  true
+L["Turn your mouse clicks into actions while in Mouse Look, such as casting your action bar spells with {Left and Right Click}.\n\nPick what each click does, with or without a {modifier key}."] =
+  true
+L["A wheel of your {spells, items, macros and shortcuts} that works in combat.\n\nHold its key, move the mouse toward a slice and release to use it.\n\n{Scroll} to switch between wheels."] =
+  true
+L["Hold the key of a {helpful spell} listed here to open a wheel of your group members. Move toward one and release to cast on them, or come back to the {center} to cast on yourself.\n\n{Tap} the key to cast on your friendly target, or yourself if you have none.\n\nType a {spell name or ID} to add it."] =
+  true
+L["Cycle through group members in Mouse Look so {helpful spells} go to the ally while {harmful ones} keep hitting your enemy.\n\nThe {Ally HUD} shows who is selected.\n\nSet your cycle keys."] =
+  true
+L["Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\nAdd {mounts or extra windows} that should pause it too."] =
+  true

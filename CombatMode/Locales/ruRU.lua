@@ -510,3 +510,51 @@ L["Warning: editing these values could break Reticle Targeting and Target Lock."
 L["Reticle Targeting CVar Editor"] = "Редактор CVar наведения по прицелу"
 L["Targeting Macro Prelines Editor"] =
   "Редактор преднастроек макросов наведения"
+
+-- SetupWizard.lua / Spotlight.lua: setup wizard
+L["Back"] = "Назад"
+L["Next"] = "Далее"
+L["Finish"] = "Готово"
+L["Skip tour"] = "Пропустить обзор"
+L["Assist HUD"] = "HUD помощника"
+L["Target Lock"] = "Захват цели"
+L["Party Wheel"] = "Колесо группы"
+L["Set a Mouse Look key"] = "Назначьте клавишу обзора мышью"
+L["Set an Interact key"] = "Назначьте клавишу взаимодействия"
+L["Set a Target Lock key"] = "Назначьте клавишу захвата цели"
+L["Set a Cycle Lock - Next key"] =
+  "Назначьте клавишу «Смена захвата – Следующий»"
+L["Set a Cycle Lock - Previous key"] =
+  "Назначьте клавишу «Смена захвата – Предыдущий»"
+L["Set a Radial Menu key"] = "Назначьте клавишу радиального меню"
+L["Set an Ally Cycle - Next key"] =
+  "Назначьте клавишу «Смена союзника – Следующий»"
+L["Set an Ally Cycle - Previous key"] =
+  "Назначьте клавишу «Смена союзника – Предыдущий»"
+L["Turning Reticle Targeting on or off reloads the UI."] =
+  "Включение или выключение наведения по прицелу перезагружает интерфейс."
+L["Needs Reticle Targeting."] = "Требуется наведение по прицелу."
+L["Lock your cursor to the center of the screen and steer by moving the mouse, no more holding right-click.\n\nSet a {key to toggle it}, and {one to interact with} whatever you're aiming at."] =
+  "Курсор фиксируется в центре экрана, а направление задается движением мыши, без удержания правой кнопки.\n\nНазначьте {клавишу переключения} и {клавишу взаимодействия} с тем, на что вы целитесь."
+L["A reactive, fully customizable crosshair that adapts to your target and combat state.\n\nChoose its {look}, {size} and {position}."] =
+  "Реактивный полностью настраиваемый прицел, который подстраивается под вашу цель и состояние боя.\n\nВыберите {вид}, {размер} и {положение}."
+L["Aim at an enemy and the HUD next to your crosshair suggests your {next spell} and shows its key.\n\nAim at something you can interact with and it shows its {name} and your {Interact key} instead.\n\nTurn either on or off, and set its {side}, {size} and {distance} from the crosshair."] =
+  "Наведите прицел на врага, и HUD рядом с прицелом предложит {следующее заклинание} и покажет его клавишу.\n\nНаведите на объект взаимодействия, и HUD покажет его {название} и вашу {клавишу взаимодействия}.\n\nВключайте и выключайте любой из них и задайте {сторону}, {размер} и {расстояние} от прицела."
+L["Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.\n\n{Ignore Friendlies} makes it skip allies."] =
+  "Выбирайте врагов, просто наводя на них прицел, и применяйте заклинания по площади точно туда, куда указывает прицел, без выбора по Tab.\n\n{Игнорировать союзников} пропускает союзников."
+L["Ground-targeted spells that should be cast at the crosshair location.\n\nType a {spell name or ID} to add it."] =
+  "Заклинания по площади, которые нужно применять в точку прицела.\n\nВведите {название или ID заклинания}, чтобы добавить его."
+L["{!Action buttons that are macros cannot inherit Reticle Targeting on their own.}\n\nPress {+} to open the {Macro Composer}, write your macro there and it gets the targeting logic added for you.\n\nThen drag it from this list onto your action bars; {right-click} an icon to edit it."] =
+  "{!Кнопки действий, являющиеся макросами, не могут сами наследовать наведение по прицелу.}\n\nНажмите {+}, чтобы открыть {Конструктор макросов}, напишите там макрос, и логика наведения добавится автоматически.\n\nЗатем перетащите его из этого списка на панели команд; {щелкните правой кнопкой} по значку, чтобы изменить его."
+L["Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies.\n\n{Target Lock Behavior} decides whether tapping again unlocks ({Toggle}) or moves the lock to whatever is under the crosshair ({Switch Target}).\n\nSet your keys."] =
+  "Захватите цель одним нажатием, чтобы прицел перестал переключаться. Пока цель захвачена, клавиши смены переходят к ближайшим врагам.\n\n{Поведение захвата цели} определяет, снимает ли повторное нажатие захват ({Переключить}) или переносит его на то, что под прицелом ({Сменить цель}).\n\nНазначьте клавиши."
+L["Turn your mouse clicks into actions while in Mouse Look, such as casting your action bar spells with {Left and Right Click}.\n\nPick what each click does, with or without a {modifier key}."] =
+  "Превращайте щелчки мыши в действия в режиме обзора мышью, например применяйте заклинания с панели команд {левым и правым щелчком}.\n\nВыберите, что делает каждый щелчок, с {клавишей-модификатором} или без нее."
+L["A wheel of your {spells, items, macros and shortcuts} that works in combat.\n\nHold its key, move the mouse toward a slice and release to use it.\n\n{Scroll} to switch between wheels."] =
+  "Колесо из ваших {заклинаний, предметов, макросов и ярлыков}, работающее в бою.\n\nУдерживайте клавишу, переместите мышь к сектору и отпустите, чтобы использовать его.\n\n{Прокрутите колесико}, чтобы переключать колеса."
+L["Hold the key of a {helpful spell} listed here to open a wheel of your group members. Move toward one and release to cast on them, or come back to the {center} to cast on yourself.\n\n{Tap} the key to cast on your friendly target, or yourself if you have none.\n\nType a {spell name or ID} to add it."] =
+  "Удерживайте клавишу {полезного заклинания} из этого списка, чтобы открыть колесо участников группы. Переместитесь к одному из них и отпустите, чтобы применить на него, или вернитесь в {центр}, чтобы применить на себя.\n\n{Коротко нажмите} клавишу, чтобы применить на дружественную цель, а если ее нет, то на себя.\n\nВведите {название или ID заклинания}, чтобы добавить его."
+L["Cycle through group members in Mouse Look so {helpful spells} go to the ally while {harmful ones} keep hitting your enemy.\n\nThe {Ally HUD} shows who is selected.\n\nSet your cycle keys."] =
+  "Переключайтесь между участниками группы в режиме обзора мышью: {полезные заклинания} идут союзнику, а {вредоносные} по-прежнему бьют врага.\n\n{HUD союзника} показывает, кто выбран.\n\nНазначьте клавиши смены."
+L["Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\nAdd {mounts or extra windows} that should pause it too."] =
+  "Обзор мышью приостанавливается, когда вы открываете {сумки, карту или другие окна}, а затем возобновляется.\n\nДобавьте {транспорт или дополнительные окна}, которые тоже должны его приостанавливать."
