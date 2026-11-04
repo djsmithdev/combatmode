@@ -28,6 +28,7 @@
 --  Core/Runtime/Runtime.lua (first-run hook)
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -63,21 +64,19 @@ end
 local STEPS = {
   {
     tab = "general",
-    section = "MOUSE LOOK",
-    title = "Mouse Look",
+    section = L["MOUSE LOOK"],
+    title = L["Mouse Look"],
     slides = { "mouselook", 5, 0.3, 0.1 },
-    body = "Lock your cursor to the center of the screen and steer by moving the mouse, "
-      .. "no more holding right-click.\n\n"
-      .. "Set a {key to toggle it}, and {one to interact with} whatever you're aiming at.",
+    body = L["Lock your cursor to the center of the screen and steer by moving the mouse, no more holding right-click.\n\nSet a {key to toggle it}, and {one to interact with} whatever you're aiming at."],
     tasks = {
       {
-        label = "Set a Mouse Look key",
+        label = L["Set a Mouse Look key"],
         done = function()
           return Bound("Combat Mode - Mouse Look")
         end,
       },
       {
-        label = "Set an Interact key",
+        label = L["Set an Interact key"],
         done = function()
           return Bound("INTERACTMOUSEOVER") or Bound("INTERACTTARGET")
         end,
@@ -86,63 +85,63 @@ local STEPS = {
   },
   {
     tab = "crosshair",
-    section = "CROSSHAIR",
+    section = L["CROSSHAIR"],
     preview = "crosshair",
-    title = "Crosshair",
+    title = L["Crosshair"],
     slides = { "crosshair", 4 },
-    body = "A reactive, fully customizable crosshair that adapts to your target and combat state.\n\nChoose its {look}, {size} and {position}.",
+    body = L["A reactive, fully customizable crosshair that adapts to your target and combat state.\n\nChoose its {look}, {size} and {position}."],
   },
   {
     tab = "crosshair",
-    section = "ASSIST HUD",
+    section = L["ASSIST HUD"],
     preview = "assist",
-    title = "Assist HUD",
+    title = L["Assist HUD"],
     slides = { "assisthud", 3 },
-    body = "Aim at an enemy and the HUD next to your crosshair suggests your {next spell} and shows its key.\n\nAim at something you can interact with and it shows its {name} and your {Interact key} instead.\n\nTurn either on or off, and set its {side}, {size} and {distance} from the crosshair.",
+    body = L["Aim at an enemy and the HUD next to your crosshair suggests your {next spell} and shows its key.\n\nAim at something you can interact with and it shows its {name} and your {Interact key} instead.\n\nTurn either on or off, and set its {side}, {size} and {distance} from the crosshair."],
   },
   {
     tab = "reticle",
-    section = "RETICLE TARGETING",
-    title = "Reticle Targeting",
+    section = L["RETICLE TARGETING"],
+    title = L["Reticle Targeting"],
     slides = { "reticle", 5 },
-    body = "Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.\n\n{Ignore Friendlies} makes it skip allies.",
-    warning = "Turning Reticle Targeting on or off reloads the UI.",
+    body = L["Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.\n\n{Ignore Friendlies} makes it skip allies."],
+    warning = L["Turning Reticle Targeting on or off reloads the UI."],
   },
   {
     tab = "reticle",
-    label = "Cast at Crosshair",
-    title = "Cast at Crosshair",
+    label = L["Cast at Crosshair"],
+    title = L["Cast at Crosshair"],
     slides = { "castatcrosshair", 3 },
-    body = "Ground-targeted spells that should be cast at the crosshair location.\n\nType a {spell name or ID} to add it.",
+    body = L["Ground-targeted spells that should be cast at the crosshair location.\n\nType a {spell name or ID} to add it."],
   },
   {
     tab = "reticle",
-    label = "Reticle Targeting Macros",
-    title = "Reticle Targeting Macros",
-    body = "{!Action buttons that are macros cannot inherit Reticle Targeting on their own.}\n\nPress {+} to open the {Macro Composer}, write your macro there and it gets the targeting logic added for you.\n\nThen drag it from this list onto your action bars; {right-click} an icon to edit it.",
+    label = L["Reticle Targeting Macros"],
+    title = L["Reticle Targeting Macros"],
+    body = L["{!Action buttons that are macros cannot inherit Reticle Targeting on their own.}\n\nPress {+} to open the {Macro Composer}, write your macro there and it gets the targeting logic added for you.\n\nThen drag it from this list onto your action bars; {right-click} an icon to edit it."],
   },
   {
     tab = "reticle",
-    section = "TARGET LOCK",
-    title = "Target Lock",
+    section = L["TARGET LOCK"],
+    title = L["Target Lock"],
     slides = { "targetlock", 4 },
-    body = "Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies.\n\n{Target Lock Behavior} decides whether tapping again unlocks ({Toggle}) or moves the lock to whatever is under the crosshair ({Switch Target}).\n\nSet your keys.",
+    body = L["Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies.\n\n{Target Lock Behavior} decides whether tapping again unlocks ({Toggle}) or moves the lock to whatever is under the crosshair ({Switch Target}).\n\nSet your keys."],
     -- These keys can't be set while Reticle Targeting is off, so they don't block then.
     tasks = {
       {
-        label = "Set a Target Lock key",
+        label = L["Set a Target Lock key"],
         done = function()
           return not CM.DB.char.reticleTargeting or Bound("Combat Mode - Toggle Focus Target")
         end,
       },
       {
-        label = "Set a Cycle Lock - Next key",
+        label = L["Set a Cycle Lock - Next key"],
         done = function()
           return not CM.DB.char.reticleTargeting or Bound("Combat Mode - Cycle Focus Next")
         end,
       },
       {
-        label = "Set a Cycle Lock - Previous key",
+        label = L["Set a Cycle Lock - Previous key"],
         done = function()
           return not CM.DB.char.reticleTargeting or Bound("Combat Mode - Cycle Focus Previous")
         end,
@@ -151,24 +150,20 @@ local STEPS = {
   },
   {
     tab = "clickcasting",
-    section = "CLICK CASTING",
-    title = "Click Casting",
+    section = L["CLICK CASTING"],
+    title = L["Click Casting"],
     slides = { "clickcasting", 3 },
-    body = "Turn your mouse clicks into actions while in Mouse Look, such as casting your action bar "
-      .. "spells with {Left and Right Click}.\n\n"
-      .. "Pick what each click does, with or without a {modifier key}.",
+    body = L["Turn your mouse clicks into actions while in Mouse Look, such as casting your action bar spells with {Left and Right Click}.\n\nPick what each click does, with or without a {modifier key}."],
   },
   {
     tab = "radialmenu",
-    section = "RADIAL MENU",
-    title = "Radial Menu",
+    section = L["RADIAL MENU"],
+    title = L["Radial Menu"],
     slides = { "radial", 4 },
-    body = "A wheel of your {spells, items, macros and shortcuts} that works in combat.\n\n"
-      .. "Hold its key, move the mouse toward a slice and release to use it.\n\n"
-      .. "{Scroll} to switch between wheels.",
+    body = L["A wheel of your {spells, items, macros and shortcuts} that works in combat.\n\nHold its key, move the mouse toward a slice and release to use it.\n\n{Scroll} to switch between wheels."],
     tasks = {
       {
-        label = "Set a Radial Menu key",
+        label = L["Set a Radial Menu key"],
         done = function()
           return Bound("Combat Mode - Radial Menu")
         end,
@@ -177,32 +172,29 @@ local STEPS = {
   },
   {
     tab = "radialmenu",
-    label = "Party Wheel Spells",
-    title = "Party Wheel",
+    label = L["Party Wheel Spells"],
+    title = L["Party Wheel"],
     slides = { "partywheel", 5 },
-    body = "Hold the key of a {helpful spell} listed here to open a wheel of your group members. "
-      .. "Move toward one and release to cast on them, or come back to the {center} to cast on yourself.\n\n"
-      .. "{Tap} the key to cast on your friendly target, or yourself if you have none.\n\n"
-      .. "Type a {spell name or ID} to add it.",
-    warning = "Needs Reticle Targeting.",
+    body = L["Hold the key of a {helpful spell} listed here to open a wheel of your group members. Move toward one and release to cast on them, or come back to the {center} to cast on yourself.\n\n{Tap} the key to cast on your friendly target, or yourself if you have none.\n\nType a {spell name or ID} to add it."],
+    warning = L["Needs Reticle Targeting."],
   },
   {
     tab = "allycycle",
-    section = "ALLY CYCLE",
-    sectionEnd = "ALLY HUD",
+    section = L["ALLY CYCLE"],
+    sectionEnd = L["ALLY HUD"],
     preview = "ally",
-    title = "Ally Cycle",
+    title = L["Ally Cycle"],
     slides = { "allycycle", 3 },
-    body = "Cycle through group members in Mouse Look so {helpful spells} go to the ally while {harmful ones} keep hitting your enemy.\n\nThe {Ally HUD} shows who is selected.\n\nSet your cycle keys.",
+    body = L["Cycle through group members in Mouse Look so {helpful spells} go to the ally while {harmful ones} keep hitting your enemy.\n\nThe {Ally HUD} shows who is selected.\n\nSet your cycle keys."],
     tasks = {
       {
-        label = "Set an Ally Cycle - Next key",
+        label = L["Set an Ally Cycle - Next key"],
         done = function()
           return Bound(CM.AllyCycleBindUp or "Combat Mode - Ally Cycle Next")
         end,
       },
       {
-        label = "Set an Ally Cycle - Previous key",
+        label = L["Set an Ally Cycle - Previous key"],
         done = function()
           return Bound(CM.AllyCycleBindDown or "Combat Mode - Ally Cycle Previous")
         end,
@@ -211,11 +203,10 @@ local STEPS = {
   },
   {
     tab = "autocursorunlock",
-    section = "AUTO UNLOCK",
-    title = "Auto Unlock",
+    section = L["AUTO UNLOCK"],
+    title = L["Auto Unlock"],
     slides = { "autounlock", 5, 0.5 },
-    body = "Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\n"
-      .. "Add {mounts or extra windows} that should pause it too.",
+    body = L["Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\nAdd {mounts or extra windows} that should pause it too."],
   },
 }
 
@@ -361,7 +352,7 @@ function ShowStep(i)
       slideHold = step.slides and step.slides[3],
       slideFade = step.slides and step.slides[4],
       step = i .. " / " .. #STEPS,
-      nextLabel = last and "Finish" or "Next",
+      nextLabel = last and L["Finish"] or L["Next"],
       isLast = last,
       canGoBack = i > 1,
       tasks = step.tasks,

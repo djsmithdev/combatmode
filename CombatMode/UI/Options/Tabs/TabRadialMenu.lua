@@ -20,6 +20,7 @@
 --  Related: Core/RadialMenu/{Data,Actions}.lua, UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -35,6 +36,7 @@ local ipairs = _G.ipairs
 local pairs = _G.pairs
 local math = _G.math
 local select = _G.select
+local format = _G.string.format
 local tostring = _G.tostring
 local type = _G.type
 
@@ -43,7 +45,7 @@ local C = UI.Colors
 local LAYOUT = CM.RadialLayout
 
 local BIND_NAME = "Combat Mode - Radial Menu"
-local WHEELS_LABEL = "Radial Menu Wheels"
+local WHEELS_LABEL = L["Radial Menu Wheels"]
 local ART_DIR = "Interface\\AddOns\\CombatMode\\Assets\\radial\\radial_"
 local WEDGE_ALPHA = 0.7
 local DRAG_SCALE = 1.15 -- the dragged slice grows like the aimed slice of the live wheel (View.lua HOVER_SCALE)
@@ -63,7 +65,7 @@ local ARROW_SIZE = 20
 local RING_OUTER = 215
 local BG_KEEP = 600 -- art pixels of the background drawn in the editor (full width of the visible fade)
 local SLICE_BTN = 40
-local STYLE_VALUES = { forever = "Forever", minimal = "Minimal" }
+local STYLE_VALUES = { forever = L["Forever"], minimal = L["Minimal"] }
 local STYLE_ORDER = { "forever", "minimal" }
 
 local selected = 1
@@ -84,13 +86,13 @@ end
 -- Slice action menu (the options dropdown, opened beside a slice)
 ---------------------------------------------------------------------------------------
 local CLEAR_ID = "__clear"
-local menuValues, menuOrder = { [CLEAR_ID] = "Clear Slice" }, {}
+local menuValues, menuOrder = { [CLEAR_ID] = L["Clear Slice"] }, {}
 local menuHeaders = {
-  __ui = "UI Actions",
-  __emote = "Emotes",
-  __command = "Commands",
-  __marker = "Markers",
-  __slice = "Slice",
+  __ui = L["UI Actions"],
+  __emote = L["Emotes"],
+  __command = L["Commands"],
+  __marker = L["Markers"],
+  __slice = L["Slice"],
 }
 for header, title in pairs(menuHeaders) do
   menuValues[header] = title
@@ -130,7 +132,7 @@ local function OpenSliceMenu(slot, anchor)
     local host = CreateFrame("Frame", nil, UIParent)
     host:Hide()
     sliceMenu = UI.MakeDropdown(host, {
-      label = "Slice",
+      label = L["Slice"],
       values = menuValues,
       order = menuOrder,
       headers = menuHeaders,
@@ -152,7 +154,7 @@ local function OpenSliceMenu(slot, anchor)
   local wheel = CurrentWheel()
   local entry = wheel and wheel.slots and wheel.slots[slot]
   -- OpenAt closes a menu that is already open (firing onClosed), so pin after it.
-  sliceMenu.OpenAt(anchor, entry and (CM.RadialEntryInfo(entry)) or "Choose an action", 220)
+  sliceMenu.OpenAt(anchor, entry and (CM.RadialEntryInfo(entry)) or L["Choose an action"], 220)
   SetPinnedSlot(slot)
 end
 
@@ -164,15 +166,15 @@ local function OpenWheelMenu(anchor)
   if not wheelMenu then
     local host = CreateFrame("Frame", nil, UIParent)
     host:Hide()
-    local headers = { __presets = "Presets" }
+    local headers = { __presets = L["Presets"] }
     local values, order =
-      { [BLANK_ID] = "New Wheel", __presets = "Presets" }, { BLANK_ID, "__presets" }
+      { [BLANK_ID] = L["New Wheel"], __presets = L["Presets"] }, { BLANK_ID, "__presets" }
     for _, preset in ipairs(CM.RadialPresetList()) do
       values[preset.key] = preset.label
       order[#order + 1] = preset.key
     end
     wheelMenu = UI.MakeDropdown(host, {
-      label = "Wheel",
+      label = L["Wheel"],
       values = values,
       order = order,
       headers = headers,
@@ -185,7 +187,7 @@ local function OpenWheelMenu(anchor)
         if index then
           selected = index
         else
-          Say("You can have up to " .. LAYOUT.MAX_WHEELS .. " wheels.")
+          Say(format(L["You can have up to %d wheels."], LAYOUT.MAX_WHEELS))
         end
         Resync()
       end,
@@ -203,7 +205,7 @@ local function ApplyDrop(slot)
   end
   local entry = CM.RadialEntryFromCursor()
   if not entry then
-    Say("That can't go on a wheel. Use a spell, item, toy, mount or macro.")
+    Say(L["That can't go on a wheel. Use a spell, item, toy, mount or macro."])
     return true
   end
   ClearCursor()
@@ -240,13 +242,13 @@ local function BuildSliceButton(area, slot)
     if entry then
       UI.ShowTooltip(self, {
         title = (CM.RadialEntryInfo(entry)),
-        text = "Drag a spell, item, toy, mount or macro here, or click to change the action.",
+        text = L["Drag a spell, item, toy, mount or macro here, or click to change the action."],
         warning = "Right-click to remove this slice.",
       }, "ANCHOR_RIGHT")
     else
       UI.ShowTooltip(self, {
-        title = "Empty Slice",
-        text = "Drag a spell, item, toy, mount or macro here, or click to set an action. Empty slices are left out of the wheel.",
+        title = L["Empty Slice"],
+        text = L["Drag a spell, item, toy, mount or macro here, or click to set an action. Empty slices are left out of the wheel."],
         warning = "Right-click to remove this slice.",
       }, "ANCHOR_RIGHT")
     end
@@ -257,7 +259,7 @@ local function BuildSliceButton(area, slot)
   button:SetScript("OnClick", function(self, mouseButton)
     if mouseButton == "RightButton" then
       if not CM.RadialRemoveSlice(selected, self.slot) then
-        Say("A wheel needs at least one slice.")
+        Say(L["A wheel needs at least one slice."])
       end
       UI.HideTooltip()
       Resync()
@@ -301,8 +303,9 @@ local function BuildTitle(row)
   title.text = UI.CreateFontString(title, "OVERLAY", UI.Fonts.header, "GameFontNormalLarge")
   title.text:SetPoint("CENTER")
   title.text:SetWidth(TITLE_W - 8)
+  title.text:SetWordWrap(false)
   title.text:SetTextColor(C.text[1], C.text[2], C.text[3])
-  Tooltip(title, "Click to rename this wheel")
+  Tooltip(title, L["Click to rename this wheel"])
 
   local box = CreateFrame("Frame", nil, row, "BackdropTemplate")
   box:SetAllPoints(title)
@@ -358,14 +361,14 @@ local function BuildWheelRow(ctx)
   local title = BuildTitle(row)
   local prev = MakeArrow(row, "left")
   prev:SetPoint("RIGHT", title, "LEFT", -8, 0)
-  Tooltip(prev, "Previous wheel")
+  Tooltip(prev, L["Previous wheel"])
   prev:SetScript("OnClick", function()
     selected = math.max(1, selected - 1)
     Resync()
   end)
   local nextButton = MakeArrow(row, "right")
   nextButton:SetPoint("LEFT", title, "RIGHT", 8, 0)
-  Tooltip(nextButton, "Next wheel")
+  Tooltip(nextButton, L["Next wheel"])
   nextButton:SetScript("OnClick", function()
     selected = math.min(#CM.RadialGetWheels(), selected + 1)
     Resync()
@@ -469,7 +472,7 @@ local function BuildWheelRow(ctx)
     Tooltip(pip, function()
       return {
         title = CM.RadialWheelName(CM.RadialGetWheels()[index], index),
-        text = "Click to select this wheel, drag to reorder",
+        text = L["Click to select this wheel, drag to reorder"],
       }
     end)
     pip:SetScript("OnClick", function()
@@ -831,7 +834,7 @@ local function BuildWheelRow(ctx)
   addSlice.text = UI.CreateFontString(addSlice, "OVERLAY", UI.Fonts.button, "GameFontNormal")
   addSlice.text:SetPoint("CENTER")
   addSlice.text:SetWidth(84)
-  addSlice.text:SetText("Add Slice")
+  addSlice.text:SetText(L["Add Slice"])
   addSlice.text:SetTextColor(1, 1, 1)
   addSlice:SetScript("OnEnter", function()
     wedge:SetAlpha(1)
@@ -841,7 +844,7 @@ local function BuildWheelRow(ctx)
   end)
   addSlice:SetScript("OnClick", function()
     if not CM.RadialAddSlice(selected) then
-      Say("A wheel holds up to " .. LAYOUT.MAX_SLICES .. " slices.")
+      Say(format(L["A wheel holds up to %d slices."], LAYOUT.MAX_SLICES))
     end
     Resync()
   end)
@@ -918,23 +921,26 @@ local function BuildWheelRow(ctx)
   local removeWheel = MakeHalf(
     "LEFT",
     "-",
-    { title = "Remove Wheel", text = "Deletes this wheel and all of its slices." }
+    { title = L["Remove Wheel"], text = L["Deletes this wheel and all of its slices."] }
   )
   removeWheel:SetScript("OnClick", function()
     if #CM.RadialGetWheels() <= 1 then
-      Say("You need at least one wheel.")
+      Say(L["You need at least one wheel."])
       return
     end
-    UI.Confirm("Remove this wheel and all of its slices?", function()
+    UI.Confirm(L["Remove this wheel and all of its slices?"], function()
       CM.RadialDeleteWheel(selected)
       Resync()
     end)
   end)
-  local addWheel =
-    MakeHalf("RIGHT", "+", { title = "Add Wheel", text = "Pick a preset wheel or a blank one." })
+  local addWheel = MakeHalf(
+    "RIGHT",
+    "+",
+    { title = L["Add Wheel"], text = L["Pick a preset wheel or a blank one."] }
+  )
   addWheel:SetScript("OnClick", function(self)
     if #CM.RadialGetWheels() >= LAYOUT.MAX_WHEELS then
-      Say("You can have up to " .. LAYOUT.MAX_WHEELS .. " wheels.")
+      Say(format(L["You can have up to %d wheels."], LAYOUT.MAX_WHEELS))
       return
     end
     OpenWheelMenu(self)
@@ -947,7 +953,7 @@ local function BuildWheelRow(ctx)
   hint:SetWordWrap(true)
   hint:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
   hint:SetText(
-    "Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it.\nDrag a slice to reorder it. Right-click a slice to remove it."
+    L["Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it.\nDrag a slice to reorder it. Right-click a slice to remove it."]
   )
 
   function Update()
@@ -1055,27 +1061,27 @@ end
 ---------------------------------------------------------------------------------------
 UI.Options.AddTab({
   id = "radialmenu",
-  label = "Radial Menu",
+  label = L["Radial Menu"],
   newFeatureFlag = true,
   build = function(ctx)
     if #CM.RadialGetWheels() == 0 then
       CM.RadialCreateWheel()
     end
 
-    ctx:Header({ text = "RADIAL MENU" })
+    ctx:Header({ text = L["RADIAL MENU"] })
 
     ctx:Description({
-      text = "Create quick access wheels for spells, items, macros, emotes, and interface shortcuts.",
+      text = L["Create quick access wheels for spells, items, macros, emotes, and interface shortcuts."],
     })
 
     ctx:Keybind({
-      label = "Radial Menu Keybind",
-      desc = "Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels.",
+      label = L["Radial Menu Keybind"],
+      desc = L["Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels."],
       get = function()
         return GetBindingKey(BIND_NAME)
       end,
       set = function(key)
-        CM.TryApplyBindingChange("radial menu keybinding", function()
+        CM.TryApplyBindingChange(L["radial menu keybinding"], function()
           CM.AssignNamedKeybind(BIND_NAME, key)
           CM.RadialRefresh()
         end)
@@ -1083,8 +1089,8 @@ UI.Options.AddTab({
     })
 
     ctx:Dropdown({
-      label = "Radial Menu Style",
-      desc = "Chose the appearance of the Radial Menu wheels.",
+      label = L["Radial Menu Style"],
+      desc = L["Choose the appearance of the Radial Menu wheels."],
       values = STYLE_VALUES,
       order = STYLE_ORDER,
       get = function()
@@ -1098,9 +1104,9 @@ UI.Options.AddTab({
     })
 
     ctx:SpellMultiSelect({
-      label = "Party Wheel Spells",
+      label = L["Party Wheel Spells"],
       newFeatureFlag = true,
-      desc = "Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected.",
+      desc = L["Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected."],
       charSpecific = true,
       spellFilter = CM.PartyWheelIsEligibleSpell,
       get = function()
@@ -1127,7 +1133,7 @@ UI.Options.AddTab({
         height = height,
         search = {
           label = WHEELS_LABEL,
-          desc = "Edit the slices of each wheel, rename wheels and add or remove wheels.",
+          desc = L["Edit the slices of each wheel, rename wheels and add or remove wheels."],
           tab = ctx.search.tab,
           group = ctx.search.group,
           section = ctx.section,

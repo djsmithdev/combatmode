@@ -84,6 +84,52 @@ if ($missing) { $missing | ForEach-Object { Fail "Load order references a missin
 if ($unloaded) { $unloaded | ForEach-Object { Fail "Not loaded by Embeds.xml or the TOC: CombatMode/$_" } }
 if (-not $missing -and -not $unloaded) { Pass "Embeds.xml / TOC load every addon Lua file, and every listed file exists" }
 
+# --- Locales ---------------------------------------------------------------------------
+# enUS.lua is the canonical key list (L["text"] = true). Every L["text"] used in the addon must be
+# listed there, every other locale must define exactly those keys, and the placeholders (%s, %d,
+# colour codes) of each translation must match its key. See .claude/rules/localization.md.
+$localeDir = Join-Path $addon "Locales"
+if (Test-Path $localeDir) {
+    $keyRx = '(?<![\w.])L\["((?:[^"\\]|\\.)*)"\]'
+    $locales = @("deDE", "esES", "esMX", "frFR", "itIT", "koKR", "ptBR", "ruRU", "zhCN", "zhTW")
+    $phRx = '%(?:\d+\$)?[sd]|\|c[0-9a-fA-F]{8}|\|r|\|n'
+    function Get-Placeholders([string]$s) {
+        ([regex]::Matches($s, $phRx) | ForEach-Object { $_.Value } | Sort-Object) -join ","
+    }
+    $enText = Read-Text (Join-Path $localeDir "enUS.lua")
+    $enKeys = New-Object System.Collections.Generic.HashSet[string]
+    foreach ($m in [regex]::Matches($enText, $keyRx + '\s*=\s*true')) { [void]$enKeys.Add($m.Groups[1].Value) }
+    $localeFailures = 0
+    $used = New-Object System.Collections.Generic.HashSet[string]
+    Get-ChildItem -Path $addon -Recurse -File -Filter *.lua | Where-Object {
+        $_.FullName -notlike (Join-Path $localeDir "*") -and $_.Name -ne "ChangelogData.lua"
+    } | ForEach-Object {
+        foreach ($m in [regex]::Matches((Read-Text $_.FullName), $keyRx)) { [void]$used.Add($m.Groups[1].Value) }
+    }
+    foreach ($k in $used) {
+        if (-not $enKeys.Contains($k)) { Fail "Locales/enUS.lua is missing a string used in code: $k"; $localeFailures++ }
+    }
+    foreach ($k in $enKeys) {
+        if (-not $used.Contains($k)) { Fail "Locales/enUS.lua has a string no code uses (remove it from all locales): $k"; $localeFailures++ }
+    }
+    foreach ($loc in $locales) {
+        $path = Join-Path $localeDir "$loc.lua"
+        if (-not (Test-Path $path)) { Fail "Missing Locales/$loc.lua"; $localeFailures++; continue }
+        $pairs = @{}
+        foreach ($m in [regex]::Matches((Read-Text $path), $keyRx + '\s*=\s*"((?:[^"\\]|\\.)*)"')) {
+            $pairs[$m.Groups[1].Value] = $m.Groups[2].Value
+        }
+        foreach ($k in $enKeys) {
+            if (-not $pairs.ContainsKey($k)) { Fail "Locales/$loc.lua is missing: $k"; $localeFailures++ }
+            elseif ((Get-Placeholders $k) -ne (Get-Placeholders $pairs[$k])) { Fail "Locales/$loc.lua placeholders differ for: $k"; $localeFailures++ }
+        }
+        foreach ($k in $pairs.Keys) {
+            if (-not $enKeys.Contains($k)) { Fail "Locales/$loc.lua has a stale key: $k"; $localeFailures++ }
+        }
+    }
+    if ($localeFailures -eq 0) { Pass "Locales: $($enKeys.Count) strings, enUS + $($locales.Count) locales in sync" }
+}
+
 # --- LICENSE copies --------------------------------------------------------------------
 # The root copy is what GitHub shows; CombatMode/LICENSE is the one the packager ships.
 if ((Read-Text (Join-Path $ProjectRoot "LICENSE")) -eq (Read-Text (Join-Path $addon "LICENSE"))) {

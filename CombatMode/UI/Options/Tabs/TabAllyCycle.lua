@@ -12,6 +12,7 @@
 --  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -20,8 +21,8 @@ local GetBindingKey = _G.GetBindingKey
 local UI = CM.UI
 
 local HUD_SIDE_VALUES = {
-  TOP = "Top",
-  BOTTOM = "Bottom",
+  TOP = L["Top"],
+  BOTTOM = L["Bottom"],
 }
 local HUD_SIDE_ORDER = { "TOP", "BOTTOM" }
 
@@ -51,7 +52,7 @@ end
 
 UI.Options.AddTab({
   id = "allycycle",
-  label = "Ally Cycle",
+  label = L["Ally Cycle"],
   onSelect = function()
     if CM.SetAllyCycleOptionsPreview then
       CM.SetAllyCycleOptionsPreview(true)
@@ -63,20 +64,20 @@ UI.Options.AddTab({
     end
   end,
   build = function(ctx)
-    ctx:Header({ text = "ALLY CYCLE" })
+    ctx:Header({ text = L["ALLY CYCLE"] })
 
     ctx:Description({
-      text = "Seamless combat and support by allowing helpful spells to target allies, while harmful spells remain focused on the hostile crosshair target.",
+      text = L["Seamless combat and support by allowing helpful spells to target allies, while harmful spells remain focused on the hostile crosshair target."],
     })
 
     ctx:Keybind({
-      label = "Ally Cycle - Next",
-      desc = "Target the next group member.",
+      label = L["Ally Cycle - Next"],
+      desc = L["Target the next group member."],
       get = function()
         return GetBindingKey(CM.AllyCycleBindUp or "Combat Mode - Ally Cycle Next")
       end,
       set = function(key)
-        CM.TryApplyBindingChange("ally cycle next keybinding", function()
+        CM.TryApplyBindingChange(L["ally cycle next keybinding"], function()
           CM.AssignNamedKeybind(CM.AllyCycleBindUp or "Combat Mode - Ally Cycle Next", key)
           if CM.ApplyAllyCycleBindings then
             CM.ApplyAllyCycleBindings()
@@ -88,13 +89,13 @@ UI.Options.AddTab({
       end,
     })
     ctx:Keybind({
-      label = "Ally Cycle - Previous",
-      desc = "Target the previous group member.",
+      label = L["Ally Cycle - Previous"],
+      desc = L["Target the previous group member."],
       get = function()
         return GetBindingKey(CM.AllyCycleBindDown or "Combat Mode - Ally Cycle Previous")
       end,
       set = function(key)
-        CM.TryApplyBindingChange("ally cycle previous keybinding", function()
+        CM.TryApplyBindingChange(L["ally cycle previous keybinding"], function()
           CM.AssignNamedKeybind(CM.AllyCycleBindDown or "Combat Mode - Ally Cycle Previous", key)
           if CM.ApplyAllyCycleBindings then
             CM.ApplyAllyCycleBindings()
@@ -106,8 +107,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Skip Self",
-      desc = "Skip yourself when cycling through group members.",
+      label = L["Skip Self"],
+      desc = L["Skip yourself when cycling through group members."],
       get = function()
         return CM.IsAllyCycleSkipPlayer and CM.IsAllyCycleSkipPlayer()
       end,
@@ -119,8 +120,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Keep Ally After Harm",
-      desc = "After a harmful spell targets the reticle enemy, restore the previous ally. On by default for Healer specs until changed.",
+      label = L["Keep Ally After Harm"],
+      desc = L["After a harmful spell targets the reticle enemy, restore the previous ally. On by default for Healer specs until changed."],
       get = function()
         return CM.IsAllyCycleRestoreAfterHarm and CM.IsAllyCycleRestoreAfterHarm()
       end,
@@ -137,19 +138,19 @@ UI.Options.AddTab({
       end,
       watermarkWhenDisabled = function()
         if CM.DB.char.autoTargetLockOnAttack == true then
-          return "Disabled while Auto Target Lock is on"
+          return L["Disabled while Auto Target Lock is on"]
         end
         return nil
       end,
     })
 
     ctx:Gap()
-    ctx:Header({ text = "ALLY HUD" })
-    ctx:Description("A HUD displaying the group member Ally Cycle has selected.")
+    ctx:Header({ text = L["ALLY HUD"] })
+    ctx:Description(L["A HUD displaying the group member Ally Cycle has selected."])
 
     ctx:Toggle({
-      label = "Ally HUD",
-      desc = "Show a unit frame for the currently selected group member.",
+      label = L["Ally HUD"],
+      desc = L["Show a unit frame for the currently selected group member."],
       get = function()
         return AllyCycleDb().showHud ~= false
       end,
@@ -159,8 +160,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Dropdown({
-      label = "Position",
-      desc = "Where the Ally HUD sits relative to the crosshair.",
+      label = L["Position"],
+      desc = L["Where the Ally HUD sits relative to the crosshair."],
       values = HUD_SIDE_VALUES,
       order = HUD_SIDE_ORDER,
       get = function()
@@ -172,8 +173,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Slider({
-      label = "Scale",
-      desc = "Scales the size of the Ally HUD.",
+      label = L["Scale"],
+      desc = L["Scales the size of the Ally HUD."],
       min = 0.5,
       max = 1.5,
       step = 0.05,
@@ -187,8 +188,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Slider({
-      label = "Distance",
-      desc = "Distance between the Ally HUD and the crosshair.",
+      label = L["Distance"],
+      desc = L["Distance between the Ally HUD and the crosshair."],
       min = 0,
       max = 128,
       step = 1,

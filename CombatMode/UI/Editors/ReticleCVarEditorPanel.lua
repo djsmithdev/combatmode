@@ -14,6 +14,7 @@
 --  UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -57,7 +58,7 @@ local function FormatModifiedBy(source, lineNum)
   local normalized = strlower(source or "")
   if strfind(normalized, "[\\/]combatmode[\\/]") then
     if strfind(normalized, "reticlecvareditor") then
-      return "Action Combat Mode (Reticle CVar Editor)"
+      return L["Action Combat Mode (Reticle CVar Editor)"]
     end
     return "Action Combat Mode"
   end
@@ -122,7 +123,7 @@ function Editor.RequestRefresh()
     refreshQueued = false
     for key in pairs(pendingExternalUpdate) do
       if not reticleCVarSeenFromHook[key] then
-        Editor.modifiedBy[key] = "External change (CVAR_UPDATE)"
+        Editor.modifiedBy[key] = L["External change (CVAR_UPDATE)"]
       end
       pendingExternalUpdate[key] = nil
       reticleCVarSeenFromHook[key] = nil
@@ -171,8 +172,8 @@ local function BuildListFrame(parent, width, height)
 
   local cols = {
     { "CVar", 180, "LEFT" },
-    { "Description", 405, "LEFT" },
-    { "Value", 60, "RIGHT" },
+    { L["Description"], 405, "LEFT" },
+    { L["Value"], 60, "RIGHT" },
   }
   frame.columns = cols
 
@@ -352,11 +353,11 @@ local function BuildListFrame(parent, width, height)
         return
       end
       local lines = {
-        { label = "Default Value:", value = rowData.defaultValue },
+        { label = L["Default Value:"], value = rowData.defaultValue },
       }
       local modifiedBy = Editor.modifiedBy[strlower(rowData.cvar)]
       if modifiedBy then
-        lines[#lines + 1] = { label = "Last Modified By:", value = modifiedBy, kind = "warn" }
+        lines[#lines + 1] = { label = L["Last Modified By:"], value = modifiedBy, kind = "warn" }
       end
       UI.ShowTooltip(self, {
         title = rowData.cvar,
@@ -485,7 +486,9 @@ function Editor.ShowInlineEditor(row)
   if _G.InCombatLockdown() then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: cannot edit Reticle Targeting CVars while in combat.|r"
+        .. "|cff909090: "
+        .. L["cannot edit Reticle Targeting CVars while in combat."]
+        .. "|r"
     )
     return
   end
@@ -510,7 +513,7 @@ function CM.OpenReticleTargetingCVarEditor()
   if not Editor.frame then
     local frame = UI.CreateBareWindow(
       "CombatModeReticleCVarEditor",
-      CM.METADATA["TITLE"] .. " - Reticle Targeting CVar Editor",
+      CM.METADATA["TITLE"] .. " - " .. L["Reticle Targeting CVar Editor"],
       735,
       EDITOR_H
     )
@@ -522,7 +525,7 @@ function CM.OpenReticleTargetingCVarEditor()
     subtitle:SetPoint("RIGHT", frame, "RIGHT", -40, 0)
     subtitle:SetJustifyH("LEFT")
     subtitle:SetText(
-      "Double-click a row to edit. Overrides are account-wide and replace CombatMode defaults."
+      L["Double-click a row to edit. Overrides are account-wide and replace CombatMode defaults."]
     )
     subtitle:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
 
@@ -551,7 +554,7 @@ function CM.OpenReticleTargetingCVarEditor()
     listFrame:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 60)
 
     local resetControl = UI.MakeButton(frame, {
-      label = "Reset to Defaults",
+      label = L["Reset to Defaults"],
       pixelWidth = 260,
       func = function()
         if Data.ClearAllOverrides() then

@@ -26,6 +26,14 @@ Pull requests are welcome. This page covers setup and the PR flow; the architect
   - `pr-title`: the title format;
   - domain labels.
 
+## Translations
+
+Action Combat Mode ships in all 11 WoW locales. The English text is the key (`L["Mouse Look"]`, via `CM.L`), so anything missing from a locale falls back to English.
+
+- **Fix or improve a translation:** edit the matching `CombatMode/Locales/<locale>.lua` (`L["English text"] = "Translation"`) and open a PR, or file a [translation issue](https://github.com/ThericGames/combatmode/issues/new/choose). The non-English files are machine-drafted, so native-speaker review is very welcome.
+- **Keep** `%s` / `%d`, colour codes (`|cffxxxxxx...|r`, `|n`) and the name "Action Combat Mode" exactly as in English. Don't use a plain `"` inside a translation.
+- **Adding or changing player-facing text in code:** wrap it in `L["..."]`, add the key to `Locales/enUS.lua` and a translation to all ten other locale files in the same change. `check-repo` fails on a missing or stale key. Details: [`.claude/rules/localization.md`](.claude/rules/localization.md).
+
 ## Releases (maintainers)
 
 Bump `## Version` in `CombatMode/CombatMode.toc`, date the changelog section and add its compare link on `develop`, then merge a `develop → master` PR with a merge commit. `.github/workflows/release.yml` tags the version, creates the GitHub release, packages to CurseForge / Wago and posts to Discord. In Claude Code, ask it to release and it walks through this.

@@ -32,6 +32,7 @@
 --  UI/Options/Tabs/TabClickCasting.lua (RegisterSegmentSelector), UI/Options/Widgets.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -41,6 +42,7 @@ local UIParent = _G.UIParent
 -- Lua stdlib
 local concat = _G.table.concat
 local find = _G.string.find
+local format = _G.string.format
 local gmatch = _G.string.gmatch
 local gsub = _G.string.gsub
 local ipairs = _G.ipairs
@@ -121,7 +123,7 @@ local function EnsureIndex()
       lowerTab = lower(tabName),
       tab = section.tab,
       group = section.group,
-      tabName = tabName .. " \194\183 Section",
+      tabName = format(L["%s · Section"], tabName),
       order = #index + 1,
     })
   end
@@ -135,10 +137,10 @@ local function EnsureIndex()
         lowerLabel = lower(meta.label),
         lowerDesc = lower(desc),
         lowerSection = meta.section and lower(meta.section) or "",
-        lowerTab = lower(meta.footer and "Sidebar" or TabName(meta.tab)),
+        lowerTab = lower(meta.footer and L["Sidebar"] or TabName(meta.tab)),
         tab = meta.tab,
         group = meta.group,
-        tabName = meta.footer and "Sidebar" or TabName(meta.tab),
+        tabName = meta.footer and L["Sidebar"] or TabName(meta.tab),
         order = #index + 1,
       })
     end
@@ -487,7 +489,7 @@ function Options.BuildSearchBox(titleBar, leftOf, gap)
 
   placeholder = UI.CreateFontString(box, "OVERLAY", UI.Fonts.input, "GameFontHighlightSmall")
   placeholder:SetPoint("LEFT", box, "LEFT", 28, 0)
-  placeholder:SetText("Search options...")
+  placeholder:SetText(L["Search options..."])
   placeholder:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3], 0.7)
 
   edit:SetScript("OnEditFocusGained", function()
@@ -601,7 +603,7 @@ function Options.BuildSearchBox(titleBar, leftOf, gap)
 
   emptyText = UI.CreateFontString(popup, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
   emptyText:SetPoint("LEFT", popup, "TOPLEFT", 12, -(SEARCH_H + 4 + ROW_H / 2))
-  emptyText:SetText("No matching options")
+  emptyText:SetText(L["No matching options"])
   emptyText:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
 
   scroll, content = UI.CreateScrollFrame(popup)

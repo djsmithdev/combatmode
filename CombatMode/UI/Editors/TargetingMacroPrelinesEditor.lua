@@ -21,19 +21,21 @@
 --  UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
 local InCombatLockdown = _G.InCombatLockdown
 
 -- Lua stdlib
+local format = _G.string.format
 local strtrim = _G.strtrim
 local type = _G.type
 
 local UI = CM.UI
 local M = CM.METADATA
 
-local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed?"
+local RELOAD_CONFIRM = L["A UI Reload is required when making this change. Proceed?"]
 
 local window
 
@@ -53,9 +55,10 @@ local function ValidatePreline(value)
   value = type(value) == "string" and value or ""
   local maxLen = PrelineMaxLen()
   if #value > maxLen then
-    return "Preline must be "
-      .. maxLen
-      .. " characters or fewer (room for /click under the 255 macro limit)."
+    return format(
+      L["Preline must be %d characters or fewer (room for /click under the 255 macro limit)."],
+      maxLen
+    )
   end
   return true
 end
@@ -89,19 +92,19 @@ local function FieldWatermark(forAutoLock, forEnemyOnly)
   return function()
     if forAutoLock then
       if not AutoTargetLock() then
-        return "Inactive — Auto Target Lock is OFF"
+        return L["Inactive — Auto Target Lock is OFF"]
       end
     elseif AutoTargetLock() then
-      return "Inactive — Auto Target Lock is ON"
+      return L["Inactive — Auto Target Lock is ON"]
     end
     if forEnemyOnly then
       if not EnemyOnly() then
-        return "Inactive — Ignore Friendlies is OFF"
+        return L["Inactive — Ignore Friendlies is OFF"]
       end
     elseif EnemyOnly() then
-      return "Inactive — Ignore Friendlies is ON"
+      return L["Inactive — Ignore Friendlies is ON"]
     end
-    return "Inactive"
+    return L["Inactive"]
   end
 end
 
@@ -111,7 +114,7 @@ local function Build()
   local ctx
   window, ctx = UI.CreateWindow(
     "CombatModeTargetingMacroPrelinesEditor",
-    M["TITLE"] .. " - Targeting Macro Prelines Editor",
+    M["TITLE"] .. " - " .. L["Targeting Macro Prelines Editor"],
     700,
     UI.GetSecondaryEditorHeight(),
     { noScroll = true }
@@ -122,29 +125,21 @@ local function Build()
     justify = "LEFT",
     color = UI.Colors.textDim,
     allowColors = true,
-    text = "Customize the targeting prelines injected before each ability when Reticle Targeting is enabled."
-      .. "\n\n• Only the preline matching your current "
-      .. UI.AccentWrap("Ignore Friendlies")
-      .. " X "
-      .. UI.AccentWrap("Auto Target Lock")
-      .. " settings is active."
-      .. "\n• Max "
-      .. maxLenMarkup
-      .. " characters per preline — SecureActionButton macros are capped at "
-      .. UI.AccentWrap("255")
-      .. "; the rest is reserved for the trailing "
-      .. UI.SlashWrap("/click")
-      .. " line."
-      .. "\n• Use "
-      .. UI.AccentWrap("Apply Changes")
-      .. " to reload and pick up edits.",
+    text = format(
+      L["Customize the targeting prelines injected before each ability when Reticle Targeting is enabled.\n\n• Only the preline matching your current %s X %s settings is active.\n• Max %s characters per preline — SecureActionButton macros are capped at %s; the rest is reserved for the trailing %s line.\n• Use %s to reload and pick up edits."],
+      UI.AccentWrap(L["Ignore Friendlies"]),
+      UI.AccentWrap(L["Auto Target Lock"]),
+      maxLenMarkup,
+      UI.AccentWrap("255"),
+      UI.SlashWrap("/click"),
+      UI.AccentWrap(L["Apply Changes"])
+    ),
   })
 
   local function StateLines(enemiesOn, autoLockOn)
-    return "Ignore Friendlies: "
-      .. UI.OnOffWrap(enemiesOn)
-      .. "\nAuto Target Lock: "
-      .. UI.OnOffWrap(autoLockOn)
+    return format(L["Ignore Friendlies: %s"], UI.OnOffWrap(enemiesOn))
+      .. "\n"
+      .. format(L["Auto Target Lock: %s"], UI.OnOffWrap(autoLockOn))
   end
 
   local function AddPrelineField(opts)
@@ -156,9 +151,9 @@ local function Build()
       labelSize = UI.Fonts.small,
       -- Ignore Friendlies / Auto Target Lock state, shown as the small muted helper under the label.
       desc = function()
-        local text = used .. " / " .. maxLen .. " characters"
+        local text = format(L["%d / %d characters"], used, maxLen)
         if used > maxLen then
-          text = UI.AccentWrap(text) .. " (over the macro limit)"
+          text = format(L["%s (over the macro limit)"], UI.AccentWrap(text))
         end
         return opts.state .. "\n" .. text
       end,
@@ -178,7 +173,7 @@ local function Build()
   end
 
   AddPrelineField({
-    label = "Preline: Ignore Friendlies + No Auto Lock",
+    label = L["Preline: Ignore Friendlies + No Auto Lock"],
     state = StateLines(true, false),
     get = function()
       return CM.DB.global.targetingMacroPrelineEnemyOverride or defaults.enemy or ""
@@ -190,7 +185,7 @@ local function Build()
     watermarkWhenDisabled = FieldWatermark(false, true),
   })
   AddPrelineField({
-    label = "Preline: Ignore Friendlies + Auto Lock",
+    label = L["Preline: Ignore Friendlies + Auto Lock"],
     state = StateLines(true, true),
     get = function()
       return CM.DB.global.targetingMacroPrelineAutoLockEnemyOverride or defaults.autoLockEnemy or ""
@@ -202,7 +197,7 @@ local function Build()
     watermarkWhenDisabled = FieldWatermark(true, true),
   })
   AddPrelineField({
-    label = "Preline: Target Any Unit + No Auto Lock",
+    label = L["Preline: Target Any Unit + No Auto Lock"],
     state = StateLines(false, false),
     get = function()
       return CM.DB.global.targetingMacroPrelineAnyOverride or defaults.any or ""
@@ -214,7 +209,7 @@ local function Build()
     watermarkWhenDisabled = FieldWatermark(false, false),
   })
   AddPrelineField({
-    label = "Preline: Target Any Unit + Auto Lock",
+    label = L["Preline: Target Any Unit + Auto Lock"],
     state = StateLines(false, true),
     get = function()
       return CM.DB.global.targetingMacroPrelineAutoLockAnyOverride or defaults.autoLockAny or ""
@@ -229,7 +224,7 @@ local function Build()
   ctx:Gap()
   ctx:ButtonRow({
     {
-      label = "Reset to Defaults",
+      label = L["Reset to Defaults"],
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       reload = true,
@@ -242,7 +237,7 @@ local function Build()
       end,
     },
     {
-      label = "Apply Changes",
+      label = L["Apply Changes"],
       confirm = true,
       confirmText = RELOAD_CONFIRM,
       reload = true,
@@ -262,7 +257,12 @@ end
 
 function CM.OpenTargetingMacroPrelinesEditor()
   if InCombatLockdown and InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open this editor while in combat.|r")
+    print(
+      CM.Constants.BasePrintMsg
+        .. "|cff909090: "
+        .. L["Cannot open this editor while in combat."]
+        .. "|r"
+    )
     return
   end
 

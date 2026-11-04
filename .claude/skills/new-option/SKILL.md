@@ -10,6 +10,7 @@ description: Add a new user setting to the addon end to end (default, DB scope, 
 3. **Control** — add a `ctx:Toggle/Dropdown/Slider/TextInput/Keybind/...` in the matching `UI/Options/Tabs/Tab*.lua`. Give it a `label` (and `desc`) so options search indexes it; hidden-when rows use `hidden`, and call `layout:Reflow()` where rows collapse. Slider defaults via `opts.default` (right-click reset). Use "Action Combat Mode" in text.
    **Always flag it as new:** the control gets `newFeatureFlag = true` (Alliance "NEW" badge), and the tab that holds it needs `newFeatureFlag = true` in its `AddTab` definition too (Horde badge on the tab button), even if the tab already shows one for older options. Remove both flags only when a release retires them.
 4. **Events** — if it needs a new Blizzard event, add it to `BLIZZARD_EVENTS` in `Constants/Gameplay.lua` and handle it in `Core/Runtime/EventRouter.lua`.
+4b. **Locales** — the `label`, `desc`, tooltips and dropdown texts are `L["..."]` (`local L = CM.L`); add each key to `Locales/enUS.lua` and a drafted translation to all ten other locale files (`.claude/rules/localization.md`).
 5. **Wizard** — if first-run users should see it, add/adjust the step in `UI/Wizard/SetupWizard.lua`.
 6. **Docs** — changelog entry via the `changelog` skill (ask first); update the Lua header and `domain-*.md` if ownership or a gotcha changed.
 7. Run `/finish-change`.

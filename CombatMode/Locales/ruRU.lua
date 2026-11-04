@@ -1,0 +1,806 @@
+---------------------------------------------------------------------------------------
+--  Locales/ruRU.lua — LOCALES — Russian strings
+---------------------------------------------------------------------------------------
+--  What it does: Translations for the ruRU client. Keys are the English text from
+--  Locales/enUS.lua; a missing key falls back to English in game.
+--  Architecture / how it works:
+--    • Returns early unless GetLocale() == "ruRU", so only the active table runs.
+--    • Machine-drafted; needs native review. Keep placeholders (%s, %d), colour codes
+--      (|cffxxxxxx...|r) and the name "Action Combat Mode" exactly as in the key.
+--  Does not: Add keys that are not in enUS.lua (scripts/check-repo.ps1 fails on those).
+--  Related: Locales/enUS.lua, Locales/Locale.lua, .claude/rules/localization.md
+---------------------------------------------------------------------------------------
+local _, CM = ...
+
+if _G.GetLocale() ~= "ruRU" then
+  return
+end
+
+-- selene: allow(unused_variable)
+local L = CM.L
+
+-- Constants/Assets.lua: welcome popup and Key Bindings labels
+L["Welcome to Action Combat Mode!"] = "Добро пожаловать в Action Combat Mode!"
+L["The configuration panel will open after you close this message."] =
+  "Панель настроек откроется после закрытия этого сообщения."
+L["You can reopen it anytime with |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r."] =
+  "Вы можете открыть её снова в любой момент командой |cff69ccf0/acm|r или |cff69ccf0/actioncombatmode|r."
+L["|cff909090To restore your previous settings, use the |cffff5555Uninstall|r button in the options panel.|r"] =
+  "|cff909090Чтобы восстановить прежние настройки, нажмите кнопку |cffff5555Удалить|r на панели настроек.|r"
+L["Mouse Look"] = "Обзор мышью"
+L["Flip Camera"] = "Отразить камеру"
+L["Swap Shoulder"] = "Сменить плечо"
+L["Reset Mouse Look"] = "Сбросить обзор мышью"
+L["Ally Cycle Next"] = "Выбор союзника: следующий"
+L["Ally Cycle Previous"] = "Выбор союзника: предыдущий"
+L["Toggle Focus Target"] = "Переключить цель фокуса"
+L["Cycle Focus Next"] = "Смена фокуса: следующий"
+L["Cycle Focus Previous"] = "Смена фокуса: предыдущий"
+L["Radial Menu"] = "Радиальное меню"
+
+-- Core messages: chat output, binding queue contexts, combat-lockdown notices
+L["binding change"] = "изменение привязки клавиш"
+L["deferred %s until combat ends."] = "%s отложено до конца боя."
+L["failed to apply %s: %s"] = "не удалось применить %s: %s"
+L["applied deferred binding updates."] =
+  "отложенные изменения привязок применены."
+L["|cffE52B50%s detected!|r Handing over turn speed, shoulder, and dynamic pitch."] =
+  "|cffE52B50Обнаружен %s!|r Скорость поворота, плечо и динамический наклон передаются ему."
+L["Cannot uninstall while in combat."] = "Нельзя удалить во время боя."
+L["restored your previous camera/targeting settings and default mouse camera binds, then disabled the addon."] =
+  "прежние настройки камеры и выбора цели и стандартные привязки камеры мыши восстановлены, аддон отключён."
+L["Type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r for settings."] =
+  "Введите |cff69ccf0/acm|r или |cff69ccf0/actioncombatmode|r, чтобы открыть настройки."
+L["camera and targeting CVars restored."] =
+  "переменные камеры и выбора цели восстановлены."
+L["Cannot open settings while in combat."] =
+  "Нельзя открыть настройки во время боя."
+L["Cannot open this editor while in combat."] =
+  "Нельзя открыть этот редактор во время боя."
+L["Cannot open editor while in combat."] =
+  "Нельзя открыть редактор во время боя."
+L["cannot edit Reticle Targeting CVars while in combat."] =
+  "нельзя изменять переменные прицельного выбора цели во время боя."
+L["cannot reset Reticle Targeting CVars while in combat."] =
+  "нельзя сбрасывать переменные прицельного выбора цели во время боя."
+L["MOVEANDSTEER unbind"] = "снятие привязки MOVEANDSTEER"
+L["restore default mouse camera bindings"] =
+  "восстановление стандартных привязок камеры мыши"
+L["Minimum Zoom"] = "Минимальное приближение"
+L["ally cycle bindings"] = "привязки выбора союзника"
+L["radial menu"] = "радиальное меню"
+L["target lock keybinding"] = "привязка фиксации цели"
+L["cycle focus next keybinding"] = "привязка смены фокуса: следующий"
+L["cycle focus previous keybinding"] =
+  "привязка смены фокуса: предыдущий"
+L["ally cycle next keybinding"] =
+  "привязка выбора союзника: следующий"
+L["ally cycle previous keybinding"] =
+  "привязка выбора союзника: предыдущий"
+L["radial menu keybinding"] = "привязка радиального меню"
+L["reticle interact keybinding"] =
+  "привязка взаимодействия через прицел"
+L["mouse look keybinding"] = "привязка обзора мышью"
+L["flip camera keybinding"] = "привязка отражения камеры"
+L["reset mouse look keybinding"] = "привязка сброса обзора мышью"
+L["swap shoulder keybinding"] = "привязка смены плеча"
+
+-- TabGeneral.lua: Mouse Look tab
+L["MOUSE LOOK"] = "ОБЗОР МЫШЬЮ"
+L["CAMERA FEATURES"] = "ФУНКЦИИ КАМЕРЫ"
+L["ADDITIONAL FEATURES"] = "ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ"
+L["Crosshair - More accurate"] = "Прицел — точнее"
+L["Soft Target - More forgiving"] = "Мягкая цель — снисходительнее"
+L["Mouse Look is on"] = "Обзор мышью включён"
+L["In combat"] = "В бою"
+L["Talking to an NPC"] = "Разговор с NPC"
+L["Any checked"] = "Любое из отмеченных"
+L["All checked"] = "Все отмеченные"
+L["Off"] = "Выкл."
+L["Control relinquished to %s"] = "Управление передано: %s"
+L["Disabled while Motion Sickness Protection is on"] =
+  "Отключено, пока включена защита от укачивания"
+L["Lock the cursor to the position of the Crosshair and steer by moving the mouse without holding right-click."] =
+  "Фиксирует курсор в позиции прицела и позволяет поворачивать камеру движением мыши без удержания правой кнопки."
+L["Mouse Look Keybind"] = "Клавиша обзора мышью"
+L["Tap to toggle Mouse Look. Hold to unlock the cursor temporarily."] =
+  "Нажмите, чтобы включить или выключить обзор мышью. Удерживайте, чтобы временно освободить курсор."
+L["Interact Keybind"] = "Клавиша взаимодействия"
+L["Tap to interact with a player or the unit chosen below."] =
+  "Нажмите, чтобы взаимодействовать с игроком или с целью, выбранной ниже."
+L["Players"] = "Игроки"
+L["Aim at a player for a second and the Assist HUD shows a prompt. Press the key then to open their context menu."] =
+  "Наведите прицел на игрока на секунду — HUD помощи покажет подсказку. Затем нажмите клавишу, чтобы открыть его контекстное меню."
+L["NPCs and objects"] = "NPC и объекты"
+L["Interacts as normal with the unit chosen in Interact Unit."] =
+  "Взаимодействует как обычно с целью, выбранной в пункте «Цель взаимодействия»."
+L["Interact Unit"] = "Цель взаимодействия"
+L["Which unit will be interacted with when the key is pressed."] =
+  "С какой целью будет происходить взаимодействие при нажатии клавиши."
+L["Flip Camera Keybind"] = "Клавиша разворота камеры"
+L["Tap to flip the camera 180° around your character. Hold to flip it only while the key is held."] =
+  "Нажмите, чтобы развернуть камеру на 180° вокруг персонажа. Удерживайте, чтобы камера была развёрнута, только пока клавиша зажата."
+L["Recover a stuck cursor after switching windows on macOS. Re-grabs and releases Mouse Look to clear a capture the game left stuck while running in the background."] =
+  "Восстанавливает зависший курсор после переключения окон в macOS. Заново захватывает и отпускает обзор мышью, чтобы снять захват, оставшийся после работы игры в фоне."
+L["Curated camera adjustments for a more action-focused experience."] =
+  "Подобранные настройки камеры для более динамичной игры."
+L["Motion Sickness Protection"] = "Защита от укачивания"
+L["Prevents Action Combat Mode from overriding Blizzard's Motion Sickness settings."] =
+  "Не позволяет Action Combat Mode переопределять настройки защиты от укачивания Blizzard."
+L["Turn Speed"] = "Скорость поворота"
+L["Controls how quickly the camera turns while using Mouse Look."] =
+  "Определяет, как быстро поворачивается камера при обзоре мышью."
+L["Stops the camera from zooming in closer than this distance. 0 turns it off."] =
+  "Не даёт камере приближаться ближе этого расстояния. 0 отключает ограничение."
+L["Dynamic Pitch"] = "Динамический наклон"
+L["Dynamically tilt the camera up and down as you move it."] =
+  "Динамически наклоняет камеру вверх и вниз при её перемещении."
+L["Pitch Strength"] = "Сила наклона"
+L["How far Dynamic Pitch tilts the camera. Lower values keep your character higher on screen. Flying tilts further and scales with this."] =
+  "Насколько сильно динамический наклон отклоняет камеру. Меньшие значения удерживают персонажа выше на экране. При полёте наклон больше и зависит от этого значения."
+L["Shoulder Offset"] = "Смещение через плечо"
+L["Camera's horizontal position relative to the character."] =
+  "Горизонтальное положение камеры относительно персонажа."
+L["Disable Offset With Mouselook"] =
+  "Отключать смещение при обзоре мышью"
+L["Shoulder Offset eases to 0 when disabling Mouse Look."] =
+  "При выключении обзора мышью смещение через плечо плавно возвращается к 0."
+L["When off, Shoulder Offset stays constant at all times."] =
+  "Если выключено, смещение через плечо всегда остаётся постоянным."
+L["Swap Shoulder Keybind"] = "Клавиша смены плеча"
+L["Press to mirror Shoulder Offset to the other side of your character."] =
+  "Нажмите, чтобы отразить смещение через плечо на другую сторону персонажа."
+L["Extra functionalities tied to Mouse Look behaviour."] =
+  "Дополнительные функции, связанные с поведением обзора мышью."
+L["Cursor Pulse"] = "Пульсация курсора"
+L["Flash the cursor when Mouse Look is turned off."] =
+  "Мигает курсором при выключении обзора мышью."
+L["Hide Tooltips"] = "Скрывать подсказки"
+L["Hide tooltips while Mouse Look is on, unless the key below is held."] =
+  "Скрывает подсказки, пока включён обзор мышью, если не удерживается клавиша ниже."
+L["Show Tooltips With"] = "Показывать подсказки по"
+L["Hold this key to show tooltips while Mouse Look is on."] =
+  "Удерживайте эту клавишу, чтобы показывать подсказки при включённом обзоре мышью."
+L["Auto Sheath"] = "Автоматически убирать оружие"
+L["Sheath weapons automatically with Mouse Look."] =
+  "Автоматически убирает оружие вместе с обзором мышью."
+L["Vignette Shows When"] = "Виньетка появляется, когда"
+L["Darkens the edges of the screen while the checked situations are true."] =
+  "Затемняет края экрана, пока выполняются отмеченные условия."
+L["Vignette Match"] = "Условие виньетки"
+L["Any: one checked situation is enough. All: every checked situation must be true at once."] =
+  "Любое: достаточно одного отмеченного условия. Все: все отмеченные условия должны выполняться одновременно."
+
+-- TabReticleTargeting.lua: Reticle Targeting tab
+L["Any Hard Target"] = "Любая выбранная цель"
+L["Locked Target Only"] = "Только захваченная цель"
+L["Soft Target (Blizzard)"] = "Мягкая цель (Blizzard)"
+L["Hidden"] = "Скрыто"
+L["Toggle"] = "Переключить"
+L["Switch Target"] = "Сменить цель"
+L["A UI Reload is required when making this change. Proceed?"] =
+  "Для этого изменения требуется перезагрузка интерфейса. Продолжить?"
+L["Create New Macro"] = "Создать новый макрос"
+L["Write a macro that starts with your Reticle Targeting preline."] =
+  "Напишите макрос, начинающийся с вашей преддиректории наведения по прицелу."
+L["Unavailable in combat."] = "Недоступно в бою."
+L["Drag to a button on your action bars to use."] =
+  "Перетащите на кнопку панели команд, чтобы использовать."
+L["Right-click to edit"] = "ПКМ — изменить"
+L["+%d more in /macro"] = "Ещё %d в /macro"
+L["Reticle Targeting Macros"] = "Макросы наведения по прицелу"
+L["Action buttons that are macros cannot automatically inherit Reticle Targeting logic. To make them adhere to these rules, create them using the Macro Composer tool, then drag them onto your bars."] =
+  "Кнопки действий, являющиеся макросами, не наследуют логику наведения по прицелу автоматически. Чтобы они её соблюдали, создайте их в редакторе макросов и перетащите на панели."
+L["Reticle Targeting"] = "Наведение по прицелу"
+L["RETICLE TARGETING"] = "НАВЕДЕНИЕ ПО ПРИЦЕЛУ"
+L["Enables aim-based unit targeting and precise placement of ground-targeted spells and AoE abilities."] =
+  "Включает выбор целей наведением и точное размещение заклинаний по земле и массовых умений."
+L["Enable Reticle Targeting"] = "Включить наведение по прицелу"
+L["Aim the crosshair at units to pick targets instead of tab-targeting."] =
+  "Наводите прицел на цели, чтобы выбирать их вместо перебора клавишей Tab."
+L["Ignore Friendlies"] = "Игнорировать союзников"
+L["Ignore friendly NPCs and Players, and only target hostile units."] =
+  "Игнорирует дружественных NPC и игроков и выбирает только враждебные цели."
+L["Click Casting Only"] = "Только Click Casting"
+L["Apply reticle targeting logic only to Click Casting binds."] =
+  "Применять логику наведения по прицелу только к привязкам Click Casting."
+L["Excluded Spells"] = "Исключённые заклинания"
+L["Spells to skip the reticle targeting logic."] =
+  "Заклинания, для которых логика наведения по прицелу не применяется."
+L["Cast at Crosshair"] = "Применять в прицел"
+L["Ground spells to cast at the crosshair location."] =
+  "Заклинания по земле, применяемые в точку прицела."
+L["TARGET LOCK"] = "ЗАХВАТ ЦЕЛИ"
+L["Lock onto a target to prevent accidental switching, and cycle between units to prioritize specific enemies."] =
+  "Захватывайте цель, чтобы случайно не сменить её, и переключайтесь между целями, чтобы выделять нужных врагов."
+L["Warning: Target Lock uses your Focus Target. Anything else that sets your focus will interfere with it."] =
+  "Внимание: захват цели использует вашу цель фокуса. Всё, что меняет фокус, будет ему мешать."
+L["Target Lock Keybind"] = "Клавиша захвата цели"
+L["Lock the reticle to a target, preventing it from swapping."] =
+  "Фиксирует прицел на цели, не позволяя ему переключаться."
+L["Cycle Lock - Next"] = "Смена захвата — следующая"
+L["Move Target Lock to the next valid nearby target."] =
+  "Переносит захват на следующую подходящую цель поблизости."
+L["Cycle Lock - Previous"] = "Смена захвата — предыдущая"
+L["Move Target Lock to the previous valid nearby target."] =
+  "Переносит захват на предыдущую подходящую цель поблизости."
+L["Target Lock Behavior"] = "Поведение захвата цели"
+L["What the Target Lock key does when you press it."] =
+  "Что делает клавиша захвата цели при нажатии."
+L["Locks your target, or the unit under the crosshair. Tap again to unlock."] =
+  "Захватывает вашу цель или цель под прицелом. Повторное нажатие снимает захват."
+L["Locks the unit under the crosshair, replacing any current lock. Tap with nothing under the crosshair to unlock. Aiming at the unit you already locked keeps the lock."] =
+  "Захватывает цель под прицелом, заменяя текущий захват. Нажатие, когда под прицелом ничего нет, снимает захват. Если навести прицел на уже захваченную цель, захват сохраняется."
+L["With Ignore Friendlies on, a friendly or dead unit under the crosshair is ignored: the lock stays where it is."] =
+  "Если включено «Игнорировать союзников», дружественная или мёртвая цель под прицелом игнорируется: захват остаётся на месте."
+L["Auto Target Lock"] = "Автозахват цели"
+L["Target Lock engages automatically when attacking units."] =
+  "Захват цели включается автоматически при атаке юнитов."
+L["Target Lock Marker"] = "Метка захвата цели"
+L["Show a crosshair marker on the nameplate of the locked target."] =
+  "Показывает метку прицела на индикаторе имени захваченной цели."
+L["Focus Locked Target"] = "Фокус на захваченной цели"
+L["Pulls the camera toward your locked target, keeping it in focus."] =
+  "Притягивает камеру к захваченной цели, удерживая её в фокусе."
+L["TARGETING INDICATORS"] = "ИНДИКАТОРЫ ЦЕЛИ"
+L["Visual indicators that highlight targets in the world for easier identification."] =
+  "Визуальные индикаторы, выделяющие цели в мире для лучшего распознавания."
+L["Target Outline"] = "Контур цели"
+L["Show an outline effect on your target."] =
+  "Показывает контур вокруг вашей цели."
+L["Only available on Retail"] = "Доступно только в Retail"
+L["Selection Circle"] = "Круг выделения"
+L["Which target gets Blizzard's selection circle underneath their feet."] =
+  "У какой цели под ногами отображается круг выделения Blizzard."
+L["The circle under whatever you have targeted, enemy or friendly."] =
+  "Круг под любой выбранной целью, вражеской или дружественной."
+L["The circle only under your Target Lock."] =
+  "Круг только под вашей захваченной целью."
+L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocused."] =
+  "Поведением ObjectSelectionCircle и UnitNameFocused управляет Blizzard."
+L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
+  "Blizzard выбирает мягкую цель из сектора перед моделью персонажа. Положение прицела и смещение через плечо не учитываются."
+L["No selection circle."] = "Круг выделения не показывается."
+
+-- TabCrosshair.lua: Crosshair tab
+L["Crosshair"] = "Прицел"
+L["CROSSHAIR"] = "ПРИЦЕЛ"
+L["A dynamic crosshair that reacts to targets and combat states, enhancing precision and guiding Reticle Targeting."] =
+  "Динамический прицел, реагирующий на цели и состояния боя, повышает точность и направляет наведение по прицелу."
+L["Enable Crosshair"] = "Включить прицел"
+L["While in Mouse Look, display a dynamic & reactive crosshair on your screen."] =
+  "Во время обзора мышью показывает на экране динамический реагирующий прицел."
+L["Cast Feedback"] = "Отклик на применение"
+L["Crosshair provides visual feedback while casting."] =
+  "Прицел визуально отзывается во время применения заклинаний."
+L["Appearance"] = "Внешний вид"
+L["Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset."] =
+  "Текстуры прицела для каждого состояния. Нажмите на одну, чтобы выбрать текстуру, или начните с шаблона."
+L["Inactive"] = "Неактивен"
+L["Active"] = "Активен"
+L["Mounted"] = "На транспорте"
+L["Disabled"] = "Отключён"
+L["Reaction Colors"] = "Цвета реакции"
+L["Edit"] = "Изменить"
+L["Customize the colors used by the crosshair when targeting different types of units."] =
+  "Настройте цвета прицела при наведении на разные типы целей."
+L["Scale"] = "Масштаб"
+L["Scales the size of the crosshair."] = "Масштабирует размер прицела."
+L["Vertical Position"] = "Вертикальное положение"
+L["Move the crosshair up or down from screen center."] =
+  "Смещает прицел вверх или вниз от центра экрана."
+L["ASSIST HUD"] = "HUD ПОМОЩИ"
+L["A HUD that guides spell rotation when targeting enemies and displays interaction prompts."] =
+  "HUD, подсказывающий порядок заклинаний при наведении на врагов и показывающий подсказки взаимодействия."
+L["Next-cast Suggestion"] = "Подсказка следующего заклинания"
+L["Show the Assisted Highlight's next-cast suggestion while aiming at a target."] =
+  "Показывает подсказку следующего заклинания от Помощника по боевым действиям при наведении на цель."
+L["Always"] = "Всегда"
+L["Only In Combat"] = "Только в бою"
+L["Interactable Indicator"] = "Индикатор взаимодействия"
+L["Show an indicator while aiming at an interactable unit or object."] =
+  "Показывает индикатор при наведении на юнит или объект, с которым можно взаимодействовать."
+L["Player Interaction Prompt"] = "Подсказка взаимодействия с игроком"
+L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
+  "Показывает индикатор, если навести прицел на игрока на секунду. Клавиша взаимодействия откроет его контекстное меню."
+L["Position"] = "Положение"
+L["Which side of the crosshair the HUD appears on."] =
+  "С какой стороны от прицела появляется HUD."
+L["Left"] = "Слева"
+L["Right"] = "Справа"
+L["Scales the size of the HUD."] = "Масштабирует размер HUD."
+L["Distance"] = "Расстояние"
+L["Distance between the HUD and the crosshair."] =
+  "Расстояние между HUD и прицелом."
+
+-- TabClickCasting.lua: Click Casting tab
+L["Action Combat Mode"] = "Action Combat Mode"
+L["Modified Blizzard Actions"] = "Измененные действия Blizzard"
+L["Blizzard Actions"] = "Действия Blizzard"
+L["Base"] = "Базовый"
+L["Shift"] = "Shift"
+L["Ctrl"] = "Ctrl"
+L["Alt"] = "Alt"
+L["Clear Target"] = "Сбросить цель"
+L["Clear Focus"] = "Сбросить фокус"
+L["Start Attack"] = "Начать атаку"
+L["Pet Attack"] = "Атака питомца"
+L["Toggle Focus Any"] = "Переключить фокус (любая цель)"
+L["Toggle Focus Enemy"] = "Переключить фокус (враг)"
+L["Run MACRO"] = "Запустить MACRO"
+L["— none —"] = "— нет —"
+L["Override this click during Mouse Look."] =
+  "Заменяет этот щелчок во время обзора мышью."
+L["Action"] = "Действие"
+L["Macro"] = "Макрос"
+L["Select a macro"] = "Выберите макрос"
+L["No targeting"] = "Без наведения"
+L["Left Click"] = "Левый щелчок"
+L["Right Click"] = "Правый щелчок"
+L["Shift + Left Click"] = "Shift + Левый щелчок"
+L["Shift + Right Click"] = "Shift + Правый щелчок"
+L["Ctrl + Left Click"] = "Ctrl + Левый щелчок"
+L["Ctrl + Right Click"] = "Ctrl + Правый щелчок"
+L["Alt + Left Click"] = "Alt + Левый щелчок"
+L["Alt + Right Click"] = "Alt + Правый щелчок"
+L["Click Casting"] = "Применение по щелчку"
+L["CLICK CASTING"] = "ПРИМЕНЕНИЕ ПО ЩЕЛЧКУ"
+L["Assign override actions to left and right clicks that are active during Mouse Look."] =
+  "Назначьте действия-замены на левый и правый щелчок, действующие во время обзора мышью."
+L["Account-Wide Binds"] = "Привязки для всей учетной записи"
+L["Share Click Casting binds across all characters."] =
+  "Общие привязки применения по щелчку для всех персонажей."
+L["Click Binds"] = "Привязки щелчков"
+L["Base, Shift, Ctrl and Alt each have their own Left and Right Click actions."] =
+  "У базового режима, Shift, Ctrl и Alt есть свои действия для левого и правого щелчка."
+
+-- TabRadialMenu.lua: Radial Menu tab
+L["Radial Menu Wheels"] = "Колеса радиального меню"
+L["Forever"] = "Forever"
+L["Minimal"] = "Минимализм"
+L["Clear Slice"] = "Очистить сектор"
+L["UI Actions"] = "Действия интерфейса"
+L["Emotes"] = "Эмоции"
+L["Commands"] = "Команды"
+L["Markers"] = "Метки"
+L["Slice"] = "Сектор"
+L["Choose an action"] = "Выберите действие"
+L["Presets"] = "Шаблоны"
+L["New Wheel"] = "Новое колесо"
+L["Wheel"] = "Колесо"
+L["You can have up to %d wheels."] = "Можно создать не более %d колес."
+L["That can't go on a wheel. Use a spell, item, toy, mount or macro."] =
+  "Это нельзя поместить на колесо. Используйте заклинание, предмет, игрушку, средство передвижения или макрос."
+L["Drag a spell, item, toy, mount or macro here, or click to change the action."] =
+  "Перетащите сюда заклинание, предмет, игрушку, средство передвижения или макрос либо щелкните, чтобы сменить действие."
+L["Empty Slice"] = "Пустой сектор"
+L["Drag a spell, item, toy, mount or macro here, or click to set an action. Empty slices are left out of the wheel."] =
+  "Перетащите сюда заклинание, предмет, игрушку, средство передвижения или макрос либо щелкните, чтобы задать действие. Пустые секторы в колесо не попадают."
+L["A wheel needs at least one slice."] =
+  "Колесо должно содержать хотя бы один сектор."
+L["Click to rename this wheel"] =
+  "Щелкните, чтобы переименовать колесо"
+L["Previous wheel"] = "Предыдущее колесо"
+L["Next wheel"] = "Следующее колесо"
+L["Click to select this wheel, drag to reorder"] =
+  "Щелчок выбирает колесо, перетаскивание меняет порядок"
+L["Add Slice"] = "Добавить сектор"
+L["A wheel holds up to %d slices."] =
+  "На колесе может быть не более %d секторов."
+L["Remove Wheel"] = "Удалить колесо"
+L["Deletes this wheel and all of its slices."] =
+  "Удаляет это колесо и все его секторы."
+L["You need at least one wheel."] = "Нужно хотя бы одно колесо."
+L["Remove this wheel and all of its slices?"] =
+  "Удалить это колесо и все его секторы?"
+L["Add Wheel"] = "Добавить колесо"
+L["Pick a preset wheel or a blank one."] =
+  "Выберите готовое колесо или пустое."
+L["Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it.\nDrag a slice to reorder it. Right-click a slice to remove it."] =
+  "Щелкните сектор, чтобы выбрать действие, или перетащите на него заклинание, предмет, игрушку, средство передвижения или макрос.\nПеретащите сектор, чтобы изменить порядок. Правый щелчок удаляет его."
+L["RADIAL MENU"] = "РАДИАЛЬНОЕ МЕНЮ"
+L["Create quick access wheels for spells, items, macros, emotes, and interface shortcuts."] =
+  "Создавайте колеса быстрого доступа для заклинаний, предметов, макросов, эмоций и ярлыков интерфейса."
+L["Radial Menu Keybind"] = "Клавиша радиального меню"
+L["Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels."] =
+  "Удерживайте, чтобы открыть радиальное меню, наведитесь на сектор и отпустите для активации. Колесо мыши переключает колеса."
+L["Radial Menu Style"] = "Стиль радиального меню"
+L["Choose the appearance of the Radial Menu wheels."] =
+  "Выберите внешний вид колес радиального меню."
+L["Party Wheel Spells"] = "Заклинания колеса группы"
+L["Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected."] =
+  "Полезные заклинания, открывающие колесо выбора цели из группы, пока удерживается их клавиша. Сдвиньте курсор к участнику группы и отпустите, чтобы применить на него, или вернитесь в центр, чтобы применить на себя. Короткое нажатие применяет на дружественную цель, а если ее нет, то на вас."
+L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
+  "Редактируйте секторы каждого колеса, переименовывайте колеса, добавляйте и удаляйте их."
+
+-- TabAllyCycle.lua: Ally Cycle tab
+L["Top"] = "Сверху"
+L["Bottom"] = "Снизу"
+L["Ally Cycle"] = "Смена союзника"
+L["ALLY CYCLE"] = "СМЕНА СОЮЗНИКА"
+L["Seamless combat and support by allowing helpful spells to target allies, while harmful spells remain focused on the hostile crosshair target."] =
+  "Бесшовный бой и поддержка: полезные заклинания направляются на союзников, а вредоносные остаются на враге под прицелом."
+L["Ally Cycle - Next"] = "Смена союзника – Следующий"
+L["Target the next group member."] =
+  "Выбирает следующего участника группы."
+L["Ally Cycle - Previous"] = "Смена союзника – Предыдущий"
+L["Target the previous group member."] =
+  "Выбирает предыдущего участника группы."
+L["Skip Self"] = "Пропускать себя"
+L["Skip yourself when cycling through group members."] =
+  "Пропускает вас при переборе участников группы."
+L["Keep Ally After Harm"] = "Сохранять союзника после атаки"
+L["After a harmful spell targets the reticle enemy, restore the previous ally. On by default for Healer specs until changed."] =
+  "После вредоносного заклинания по врагу под прицелом возвращает прежнего союзника. Для специализаций целителей включено по умолчанию, пока вы не измените."
+L["Disabled while Auto Target Lock is on"] =
+  "Отключено, пока включен автоматический захват цели"
+L["ALLY HUD"] = "HUD СОЮЗНИКА"
+L["A HUD displaying the group member Ally Cycle has selected."] =
+  "HUD, показывающий участника группы, выбранного сменой союзника."
+L["Ally HUD"] = "HUD союзника"
+L["Show a unit frame for the currently selected group member."] =
+  "Показывает рамку выбранного участника группы."
+L["Where the Ally HUD sits relative to the crosshair."] =
+  "Положение HUD союзника относительно прицела."
+L["Scales the size of the Ally HUD."] =
+  "Масштабирует размер HUD союзника."
+L["Distance between the Ally HUD and the crosshair."] =
+  "Расстояние между HUD союзника и прицелом."
+
+-- TabAutoCursorUnlock.lua: Auto Unlock tab
+L["Auto Unlock"] = "Авторазблокировка"
+L["AUTO UNLOCK"] = "АВТОРАЗБЛОКИРОВКА"
+L["Automatically pauses Mouse Look when windows open and resumes it when they close."] =
+  "Автоматически приостанавливает обзор мышью при открытии окон и возобновляет его при закрытии."
+L["Release the cursor when UI panels open."] =
+  "Освобождает курсор при открытии панелей интерфейса."
+L["Unlock Mounts"] = "Транспорт для разблокировки"
+L["Mounts that force a cursor unlock while mounted."] =
+  "Транспорт, при езде на котором курсор принудительно освобождается."
+L["Extra Frames"] = "Дополнительные окна"
+L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
+  "Имена дополнительных окон, вызывающих авторазблокировку. Введите текст для поиска окон Blizzard и аддонов или нажмите кнопку проверки и щелкните окно на экране."
+
+-- TabAdvanced.lua: Advanced tab
+L["Advanced"] = "Дополнительно"
+L["SOUNDS"] = "ЗВУКИ"
+L["Control the sound cues used by some of the other features."] =
+  "Управление звуковыми сигналами, которые используют другие функции."
+L["Mouse Look Sounds"] = "Звуки обзора мышью"
+L["Play a cue when Mouse Look turns on and off."] =
+  "Воспроизводит сигнал при включении и выключении обзора мышью."
+L["Target Lock Sounds"] = "Звуки захвата цели"
+L["Play cues when a Target Lock is set, cleared or cycled."] =
+  "Воспроизводит сигналы при установке, снятии и смене захвата цели."
+L["Radial Menu Sounds"] = "Звуки радиального меню"
+L["Play cues when interacting with Radial Menu wheels."] =
+  "Воспроизводит сигналы при работе с колесами радиального меню."
+L["Ally Cycle Sounds"] = "Звуки смены союзника"
+L["Play a cue when Ally Cycle moves to another ally."] =
+  "Воспроизводит сигнал, когда смена союзника переходит к другому союзнику."
+L["FORCE LOCK"] = "ПРИНУДИТЕЛЬНАЯ БЛОКИРОВКА"
+L["An advanced option that keeps Mouse Look enabled for as long as a custom Lua condition is true."] =
+  "Расширенная опция: обзор мышью остается включенным, пока верно пользовательское условие Lua."
+L["Custom Condition"] = "Пользовательское условие"
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain locked."] =
+  "Пользовательский код Lua: пока он возвращает true, обзор мышью остается заблокированным."
+L["Lock Once"] = "Заблокировать однократно"
+L["Force Mouse Look to lock only when the condition first becomes true. A manual unlock remains in effect until the condition becomes false and then true again."] =
+  "Блокирует обзор мышью только когда условие впервые становится истинным. Ручная разблокировка действует, пока условие не станет ложным, а затем снова истинным."
+L["FORCE UNLOCK"] = "ПРИНУДИТЕЛЬНАЯ РАЗБЛОКИРОВКА"
+L["The opposite of Force Lock: keeps Mouse Look off for as long as a custom Lua condition is true."] =
+  "Противоположность принудительной блокировке: обзор мышью остается выключенным, пока верно пользовательское условие Lua."
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain unlocked."] =
+  "Пользовательский код Lua: пока он возвращает true, обзор мышью остается разблокированным."
+L["Unlock Once"] = "Разблокировать однократно"
+L["Force Mouse Look to unlock only when the condition first becomes true. A manual lock remains in effect until the condition becomes false and then true again."] =
+  "Разблокирует обзор мышью только когда условие впервые становится истинным. Ручная блокировка действует, пока условие не станет ложным, а затем снова истинным."
+L["Swaps the crosshair's appearance for as long as a custom Lua condition is true."] =
+  "Меняет вид прицела, пока верно пользовательское условие Lua."
+L["Situational Appearance"] = "Внешний вид по ситуации"
+L["Textures utilized by the crosshair while the Situational Condition returns true."] =
+  "Текстуры прицела, пока верно условие по ситуации."
+L["Situational Condition"] = "Условие по ситуации"
+L["Custom Lua code that, while evaluating to true, forces the crosshair to use its Situational Appearance."] =
+  "Пользовательский код Lua: пока он возвращает true, прицел использует внешний вид по ситуации."
+L["Modify Action Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines."] =
+  "Изменение стандартных CVar наведения по прицелу и преднастроек макросов наведения в Action Combat Mode."
+L["Warning: editing these values could break Reticle Targeting and Target Lock."] =
+  "Внимание: изменение этих значений может нарушить наведение по прицелу и захват цели."
+L["Reticle Targeting CVar Editor"] = "Редактор CVar наведения по прицелу"
+L["Targeting Macro Prelines Editor"] =
+  "Редактор преднастроек макросов наведения"
+
+-- SetupWizard.lua / Spotlight.lua: setup wizard
+L["Back"] = "Назад"
+L["Next"] = "Далее"
+L["Finish"] = "Готово"
+L["Skip tour"] = "Пропустить обзор"
+L["Assist HUD"] = "HUD помощника"
+L["Target Lock"] = "Захват цели"
+L["Party Wheel"] = "Колесо группы"
+L["Set a Mouse Look key"] = "Назначьте клавишу обзора мышью"
+L["Set an Interact key"] = "Назначьте клавишу взаимодействия"
+L["Set a Target Lock key"] = "Назначьте клавишу захвата цели"
+L["Set a Cycle Lock - Next key"] =
+  "Назначьте клавишу «Смена захвата – Следующий»"
+L["Set a Cycle Lock - Previous key"] =
+  "Назначьте клавишу «Смена захвата – Предыдущий»"
+L["Set a Radial Menu key"] = "Назначьте клавишу радиального меню"
+L["Set an Ally Cycle - Next key"] =
+  "Назначьте клавишу «Смена союзника – Следующий»"
+L["Set an Ally Cycle - Previous key"] =
+  "Назначьте клавишу «Смена союзника – Предыдущий»"
+L["Turning Reticle Targeting on or off reloads the UI."] =
+  "Включение или выключение наведения по прицелу перезагружает интерфейс."
+L["Needs Reticle Targeting."] = "Требуется наведение по прицелу."
+L["Lock your cursor to the center of the screen and steer by moving the mouse, no more holding right-click.\n\nSet a {key to toggle it}, and {one to interact with} whatever you're aiming at."] =
+  "Курсор фиксируется в центре экрана, а направление задается движением мыши, без удержания правой кнопки.\n\nНазначьте {клавишу переключения} и {клавишу взаимодействия} с тем, на что вы целитесь."
+L["A reactive, fully customizable crosshair that adapts to your target and combat state.\n\nChoose its {look}, {size} and {position}."] =
+  "Реактивный полностью настраиваемый прицел, который подстраивается под вашу цель и состояние боя.\n\nВыберите {вид}, {размер} и {положение}."
+L["Aim at an enemy and the HUD next to your crosshair suggests your {next spell} and shows its key.\n\nAim at something you can interact with and it shows its {name} and your {Interact key} instead.\n\nTurn either on or off, and set its {side}, {size} and {distance} from the crosshair."] =
+  "Наведите прицел на врага, и HUD рядом с прицелом предложит {следующее заклинание} и покажет его клавишу.\n\nНаведите на объект взаимодействия, и HUD покажет его {название} и вашу {клавишу взаимодействия}.\n\nВключайте и выключайте любой из них и задайте {сторону}, {размер} и {расстояние} от прицела."
+L["Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.\n\n{Ignore Friendlies} makes it skip allies."] =
+  "Выбирайте врагов, просто наводя на них прицел, и применяйте заклинания по площади точно туда, куда указывает прицел, без выбора по Tab.\n\n{Игнорировать союзников} пропускает союзников."
+L["Ground-targeted spells that should be cast at the crosshair location.\n\nType a {spell name or ID} to add it."] =
+  "Заклинания по площади, которые нужно применять в точку прицела.\n\nВведите {название или ID заклинания}, чтобы добавить его."
+L["{!Action buttons that are macros cannot inherit Reticle Targeting on their own.}\n\nPress {+} to open the {Macro Composer}, write your macro there and it gets the targeting logic added for you.\n\nThen drag it from this list onto your action bars; {right-click} an icon to edit it."] =
+  "{!Кнопки действий, являющиеся макросами, не могут сами наследовать наведение по прицелу.}\n\nНажмите {+}, чтобы открыть {Конструктор макросов}, напишите там макрос, и логика наведения добавится автоматически.\n\nЗатем перетащите его из этого списка на панели команд; {щелкните правой кнопкой} по значку, чтобы изменить его."
+L["Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies.\n\n{Target Lock Behavior} decides whether tapping again unlocks ({Toggle}) or moves the lock to whatever is under the crosshair ({Switch Target}).\n\nSet your keys."] =
+  "Захватите цель одним нажатием, чтобы прицел перестал переключаться. Пока цель захвачена, клавиши смены переходят к ближайшим врагам.\n\n{Поведение захвата цели} определяет, снимает ли повторное нажатие захват ({Переключить}) или переносит его на то, что под прицелом ({Сменить цель}).\n\nНазначьте клавиши."
+L["Turn your mouse clicks into actions while in Mouse Look, such as casting your action bar spells with {Left and Right Click}.\n\nPick what each click does, with or without a {modifier key}."] =
+  "Превращайте щелчки мыши в действия в режиме обзора мышью, например применяйте заклинания с панели команд {левым и правым щелчком}.\n\nВыберите, что делает каждый щелчок, с {клавишей-модификатором} или без нее."
+L["A wheel of your {spells, items, macros and shortcuts} that works in combat.\n\nHold its key, move the mouse toward a slice and release to use it.\n\n{Scroll} to switch between wheels."] =
+  "Колесо из ваших {заклинаний, предметов, макросов и ярлыков}, работающее в бою.\n\nУдерживайте клавишу, переместите мышь к сектору и отпустите, чтобы использовать его.\n\n{Прокрутите колесико}, чтобы переключать колеса."
+L["Hold the key of a {helpful spell} listed here to open a wheel of your group members. Move toward one and release to cast on them, or come back to the {center} to cast on yourself.\n\n{Tap} the key to cast on your friendly target, or yourself if you have none.\n\nType a {spell name or ID} to add it."] =
+  "Удерживайте клавишу {полезного заклинания} из этого списка, чтобы открыть колесо участников группы. Переместитесь к одному из них и отпустите, чтобы применить на него, или вернитесь в {центр}, чтобы применить на себя.\n\n{Коротко нажмите} клавишу, чтобы применить на дружественную цель, а если ее нет, то на себя.\n\nВведите {название или ID заклинания}, чтобы добавить его."
+L["Cycle through group members in Mouse Look so {helpful spells} go to the ally while {harmful ones} keep hitting your enemy.\n\nThe {Ally HUD} shows who is selected.\n\nSet your cycle keys."] =
+  "Переключайтесь между участниками группы в режиме обзора мышью: {полезные заклинания} идут союзнику, а {вредоносные} по-прежнему бьют врага.\n\n{HUD союзника} показывает, кто выбран.\n\nНазначьте клавиши смены."
+L["Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\nAdd {mounts or extra windows} that should pause it too."] =
+  "Обзор мышью приостанавливается, когда вы открываете {сумки, карту или другие окна}, а затем возобновляется.\n\nДобавьте {транспорт или дополнительные окна}, которые тоже должны его приостанавливать."
+
+-- Options UI: widgets, panel, search, pickers
+L["What's New"] = "Что нового"
+L["See what's new in this version"] =
+  "Посмотрите, что нового в этой версии"
+L["Link"] = "ссылка"
+L["Copy the %s link (Ctrl+C), then paste it in your browser."] =
+  "Скопируйте ссылку на %s (Ctrl+C) и вставьте ее в браузер."
+L["Character-specific option."] =
+  "Настройка для отдельного персонажа."
+L["NEW"] = "НОВОЕ"
+L["ON"] = "ВКЛ"
+L["OFF"] = "ВЫКЛ"
+L["Are you sure?"] = "Вы уверены?"
+L["> Press key (ESC clears) <"] = "> Нажмите клавишу (ESC очищает) <"
+L["WoW API Documentation"] = "Документация по API WoW"
+L["Pick a frame on screen"] = "Выбрать окно на экране"
+L["Pick a frame"] = "Выбрать окно"
+L["Silence Alerts"] = "Отключить оповещения"
+L["Debug Mode"] = "Режим отладки"
+L["Reset to Defaults"] = "Сбросить настройки"
+L["Reset all Action Combat Mode settings to defaults and reload?"] =
+  "Сбросить все настройки Action Combat Mode и перезагрузить интерфейс?"
+L["Uninstall"] = "Удалить"
+L["Uninstall Action Combat Mode?\n\nThis will restore your previous camera and targeting settings, disable the addon, and reload."] =
+  "Удалить Action Combat Mode?\n\nБудут восстановлены прежние настройки камеры и выбора цели, аддон будет отключен, а интерфейс перезагружен."
+L["View the changelog"] = "Открыть список изменений"
+L["Run the setup wizard again?"] = "Запустить мастер настройки снова?"
+L["Run the setup wizard"] = "Запустить мастер настройки"
+L["GitHub Repository"] = "Репозиторий GitHub"
+L["Discord Server"] = "Сервер Discord"
+L["%s · Section"] = "%s · Раздел"
+L["Sidebar"] = "Боковая панель"
+L["Search options..."] = "Поиск настроек..."
+L["No matching options"] = "Подходящих настроек нет"
+L["Section"] = "Раздел"
+L["Tab"] = "Вкладка"
+L["Color"] = "Цвет"
+L["Type spell name or ID…"] = "Введите название или ID заклинания…"
+L["Type mount name or spell ID…"] =
+  "Введите название транспорта или ID заклинания…"
+L["Type a frame name…"] = "Введите название окна…"
+L["Blizzard"] = "Blizzard"
+L["Addon"] = "Аддон"
+L["open"] = "открыто"
+L["Click a frame to add it to the list. Right-click or press Esc to cancel."] =
+  "Щелкните окно, чтобы добавить его в список. Правая кнопка мыши или Esc отменяют выбор."
+L["Line %d: %s"] = "Строка %d: %s"
+L["Unknown API: %s - did you mean %s?"] =
+  "Неизвестный API: %s – возможно, вы имели в виду %s?"
+L["Unknown API: %s"] = "Неизвестный API: %s"
+L["%s (+%d more)"] = "%s (еще +%d)"
+L["Version: %s"] = "Версия: %s"
+L["Use the button below to open Action Combat Mode options."] =
+  "Нажмите кнопку ниже, чтобы открыть настройки Action Combat Mode."
+L["You can also type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r in chat."] =
+  "Также можно ввести |cff69ccf0/acm|r или |cff69ccf0/actioncombatmode|r в чате."
+L["Open Options"] = "Открыть настройки"
+
+-- Editors: macro composer, prelines, crosshair colors and textures, CVar editor
+L["%d / %d characters"] = "%d / %d символов"
+L["%s (over the macro limit)"] = "%s (превышен лимит макроса)"
+L["Ignore Friendlies: %s"] = "Игнорировать союзников: %s"
+L["Auto Target Lock: %s"] = "Автозахват цели: %s"
+L["Preline: Ignore Friendlies + No Auto Lock"] =
+  "Предстрока: игнорировать союзников + без автозахвата"
+L["Preline: Ignore Friendlies + Auto Lock"] =
+  "Предстрока: игнорировать союзников + автозахват"
+L["Preline: Target Any Unit + No Auto Lock"] =
+  "Предстрока: любая цель + без автозахвата"
+L["Preline: Target Any Unit + Auto Lock"] =
+  "Предстрока: любая цель + автозахват"
+L["Macro Composer"] = "Конструктор макросов"
+L["The targeting logic preline matching your current Reticle Targeting settings is added automatically before your lines, as the highlighted portion of the macro. To modify it, use the Prelines Editor under %s."] =
+  "Предстрока наведения, соответствующая текущим настройкам наведения по прицелу, автоматически добавляется перед вашими строками как выделенная часть макроса. Чтобы изменить ее, используйте редактор предстрок в разделе «%s»."
+L["Macro Name"] = "Название макроса"
+L["Enter a macro name"] = "Введите название макроса"
+L["Saved to your general macros."] =
+  "Сохраняется в ваших общих макросах."
+L["Saved to your character macros."] =
+  "Сохраняется в макросах вашего персонажа."
+L["Macro Text"] = "Текст макроса"
+L["Delete Macro"] = "Удалить макрос"
+L["Delete this macro? Any action bar button using it will be emptied."] =
+  "Удалить этот макрос? Все кнопки панелей команд, использующие его, будут очищены."
+L["Save Macro"] = "Сохранить макрос"
+L["Preline must be %d characters or fewer (room for /click under the 255 macro limit)."] =
+  "Предстрока должна содержать не более %d символов (нужно место для /click в пределах лимита макроса в 255)."
+L["Inactive — Auto Target Lock is OFF"] =
+  "Неактивно — автозахват цели ВЫКЛЮЧЕН"
+L["Inactive — Auto Target Lock is ON"] =
+  "Неактивно — автозахват цели ВКЛЮЧЕН"
+L["Inactive — Ignore Friendlies is OFF"] =
+  "Неактивно — «Игнорировать союзников» ВЫКЛЮЧЕНО"
+L["Inactive — Ignore Friendlies is ON"] =
+  "Неактивно — «Игнорировать союзников» ВКЛЮЧЕНО"
+L["Customize the targeting prelines injected before each ability when Reticle Targeting is enabled.\n\n• Only the preline matching your current %s X %s settings is active.\n• Max %s characters per preline — SecureActionButton macros are capped at %s; the rest is reserved for the trailing %s line.\n• Use %s to reload and pick up edits."] =
+  "Настройте предстроки наведения, добавляемые перед каждой способностью, когда включено наведение по прицелу.\n\n• Активна только та предстрока, которая соответствует текущим настройкам %s X %s.\n• Не более %s символов на предстроку — макросы SecureActionButton ограничены %s; остальное зарезервировано для завершающей строки %s.\n• Используйте %s, чтобы перезагрузить интерфейс и применить изменения."
+L["Apply Changes"] = "Применить изменения"
+L["Hostile"] = "Враждебные"
+L["NPC"] = "НИП"
+L["Player"] = "Игрок"
+L["Object"] = "Объект"
+L["Select a tab to customize the color and alpha of the crosshair when targeting different types of units.\n\n• %s and %s animations use the Hostile color.\n• Inactive crosshair states use the Base style."] =
+  "Выберите вкладку, чтобы настроить цвет и прозрачность прицела при наведении на разные типы целей.\n\n• Анимации «%s» и «%s» используют цвет враждебных целей.\n• Неактивные состояния прицела используют базовый стиль."
+L["Reset to Default"] = "Сбросить"
+L["Show the inactive crosshair"] = "Показать неактивный прицел"
+L["Show the active crosshair"] = "Показать активный прицел"
+L["Show the mounted crosshair"] = "Показать прицел верхом"
+L["Show the disabled crosshair"] = "Показать отключенный прицел"
+L["Hide the inactive crosshair"] = "Скрыть неактивный прицел"
+L["Hide the active crosshair"] = "Скрыть активный прицел"
+L["Hide the mounted crosshair"] = "Скрыть прицел верхом"
+L["Hide the disabled crosshair"] = "Скрыть отключенный прицел"
+L["Nothing is drawn while you are not aiming at anything."] =
+  "Пока вы ни на что не целитесь, ничего не отображается."
+L["Nothing is drawn while you are aiming at a unit or object."] =
+  "Пока вы целитесь в цель или объект, ничего не отображается."
+L["Nothing is drawn while you are mounted."] =
+  "Пока вы в седле, ничего не отображается."
+L["Nothing is drawn while Target Lock holds the reticle."] =
+  "Пока захват цели удерживает прицел, ничего не отображается."
+L["Not aiming at anything"] = "Ни на что не наведен"
+L["Aiming at a unit or object"] = "Наведен на цель или объект"
+L["While you are mounted"] = "Пока вы в седле"
+L["While Target Lock holds"] = "Пока активен захват цели"
+L["Brings back the texture you had before hiding it."] =
+  "Возвращает текстуру, которая была до скрытия."
+L["Crosshair Textures"] = "Текстуры прицела"
+L["Select a state, then pick a texture below, or apply a preset for a curated appearance."] =
+  "Выберите состояние, затем текстуру ниже или примените готовый набор для продуманного вида."
+L["INACTIVE"] = "НЕАКТИВЕН"
+L["ACTIVE"] = "АКТИВЕН"
+L["MOUNTED"] = "В СЕДЛЕ"
+L["DISABLED"] = "ОТКЛЮЧЕН"
+L["PRESETS"] = "НАБОРЫ"
+L["ALL TEXTURES"] = "ВСЕ ТЕКСТУРЫ"
+L["Action Combat Mode (Reticle CVar Editor)"] =
+  "Action Combat Mode (редактор CVar прицела)"
+L["External change (CVAR_UPDATE)"] = "Внешнее изменение (CVAR_UPDATE)"
+L["Description"] = "Описание"
+L["Value"] = "Значение"
+L["Default Value:"] = "Значение по умолчанию:"
+L["Last Modified By:"] = "Последнее изменение:"
+L["Double-click a row to edit. Overrides are account-wide and replace CombatMode defaults."] =
+  "Дважды щелкните строку, чтобы изменить ее. Переопределения действуют для всей учетной записи и заменяют значения CombatMode по умолчанию."
+
+-- Radial Menu: actions and preset wheels
+L["Character Info"] = "Персонаж"
+L["Spellbook & Talents"] = "Книга заклинаний и таланты"
+L["Talents"] = "Таланты"
+L["World Map"] = "Карта мира"
+L["All Bags"] = "Все сумки"
+L["Professions"] = "Профессии"
+L["Achievements"] = "Достижения"
+L["Quest Log"] = "Журнал заданий"
+L["Guild & Communities"] = "Гильдия и сообщества"
+L["Group Finder"] = "Поиск группы"
+L["Warband Collection"] = "Коллекция боевого отряда"
+L["Housing Dashboard"] = "Панель жилья"
+L["Adventure Guide"] = "Путеводитель"
+L["Calendar"] = "Календарь"
+L["Friends & Social"] = "Друзья и общение"
+L["Game Menu"] = "Меню игры"
+L["ACM Options"] = "Настройки ACM"
+L["Wave"] = "Помахать"
+L["Dance"] = "Танцевать"
+L["Cheer"] = "Ликовать"
+L["Bow"] = "Поклониться"
+L["Salute"] = "Салютовать"
+L["Laugh"] = "Смеяться"
+L["Flex"] = "Показать мускулы"
+L["Roar"] = "Рычать"
+L["Thank"] = "Благодарить"
+L["Clap"] = "Хлопать"
+L["Point"] = "Указать"
+L["Cry"] = "Плакать"
+L["Sit"] = "Сесть"
+L["Kneel"] = "Встать на колено"
+L["Reputation"] = "Репутация"
+L["Currency"] = "Валюта"
+L["Great Vault"] = "Великое хранилище"
+L["Mount Journal"] = "Журнал ездовых животных"
+L["Pet Journal"] = "Журнал питомцев"
+L["Toy Box"] = "Игрушки"
+L["Macros"] = "Макросы"
+L["Hello"] = "Привет"
+L["Bye"] = "Пока"
+L["Applaud"] = "Аплодировать"
+L["Shrug"] = "Пожать плечами"
+L["Yes"] = "Да"
+L["No"] = "Нет"
+L["Kiss"] = "Поцеловать"
+L["Flirt"] = "Флиртовать"
+L["Rude"] = "Грубить"
+L["Ready"] = "Готов"
+L["Victory"] = "Победа"
+L["Ready Check"] = "Проверка готовности"
+L["Roll (1-100)"] = "Бросок (1-100)"
+L["Reload UI"] = "Перезагрузить интерфейс"
+L["Leave Party"] = "Покинуть группу"
+L["Reset Instances"] = "Сбросить подземелья"
+L["Pull Countdown (10s)"] = "Отсчет до пулла (10 с)"
+L["Role Check"] = "Проверка ролей"
+L["Convert to Raid"] = "Преобразовать в рейд"
+L["Summon Random Mount"] = "Случайное верховое животное"
+L["Take Screenshot"] = "Сделать снимок экрана"
+L["Sheathe / Unsheathe Weapons"] = "Убрать / достать оружие"
+L["Loot Spec: Current Spec"] = "Добыча: текущая специализация"
+L["Invite Target"] = "Пригласить цель"
+L["Focus Target"] = "Задать фокус"
+L["Cancel Form"] = "Отменить облик"
+L["Follow Target"] = "Следовать за целью"
+L["Duel Target"] = "Вызвать на дуэль"
+L["Inspect Target"] = "Осмотреть цель"
+L["Toggle AFK"] = "Переключить AFK"
+L["Toggle Do Not Disturb"] = "Переключить «Не беспокоить»"
+L["Camp (Log Out)"] = "Лагерь (выход)"
+L["Dismount"] = "Спешиться"
+L["Leave Vehicle"] = "Покинуть транспорт"
+L["Mark Target: %s"] = "Метка цели: %s"
+L["Clear Target Mark"] = "Снять метку с цели"
+L["World Marker: %s"] = "Метка на земле: %s"
+L["Clear World Markers"] = "Убрать метки на земле"
+L["Interface"] = "Интерфейс"
+L["Misc"] = "Разное"
+L["Wheel %d"] = "Круг %d"
+
+-- Runtime: composed macro messages, changelog tooltip
+L["Your character macro list is full."] =
+  "Список макросов вашего персонажа заполнен."
+L["Your general macro list is full."] =
+  "Список ваших общих макросов заполнен."
+L["Cannot delete a macro while in combat."] = "Нельзя удалить макрос в бою."
+L["Cannot save a macro while in combat."] =
+  "Нельзя сохранить макрос в бою."
+L["Enter a macro name."] = "Введите название макроса."
+L["Macro names are limited to %d characters."] =
+  "Название макроса не может быть длиннее %d символов."
+L["Enter the macro text to run after the targeting preline."] =
+  "Введите текст макроса, который выполнится после предстроки наведения."
+L["Macro is %d characters over the %d limit."] =
+  "Макрос превышает лимит на %d символов (лимит: %d)."
+L["Macro “%s” no longer fits with the current preline; edit it from Reticle Targeting Macros."] =
+  "Макрос «%s» больше не помещается с текущей предстрокой; измените его в разделе макросов наведения по прицелу."
+L["Click to print URL to chat"] = "Нажмите, чтобы вывести ссылку в чат"

@@ -24,6 +24,7 @@
 --  UI/Editors/ComposedMacroEditor.lua, UI/Options/Tabs/TabReticleTargeting.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -36,6 +37,7 @@ local GetNumMacros = _G.GetNumMacros
 local InCombatLockdown = _G.InCombatLockdown
 
 -- Lua stdlib
+local format = _G.string.format
 local ipairs = _G.ipairs
 local pairs = _G.pairs
 local strtrim = _G.strtrim
@@ -126,7 +128,10 @@ local function WriteMacro(name, body, text, editing, onDone)
       limit, count = _G.MAX_ACCOUNT_MACROS or DEFAULT_MAX_ACCOUNT_MACROS, globalCount
     end
     if count >= limit then
-      Say("Your " .. (perCharacter and "character" or "general") .. " macro list is full.")
+      Say(
+        perCharacter and L["Your character macro list is full."]
+          or L["Your general macro list is full."]
+      )
       return
     end
     CreateMacro(name, QUESTION_MARK_ICON, text, perCharacter)
@@ -140,7 +145,7 @@ end
 --- Deletes the macro `name` (and its remembered body). Action bar slots holding it go empty.
 function CM.DeleteComposedMacro(name, onDone)
   if InCombatLockdown() then
-    Say("Cannot delete a macro while in combat.")
+    Say(L["Cannot delete a macro while in combat."])
     return false
   end
   local index = MacroIndex(name)
@@ -159,26 +164,26 @@ end
 --- and renamed when `name` differs, instead of creating a second macro.
 function CM.SaveComposedMacro(name, body, onDone, editing)
   if InCombatLockdown() then
-    Say("Cannot save a macro while in combat.")
+    Say(L["Cannot save a macro while in combat."])
     return false
   end
   name = strtrim(name or "")
   body = NormalizeBody(body)
   if name == "" then
-    Say("Enter a macro name.")
+    Say(L["Enter a macro name."])
     return false
   end
   if #name > MACRO_NAME_MAX then
-    Say("Macro names are limited to " .. MACRO_NAME_MAX .. " characters.")
+    Say(format(L["Macro names are limited to %d characters."], MACRO_NAME_MAX))
     return false
   end
   if body == "" then
-    Say("Enter the macro text to run after the targeting preline.")
+    Say(L["Enter the macro text to run after the targeting preline."])
     return false
   end
   local text = CM.ComposeMacroText(body)
   if #text > MACRO_MAX then
-    Say("Macro is " .. (#text - MACRO_MAX) .. " characters over the " .. MACRO_MAX .. " limit.")
+    Say(format(L["Macro is %d characters over the %d limit."], #text - MACRO_MAX, MACRO_MAX))
     return false
   end
 
@@ -213,9 +218,10 @@ function CM.RebuildComposedMacros()
         if not overflowWarned[name] then
           overflowWarned[name] = true
           Say(
-            'Macro "'
-              .. name
-              .. '" no longer fits with the current preline; edit it from Reticle Targeting Macros.'
+            format(
+              L["Macro “%s” no longer fits with the current preline; edit it from Reticle Targeting Macros."],
+              name
+            )
           )
         end
       else

@@ -19,6 +19,7 @@
 --  Constants/Gameplay.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -85,7 +86,7 @@ local function RemoveLegacyMacros()
 end
 
 local function UnbindMoveAndSteer()
-  CM.TryApplyBindingChange("MOVEANDSTEER unbind", function()
+  CM.TryApplyBindingChange(L["MOVEANDSTEER unbind"], function()
     local key = GetBindingKey("MOVEANDSTEER")
     if key then
       SetBinding(key, "Combat Mode - Mouse Look")
@@ -97,7 +98,7 @@ end
 --- Reset left/right click to Blizzard camera defaults (click-drag camera / turn).
 --- Does not clear Combat Mode keybind names (Mouse Look, Ally Cycle, etc.).
 function CM.RestorePriorBindings()
-  CM.TryApplyBindingChange("restore default mouse camera bindings", function()
+  CM.TryApplyBindingChange(L["restore default mouse camera bindings"], function()
     SetBinding("BUTTON1", "CAMERAORSELECTORMOVE")
     SetBinding("BUTTON2", "TURNORACTION")
     SaveBindings(GetCurrentBindingSet())

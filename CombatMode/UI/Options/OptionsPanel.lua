@@ -25,6 +25,7 @@
 --  UI/Options/Tabs/TabAllyCycle.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -699,6 +700,12 @@ local function BuildSidebarButton(def, index)
   local label = UI.CreateFontString(button, "OVERLAY", UI.Fonts.nav, "GameFontNormal")
   label:SetPoint("LEFT", button, "LEFT", 20, 0)
   label:SetText(UI.StripColors(def.label) or "")
+  -- A long translation ends in "..." instead of running past the sidebar edge or under the badge.
+  local maxLabelW = SIDEBAR_W - 18 - 20 - 14
+  if (label:GetStringWidth() or 0) > maxLabelW then
+    label:SetWidth(maxLabelW)
+    label:SetWordWrap(false)
+  end
   button.label = label
 
   -- Shared tab look (selected pill, orange capsule marker, hover wash).
@@ -759,7 +766,7 @@ local function BuildSidebarFooter()
   fctx.search = { footer = true }
 
   fctx:Toggle({
-    label = "Silence Alerts",
+    label = L["Silence Alerts"],
     compact = true,
     descBelow = true,
     get = function()
@@ -770,7 +777,7 @@ local function BuildSidebarFooter()
     end,
   })
   fctx:Toggle({
-    label = "Debug Mode",
+    label = L["Debug Mode"],
     compact = true,
     descBelow = true,
     get = function()
@@ -791,21 +798,21 @@ local function BuildSidebarFooter()
   })
   fctx:Gap(4)
   fctx:Button({
-    label = "Reset to Defaults",
+    label = L["Reset to Defaults"],
     width = "full",
     confirm = true,
-    confirmText = "Reset all Action Combat Mode settings to defaults and reload?",
+    confirmText = L["Reset all Action Combat Mode settings to defaults and reload?"],
     reload = true,
     func = function()
       CM:OnResetDB()
     end,
   })
   fctx:Button({
-    label = "Uninstall",
+    label = L["Uninstall"],
     width = "full",
     danger = true,
     confirm = true,
-    confirmText = "Uninstall Action Combat Mode?\n\nThis will restore your previous camera and targeting settings, disable the addon, and reload.",
+    confirmText = L["Uninstall Action Combat Mode?\n\nThis will restore your previous camera and targeting settings, disable the addon, and reload."],
     reload = true,
     func = function()
       if CM.UninstallCombatMode then
@@ -920,7 +927,7 @@ local function BuildShell()
   chip:SetScript("OnClick", function()
     CM.Config.ShowChangelog()
   end)
-  UI.AttachTooltip(chip, "View the changelog", "ANCHOR_BOTTOM")
+  UI.AttachTooltip(chip, L["View the changelog"], "ANCHOR_BOTTOM")
   local a = C.accent
   chip:cmSetBorderGradient(
     { a[1] * 0.85, a[2] * 0.85, a[3] * 0.85, 1 },
@@ -971,13 +978,13 @@ local function BuildShell()
     self:cmControlHover(false)
   end)
   cog:SetScript("OnClick", function()
-    UI.Confirm("Run the setup wizard again?", function()
+    UI.Confirm(L["Run the setup wizard again?"], function()
       if CM.Wizard and CM.Wizard.Start then
         CM.Wizard.Start()
       end
     end)
   end)
-  UI.AttachTooltip(cog, "Run the setup wizard", "ANCHOR_BOTTOM")
+  UI.AttachTooltip(cog, L["Run the setup wizard"], "ANCHOR_BOTTOM")
   Options.BuildSearchBox(titleBar, cog, 10)
 
   UI.EnableDrag(frame, titleBar, false)
@@ -1005,7 +1012,7 @@ local function BuildShell()
     frame,
     CM.Constants.GitHubIcon,
     CM.Constants.GitHubURL,
-    "GitHub Repository",
+    L["GitHub Repository"],
     "GitHub",
     HEADER_BUTTON_SIZE
   )
@@ -1015,7 +1022,7 @@ local function BuildShell()
     frame,
     CM.Constants.DiscordIcon,
     CM.Constants.DiscordURL,
-    "Discord Server",
+    L["Discord Server"],
     "Discord",
     HEADER_BUTTON_SIZE
   )
@@ -1053,7 +1060,12 @@ end
 
 local function CombatBlocked()
   if InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open settings while in combat.|r")
+    print(
+      CM.Constants.BasePrintMsg
+        .. "|cff909090: "
+        .. L["Cannot open settings while in combat."]
+        .. "|r"
+    )
     return true
   end
   return false

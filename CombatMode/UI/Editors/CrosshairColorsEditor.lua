@@ -12,22 +12,26 @@
 --  UI/Options/Tabs/TabCrosshair.lua, Constants/Assets.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
 local InCombatLockdown = _G.InCombatLockdown
 
+-- Lua stdlib
+local format = _G.string.format
+
 local UI = CM.UI
 local C = UI.Colors
 local M = CM.METADATA
 
 local REACTION_STATES = {
-  { key = "hostile", tab = "Hostile" },
-  { key = "friendly_npc", tab = "NPC" },
-  { key = "friendly_player", tab = "Player" },
-  { key = "object", tab = "Object" },
-  { key = "base", tab = "Base" },
+  { key = "hostile", tab = L["Hostile"] },
+  { key = "friendly_npc", tab = L["NPC"] },
+  { key = "friendly_player", tab = L["Player"] },
+  { key = "object", tab = L["Object"] },
+  { key = "base", tab = L["Base"] },
 }
 
 local TAB_BAR_W = 330
@@ -107,7 +111,7 @@ end
 local function Build()
   window = UI.CreateBareWindow(
     "CombatModeCrosshairColorsEditor",
-    M["TITLE"] .. " - Reaction Colors",
+    M["TITLE"] .. " - " .. L["Reaction Colors"],
     EDITOR_W,
     EDITOR_H
   )
@@ -124,13 +128,11 @@ local function Build()
   desc:SetJustifyH("LEFT")
   desc:SetWordWrap(true)
   desc:SetText(
-    "Select a tab to customize the color and alpha of the crosshair when targeting different types of units.\n\n"
-      .. "• "
-      .. UI.AccentWrap("Target Lock")
-      .. " and "
-      .. UI.AccentWrap("Cast Feedback")
-      .. " animations use the Hostile color."
-      .. "\n• Inactive crosshair states use the Base style."
+    format(
+      L["Select a tab to customize the color and alpha of the crosshair when targeting different types of units.\n\n• %s and %s animations use the Hostile color.\n• Inactive crosshair states use the Base style."],
+      UI.AccentWrap(L["Target Lock"]),
+      UI.AccentWrap(L["Cast Feedback"])
+    )
   )
   desc:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
 
@@ -183,7 +185,7 @@ local function Build()
   UI.StyleControl(resetBtn)
   local resetText = UI.CreateFontString(resetBtn, "OVERLAY", UI.Fonts.button, "GameFontNormal")
   resetText:SetPoint("CENTER")
-  resetText:SetText("Reset to Default")
+  resetText:SetText(L["Reset to Default"])
   UI.WireControlHover(resetBtn, resetText)
   resetBtn:SetScript("OnClick", function()
     if activeKey then
@@ -205,7 +207,12 @@ end
 
 function CM.OpenCrosshairColorsEditor()
   if InCombatLockdown and InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open this editor while in combat.|r")
+    print(
+      CM.Constants.BasePrintMsg
+        .. "|cff909090: "
+        .. L["Cannot open this editor while in combat."]
+        .. "|r"
+    )
     return
   end
 

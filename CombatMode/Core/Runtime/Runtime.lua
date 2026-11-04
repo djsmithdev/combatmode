@@ -29,6 +29,7 @@
 --  UI/Changelog/ChangelogPanel.lua
 ---------------------------------------------------------------------------------------
 local addonName, CM = ...
+local L = CM.L
 local _G = _G
 
 -- Debug / WeakAura / macro compatibility only — modules must use `local _, CM = ...`.
@@ -53,6 +54,7 @@ local UnitName = _G.UnitName
 -- Lua stdlib
 local ipairs = _G.ipairs
 local pairs = _G.pairs
+local string_format = _G.string.format
 local string_upper = _G.string.upper
 local type = _G.type
 local tostring = _G.tostring
@@ -248,9 +250,12 @@ local function IsCamAddonLoaded()
   if CM.CameraOwner and not CM.DB.global.silenceAlerts then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: |cffE52B50"
-        .. CM.CameraOwner
-        .. " detected!|r Handing over turn speed, shoulder, and dynamic pitch.|r"
+        .. "|cff909090: "
+        .. string_format(
+          L["|cffE52B50%s detected!|r Handing over turn speed, shoulder, and dynamic pitch."],
+          CM.CameraOwner
+        )
+        .. "|r"
     )
   end
 end
@@ -479,7 +484,9 @@ end
 --- Uninstall button.
 function CM.UninstallCombatMode()
   if InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot uninstall while in combat.|r")
+    print(
+      CM.Constants.BasePrintMsg .. "|cff909090: " .. L["Cannot uninstall while in combat."] .. "|r"
+    )
     return
   end
 
@@ -501,7 +508,9 @@ function CM.UninstallCombatMode()
 
   print(
     CM.Constants.BasePrintMsg
-      .. "|cff909090: restored your previous camera/targeting settings and default mouse camera binds, then disabled the addon.|r"
+      .. "|cff909090: "
+      .. L["restored your previous camera/targeting settings and default mouse camera binds, then disabled the addon."]
+      .. "|r"
   )
   DisableAddOn(addonName)
   CM.ReloadUI()
@@ -676,7 +685,9 @@ function CM:OnEnable()
   if not CM.DB.global.silenceAlerts then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: Type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r for settings.|r"
+        .. "|cff909090: "
+        .. L["Type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r for settings."]
+        .. "|r"
     )
   end
 

@@ -31,6 +31,7 @@
 --  Related: UI/Wizard/SetupWizard.lua, UI/Options/Draw.lua, UI/Options/Widgets.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -397,15 +398,15 @@ local function Build()
   step:SetPoint("TOPRIGHT", balloon, "TOPRIGHT", -BALLOON_PAD, -(BALLOON_PAD + 3))
   step:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
 
-  local back = UI.CreateDialogButton(balloon, "Back")
-  back:SetWidth(BTN_W)
+  local back = UI.CreateDialogButton(balloon, L["Back"])
+  UI.FitDialogButton(back, BTN_W)
   back:SetPoint("BOTTOMLEFT", balloon, "BOTTOMLEFT", BALLOON_PAD, BALLOON_PAD)
-  local nextButton = UI.CreateDialogButton(balloon, "Next")
-  nextButton:SetWidth(BTN_W + 16)
+  local nextButton = UI.CreateDialogButton(balloon, L["Next"])
+  UI.FitDialogButton(nextButton, BTN_W + 16)
   nextButton:SetPoint("BOTTOMRIGHT", balloon, "BOTTOMRIGHT", -BALLOON_PAD, BALLOON_PAD)
   -- The last step swaps Next for an accent-coloured Finish button in the same spot.
-  local finishButton = UI.CreateDialogButton(balloon, "Finish", "primary")
-  finishButton:SetWidth(BTN_W + 16)
+  local finishButton = UI.CreateDialogButton(balloon, L["Finish"], "primary")
+  UI.FitDialogButton(finishButton, BTN_W + 16)
   finishButton:SetPoint("BOTTOMRIGHT", balloon, "BOTTOMRIGHT", -BALLOON_PAD, BALLOON_PAD)
   UI.SetControlAttention(finishButton, true)
   finishButton:Hide()
@@ -413,9 +414,17 @@ local function Build()
   local skip = CreateFrame("Button", nil, balloon)
   local skipText = UI.CreateFontString(skip, "OVERLAY", UI.Fonts.desc, "GameFontHighlightSmall")
   skipText:SetPoint("CENTER")
-  skipText:SetText("Skip tour")
+  skipText:SetText(L["Skip tour"])
   skipText:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
-  skip:SetSize(skipText:GetStringWidth() + 8, 20)
+  -- Squeezed between Back and Next, so a long translation ends in "..." instead of overlapping them.
+  local skipRoom = BALLOON_W - 2 * BALLOON_PAD - back:GetWidth() - nextButton:GetWidth() - 16
+  local skipW = skipText:GetStringWidth()
+  if skipW > skipRoom then
+    skipText:SetWidth(skipRoom)
+    skipText:SetWordWrap(false)
+    skipW = skipRoom
+  end
+  skip:SetSize(skipW + 8, 20)
   skip:SetPoint("BOTTOM", balloon, "BOTTOM", 0, BALLOON_PAD + 4)
   skip:SetScript("OnEnter", function()
     skipText:SetTextColor(C.text[1], C.text[2], C.text[3])
@@ -705,9 +714,9 @@ function UI.ShowSpotlight(target, opts)
   local slidesH = #slides > 0 and (SLIDE_TOP + SLIDE_H + SLIDE_BOTTOM - BODY_GAP) or 0
 
   s.step:SetText(opts.step or "")
-  s.next.text:SetText(opts.nextLabel or "Next")
+  s.next.text:SetText(opts.nextLabel or L["Next"])
   s.next:SetShown(not opts.isLast)
-  s.finish.text:SetText(opts.nextLabel or "Finish")
+  s.finish.text:SetText(opts.nextLabel or L["Finish"])
   s.finish:SetShown(opts.isLast and true or false)
   s.back:SetShown(opts.canGoBack and true or false)
 

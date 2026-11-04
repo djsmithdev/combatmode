@@ -14,6 +14,7 @@
 --  UI/Options/Tabs/TabReticleTargeting.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -177,7 +178,9 @@ function Data.SetOverride(cvar, inputValue)
   if InCombatLockdown() then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: cannot edit Reticle Targeting CVars while in combat.|r"
+        .. "|cff909090: "
+        .. L["cannot edit Reticle Targeting CVars while in combat."]
+        .. "|r"
     )
     return false
   end
@@ -210,7 +213,9 @@ function Data.ClearAllOverrides()
   if InCombatLockdown() then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: cannot reset Reticle Targeting CVars while in combat.|r"
+        .. "|cff909090: "
+        .. L["cannot reset Reticle Targeting CVars while in combat."]
+        .. "|r"
     )
     return false
   end

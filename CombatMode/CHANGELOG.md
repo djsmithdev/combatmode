@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.4.0] - 2026-11-04
+
+### Added
+
+- **Action Combat Mode** is now translated into German, Spanish (Spain and Latin America), French, Italian, Korean, Brazilian Portuguese, Russian and Simplified and Traditional Chinese. The options window, **Setup Wizard**, editors, **Radial Menu**, chat messages and the Key Bindings screen follow your game language. The translations are machine-drafted, so corrections are welcome (see CONTRIBUTING).
+
+### Changed
+
+- Wheel names on the **Radial Menu** are now shortened by characters instead of bytes, so Cyrillic and Chinese names are no longer cut in the middle of a letter.
+- Buttons, sidebar tabs and the **Setup Wizard** balloon make room for longer translations.
+- Keyboard keybinds on the **Assist HUD** use your game language's font, so Korean, Russian and Chinese key names draw correctly.
+
 ## [5.3.3] - 2026-11-03
 
 ### Changed
@@ -825,7 +837,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/ThericGames/combatmode/compare/5.3.3...HEAD
+[Unreleased]: https://github.com/ThericGames/combatmode/compare/5.4.0...HEAD
+[5.4.0]: https://github.com/ThericGames/combatmode/compare/5.3.3...5.4.0
 [5.3.3]: https://github.com/ThericGames/combatmode/compare/5.3.2...5.3.3
 [5.3.2]: https://github.com/ThericGames/combatmode/compare/5.3.1...5.3.2
 [5.3.1]: https://github.com/ThericGames/combatmode/compare/5.3.0...5.3.1

@@ -26,6 +26,7 @@
 --  Core/Runtime/BindingQueue.lua, Core/FreeLook/FreeLookController.lua, Bindings.xml
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -384,7 +385,7 @@ function CM.RadialRefresh()
     return
   end
   if CM.TryApplyBindingChange then
-    CM.TryApplyBindingChange("radial menu", ApplyAll)
+    CM.TryApplyBindingChange(L["radial menu"], ApplyAll)
   elseif not InCombatLockdown() then
     ApplyAll()
   end

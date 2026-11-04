@@ -28,12 +28,14 @@
 --  Related: Core/RadialMenu/Data.lua (CM.RadialEntrySecure), UI/Options/Tabs/TabRadialMenu.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
 local CreateFrame = _G.CreateFrame
 
 -- Lua stdlib
+local format = _G.string.format
 local type = _G.type
 local unpack = _G.unpack
 
@@ -56,23 +58,23 @@ local TEXT_ICON = "text"
 local DEFINITIONS = {
   {
     id = "character",
-    label = "Character Info",
+    label = L["Character Info"],
     icon = "portrait",
     click = { "CharacterMicroButton" },
   },
   {
     id = "spellbook",
-    label = "Spellbook & Talents",
+    label = L["Spellbook & Talents"],
     click = { "PlayerSpellsMicroButton", "SpellbookMicroButton" },
   },
   {
     id = "talents",
-    label = "Talents",
+    label = L["Talents"],
     click = { "PlayerSpellsMicroButton", "TalentMicroButton" },
   },
   {
     id = "map",
-    label = "World Map",
+    label = L["World Map"],
     icon = Icon("INV_Misc_Map_01"),
     noCombat = true, -- Blizzard blocks addon code from opening the map in combat
     requires = "ToggleWorldMap",
@@ -82,7 +84,7 @@ local DEFINITIONS = {
   },
   {
     id = "bags",
-    label = "All Bags",
+    label = L["All Bags"],
     icon = Icon("INV_Misc_Bag_08"),
     requires = "ToggleAllBags",
     run = function()
@@ -91,53 +93,53 @@ local DEFINITIONS = {
   },
   {
     id = "professions",
-    label = "Professions",
+    label = L["Professions"],
     click = { "ProfessionMicroButton" },
   },
   {
     id = "achievements",
-    label = "Achievements",
+    label = L["Achievements"],
     click = { "AchievementMicroButton" },
   },
   {
     id = "questlog",
-    label = "Quest Log",
+    label = L["Quest Log"],
     click = { "QuestLogMicroButton" },
   },
   {
     id = "guild",
-    label = "Guild & Communities",
+    label = L["Guild & Communities"],
     click = { "GuildMicroButton" },
   },
   {
     id = "groupfinder",
-    label = "Group Finder",
+    label = L["Group Finder"],
     click = { "LFDMicroButton", "LFGMicroButton" },
   },
   {
     id = "collections",
-    label = "Warband Collection",
+    label = L["Warband Collection"],
     click = { "CollectionsMicroButton" },
   },
   {
     id = "housing",
-    label = "Housing Dashboard",
+    label = L["Housing Dashboard"],
     click = { "HousingMicroButton" },
   },
   {
     id = "adventureguide",
-    label = "Adventure Guide",
+    label = L["Adventure Guide"],
     click = { "EJMicroButton" },
   },
   {
     id = "calendar",
-    label = "Calendar",
+    label = L["Calendar"],
     icon = Icon("INV_Misc_Note_06"),
     click = { "GameTimeFrame" },
   },
   {
     id = "social",
-    label = "Friends & Social",
+    label = L["Friends & Social"],
     icon = Icon("INV_Letter_15"),
     noCombat = true,
     requires = "ToggleFriendsFrame",
@@ -147,7 +149,7 @@ local DEFINITIONS = {
   },
   {
     id = "gamemenu",
-    label = "Game Menu",
+    label = L["Game Menu"],
     -- MainMenuMicroButton ignores clicks unless the mouse is over it (the wheel is). ToggleGameMenu
     -- is the Esc handler: it also calls SpellStopCasting / SpellStopTargeting / ClearTarget, which are
     -- forbidden to addon code (taint errors), so show the menu frame directly instead.
@@ -164,7 +166,7 @@ local DEFINITIONS = {
   },
   {
     id = "acmoptions",
-    label = "ACM Options",
+    label = L["ACM Options"],
     icon = CM.Constants.Logo,
     run = function()
       if CM.OpenOptions then
@@ -174,7 +176,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_wave",
-    label = "Wave",
+    label = L["Wave"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -183,7 +185,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_dance",
-    label = "Dance",
+    label = L["Dance"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -192,7 +194,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_cheer",
-    label = "Cheer",
+    label = L["Cheer"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -201,7 +203,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_bow",
-    label = "Bow",
+    label = L["Bow"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -210,7 +212,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_salute",
-    label = "Salute",
+    label = L["Salute"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -219,7 +221,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_laugh",
-    label = "Laugh",
+    label = L["Laugh"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -228,7 +230,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_flex",
-    label = "Flex",
+    label = L["Flex"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -237,7 +239,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_roar",
-    label = "Roar",
+    label = L["Roar"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -246,7 +248,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_thank",
-    label = "Thank",
+    label = L["Thank"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -255,7 +257,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_clap",
-    label = "Clap",
+    label = L["Clap"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -264,7 +266,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_point",
-    label = "Point",
+    label = L["Point"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -273,7 +275,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_cry",
-    label = "Cry",
+    label = L["Cry"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -282,7 +284,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_sit",
-    label = "Sit",
+    label = L["Sit"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -291,7 +293,7 @@ local DEFINITIONS = {
   },
   {
     id = "emote_kneel",
-    label = "Kneel",
+    label = L["Kneel"],
     group = "emote",
     icon = TEXT_ICON,
     run = function()
@@ -306,13 +308,13 @@ local function Panel(id, label, icon, run, noCombat)
     { id = id, label = label, icon = icon, run = run, noCombat = noCombat }
 end
 
-Panel("reputation", "Reputation", Icon("Achievement_Reputation_01"), function()
+Panel("reputation", L["Reputation"], Icon("Achievement_Reputation_01"), function()
   Call("ToggleCharacter", "ReputationFrame")
 end)
-Panel("currency", "Currency", Icon("INV_Misc_Coin_01"), function()
+Panel("currency", L["Currency"], Icon("INV_Misc_Coin_01"), function()
   Call("ToggleCharacter", "TokenFrame")
 end)
-Panel("greatvault", "Great Vault", Icon("INV_Box_01"), function()
+Panel("greatvault", L["Great Vault"], Icon("INV_Box_01"), function()
   local loadAddOn = _G.C_AddOns and _G.C_AddOns.LoadAddOn or _G.LoadAddOn
   if not _G.WeeklyRewardsFrame and loadAddOn then
     loadAddOn("Blizzard_WeeklyRewards")
@@ -321,32 +323,32 @@ Panel("greatvault", "Great Vault", Icon("INV_Box_01"), function()
     Call("ToggleFrame", _G.WeeklyRewardsFrame)
   end
 end, true)
-Panel("mounts", "Mount Journal", Icon("Ability_Mount_RidingHorse"), function()
+Panel("mounts", L["Mount Journal"], Icon("Ability_Mount_RidingHorse"), function()
   Call("ToggleCollectionsJournal", 1)
 end)
-Panel("petjournal", "Pet Journal", Icon("INV_Pet_BattlePetTraining"), function()
+Panel("petjournal", L["Pet Journal"], Icon("INV_Pet_BattlePetTraining"), function()
   Call("ToggleCollectionsJournal", 2)
 end)
-Panel("toybox", "Toy Box", Icon("INV_Misc_Toy_10"), function()
+Panel("toybox", L["Toy Box"], Icon("INV_Misc_Toy_10"), function()
   Call("ToggleCollectionsJournal", 3)
 end)
-Panel("macros", "Macros", Icon("INV_Scroll_03"), function()
+Panel("macros", L["Macros"], Icon("INV_Scroll_03"), function()
   Call("ShowMacroFrame")
 end, true)
 
 -- More emotes (DoEmote is not protected).
 for _, emote in ipairs({
-  { "hello", "Hello", "HELLO" },
-  { "bye", "Bye", "BYE" },
-  { "applaud", "Applaud", "APPLAUD" },
-  { "shrug", "Shrug", "SHRUG" },
-  { "yes", "Yes", "YES" },
-  { "no", "No", "NO" },
-  { "kiss", "Kiss", "KISS" },
-  { "flirt", "Flirt", "FLIRT" },
-  { "rude", "Rude", "RUDE" },
-  { "ready", "Ready", "READY" },
-  { "victory", "Victory", "VICTORY" },
+  { "hello", L["Hello"], "HELLO" },
+  { "bye", L["Bye"], "BYE" },
+  { "applaud", L["Applaud"], "APPLAUD" },
+  { "shrug", L["Shrug"], "SHRUG" },
+  { "yes", L["Yes"], "YES" },
+  { "no", L["No"], "NO" },
+  { "kiss", L["Kiss"], "KISS" },
+  { "flirt", L["Flirt"], "FLIRT" },
+  { "rude", L["Rude"], "RUDE" },
+  { "ready", L["Ready"], "READY" },
+  { "victory", L["Victory"], "VICTORY" },
 }) do
   DEFINITIONS[#DEFINITIONS + 1] = {
     id = "emote_" .. emote[1],
@@ -375,17 +377,17 @@ end
 
 Command(
   "readycheck",
-  "Ready Check",
+  L["Ready Check"],
   "command",
   Icon("Achievement_Dungeon_ClassicDungeonMaster"),
   "/readycheck"
 )
-Command("roll", "Roll (1-100)", "command", Icon("INV_Misc_Dice_02"), "/roll")
-Command("reloadui", "Reload UI", "command", Icon("INV_Misc_Gear_01"), "/reload")
+Command("roll", L["Roll (1-100)"], "command", Icon("INV_Misc_Dice_02"), "/roll")
+Command("reloadui", L["Reload UI"], "command", Icon("INV_Misc_Gear_01"), "/reload")
 -- Not protected, so the proxy button can run them (also in combat, where the game allows it).
 DEFINITIONS[#DEFINITIONS + 1] = {
   id = "leaveparty",
-  label = "Leave Party",
+  label = L["Leave Party"],
   group = "command",
   icon = Icon("Spell_Shadow_Teleport"),
   needsGroup = true,
@@ -427,13 +429,13 @@ end
 
 ApiCommand(
   "resetinstances",
-  "Reset Instances",
+  L["Reset Instances"],
   Icon("INV_Misc_PocketWatch_01"),
   { { nil, "ResetInstances" } }
 )
 ApiCommand(
   "countdown",
-  "Pull Countdown (10s)",
+  L["Pull Countdown (10s)"],
   Icon("INV_Misc_PocketWatch_02"),
   { { "C_PartyInfo", "DoCountdown" } },
   { 10 },
@@ -441,7 +443,7 @@ ApiCommand(
 )
 ApiCommand(
   "rolepoll",
-  "Role Check",
+  L["Role Check"],
   Icon("Ability_Warrior_Challange"),
   { { nil, "InitiateRolePoll" } },
   nil,
@@ -449,7 +451,7 @@ ApiCommand(
 )
 ApiCommand(
   "converttoraid",
-  "Convert to Raid",
+  L["Convert to Raid"],
   Icon("Achievement_Dungeon_GloryoftheRaider"),
   { { "C_PartyInfo", "ConvertToRaid" }, { nil, "ConvertToRaid" } },
   nil,
@@ -457,21 +459,26 @@ ApiCommand(
 )
 ApiCommand(
   "mount",
-  "Summon Random Mount",
+  L["Summon Random Mount"],
   Icon("Ability_Mount_RidingHorse"),
   { { "C_MountJournal", "SummonByID" } },
   { 0 }
 )
-ApiCommand("screenshot", "Take Screenshot", Icon("INV_Misc_Spyglass_02"), { { nil, "Screenshot" } })
+ApiCommand(
+  "screenshot",
+  L["Take Screenshot"],
+  Icon("INV_Misc_Spyglass_02"),
+  { { nil, "Screenshot" } }
+)
 ApiCommand(
   "togglesheath",
-  "Sheathe / Unsheathe Weapons",
+  L["Sheathe / Unsheathe Weapons"],
   Icon("INV_Sword_04"),
   { { nil, "ToggleSheath" } }
 )
 ApiCommand(
   "lootspec",
-  "Loot Spec: Current Spec",
+  L["Loot Spec: Current Spec"],
   Icon("INV_Misc_Bag_10"),
   { { nil, "SetLootSpecialization" } },
   { 0 }
@@ -480,7 +487,7 @@ ApiCommand(
 -- Invite the player you target (the name goes straight to the API, never compared: it can be secret).
 DEFINITIONS[#DEFINITIONS + 1] = {
   id = "invitetarget",
-  label = "Invite Target",
+  label = L["Invite Target"],
   group = "command",
   icon = Icon("Spell_Holy_PrayerOfHealing"),
   run = function()
@@ -494,36 +501,51 @@ DEFINITIONS[#DEFINITIONS + 1] = {
 }
 
 -- Secure slash commands, so they also work in combat as far as the command allows.
-Command("focus", "Focus Target", "command", Icon("Ability_TrueShot"), "/focus")
-Command("clearfocus", "Clear Focus", "command", Icon("Ability_Rogue_Disguise"), "/clearfocus")
-Command("cancelform", "Cancel Form", "command", Icon("Ability_Druid_CatForm"), "/cancelform")
-Command("follow", "Follow Target", "command", Icon("Ability_Tracking"), "/follow")
-Command("duel", "Duel Target", "command", Icon("Ability_Dualwield"), "/duel")
-Command("inspect", "Inspect Target", "command", Icon("INV_Misc_Spyglass_03"), "/inspect")
-Command("afk", "Toggle AFK", "command", Icon("Spell_Nature_Sleep"), "/afk")
-Command("dnd", "Toggle Do Not Disturb", "command", Icon("Spell_Holy_SealOfProtection"), "/dnd")
-Command("camp", "Camp (Log Out)", "command", Icon("INV_Misc_Bedroll_01"), "/camp", true)
-Command("dismount", "Dismount", "command", Icon("Ability_Mount_Dreadsteed"), "/dismount")
+Command("focus", L["Focus Target"], "command", Icon("Ability_TrueShot"), "/focus")
+Command("clearfocus", L["Clear Focus"], "command", Icon("Ability_Rogue_Disguise"), "/clearfocus")
+Command("cancelform", L["Cancel Form"], "command", Icon("Ability_Druid_CatForm"), "/cancelform")
+Command("follow", L["Follow Target"], "command", Icon("Ability_Tracking"), "/follow")
+Command("duel", L["Duel Target"], "command", Icon("Ability_Dualwield"), "/duel")
+Command("inspect", L["Inspect Target"], "command", Icon("INV_Misc_Spyglass_03"), "/inspect")
+Command("afk", L["Toggle AFK"], "command", Icon("Spell_Nature_Sleep"), "/afk")
+Command("dnd", L["Toggle Do Not Disturb"], "command", Icon("Spell_Holy_SealOfProtection"), "/dnd")
+Command("camp", L["Camp (Log Out)"], "command", Icon("INV_Misc_Bedroll_01"), "/camp", true)
+Command("dismount", L["Dismount"], "command", Icon("Ability_Mount_Dreadsteed"), "/dismount")
 Command(
   "leavevehicle",
-  "Leave Vehicle",
+  L["Leave Vehicle"],
   "command",
   Icon("Ability_Vehicle_LoadSelfCatapult"),
   "/leavevehicle"
 )
 
-local MARKERS = { "Star", "Circle", "Diamond", "Triangle", "Moon", "Square", "Cross", "Skull" }
+local MARKERS = {
+  _G.RAID_TARGET_1 or "Star",
+  _G.RAID_TARGET_2 or "Circle",
+  _G.RAID_TARGET_3 or "Diamond",
+  _G.RAID_TARGET_4 or "Triangle",
+  _G.RAID_TARGET_5 or "Moon",
+  _G.RAID_TARGET_6 or "Square",
+  _G.RAID_TARGET_7 or "Cross",
+  _G.RAID_TARGET_8 or "Skull",
+}
 local function MarkerIcon(index)
   return "Interface\\TargetingFrame\\UI-RaidTargetingIcon_" .. index
 end
 for index, name in ipairs(MARKERS) do
-  Command("tm" .. index, "Mark Target: " .. name, "marker", MarkerIcon(index), "/tm " .. index)
+  Command(
+    "tm" .. index,
+    format(L["Mark Target: %s"], name),
+    "marker",
+    MarkerIcon(index),
+    "/tm " .. index
+  )
 end
-Command("tm0", "Clear Target Mark", "marker", Icon("Ability_Rogue_Disguise"), "/tm 0")
+Command("tm0", L["Clear Target Mark"], "marker", Icon("Ability_Rogue_Disguise"), "/tm 0")
 for index, name in ipairs(MARKERS) do
   Command(
     "wm" .. index,
-    "World Marker: " .. name,
+    format(L["World Marker: %s"], name),
     "marker",
     MarkerIcon(index),
     "/wm " .. index,
@@ -533,7 +555,7 @@ for index, name in ipairs(MARKERS) do
 end
 Command(
   "cwm",
-  "Clear World Markers",
+  L["Clear World Markers"],
   "marker",
   Icon("Ability_Rogue_Disguise"),
   "/cwm all",

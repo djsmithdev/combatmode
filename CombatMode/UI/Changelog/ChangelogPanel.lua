@@ -13,6 +13,7 @@
 --  UI/Options/OptionsPanel.lua, Core/Runtime/Runtime.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 local C_Timer = _G.C_Timer
@@ -349,7 +350,7 @@ local function WireSimpleHtmlLinks(body)
     end
     UI.ShowTooltip(self, {
       title = link,
-      text = "Click to print URL to chat",
+      text = L["Click to print URL to chat"],
     }, "ANCHOR_RIGHT")
   end)
   body:SetScript("OnHyperlinkLeave", function()

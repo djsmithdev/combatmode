@@ -16,6 +16,7 @@
 --  Constants/DatabaseDefaults.lua, Core/Runtime/Runtime.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -50,16 +51,27 @@ local ACTION_ORDER
 local ACTION_COLORS -- value -> rgb: Combat Mode's own actions (copper) and changed Blizzard ones (blue)
 -- Non-clickable section titles inside the Action dropdown (ids sit in ACTION_ORDER).
 local ACTION_HEADERS = {
-  __combatmode = "Action Combat Mode",
-  __changed = "Modified Blizzard Actions",
-  __blizzard = "Blizzard Actions",
+  __combatmode = L["Action Combat Mode"],
+  __changed = L["Modified Blizzard Actions"],
+  __blizzard = L["Blizzard Actions"],
 }
 
 local MODIFIER_GROUPS = {
-  { id = "base", label = "Base", modifier = nil },
-  { id = "shift", label = "Shift", modifier = "shift" },
-  { id = "ctrl", label = "Ctrl", modifier = "ctrl" },
-  { id = "alt", label = "Alt", modifier = "alt" },
+  { id = "base", label = L["Base"], modifier = nil },
+  { id = "shift", label = _G.SHIFT_KEY or L["Shift"], modifier = "shift" },
+  { id = "ctrl", label = _G.CTRL_KEY or L["Ctrl"], modifier = "ctrl" },
+  { id = "alt", label = _G.ALT_KEY or L["Alt"], modifier = "alt" },
+}
+
+-- Colour-coded dropdown text for our own override actions (CM.Constants.OverrideActions keeps the English).
+local OVERRIDE_LABELS = {
+  CLEARTARGET = "|cff69ccf0" .. L["Clear Target"] .. "|r",
+  CLEARFOCUS = "|cff69ccf0" .. L["Clear Focus"] .. "|r",
+  STARTATTACK = "|cff69ccf0" .. L["Start Attack"] .. "|r",
+  PETATTACK = "|cff69ccf0" .. L["Pet Attack"] .. "|r",
+  TOGGLEFOCUSANY = "|cff69ccf0" .. L["Toggle Focus Any"] .. "|r",
+  TOGGLEFOCUSENEMY = "|cff69ccf0" .. L["Toggle Focus Enemy"] .. "|r",
+  MACRO = "|cff69ccf0" .. L["Run MACRO"] .. "|r",
 }
 
 local function BuildActionValues()
@@ -74,7 +86,7 @@ local function BuildActionValues()
   end
   tinsert(ACTION_ORDER, "__combatmode")
   for _, id in ipairs(OVERRIDE_ORDER) do
-    ACTION_VALUES[id] = CM.Constants.OverrideActions[id]
+    ACTION_VALUES[id] = OVERRIDE_LABELS[id] or CM.Constants.OverrideActions[id]
     ACTION_COLORS[id] = C.accent
     tinsert(ACTION_ORDER, id)
   end
@@ -99,7 +111,7 @@ end
 -- Fallback label for a stored value that isn't in the built set (e.g. a custom binding).
 local function ActionDisplay(value)
   if not value or value == "" then
-    return "— none —"
+    return L["— none —"]
   end
   return value
 end
@@ -119,7 +131,7 @@ end
 local function AddSlot(layout, slot, label, modifier, iconAtlas, leadingIconTexture)
   layout:Toggle({
     label = label,
-    desc = "Override this click during Mouse Look.",
+    desc = L["Override this click during Mouse Look."],
     leadingIconTexture = leadingIconTexture,
     iconAtlas = iconAtlas,
     iconFitText = true,
@@ -145,7 +157,7 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas, leadingIconText
     end,
   })
   layout:Dropdown({
-    label = "Action",
+    label = L["Action"],
     charSpecific = CharScopedBindings,
     values = ACTION_VALUES,
     order = ACTION_ORDER,
@@ -164,7 +176,7 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas, leadingIconText
     end,
   })
   layout:Dropdown({
-    label = "Macro",
+    label = L["Macro"],
     -- Re-read each time the menu opens so new / deleted macros show up.
     values = function()
       local values = {}
@@ -182,7 +194,7 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas, leadingIconText
     end,
     display = function(value)
       if value == nil or value == "" then
-        return "Select a macro"
+        return L["Select a macro"]
       end
       return value
     end,
@@ -196,9 +208,9 @@ local function AddSlot(layout, slot, label, modifier, iconAtlas, leadingIconText
         return nil
       end
       if CM.IsComposedMacroBody(body) then
-        return { icon = icon, detail = "Reticle Targeting", detailColor = C.accent }
+        return { icon = icon, detail = L["Reticle Targeting"], detailColor = C.accent }
       end
-      return { icon = icon, detail = "No targeting" }
+      return { icon = icon, detail = L["No targeting"] }
     end,
     get = function()
       return Binding(slot).macroName
@@ -227,24 +239,24 @@ local function BuildGroupPanel(parent, width, modifier, group, tabSearch)
   layout.search = {
     tab = tabSearch.tab,
     group = group.id,
-    prefix = modifier and "" or "Base - ",
+    prefix = modifier and "" or (L["Base"] .. " - "),
   }
-  local prefix = ""
+  local leftLabel, rightLabel = L["Left Click"], L["Right Click"]
   local leadingIconTexture
   if modifier == "shift" then
-    prefix = "Shift + "
+    leftLabel, rightLabel = L["Shift + Left Click"], L["Shift + Right Click"]
     leadingIconTexture = CM.Constants.ModifierKeyShift
   elseif modifier == "ctrl" then
-    prefix = "Ctrl + "
+    leftLabel, rightLabel = L["Ctrl + Left Click"], L["Ctrl + Right Click"]
     leadingIconTexture = CM.Constants.ModifierKeyCtrl
   elseif modifier == "alt" then
-    prefix = "Alt + "
+    leftLabel, rightLabel = L["Alt + Left Click"], L["Alt + Right Click"]
     leadingIconTexture = CM.Constants.ModifierKeyAlt
   end
   AddSlot(
     layout,
     Slot(modifier, 1),
-    prefix .. "Left Click",
+    leftLabel,
     modifier,
     "newplayertutorial-icon-mouse-leftbutton",
     leadingIconTexture
@@ -253,7 +265,7 @@ local function BuildGroupPanel(parent, width, modifier, group, tabSearch)
   AddSlot(
     layout,
     Slot(modifier, 2),
-    prefix .. "Right Click",
+    rightLabel,
     modifier,
     "newplayertutorial-icon-mouse-rightbutton",
     leadingIconTexture
@@ -319,16 +331,16 @@ end
 
 UI.Options.AddTab({
   id = "clickcasting",
-  label = "Click Casting",
+  label = L["Click Casting"],
   build = function(ctx)
     BuildActionValues()
-    ctx:Header("CLICK CASTING")
+    ctx:Header(L["CLICK CASTING"])
     ctx:Description(
-      "Assign override actions to left and right clicks that are active during Mouse Look."
+      L["Assign override actions to left and right clicks that are active during Mouse Look."]
     )
     ctx:Toggle({
-      label = "Account-Wide Binds",
-      desc = "Share Click Casting binds across all characters.",
+      label = L["Account-Wide Binds"],
+      desc = L["Share Click Casting binds across all characters."],
       charSpecific = true,
       get = function()
         return CM.DB.char.useGlobalBindings
@@ -420,8 +432,8 @@ UI.Options.AddTab({
     UI.Options.RegisterControl({
       frame = segmentHost,
       search = {
-        label = "Click Binds",
-        desc = "Base, Shift, Ctrl and Alt each have their own Left and Right Click actions.",
+        label = L["Click Binds"],
+        desc = L["Base, Shift, Ctrl and Alt each have their own Left and Right Click actions."],
         tab = "clickcasting",
       },
     })

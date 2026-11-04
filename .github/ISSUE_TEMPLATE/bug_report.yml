@@ -9,7 +9,7 @@ body:
     id: version
     attributes:
       label: Addon version
-      description: Shown next to the title in the options window (`/cm`).
+      description: Shown next to the title in the options window (`/acm`).
       placeholder: "5.3.2"
     validations:
       required: true

@@ -17,6 +17,7 @@
 --  UI/Options/Tabs/TabAdvanced.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- Lua stdlib
@@ -28,15 +29,15 @@ local UI = CM.UI
 
 UI.Options.AddTab({
   id = "autocursorunlock",
-  label = "Auto Unlock",
+  label = L["Auto Unlock"],
   build = function(ctx)
-    ctx:Header("AUTO UNLOCK")
+    ctx:Header(L["AUTO UNLOCK"])
     ctx:Description(
-      "Automatically pauses Mouse Look when windows open and resumes it when they close."
+      L["Automatically pauses Mouse Look when windows open and resumes it when they close."]
     )
     ctx:Toggle({
-      label = "Auto Unlock",
-      desc = "Release the cursor when UI panels open.",
+      label = L["Auto Unlock"],
+      desc = L["Release the cursor when UI panels open."],
       get = function()
         return CM.DB.global.frameWatching
       end,
@@ -45,8 +46,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:MountMultiSelect({
-      label = "Unlock Mounts",
-      desc = "Mounts that force a cursor unlock while mounted.",
+      label = L["Unlock Mounts"],
+      desc = L["Mounts that force a cursor unlock while mounted."],
       get = function()
         return CM.DB.global.mountsToUnlock
       end,
@@ -56,9 +57,8 @@ UI.Options.AddTab({
     })
     ctx:Gap()
     ctx:FrameMultiSelect({
-      label = "Extra Frames",
-      desc = "Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, "
-        .. "or use the inspect button to click a window on screen.",
+      label = L["Extra Frames"],
+      desc = L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."],
       get = function()
         return tconcat(CM.DB.global.watchlist or {}, ", ")
       end,

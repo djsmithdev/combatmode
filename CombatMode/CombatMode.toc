@@ -6,10 +6,20 @@
 ## Interface-Wrath: 30405
 ## Interface-BCC: 20506
 ## Interface-Classic: 11509
-## Version: 5.3.3
+## Version: 5.4.0
 
 ## Title: |A:::|a|TInterface\Addons\CombatMode\Assets\branding\cmtitle:26:55|t
 ## Notes: Action Combat Mode brings modern action-game controls to World of Warcraft, replacing traditional tab-targeting with intuitive aiming, more engaging controls, and immersive combat.
+## Notes-deDE: Action Combat Mode bringt moderne Action-Steuerung nach World of Warcraft und ersetzt das klassische Tab-Targeting durch intuitives Zielen, spannendere Steuerung und immersive Kämpfe.
+## Notes-esES: Action Combat Mode trae controles modernos de juego de acción a World of Warcraft, sustituyendo la selección tradicional con tabulador por una puntería intuitiva, controles más dinámicos y combates más inmersivos.
+## Notes-esMX: Action Combat Mode trae controles modernos de juego de acción a World of Warcraft, sustituyendo la selección tradicional con tabulador por una puntería intuitiva, controles más dinámicos y combates más inmersivos.
+## Notes-frFR: Action Combat Mode apporte des commandes modernes de jeu d'action à World of Warcraft, en remplaçant le ciblage classique par tabulation par une visée intuitive, des commandes plus dynamiques et des combats plus immersifs.
+## Notes-itIT: Action Combat Mode porta controlli moderni da gioco d'azione in World of Warcraft, sostituendo il tradizionale tab-targeting con una mira intuitiva, controlli più coinvolgenti e combattimenti immersivi.
+## Notes-koKR: Action Combat Mode는 기존의 탭 대상 지정 방식을 직관적인 조준과 더 몰입감 있는 조작으로 대체하여, 월드 오브 워크래프트에 현대적인 액션 게임 조작을 선사합니다.
+## Notes-ptBR: O Action Combat Mode traz controles modernos de jogo de ação para World of Warcraft, substituindo o tab-targeting tradicional por mira intuitiva, controles mais envolventes e combate imersivo.
+## Notes-ruRU: Action Combat Mode приносит в World of Warcraft современное управление в духе экшенов: вместо привычного выбора цели по Tab — интуитивное прицеливание, более увлекательное управление и погружение в бой.
+## Notes-zhCN: Action Combat Mode 为魔兽世界带来现代动作游戏式的操控，以直观的瞄准、更具参与感的操作和沉浸式战斗取代传统的 Tab 选中目标方式。
+## Notes-zhTW: Action Combat Mode 為魔獸世界帶來現代動作遊戲式的操控，以直覺的瞄準、更具參與感的操作和沉浸式戰鬥取代傳統的 Tab 選取目標方式。
 ## Author: justice7ca, sampconrad
 
 ## IconTexture: Interface\AddOns\CombatMode\Assets\branding\cmlogo

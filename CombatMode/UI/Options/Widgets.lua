@@ -29,6 +29,7 @@
 --  MakeButton `layout = "row"` — title left, action pill right (e.g. Reaction Colors).
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -41,6 +42,7 @@ local IsMouseButtonDown = _G.IsMouseButtonDown
 local UIParent = _G.UIParent
 
 -- Lua stdlib
+local format = _G.string.format
 local ipairs = _G.ipairs
 local pairs = _G.pairs
 local tinsert = _G.table.insert
@@ -221,6 +223,14 @@ end
 -- Exposed so the setup wizard's windows can reuse the dialog button look.
 UI.CreateDialogButton = CreateDialogButton
 
+--- Sets a dialog button's width to `minWidth`, or wider when its (translated) label needs more.
+--- Whole, even width so the centred label stays on a pixel boundary.
+function UI.FitDialogButton(button, minWidth)
+  local needed = ceil((button.text:GetStringWidth() or 0) + 24)
+  local width = max(minWidth or 0, needed)
+  button:SetWidth(width + width % 2)
+end
+
 --- The "What's New" call-to-action: an accent button with the attention effect that toggles
 --- the What's New balloon beside `owner` (the options or changelog window). Caller positions
 --- it and decides when it is shown (see Options.HasWhatsNew).
@@ -228,7 +238,7 @@ function UI.CreateWhatsNewButton(parent, owner, height)
   local button = CreateFrame("Button", nil, parent)
   UI.StyleControl(button, "primary", UI.Radius.control)
   local label = UI.CreateFontString(button, "OVERLAY", UI.Fonts.button, "GameFontHighlightSmall")
-  label:SetText("What's New")
+  label:SetText(L["What's New"])
   -- Dark text on the copper fill: the font's black drop shadow smudges it, so drop the shadow.
   label:SetShadowOffset(0, 0)
   UI.WireControlHover(button, label)
@@ -236,7 +246,7 @@ function UI.CreateWhatsNewButton(parent, owner, height)
   button:SetScript("OnClick", function()
     Options.ToggleWhatsNew(owner)
   end)
-  UI.AttachTooltip(button, "See what's new in this version", "ANCHOR_BOTTOM")
+  UI.AttachTooltip(button, L["See what's new in this version"], "ANCHOR_BOTTOM")
   -- Whole, even width so the centred label lands on a pixel boundary (a half pixel blurs text).
   local width = ceil((label:GetStringWidth() or 0) + 24)
   button:SetSize(width + width % 2, height or UI.Sizes.search)
@@ -536,9 +546,11 @@ function UI.ShowCopyLink(url, label)
 
   copyLinkDialog = copyLinkDialog or BuildCopyLinkDialog()
   local dialog = copyLinkDialog
-  local name = (type(label) == "string" and label ~= "") and label or "Link"
+  local name = (type(label) == "string" and label ~= "") and label or L["Link"]
 
-  dialog.message:SetText("Copy the " .. name .. " link (Ctrl+C), then paste it in your browser.")
+  dialog.message:SetText(
+    format(L["Copy the %s link (Ctrl+C), then paste it in your browser."], name)
+  )
   dialog.edit.cmUrl = url
   dialog.edit:SetText(url)
 
@@ -756,7 +768,7 @@ local DEFAULT_ICON_SIZE = 20
 local CHAR_SCOPE_MARK = "C"
 local CHAR_SCOPE_MARK_W = 14
 local CHAR_SCOPE_MARK_GAP = 4
-local CHAR_SCOPE_TOOLTIP = "Character-specific option."
+local CHAR_SCOPE_TOOLTIP = L["Character-specific option."]
 
 -- "NEW" tag for tabs and options: small accent-coloured text, superscript style, at the top
 -- right of the label it belongs to. Drawn by the addon so it follows the theme accent.
@@ -774,7 +786,7 @@ function UI.CreateNewFeatureBadge(parent)
   badge:SetSize(22, 10)
   local text = UI.CreateFontString(badge, "OVERLAY", UI.NewFeatureBadge.size, "GameFontNormal")
   text:SetPoint("TOPLEFT", badge, "TOPLEFT", 0, 0)
-  text:SetText("NEW")
+  text:SetText(L["NEW"])
   text:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
   badge.text = text
   return badge
@@ -1244,11 +1256,11 @@ function UI.MakeToggle(parent, opts)
   -- ON sits left of the knob (knob right when on), OFF sits right of it (knob left when
   -- off). Each fades with the animation: ON in the accent colour, OFF in dim text.
   local onText = UI.CreateFontString(track, "OVERLAY", TOGGLE_TEXT_SIZE, "GameFontNormalSmall")
-  onText:SetText("ON")
+  onText:SetText(L["ON"])
   onText:SetTextColor(C.toggleOn[1], C.toggleOn[2], C.toggleOn[3])
   onText:SetPoint("CENTER", track, "LEFT", (5 + TOGGLE_KNOB_ON_X - TOGGLE_KNOB_PAD) / 2, 0)
   local offText = UI.CreateFontString(track, "OVERLAY", TOGGLE_TEXT_SIZE, "GameFontNormalSmall")
-  offText:SetText("OFF")
+  offText:SetText(L["OFF"])
   offText:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
   offText:SetPoint(
     "CENTER",
@@ -1352,7 +1364,7 @@ function UI.MakeToggle(parent, opts)
       Options.Sync()
     end
     if opts.confirm then
-      UI.Confirm(opts.confirmText or "Are you sure?", apply, opts.reload)
+      UI.Confirm(opts.confirmText or L["Are you sure?"], apply, opts.reload)
     else
       apply()
     end
@@ -2610,7 +2622,7 @@ function UI.MakeKeybind(parent, opts)
     keybindCaptureOnKey = captureKey
     keybindCaptureStopPrevious = stopListening
     GetKeybindCaptureFrame():Show()
-    text:SetText("> Press key (ESC clears) <")
+    text:SetText(L["> Press key (ESC clears) <"])
     applyKeybindIdle()
   end
 
@@ -2848,10 +2860,10 @@ function UI.MakeTextInput(parent, opts)
     end)
     helpBtn:SetScript("OnClick", function()
       if UI.ShowCopyLink then
-        UI.ShowCopyLink(opts.helpUrl, "WoW API Documentation")
+        UI.ShowCopyLink(opts.helpUrl, L["WoW API Documentation"])
       end
     end)
-    UI.AttachTooltip(helpBtn, opts.helpTooltip or "WoW API Documentation", "ANCHOR_RIGHT")
+    UI.AttachTooltip(helpBtn, opts.helpTooltip or L["WoW API Documentation"], "ANCHOR_RIGHT")
   end
 
   if type(opts.maxLetters) == "number" and opts.maxLetters > 0 and edit.SetMaxLetters then
@@ -3026,7 +3038,7 @@ local function MakeOptionRowButton(parent, opts)
       return
     end
     if opts.confirm then
-      UI.Confirm(opts.confirmText or "Are you sure?", opts.func, opts.reload)
+      UI.Confirm(opts.confirmText or L["Are you sure?"], opts.func, opts.reload)
     else
       opts.func()
     end
@@ -3102,7 +3114,7 @@ local function MakeTexturePairRow(parent, opts)
     local hiddenText =
       UI.CreateFontString(button, "OVERLAY", UI.Fonts.desc - 1, "GameFontHighlightSmall")
     hiddenText:SetPoint("CENTER")
-    hiddenText:SetText("Hidden")
+    hiddenText:SetText(L["Hidden"])
     hiddenText:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
     button:SetScript("OnEnter", function(self)
       if not IsDisabled(opts) then
@@ -3205,13 +3217,18 @@ function UI.MakeButton(parent, opts)
   local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.button, "GameFontNormal")
   text:SetPoint("CENTER")
   text:SetText(UI.StripColors(opts.label) or "")
+  -- Widen for a long translation (whole, even width keeps the centred label on a pixel boundary).
+  local neededW = ceil((text:GetStringWidth() or 0) + 28)
+  if neededW > btnW then
+    button:SetWidth(neededW + neededW % 2)
+  end
   UI.WireControlHover(button, text)
   button:SetScript("OnClick", function()
     if not opts.func then
       return
     end
     if opts.confirm then
-      UI.Confirm(opts.confirmText or "Are you sure?", opts.func, opts.reload)
+      UI.Confirm(opts.confirmText or L["Are you sure?"], opts.func, opts.reload)
     else
       opts.func()
     end
@@ -3769,7 +3786,7 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
         end
       end)
     end)
-    UI.AttachTooltip(pickButton, "Pick a frame on screen", "ANCHOR_TOP")
+    UI.AttachTooltip(pickButton, L["Pick a frame on screen"], "ANCHOR_TOP")
   end
 
   local function EnsureSuggestMenu()
