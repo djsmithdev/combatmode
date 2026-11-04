@@ -26,6 +26,7 @@
 --  UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -154,7 +155,7 @@ end
 --- When `key` already starts with ALT- (e.g. ALT-BUTTON3), skip the dual-bind so we do
 --- not create ALT-ALT-BUTTON3.
 local function ApplyInteractKeybind(key)
-  CM.TryApplyBindingChange("reticle interact keybinding", function()
+  CM.TryApplyBindingChange(L["reticle interact keybinding"], function()
     ClearInteractBindings()
     if key and key ~= "" then
       local primary, alternate = GetInteractCommands()
@@ -188,7 +189,7 @@ UI.Options.AddTab({
         return (GetBindingKey("Combat Mode - Mouse Look"))
       end,
       set = function(key)
-        CM.TryApplyBindingChange("mouse look keybinding", function()
+        CM.TryApplyBindingChange(L["mouse look keybinding"], function()
           CM.AssignNamedKeybind("Combat Mode - Mouse Look", key)
         end)
       end,
@@ -241,7 +242,7 @@ UI.Options.AddTab({
         return (GetBindingKey("Combat Mode - Flip Camera"))
       end,
       set = function(key)
-        CM.TryApplyBindingChange("flip camera keybinding", function()
+        CM.TryApplyBindingChange(L["flip camera keybinding"], function()
           CM.AssignNamedKeybind("Combat Mode - Flip Camera", key)
         end)
       end,
@@ -256,7 +257,7 @@ UI.Options.AddTab({
           return (GetBindingKey("Combat Mode - Reset Mouse Look"))
         end,
         set = function(key)
-          CM.TryApplyBindingChange("reset mouse look keybinding", function()
+          CM.TryApplyBindingChange(L["reset mouse look keybinding"], function()
             CM.AssignNamedKeybind("Combat Mode - Reset Mouse Look", key)
           end)
         end,
@@ -410,7 +411,7 @@ UI.Options.AddTab({
         return (GetBindingKey("Combat Mode - Swap Shoulder"))
       end,
       set = function(key)
-        CM.TryApplyBindingChange("swap shoulder keybinding", function()
+        CM.TryApplyBindingChange(L["swap shoulder keybinding"], function()
           CM.AssignNamedKeybind("Combat Mode - Swap Shoulder", key)
         end)
       end,

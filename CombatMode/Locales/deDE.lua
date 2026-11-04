@@ -37,3 +37,42 @@ L["Toggle Focus Target"] = "Fokusziel umschalten"
 L["Cycle Focus Next"] = "Fokus wechseln: Nächster"
 L["Cycle Focus Previous"] = "Fokus wechseln: Vorheriger"
 L["Radial Menu"] = "Radialmenü"
+
+-- Core messages: chat output, binding queue contexts, combat-lockdown notices
+L["binding change"] = "Tastenbelegungsänderung"
+L["deferred %s until combat ends."] = "%s bis zum Kampfende verschoben."
+L["failed to apply %s: %s"] = "%s konnte nicht angewendet werden: %s"
+L["applied deferred binding updates."] = "Verschobene Tastenbelegungen wurden angewendet."
+L["|cffE52B50%s detected!|r Handing over turn speed, shoulder, and dynamic pitch."] =
+  "|cffE52B50%s erkannt!|r Drehgeschwindigkeit, Schulter und dynamische Neigung werden übergeben."
+L["Cannot uninstall while in combat."] = "Im Kampf kann nicht deinstalliert werden."
+L["restored your previous camera/targeting settings and default mouse camera binds, then disabled the addon."] =
+  "Deine vorherigen Kamera-/Zielerfassungs-Einstellungen und die Standard-Mauskamerabelegung wurden wiederhergestellt, das Addon wurde deaktiviert."
+L["Type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r for settings."] =
+  "Gib |cff69ccf0/acm|r oder |cff69ccf0/actioncombatmode|r für die Einstellungen ein."
+L["camera and targeting CVars restored."] = "Kamera- und Zielerfassungs-CVars wiederhergestellt."
+L["Cannot open settings while in combat."] =
+  "Die Einstellungen können im Kampf nicht geöffnet werden."
+L["Cannot open this editor while in combat."] =
+  "Dieser Editor kann im Kampf nicht geöffnet werden."
+L["Cannot open editor while in combat."] = "Der Editor kann im Kampf nicht geöffnet werden."
+L["cannot edit Reticle Targeting CVars while in combat."] =
+  "Die CVars der Zielerfassung per Fadenkreuz können im Kampf nicht bearbeitet werden."
+L["cannot reset Reticle Targeting CVars while in combat."] =
+  "Die CVars der Zielerfassung per Fadenkreuz können im Kampf nicht zurückgesetzt werden."
+L["MOVEANDSTEER unbind"] = "MOVEANDSTEER-Belegung entfernen"
+L["restore default mouse camera bindings"] = "Standard-Mauskamerabelegung wiederherstellen"
+L["Minimum Zoom"] = "Minimaler Zoom"
+L["ally cycle bindings"] = "Verbündeten-Wechsel-Belegungen"
+L["radial menu"] = "Radialmenü"
+L["target lock keybinding"] = "Belegung für Zielsperre"
+L["cycle focus next keybinding"] = "Belegung für Fokus wechseln: Nächster"
+L["cycle focus previous keybinding"] = "Belegung für Fokus wechseln: Vorheriger"
+L["ally cycle next keybinding"] = "Belegung für Verbündeten wechseln: Nächster"
+L["ally cycle previous keybinding"] = "Belegung für Verbündeten wechseln: Vorheriger"
+L["radial menu keybinding"] = "Belegung für Radialmenü"
+L["reticle interact keybinding"] = "Belegung für Fadenkreuz-Interaktion"
+L["mouse look keybinding"] = "Belegung für Mausblick"
+L["flip camera keybinding"] = "Belegung für Kamera spiegeln"
+L["reset mouse look keybinding"] = "Belegung für Mausblick zurücksetzen"
+L["swap shoulder keybinding"] = "Belegung für Schulter wechseln"

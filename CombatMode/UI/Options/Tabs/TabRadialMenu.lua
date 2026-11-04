@@ -20,6 +20,7 @@
 --  Related: Core/RadialMenu/{Data,Actions}.lua, UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -1075,7 +1076,7 @@ UI.Options.AddTab({
         return GetBindingKey(BIND_NAME)
       end,
       set = function(key)
-        CM.TryApplyBindingChange("radial menu keybinding", function()
+        CM.TryApplyBindingChange(L["radial menu keybinding"], function()
           CM.AssignNamedKeybind(BIND_NAME, key)
           CM.RadialRefresh()
         end)

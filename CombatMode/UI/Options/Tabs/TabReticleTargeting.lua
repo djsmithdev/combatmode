@@ -27,6 +27,7 @@
 --  UI/Editors/TargetingMacroPrelinesEditor.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -397,7 +398,7 @@ UI.Options.AddTab({
         return (GetBindingKey("Combat Mode - Toggle Focus Target"))
       end,
       set = function(key)
-        CM.TryApplyBindingChange("target lock keybinding", function()
+        CM.TryApplyBindingChange(L["target lock keybinding"], function()
           CM.AssignNamedKeybind("Combat Mode - Toggle Focus Target", key)
         end)
       end,
@@ -412,7 +413,7 @@ UI.Options.AddTab({
         return GetBindingKey("Combat Mode - Cycle Focus Next")
       end,
       set = function(key)
-        CM.TryApplyBindingChange("cycle focus next keybinding", function()
+        CM.TryApplyBindingChange(L["cycle focus next keybinding"], function()
           CM.AssignNamedKeybind("Combat Mode - Cycle Focus Next", key)
         end)
       end,
@@ -427,7 +428,7 @@ UI.Options.AddTab({
         return GetBindingKey("Combat Mode - Cycle Focus Previous")
       end,
       set = function(key)
-        CM.TryApplyBindingChange("cycle focus previous keybinding", function()
+        CM.TryApplyBindingChange(L["cycle focus previous keybinding"], function()
           CM.AssignNamedKeybind("Combat Mode - Cycle Focus Previous", key)
         end)
       end,

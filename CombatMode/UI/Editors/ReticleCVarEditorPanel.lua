@@ -14,6 +14,7 @@
 --  UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -485,7 +486,9 @@ function Editor.ShowInlineEditor(row)
   if _G.InCombatLockdown() then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: cannot edit Reticle Targeting CVars while in combat.|r"
+        .. "|cff909090: "
+        .. L["cannot edit Reticle Targeting CVars while in combat."]
+        .. "|r"
     )
     return
   end

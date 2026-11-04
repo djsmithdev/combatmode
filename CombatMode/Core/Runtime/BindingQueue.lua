@@ -15,6 +15,7 @@
 --  UI/Options/Tabs/TabClickCasting.lua, UI/Options/Tabs/TabAllyCycle.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -23,6 +24,7 @@ local InCombatLockdown = _G.InCombatLockdown
 -- Lua stdlib
 local ipairs = _G.ipairs
 local pcall = _G.pcall
+local format = _G.string.format
 local type = _G.type
 
 local deferredBindingQueue = {}
@@ -34,14 +36,14 @@ function CM.TryApplyBindingChange(context, applyFn)
 
   if InCombatLockdown() then
     deferredBindingQueue[#deferredBindingQueue + 1] = {
-      context = context or "binding change",
+      context = context or L["binding change"],
       applyFn = applyFn,
     }
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: deferred "
-        .. (context or "binding change")
-        .. " until combat ends.|r"
+        .. "|cff909090: "
+        .. format(L["deferred %s until combat ends."], context or L["binding change"])
+        .. "|r"
     )
     return false
   end
@@ -50,10 +52,8 @@ function CM.TryApplyBindingChange(context, applyFn)
   if not ok then
     print(
       CM.Constants.BasePrintMsg
-        .. "|cff909090: failed to apply "
-        .. (context or "binding change")
-        .. ": "
-        .. tostring(err)
+        .. "|cff909090: "
+        .. format(L["failed to apply %s: %s"], context or L["binding change"], tostring(err))
         .. "|r"
     )
     return false
@@ -77,5 +77,7 @@ function CM.FlushDeferredBindingChanges()
     CM.TryApplyBindingChange(change.context, change.applyFn)
   end
 
-  print(CM.Constants.BasePrintMsg .. "|cff909090: applied deferred binding updates.|r")
+  print(
+    CM.Constants.BasePrintMsg .. "|cff909090: " .. L["applied deferred binding updates."] .. "|r"
+  )
 end

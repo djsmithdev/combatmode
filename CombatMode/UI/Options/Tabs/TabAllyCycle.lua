@@ -12,6 +12,7 @@
 --  Core/ClickCasting/TargetingMacroBuilder.lua, UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -76,7 +77,7 @@ UI.Options.AddTab({
         return GetBindingKey(CM.AllyCycleBindUp or "Combat Mode - Ally Cycle Next")
       end,
       set = function(key)
-        CM.TryApplyBindingChange("ally cycle next keybinding", function()
+        CM.TryApplyBindingChange(L["ally cycle next keybinding"], function()
           CM.AssignNamedKeybind(CM.AllyCycleBindUp or "Combat Mode - Ally Cycle Next", key)
           if CM.ApplyAllyCycleBindings then
             CM.ApplyAllyCycleBindings()
@@ -94,7 +95,7 @@ UI.Options.AddTab({
         return GetBindingKey(CM.AllyCycleBindDown or "Combat Mode - Ally Cycle Previous")
       end,
       set = function(key)
-        CM.TryApplyBindingChange("ally cycle previous keybinding", function()
+        CM.TryApplyBindingChange(L["ally cycle previous keybinding"], function()
           CM.AssignNamedKeybind(CM.AllyCycleBindDown or "Combat Mode - Ally Cycle Previous", key)
           if CM.ApplyAllyCycleBindings then
             CM.ApplyAllyCycleBindings()

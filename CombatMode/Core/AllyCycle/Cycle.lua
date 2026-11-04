@@ -19,6 +19,7 @@
 --  Core/Runtime/BindingQueue.lua, UI/Options/Tabs/TabAllyCycle.lua, Bindings.xml
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -572,7 +573,7 @@ end
 function CM.ApplyAllyCycleBindings()
   if InCombatLockdown() then
     if CM.TryApplyBindingChange then
-      CM.TryApplyBindingChange("ally cycle bindings", function()
+      CM.TryApplyBindingChange(L["ally cycle bindings"], function()
         CM.ApplyAllyCycleBindings()
       end)
     end

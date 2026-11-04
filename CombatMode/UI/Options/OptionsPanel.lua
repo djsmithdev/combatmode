@@ -25,6 +25,7 @@
 --  UI/Options/Tabs/TabAllyCycle.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -1053,7 +1054,12 @@ end
 
 local function CombatBlocked()
   if InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open settings while in combat.|r")
+    print(
+      CM.Constants.BasePrintMsg
+        .. "|cff909090: "
+        .. L["Cannot open settings while in combat."]
+        .. "|r"
+    )
     return true
   end
   return false

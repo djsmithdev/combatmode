@@ -15,6 +15,7 @@
 -- UI/Editors/TargetingMacroPrelinesEditor.lua, UI/Options/Widgets.lua (lockedPrefix)
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -175,7 +176,12 @@ end
 --- one; otherwise it starts a new macro with an empty name (placeholder only).
 function CM.OpenComposedMacroEditor(macroName)
   if InCombatLockdown and InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open editor while in combat.|r")
+    print(
+      CM.Constants.BasePrintMsg
+        .. "|cff909090: "
+        .. L["Cannot open editor while in combat."]
+        .. "|r"
+    )
     return
   end
 

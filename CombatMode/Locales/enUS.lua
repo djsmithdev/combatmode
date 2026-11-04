@@ -33,3 +33,36 @@ L["Toggle Focus Target"] = true
 L["Cycle Focus Next"] = true
 L["Cycle Focus Previous"] = true
 L["Radial Menu"] = true
+
+-- Core messages: chat output, binding queue contexts, combat-lockdown notices
+L["binding change"] = true
+L["deferred %s until combat ends."] = true
+L["failed to apply %s: %s"] = true
+L["applied deferred binding updates."] = true
+L["|cffE52B50%s detected!|r Handing over turn speed, shoulder, and dynamic pitch."] = true
+L["Cannot uninstall while in combat."] = true
+L["restored your previous camera/targeting settings and default mouse camera binds, then disabled the addon."] =
+  true
+L["Type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r for settings."] = true
+L["camera and targeting CVars restored."] = true
+L["Cannot open settings while in combat."] = true
+L["Cannot open this editor while in combat."] = true
+L["Cannot open editor while in combat."] = true
+L["cannot edit Reticle Targeting CVars while in combat."] = true
+L["cannot reset Reticle Targeting CVars while in combat."] = true
+L["MOVEANDSTEER unbind"] = true
+L["restore default mouse camera bindings"] = true
+L["Minimum Zoom"] = true
+L["ally cycle bindings"] = true
+L["radial menu"] = true
+L["target lock keybinding"] = true
+L["cycle focus next keybinding"] = true
+L["cycle focus previous keybinding"] = true
+L["ally cycle next keybinding"] = true
+L["ally cycle previous keybinding"] = true
+L["radial menu keybinding"] = true
+L["reticle interact keybinding"] = true
+L["mouse look keybinding"] = true
+L["flip camera keybinding"] = true
+L["reset mouse look keybinding"] = true
+L["swap shoulder keybinding"] = true

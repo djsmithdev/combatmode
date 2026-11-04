@@ -21,6 +21,7 @@
 --  UI/Options/OptionsPanel.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -262,7 +263,12 @@ end
 
 function CM.OpenTargetingMacroPrelinesEditor()
   if InCombatLockdown and InCombatLockdown() then
-    print(CM.Constants.BasePrintMsg .. "|cff909090: Cannot open this editor while in combat.|r")
+    print(
+      CM.Constants.BasePrintMsg
+        .. "|cff909090: "
+        .. L["Cannot open this editor while in combat."]
+        .. "|r"
+    )
     return
   end
 

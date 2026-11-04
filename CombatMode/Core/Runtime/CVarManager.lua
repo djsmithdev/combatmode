@@ -57,6 +57,7 @@
 --  UI/Options/Tabs/TabReticleTargeting.lua, UI/Options/Tabs/TabGeneral.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -1072,7 +1073,7 @@ end
 --- catches zoom the keys didn't cause (login, other addons). Safe to call again after the
 --- slider changes or UPDATE_BINDINGS.
 function CM.ApplyMinCameraZoom()
-  CM.TryApplyBindingChange("Minimum Zoom", ApplyMinZoomBindings)
+  CM.TryApplyBindingChange(L["Minimum Zoom"], ApplyMinZoomBindings)
   local minZoom = CM.DB and CM.DB.global and CM.DB.global.minCameraZoom
   local active = type(minZoom) == "number" and minZoom > 0
   if not minZoomFrame then
@@ -1097,5 +1098,7 @@ end
 --- Prefer CM.UninstallCombatMode for a full leave; this is the CVar half only.
 function CM:ResetCVarsToDefault()
   CM.RestorePriorCVars()
-  print(CM.Constants.BasePrintMsg .. "|cff909090: camera and targeting CVars restored.|r")
+  print(
+    CM.Constants.BasePrintMsg .. "|cff909090: " .. L["camera and targeting CVars restored."] .. "|r"
+  )
 end

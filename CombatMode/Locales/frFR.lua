@@ -37,3 +37,41 @@ L["Toggle Focus Target"] = "Basculer la cible focalisée"
 L["Cycle Focus Next"] = "Cycle de focalisation : suivant"
 L["Cycle Focus Previous"] = "Cycle de focalisation : précédent"
 L["Radial Menu"] = "Menu radial"
+
+-- Core messages: chat output, binding queue contexts, combat-lockdown notices
+L["binding change"] = "changement de raccourci"
+L["deferred %s until combat ends."] = "%s reporté jusqu'à la fin du combat."
+L["failed to apply %s: %s"] = "échec de l'application de %s : %s"
+L["applied deferred binding updates."] = "mises à jour de raccourcis reportées appliquées."
+L["|cffE52B50%s detected!|r Handing over turn speed, shoulder, and dynamic pitch."] =
+  "|cffE52B50%s détecté !|r Cession de la vitesse de rotation, de l'épaule et de l'inclinaison dynamique."
+L["Cannot uninstall while in combat."] = "Impossible de désinstaller en combat."
+L["restored your previous camera/targeting settings and default mouse camera binds, then disabled the addon."] =
+  "vos réglages précédents de caméra/ciblage et les raccourcis de caméra à la souris par défaut ont été restaurés, puis l'addon a été désactivé."
+L["Type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r for settings."] =
+  "Tapez |cff69ccf0/acm|r ou |cff69ccf0/actioncombatmode|r pour ouvrir les réglages."
+L["camera and targeting CVars restored."] = "CVars de caméra et de ciblage restaurées."
+L["Cannot open settings while in combat."] = "Impossible d'ouvrir les réglages en combat."
+L["Cannot open this editor while in combat."] = "Impossible d'ouvrir cet éditeur en combat."
+L["Cannot open editor while in combat."] = "Impossible d'ouvrir l'éditeur en combat."
+L["cannot edit Reticle Targeting CVars while in combat."] =
+  "impossible de modifier les CVars du ciblage par réticule en combat."
+L["cannot reset Reticle Targeting CVars while in combat."] =
+  "impossible de réinitialiser les CVars du ciblage par réticule en combat."
+L["MOVEANDSTEER unbind"] = "suppression du raccourci MOVEANDSTEER"
+L["restore default mouse camera bindings"] =
+  "restauration des raccourcis de caméra à la souris par défaut"
+L["Minimum Zoom"] = "Zoom minimum"
+L["ally cycle bindings"] = "raccourcis du cycle d'alliés"
+L["radial menu"] = "menu radial"
+L["target lock keybinding"] = "raccourci de verrouillage de cible"
+L["cycle focus next keybinding"] = "raccourci du cycle de focalisation : suivant"
+L["cycle focus previous keybinding"] = "raccourci du cycle de focalisation : précédent"
+L["ally cycle next keybinding"] = "raccourci du cycle d'alliés : suivant"
+L["ally cycle previous keybinding"] = "raccourci du cycle d'alliés : précédent"
+L["radial menu keybinding"] = "raccourci du menu radial"
+L["reticle interact keybinding"] = "raccourci d'interaction au réticule"
+L["mouse look keybinding"] = "raccourci de la vue à la souris"
+L["flip camera keybinding"] = "raccourci d'inversion de la caméra"
+L["reset mouse look keybinding"] = "raccourci de réinitialisation de la vue à la souris"
+L["swap shoulder keybinding"] = "raccourci de changement d'épaule"
