@@ -585,3 +585,81 @@ L["Use the button below to open Action Combat Mode options."] =
 L["You can also type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r in chat."] =
   "채팅창에 |cff69ccf0/acm|r 또는 |cff69ccf0/actioncombatmode|r를 입력해도 됩니다."
 L["Open Options"] = "옵션 열기"
+
+-- Editors: macro composer, prelines, crosshair colors and textures, CVar editor
+L["%d / %d characters"] = "%d / %d자"
+L["%s (over the macro limit)"] = "%s (매크로 제한 초과)"
+L["Ignore Friendlies: %s"] = "아군 무시: %s"
+L["Auto Target Lock: %s"] = "자동 대상 고정: %s"
+L["Preline: Ignore Friendlies + No Auto Lock"] = "사전 줄: 아군 무시 + 자동 고정 없음"
+L["Preline: Ignore Friendlies + Auto Lock"] = "사전 줄: 아군 무시 + 자동 고정"
+L["Preline: Target Any Unit + No Auto Lock"] =
+  "사전 줄: 모든 유닛 대상 + 자동 고정 없음"
+L["Preline: Target Any Unit + Auto Lock"] = "사전 줄: 모든 유닛 대상 + 자동 고정"
+L["Macro Composer"] = "매크로 작성기"
+L["The targeting logic preline matching your current Reticle Targeting settings is added automatically before your lines, as the highlighted portion of the macro. To modify it, use the Prelines Editor under %s."] =
+  "현재 조준선 대상 지정 설정에 맞는 대상 지정 사전 줄이 매크로의 강조 표시된 부분으로 내 줄 앞에 자동으로 추가됩니다. 수정하려면 %s의 사전 줄 편집기를 사용하세요."
+L["Macro Name"] = "매크로 이름"
+L["Enter a macro name"] = "매크로 이름을 입력하세요"
+L["Saved to your general macros."] = "공용 매크로에 저장됩니다."
+L["Saved to your character macros."] = "캐릭터 매크로에 저장됩니다."
+L["Macro Text"] = "매크로 내용"
+L["Delete Macro"] = "매크로 삭제"
+L["Delete this macro? Any action bar button using it will be emptied."] =
+  "이 매크로를 삭제하시겠습니까? 이 매크로를 사용하는 행동 단축바 버튼은 비워집니다."
+L["Save Macro"] = "매크로 저장"
+L["Preline must be %d characters or fewer (room for /click under the 255 macro limit)."] =
+  "사전 줄은 %d자 이하여야 합니다 (매크로 제한 255자 안에서 /click을 위한 공간 확보)."
+L["Inactive — Auto Target Lock is OFF"] = "비활성 — 자동 대상 고정이 꺼져 있음"
+L["Inactive — Auto Target Lock is ON"] = "비활성 — 자동 대상 고정이 켜져 있음"
+L["Inactive — Ignore Friendlies is OFF"] = "비활성 — 아군 무시가 꺼져 있음"
+L["Inactive — Ignore Friendlies is ON"] = "비활성 — 아군 무시가 켜져 있음"
+L["Customize the targeting prelines injected before each ability when Reticle Targeting is enabled.\n\n• Only the preline matching your current %s X %s settings is active.\n• Max %s characters per preline — SecureActionButton macros are capped at %s; the rest is reserved for the trailing %s line.\n• Use %s to reload and pick up edits."] =
+  "조준선 대상 지정이 켜져 있을 때 각 능력 앞에 삽입되는 대상 지정 사전 줄을 사용자 지정합니다.\n\n• 현재 %s X %s 설정에 맞는 사전 줄만 활성화됩니다.\n• 사전 줄당 최대 %s자 — SecureActionButton 매크로는 %s자로 제한되며, 나머지는 마지막 %s 줄을 위해 남겨 둡니다.\n• %s을(를) 사용해 UI를 다시 불러오고 변경 사항을 적용하세요."
+L["Apply Changes"] = "변경 사항 적용"
+L["Hostile"] = "적대"
+L["NPC"] = "NPC"
+L["Player"] = "플레이어"
+L["Object"] = "오브젝트"
+L["Select a tab to customize the color and alpha of the crosshair when targeting different types of units.\n\n• %s and %s animations use the Hostile color.\n• Inactive crosshair states use the Base style."] =
+  "탭을 선택해 서로 다른 유형의 유닛을 조준할 때의 조준점 색상과 투명도를 사용자 지정합니다.\n\n• %s 및 %s 애니메이션은 적대 색상을 사용합니다.\n• 비활성 조준점 상태는 기본 스타일을 사용합니다."
+L["Reset to Default"] = "기본값으로 초기화"
+L["Show the inactive crosshair"] = "비활성 조준점 표시"
+L["Show the active crosshair"] = "활성 조준점 표시"
+L["Show the mounted crosshair"] = "탈것 조준점 표시"
+L["Show the disabled crosshair"] = "비활성화된 조준점 표시"
+L["Hide the inactive crosshair"] = "비활성 조준점 숨기기"
+L["Hide the active crosshair"] = "활성 조준점 숨기기"
+L["Hide the mounted crosshair"] = "탈것 조준점 숨기기"
+L["Hide the disabled crosshair"] = "비활성화된 조준점 숨기기"
+L["Nothing is drawn while you are not aiming at anything."] =
+  "아무것도 조준하지 않는 동안에는 아무것도 표시되지 않습니다."
+L["Nothing is drawn while you are aiming at a unit or object."] =
+  "유닛이나 오브젝트를 조준하는 동안에는 아무것도 표시되지 않습니다."
+L["Nothing is drawn while you are mounted."] =
+  "탈것에 탑승한 동안에는 아무것도 표시되지 않습니다."
+L["Nothing is drawn while Target Lock holds the reticle."] =
+  "대상 고정이 조준선을 유지하는 동안에는 아무것도 표시되지 않습니다."
+L["Not aiming at anything"] = "아무것도 조준하지 않음"
+L["Aiming at a unit or object"] = "유닛이나 오브젝트를 조준 중"
+L["While you are mounted"] = "탈것에 탑승한 동안"
+L["While Target Lock holds"] = "대상 고정이 유지되는 동안"
+L["Brings back the texture you had before hiding it."] =
+  "숨기기 전에 사용하던 텍스처를 되돌립니다."
+L["Crosshair Textures"] = "조준점 텍스처"
+L["Select a state, then pick a texture below, or apply a preset for a curated appearance."] =
+  "상태를 선택한 뒤 아래에서 텍스처를 고르거나, 프리셋을 적용해 잘 다듬어진 모습을 사용하세요."
+L["INACTIVE"] = "비활성"
+L["ACTIVE"] = "활성"
+L["MOUNTED"] = "탑승 중"
+L["DISABLED"] = "비활성화됨"
+L["PRESETS"] = "프리셋"
+L["ALL TEXTURES"] = "모든 텍스처"
+L["Action Combat Mode (Reticle CVar Editor)"] = "Action Combat Mode (조준선 CVar 편집기)"
+L["External change (CVAR_UPDATE)"] = "외부 변경 (CVAR_UPDATE)"
+L["Description"] = "설명"
+L["Value"] = "값"
+L["Default Value:"] = "기본값:"
+L["Last Modified By:"] = "마지막 수정 주체:"
+L["Double-click a row to edit. Overrides are account-wide and replace CombatMode defaults."] =
+  "행을 두 번 클릭하여 편집하세요. 덮어쓰기는 계정 전체에 적용되며 CombatMode 기본값을 대체합니다."

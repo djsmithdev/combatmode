@@ -616,3 +616,91 @@ L["Use the button below to open Action Combat Mode options."] =
 L["You can also type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r in chat."] =
   "Также можно ввести |cff69ccf0/acm|r или |cff69ccf0/actioncombatmode|r в чате."
 L["Open Options"] = "Открыть настройки"
+
+-- Editors: macro composer, prelines, crosshair colors and textures, CVar editor
+L["%d / %d characters"] = "%d / %d символов"
+L["%s (over the macro limit)"] = "%s (превышен лимит макроса)"
+L["Ignore Friendlies: %s"] = "Игнорировать союзников: %s"
+L["Auto Target Lock: %s"] = "Автозахват цели: %s"
+L["Preline: Ignore Friendlies + No Auto Lock"] =
+  "Предстрока: игнорировать союзников + без автозахвата"
+L["Preline: Ignore Friendlies + Auto Lock"] =
+  "Предстрока: игнорировать союзников + автозахват"
+L["Preline: Target Any Unit + No Auto Lock"] =
+  "Предстрока: любая цель + без автозахвата"
+L["Preline: Target Any Unit + Auto Lock"] =
+  "Предстрока: любая цель + автозахват"
+L["Macro Composer"] = "Конструктор макросов"
+L["The targeting logic preline matching your current Reticle Targeting settings is added automatically before your lines, as the highlighted portion of the macro. To modify it, use the Prelines Editor under %s."] =
+  "Предстрока наведения, соответствующая текущим настройкам наведения по прицелу, автоматически добавляется перед вашими строками как выделенная часть макроса. Чтобы изменить ее, используйте редактор предстрок в разделе «%s»."
+L["Macro Name"] = "Название макроса"
+L["Enter a macro name"] = "Введите название макроса"
+L["Saved to your general macros."] =
+  "Сохраняется в ваших общих макросах."
+L["Saved to your character macros."] =
+  "Сохраняется в макросах вашего персонажа."
+L["Macro Text"] = "Текст макроса"
+L["Delete Macro"] = "Удалить макрос"
+L["Delete this macro? Any action bar button using it will be emptied."] =
+  "Удалить этот макрос? Все кнопки панелей команд, использующие его, будут очищены."
+L["Save Macro"] = "Сохранить макрос"
+L["Preline must be %d characters or fewer (room for /click under the 255 macro limit)."] =
+  "Предстрока должна содержать не более %d символов (нужно место для /click в пределах лимита макроса в 255)."
+L["Inactive — Auto Target Lock is OFF"] =
+  "Неактивно — автозахват цели ВЫКЛЮЧЕН"
+L["Inactive — Auto Target Lock is ON"] =
+  "Неактивно — автозахват цели ВКЛЮЧЕН"
+L["Inactive — Ignore Friendlies is OFF"] =
+  "Неактивно — «Игнорировать союзников» ВЫКЛЮЧЕНО"
+L["Inactive — Ignore Friendlies is ON"] =
+  "Неактивно — «Игнорировать союзников» ВКЛЮЧЕНО"
+L["Customize the targeting prelines injected before each ability when Reticle Targeting is enabled.\n\n• Only the preline matching your current %s X %s settings is active.\n• Max %s characters per preline — SecureActionButton macros are capped at %s; the rest is reserved for the trailing %s line.\n• Use %s to reload and pick up edits."] =
+  "Настройте предстроки наведения, добавляемые перед каждой способностью, когда включено наведение по прицелу.\n\n• Активна только та предстрока, которая соответствует текущим настройкам %s X %s.\n• Не более %s символов на предстроку — макросы SecureActionButton ограничены %s; остальное зарезервировано для завершающей строки %s.\n• Используйте %s, чтобы перезагрузить интерфейс и применить изменения."
+L["Apply Changes"] = "Применить изменения"
+L["Hostile"] = "Враждебные"
+L["NPC"] = "НИП"
+L["Player"] = "Игрок"
+L["Object"] = "Объект"
+L["Select a tab to customize the color and alpha of the crosshair when targeting different types of units.\n\n• %s and %s animations use the Hostile color.\n• Inactive crosshair states use the Base style."] =
+  "Выберите вкладку, чтобы настроить цвет и прозрачность прицела при наведении на разные типы целей.\n\n• Анимации «%s» и «%s» используют цвет враждебных целей.\n• Неактивные состояния прицела используют базовый стиль."
+L["Reset to Default"] = "Сбросить"
+L["Show the inactive crosshair"] = "Показать неактивный прицел"
+L["Show the active crosshair"] = "Показать активный прицел"
+L["Show the mounted crosshair"] = "Показать прицел верхом"
+L["Show the disabled crosshair"] = "Показать отключенный прицел"
+L["Hide the inactive crosshair"] = "Скрыть неактивный прицел"
+L["Hide the active crosshair"] = "Скрыть активный прицел"
+L["Hide the mounted crosshair"] = "Скрыть прицел верхом"
+L["Hide the disabled crosshair"] = "Скрыть отключенный прицел"
+L["Nothing is drawn while you are not aiming at anything."] =
+  "Пока вы ни на что не целитесь, ничего не отображается."
+L["Nothing is drawn while you are aiming at a unit or object."] =
+  "Пока вы целитесь в цель или объект, ничего не отображается."
+L["Nothing is drawn while you are mounted."] =
+  "Пока вы в седле, ничего не отображается."
+L["Nothing is drawn while Target Lock holds the reticle."] =
+  "Пока захват цели удерживает прицел, ничего не отображается."
+L["Not aiming at anything"] = "Ни на что не наведен"
+L["Aiming at a unit or object"] = "Наведен на цель или объект"
+L["While you are mounted"] = "Пока вы в седле"
+L["While Target Lock holds"] = "Пока активен захват цели"
+L["Brings back the texture you had before hiding it."] =
+  "Возвращает текстуру, которая была до скрытия."
+L["Crosshair Textures"] = "Текстуры прицела"
+L["Select a state, then pick a texture below, or apply a preset for a curated appearance."] =
+  "Выберите состояние, затем текстуру ниже или примените готовый набор для продуманного вида."
+L["INACTIVE"] = "НЕАКТИВЕН"
+L["ACTIVE"] = "АКТИВЕН"
+L["MOUNTED"] = "В СЕДЛЕ"
+L["DISABLED"] = "ОТКЛЮЧЕН"
+L["PRESETS"] = "НАБОРЫ"
+L["ALL TEXTURES"] = "ВСЕ ТЕКСТУРЫ"
+L["Action Combat Mode (Reticle CVar Editor)"] =
+  "Action Combat Mode (редактор CVar прицела)"
+L["External change (CVAR_UPDATE)"] = "Внешнее изменение (CVAR_UPDATE)"
+L["Description"] = "Описание"
+L["Value"] = "Значение"
+L["Default Value:"] = "Значение по умолчанию:"
+L["Last Modified By:"] = "Последнее изменение:"
+L["Double-click a row to edit. Overrides are account-wide and replace CombatMode defaults."] =
+  "Дважды щелкните строку, чтобы изменить ее. Переопределения действуют для всей учетной записи и заменяют значения CombatMode по умолчанию."

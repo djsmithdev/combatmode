@@ -584,3 +584,85 @@ L["Use the button below to open Action Combat Mode options."] =
 L["You can also type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r in chat."] =
   "También puedes escribir |cff69ccf0/acm|r o |cff69ccf0/actioncombatmode|r en el chat."
 L["Open Options"] = "Abrir opciones"
+
+-- Editors: macro composer, prelines, crosshair colors and textures, CVar editor
+L["%d / %d characters"] = "%d / %d caracteres"
+L["%s (over the macro limit)"] = "%s (por encima del límite de la macro)"
+L["Ignore Friendlies: %s"] = "Ignorar amistosos: %s"
+L["Auto Target Lock: %s"] = "Fijar objetivo automáticamente: %s"
+L["Preline: Ignore Friendlies + No Auto Lock"] =
+  "Prelínea: Ignorar amistosos + sin fijado automático"
+L["Preline: Ignore Friendlies + Auto Lock"] = "Prelínea: Ignorar amistosos + fijado automático"
+L["Preline: Target Any Unit + No Auto Lock"] =
+  "Prelínea: Apuntar a cualquier unidad + sin fijado automático"
+L["Preline: Target Any Unit + Auto Lock"] =
+  "Prelínea: Apuntar a cualquier unidad + fijado automático"
+L["Macro Composer"] = "Compositor de macros"
+L["The targeting logic preline matching your current Reticle Targeting settings is added automatically before your lines, as the highlighted portion of the macro. To modify it, use the Prelines Editor under %s."] =
+  "La prelínea de selección que corresponde a tus ajustes actuales de selección por retícula se añade automáticamente antes de tus líneas, como la parte resaltada de la macro. Para modificarla, usa el editor de prelíneas en %s."
+L["Macro Name"] = "Nombre de la macro"
+L["Enter a macro name"] = "Introduce un nombre de macro"
+L["Saved to your general macros."] = "Se guarda en tus macros generales."
+L["Saved to your character macros."] = "Se guarda en las macros de tu personaje."
+L["Macro Text"] = "Texto de la macro"
+L["Delete Macro"] = "Eliminar macro"
+L["Delete this macro? Any action bar button using it will be emptied."] =
+  "¿Eliminar esta macro? Cualquier botón de la barra de acción que la use quedará vacío."
+L["Save Macro"] = "Guardar macro"
+L["Preline must be %d characters or fewer (room for /click under the 255 macro limit)."] =
+  "La prelínea debe tener %d caracteres o menos (deja espacio para /click dentro del límite de 255 de la macro)."
+L["Inactive — Auto Target Lock is OFF"] =
+  "Inactiva — Fijar objetivo automáticamente está DESACTIVADO"
+L["Inactive — Auto Target Lock is ON"] =
+  "Inactiva — Fijar objetivo automáticamente está ACTIVADO"
+L["Inactive — Ignore Friendlies is OFF"] = "Inactiva — Ignorar amistosos está DESACTIVADO"
+L["Inactive — Ignore Friendlies is ON"] = "Inactiva — Ignorar amistosos está ACTIVADO"
+L["Customize the targeting prelines injected before each ability when Reticle Targeting is enabled.\n\n• Only the preline matching your current %s X %s settings is active.\n• Max %s characters per preline — SecureActionButton macros are capped at %s; the rest is reserved for the trailing %s line.\n• Use %s to reload and pick up edits."] =
+  "Personaliza las prelíneas de selección que se insertan antes de cada habilidad cuando la selección por retícula está activada.\n\n• Solo está activa la prelínea que coincide con tus ajustes actuales de %s X %s.\n• Máximo de %s caracteres por prelínea — las macros de SecureActionButton están limitadas a %s; el resto se reserva para la línea final %s.\n• Usa %s para recargar y aplicar los cambios."
+L["Apply Changes"] = "Aplicar cambios"
+L["Hostile"] = "Hostil"
+L["NPC"] = "PNJ"
+L["Player"] = "Jugador"
+L["Object"] = "Objeto"
+L["Select a tab to customize the color and alpha of the crosshair when targeting different types of units.\n\n• %s and %s animations use the Hostile color.\n• Inactive crosshair states use the Base style."] =
+  "Selecciona una pestaña para personalizar el color y la opacidad de la mira al apuntar a distintos tipos de unidades.\n\n• Las animaciones de %s y %s usan el color Hostil.\n• Los estados inactivos de la mira usan el estilo Base."
+L["Reset to Default"] = "Restablecer valor"
+L["Show the inactive crosshair"] = "Mostrar la mira inactiva"
+L["Show the active crosshair"] = "Mostrar la mira activa"
+L["Show the mounted crosshair"] = "Mostrar la mira de montura"
+L["Show the disabled crosshair"] = "Mostrar la mira desactivada"
+L["Hide the inactive crosshair"] = "Ocultar la mira inactiva"
+L["Hide the active crosshair"] = "Ocultar la mira activa"
+L["Hide the mounted crosshair"] = "Ocultar la mira de montura"
+L["Hide the disabled crosshair"] = "Ocultar la mira desactivada"
+L["Nothing is drawn while you are not aiming at anything."] =
+  "No se dibuja nada mientras no apuntas a nada."
+L["Nothing is drawn while you are aiming at a unit or object."] =
+  "No se dibuja nada mientras apuntas a una unidad o un objeto."
+L["Nothing is drawn while you are mounted."] = "No se dibuja nada mientras estás montado."
+L["Nothing is drawn while Target Lock holds the reticle."] =
+  "No se dibuja nada mientras Fijar objetivo retiene la retícula."
+L["Not aiming at anything"] = "Sin apuntar a nada"
+L["Aiming at a unit or object"] = "Apuntando a una unidad o un objeto"
+L["While you are mounted"] = "Mientras estás montado"
+L["While Target Lock holds"] = "Mientras Fijar objetivo está activo"
+L["Brings back the texture you had before hiding it."] =
+  "Recupera la textura que tenías antes de ocultarla."
+L["Crosshair Textures"] = "Texturas de la mira"
+L["Select a state, then pick a texture below, or apply a preset for a curated appearance."] =
+  "Selecciona un estado y elige una textura abajo, o aplica un preajuste para un aspecto cuidado."
+L["INACTIVE"] = "INACTIVA"
+L["ACTIVE"] = "ACTIVA"
+L["MOUNTED"] = "MONTADO"
+L["DISABLED"] = "DESACTIVADA"
+L["PRESETS"] = "PREAJUSTES"
+L["ALL TEXTURES"] = "TODAS LAS TEXTURAS"
+L["Action Combat Mode (Reticle CVar Editor)"] =
+  "Action Combat Mode (editor de CVars de la retícula)"
+L["External change (CVAR_UPDATE)"] = "Cambio externo (CVAR_UPDATE)"
+L["Description"] = "Descripción"
+L["Value"] = "Valor"
+L["Default Value:"] = "Valor predeterminado:"
+L["Last Modified By:"] = "Última modificación por:"
+L["Double-click a row to edit. Overrides are account-wide and replace CombatMode defaults."] =
+  "Haz doble clic en una fila para editarla. Los reemplazos son para toda la cuenta y sustituyen los valores predeterminados de CombatMode."

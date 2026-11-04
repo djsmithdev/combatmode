@@ -21,6 +21,9 @@ local _G = _G
 -- WoW API
 local InCombatLockdown = _G.InCombatLockdown
 
+-- Lua stdlib
+local format = _G.string.format
+
 local UI = CM.UI
 local M = CM.METADATA
 
@@ -42,9 +45,9 @@ end
 local function CounterText()
   local budget = BodyBudget()
   local used = #draftBody
-  local text = used .. " / " .. budget .. " characters"
+  local text = format(L["%d / %d characters"], used, budget)
   if used > budget then
-    return UI.AccentWrap(text) .. " (over the macro limit)"
+    return format(L["%s (over the macro limit)"], UI.AccentWrap(text))
   end
   return text
 end
@@ -56,19 +59,21 @@ end
 local function StateLines()
   local enemiesOn = CM.DB.char.reticleTargetingEnemyOnly == true
   local autoLockOn = CM.DB.char.autoTargetLockOnAttack == true
-  return "Ignore Friendlies: "
-    .. UI.OnOffWrap(enemiesOn)
-    .. "\nAuto Target Lock: "
-    .. UI.OnOffWrap(autoLockOn)
+  return format(L["Ignore Friendlies: %s"], UI.OnOffWrap(enemiesOn))
+    .. "\n"
+    .. format(L["Auto Target Lock: %s"], UI.OnOffWrap(autoLockOn))
 end
 
 -- Same names as the Prelines Editor fields.
 local function PrelineLabel()
   local enemiesOn = CM.DB.char.reticleTargetingEnemyOnly == true
   local autoLockOn = CM.DB.char.autoTargetLockOnAttack == true
-  return "Preline: "
-    .. (enemiesOn and "Ignore Friendlies" or "Target Any Unit")
-    .. (autoLockOn and " + Auto Lock" or " + No Auto Lock")
+  if enemiesOn then
+    return autoLockOn and L["Preline: Ignore Friendlies + Auto Lock"]
+      or L["Preline: Ignore Friendlies + No Auto Lock"]
+  end
+  return autoLockOn and L["Preline: Target Any Unit + Auto Lock"]
+    or L["Preline: Target Any Unit + No Auto Lock"]
 end
 
 local function BuildKey()
@@ -82,7 +87,7 @@ local function Build()
   local ctx
   window, ctx = UI.CreateWindow(
     "CombatModeComposedMacroEditor" .. buildCount,
-    M["TITLE"] .. " - Macro Composer",
+    M["TITLE"] .. " - " .. L["Macro Composer"],
     700,
     400,
     { noScroll = true }
@@ -92,18 +97,20 @@ local function Build()
     justify = "LEFT",
     color = UI.Colors.textDim,
     allowColors = true,
-    text = "The targeting logic preline matching your current Reticle Targeting settings is added automatically before your lines, as the highlighted portion of the macro. To modify it, use the Prelines Editor under "
-      .. UI.AccentWrap("Advanced")
-      .. ".",
+    text = format(
+      L["The targeting logic preline matching your current Reticle Targeting settings is added automatically before your lines, as the highlighted portion of the macro. To modify it, use the Prelines Editor under %s."],
+      UI.AccentWrap(L["Advanced"])
+    ),
   })
 
   ctx:TextInput({
-    label = "Macro Name",
-    placeholder = "Enter a macro name",
+    label = L["Macro Name"],
+    placeholder = L["Enter a macro name"],
     desc = function()
-      return "Saved to your "
-        .. (CM.DB.char.useGlobalBindings and "general" or "character")
-        .. " macros."
+      if CM.DB.char.useGlobalBindings then
+        return L["Saved to your general macros."]
+      end
+      return L["Saved to your character macros."]
     end,
     descAllowColors = true,
     maxLetters = CM.ComposedMacroNameMax or 16,
@@ -119,7 +126,7 @@ local function Build()
   })
 
   ctx:TextInput({
-    label = "Macro Text",
+    label = L["Macro Text"],
     desc = function()
       return PrelineLabel() .. "\n" .. StateLines() .. "\n" .. CounterText()
     end,
@@ -145,10 +152,10 @@ local function Build()
   local buttons = {}
   if builtEditing then
     buttons[#buttons + 1] = {
-      label = "Delete Macro",
+      label = L["Delete Macro"],
       danger = true,
       confirm = true,
-      confirmText = "Delete this macro? Any action bar button using it will be emptied.",
+      confirmText = L["Delete this macro? Any action bar button using it will be emptied."],
       func = function()
         CM.DeleteComposedMacro(editingName, function()
           window:Hide()
@@ -158,7 +165,7 @@ local function Build()
     }
   end
   buttons[#buttons + 1] = {
-    label = "Save Macro",
+    label = L["Save Macro"],
     func = function()
       CM.SaveComposedMacro(draftName, draftBody, function()
         window:Hide()

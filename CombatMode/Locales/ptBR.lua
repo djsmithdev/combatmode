@@ -584,3 +584,83 @@ L["Use the button below to open Action Combat Mode options."] =
 L["You can also type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r in chat."] =
   "Você também pode digitar |cff69ccf0/acm|r ou |cff69ccf0/actioncombatmode|r no chat."
 L["Open Options"] = "Abrir opções"
+
+-- Editors: macro composer, prelines, crosshair colors and textures, CVar editor
+L["%d / %d characters"] = "%d / %d caracteres"
+L["%s (over the macro limit)"] = "%s (acima do limite da macro)"
+L["Ignore Friendlies: %s"] = "Ignorar aliados: %s"
+L["Auto Target Lock: %s"] = "Travar alvo automaticamente: %s"
+L["Preline: Ignore Friendlies + No Auto Lock"] =
+  "Pré-linha: Ignorar aliados + sem trava automática"
+L["Preline: Ignore Friendlies + Auto Lock"] = "Pré-linha: Ignorar aliados + trava automática"
+L["Preline: Target Any Unit + No Auto Lock"] =
+  "Pré-linha: Alvo em qualquer unidade + sem trava automática"
+L["Preline: Target Any Unit + Auto Lock"] =
+  "Pré-linha: Alvo em qualquer unidade + trava automática"
+L["Macro Composer"] = "Compositor de macros"
+L["The targeting logic preline matching your current Reticle Targeting settings is added automatically before your lines, as the highlighted portion of the macro. To modify it, use the Prelines Editor under %s."] =
+  "A pré-linha de alvo correspondente às suas configurações atuais de Mira de Alvo é adicionada automaticamente antes das suas linhas, como a parte destacada da macro. Para modificá-la, use o editor de pré-linhas em %s."
+L["Macro Name"] = "Nome da macro"
+L["Enter a macro name"] = "Digite um nome para a macro"
+L["Saved to your general macros."] = "Salva nas suas macros gerais."
+L["Saved to your character macros."] = "Salva nas macros do seu personagem."
+L["Macro Text"] = "Texto da macro"
+L["Delete Macro"] = "Excluir macro"
+L["Delete this macro? Any action bar button using it will be emptied."] =
+  "Excluir esta macro? Qualquer botão da barra de ação que a utilize ficará vazio."
+L["Save Macro"] = "Salvar macro"
+L["Preline must be %d characters or fewer (room for /click under the 255 macro limit)."] =
+  "A pré-linha deve ter no máximo %d caracteres (espaço para /click dentro do limite de 255 da macro)."
+L["Inactive — Auto Target Lock is OFF"] =
+  "Inativa — A trava automática de alvo está DESLIGADA"
+L["Inactive — Auto Target Lock is ON"] = "Inativa — A trava automática de alvo está LIGADA"
+L["Inactive — Ignore Friendlies is OFF"] = "Inativa — Ignorar aliados está DESLIGADO"
+L["Inactive — Ignore Friendlies is ON"] = "Inativa — Ignorar aliados está LIGADO"
+L["Customize the targeting prelines injected before each ability when Reticle Targeting is enabled.\n\n• Only the preline matching your current %s X %s settings is active.\n• Max %s characters per preline — SecureActionButton macros are capped at %s; the rest is reserved for the trailing %s line.\n• Use %s to reload and pick up edits."] =
+  "Personalize as pré-linhas de alvo inseridas antes de cada habilidade quando a Mira de Alvo está ativada.\n\n• Somente a pré-linha correspondente às suas configurações atuais de %s X %s está ativa.\n• Máximo de %s caracteres por pré-linha — macros SecureActionButton são limitadas a %s; o restante é reservado para a linha final %s.\n• Use %s para recarregar e aplicar as alterações."
+L["Apply Changes"] = "Aplicar alterações"
+L["Hostile"] = "Hostil"
+L["NPC"] = "NPC"
+L["Player"] = "Jogador"
+L["Object"] = "Objeto"
+L["Select a tab to customize the color and alpha of the crosshair when targeting different types of units.\n\n• %s and %s animations use the Hostile color.\n• Inactive crosshair states use the Base style."] =
+  "Selecione uma aba para personalizar a cor e a opacidade da mira ao mirar em diferentes tipos de unidades.\n\n• As animações de %s e %s usam a cor Hostil.\n• Os estados inativos da mira usam o estilo Base."
+L["Reset to Default"] = "Restaurar padrão"
+L["Show the inactive crosshair"] = "Mostrar a mira inativa"
+L["Show the active crosshair"] = "Mostrar a mira ativa"
+L["Show the mounted crosshair"] = "Mostrar a mira de montaria"
+L["Show the disabled crosshair"] = "Mostrar a mira desativada"
+L["Hide the inactive crosshair"] = "Ocultar a mira inativa"
+L["Hide the active crosshair"] = "Ocultar a mira ativa"
+L["Hide the mounted crosshair"] = "Ocultar a mira de montaria"
+L["Hide the disabled crosshair"] = "Ocultar a mira desativada"
+L["Nothing is drawn while you are not aiming at anything."] =
+  "Nada é desenhado enquanto você não estiver mirando em nada."
+L["Nothing is drawn while you are aiming at a unit or object."] =
+  "Nada é desenhado enquanto você estiver mirando em uma unidade ou objeto."
+L["Nothing is drawn while you are mounted."] = "Nada é desenhado enquanto você estiver montado."
+L["Nothing is drawn while Target Lock holds the reticle."] =
+  "Nada é desenhado enquanto a trava de alvo prender a mira."
+L["Not aiming at anything"] = "Sem mirar em nada"
+L["Aiming at a unit or object"] = "Mirando em uma unidade ou objeto"
+L["While you are mounted"] = "Enquanto você estiver montado"
+L["While Target Lock holds"] = "Enquanto a trava de alvo estiver ativa"
+L["Brings back the texture you had before hiding it."] =
+  "Restaura a textura que você tinha antes de ocultá-la."
+L["Crosshair Textures"] = "Texturas da mira"
+L["Select a state, then pick a texture below, or apply a preset for a curated appearance."] =
+  "Selecione um estado e escolha uma textura abaixo, ou aplique uma predefinição para um visual cuidado."
+L["INACTIVE"] = "INATIVA"
+L["ACTIVE"] = "ATIVA"
+L["MOUNTED"] = "MONTADO"
+L["DISABLED"] = "DESATIVADA"
+L["PRESETS"] = "PREDEFINIÇÕES"
+L["ALL TEXTURES"] = "TODAS AS TEXTURAS"
+L["Action Combat Mode (Reticle CVar Editor)"] = "Action Combat Mode (editor de CVars da mira)"
+L["External change (CVAR_UPDATE)"] = "Alteração externa (CVAR_UPDATE)"
+L["Description"] = "Descrição"
+L["Value"] = "Valor"
+L["Default Value:"] = "Valor padrão:"
+L["Last Modified By:"] = "Última modificação por:"
+L["Double-click a row to edit. Overrides are account-wide and replace CombatMode defaults."] =
+  "Clique duas vezes em uma linha para editar. As substituições valem para toda a conta e substituem os padrões do CombatMode."

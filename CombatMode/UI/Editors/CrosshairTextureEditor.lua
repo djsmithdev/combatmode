@@ -269,25 +269,31 @@ Refresh = function()
   end
 end
 
-local SLOT_STATE_NAMES = {
-  base = "inactive",
-  active = "active",
-  mounted = "mounted",
-  lock = "disabled",
+local SLOT_SHOW_TITLES = {
+  base = L["Show the inactive crosshair"],
+  active = L["Show the active crosshair"],
+  mounted = L["Show the mounted crosshair"],
+  lock = L["Show the disabled crosshair"],
+}
+local SLOT_HIDE_TITLES = {
+  base = L["Hide the inactive crosshair"],
+  active = L["Hide the active crosshair"],
+  mounted = L["Hide the mounted crosshair"],
+  lock = L["Hide the disabled crosshair"],
 }
 local SLOT_HIDE_HINTS = {
-  base = "Nothing is drawn while you are not aiming at anything.",
-  active = "Nothing is drawn while you are aiming at a unit or object.",
-  mounted = "Nothing is drawn while you are mounted.",
-  lock = "Nothing is drawn while Target Lock holds the reticle.",
+  base = L["Nothing is drawn while you are not aiming at anything."],
+  active = L["Nothing is drawn while you are aiming at a unit or object."],
+  mounted = L["Nothing is drawn while you are mounted."],
+  lock = L["Nothing is drawn while Target Lock holds the reticle."],
 }
 
 -- Caption under each card title: when that state applies (the preview already shows the texture).
 local SLOT_DESCRIPTIONS = {
-  base = "Not aiming at anything",
-  active = "Aiming at a unit or object",
-  mounted = "While you are mounted",
-  lock = "While Target Lock holds",
+  base = L["Not aiming at anything"],
+  active = L["Aiming at a unit or object"],
+  mounted = L["While you are mounted"],
+  lock = L["While Target Lock holds"],
 }
 
 local function MakeSlotCard(parent, slot, label, anchorX, anchorY, width, height)
@@ -328,16 +334,15 @@ local function MakeSlotCard(parent, slot, label, anchorX, anchorY, width, height
     ToggleSlotHidden(slot)
   end)
   UI.AttachTooltip(eyeButton, function()
-    local state = SLOT_STATE_NAMES[slot]
     if SlotId(slot) == NONE then
       return {
-        title = "Show the " .. state .. " crosshair",
-        text = "Brings back the texture you had before hiding it.",
+        title = SLOT_SHOW_TITLES[slot],
+        text = L["Brings back the texture you had before hiding it."],
         dim = true,
       }
     end
     return {
-      title = "Hide the " .. state .. " crosshair",
+      title = SLOT_HIDE_TITLES[slot],
       text = SLOT_HIDE_HINTS[slot],
       dim = true,
     }
@@ -432,7 +437,7 @@ end
 local function Build()
   window = UI.CreateBareWindow(
     "CombatModeCrosshairTextureEditor",
-    M["TITLE"] .. " - Crosshair Textures",
+    M["TITLE"] .. " - " .. L["Crosshair Textures"],
     EDITOR_W,
     EDITOR_H
   )
@@ -450,19 +455,19 @@ local function Build()
   descText:SetWordWrap(true)
   descText:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
   descText:SetText(
-    "Select a state, then pick a texture below, or apply a preset for a curated appearance."
+    L["Select a state, then pick a texture below, or apply a preset for a curated appearance."]
   )
 
   slotsHost = CreateFrame("Frame", nil, content)
   slotsHost:SetSize(CONTENT_W, SLOT_H)
   slotsHost:SetPoint("TOPLEFT", descText, "BOTTOMLEFT", 0, -10)
   local slotW = floor((CONTENT_W - 8) / 2)
-  MakeSlotCard(slotsHost, "base", "INACTIVE", 0, 0, slotW, SLOT_H)
-  MakeSlotCard(slotsHost, "active", "ACTIVE", slotW + 8, 0, slotW, SLOT_H)
-  MakeSlotCard(slotsHost, "mounted", "MOUNTED", 0, -(SLOT_H + 8), slotW, IDLE_H)
-  MakeSlotCard(slotsHost, "lock", "DISABLED", slotW + 8, -(SLOT_H + 8), slotW, IDLE_H)
+  MakeSlotCard(slotsHost, "base", L["INACTIVE"], 0, 0, slotW, SLOT_H)
+  MakeSlotCard(slotsHost, "active", L["ACTIVE"], slotW + 8, 0, slotW, SLOT_H)
+  MakeSlotCard(slotsHost, "mounted", L["MOUNTED"], 0, -(SLOT_H + 8), slotW, IDLE_H)
+  MakeSlotCard(slotsHost, "lock", L["DISABLED"], slotW + 8, -(SLOT_H + 8), slotW, IDLE_H)
 
-  local presetLabel = MakeSectionLabel(content, "PRESETS")
+  local presetLabel = MakeSectionLabel(content, L["PRESETS"])
   presetLabel:SetPoint("TOPLEFT", slotsHost, "BOTTOMLEFT", 0, -14)
 
   local presets = {}
@@ -482,7 +487,7 @@ local function Build()
     MakePresetButton(presetHost, preset, i)
   end
 
-  local gridLabel = MakeSectionLabel(content, "ALL TEXTURES")
+  local gridLabel = MakeSectionLabel(content, L["ALL TEXTURES"])
   gridLabel:SetPoint("TOPLEFT", presetHost, "BOTTOMLEFT", 0, -14)
 
   local resetBtn = CreateFrame("Button", nil, content)
@@ -492,7 +497,7 @@ local function Build()
   UI.StyleControl(resetBtn)
   local resetText = UI.CreateFontString(resetBtn, "OVERLAY", UI.Fonts.button, "GameFontNormal")
   resetText:SetPoint("CENTER")
-  resetText:SetText("Reset to Default")
+  resetText:SetText(L["Reset to Default"])
   UI.WireControlHover(resetBtn, resetText)
   resetBtn:SetScript("OnClick", function()
     if target == "situational" then

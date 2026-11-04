@@ -585,3 +585,83 @@ L["Use the button below to open Action Combat Mode options."] =
 L["You can also type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r in chat."] =
   "Du kannst auch |cff69ccf0/acm|r oder |cff69ccf0/actioncombatmode|r im Chat eingeben."
 L["Open Options"] = "Optionen öffnen"
+
+-- Editors: macro composer, prelines, crosshair colors and textures, CVar editor
+L["%d / %d characters"] = "%d / %d Zeichen"
+L["%s (over the macro limit)"] = "%s (über dem Makro-Limit)"
+L["Ignore Friendlies: %s"] = "Freundliche ignorieren: %s"
+L["Auto Target Lock: %s"] = "Automatische Zielsperre: %s"
+L["Preline: Ignore Friendlies + No Auto Lock"] =
+  "Vorzeile: Freundliche ignorieren + keine automatische Sperre"
+L["Preline: Ignore Friendlies + Auto Lock"] =
+  "Vorzeile: Freundliche ignorieren + automatische Sperre"
+L["Preline: Target Any Unit + No Auto Lock"] =
+  "Vorzeile: Beliebige Einheit anvisieren + keine automatische Sperre"
+L["Preline: Target Any Unit + Auto Lock"] =
+  "Vorzeile: Beliebige Einheit anvisieren + automatische Sperre"
+L["Macro Composer"] = "Makro-Composer"
+L["The targeting logic preline matching your current Reticle Targeting settings is added automatically before your lines, as the highlighted portion of the macro. To modify it, use the Prelines Editor under %s."] =
+  "Die zu deinen aktuellen Einstellungen der Fadenkreuz-Zielerfassung passende Zielvorzeile wird automatisch vor deinen Zeilen eingefügt, als hervorgehobener Teil des Makros. Um sie zu ändern, nutze den Vorzeilen-Editor unter %s."
+L["Macro Name"] = "Makroname"
+L["Enter a macro name"] = "Makronamen eingeben"
+L["Saved to your general macros."] = "Wird in deinen allgemeinen Makros gespeichert."
+L["Saved to your character macros."] = "Wird in deinen Charaktermakros gespeichert."
+L["Macro Text"] = "Makrotext"
+L["Delete Macro"] = "Makro löschen"
+L["Delete this macro? Any action bar button using it will be emptied."] =
+  "Dieses Makro löschen? Jede Aktionsleisten-Taste, die es verwendet, wird geleert."
+L["Save Macro"] = "Makro speichern"
+L["Preline must be %d characters or fewer (room for /click under the 255 macro limit)."] =
+  "Die Vorzeile darf höchstens %d Zeichen lang sein (Platz für /click unter dem Makro-Limit von 255)."
+L["Inactive — Auto Target Lock is OFF"] = "Inaktiv — Automatische Zielsperre ist AUS"
+L["Inactive — Auto Target Lock is ON"] = "Inaktiv — Automatische Zielsperre ist AN"
+L["Inactive — Ignore Friendlies is OFF"] = "Inaktiv — Freundliche ignorieren ist AUS"
+L["Inactive — Ignore Friendlies is ON"] = "Inaktiv — Freundliche ignorieren ist AN"
+L["Customize the targeting prelines injected before each ability when Reticle Targeting is enabled.\n\n• Only the preline matching your current %s X %s settings is active.\n• Max %s characters per preline — SecureActionButton macros are capped at %s; the rest is reserved for the trailing %s line.\n• Use %s to reload and pick up edits."] =
+  "Passe die Zielvorzeilen an, die vor jede Fähigkeit eingefügt werden, wenn die Fadenkreuz-Zielerfassung aktiv ist.\n\n• Nur die Vorzeile, die zu deinen aktuellen Einstellungen %s X %s passt, ist aktiv.\n• Maximal %s Zeichen pro Vorzeile — SecureActionButton-Makros sind auf %s begrenzt; der Rest ist für die abschließende Zeile %s reserviert.\n• Nutze %s, um neu zu laden und Änderungen zu übernehmen."
+L["Apply Changes"] = "Änderungen anwenden"
+L["Hostile"] = "Feindlich"
+L["NPC"] = "NPC"
+L["Player"] = "Spieler"
+L["Object"] = "Objekt"
+L["Select a tab to customize the color and alpha of the crosshair when targeting different types of units.\n\n• %s and %s animations use the Hostile color.\n• Inactive crosshair states use the Base style."] =
+  "Wähle einen Reiter, um Farbe und Transparenz des Fadenkreuzes für verschiedene Einheitentypen anzupassen.\n\n• Die Animationen von %s und %s verwenden die Farbe für Feindlich.\n• Inaktive Fadenkreuz-Zustände verwenden den Basis-Stil."
+L["Reset to Default"] = "Auf Standard zurücksetzen"
+L["Show the inactive crosshair"] = "Inaktives Fadenkreuz anzeigen"
+L["Show the active crosshair"] = "Aktives Fadenkreuz anzeigen"
+L["Show the mounted crosshair"] = "Fadenkreuz beim Reiten anzeigen"
+L["Show the disabled crosshair"] = "Deaktiviertes Fadenkreuz anzeigen"
+L["Hide the inactive crosshair"] = "Inaktives Fadenkreuz ausblenden"
+L["Hide the active crosshair"] = "Aktives Fadenkreuz ausblenden"
+L["Hide the mounted crosshair"] = "Fadenkreuz beim Reiten ausblenden"
+L["Hide the disabled crosshair"] = "Deaktiviertes Fadenkreuz ausblenden"
+L["Nothing is drawn while you are not aiming at anything."] =
+  "Solange du auf nichts zielst, wird nichts angezeigt."
+L["Nothing is drawn while you are aiming at a unit or object."] =
+  "Solange du auf eine Einheit oder ein Objekt zielst, wird nichts angezeigt."
+L["Nothing is drawn while you are mounted."] = "Solange du reitest, wird nichts angezeigt."
+L["Nothing is drawn while Target Lock holds the reticle."] =
+  "Solange die Zielsperre das Fadenkreuz hält, wird nichts angezeigt."
+L["Not aiming at anything"] = "Zielt auf nichts"
+L["Aiming at a unit or object"] = "Zielt auf eine Einheit oder ein Objekt"
+L["While you are mounted"] = "Solange du reitest"
+L["While Target Lock holds"] = "Solange die Zielsperre aktiv ist"
+L["Brings back the texture you had before hiding it."] =
+  "Stellt die Textur wieder her, die du vor dem Ausblenden hattest."
+L["Crosshair Textures"] = "Fadenkreuz-Texturen"
+L["Select a state, then pick a texture below, or apply a preset for a curated appearance."] =
+  "Wähle einen Zustand und dann unten eine Textur, oder wende eine Vorlage für ein abgestimmtes Aussehen an."
+L["INACTIVE"] = "INAKTIV"
+L["ACTIVE"] = "AKTIV"
+L["MOUNTED"] = "BERITTEN"
+L["DISABLED"] = "DEAKTIVIERT"
+L["PRESETS"] = "VORLAGEN"
+L["ALL TEXTURES"] = "ALLE TEXTUREN"
+L["Action Combat Mode (Reticle CVar Editor)"] = "Action Combat Mode (Fadenkreuz-CVar-Editor)"
+L["External change (CVAR_UPDATE)"] = "Externe Änderung (CVAR_UPDATE)"
+L["Description"] = "Beschreibung"
+L["Value"] = "Wert"
+L["Default Value:"] = "Standardwert:"
+L["Last Modified By:"] = "Zuletzt geändert von:"
+L["Double-click a row to edit. Overrides are account-wide and replace CombatMode defaults."] =
+  "Doppelklicke auf eine Zeile, um sie zu bearbeiten. Überschreibungen gelten für den gesamten Account und ersetzen die Standardwerte von CombatMode."

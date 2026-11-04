@@ -585,3 +585,85 @@ L["Use the button below to open Action Combat Mode options."] =
 L["You can also type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r in chat."] =
   "Vous pouvez aussi saisir |cff69ccf0/acm|r ou |cff69ccf0/actioncombatmode|r dans le chat."
 L["Open Options"] = "Ouvrir les options"
+
+-- Editors: macro composer, prelines, crosshair colors and textures, CVar editor
+L["%d / %d characters"] = "%d / %d caractères"
+L["%s (over the macro limit)"] = "%s (au-dessus de la limite de la macro)"
+L["Ignore Friendlies: %s"] = "Ignorer les amis : %s"
+L["Auto Target Lock: %s"] = "Verrouillage de cible automatique : %s"
+L["Preline: Ignore Friendlies + No Auto Lock"] =
+  "Préligne : Ignorer les amis + sans verrouillage auto"
+L["Preline: Ignore Friendlies + Auto Lock"] = "Préligne : Ignorer les amis + verrouillage auto"
+L["Preline: Target Any Unit + No Auto Lock"] =
+  "Préligne : Cibler n'importe quelle unité + sans verrouillage auto"
+L["Preline: Target Any Unit + Auto Lock"] =
+  "Préligne : Cibler n'importe quelle unité + verrouillage auto"
+L["Macro Composer"] = "Compositeur de macros"
+L["The targeting logic preline matching your current Reticle Targeting settings is added automatically before your lines, as the highlighted portion of the macro. To modify it, use the Prelines Editor under %s."] =
+  "La préligne de ciblage correspondant à vos réglages actuels de ciblage par réticule est ajoutée automatiquement avant vos lignes, comme partie surlignée de la macro. Pour la modifier, utilisez l'éditeur de prélignes dans %s."
+L["Macro Name"] = "Nom de la macro"
+L["Enter a macro name"] = "Saisissez un nom de macro"
+L["Saved to your general macros."] = "Enregistrée dans vos macros générales."
+L["Saved to your character macros."] = "Enregistrée dans les macros de votre personnage."
+L["Macro Text"] = "Texte de la macro"
+L["Delete Macro"] = "Supprimer la macro"
+L["Delete this macro? Any action bar button using it will be emptied."] =
+  "Supprimer cette macro ? Tout bouton de barre d'action qui l'utilise sera vidé."
+L["Save Macro"] = "Enregistrer la macro"
+L["Preline must be %d characters or fewer (room for /click under the 255 macro limit)."] =
+  "La préligne doit faire %d caractères ou moins (de la place pour /click sous la limite de 255 de la macro)."
+L["Inactive — Auto Target Lock is OFF"] =
+  "Inactif — Le verrouillage de cible automatique est DÉSACTIVÉ"
+L["Inactive — Auto Target Lock is ON"] =
+  "Inactif — Le verrouillage de cible automatique est ACTIVÉ"
+L["Inactive — Ignore Friendlies is OFF"] = "Inactif — Ignorer les amis est DÉSACTIVÉ"
+L["Inactive — Ignore Friendlies is ON"] = "Inactif — Ignorer les amis est ACTIVÉ"
+L["Customize the targeting prelines injected before each ability when Reticle Targeting is enabled.\n\n• Only the preline matching your current %s X %s settings is active.\n• Max %s characters per preline — SecureActionButton macros are capped at %s; the rest is reserved for the trailing %s line.\n• Use %s to reload and pick up edits."] =
+  "Personnalisez les prélignes de ciblage injectées avant chaque capacité lorsque le ciblage par réticule est activé.\n\n• Seule la préligne correspondant à vos réglages actuels %s X %s est active.\n• Maximum de %s caractères par préligne — les macros SecureActionButton sont limitées à %s ; le reste est réservé à la ligne finale %s.\n• Utilisez %s pour recharger et appliquer les modifications."
+L["Apply Changes"] = "Appliquer les modifications"
+L["Hostile"] = "Hostile"
+L["NPC"] = "PNJ"
+L["Player"] = "Joueur"
+L["Object"] = "Objet"
+L["Select a tab to customize the color and alpha of the crosshair when targeting different types of units.\n\n• %s and %s animations use the Hostile color.\n• Inactive crosshair states use the Base style."] =
+  "Sélectionnez un onglet pour personnaliser la couleur et l'opacité du réticule selon le type d'unité ciblé.\n\n• Les animations de %s et de %s utilisent la couleur Hostile.\n• Les états inactifs du réticule utilisent le style Base."
+L["Reset to Default"] = "Rétablir par défaut"
+L["Show the inactive crosshair"] = "Afficher le réticule inactif"
+L["Show the active crosshair"] = "Afficher le réticule actif"
+L["Show the mounted crosshair"] = "Afficher le réticule en monture"
+L["Show the disabled crosshair"] = "Afficher le réticule désactivé"
+L["Hide the inactive crosshair"] = "Masquer le réticule inactif"
+L["Hide the active crosshair"] = "Masquer le réticule actif"
+L["Hide the mounted crosshair"] = "Masquer le réticule en monture"
+L["Hide the disabled crosshair"] = "Masquer le réticule désactivé"
+L["Nothing is drawn while you are not aiming at anything."] =
+  "Rien n'est affiché tant que vous ne visez rien."
+L["Nothing is drawn while you are aiming at a unit or object."] =
+  "Rien n'est affiché tant que vous visez une unité ou un objet."
+L["Nothing is drawn while you are mounted."] = "Rien n'est affiché lorsque vous êtes en monture."
+L["Nothing is drawn while Target Lock holds the reticle."] =
+  "Rien n'est affiché tant que le verrouillage de cible retient le réticule."
+L["Not aiming at anything"] = "Ne vise rien"
+L["Aiming at a unit or object"] = "Vise une unité ou un objet"
+L["While you are mounted"] = "Lorsque vous êtes en monture"
+L["While Target Lock holds"] = "Tant que le verrouillage de cible est actif"
+L["Brings back the texture you had before hiding it."] =
+  "Rétablit la texture que vous aviez avant de la masquer."
+L["Crosshair Textures"] = "Textures du réticule"
+L["Select a state, then pick a texture below, or apply a preset for a curated appearance."] =
+  "Sélectionnez un état, puis choisissez une texture ci-dessous, ou appliquez un préréglage pour un rendu soigné."
+L["INACTIVE"] = "INACTIF"
+L["ACTIVE"] = "ACTIF"
+L["MOUNTED"] = "EN MONTURE"
+L["DISABLED"] = "DÉSACTIVÉ"
+L["PRESETS"] = "PRÉRÉGLAGES"
+L["ALL TEXTURES"] = "TOUTES LES TEXTURES"
+L["Action Combat Mode (Reticle CVar Editor)"] =
+  "Action Combat Mode (éditeur de CVars du réticule)"
+L["External change (CVAR_UPDATE)"] = "Modification externe (CVAR_UPDATE)"
+L["Description"] = "Description"
+L["Value"] = "Valeur"
+L["Default Value:"] = "Valeur par défaut :"
+L["Last Modified By:"] = "Dernière modification par :"
+L["Double-click a row to edit. Overrides are account-wide and replace CombatMode defaults."] =
+  "Double-cliquez sur une ligne pour la modifier. Les remplacements s'appliquent à tout le compte et remplacent les valeurs par défaut de CombatMode."
