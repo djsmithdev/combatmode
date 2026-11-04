@@ -16,3 +16,20 @@ local _, CM = ...
 
 -- selene: allow(unused_variable)
 local L = CM.L
+
+-- Constants/Assets.lua: welcome popup and Key Bindings labels
+L["Welcome to Action Combat Mode!"] = true
+L["The configuration panel will open after you close this message."] = true
+L["You can reopen it anytime with |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r."] = true
+L["|cff909090To restore your previous settings, use the |cffff5555Uninstall|r button in the options panel.|r"] =
+  true
+L["Mouse Look"] = true
+L["Flip Camera"] = true
+L["Swap Shoulder"] = true
+L["Reset Mouse Look"] = true
+L["Ally Cycle Next"] = true
+L["Ally Cycle Previous"] = true
+L["Toggle Focus Target"] = true
+L["Cycle Focus Next"] = true
+L["Cycle Focus Previous"] = true
+L["Radial Menu"] = true

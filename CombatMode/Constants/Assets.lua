@@ -26,6 +26,7 @@
 ---------------------------------------------------------------------------------------
 local _, CM = ...
 local _G = _G
+local L = CM.L
 
 local ipairs = _G.ipairs
 local format = _G.string.format
@@ -33,28 +34,32 @@ local tsort = _G.table.sort
 
 -- Body only: the welcome modal (CM.UI.ShowWelcome) draws the wordmark header itself.
 -- Slash commands keep inline color: blue for options (/acm, /actioncombatmode).
-CM.Constants.PopupMsg = "Welcome to Action Combat Mode!\n\n"
-  .. "The configuration panel will open after you close this message.\n\n"
-  .. "You can reopen it anytime with |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r.\n\n"
-  .. "|cff909090To restore your previous settings, use the |cffff5555Uninstall|r button in the options panel.|r\n\n"
+CM.Constants.PopupMsg = L["Welcome to Action Combat Mode!"]
+  .. "\n\n"
+  .. L["The configuration panel will open after you close this message."]
+  .. "\n\n"
+  .. L["You can reopen it anytime with |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r."]
+  .. "\n\n"
+  .. L["|cff909090To restore your previous settings, use the |cffff5555Uninstall|r button in the options panel.|r"]
+  .. "\n\n"
 
 -- Key Bindings screen labels. The binding names in Bindings.xml ("Combat Mode - ...") are IDs the
 -- client stores players' key assignments under (and the code looks up by that exact string), so
 -- they stay as they are; these globals only change the text shown for them.
 local BINDING_DISPLAY_NAMES = {
-  "Mouse Look",
-  "Flip Camera",
-  "Swap Shoulder",
-  "Reset Mouse Look",
-  "Ally Cycle Next",
-  "Ally Cycle Previous",
-  "Toggle Focus Target",
-  "Cycle Focus Next",
-  "Cycle Focus Previous",
-  "Radial Menu",
+  { id = "Mouse Look", text = L["Mouse Look"] },
+  { id = "Flip Camera", text = L["Flip Camera"] },
+  { id = "Swap Shoulder", text = L["Swap Shoulder"] },
+  { id = "Reset Mouse Look", text = L["Reset Mouse Look"] },
+  { id = "Ally Cycle Next", text = L["Ally Cycle Next"] },
+  { id = "Ally Cycle Previous", text = L["Ally Cycle Previous"] },
+  { id = "Toggle Focus Target", text = L["Toggle Focus Target"] },
+  { id = "Cycle Focus Next", text = L["Cycle Focus Next"] },
+  { id = "Cycle Focus Previous", text = L["Cycle Focus Previous"] },
+  { id = "Radial Menu", text = L["Radial Menu"] },
 }
-for _, label in ipairs(BINDING_DISPLAY_NAMES) do
-  _G["BINDING_NAME_Combat Mode - " .. label] = "Action Combat Mode - " .. label
+for _, entry in ipairs(BINDING_DISPLAY_NAMES) do
+  _G["BINDING_NAME_Combat Mode - " .. entry.id] = "Action Combat Mode - " .. entry.text
 end
 
 CM.Constants.BasePrintMsg = CM.METADATA["TITLE"]
