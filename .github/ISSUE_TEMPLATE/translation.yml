@@ -1,0 +1,31 @@
+name: Translation
+description: A wrong, missing or awkward translation in Action Combat Mode.
+labels: [localization]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping! Translations are drafted by machine, so native-speaker corrections are very welcome. You can also open a PR editing the file in `CombatMode/Locales/`.
+  - type: dropdown
+    id: locale
+    attributes:
+      label: Language
+      options:
+        - deDE (German)
+        - esES (Spanish, Spain)
+        - esMX (Spanish, Latin America)
+        - frFR (French)
+        - itIT (Italian)
+        - koKR (Korean)
+        - ptBR (Portuguese, Brazil)
+        - ruRU (Russian)
+        - zhCN (Simplified Chinese)
+        - zhTW (Traditional Chinese)
+    validations:
+      required: true
+  - type: textarea
+    id: text
+    attributes:
+      label: Text and suggested fix
+      description: The English text (or where you saw it), the current translation and your suggestion. A screenshot helps for clipped or overflowing text.
+    validations:
+      required: true
