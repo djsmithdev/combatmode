@@ -152,7 +152,7 @@ local STEPS = {
   },
   {
     tab = "clickcasting",
-    section = "CLICK CASTING",
+    section = L["CLICK CASTING"],
     title = "Click Casting",
     slides = { "clickcasting", 3 },
     body = "Turn your mouse clicks into actions while in Mouse Look, such as casting your action bar "
