@@ -16,6 +16,7 @@
 --  Related: Core/RadialMenu/{Actions,Secure,View,RadialMenu}.lua, UI/Options/Tabs/TabRadialMenu.lua, Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -25,6 +26,7 @@ local CreateFrame = _G.CreateFrame
 local GetMacroInfo = _G.GetMacroInfo
 
 -- Lua stdlib
+local format = _G.string.format
 local ipairs = _G.ipairs
 local math = _G.math
 local select = _G.select
@@ -158,7 +160,7 @@ end
 local PRESETS = {
   {
     key = "interface",
-    label = "Interface",
+    label = L["Interface"],
     build = function()
       -- Group Finder on Retail / Forever, Friends & Social on the other clients; the tail only fills in
       -- when this client is missing some of the panels.
@@ -166,7 +168,7 @@ local PRESETS = {
       local modern = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE
         or (type(build) == "number" and build >= 16000 and build < 20000)
       return PresetWheel(
-        "Interface",
+        L["Interface"],
         AvailableIds({
           "character",
           "bags",
@@ -185,9 +187,9 @@ local PRESETS = {
   },
   {
     key = "emotes",
-    label = "Emotes",
+    label = L["Emotes"],
     build = function()
-      return PresetWheel("Emotes", {
+      return PresetWheel(L["Emotes"], {
         "emote_hello",
         "emote_thank",
         "emote_bye",
@@ -201,10 +203,10 @@ local PRESETS = {
   },
   {
     key = "misc",
-    label = "Misc",
+    label = L["Misc"],
     build = function()
       return PresetWheel(
-        "Misc",
+        L["Misc"],
         AvailableIds({
           "readycheck",
           "countdown",
@@ -277,7 +279,11 @@ function CM.RadialCreateWheel(atIndex, presetKey)
       wheel = preset.build()
     end
   end
-  table.insert(db.wheels, index, wheel or { name = "Wheel " .. index, count = 4, slots = {} })
+  table.insert(
+    db.wheels,
+    index,
+    wheel or { name = format(L["Wheel %d"], index), count = 4, slots = {} }
+  )
   Changed()
   return index
 end
@@ -288,13 +294,28 @@ function CM.RadialWheelColor(index)
   return color[1], color[2], color[3]
 end
 
+--- First `count` UTF-8 characters of `text` (continuation bytes are 128..191), so CJK / Cyrillic names never split.
+local function Utf8Prefix(text, count)
+  local seen = 0
+  for i = 1, #text do
+    local byte = text:byte(i)
+    if byte < 128 or byte > 191 then
+      seen = seen + 1
+      if seen > count then
+        return text:sub(1, i - 1)
+      end
+    end
+  end
+  return text
+end
+
 --- Wheel title shown in the editor and in the middle of the open wheel.
 function CM.RadialWheelName(wheel, index)
   local name = wheel and wheel.name
   if type(name) == "string" and name ~= "" then
-    return name:sub(1, LAYOUT.NAME_MAX)
+    return Utf8Prefix(name, LAYOUT.NAME_MAX)
   end
-  return "Wheel " .. (index or 1)
+  return format(L["Wheel %d"], index or 1)
 end
 
 --- Blank names fall back to "Wheel <index>".
@@ -304,7 +325,7 @@ function CM.RadialRenameWheel(index, name)
     return
   end
   name = type(name) == "string" and name:match("^%s*(.-)%s*$") or ""
-  wheel.name = name ~= "" and name:sub(1, LAYOUT.NAME_MAX) or nil
+  wheel.name = name ~= "" and Utf8Prefix(name, LAYOUT.NAME_MAX) or nil
   Changed()
 end
 
