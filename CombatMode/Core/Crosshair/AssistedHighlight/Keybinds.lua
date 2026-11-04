@@ -37,7 +37,7 @@ CM.AssistedHighlightKeybinds = Keybinds
 local assistedActionSlotSet
 local actionSlotCommandMap
 
-local KEYBOARD_KEYBIND_FONT = "Fonts\\FRIZQT__.TTF"
+local KEYBOARD_KEYBIND_FALLBACK_FONT = "Fonts\\FRIZQT__.TTF"
 local KEYBOARD_KEYBIND_FONT_SIZE = 15
 
 Keybinds.STYLE_CLICKCAST = "clickcast"
@@ -442,5 +442,10 @@ function Keybinds.ApplyKeyboardKeybindStyle(label)
   if not label then
     return
   end
-  ApplyOutlineSlug(label, KEYBOARD_KEYBIND_FONT, KEYBOARD_KEYBIND_FONT_SIZE, KEY_COLOR)
+  -- The client's locale font (Friz is Latin-only, so CJK / Cyrillic key text would be tofu).
+  local localeFont = _G.GameFontNormal and _G.GameFontNormal:GetFont()
+  if type(localeFont) ~= "string" or localeFont == "" then
+    localeFont = KEYBOARD_KEYBIND_FALLBACK_FONT
+  end
+  ApplyOutlineSlug(label, localeFont, KEYBOARD_KEYBIND_FONT_SIZE, KEY_COLOR)
 end
