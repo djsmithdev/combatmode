@@ -700,6 +700,12 @@ local function BuildSidebarButton(def, index)
   local label = UI.CreateFontString(button, "OVERLAY", UI.Fonts.nav, "GameFontNormal")
   label:SetPoint("LEFT", button, "LEFT", 20, 0)
   label:SetText(UI.StripColors(def.label) or "")
+  -- A long translation ends in "..." instead of running past the sidebar edge or under the badge.
+  local maxLabelW = SIDEBAR_W - 18 - 20 - 14
+  if (label:GetStringWidth() or 0) > maxLabelW then
+    label:SetWidth(maxLabelW)
+    label:SetWordWrap(false)
+  end
   button.label = label
 
   -- Shared tab look (selected pill, orange capsule marker, hover wash).

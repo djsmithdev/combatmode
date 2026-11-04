@@ -303,6 +303,7 @@ local function BuildTitle(row)
   title.text = UI.CreateFontString(title, "OVERLAY", UI.Fonts.header, "GameFontNormalLarge")
   title.text:SetPoint("CENTER")
   title.text:SetWidth(TITLE_W - 8)
+  title.text:SetWordWrap(false)
   title.text:SetTextColor(C.text[1], C.text[2], C.text[3])
   Tooltip(title, L["Click to rename this wheel"])
 

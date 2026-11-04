@@ -399,14 +399,14 @@ local function Build()
   step:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
 
   local back = UI.CreateDialogButton(balloon, L["Back"])
-  back:SetWidth(BTN_W)
+  UI.FitDialogButton(back, BTN_W)
   back:SetPoint("BOTTOMLEFT", balloon, "BOTTOMLEFT", BALLOON_PAD, BALLOON_PAD)
   local nextButton = UI.CreateDialogButton(balloon, L["Next"])
-  nextButton:SetWidth(BTN_W + 16)
+  UI.FitDialogButton(nextButton, BTN_W + 16)
   nextButton:SetPoint("BOTTOMRIGHT", balloon, "BOTTOMRIGHT", -BALLOON_PAD, BALLOON_PAD)
   -- The last step swaps Next for an accent-coloured Finish button in the same spot.
   local finishButton = UI.CreateDialogButton(balloon, L["Finish"], "primary")
-  finishButton:SetWidth(BTN_W + 16)
+  UI.FitDialogButton(finishButton, BTN_W + 16)
   finishButton:SetPoint("BOTTOMRIGHT", balloon, "BOTTOMRIGHT", -BALLOON_PAD, BALLOON_PAD)
   UI.SetControlAttention(finishButton, true)
   finishButton:Hide()
@@ -416,7 +416,15 @@ local function Build()
   skipText:SetPoint("CENTER")
   skipText:SetText(L["Skip tour"])
   skipText:SetTextColor(C.textDim[1], C.textDim[2], C.textDim[3])
-  skip:SetSize(skipText:GetStringWidth() + 8, 20)
+  -- Squeezed between Back and Next, so a long translation ends in "..." instead of overlapping them.
+  local skipRoom = BALLOON_W - 2 * BALLOON_PAD - back:GetWidth() - nextButton:GetWidth() - 16
+  local skipW = skipText:GetStringWidth()
+  if skipW > skipRoom then
+    skipText:SetWidth(skipRoom)
+    skipText:SetWordWrap(false)
+    skipW = skipRoom
+  end
+  skip:SetSize(skipW + 8, 20)
   skip:SetPoint("BOTTOM", balloon, "BOTTOM", 0, BALLOON_PAD + 4)
   skip:SetScript("OnEnter", function()
     skipText:SetTextColor(C.text[1], C.text[2], C.text[3])

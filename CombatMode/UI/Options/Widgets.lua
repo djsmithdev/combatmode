@@ -223,6 +223,14 @@ end
 -- Exposed so the setup wizard's windows can reuse the dialog button look.
 UI.CreateDialogButton = CreateDialogButton
 
+--- Sets a dialog button's width to `minWidth`, or wider when its (translated) label needs more.
+--- Whole, even width so the centred label stays on a pixel boundary.
+function UI.FitDialogButton(button, minWidth)
+  local needed = ceil((button.text:GetStringWidth() or 0) + 24)
+  local width = max(minWidth or 0, needed)
+  button:SetWidth(width + width % 2)
+end
+
 --- The "What's New" call-to-action: an accent button with the attention effect that toggles
 --- the What's New balloon beside `owner` (the options or changelog window). Caller positions
 --- it and decides when it is shown (see Options.HasWhatsNew).
@@ -3209,6 +3217,11 @@ function UI.MakeButton(parent, opts)
   local text = UI.CreateFontString(button, "OVERLAY", UI.Fonts.button, "GameFontNormal")
   text:SetPoint("CENTER")
   text:SetText(UI.StripColors(opts.label) or "")
+  -- Widen for a long translation (whole, even width keeps the centred label on a pixel boundary).
+  local neededW = ceil((text:GetStringWidth() or 0) + 28)
+  if neededW > btnW then
+    button:SetWidth(neededW + neededW % 2)
+  end
   UI.WireControlHover(button, text)
   button:SetScript("OnClick", function()
     if not opts.func then
