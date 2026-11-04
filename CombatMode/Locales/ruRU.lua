@@ -558,3 +558,61 @@ L["Cycle through group members in Mouse Look so {helpful spells} go to the ally 
   "Переключайтесь между участниками группы в режиме обзора мышью: {полезные заклинания} идут союзнику, а {вредоносные} по-прежнему бьют врага.\n\n{HUD союзника} показывает, кто выбран.\n\nНазначьте клавиши смены."
 L["Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\nAdd {mounts or extra windows} that should pause it too."] =
   "Обзор мышью приостанавливается, когда вы открываете {сумки, карту или другие окна}, а затем возобновляется.\n\nДобавьте {транспорт или дополнительные окна}, которые тоже должны его приостанавливать."
+
+-- Options UI: widgets, panel, search, pickers
+L["What's New"] = "Что нового"
+L["See what's new in this version"] =
+  "Посмотрите, что нового в этой версии"
+L["Link"] = "ссылка"
+L["Copy the %s link (Ctrl+C), then paste it in your browser."] =
+  "Скопируйте ссылку на %s (Ctrl+C) и вставьте ее в браузер."
+L["Character-specific option."] =
+  "Настройка для отдельного персонажа."
+L["NEW"] = "НОВОЕ"
+L["ON"] = "ВКЛ"
+L["OFF"] = "ВЫКЛ"
+L["Are you sure?"] = "Вы уверены?"
+L["> Press key (ESC clears) <"] = "> Нажмите клавишу (ESC очищает) <"
+L["WoW API Documentation"] = "Документация по API WoW"
+L["Pick a frame on screen"] = "Выбрать окно на экране"
+L["Pick a frame"] = "Выбрать окно"
+L["Silence Alerts"] = "Отключить оповещения"
+L["Debug Mode"] = "Режим отладки"
+L["Reset to Defaults"] = "Сбросить настройки"
+L["Reset all Action Combat Mode settings to defaults and reload?"] =
+  "Сбросить все настройки Action Combat Mode и перезагрузить интерфейс?"
+L["Uninstall"] = "Удалить"
+L["Uninstall Action Combat Mode?\n\nThis will restore your previous camera and targeting settings, disable the addon, and reload."] =
+  "Удалить Action Combat Mode?\n\nБудут восстановлены прежние настройки камеры и выбора цели, аддон будет отключен, а интерфейс перезагружен."
+L["View the changelog"] = "Открыть список изменений"
+L["Run the setup wizard again?"] = "Запустить мастер настройки снова?"
+L["Run the setup wizard"] = "Запустить мастер настройки"
+L["GitHub Repository"] = "Репозиторий GitHub"
+L["Discord Server"] = "Сервер Discord"
+L["%s · Section"] = "%s · Раздел"
+L["Sidebar"] = "Боковая панель"
+L["Search options..."] = "Поиск настроек..."
+L["No matching options"] = "Подходящих настроек нет"
+L["Section"] = "Раздел"
+L["Tab"] = "Вкладка"
+L["Color"] = "Цвет"
+L["Type spell name or ID…"] = "Введите название или ID заклинания…"
+L["Type mount name or spell ID…"] =
+  "Введите название транспорта или ID заклинания…"
+L["Type a frame name…"] = "Введите название окна…"
+L["Blizzard"] = "Blizzard"
+L["Addon"] = "Аддон"
+L["open"] = "открыто"
+L["Click a frame to add it to the list. Right-click or press Esc to cancel."] =
+  "Щелкните окно, чтобы добавить его в список. Правая кнопка мыши или Esc отменяют выбор."
+L["Line %d: %s"] = "Строка %d: %s"
+L["Unknown API: %s - did you mean %s?"] =
+  "Неизвестный API: %s – возможно, вы имели в виду %s?"
+L["Unknown API: %s"] = "Неизвестный API: %s"
+L["%s (+%d more)"] = "%s (еще +%d)"
+L["Version: %s"] = "Версия: %s"
+L["Use the button below to open Action Combat Mode options."] =
+  "Нажмите кнопку ниже, чтобы открыть настройки Action Combat Mode."
+L["You can also type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r in chat."] =
+  "Также можно ввести |cff69ccf0/acm|r или |cff69ccf0/actioncombatmode|r в чате."
+L["Open Options"] = "Открыть настройки"

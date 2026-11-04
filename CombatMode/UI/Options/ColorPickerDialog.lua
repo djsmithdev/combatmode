@@ -13,6 +13,7 @@
 --  UI/Editors/CrosshairColorsEditor.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -469,7 +470,7 @@ local function EnsureStandaloneDialog()
     return dialog
   end
 
-  dialog = UI.CreateBareWindow("CombatModeColorPickerDialog", "Color", DIALOG_W, DIALOG_H)
+  dialog = UI.CreateBareWindow("CombatModeColorPickerDialog", L["Color"], DIALOG_W, DIALOG_H)
   dialog:Hide()
 
   local content = CreateFrame("Frame", nil, dialog)
@@ -489,9 +490,9 @@ local function EnsureStandaloneDialog()
   btnRow:SetSize(200, 28)
   btnRow:SetPoint("TOPLEFT", standalonePicker.mount, "BOTTOMLEFT", 0, -14)
 
-  local cancelBtn = MakePillButton(btnRow, "Cancel", DoCancel)
+  local cancelBtn = MakePillButton(btnRow, _G.CANCEL or "Cancel", DoCancel)
   cancelBtn:SetPoint("TOPRIGHT", btnRow, "TOPRIGHT", 0, 0)
-  local okBtn = MakePillButton(btnRow, "OK", DoAccept)
+  local okBtn = MakePillButton(btnRow, _G.OKAY or "OK", DoAccept)
   okBtn:SetPoint("RIGHT", cancelBtn, "LEFT", -8, 0)
 
   dialog:SetScript("OnHide", OnDialogHidden)
@@ -514,9 +515,9 @@ function UI.ShowColorPicker(opts)
   baseline = { r = r, g = g, b = b, opacity = a, a = a }
 
   if opts.title and win.titleText then
-    win.titleText:SetText(UI.StripColors(opts.title) or "Color")
+    win.titleText:SetText(UI.StripColors(opts.title) or L["Color"])
   elseif win.titleText then
-    win.titleText:SetText("Color")
+    win.titleText:SetText(L["Color"])
   end
 
   standalonePicker.SetHasOpacity(opts.hasOpacity ~= false)

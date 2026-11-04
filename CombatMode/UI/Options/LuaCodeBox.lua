@@ -37,12 +37,14 @@
 --  Core/Runtime/UserLuaCondition.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- Lua stdlib
 local byte = _G.string.byte
 local find = _G.string.find
 local floor = _G.math.floor
+local format = _G.string.format
 local gmatch = _G.string.gmatch
 local gsub = _G.string.gsub
 local lower = _G.string.lower
@@ -50,6 +52,7 @@ local match = _G.string.match
 local rep = _G.string.rep
 local sub = _G.string.sub
 local tconcat = _G.table.concat
+local tonumber = _G.tonumber
 local tostring = _G.tostring
 local tsort = _G.table.sort
 local upper = _G.string.upper
@@ -443,7 +446,7 @@ local function SyntaxError(raw)
   end
   local line, message = match(tostring(err), "^code:(%d+): (.*)$")
   if line then
-    return "Line " .. line .. ": " .. message
+    return format(L["Line %d: %s"], tonumber(line), message)
   end
   return tostring(err)
 end
@@ -463,16 +466,18 @@ local function Describe(raw, unknown)
   end
   local pool = first.namespace and _G[first.namespace] or _G
   local hint = Suggest(first.member or first.name, pool)
-  local text = "Unknown API: " .. first.name
+  local text
   if hint then
-    text = text
-      .. " - did you mean "
-      .. (first.namespace and (first.namespace .. ".") or "")
-      .. hint
-      .. "?"
+    text = format(
+      L["Unknown API: %s - did you mean %s?"],
+      first.name,
+      (first.namespace and (first.namespace .. ".") or "") .. hint
+    )
+  else
+    text = format(L["Unknown API: %s"], first.name)
   end
   if #unknown > 1 then
-    text = text .. " (+" .. (#unknown - 1) .. " more)"
+    text = format(L["%s (+%d more)"], text, #unknown - 1)
   end
   return text
 end

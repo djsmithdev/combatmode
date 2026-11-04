@@ -444,3 +444,52 @@ L["Cycle through group members in Mouse Look so {helpful spells} go to the ally 
   true
 L["Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\nAdd {mounts or extra windows} that should pause it too."] =
   true
+
+-- Options UI: widgets, panel, search, pickers
+L["What's New"] = true
+L["See what's new in this version"] = true
+L["Link"] = true
+L["Copy the %s link (Ctrl+C), then paste it in your browser."] = true
+L["Character-specific option."] = true
+L["NEW"] = true
+L["ON"] = true
+L["OFF"] = true
+L["Are you sure?"] = true
+L["> Press key (ESC clears) <"] = true
+L["WoW API Documentation"] = true
+L["Pick a frame on screen"] = true
+L["Pick a frame"] = true
+L["Silence Alerts"] = true
+L["Debug Mode"] = true
+L["Reset to Defaults"] = true
+L["Reset all Action Combat Mode settings to defaults and reload?"] = true
+L["Uninstall"] = true
+L["Uninstall Action Combat Mode?\n\nThis will restore your previous camera and targeting settings, disable the addon, and reload."] =
+  true
+L["View the changelog"] = true
+L["Run the setup wizard again?"] = true
+L["Run the setup wizard"] = true
+L["GitHub Repository"] = true
+L["Discord Server"] = true
+L["%s · Section"] = true
+L["Sidebar"] = true
+L["Search options..."] = true
+L["No matching options"] = true
+L["Section"] = true
+L["Tab"] = true
+L["Color"] = true
+L["Type spell name or ID…"] = true
+L["Type mount name or spell ID…"] = true
+L["Type a frame name…"] = true
+L["Blizzard"] = true
+L["Addon"] = true
+L["open"] = true
+L["Click a frame to add it to the list. Right-click or press Esc to cancel."] = true
+L["Line %d: %s"] = true
+L["Unknown API: %s - did you mean %s?"] = true
+L["Unknown API: %s"] = true
+L["%s (+%d more)"] = true
+L["Version: %s"] = true
+L["Use the button below to open Action Combat Mode options."] = true
+L["You can also type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r in chat."] = true
+L["Open Options"] = true

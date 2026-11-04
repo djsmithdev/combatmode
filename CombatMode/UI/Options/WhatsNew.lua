@@ -19,6 +19,7 @@
 --  (NavigateTo), UI/Options/Widgets.lua (newFeatureFlag).
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -81,7 +82,7 @@ local function CollectGroups()
     if group then
       tinsert(group.entries, {
         label = TitleCase(section.label),
-        hint = "Section",
+        hint = L["Section"],
         entry = {
           tab = section.tab,
           group = section.group,
@@ -106,7 +107,7 @@ local function CollectGroups()
   for _, group in ipairs(groups) do
     if #group.entries == 0 and group.flagged then
       -- A new tab with no flagged option of its own: the tab itself is the entry.
-      tinsert(group.entries, { label = group.name, hint = "Tab", entry = { tab = group.id } })
+      tinsert(group.entries, { label = group.name, hint = L["Tab"], entry = { tab = group.id } })
     end
     if #group.entries > 0 then
       tinsert(result, group)
@@ -222,7 +223,12 @@ local function EnsureBalloon(anchor)
   if balloon then
     return balloon
   end
-  balloon = UI.CreateBareWindow("CombatModeWhatsNewFrame", "- What's New", BALLOON_W, BALLOON_MAX_H)
+  balloon = UI.CreateBareWindow(
+    "CombatModeWhatsNewFrame",
+    "- " .. L["What's New"],
+    BALLOON_W,
+    BALLOON_MAX_H
+  )
   balloon:Hide()
 
   scroll, content = UI.CreateScrollFrame(balloon)

@@ -14,6 +14,7 @@
 --  UI/Options/Tabs/TabAutoCursorUnlock.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -200,6 +201,6 @@ function UI.MakeMountMultiSelect(parent, opts)
   return UI.MakePillMultiSelect(parent, opts, {
     resolveToken = ResolveMountToken,
     filterSuggestions = FilterSuggestions,
-    placeholder = "Type mount name or spell ID…",
+    placeholder = L["Type mount name or spell ID…"],
   })
 end

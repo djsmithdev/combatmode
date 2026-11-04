@@ -15,6 +15,7 @@
 --  Core/ClickCasting/TargetingMacroBuilder.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -333,6 +334,6 @@ function UI.MakeSpellMultiSelect(parent, opts)
   return UI.MakePillMultiSelect(parent, opts, {
     resolveToken = resolve,
     filterSuggestions = filter,
-    placeholder = "Type spell name or ID…",
+    placeholder = L["Type spell name or ID…"],
   })
 end

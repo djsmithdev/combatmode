@@ -29,6 +29,7 @@
 --  Constants/FrameWatch.lua, UI/Options/Tabs/TabAutoCursorUnlock.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -218,14 +219,15 @@ local function IsOpen(name)
 end
 
 local function ToEntry(info, open)
-  local kind = info.blizzard and "Blizzard" or "Addon"
+  local kind = info.blizzard and L["Blizzard"] or L["Addon"]
   local icon = IconFor(info.name)
   return {
     token = info.name,
     name = info.name,
     icon = icon and icon.icon,
     atlas = icon and icon.atlas,
-    detail = open and (kind .. " \194\183 " .. UI.Colors.successMarkup .. "open|r") or kind,
+    detail = open and (kind .. " \194\183 " .. UI.Colors.successMarkup .. L["open"] .. "|r")
+      or kind,
   }
 end
 
@@ -283,7 +285,7 @@ local BANNER_W = 340
 local BANNER_PAD = 14
 local BANNER_ICON = 20
 local INSPECT_ICON = { atlas = "decor-controls-inspect-default" } -- shown while nothing is hovered
-local BANNER_IDLE_TITLE = "Pick a frame"
+local BANNER_IDLE_TITLE = L["Pick a frame"]
 local pickerOnPick
 local pickerName
 local pickerIconFor -- frame name whose icon the popup currently shows
@@ -358,7 +360,7 @@ local function BuildPicker()
   hint:SetWidth(BANNER_W - 2 * BANNER_PAD)
   hint:SetJustifyH("LEFT")
   hint:SetWordWrap(true)
-  hint:SetText("Click a frame to add it to the list. Right-click or press Esc to cancel.")
+  hint:SetText(L["Click a frame to add it to the list. Right-click or press Esc to cancel."])
   hint:SetTextColor(C.text[1], C.text[2], C.text[3])
   -- Title row + rule + hint, plus padding.
   banner:SetHeight(BANNER_PAD + 22 + 6 + 1 + 10 + hint:GetStringHeight() + BANNER_PAD)
@@ -477,7 +479,7 @@ function UI.MakeFrameMultiSelect(parent, opts)
     byToken = true,
     resolveToken = ResolveFrameToken,
     filterSuggestions = FilterSuggestions,
-    placeholder = "Type a frame name…",
+    placeholder = L["Type a frame name…"],
     pickFrame = StartPicker,
   })
 end

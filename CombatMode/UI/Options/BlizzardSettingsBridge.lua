@@ -11,6 +11,7 @@
 --  Related: UI/Options/OptionsPanel.lua, Core/Runtime/Runtime.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -24,6 +25,7 @@ local C_AddOns = _G.C_AddOns
 local C_XMLUtil = _G.C_XMLUtil
 
 -- Lua stdlib
+local format = _G.string.format
 local type = _G.type
 
 -- Same wordmark markup as CombatMode.toc Title (AddOns list + settings sidebar).
@@ -81,23 +83,25 @@ local function RegisterBlizzardAddOnCategory()
   if version ~= "" then
     versionText = optionsFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
     versionText:SetPoint("TOP", titleArt, "BOTTOM", 0, -16)
-    versionText:SetText(WrapWhite("Version: " .. version))
+    versionText:SetText(WrapWhite(format(L["Version: %s"], version)))
   end
 
   local instructions = optionsFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge")
   instructions:SetPoint("TOP", versionText or titleArt, "BOTTOM", 0, -28)
-  instructions:SetText(WrapWhite("Use the button below to open Action Combat Mode options."))
+  instructions:SetText(WrapWhite(L["Use the button below to open Action Combat Mode options."]))
 
   local slashHint = optionsFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
   slashHint:SetPoint("TOP", instructions, "BOTTOM", 0, -12)
-  slashHint:SetText("You can also type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r in chat.")
+  slashHint:SetText(
+    L["You can also type |cff69ccf0/acm|r or |cff69ccf0/actioncombatmode|r in chat."]
+  )
 
   local template = "SharedButtonLargeTemplate"
   if C_XMLUtil and C_XMLUtil.GetTemplateInfo and not C_XMLUtil.GetTemplateInfo(template) then
     template = "UIPanelDynamicResizeButtonTemplate"
   end
   local button = CreateFrame("Button", nil, optionsFrame, template)
-  button:SetText("Open Options")
+  button:SetText(L["Open Options"])
   button.padding = 40
   if DynamicResizeButton_Resize then
     DynamicResizeButton_Resize(button)
