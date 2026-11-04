@@ -420,3 +420,52 @@ L["Mounts that force a cursor unlock while mounted."] = "骑乘时会强制释�
 L["Extra Frames"] = "额外框体"
 L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
   "触发自动解锁的额外框体名称。输入以搜索暴雪和插件框体，或使用检查按钮点击屏幕上的窗口。"
+
+-- TabAdvanced.lua: Advanced tab
+L["Advanced"] = "高级"
+L["SOUNDS"] = "音效"
+L["Control the sound cues used by some of the other features."] =
+  "控制其他一些功能所使用的提示音。"
+L["Mouse Look Sounds"] = "鼠标视角音效"
+L["Play a cue when Mouse Look turns on and off."] =
+  "鼠标视角开启或关闭时播放提示音。"
+L["Target Lock Sounds"] = "目标锁定音效"
+L["Play cues when a Target Lock is set, cleared or cycled."] =
+  "设置、清除或切换目标锁定时播放提示音。"
+L["Radial Menu Sounds"] = "轮盘菜单音效"
+L["Play cues when interacting with Radial Menu wheels."] =
+  "与轮盘菜单的轮盘交互时播放提示音。"
+L["Ally Cycle Sounds"] = "友方循环音效"
+L["Play a cue when Ally Cycle moves to another ally."] =
+  "友方循环切换到另一名友方时播放提示音。"
+L["FORCE LOCK"] = "强制锁定"
+L["An advanced option that keeps Mouse Look enabled for as long as a custom Lua condition is true."] =
+  "高级选项：只要自定义 Lua 条件为真，就保持鼠标视角开启。"
+L["Custom Condition"] = "自定义条件"
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain locked."] =
+  "自定义 Lua 代码，求值为真时会使鼠标视角保持锁定。"
+L["Lock Once"] = "仅锁定一次"
+L["Force Mouse Look to lock only when the condition first becomes true. A manual unlock remains in effect until the condition becomes false and then true again."] =
+  "仅在条件首次变为真时锁定鼠标视角。手动解锁会一直生效，直到条件变为假后再次变为真。"
+L["FORCE UNLOCK"] = "强制解锁"
+L["The opposite of Force Lock: keeps Mouse Look off for as long as a custom Lua condition is true."] =
+  "与“强制锁定”相反：只要自定义 Lua 条件为真，就保持鼠标视角关闭。"
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain unlocked."] =
+  "自定义 Lua 代码，求值为真时会使鼠标视角保持解锁。"
+L["Unlock Once"] = "仅解锁一次"
+L["Force Mouse Look to unlock only when the condition first becomes true. A manual lock remains in effect until the condition becomes false and then true again."] =
+  "仅在条件首次变为真时解锁鼠标视角。手动锁定会一直生效，直到条件变为假后再次变为真。"
+L["Swaps the crosshair's appearance for as long as a custom Lua condition is true."] =
+  "只要自定义 Lua 条件为真，就更换准星外观。"
+L["Situational Appearance"] = "情境外观"
+L["Textures utilized by the crosshair while the Situational Condition returns true."] =
+  "情境条件为真时准星使用的纹理。"
+L["Situational Condition"] = "情境条件"
+L["Custom Lua code that, while evaluating to true, forces the crosshair to use its Situational Appearance."] =
+  "自定义 Lua 代码，求值为真时会强制准星使用其情境外观。"
+L["Modify Action Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines."] =
+  "修改 Action Combat Mode 默认的准星瞄准 CVar 和瞄准宏前置行。"
+L["Warning: editing these values could break Reticle Targeting and Target Lock."] =
+  "警告：编辑这些值可能会导致准星瞄准和目标锁定失效。"
+L["Reticle Targeting CVar Editor"] = "准星瞄准 CVar 编辑器"
+L["Targeting Macro Prelines Editor"] = "瞄准宏前置行编辑器"

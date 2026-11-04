@@ -438,3 +438,52 @@ L["Mounts that force a cursor unlock while mounted."] =
 L["Extra Frames"] = "Zusätzliche Fenster"
 L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
   "Zusätzliche Fensternamen, die ein automatisches Entsperren auslösen. Tippe, um Blizzard- und Addon-Fenster zu suchen, oder klicke mit der Inspektionsschaltfläche ein Fenster auf dem Bildschirm an."
+
+-- TabAdvanced.lua: Advanced tab
+L["Advanced"] = "Erweitert"
+L["SOUNDS"] = "TÖNE"
+L["Control the sound cues used by some of the other features."] =
+  "Steuere die Tonsignale, die von einigen anderen Funktionen verwendet werden."
+L["Mouse Look Sounds"] = "Mausblick-Töne"
+L["Play a cue when Mouse Look turns on and off."] =
+  "Spielt ein Signal, wenn der Mausblick ein- und ausgeschaltet wird."
+L["Target Lock Sounds"] = "Zielsperre-Töne"
+L["Play cues when a Target Lock is set, cleared or cycled."] =
+  "Spielt Signale, wenn eine Zielsperre gesetzt, aufgehoben oder gewechselt wird."
+L["Radial Menu Sounds"] = "Radialmenü-Töne"
+L["Play cues when interacting with Radial Menu wheels."] =
+  "Spielt Signale bei der Interaktion mit den Rädern des Radialmenüs."
+L["Ally Cycle Sounds"] = "Verbündetenwechsel-Töne"
+L["Play a cue when Ally Cycle moves to another ally."] =
+  "Spielt ein Signal, wenn der Verbündetenwechsel zu einem anderen Verbündeten springt."
+L["FORCE LOCK"] = "SPERRE ERZWINGEN"
+L["An advanced option that keeps Mouse Look enabled for as long as a custom Lua condition is true."] =
+  "Eine erweiterte Option, die den Mausblick aktiv hält, solange eine eigene Lua-Bedingung wahr ist."
+L["Custom Condition"] = "Eigene Bedingung"
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain locked."] =
+  "Eigener Lua-Code, der den Mausblick gesperrt hält, solange er wahr ergibt."
+L["Lock Once"] = "Einmal sperren"
+L["Force Mouse Look to lock only when the condition first becomes true. A manual unlock remains in effect until the condition becomes false and then true again."] =
+  "Sperrt den Mausblick nur, wenn die Bedingung erstmals wahr wird. Ein manuelles Entsperren bleibt bestehen, bis die Bedingung falsch und dann wieder wahr wird."
+L["FORCE UNLOCK"] = "ENTSPERREN ERZWINGEN"
+L["The opposite of Force Lock: keeps Mouse Look off for as long as a custom Lua condition is true."] =
+  "Das Gegenteil von „Sperre erzwingen“: hält den Mausblick aus, solange eine eigene Lua-Bedingung wahr ist."
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain unlocked."] =
+  "Eigener Lua-Code, der den Mausblick entsperrt hält, solange er wahr ergibt."
+L["Unlock Once"] = "Einmal entsperren"
+L["Force Mouse Look to unlock only when the condition first becomes true. A manual lock remains in effect until the condition becomes false and then true again."] =
+  "Entsperrt den Mausblick nur, wenn die Bedingung erstmals wahr wird. Eine manuelle Sperre bleibt bestehen, bis die Bedingung falsch und dann wieder wahr wird."
+L["Swaps the crosshair's appearance for as long as a custom Lua condition is true."] =
+  "Tauscht das Aussehen des Fadenkreuzes aus, solange eine eigene Lua-Bedingung wahr ist."
+L["Situational Appearance"] = "Situationsabhängiges Aussehen"
+L["Textures utilized by the crosshair while the Situational Condition returns true."] =
+  "Texturen, die das Fadenkreuz verwendet, solange die situative Bedingung wahr ist."
+L["Situational Condition"] = "Situative Bedingung"
+L["Custom Lua code that, while evaluating to true, forces the crosshair to use its Situational Appearance."] =
+  "Eigener Lua-Code, der das Fadenkreuz sein situatives Aussehen verwenden lässt, solange er wahr ergibt."
+L["Modify Action Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines."] =
+  "Ändere die Standard-CVars der Fadenkreuz-Zielerfassung und die Zielerfassungs-Makro-Prelines von Action Combat Mode."
+L["Warning: editing these values could break Reticle Targeting and Target Lock."] =
+  "Warnung: Das Ändern dieser Werte kann die Fadenkreuz-Zielerfassung und die Zielsperre beeinträchtigen."
+L["Reticle Targeting CVar Editor"] = "Fadenkreuz-Zielerfassung: CVar-Editor"
+L["Targeting Macro Prelines Editor"] = "Editor für Zielerfassungs-Makro-Prelines"

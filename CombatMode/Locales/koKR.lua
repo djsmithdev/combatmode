@@ -438,3 +438,52 @@ L["Mounts that force a cursor unlock while mounted."] =
 L["Extra Frames"] = "추가 프레임"
 L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
   "자동 해제를 일으키는 추가 프레임 이름입니다. 입력해서 블리자드 및 애드온 프레임을 검색하거나, 검사 버튼으로 화면의 창을 클릭하세요."
+
+-- TabAdvanced.lua: Advanced tab
+L["Advanced"] = "고급"
+L["SOUNDS"] = "소리"
+L["Control the sound cues used by some of the other features."] =
+  "다른 일부 기능에서 사용하는 효과음을 설정합니다."
+L["Mouse Look Sounds"] = "마우스 룩 소리"
+L["Play a cue when Mouse Look turns on and off."] =
+  "마우스 룩이 켜지고 꺼질 때 효과음을 재생합니다."
+L["Target Lock Sounds"] = "대상 고정 소리"
+L["Play cues when a Target Lock is set, cleared or cycled."] =
+  "대상 고정을 설정하거나 해제하거나 전환할 때 효과음을 재생합니다."
+L["Radial Menu Sounds"] = "방사형 메뉴 소리"
+L["Play cues when interacting with Radial Menu wheels."] =
+  "방사형 메뉴 휠을 조작할 때 효과음을 재생합니다."
+L["Ally Cycle Sounds"] = "아군 순환 소리"
+L["Play a cue when Ally Cycle moves to another ally."] =
+  "아군 순환이 다른 아군으로 넘어갈 때 효과음을 재생합니다."
+L["FORCE LOCK"] = "강제 잠금"
+L["An advanced option that keeps Mouse Look enabled for as long as a custom Lua condition is true."] =
+  "사용자 지정 Lua 조건이 참인 동안 마우스 룩을 계속 켜 두는 고급 옵션입니다."
+L["Custom Condition"] = "사용자 지정 조건"
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain locked."] =
+  "참으로 평가되는 동안 마우스 룩을 잠금 상태로 유지하는 사용자 지정 Lua 코드입니다."
+L["Lock Once"] = "한 번만 잠금"
+L["Force Mouse Look to lock only when the condition first becomes true. A manual unlock remains in effect until the condition becomes false and then true again."] =
+  "조건이 처음 참이 될 때만 마우스 룩을 잠급니다. 수동으로 해제한 상태는 조건이 거짓이 되었다가 다시 참이 될 때까지 유지됩니다."
+L["FORCE UNLOCK"] = "강제 해제"
+L["The opposite of Force Lock: keeps Mouse Look off for as long as a custom Lua condition is true."] =
+  "강제 잠금의 반대: 사용자 지정 Lua 조건이 참인 동안 마우스 룩을 꺼 둡니다."
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain unlocked."] =
+  "참으로 평가되는 동안 마우스 룩을 해제 상태로 유지하는 사용자 지정 Lua 코드입니다."
+L["Unlock Once"] = "한 번만 해제"
+L["Force Mouse Look to unlock only when the condition first becomes true. A manual lock remains in effect until the condition becomes false and then true again."] =
+  "조건이 처음 참이 될 때만 마우스 룩을 해제합니다. 수동으로 잠근 상태는 조건이 거짓이 되었다가 다시 참이 될 때까지 유지됩니다."
+L["Swaps the crosshair's appearance for as long as a custom Lua condition is true."] =
+  "사용자 지정 Lua 조건이 참인 동안 조준점의 모양을 바꿉니다."
+L["Situational Appearance"] = "상황별 모양"
+L["Textures utilized by the crosshair while the Situational Condition returns true."] =
+  "상황별 조건이 참인 동안 조준점이 사용하는 텍스처입니다."
+L["Situational Condition"] = "상황별 조건"
+L["Custom Lua code that, while evaluating to true, forces the crosshair to use its Situational Appearance."] =
+  "참으로 평가되는 동안 조준점이 상황별 모양을 사용하도록 강제하는 사용자 지정 Lua 코드입니다."
+L["Modify Action Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines."] =
+  "Action Combat Mode의 기본 조준선 대상 지정 CVar와 대상 지정 매크로 프리라인을 수정합니다."
+L["Warning: editing these values could break Reticle Targeting and Target Lock."] =
+  "경고: 이 값을 수정하면 조준선 대상 지정과 대상 고정이 작동하지 않을 수 있습니다."
+L["Reticle Targeting CVar Editor"] = "조준선 대상 지정 CVar 편집기"
+L["Targeting Macro Prelines Editor"] = "대상 지정 매크로 프리라인 편집기"

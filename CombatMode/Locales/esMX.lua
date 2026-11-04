@@ -437,3 +437,52 @@ L["Mounts that force a cursor unlock while mounted."] =
 L["Extra Frames"] = "Marcos adicionales"
 L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
   "Nombres de marcos adicionales que activan el desbloqueo automático. Escribe para buscar marcos de Blizzard y de addons, o usa el botón de inspección para hacer clic en una ventana de la pantalla."
+
+-- TabAdvanced.lua: Advanced tab
+L["Advanced"] = "Avanzado"
+L["SOUNDS"] = "SONIDOS"
+L["Control the sound cues used by some of the other features."] =
+  "Controla las señales sonoras que usan otras funciones."
+L["Mouse Look Sounds"] = "Sonidos de vista con mouse"
+L["Play a cue when Mouse Look turns on and off."] =
+  "Reproduce una señal al activar y desactivar la vista con mouse."
+L["Target Lock Sounds"] = "Sonidos de fijar objetivo"
+L["Play cues when a Target Lock is set, cleared or cycled."] =
+  "Reproduce señales al fijar, quitar o cambiar un objetivo fijado."
+L["Radial Menu Sounds"] = "Sonidos del menú radial"
+L["Play cues when interacting with Radial Menu wheels."] =
+  "Reproduce señales al interactuar con las ruedas del menú radial."
+L["Ally Cycle Sounds"] = "Sonidos del ciclo de aliados"
+L["Play a cue when Ally Cycle moves to another ally."] =
+  "Reproduce una señal cuando el ciclo de aliados pasa a otro aliado."
+L["FORCE LOCK"] = "FORZAR BLOQUEO"
+L["An advanced option that keeps Mouse Look enabled for as long as a custom Lua condition is true."] =
+  "Una opción avanzada que mantiene activa la vista con mouse mientras una condición Lua personalizada sea verdadera."
+L["Custom Condition"] = "Condición personalizada"
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain locked."] =
+  "Código Lua personalizado que, mientras se evalúe como verdadero, mantiene bloqueada la vista con mouse."
+L["Lock Once"] = "Bloquear una vez"
+L["Force Mouse Look to lock only when the condition first becomes true. A manual unlock remains in effect until the condition becomes false and then true again."] =
+  "Bloquea la vista con mouse solo cuando la condición pasa a ser verdadera por primera vez. Un desbloqueo manual se mantiene hasta que la condición sea falsa y luego verdadera de nuevo."
+L["FORCE UNLOCK"] = "FORZAR DESBLOQUEO"
+L["The opposite of Force Lock: keeps Mouse Look off for as long as a custom Lua condition is true."] =
+  "Lo contrario de Forzar bloqueo: mantiene desactivada la vista con mouse mientras una condición Lua personalizada sea verdadera."
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain unlocked."] =
+  "Código Lua personalizado que, mientras se evalúe como verdadero, mantiene desbloqueada la vista con mouse."
+L["Unlock Once"] = "Desbloquear una vez"
+L["Force Mouse Look to unlock only when the condition first becomes true. A manual lock remains in effect until the condition becomes false and then true again."] =
+  "Desbloquea la vista con mouse solo cuando la condición pasa a ser verdadera por primera vez. Un bloqueo manual se mantiene hasta que la condición sea falsa y luego verdadera de nuevo."
+L["Swaps the crosshair's appearance for as long as a custom Lua condition is true."] =
+  "Cambia el aspecto de la mira mientras una condición Lua personalizada sea verdadera."
+L["Situational Appearance"] = "Aspecto situacional"
+L["Textures utilized by the crosshair while the Situational Condition returns true."] =
+  "Texturas que usa la mira mientras la condición situacional sea verdadera."
+L["Situational Condition"] = "Condición situacional"
+L["Custom Lua code that, while evaluating to true, forces the crosshair to use its Situational Appearance."] =
+  "Código Lua personalizado que, mientras se evalúe como verdadero, obliga a la mira a usar su aspecto situacional."
+L["Modify Action Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines."] =
+  "Modifica las CVars predeterminadas de la selección por retícula y las prelíneas de macro de selección de Action Combat Mode."
+L["Warning: editing these values could break Reticle Targeting and Target Lock."] =
+  "Advertencia: editar estos valores podría romper la selección por retícula y fijar objetivo."
+L["Reticle Targeting CVar Editor"] = "Editor de CVars de selección por retícula"
+L["Targeting Macro Prelines Editor"] = "Editor de prelíneas de macro de selección"

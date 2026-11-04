@@ -28,6 +28,7 @@
 --  UI/Options/Tabs/TabCrosshair.lua, UI/Options/Tabs/TabReticleTargeting.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- Lua stdlib
@@ -38,30 +39,30 @@ local API_DOCS_URL = "https://warcraft.wiki.gg/wiki/World_of_Warcraft_API"
 
 UI.Options.AddTab({
   id = "advanced",
-  label = "Advanced",
+  label = L["Advanced"],
   build = function(ctx)
-    ctx:Header({ text = "SOUNDS" })
-    ctx:Description("Control the sound cues used by some of the other features.")
+    ctx:Header({ text = L["SOUNDS"] })
+    ctx:Description(L["Control the sound cues used by some of the other features."])
     for _, sound in ipairs({
       {
         key = "soundMouseLook",
-        label = "Mouse Look Sounds",
-        desc = "Play a cue when Mouse Look turns on and off.",
+        label = L["Mouse Look Sounds"],
+        desc = L["Play a cue when Mouse Look turns on and off."],
       },
       {
         key = "soundTargetLock",
-        label = "Target Lock Sounds",
-        desc = "Play cues when a Target Lock is set, cleared or cycled.",
+        label = L["Target Lock Sounds"],
+        desc = L["Play cues when a Target Lock is set, cleared or cycled."],
       },
       {
         key = "soundRadialMenu",
-        label = "Radial Menu Sounds",
-        desc = "Play cues when interacting with Radial Menu wheels.",
+        label = L["Radial Menu Sounds"],
+        desc = L["Play cues when interacting with Radial Menu wheels."],
       },
       {
         key = "soundAllyCycle",
-        label = "Ally Cycle Sounds",
-        desc = "Play a cue when Ally Cycle moves to another ally.",
+        label = L["Ally Cycle Sounds"],
+        desc = L["Play a cue when Ally Cycle moves to another ally."],
       },
     }) do
       ctx:Toggle({
@@ -77,13 +78,13 @@ UI.Options.AddTab({
     end
 
     ctx:Gap()
-    ctx:Header({ text = "FORCE LOCK" })
+    ctx:Header({ text = L["FORCE LOCK"] })
     ctx:Description(
-      "An advanced option that keeps Mouse Look enabled for as long as a custom Lua condition is true."
+      L["An advanced option that keeps Mouse Look enabled for as long as a custom Lua condition is true."]
     )
     ctx:TextInput({
-      label = "Custom Condition",
-      desc = "Custom Lua code that, while evaluating to true, forces Mouse Look to remain locked.",
+      label = L["Custom Condition"],
+      desc = L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain locked."],
       placeholder = [[
 local inCombat = InCombatLockdown and InCombatLockdown()
 if inCombat then
@@ -101,8 +102,8 @@ return false
       end,
     })
     ctx:Toggle({
-      label = "Lock Once",
-      desc = "Force Mouse Look to lock only when the condition first becomes true. A manual unlock remains in effect until the condition becomes false and then true again.",
+      label = L["Lock Once"],
+      desc = L["Force Mouse Look to lock only when the condition first becomes true. A manual unlock remains in effect until the condition becomes false and then true again."],
       get = function()
         return CM.DB.global.customLockConditionOnce == true
       end,
@@ -111,13 +112,13 @@ return false
       end,
     })
     ctx:Gap()
-    ctx:Header("FORCE UNLOCK")
+    ctx:Header(L["FORCE UNLOCK"])
     ctx:Description(
-      "The opposite of Force Lock: keeps Mouse Look off for as long as a custom Lua condition is true."
+      L["The opposite of Force Lock: keeps Mouse Look off for as long as a custom Lua condition is true."]
     )
     ctx:TextInput({
-      label = "Custom Condition",
-      desc = "Custom Lua code that, while evaluating to true, forces Mouse Look to remain unlocked.",
+      label = L["Custom Condition"],
+      desc = L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain unlocked."],
       placeholder = [[
 local standingStill = GetUnitSpeed and GetUnitSpeed("player") == 0
 local onMount = IsMounted and IsMounted() or false
@@ -136,8 +137,8 @@ return false
       end,
     })
     ctx:Toggle({
-      label = "Unlock Once",
-      desc = "Force Mouse Look to unlock only when the condition first becomes true. A manual lock remains in effect until the condition becomes false and then true again.",
+      label = L["Unlock Once"],
+      desc = L["Force Mouse Look to unlock only when the condition first becomes true. A manual lock remains in effect until the condition becomes false and then true again."],
       get = function()
         return CM.DB.global.customConditionOnce == true
       end,
@@ -147,17 +148,17 @@ return false
     })
 
     ctx:Gap()
-    ctx:Header("CROSSHAIR")
+    ctx:Header(L["CROSSHAIR"])
     ctx:Description(
-      "Swaps the crosshair's appearance for as long as a custom Lua condition is true."
+      L["Swaps the crosshair's appearance for as long as a custom Lua condition is true."]
     )
     ctx:Button({
       layout = "row",
-      label = "Situational Appearance",
-      desc = "Textures utilized by the crosshair while the Situational Condition returns true.",
+      label = L["Situational Appearance"],
+      desc = L["Textures utilized by the crosshair while the Situational Condition returns true."],
       tiles = {
-        { slot = "base", caption = "Inactive", tint = "base" },
-        { slot = "active", caption = "Active", tint = "hostile" },
+        { slot = "base", caption = L["Inactive"], tint = "base" },
+        { slot = "active", caption = L["Active"], tint = "hostile" },
       },
       previews = function()
         local appearance =
@@ -175,8 +176,8 @@ return false
       end,
     })
     ctx:TextInput({
-      label = "Situational Condition",
-      desc = "Custom Lua code that, while evaluating to true, forces the crosshair to use its Situational Appearance.",
+      label = L["Situational Condition"],
+      desc = L["Custom Lua code that, while evaluating to true, forces the crosshair to use its Situational Appearance."],
       placeholder = [[
 local deadOrGhost = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
 if deadOrGhost then
@@ -203,20 +204,20 @@ return false
     })
 
     ctx:Gap()
-    ctx:Header("RETICLE TARGETING")
+    ctx:Header(L["RETICLE TARGETING"])
     ctx:Description({
-      text = "Modify Action Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines.",
-      warning = "Warning: editing these values could break Reticle Targeting and Target Lock.",
+      text = L["Modify Action Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines."],
+      warning = L["Warning: editing these values could break Reticle Targeting and Target Lock."],
     })
     ctx:ButtonRow({
       {
-        label = "Reticle Targeting CVar Editor",
+        label = L["Reticle Targeting CVar Editor"],
         func = function()
           CM.OpenReticleTargetingCVarEditor()
         end,
       },
       {
-        label = "Targeting Macro Prelines Editor",
+        label = L["Targeting Macro Prelines Editor"],
         func = function()
           CM.OpenTargetingMacroPrelinesEditor()
         end,

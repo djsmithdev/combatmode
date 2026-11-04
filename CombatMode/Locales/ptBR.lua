@@ -437,3 +437,52 @@ L["Mounts that force a cursor unlock while mounted."] =
 L["Extra Frames"] = "Quadros adicionais"
 L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
   "Nomes de quadros adicionais que acionam o desbloqueio automático. Digite para buscar quadros da Blizzard e de addons, ou use o botão de inspeção para clicar em uma janela na tela."
+
+-- TabAdvanced.lua: Advanced tab
+L["Advanced"] = "Avançado"
+L["SOUNDS"] = "SONS"
+L["Control the sound cues used by some of the other features."] =
+  "Controle os sinais sonoros usados por alguns outros recursos."
+L["Mouse Look Sounds"] = "Sons da visão pelo mouse"
+L["Play a cue when Mouse Look turns on and off."] =
+  "Toca um sinal quando a visão pelo mouse é ativada ou desativada."
+L["Target Lock Sounds"] = "Sons de travar alvo"
+L["Play cues when a Target Lock is set, cleared or cycled."] =
+  "Toca sinais quando um alvo é travado, destravado ou alternado."
+L["Radial Menu Sounds"] = "Sons do menu radial"
+L["Play cues when interacting with Radial Menu wheels."] =
+  "Toca sinais ao interagir com as rodas do menu radial."
+L["Ally Cycle Sounds"] = "Sons do ciclo de aliados"
+L["Play a cue when Ally Cycle moves to another ally."] =
+  "Toca um sinal quando o ciclo de aliados passa para outro aliado."
+L["FORCE LOCK"] = "FORÇAR BLOQUEIO"
+L["An advanced option that keeps Mouse Look enabled for as long as a custom Lua condition is true."] =
+  "Uma opção avançada que mantém a visão pelo mouse ativada enquanto uma condição Lua personalizada for verdadeira."
+L["Custom Condition"] = "Condição personalizada"
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain locked."] =
+  "Código Lua personalizado que, enquanto for verdadeiro, mantém a visão pelo mouse travada."
+L["Lock Once"] = "Travar uma vez"
+L["Force Mouse Look to lock only when the condition first becomes true. A manual unlock remains in effect until the condition becomes false and then true again."] =
+  "Trava a visão pelo mouse somente quando a condição se torna verdadeira pela primeira vez. Um destravamento manual permanece até a condição ficar falsa e depois verdadeira de novo."
+L["FORCE UNLOCK"] = "FORÇAR DESBLOQUEIO"
+L["The opposite of Force Lock: keeps Mouse Look off for as long as a custom Lua condition is true."] =
+  "O oposto de Forçar bloqueio: mantém a visão pelo mouse desativada enquanto uma condição Lua personalizada for verdadeira."
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain unlocked."] =
+  "Código Lua personalizado que, enquanto for verdadeiro, mantém a visão pelo mouse destravada."
+L["Unlock Once"] = "Destravar uma vez"
+L["Force Mouse Look to unlock only when the condition first becomes true. A manual lock remains in effect until the condition becomes false and then true again."] =
+  "Destrava a visão pelo mouse somente quando a condição se torna verdadeira pela primeira vez. Um travamento manual permanece até a condição ficar falsa e depois verdadeira de novo."
+L["Swaps the crosshair's appearance for as long as a custom Lua condition is true."] =
+  "Troca a aparência da mira enquanto uma condição Lua personalizada for verdadeira."
+L["Situational Appearance"] = "Aparência situacional"
+L["Textures utilized by the crosshair while the Situational Condition returns true."] =
+  "Texturas usadas pela mira enquanto a condição situacional for verdadeira."
+L["Situational Condition"] = "Condição situacional"
+L["Custom Lua code that, while evaluating to true, forces the crosshair to use its Situational Appearance."] =
+  "Código Lua personalizado que, enquanto for verdadeiro, força a mira a usar sua aparência situacional."
+L["Modify Action Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines."] =
+  "Modifique as CVars padrão da Mira de Alvo e as prélinhas de macro de alvo do Action Combat Mode."
+L["Warning: editing these values could break Reticle Targeting and Target Lock."] =
+  "Aviso: editar esses valores pode quebrar a Mira de Alvo e o travamento de alvo."
+L["Reticle Targeting CVar Editor"] = "Editor de CVars da Mira de Alvo"
+L["Targeting Macro Prelines Editor"] = "Editor de prélinhas de macro de alvo"

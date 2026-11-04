@@ -460,3 +460,53 @@ L["Mounts that force a cursor unlock while mounted."] =
 L["Extra Frames"] = "Дополнительные окна"
 L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
   "Имена дополнительных окон, вызывающих авторазблокировку. Введите текст для поиска окон Blizzard и аддонов или нажмите кнопку проверки и щелкните окно на экране."
+
+-- TabAdvanced.lua: Advanced tab
+L["Advanced"] = "Дополнительно"
+L["SOUNDS"] = "ЗВУКИ"
+L["Control the sound cues used by some of the other features."] =
+  "Управление звуковыми сигналами, которые используют другие функции."
+L["Mouse Look Sounds"] = "Звуки обзора мышью"
+L["Play a cue when Mouse Look turns on and off."] =
+  "Воспроизводит сигнал при включении и выключении обзора мышью."
+L["Target Lock Sounds"] = "Звуки захвата цели"
+L["Play cues when a Target Lock is set, cleared or cycled."] =
+  "Воспроизводит сигналы при установке, снятии и смене захвата цели."
+L["Radial Menu Sounds"] = "Звуки радиального меню"
+L["Play cues when interacting with Radial Menu wheels."] =
+  "Воспроизводит сигналы при работе с колесами радиального меню."
+L["Ally Cycle Sounds"] = "Звуки смены союзника"
+L["Play a cue when Ally Cycle moves to another ally."] =
+  "Воспроизводит сигнал, когда смена союзника переходит к другому союзнику."
+L["FORCE LOCK"] = "ПРИНУДИТЕЛЬНАЯ БЛОКИРОВКА"
+L["An advanced option that keeps Mouse Look enabled for as long as a custom Lua condition is true."] =
+  "Расширенная опция: обзор мышью остается включенным, пока верно пользовательское условие Lua."
+L["Custom Condition"] = "Пользовательское условие"
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain locked."] =
+  "Пользовательский код Lua: пока он возвращает true, обзор мышью остается заблокированным."
+L["Lock Once"] = "Заблокировать однократно"
+L["Force Mouse Look to lock only when the condition first becomes true. A manual unlock remains in effect until the condition becomes false and then true again."] =
+  "Блокирует обзор мышью только когда условие впервые становится истинным. Ручная разблокировка действует, пока условие не станет ложным, а затем снова истинным."
+L["FORCE UNLOCK"] = "ПРИНУДИТЕЛЬНАЯ РАЗБЛОКИРОВКА"
+L["The opposite of Force Lock: keeps Mouse Look off for as long as a custom Lua condition is true."] =
+  "Противоположность принудительной блокировке: обзор мышью остается выключенным, пока верно пользовательское условие Lua."
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain unlocked."] =
+  "Пользовательский код Lua: пока он возвращает true, обзор мышью остается разблокированным."
+L["Unlock Once"] = "Разблокировать однократно"
+L["Force Mouse Look to unlock only when the condition first becomes true. A manual lock remains in effect until the condition becomes false and then true again."] =
+  "Разблокирует обзор мышью только когда условие впервые становится истинным. Ручная блокировка действует, пока условие не станет ложным, а затем снова истинным."
+L["Swaps the crosshair's appearance for as long as a custom Lua condition is true."] =
+  "Меняет вид прицела, пока верно пользовательское условие Lua."
+L["Situational Appearance"] = "Внешний вид по ситуации"
+L["Textures utilized by the crosshair while the Situational Condition returns true."] =
+  "Текстуры прицела, пока верно условие по ситуации."
+L["Situational Condition"] = "Условие по ситуации"
+L["Custom Lua code that, while evaluating to true, forces the crosshair to use its Situational Appearance."] =
+  "Пользовательский код Lua: пока он возвращает true, прицел использует внешний вид по ситуации."
+L["Modify Action Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines."] =
+  "Изменение стандартных CVar наведения по прицелу и преднастроек макросов наведения в Action Combat Mode."
+L["Warning: editing these values could break Reticle Targeting and Target Lock."] =
+  "Внимание: изменение этих значений может нарушить наведение по прицелу и захват цели."
+L["Reticle Targeting CVar Editor"] = "Редактор CVar наведения по прицелу"
+L["Targeting Macro Prelines Editor"] =
+  "Редактор преднастроек макросов наведения"

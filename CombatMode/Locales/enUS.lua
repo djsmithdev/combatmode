@@ -362,3 +362,42 @@ L["Mounts that force a cursor unlock while mounted."] = true
 L["Extra Frames"] = true
 L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
   true
+
+-- TabAdvanced.lua: Advanced tab
+L["Advanced"] = true
+L["SOUNDS"] = true
+L["Control the sound cues used by some of the other features."] = true
+L["Mouse Look Sounds"] = true
+L["Play a cue when Mouse Look turns on and off."] = true
+L["Target Lock Sounds"] = true
+L["Play cues when a Target Lock is set, cleared or cycled."] = true
+L["Radial Menu Sounds"] = true
+L["Play cues when interacting with Radial Menu wheels."] = true
+L["Ally Cycle Sounds"] = true
+L["Play a cue when Ally Cycle moves to another ally."] = true
+L["FORCE LOCK"] = true
+L["An advanced option that keeps Mouse Look enabled for as long as a custom Lua condition is true."] =
+  true
+L["Custom Condition"] = true
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain locked."] = true
+L["Lock Once"] = true
+L["Force Mouse Look to lock only when the condition first becomes true. A manual unlock remains in effect until the condition becomes false and then true again."] =
+  true
+L["FORCE UNLOCK"] = true
+L["The opposite of Force Lock: keeps Mouse Look off for as long as a custom Lua condition is true."] =
+  true
+L["Custom Lua code that, while evaluating to true, forces Mouse Look to remain unlocked."] = true
+L["Unlock Once"] = true
+L["Force Mouse Look to unlock only when the condition first becomes true. A manual lock remains in effect until the condition becomes false and then true again."] =
+  true
+L["Swaps the crosshair's appearance for as long as a custom Lua condition is true."] = true
+L["Situational Appearance"] = true
+L["Textures utilized by the crosshair while the Situational Condition returns true."] = true
+L["Situational Condition"] = true
+L["Custom Lua code that, while evaluating to true, forces the crosshair to use its Situational Appearance."] =
+  true
+L["Modify Action Combat Mode's default Reticle Targeting CVars and Targeting Macro Prelines."] =
+  true
+L["Warning: editing these values could break Reticle Targeting and Target Lock."] = true
+L["Reticle Targeting CVar Editor"] = true
+L["Targeting Macro Prelines Editor"] = true
