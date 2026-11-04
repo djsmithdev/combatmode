@@ -76,3 +76,88 @@ L["mouse look keybinding"] = "assegnazione della visuale con mouse"
 L["flip camera keybinding"] = "assegnazione di inverti telecamera"
 L["reset mouse look keybinding"] = "assegnazione di reimposta visuale con mouse"
 L["swap shoulder keybinding"] = "assegnazione di cambia spalla"
+
+-- TabGeneral.lua: Mouse Look tab
+L["MOUSE LOOK"] = "VISTA CON MOUSE"
+L["CAMERA FEATURES"] = "FUNZIONI DELLA TELECAMERA"
+L["ADDITIONAL FEATURES"] = "FUNZIONI AGGIUNTIVE"
+L["Crosshair - More accurate"] = "Mirino - Più preciso"
+L["Soft Target - More forgiving"] = "Bersaglio morbido - Più permissivo"
+L["Mouse Look is on"] = "La vista con mouse è attiva"
+L["In combat"] = "In combattimento"
+L["Talking to an NPC"] = "Dialogo con un PNG"
+L["Any checked"] = "Una qualsiasi selezionata"
+L["All checked"] = "Tutte quelle selezionate"
+L["Off"] = "Disattivato"
+L["Control relinquished to %s"] = "Controllo ceduto a %s"
+L["Disabled while Motion Sickness Protection is on"] =
+  "Disattivato mentre la protezione dal mal di movimento è attiva"
+L["Lock the cursor to the position of the Crosshair and steer by moving the mouse without holding right-click."] =
+  "Blocca il cursore sulla posizione del mirino e consente di orientarsi muovendo il mouse senza tenere premuto il tasto destro."
+L["Mouse Look Keybind"] = "Tasto vista con mouse"
+L["Tap to toggle Mouse Look. Hold to unlock the cursor temporarily."] =
+  "Premi per attivare o disattivare la vista con mouse. Tieni premuto per sbloccare temporaneamente il cursore."
+L["Interact Keybind"] = "Tasto interazione"
+L["Tap to interact with a player or the unit chosen below."] =
+  "Premi per interagire con un giocatore o con l'unità scelta qui sotto."
+L["Players"] = "Giocatori"
+L["Aim at a player for a second and the Assist HUD shows a prompt. Press the key then to open their context menu."] =
+  "Mira un giocatore per un secondo e l'HUD di assistenza mostrerà un suggerimento. Premi quindi il tasto per aprire il suo menu contestuale."
+L["NPCs and objects"] = "PNG e oggetti"
+L["Interacts as normal with the unit chosen in Interact Unit."] =
+  "Interagisce normalmente con l'unità scelta in «Unità di interazione»."
+L["Interact Unit"] = "Unità di interazione"
+L["Which unit will be interacted with when the key is pressed."] =
+  "L'unità con cui si interagisce quando si preme il tasto."
+L["Flip Camera Keybind"] = "Tasto inversione telecamera"
+L["Tap to flip the camera 180° around your character. Hold to flip it only while the key is held."] =
+  "Premi per ruotare la telecamera di 180° attorno al personaggio. Tieni premuto per ruotarla solo finché il tasto è premuto."
+L["Recover a stuck cursor after switching windows on macOS. Re-grabs and releases Mouse Look to clear a capture the game left stuck while running in the background."] =
+  "Recupera un cursore bloccato dopo il cambio di finestra su macOS. Riacquisisce e rilascia la vista con mouse per eliminare una cattura rimasta bloccata dal gioco in background."
+L["Curated camera adjustments for a more action-focused experience."] =
+  "Regolazioni della telecamera selezionate per un'esperienza più orientata all'azione."
+L["Motion Sickness Protection"] = "Protezione dal mal di movimento"
+L["Prevents Action Combat Mode from overriding Blizzard's Motion Sickness settings."] =
+  "Impedisce ad Action Combat Mode di sovrascrivere le impostazioni di mal di movimento di Blizzard."
+L["Turn Speed"] = "Velocità di rotazione"
+L["Controls how quickly the camera turns while using Mouse Look."] =
+  "Controlla la rapidità con cui la telecamera ruota usando la vista con mouse."
+L["Stops the camera from zooming in closer than this distance. 0 turns it off."] =
+  "Impedisce alla telecamera di avvicinarsi più di questa distanza. 0 la disattiva."
+L["Dynamic Pitch"] = "Inclinazione dinamica"
+L["Dynamically tilt the camera up and down as you move it."] =
+  "Inclina dinamicamente la telecamera verso l'alto e verso il basso mentre la muovi."
+L["Pitch Strength"] = "Intensità di inclinazione"
+L["How far Dynamic Pitch tilts the camera. Lower values keep your character higher on screen. Flying tilts further and scales with this."] =
+  "Quanto l'inclinazione dinamica inclina la telecamera. Valori più bassi mantengono il personaggio più in alto sullo schermo. In volo l'inclinazione è maggiore e scala con questo valore."
+L["Shoulder Offset"] = "Offset spalla"
+L["Camera's horizontal position relative to the character."] =
+  "Posizione orizzontale della telecamera rispetto al personaggio."
+L["Disable Offset With Mouselook"] = "Disattiva offset con vista con mouse"
+L["Shoulder Offset eases to 0 when disabling Mouse Look."] =
+  "L'offset spalla torna gradualmente a 0 quando disattivi la vista con mouse."
+L["When off, Shoulder Offset stays constant at all times."] =
+  "Se disattivato, l'offset spalla rimane sempre costante."
+L["Swap Shoulder Keybind"] = "Tasto scambio spalla"
+L["Press to mirror Shoulder Offset to the other side of your character."] =
+  "Premi per specchiare l'offset spalla sull'altro lato del personaggio."
+L["Extra functionalities tied to Mouse Look behaviour."] =
+  "Funzionalità aggiuntive legate al comportamento della vista con mouse."
+L["Cursor Pulse"] = "Pulsazione del cursore"
+L["Flash the cursor when Mouse Look is turned off."] =
+  "Fa lampeggiare il cursore quando la vista con mouse viene disattivata."
+L["Hide Tooltips"] = "Nascondi i suggerimenti"
+L["Hide tooltips while Mouse Look is on, unless the key below is held."] =
+  "Nasconde i suggerimenti mentre la vista con mouse è attiva, a meno che il tasto sotto non sia premuto."
+L["Show Tooltips With"] = "Mostra suggerimenti con"
+L["Hold this key to show tooltips while Mouse Look is on."] =
+  "Tieni premuto questo tasto per mostrare i suggerimenti mentre la vista con mouse è attiva."
+L["Auto Sheath"] = "Rinfodera automaticamente"
+L["Sheath weapons automatically with Mouse Look."] =
+  "Rinfodera automaticamente le armi insieme alla vista con mouse."
+L["Vignette Shows When"] = "La vignettatura appare quando"
+L["Darkens the edges of the screen while the checked situations are true."] =
+  "Scurisce i bordi dello schermo finché le situazioni selezionate sono vere."
+L["Vignette Match"] = "Corrispondenza vignettatura"
+L["Any: one checked situation is enough. All: every checked situation must be true at once."] =
+  "Una qualsiasi: basta una situazione selezionata. Tutte: ogni situazione selezionata deve essere vera contemporaneamente."

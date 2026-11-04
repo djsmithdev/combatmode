@@ -28,6 +28,7 @@
 --  Core/Runtime/Runtime.lua (first-run hook)
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- WoW API
@@ -63,7 +64,7 @@ end
 local STEPS = {
   {
     tab = "general",
-    section = "MOUSE LOOK",
+    section = L["MOUSE LOOK"],
     title = "Mouse Look",
     slides = { "mouselook", 5, 0.3, 0.1 },
     body = "Lock your cursor to the center of the screen and steer by moving the mouse, "

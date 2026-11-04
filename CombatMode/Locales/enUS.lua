@@ -66,3 +66,67 @@ L["mouse look keybinding"] = true
 L["flip camera keybinding"] = true
 L["reset mouse look keybinding"] = true
 L["swap shoulder keybinding"] = true
+
+-- TabGeneral.lua: Mouse Look tab
+L["MOUSE LOOK"] = true
+L["CAMERA FEATURES"] = true
+L["ADDITIONAL FEATURES"] = true
+L["Crosshair - More accurate"] = true
+L["Soft Target - More forgiving"] = true
+L["Mouse Look is on"] = true
+L["In combat"] = true
+L["Talking to an NPC"] = true
+L["Any checked"] = true
+L["All checked"] = true
+L["Off"] = true
+L["Control relinquished to %s"] = true
+L["Disabled while Motion Sickness Protection is on"] = true
+L["Lock the cursor to the position of the Crosshair and steer by moving the mouse without holding right-click."] =
+  true
+L["Mouse Look Keybind"] = true
+L["Tap to toggle Mouse Look. Hold to unlock the cursor temporarily."] = true
+L["Interact Keybind"] = true
+L["Tap to interact with a player or the unit chosen below."] = true
+L["Players"] = true
+L["Aim at a player for a second and the Assist HUD shows a prompt. Press the key then to open their context menu."] =
+  true
+L["NPCs and objects"] = true
+L["Interacts as normal with the unit chosen in Interact Unit."] = true
+L["Interact Unit"] = true
+L["Which unit will be interacted with when the key is pressed."] = true
+L["Flip Camera Keybind"] = true
+L["Tap to flip the camera 180° around your character. Hold to flip it only while the key is held."] =
+  true
+L["Recover a stuck cursor after switching windows on macOS. Re-grabs and releases Mouse Look to clear a capture the game left stuck while running in the background."] =
+  true
+L["Curated camera adjustments for a more action-focused experience."] = true
+L["Motion Sickness Protection"] = true
+L["Prevents Action Combat Mode from overriding Blizzard's Motion Sickness settings."] = true
+L["Turn Speed"] = true
+L["Controls how quickly the camera turns while using Mouse Look."] = true
+L["Stops the camera from zooming in closer than this distance. 0 turns it off."] = true
+L["Dynamic Pitch"] = true
+L["Dynamically tilt the camera up and down as you move it."] = true
+L["Pitch Strength"] = true
+L["How far Dynamic Pitch tilts the camera. Lower values keep your character higher on screen. Flying tilts further and scales with this."] =
+  true
+L["Shoulder Offset"] = true
+L["Camera's horizontal position relative to the character."] = true
+L["Disable Offset With Mouselook"] = true
+L["Shoulder Offset eases to 0 when disabling Mouse Look."] = true
+L["When off, Shoulder Offset stays constant at all times."] = true
+L["Swap Shoulder Keybind"] = true
+L["Press to mirror Shoulder Offset to the other side of your character."] = true
+L["Extra functionalities tied to Mouse Look behaviour."] = true
+L["Cursor Pulse"] = true
+L["Flash the cursor when Mouse Look is turned off."] = true
+L["Hide Tooltips"] = true
+L["Hide tooltips while Mouse Look is on, unless the key below is held."] = true
+L["Show Tooltips With"] = true
+L["Hold this key to show tooltips while Mouse Look is on."] = true
+L["Auto Sheath"] = true
+L["Sheath weapons automatically with Mouse Look."] = true
+L["Vignette Shows When"] = true
+L["Darkens the edges of the screen while the checked situations are true."] = true
+L["Vignette Match"] = true
+L["Any: one checked situation is enough. All: every checked situation must be true at once."] = true
