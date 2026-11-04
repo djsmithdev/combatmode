@@ -326,3 +326,28 @@ L["Party Wheel Spells"] = true
 L["Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected."] =
   true
 L["Edit the slices of each wheel, rename wheels and add or remove wheels."] = true
+
+-- TabAllyCycle.lua: Ally Cycle tab
+L["Top"] = true
+L["Bottom"] = true
+L["Ally Cycle"] = true
+L["ALLY CYCLE"] = true
+L["Seamless combat and support by allowing helpful spells to target allies, while harmful spells remain focused on the hostile crosshair target."] =
+  true
+L["Ally Cycle - Next"] = true
+L["Target the next group member."] = true
+L["Ally Cycle - Previous"] = true
+L["Target the previous group member."] = true
+L["Skip Self"] = true
+L["Skip yourself when cycling through group members."] = true
+L["Keep Ally After Harm"] = true
+L["After a harmful spell targets the reticle enemy, restore the previous ally. On by default for Healer specs until changed."] =
+  true
+L["Disabled while Auto Target Lock is on"] = true
+L["ALLY HUD"] = true
+L["A HUD displaying the group member Ally Cycle has selected."] = true
+L["Ally HUD"] = true
+L["Show a unit frame for the currently selected group member."] = true
+L["Where the Ally HUD sits relative to the crosshair."] = true
+L["Scales the size of the Ally HUD."] = true
+L["Distance between the Ally HUD and the crosshair."] = true

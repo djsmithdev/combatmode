@@ -412,3 +412,37 @@ L["Helpful spells that open a party targeting wheel while their key is held. Fli
   "Полезные заклинания, открывающие колесо выбора цели из группы, пока удерживается их клавиша. Сдвиньте курсор к участнику группы и отпустите, чтобы применить на него, или вернитесь в центр, чтобы применить на себя. Короткое нажатие применяет на дружественную цель, а если ее нет, то на вас."
 L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
   "Редактируйте секторы каждого колеса, переименовывайте колеса, добавляйте и удаляйте их."
+
+-- TabAllyCycle.lua: Ally Cycle tab
+L["Top"] = "Сверху"
+L["Bottom"] = "Снизу"
+L["Ally Cycle"] = "Смена союзника"
+L["ALLY CYCLE"] = "СМЕНА СОЮЗНИКА"
+L["Seamless combat and support by allowing helpful spells to target allies, while harmful spells remain focused on the hostile crosshair target."] =
+  "Бесшовный бой и поддержка: полезные заклинания направляются на союзников, а вредоносные остаются на враге под прицелом."
+L["Ally Cycle - Next"] = "Смена союзника – Следующий"
+L["Target the next group member."] =
+  "Выбирает следующего участника группы."
+L["Ally Cycle - Previous"] = "Смена союзника – Предыдущий"
+L["Target the previous group member."] =
+  "Выбирает предыдущего участника группы."
+L["Skip Self"] = "Пропускать себя"
+L["Skip yourself when cycling through group members."] =
+  "Пропускает вас при переборе участников группы."
+L["Keep Ally After Harm"] = "Сохранять союзника после атаки"
+L["After a harmful spell targets the reticle enemy, restore the previous ally. On by default for Healer specs until changed."] =
+  "После вредоносного заклинания по врагу под прицелом возвращает прежнего союзника. Для специализаций целителей включено по умолчанию, пока вы не измените."
+L["Disabled while Auto Target Lock is on"] =
+  "Отключено, пока включен автоматический захват цели"
+L["ALLY HUD"] = "HUD СОЮЗНИКА"
+L["A HUD displaying the group member Ally Cycle has selected."] =
+  "HUD, показывающий участника группы, выбранного сменой союзника."
+L["Ally HUD"] = "HUD союзника"
+L["Show a unit frame for the currently selected group member."] =
+  "Показывает рамку выбранного участника группы."
+L["Where the Ally HUD sits relative to the crosshair."] =
+  "Положение HUD союзника относительно прицела."
+L["Scales the size of the Ally HUD."] =
+  "Масштабирует размер HUD союзника."
+L["Distance between the Ally HUD and the crosshair."] =
+  "Расстояние между HUD союзника и прицелом."

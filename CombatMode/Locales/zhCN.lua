@@ -380,3 +380,31 @@ L["Helpful spells that open a party targeting wheel while their key is held. Fli
   "按住按键时会打开队伍选取轮盘的增益法术。向队友方向滑动并松开即可对其施法，回到中心则对自己施法。轻按则对友方目标施法，未选择目标时对自己施法。"
 L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
   "编辑每个轮盘的扇区，重命名轮盘，以及添加或移除轮盘。"
+
+-- TabAllyCycle.lua: Ally Cycle tab
+L["Top"] = "顶部"
+L["Bottom"] = "底部"
+L["Ally Cycle"] = "友方循环"
+L["ALLY CYCLE"] = "友方循环"
+L["Seamless combat and support by allowing helpful spells to target allies, while harmful spells remain focused on the hostile crosshair target."] =
+  "战斗与辅助无缝衔接：增益法术以友方为目标，而伤害法术仍锁定准星下的敌方目标。"
+L["Ally Cycle - Next"] = "友方循环 - 下一个"
+L["Target the next group member."] = "选定下一位队伍成员。"
+L["Ally Cycle - Previous"] = "友方循环 - 上一个"
+L["Target the previous group member."] = "选定上一位队伍成员。"
+L["Skip Self"] = "跳过自己"
+L["Skip yourself when cycling through group members."] =
+  "在循环切换队伍成员时跳过自己。"
+L["Keep Ally After Harm"] = "攻击后保留友方"
+L["After a harmful spell targets the reticle enemy, restore the previous ally. On by default for Healer specs until changed."] =
+  "有害法术作用于准星下的敌人后，恢复之前的友方目标。治疗专精默认开启，直到被更改。"
+L["Disabled while Auto Target Lock is on"] = "自动目标锁定开启时已禁用"
+L["ALLY HUD"] = "友方 HUD"
+L["A HUD displaying the group member Ally Cycle has selected."] =
+  "显示友方循环所选队伍成员的 HUD。"
+L["Ally HUD"] = "友方 HUD"
+L["Show a unit frame for the currently selected group member."] =
+  "为当前选定的队伍成员显示单位框体。"
+L["Where the Ally HUD sits relative to the crosshair."] = "友方 HUD 相对于准星的位置。"
+L["Scales the size of the Ally HUD."] = "缩放友方 HUD 的大小。"
+L["Distance between the Ally HUD and the crosshair."] = "友方 HUD 与准星之间的距离。"

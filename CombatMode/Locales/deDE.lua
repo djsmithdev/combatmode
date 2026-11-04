@@ -393,3 +393,34 @@ L["Helpful spells that open a party targeting wheel while their key is held. Fli
   "Hilfreiche Zauber, die bei gehaltener Taste ein Gruppen-Zielrad öffnen. Wische zu einem Gruppenmitglied und lasse los, um ihn darauf zu wirken, oder kehre zur Mitte zurück, um dich selbst zu zielen. Kurz tippen wirkt auf dein freundliches Ziel, oder auf dich, wenn keins gewählt ist."
 L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
   "Bearbeite die Segmente jedes Rads, benenne Räder um und füge Räder hinzu oder entferne sie."
+
+-- TabAllyCycle.lua: Ally Cycle tab
+L["Top"] = "Oben"
+L["Bottom"] = "Unten"
+L["Ally Cycle"] = "Verbündetenwechsel"
+L["ALLY CYCLE"] = "VERBÜNDETENWECHSEL"
+L["Seamless combat and support by allowing helpful spells to target allies, while harmful spells remain focused on the hostile crosshair target."] =
+  "Nahtloser Kampf und Support: Hilfreiche Zauber zielen auf Verbündete, schädliche Zauber bleiben auf das feindliche Ziel im Fadenkreuz gerichtet."
+L["Ally Cycle - Next"] = "Verbündetenwechsel – Nächster"
+L["Target the next group member."] = "Nächstes Gruppenmitglied anvisieren."
+L["Ally Cycle - Previous"] = "Verbündetenwechsel – Vorheriger"
+L["Target the previous group member."] = "Vorheriges Gruppenmitglied anvisieren."
+L["Skip Self"] = "Sich selbst überspringen"
+L["Skip yourself when cycling through group members."] =
+  "Überspringt dich selbst beim Durchwechseln der Gruppenmitglieder."
+L["Keep Ally After Harm"] = "Verbündeten nach Schaden behalten"
+L["After a harmful spell targets the reticle enemy, restore the previous ally. On by default for Healer specs until changed."] =
+  "Nachdem ein schädlicher Zauber den Feind im Fadenkreuz getroffen hat, wird der vorherige Verbündete wiederhergestellt. Für Heilerspezialisierungen standardmäßig aktiv, bis es geändert wird."
+L["Disabled while Auto Target Lock is on"] =
+  "Deaktiviert, solange Automatische Zielsperre aktiv ist"
+L["ALLY HUD"] = "VERBÜNDETEN-HUD"
+L["A HUD displaying the group member Ally Cycle has selected."] =
+  "Ein HUD, das das vom Verbündetenwechsel gewählte Gruppenmitglied anzeigt."
+L["Ally HUD"] = "Verbündeten-HUD"
+L["Show a unit frame for the currently selected group member."] =
+  "Zeigt einen Einheitenrahmen für das aktuell gewählte Gruppenmitglied."
+L["Where the Ally HUD sits relative to the crosshair."] =
+  "Wo das Verbündeten-HUD relativ zum Fadenkreuz sitzt."
+L["Scales the size of the Ally HUD."] = "Skaliert die Größe des Verbündeten-HUD."
+L["Distance between the Ally HUD and the crosshair."] =
+  "Abstand zwischen Verbündeten-HUD und Fadenkreuz."

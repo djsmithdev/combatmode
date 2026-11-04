@@ -394,3 +394,34 @@ L["Helpful spells that open a party targeting wheel while their key is held. Fli
   "키를 누르고 있는 동안 파티 대상 지정 휠을 여는 이로운 주문입니다. 파티원 쪽으로 밀고 떼면 그에게 시전하고, 중앙으로 돌아오면 자신에게 시전합니다. 짧게 누르면 우호적 대상에게, 선택된 대상이 없으면 자신에게 시전합니다."
 L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
   "각 휠의 칸을 편집하고, 휠 이름을 바꾸고, 휠을 추가하거나 제거합니다."
+
+-- TabAllyCycle.lua: Ally Cycle tab
+L["Top"] = "위"
+L["Bottom"] = "아래"
+L["Ally Cycle"] = "아군 순환"
+L["ALLY CYCLE"] = "아군 순환"
+L["Seamless combat and support by allowing helpful spells to target allies, while harmful spells remain focused on the hostile crosshair target."] =
+  "이로운 주문은 아군을 대상으로 하고, 해로운 주문은 조준점의 적에게 유지되어 전투와 지원을 매끄럽게 이어줍니다."
+L["Ally Cycle - Next"] = "아군 순환 - 다음"
+L["Target the next group member."] = "다음 파티원을 대상으로 지정합니다."
+L["Ally Cycle - Previous"] = "아군 순환 - 이전"
+L["Target the previous group member."] = "이전 파티원을 대상으로 지정합니다."
+L["Skip Self"] = "자신 건너뛰기"
+L["Skip yourself when cycling through group members."] =
+  "파티원을 순환할 때 자신을 건너뜁니다."
+L["Keep Ally After Harm"] = "공격 후 아군 유지"
+L["After a harmful spell targets the reticle enemy, restore the previous ally. On by default for Healer specs until changed."] =
+  "해로운 주문이 조준점의 적을 대상으로 한 뒤 이전 아군을 복원합니다. 변경하기 전까지 치유 전문화에서는 기본으로 켜져 있습니다."
+L["Disabled while Auto Target Lock is on"] =
+  "자동 대상 고정이 켜져 있는 동안 비활성화됩니다"
+L["ALLY HUD"] = "아군 HUD"
+L["A HUD displaying the group member Ally Cycle has selected."] =
+  "아군 순환이 선택한 파티원을 보여주는 HUD입니다."
+L["Ally HUD"] = "아군 HUD"
+L["Show a unit frame for the currently selected group member."] =
+  "현재 선택된 파티원의 유닛 프레임을 표시합니다."
+L["Where the Ally HUD sits relative to the crosshair."] =
+  "조준점을 기준으로 아군 HUD가 놓이는 위치입니다."
+L["Scales the size of the Ally HUD."] = "아군 HUD의 크기를 조절합니다."
+L["Distance between the Ally HUD and the crosshair."] =
+  "아군 HUD와 조준점 사이의 거리입니다."

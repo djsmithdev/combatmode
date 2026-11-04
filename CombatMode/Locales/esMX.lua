@@ -392,3 +392,34 @@ L["Helpful spells that open a party targeting wheel while their key is held. Fli
   "Hechizos beneficiosos que abren una rueda de objetivos de grupo mientras se mantiene su tecla. Desliza hacia un miembro del grupo y suelta para lanzarle el hechizo, o vuelve al centro para lanzártelo a ti. Una pulsación breve lo lanza a tu objetivo amistoso, o a ti si no hay ninguno."
 L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
   "Edita los sectores de cada rueda, renómbralas y añade o quita ruedas."
+
+-- TabAllyCycle.lua: Ally Cycle tab
+L["Top"] = "Arriba"
+L["Bottom"] = "Abajo"
+L["Ally Cycle"] = "Ciclo de aliados"
+L["ALLY CYCLE"] = "CICLO DE ALIADOS"
+L["Seamless combat and support by allowing helpful spells to target allies, while harmful spells remain focused on the hostile crosshair target."] =
+  "Combate y apoyo fluidos: los hechizos beneficiosos apuntan a los aliados, mientras que los dañinos siguen dirigidos al enemigo bajo la mira."
+L["Ally Cycle - Next"] = "Ciclo de aliados: siguiente"
+L["Target the next group member."] = "Selecciona al siguiente miembro del grupo."
+L["Ally Cycle - Previous"] = "Ciclo de aliados: anterior"
+L["Target the previous group member."] = "Selecciona al miembro anterior del grupo."
+L["Skip Self"] = "Omitirte a ti mismo"
+L["Skip yourself when cycling through group members."] =
+  "Te omite al recorrer los miembros del grupo."
+L["Keep Ally After Harm"] = "Mantener aliado tras daño"
+L["After a harmful spell targets the reticle enemy, restore the previous ally. On by default for Healer specs until changed."] =
+  "Tras un hechizo dañino sobre el enemigo de la mira, se restaura al aliado anterior. Activado por defecto en especializaciones de sanador hasta que se cambie."
+L["Disabled while Auto Target Lock is on"] =
+  "Desactivado mientras Fijar objetivo automático esté activo"
+L["ALLY HUD"] = "HUD DE ALIADOS"
+L["A HUD displaying the group member Ally Cycle has selected."] =
+  "Un HUD que muestra al miembro del grupo seleccionado por el ciclo de aliados."
+L["Ally HUD"] = "HUD de aliados"
+L["Show a unit frame for the currently selected group member."] =
+  "Muestra un marco de unidad del miembro del grupo seleccionado."
+L["Where the Ally HUD sits relative to the crosshair."] =
+  "Dónde se sitúa el HUD de aliados respecto a la mira."
+L["Scales the size of the Ally HUD."] = "Escala el tamaño del HUD de aliados."
+L["Distance between the Ally HUD and the crosshair."] =
+  "Distancia entre el HUD de aliados y la mira."

@@ -189,8 +189,8 @@ local STEPS = {
   },
   {
     tab = "allycycle",
-    section = "ALLY CYCLE",
-    sectionEnd = "ALLY HUD",
+    section = L["ALLY CYCLE"],
+    sectionEnd = L["ALLY HUD"],
     preview = "ally",
     title = "Ally Cycle",
     slides = { "allycycle", 3 },
