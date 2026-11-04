@@ -241,3 +241,51 @@ L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocus
 L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
   "暴雪會從角色模型前方的扇形區域中選取軟目標，不會考慮準星位置或越肩偏移。"
 L["No selection circle."] = "不顯示選取圈。"
+
+-- TabCrosshair.lua: Crosshair tab
+L["Crosshair"] = "準星"
+L["CROSSHAIR"] = "準星"
+L["A dynamic crosshair that reacts to targets and combat states, enhancing precision and guiding Reticle Targeting."] =
+  "會對目標和戰鬥狀態做出反應的動態準星，可提升精準度並引導準星瞄準。"
+L["Enable Crosshair"] = "啟用準星"
+L["While in Mouse Look, display a dynamic & reactive crosshair on your screen."] =
+  "處於滑鼠視角時，在螢幕上顯示動態且有回饋的準星。"
+L["Cast Feedback"] = "施法回饋"
+L["Crosshair provides visual feedback while casting."] = "施法時準星會提供視覺回饋。"
+L["Appearance"] = "外觀"
+L["Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset."] =
+  "準星在各狀態下使用的紋理。點擊其一可選擇紋理，也可從預設開始。"
+L["Inactive"] = "未啟用"
+L["Active"] = "已啟用"
+L["Mounted"] = "騎乘中"
+L["Disabled"] = "已停用"
+L["Reaction Colors"] = "反應顏色"
+L["Edit"] = "編輯"
+L["Customize the colors used by the crosshair when targeting different types of units."] =
+  "自訂準星瞄準不同類型單位時使用的顏色。"
+L["Scale"] = "縮放"
+L["Scales the size of the crosshair."] = "縮放準星的大小。"
+L["Vertical Position"] = "垂直位置"
+L["Move the crosshair up or down from screen center."] =
+  "將準星從螢幕中心上移或下移。"
+L["ASSIST HUD"] = "輔助HUD"
+L["A HUD that guides spell rotation when targeting enemies and displays interaction prompts."] =
+  "瞄準敵人時引導技能循環，並顯示互動提示的HUD。"
+L["Next-cast Suggestion"] = "下一個施法建議"
+L["Show the Assisted Highlight's next-cast suggestion while aiming at a target."] =
+  "瞄準目標時顯示輔助醒目提示的下一個施法建議。"
+L["Always"] = "始終"
+L["Only In Combat"] = "僅戰鬥中"
+L["Interactable Indicator"] = "可互動指示"
+L["Show an indicator while aiming at an interactable unit or object."] =
+  "瞄準可互動的單位或物件時顯示指示。"
+L["Player Interaction Prompt"] = "玩家互動提示"
+L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
+  "瞄準玩家一秒後顯示指示。按下互動鍵即可開啟其右鍵選單。"
+L["Position"] = "位置"
+L["Which side of the crosshair the HUD appears on."] = "HUD顯示在準星的哪一側。"
+L["Left"] = "左"
+L["Right"] = "右"
+L["Scales the size of the HUD."] = "縮放HUD的大小。"
+L["Distance"] = "距離"
+L["Distance between the HUD and the crosshair."] = "HUD與準星之間的距離。"

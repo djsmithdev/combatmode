@@ -250,3 +250,52 @@ L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocus
 L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
   "Blizzard sceglie il bersaglio morbido da un arco davanti al modello del personaggio. Non tiene conto della posizione del mirino né dell'offset spalla."
 L["No selection circle."] = "Nessun cerchio di selezione."
+
+-- TabCrosshair.lua: Crosshair tab
+L["Crosshair"] = "Mirino"
+L["CROSSHAIR"] = "MIRINO"
+L["A dynamic crosshair that reacts to targets and combat states, enhancing precision and guiding Reticle Targeting."] =
+  "Un mirino dinamico che reagisce a bersagli e stati di combattimento, migliora la precisione e guida il puntamento a mirino."
+L["Enable Crosshair"] = "Attiva mirino"
+L["While in Mouse Look, display a dynamic & reactive crosshair on your screen."] =
+  "Mostra sul display un mirino dinamico e reattivo durante la vista con mouse."
+L["Cast Feedback"] = "Feedback di lancio"
+L["Crosshair provides visual feedback while casting."] =
+  "Il mirino fornisce un feedback visivo durante il lancio."
+L["Appearance"] = "Aspetto"
+L["Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset."] =
+  "Texture usate dal mirino per ogni stato. Fai clic su una per sceglierne la texture, oppure parti da un preset."
+L["Inactive"] = "Inattivo"
+L["Active"] = "Attivo"
+L["Mounted"] = "In sella"
+L["Disabled"] = "Disattivato"
+L["Reaction Colors"] = "Colori di reazione"
+L["Edit"] = "Modifica"
+L["Customize the colors used by the crosshair when targeting different types of units."] =
+  "Personalizza i colori usati dal mirino quando punti diversi tipi di unità."
+L["Scale"] = "Scala"
+L["Scales the size of the crosshair."] = "Ridimensiona il mirino."
+L["Vertical Position"] = "Posizione verticale"
+L["Move the crosshair up or down from screen center."] =
+  "Sposta il mirino in alto o in basso rispetto al centro dello schermo."
+L["ASSIST HUD"] = "HUD DI ASSISTENZA"
+L["A HUD that guides spell rotation when targeting enemies and displays interaction prompts."] =
+  "Un HUD che guida la rotazione degli incantesimi quando punti i nemici e mostra suggerimenti di interazione."
+L["Next-cast Suggestion"] = "Suggerimento del prossimo incantesimo"
+L["Show the Assisted Highlight's next-cast suggestion while aiming at a target."] =
+  "Mostra il suggerimento del prossimo incantesimo dell'evidenziazione assistita mentre punti un bersaglio."
+L["Always"] = "Sempre"
+L["Only In Combat"] = "Solo in combattimento"
+L["Interactable Indicator"] = "Indicatore di interazione"
+L["Show an indicator while aiming at an interactable unit or object."] =
+  "Mostra un indicatore mentre punti un'unità o un oggetto con cui si può interagire."
+L["Player Interaction Prompt"] = "Suggerimento di interazione con i giocatori"
+L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
+  "Mostra un indicatore quando miri un giocatore per un secondo. Premendo il tasto di interazione si apre il suo menu contestuale."
+L["Position"] = "Posizione"
+L["Which side of the crosshair the HUD appears on."] = "Su quale lato del mirino compare l'HUD."
+L["Left"] = "Sinistra"
+L["Right"] = "Destra"
+L["Scales the size of the HUD."] = "Ridimensiona l'HUD."
+L["Distance"] = "Distanza"
+L["Distance between the HUD and the crosshair."] = "Distanza tra l'HUD e il mirino."

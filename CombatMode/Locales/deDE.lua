@@ -250,3 +250,53 @@ L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocus
 L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
   "Blizzard wählt das weiche Ziel aus einem Bogen vor deinem Charaktermodell. Fadenkreuzposition und Schulterversatz werden dabei nicht berücksichtigt."
 L["No selection circle."] = "Kein Auswahlkreis."
+
+-- TabCrosshair.lua: Crosshair tab
+L["Crosshair"] = "Fadenkreuz"
+L["CROSSHAIR"] = "FADENKREUZ"
+L["A dynamic crosshair that reacts to targets and combat states, enhancing precision and guiding Reticle Targeting."] =
+  "Ein dynamisches Fadenkreuz, das auf Ziele und Kampfzustände reagiert, die Präzision erhöht und die Fadenkreuz-Zielerfassung leitet."
+L["Enable Crosshair"] = "Fadenkreuz aktivieren"
+L["While in Mouse Look, display a dynamic & reactive crosshair on your screen."] =
+  "Zeigt im Mausblick ein dynamisches, reaktives Fadenkreuz auf dem Bildschirm an."
+L["Cast Feedback"] = "Zauber-Rückmeldung"
+L["Crosshair provides visual feedback while casting."] =
+  "Das Fadenkreuz gibt beim Zaubern visuelles Feedback."
+L["Appearance"] = "Aussehen"
+L["Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset."] =
+  "Vom Fadenkreuz für jeden Zustand verwendete Texturen. Klicke auf eine, um ihre Textur zu wählen, oder beginne mit einer Vorlage."
+L["Inactive"] = "Inaktiv"
+L["Active"] = "Aktiv"
+L["Mounted"] = "Beritten"
+L["Disabled"] = "Deaktiviert"
+L["Reaction Colors"] = "Reaktionsfarben"
+L["Edit"] = "Bearbeiten"
+L["Customize the colors used by the crosshair when targeting different types of units."] =
+  "Passe die Farben an, die das Fadenkreuz bei verschiedenen Einheitentypen verwendet."
+L["Scale"] = "Skalierung"
+L["Scales the size of the crosshair."] = "Skaliert die Größe des Fadenkreuzes."
+L["Vertical Position"] = "Vertikale Position"
+L["Move the crosshair up or down from screen center."] =
+  "Verschiebt das Fadenkreuz von der Bildschirmmitte nach oben oder unten."
+L["ASSIST HUD"] = "ASSIST-HUD"
+L["A HUD that guides spell rotation when targeting enemies and displays interaction prompts."] =
+  "Ein HUD, das die Zauberrotation beim Anvisieren von Gegnern leitet und Interaktionshinweise anzeigt."
+L["Next-cast Suggestion"] = "Vorschlag für den nächsten Zauber"
+L["Show the Assisted Highlight's next-cast suggestion while aiming at a target."] =
+  "Zeigt den Vorschlag der Hervorhebungshilfe für den nächsten Zauber, während du ein Ziel anvisierst."
+L["Always"] = "Immer"
+L["Only In Combat"] = "Nur im Kampf"
+L["Interactable Indicator"] = "Interaktionsanzeige"
+L["Show an indicator while aiming at an interactable unit or object."] =
+  "Zeigt eine Anzeige, während du eine interagierbare Einheit oder ein Objekt anvisierst."
+L["Player Interaction Prompt"] = "Spielerinteraktions-Hinweis"
+L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
+  "Zeigt eine Anzeige, wenn du eine Sekunde lang auf einen Spieler zielst. Die Interaktionstaste öffnet dann sein Kontextmenü."
+L["Position"] = "Position"
+L["Which side of the crosshair the HUD appears on."] =
+  "Auf welcher Seite des Fadenkreuzes das HUD erscheint."
+L["Left"] = "Links"
+L["Right"] = "Rechts"
+L["Scales the size of the HUD."] = "Skaliert die Größe des HUDs."
+L["Distance"] = "Abstand"
+L["Distance between the HUD and the crosshair."] = "Abstand zwischen HUD und Fadenkreuz."

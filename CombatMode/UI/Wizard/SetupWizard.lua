@@ -87,7 +87,7 @@ local STEPS = {
   },
   {
     tab = "crosshair",
-    section = "CROSSHAIR",
+    section = L["CROSSHAIR"],
     preview = "crosshair",
     title = "Crosshair",
     slides = { "crosshair", 4 },
@@ -95,7 +95,7 @@ local STEPS = {
   },
   {
     tab = "crosshair",
-    section = "ASSIST HUD",
+    section = L["ASSIST HUD"],
     preview = "assist",
     title = "Assist HUD",
     slides = { "assisthud", 3 },

@@ -251,3 +251,53 @@ L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocus
 L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
   "블리자드는 캐릭터 모델 앞쪽 호 안에서 소프트 대상을 고릅니다. 조준점 위치나 어깨 시점 오프셋은 고려하지 않습니다."
 L["No selection circle."] = "선택 원이 표시되지 않습니다."
+
+-- TabCrosshair.lua: Crosshair tab
+L["Crosshair"] = "조준점"
+L["CROSSHAIR"] = "조준점"
+L["A dynamic crosshair that reacts to targets and combat states, enhancing precision and guiding Reticle Targeting."] =
+  "대상과 전투 상태에 반응하는 동적 조준점으로, 정확도를 높이고 조준선 대상 지정을 안내합니다."
+L["Enable Crosshair"] = "조준점 사용"
+L["While in Mouse Look, display a dynamic & reactive crosshair on your screen."] =
+  "마우스 룩 중에 화면에 동적이고 반응하는 조준점을 표시합니다."
+L["Cast Feedback"] = "시전 피드백"
+L["Crosshair provides visual feedback while casting."] =
+  "시전하는 동안 조준점이 시각적 피드백을 제공합니다."
+L["Appearance"] = "모양"
+L["Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset."] =
+  "각 상태에서 조준점이 사용하는 텍스처입니다. 하나를 클릭하여 텍스처를 고르거나 프리셋으로 시작하세요."
+L["Inactive"] = "비활성"
+L["Active"] = "활성"
+L["Mounted"] = "탈것 탑승"
+L["Disabled"] = "비활성화됨"
+L["Reaction Colors"] = "반응 색상"
+L["Edit"] = "편집"
+L["Customize the colors used by the crosshair when targeting different types of units."] =
+  "서로 다른 종류의 유닛을 조준할 때 조준점이 사용하는 색상을 설정합니다."
+L["Scale"] = "크기"
+L["Scales the size of the crosshair."] = "조준점의 크기를 조절합니다."
+L["Vertical Position"] = "세로 위치"
+L["Move the crosshair up or down from screen center."] =
+  "조준점을 화면 중앙에서 위나 아래로 이동합니다."
+L["ASSIST HUD"] = "보조 HUD"
+L["A HUD that guides spell rotation when targeting enemies and displays interaction prompts."] =
+  "적을 조준할 때 주문 연계를 안내하고 상호작용 안내를 표시하는 HUD입니다."
+L["Next-cast Suggestion"] = "다음 시전 추천"
+L["Show the Assisted Highlight's next-cast suggestion while aiming at a target."] =
+  "대상을 조준하는 동안 보조 강조의 다음 시전 추천을 표시합니다."
+L["Always"] = "항상"
+L["Only In Combat"] = "전투 중에만"
+L["Interactable Indicator"] = "상호작용 표시기"
+L["Show an indicator while aiming at an interactable unit or object."] =
+  "상호작용 가능한 유닛이나 오브젝트를 조준하는 동안 표시기를 보여줍니다."
+L["Player Interaction Prompt"] = "플레이어 상호작용 안내"
+L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
+  "플레이어를 1초간 조준하면 표시기를 보여줍니다. 상호작용 키를 누르면 해당 플레이어의 메뉴가 열립니다."
+L["Position"] = "위치"
+L["Which side of the crosshair the HUD appears on."] =
+  "HUD가 조준점의 어느 쪽에 표시될지 정합니다."
+L["Left"] = "왼쪽"
+L["Right"] = "오른쪽"
+L["Scales the size of the HUD."] = "HUD의 크기를 조절합니다."
+L["Distance"] = "거리"
+L["Distance between the HUD and the crosshair."] = "HUD와 조준점 사이의 거리입니다."

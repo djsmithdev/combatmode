@@ -250,3 +250,52 @@ L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocus
 L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
   "A Blizzard escolhe o alvo suave em um arco à frente do modelo do personagem. Não leva em conta a posição da mira nem o deslocamento de ombro."
 L["No selection circle."] = "Sem círculo de seleção."
+
+-- TabCrosshair.lua: Crosshair tab
+L["Crosshair"] = "Mira"
+L["CROSSHAIR"] = "MIRA"
+L["A dynamic crosshair that reacts to targets and combat states, enhancing precision and guiding Reticle Targeting."] =
+  "Uma mira dinâmica que reage a alvos e estados de combate, aumenta a precisão e orienta a Mira de Alvo."
+L["Enable Crosshair"] = "Ativar mira"
+L["While in Mouse Look, display a dynamic & reactive crosshair on your screen."] =
+  "Durante a visão pelo mouse, exibe uma mira dinâmica e reativa na tela."
+L["Cast Feedback"] = "Feedback de lançamento"
+L["Crosshair provides visual feedback while casting."] =
+  "A mira fornece feedback visual durante o lançamento."
+L["Appearance"] = "Aparência"
+L["Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset."] =
+  "Texturas usadas pela mira em cada estado. Clique em uma para escolher a textura ou comece por uma predefinição."
+L["Inactive"] = "Inativa"
+L["Active"] = "Ativa"
+L["Mounted"] = "Montado"
+L["Disabled"] = "Desativada"
+L["Reaction Colors"] = "Cores de reação"
+L["Edit"] = "Editar"
+L["Customize the colors used by the crosshair when targeting different types of units."] =
+  "Personalize as cores usadas pela mira ao mirar em diferentes tipos de unidades."
+L["Scale"] = "Escala"
+L["Scales the size of the crosshair."] = "Ajusta o tamanho da mira."
+L["Vertical Position"] = "Posição vertical"
+L["Move the crosshair up or down from screen center."] =
+  "Move a mira para cima ou para baixo a partir do centro da tela."
+L["ASSIST HUD"] = "HUD DE ASSISTÊNCIA"
+L["A HUD that guides spell rotation when targeting enemies and displays interaction prompts."] =
+  "Um HUD que orienta a rotação de feitiços ao mirar em inimigos e exibe avisos de interação."
+L["Next-cast Suggestion"] = "Sugestão do próximo feitiço"
+L["Show the Assisted Highlight's next-cast suggestion while aiming at a target."] =
+  "Mostra a sugestão do próximo feitiço do Destaque Assistido enquanto você mira em um alvo."
+L["Always"] = "Sempre"
+L["Only In Combat"] = "Apenas em combate"
+L["Interactable Indicator"] = "Indicador de interação"
+L["Show an indicator while aiming at an interactable unit or object."] =
+  "Mostra um indicador ao mirar em uma unidade ou objeto interagível."
+L["Player Interaction Prompt"] = "Aviso de interação com jogadores"
+L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
+  "Mostra um indicador ao mirar em um jogador por um segundo. Pressionar a tecla de interação abre o menu de contexto dele."
+L["Position"] = "Posição"
+L["Which side of the crosshair the HUD appears on."] = "Em qual lado da mira o HUD aparece."
+L["Left"] = "Esquerda"
+L["Right"] = "Direita"
+L["Scales the size of the HUD."] = "Ajusta o tamanho do HUD."
+L["Distance"] = "Distância"
+L["Distance between the HUD and the crosshair."] = "Distância entre o HUD e a mira."

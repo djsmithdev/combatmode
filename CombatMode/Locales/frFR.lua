@@ -249,3 +249,53 @@ L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocus
 L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
   "Blizzard choisit la cible souple dans un arc devant le modèle de votre personnage. Elle ne tient compte ni de la position du réticule ni du décalage d'épaule."
 L["No selection circle."] = "Aucun cercle de sélection."
+
+-- TabCrosshair.lua: Crosshair tab
+L["Crosshair"] = "Réticule"
+L["CROSSHAIR"] = "RÉTICULE"
+L["A dynamic crosshair that reacts to targets and combat states, enhancing precision and guiding Reticle Targeting."] =
+  "Un réticule dynamique qui réagit aux cibles et aux états de combat, améliore la précision et guide le ciblage par réticule."
+L["Enable Crosshair"] = "Activer le réticule"
+L["While in Mouse Look, display a dynamic & reactive crosshair on your screen."] =
+  "Affiche à l'écran un réticule dynamique et réactif pendant la vue à la souris."
+L["Cast Feedback"] = "Retour visuel d'incantation"
+L["Crosshair provides visual feedback while casting."] =
+  "Le réticule fournit un retour visuel pendant l'incantation."
+L["Appearance"] = "Apparence"
+L["Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset."] =
+  "Textures utilisées par le réticule pour chaque état. Cliquez sur l'une pour choisir sa texture, ou partez d'un préréglage."
+L["Inactive"] = "Inactif"
+L["Active"] = "Actif"
+L["Mounted"] = "Monté"
+L["Disabled"] = "Désactivé"
+L["Reaction Colors"] = "Couleurs de réaction"
+L["Edit"] = "Modifier"
+L["Customize the colors used by the crosshair when targeting different types of units."] =
+  "Personnalisez les couleurs utilisées par le réticule selon le type d'unité ciblée."
+L["Scale"] = "Échelle"
+L["Scales the size of the crosshair."] = "Modifie la taille du réticule."
+L["Vertical Position"] = "Position verticale"
+L["Move the crosshair up or down from screen center."] =
+  "Déplace le réticule vers le haut ou le bas depuis le centre de l'écran."
+L["ASSIST HUD"] = "ATH D'ASSISTANCE"
+L["A HUD that guides spell rotation when targeting enemies and displays interaction prompts."] =
+  "Un ATH qui guide la rotation des sorts face aux ennemis et affiche les invites d'interaction."
+L["Next-cast Suggestion"] = "Suggestion du prochain sort"
+L["Show the Assisted Highlight's next-cast suggestion while aiming at a target."] =
+  "Affiche la suggestion du prochain sort de la mise en évidence assistée pendant que vous visez une cible."
+L["Always"] = "Toujours"
+L["Only In Combat"] = "En combat uniquement"
+L["Interactable Indicator"] = "Indicateur d'interaction"
+L["Show an indicator while aiming at an interactable unit or object."] =
+  "Affiche un indicateur lorsque vous visez une unité ou un objet avec lequel interagir."
+L["Player Interaction Prompt"] = "Invite d'interaction avec les joueurs"
+L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
+  "Affiche un indicateur lorsque vous visez un joueur pendant une seconde. Appuyer sur la touche d'interaction ouvre son menu contextuel."
+L["Position"] = "Position"
+L["Which side of the crosshair the HUD appears on."] =
+  "De quel côté du réticule l'ATH apparaît."
+L["Left"] = "Gauche"
+L["Right"] = "Droite"
+L["Scales the size of the HUD."] = "Modifie la taille de l'ATH."
+L["Distance"] = "Distance"
+L["Distance between the HUD and the crosshair."] = "Distance entre l'ATH et le réticule."

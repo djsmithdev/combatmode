@@ -199,3 +199,46 @@ L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocus
 L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
   true
 L["No selection circle."] = true
+
+-- TabCrosshair.lua: Crosshair tab
+L["Crosshair"] = true
+L["CROSSHAIR"] = true
+L["A dynamic crosshair that reacts to targets and combat states, enhancing precision and guiding Reticle Targeting."] =
+  true
+L["Enable Crosshair"] = true
+L["While in Mouse Look, display a dynamic & reactive crosshair on your screen."] = true
+L["Cast Feedback"] = true
+L["Crosshair provides visual feedback while casting."] = true
+L["Appearance"] = true
+L["Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset."] =
+  true
+L["Inactive"] = true
+L["Active"] = true
+L["Mounted"] = true
+L["Disabled"] = true
+L["Reaction Colors"] = true
+L["Edit"] = true
+L["Customize the colors used by the crosshair when targeting different types of units."] = true
+L["Scale"] = true
+L["Scales the size of the crosshair."] = true
+L["Vertical Position"] = true
+L["Move the crosshair up or down from screen center."] = true
+L["ASSIST HUD"] = true
+L["A HUD that guides spell rotation when targeting enemies and displays interaction prompts."] =
+  true
+L["Next-cast Suggestion"] = true
+L["Show the Assisted Highlight's next-cast suggestion while aiming at a target."] = true
+L["Always"] = true
+L["Only In Combat"] = true
+L["Interactable Indicator"] = true
+L["Show an indicator while aiming at an interactable unit or object."] = true
+L["Player Interaction Prompt"] = true
+L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
+  true
+L["Position"] = true
+L["Which side of the crosshair the HUD appears on."] = true
+L["Left"] = true
+L["Right"] = true
+L["Scales the size of the HUD."] = true
+L["Distance"] = true
+L["Distance between the HUD and the crosshair."] = true

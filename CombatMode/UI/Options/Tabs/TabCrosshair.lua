@@ -20,6 +20,7 @@
 --  UI/Options/Tabs/TabAdvanced.lua, Constants/Assets.lua, Constants/DatabaseDefaults.lua
 ---------------------------------------------------------------------------------------
 local _, CM = ...
+local L = CM.L
 local _G = _G
 
 -- Lua stdlib
@@ -46,7 +47,7 @@ end
 
 UI.Options.AddTab({
   id = "crosshair",
-  label = "Crosshair",
+  label = L["Crosshair"],
   newFeatureFlag = true,
   onSelect = function()
     CM.SetCrosshairOptionsPreview(true)
@@ -55,14 +56,14 @@ UI.Options.AddTab({
     CM.SetCrosshairOptionsPreview(false)
   end,
   build = function(ctx)
-    ctx:Header("CROSSHAIR")
+    ctx:Header(L["CROSSHAIR"])
     ctx:Description(
-      "A dynamic crosshair that reacts to targets and combat states, enhancing precision and guiding Reticle Targeting."
+      L["A dynamic crosshair that reacts to targets and combat states, enhancing precision and guiding Reticle Targeting."]
     )
 
     ctx:Toggle({
-      label = "Enable Crosshair",
-      desc = "While in Mouse Look, display a dynamic & reactive crosshair on your screen.",
+      label = L["Enable Crosshair"],
+      desc = L["While in Mouse Look, display a dynamic & reactive crosshair on your screen."],
       get = function()
         return CM.DB.global.crosshair
       end,
@@ -73,8 +74,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Cast Feedback",
-      desc = "Crosshair provides visual feedback while casting.",
+      label = L["Cast Feedback"],
+      desc = L["Crosshair provides visual feedback while casting."],
       get = function()
         return CM.DB.global.crosshairCastFeedback
       end,
@@ -88,13 +89,13 @@ UI.Options.AddTab({
     })
     ctx:Button({
       layout = "row",
-      label = "Appearance",
-      desc = "Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset.",
+      label = L["Appearance"],
+      desc = L["Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset."],
       tiles = {
-        { slot = "base", caption = "Inactive", tint = "base" },
-        { slot = "active", caption = "Active", tint = "hostile" },
-        { slot = "mounted", caption = "Mounted", tint = "base" },
-        { slot = "lock", caption = "Disabled", tint = "base" },
+        { slot = "base", caption = L["Inactive"], tint = "base" },
+        { slot = "active", caption = L["Active"], tint = "hostile" },
+        { slot = "mounted", caption = L["Mounted"], tint = "base" },
+        { slot = "lock", caption = L["Disabled"], tint = "base" },
       },
       previews = function()
         local appearance = CM.Constants.NormalizeCrosshairAppearance(
@@ -116,17 +117,17 @@ UI.Options.AddTab({
     })
     ctx:Button({
       layout = "row",
-      label = "Reaction Colors",
-      buttonLabel = "Edit",
-      desc = "Customize the colors used by the crosshair when targeting different types of units.",
+      label = L["Reaction Colors"],
+      buttonLabel = L["Edit"],
+      desc = L["Customize the colors used by the crosshair when targeting different types of units."],
       disabled = CrosshairOff,
       func = function()
         CM.OpenCrosshairColorsEditor()
       end,
     })
     ctx:Slider({
-      label = "Scale",
-      desc = "Scales the size of the crosshair.",
+      label = L["Scale"],
+      desc = L["Scales the size of the crosshair."],
       min = 0.5,
       max = 1.5,
       step = 0.05,
@@ -141,8 +142,8 @@ UI.Options.AddTab({
       disabled = CrosshairOff,
     })
     ctx:Slider({
-      label = "Vertical Position",
-      desc = "Move the crosshair up or down from screen center.",
+      label = L["Vertical Position"],
+      desc = L["Move the crosshair up or down from screen center."],
       min = -400,
       max = 400,
       step = 1,
@@ -158,17 +159,17 @@ UI.Options.AddTab({
     })
 
     ctx:Gap()
-    ctx:Header({ text = "ASSIST HUD" })
+    ctx:Header({ text = L["ASSIST HUD"] })
     ctx:Description(
-      "A HUD that guides spell rotation when targeting enemies and displays interaction prompts."
+      L["A HUD that guides spell rotation when targeting enemies and displays interaction prompts."]
     )
     ctx:Dropdown({
-      label = "Next-cast Suggestion",
-      desc = "Show the Assisted Highlight's next-cast suggestion while aiming at a target.",
+      label = L["Next-cast Suggestion"],
+      desc = L["Show the Assisted Highlight's next-cast suggestion while aiming at a target."],
       values = {
-        always = "Always",
-        combat = "Only In Combat",
-        hidden = "Hidden",
+        always = L["Always"],
+        combat = L["Only In Combat"],
+        hidden = L["Hidden"],
       },
       order = { "always", "combat", "hidden" },
       get = function()
@@ -183,14 +184,14 @@ UI.Options.AddTab({
       end,
       watermarkWhenDisabled = function()
         if not CM.IsRetailClient then
-          return "Only available on Retail"
+          return L["Only available on Retail"]
         end
         return nil
       end,
     })
     ctx:Toggle({
-      label = "Interactable Indicator",
-      desc = "Show an indicator while aiming at an interactable unit or object.",
+      label = L["Interactable Indicator"],
+      desc = L["Show an indicator while aiming at an interactable unit or object."],
       get = function()
         return CM.DB.global.interactionHUD
       end,
@@ -204,9 +205,9 @@ UI.Options.AddTab({
       disabled = CrosshairOff,
     })
     ctx:Toggle({
-      label = "Player Interaction Prompt",
+      label = L["Player Interaction Prompt"],
       newFeatureFlag = true,
-      desc = "Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu.",
+      desc = L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."],
       get = function()
         return CM.IsInteractionHUDPlayersEnabled()
       end,
@@ -219,11 +220,11 @@ UI.Options.AddTab({
       end,
     })
     ctx:Dropdown({
-      label = "Position",
-      desc = "Which side of the crosshair the HUD appears on.",
+      label = L["Position"],
+      desc = L["Which side of the crosshair the HUD appears on."],
       values = {
-        LEFT = "Left",
-        RIGHT = "Right",
+        LEFT = L["Left"],
+        RIGHT = L["Right"],
       },
       order = { "LEFT", "RIGHT" },
       get = function()
@@ -237,8 +238,8 @@ UI.Options.AddTab({
       disabled = AssistOff,
     })
     ctx:Slider({
-      label = "Scale",
-      desc = "Scales the size of the HUD.",
+      label = L["Scale"],
+      desc = L["Scales the size of the HUD."],
       min = 0.5,
       max = 1.5,
       step = 0.05,
@@ -255,8 +256,8 @@ UI.Options.AddTab({
       disabled = AssistOff,
     })
     ctx:Slider({
-      label = "Distance",
-      desc = "Distance between the HUD and the crosshair.",
+      label = L["Distance"],
+      desc = L["Distance between the HUD and the crosshair."],
       min = 0,
       max = 128,
       step = 1,

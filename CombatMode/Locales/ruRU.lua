@@ -261,3 +261,54 @@ L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocus
 L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
   "Blizzard выбирает мягкую цель из сектора перед моделью персонажа. Положение прицела и смещение через плечо не учитываются."
 L["No selection circle."] = "Круг выделения не показывается."
+
+-- TabCrosshair.lua: Crosshair tab
+L["Crosshair"] = "Прицел"
+L["CROSSHAIR"] = "ПРИЦЕЛ"
+L["A dynamic crosshair that reacts to targets and combat states, enhancing precision and guiding Reticle Targeting."] =
+  "Динамический прицел, реагирующий на цели и состояния боя, повышает точность и направляет наведение по прицелу."
+L["Enable Crosshair"] = "Включить прицел"
+L["While in Mouse Look, display a dynamic & reactive crosshair on your screen."] =
+  "Во время обзора мышью показывает на экране динамический реагирующий прицел."
+L["Cast Feedback"] = "Отклик на применение"
+L["Crosshair provides visual feedback while casting."] =
+  "Прицел визуально отзывается во время применения заклинаний."
+L["Appearance"] = "Внешний вид"
+L["Textures utilized by the crosshair for each state. Click one to pick its texture, or start from a preset."] =
+  "Текстуры прицела для каждого состояния. Нажмите на одну, чтобы выбрать текстуру, или начните с шаблона."
+L["Inactive"] = "Неактивен"
+L["Active"] = "Активен"
+L["Mounted"] = "На транспорте"
+L["Disabled"] = "Отключён"
+L["Reaction Colors"] = "Цвета реакции"
+L["Edit"] = "Изменить"
+L["Customize the colors used by the crosshair when targeting different types of units."] =
+  "Настройте цвета прицела при наведении на разные типы целей."
+L["Scale"] = "Масштаб"
+L["Scales the size of the crosshair."] = "Масштабирует размер прицела."
+L["Vertical Position"] = "Вертикальное положение"
+L["Move the crosshair up or down from screen center."] =
+  "Смещает прицел вверх или вниз от центра экрана."
+L["ASSIST HUD"] = "HUD ПОМОЩИ"
+L["A HUD that guides spell rotation when targeting enemies and displays interaction prompts."] =
+  "HUD, подсказывающий порядок заклинаний при наведении на врагов и показывающий подсказки взаимодействия."
+L["Next-cast Suggestion"] = "Подсказка следующего заклинания"
+L["Show the Assisted Highlight's next-cast suggestion while aiming at a target."] =
+  "Показывает подсказку следующего заклинания от Помощника по боевым действиям при наведении на цель."
+L["Always"] = "Всегда"
+L["Only In Combat"] = "Только в бою"
+L["Interactable Indicator"] = "Индикатор взаимодействия"
+L["Show an indicator while aiming at an interactable unit or object."] =
+  "Показывает индикатор при наведении на юнит или объект, с которым можно взаимодействовать."
+L["Player Interaction Prompt"] = "Подсказка взаимодействия с игроком"
+L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
+  "Показывает индикатор, если навести прицел на игрока на секунду. Клавиша взаимодействия откроет его контекстное меню."
+L["Position"] = "Положение"
+L["Which side of the crosshair the HUD appears on."] =
+  "С какой стороны от прицела появляется HUD."
+L["Left"] = "Слева"
+L["Right"] = "Справа"
+L["Scales the size of the HUD."] = "Масштабирует размер HUD."
+L["Distance"] = "Расстояние"
+L["Distance between the HUD and the crosshair."] =
+  "Расстояние между HUD и прицелом."
