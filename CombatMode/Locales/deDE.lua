@@ -340,3 +340,56 @@ L["Share Click Casting binds across all characters."] =
 L["Click Binds"] = "Klick-Belegungen"
 L["Base, Shift, Ctrl and Alt each have their own Left and Right Click actions."] =
   "Basis, Umschalt, Strg und Alt haben jeweils eigene Aktionen für Links- und Rechtsklick."
+
+-- TabRadialMenu.lua: Radial Menu tab
+L["Radial Menu Wheels"] = "Radialmenü-Räder"
+L["Forever"] = "Forever"
+L["Minimal"] = "Minimal"
+L["Clear Slice"] = "Segment leeren"
+L["UI Actions"] = "UI-Aktionen"
+L["Emotes"] = "Emotes"
+L["Commands"] = "Befehle"
+L["Markers"] = "Markierungen"
+L["Slice"] = "Segment"
+L["Choose an action"] = "Aktion wählen"
+L["Presets"] = "Vorlagen"
+L["New Wheel"] = "Neues Rad"
+L["Wheel"] = "Rad"
+L["You can have up to %d wheels."] = "Du kannst bis zu %d Räder haben."
+L["That can't go on a wheel. Use a spell, item, toy, mount or macro."] =
+  "Das kann nicht auf ein Rad. Verwende einen Zauber, Gegenstand, ein Spielzeug, Reittier oder Makro."
+L["Drag a spell, item, toy, mount or macro here, or click to change the action."] =
+  "Ziehe einen Zauber, Gegenstand, ein Spielzeug, Reittier oder Makro hierher oder klicke, um die Aktion zu ändern."
+L["Empty Slice"] = "Leeres Segment"
+L["Drag a spell, item, toy, mount or macro here, or click to set an action. Empty slices are left out of the wheel."] =
+  "Ziehe einen Zauber, Gegenstand, ein Spielzeug, Reittier oder Makro hierher oder klicke, um eine Aktion festzulegen. Leere Segmente werden im Rad weggelassen."
+L["A wheel needs at least one slice."] = "Ein Rad braucht mindestens ein Segment."
+L["Click to rename this wheel"] = "Klicken, um dieses Rad umzubenennen"
+L["Previous wheel"] = "Vorheriges Rad"
+L["Next wheel"] = "Nächstes Rad"
+L["Click to select this wheel, drag to reorder"] =
+  "Klicken, um dieses Rad auszuwählen; ziehen zum Umsortieren"
+L["Add Slice"] = "Segment hinzufügen"
+L["A wheel holds up to %d slices."] = "Ein Rad fasst bis zu %d Segmente."
+L["Remove Wheel"] = "Rad entfernen"
+L["Deletes this wheel and all of its slices."] = "Löscht dieses Rad und alle seine Segmente."
+L["You need at least one wheel."] = "Du brauchst mindestens ein Rad."
+L["Remove this wheel and all of its slices?"] = "Dieses Rad und alle seine Segmente entfernen?"
+L["Add Wheel"] = "Rad hinzufügen"
+L["Pick a preset wheel or a blank one."] = "Wähle ein vorgefertigtes oder ein leeres Rad."
+L["Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it.\nDrag a slice to reorder it. Right-click a slice to remove it."] =
+  "Klicke auf ein Segment, um seine Aktion zu wählen, oder lege einen Zauber, Gegenstand, ein Spielzeug, Reittier oder Makro darauf ab.\nZiehe ein Segment, um es umzusortieren. Rechtsklick entfernt es."
+L["RADIAL MENU"] = "RADIALMENÜ"
+L["Create quick access wheels for spells, items, macros, emotes, and interface shortcuts."] =
+  "Erstelle Schnellzugriffsräder für Zauber, Gegenstände, Makros, Emotes und Oberflächenkürzel."
+L["Radial Menu Keybind"] = "Radialmenü-Tastenbelegung"
+L["Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels."] =
+  "Halten, um das Radialmenü zu öffnen, ein Segment anvisieren und zum Aktivieren loslassen. Mit dem Mausrad zwischen den Rädern wechseln."
+L["Radial Menu Style"] = "Radialmenü-Stil"
+L["Choose the appearance of the Radial Menu wheels."] =
+  "Wähle das Aussehen der Radialmenü-Räder."
+L["Party Wheel Spells"] = "Gruppenrad-Zauber"
+L["Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected."] =
+  "Hilfreiche Zauber, die bei gehaltener Taste ein Gruppen-Zielrad öffnen. Wische zu einem Gruppenmitglied und lasse los, um ihn darauf zu wirken, oder kehre zur Mitte zurück, um dich selbst zu zielen. Kurz tippen wirkt auf dein freundliches Ziel, oder auf dich, wenn keins gewählt ist."
+L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
+  "Bearbeite die Segmente jedes Rads, benenne Räder um und füge Räder hinzu oder entferne sie."

@@ -353,3 +353,62 @@ L["Share Click Casting binds across all characters."] =
 L["Click Binds"] = "Привязки щелчков"
 L["Base, Shift, Ctrl and Alt each have their own Left and Right Click actions."] =
   "У базового режима, Shift, Ctrl и Alt есть свои действия для левого и правого щелчка."
+
+-- TabRadialMenu.lua: Radial Menu tab
+L["Radial Menu Wheels"] = "Колеса радиального меню"
+L["Forever"] = "Forever"
+L["Minimal"] = "Минимализм"
+L["Clear Slice"] = "Очистить сектор"
+L["UI Actions"] = "Действия интерфейса"
+L["Emotes"] = "Эмоции"
+L["Commands"] = "Команды"
+L["Markers"] = "Метки"
+L["Slice"] = "Сектор"
+L["Choose an action"] = "Выберите действие"
+L["Presets"] = "Шаблоны"
+L["New Wheel"] = "Новое колесо"
+L["Wheel"] = "Колесо"
+L["You can have up to %d wheels."] = "Можно создать не более %d колес."
+L["That can't go on a wheel. Use a spell, item, toy, mount or macro."] =
+  "Это нельзя поместить на колесо. Используйте заклинание, предмет, игрушку, средство передвижения или макрос."
+L["Drag a spell, item, toy, mount or macro here, or click to change the action."] =
+  "Перетащите сюда заклинание, предмет, игрушку, средство передвижения или макрос либо щелкните, чтобы сменить действие."
+L["Empty Slice"] = "Пустой сектор"
+L["Drag a spell, item, toy, mount or macro here, or click to set an action. Empty slices are left out of the wheel."] =
+  "Перетащите сюда заклинание, предмет, игрушку, средство передвижения или макрос либо щелкните, чтобы задать действие. Пустые секторы в колесо не попадают."
+L["A wheel needs at least one slice."] =
+  "Колесо должно содержать хотя бы один сектор."
+L["Click to rename this wheel"] =
+  "Щелкните, чтобы переименовать колесо"
+L["Previous wheel"] = "Предыдущее колесо"
+L["Next wheel"] = "Следующее колесо"
+L["Click to select this wheel, drag to reorder"] =
+  "Щелчок выбирает колесо, перетаскивание меняет порядок"
+L["Add Slice"] = "Добавить сектор"
+L["A wheel holds up to %d slices."] =
+  "На колесе может быть не более %d секторов."
+L["Remove Wheel"] = "Удалить колесо"
+L["Deletes this wheel and all of its slices."] =
+  "Удаляет это колесо и все его секторы."
+L["You need at least one wheel."] = "Нужно хотя бы одно колесо."
+L["Remove this wheel and all of its slices?"] =
+  "Удалить это колесо и все его секторы?"
+L["Add Wheel"] = "Добавить колесо"
+L["Pick a preset wheel or a blank one."] =
+  "Выберите готовое колесо или пустое."
+L["Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it.\nDrag a slice to reorder it. Right-click a slice to remove it."] =
+  "Щелкните сектор, чтобы выбрать действие, или перетащите на него заклинание, предмет, игрушку, средство передвижения или макрос.\nПеретащите сектор, чтобы изменить порядок. Правый щелчок удаляет его."
+L["RADIAL MENU"] = "РАДИАЛЬНОЕ МЕНЮ"
+L["Create quick access wheels for spells, items, macros, emotes, and interface shortcuts."] =
+  "Создавайте колеса быстрого доступа для заклинаний, предметов, макросов, эмоций и ярлыков интерфейса."
+L["Radial Menu Keybind"] = "Клавиша радиального меню"
+L["Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels."] =
+  "Удерживайте, чтобы открыть радиальное меню, наведитесь на сектор и отпустите для активации. Колесо мыши переключает колеса."
+L["Radial Menu Style"] = "Стиль радиального меню"
+L["Choose the appearance of the Radial Menu wheels."] =
+  "Выберите внешний вид колес радиального меню."
+L["Party Wheel Spells"] = "Заклинания колеса группы"
+L["Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected."] =
+  "Полезные заклинания, открывающие колесо выбора цели из группы, пока удерживается их клавиша. Сдвиньте курсор к участнику группы и отпустите, чтобы применить на него, или вернитесь в центр, чтобы применить на себя. Короткое нажатие применяет на дружественную цель, а если ее нет, то на вас."
+L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
+  "Редактируйте секторы каждого колеса, переименовывайте колеса, добавляйте и удаляйте их."

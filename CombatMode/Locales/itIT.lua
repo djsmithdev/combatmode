@@ -339,3 +339,56 @@ L["Share Click Casting binds across all characters."] =
 L["Click Binds"] = "Assegnazioni dei clic"
 L["Base, Shift, Ctrl and Alt each have their own Left and Right Click actions."] =
   "Base, Maiusc, Ctrl e Alt hanno ciascuno le proprie azioni di clic sinistro e destro."
+
+-- TabRadialMenu.lua: Radial Menu tab
+L["Radial Menu Wheels"] = "Ruote del menu radiale"
+L["Forever"] = "Forever"
+L["Minimal"] = "Minimale"
+L["Clear Slice"] = "Svuota spicchio"
+L["UI Actions"] = "Azioni dell'interfaccia"
+L["Emotes"] = "Emote"
+L["Commands"] = "Comandi"
+L["Markers"] = "Segnalini"
+L["Slice"] = "Spicchio"
+L["Choose an action"] = "Scegli un'azione"
+L["Presets"] = "Preimpostazioni"
+L["New Wheel"] = "Nuova ruota"
+L["Wheel"] = "Ruota"
+L["You can have up to %d wheels."] = "Puoi avere fino a %d ruote."
+L["That can't go on a wheel. Use a spell, item, toy, mount or macro."] =
+  "Non può andare su una ruota. Usa un incantesimo, un oggetto, un giocattolo, una cavalcatura o una macro."
+L["Drag a spell, item, toy, mount or macro here, or click to change the action."] =
+  "Trascina qui un incantesimo, un oggetto, un giocattolo, una cavalcatura o una macro, oppure clicca per cambiare l'azione."
+L["Empty Slice"] = "Spicchio vuoto"
+L["Drag a spell, item, toy, mount or macro here, or click to set an action. Empty slices are left out of the wheel."] =
+  "Trascina qui un incantesimo, un oggetto, un giocattolo, una cavalcatura o una macro, oppure clicca per impostare un'azione. Gli spicchi vuoti vengono omessi dalla ruota."
+L["A wheel needs at least one slice."] = "Una ruota ha bisogno di almeno uno spicchio."
+L["Click to rename this wheel"] = "Clicca per rinominare questa ruota"
+L["Previous wheel"] = "Ruota precedente"
+L["Next wheel"] = "Ruota successiva"
+L["Click to select this wheel, drag to reorder"] =
+  "Clicca per selezionare questa ruota, trascina per riordinare"
+L["Add Slice"] = "Aggiungi spicchio"
+L["A wheel holds up to %d slices."] = "Una ruota contiene fino a %d spicchi."
+L["Remove Wheel"] = "Rimuovi ruota"
+L["Deletes this wheel and all of its slices."] = "Elimina questa ruota e tutti i suoi spicchi."
+L["You need at least one wheel."] = "Serve almeno una ruota."
+L["Remove this wheel and all of its slices?"] = "Rimuovere questa ruota e tutti i suoi spicchi?"
+L["Add Wheel"] = "Aggiungi ruota"
+L["Pick a preset wheel or a blank one."] = "Scegli una ruota predefinita o una vuota."
+L["Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it.\nDrag a slice to reorder it. Right-click a slice to remove it."] =
+  "Clicca su uno spicchio per scegliere la sua azione, oppure rilascia su di esso un incantesimo, un oggetto, un giocattolo, una cavalcatura o una macro.\nTrascina uno spicchio per riordinarlo. Clic destro per rimuoverlo."
+L["RADIAL MENU"] = "MENU RADIALE"
+L["Create quick access wheels for spells, items, macros, emotes, and interface shortcuts."] =
+  "Crea ruote di accesso rapido per incantesimi, oggetti, macro, emote e scorciatoie dell'interfaccia."
+L["Radial Menu Keybind"] = "Tasto del menu radiale"
+L["Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels."] =
+  "Tieni premuto per aprire il menu radiale, punta uno spicchio e rilascia per attivarlo. Usa la rotellina per cambiare ruota."
+L["Radial Menu Style"] = "Stile del menu radiale"
+L["Choose the appearance of the Radial Menu wheels."] =
+  "Scegli l'aspetto delle ruote del menu radiale."
+L["Party Wheel Spells"] = "Incantesimi della ruota di gruppo"
+L["Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected."] =
+  "Incantesimi benefici che aprono una ruota di bersagli del gruppo finché il tasto è premuto. Spostati verso un membro del gruppo e rilascia per lanciarlo su di lui, oppure torna al centro per lanciarlo su di te. Un tocco lo lancia sul tuo bersaglio amico, o su di te se non ne hai uno."
+L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
+  "Modifica gli spicchi di ogni ruota, rinomina le ruote e aggiungi o rimuovi ruote."

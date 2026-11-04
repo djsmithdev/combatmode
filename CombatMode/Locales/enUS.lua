@@ -279,3 +279,50 @@ L["Account-Wide Binds"] = true
 L["Share Click Casting binds across all characters."] = true
 L["Click Binds"] = true
 L["Base, Shift, Ctrl and Alt each have their own Left and Right Click actions."] = true
+
+-- TabRadialMenu.lua: Radial Menu tab
+L["Radial Menu Wheels"] = true
+L["Forever"] = true
+L["Minimal"] = true
+L["Clear Slice"] = true
+L["UI Actions"] = true
+L["Emotes"] = true
+L["Commands"] = true
+L["Markers"] = true
+L["Slice"] = true
+L["Choose an action"] = true
+L["Presets"] = true
+L["New Wheel"] = true
+L["Wheel"] = true
+L["You can have up to %d wheels."] = true
+L["That can't go on a wheel. Use a spell, item, toy, mount or macro."] = true
+L["Drag a spell, item, toy, mount or macro here, or click to change the action."] = true
+L["Empty Slice"] = true
+L["Drag a spell, item, toy, mount or macro here, or click to set an action. Empty slices are left out of the wheel."] =
+  true
+L["A wheel needs at least one slice."] = true
+L["Click to rename this wheel"] = true
+L["Previous wheel"] = true
+L["Next wheel"] = true
+L["Click to select this wheel, drag to reorder"] = true
+L["Add Slice"] = true
+L["A wheel holds up to %d slices."] = true
+L["Remove Wheel"] = true
+L["Deletes this wheel and all of its slices."] = true
+L["You need at least one wheel."] = true
+L["Remove this wheel and all of its slices?"] = true
+L["Add Wheel"] = true
+L["Pick a preset wheel or a blank one."] = true
+L["Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it.\nDrag a slice to reorder it. Right-click a slice to remove it."] =
+  true
+L["RADIAL MENU"] = true
+L["Create quick access wheels for spells, items, macros, emotes, and interface shortcuts."] = true
+L["Radial Menu Keybind"] = true
+L["Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels."] =
+  true
+L["Radial Menu Style"] = true
+L["Choose the appearance of the Radial Menu wheels."] = true
+L["Party Wheel Spells"] = true
+L["Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected."] =
+  true
+L["Edit the slices of each wheel, rename wheels and add or remove wheels."] = true

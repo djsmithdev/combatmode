@@ -339,3 +339,56 @@ L["Share Click Casting binds across all characters."] =
 L["Click Binds"] = "Asignaciones de clic"
 L["Base, Shift, Ctrl and Alt each have their own Left and Right Click actions."] =
   "Base, Mayús, Ctrl y Alt tienen cada uno sus propias acciones de clic izquierdo y derecho."
+
+-- TabRadialMenu.lua: Radial Menu tab
+L["Radial Menu Wheels"] = "Ruedas del menú radial"
+L["Forever"] = "Forever"
+L["Minimal"] = "Minimalista"
+L["Clear Slice"] = "Vaciar sector"
+L["UI Actions"] = "Acciones de interfaz"
+L["Emotes"] = "Emociones"
+L["Commands"] = "Comandos"
+L["Markers"] = "Marcadores"
+L["Slice"] = "Sector"
+L["Choose an action"] = "Elige una acción"
+L["Presets"] = "Preajustes"
+L["New Wheel"] = "Nueva rueda"
+L["Wheel"] = "Rueda"
+L["You can have up to %d wheels."] = "Puedes tener hasta %d ruedas."
+L["That can't go on a wheel. Use a spell, item, toy, mount or macro."] =
+  "Eso no puede ir en una rueda. Usa un hechizo, objeto, juguete, montura o macro."
+L["Drag a spell, item, toy, mount or macro here, or click to change the action."] =
+  "Arrastra aquí un hechizo, objeto, juguete, montura o macro, o haz clic para cambiar la acción."
+L["Empty Slice"] = "Sector vacío"
+L["Drag a spell, item, toy, mount or macro here, or click to set an action. Empty slices are left out of the wheel."] =
+  "Arrastra aquí un hechizo, objeto, juguete, montura o macro, o haz clic para establecer una acción. Los sectores vacíos no aparecen en la rueda."
+L["A wheel needs at least one slice."] = "Una rueda necesita al menos un sector."
+L["Click to rename this wheel"] = "Haz clic para renombrar esta rueda"
+L["Previous wheel"] = "Rueda anterior"
+L["Next wheel"] = "Rueda siguiente"
+L["Click to select this wheel, drag to reorder"] =
+  "Haz clic para seleccionar esta rueda; arrastra para reordenar"
+L["Add Slice"] = "Añadir sector"
+L["A wheel holds up to %d slices."] = "Una rueda admite hasta %d sectores."
+L["Remove Wheel"] = "Quitar rueda"
+L["Deletes this wheel and all of its slices."] = "Elimina esta rueda y todos sus sectores."
+L["You need at least one wheel."] = "Necesitas al menos una rueda."
+L["Remove this wheel and all of its slices?"] = "¿Quitar esta rueda y todos sus sectores?"
+L["Add Wheel"] = "Añadir rueda"
+L["Pick a preset wheel or a blank one."] = "Elige una rueda predefinida o una en blanco."
+L["Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it.\nDrag a slice to reorder it. Right-click a slice to remove it."] =
+  "Haz clic en un sector para elegir su acción, o suelta sobre él un hechizo, objeto, juguete, montura o macro.\nArrastra un sector para reordenarlo. Clic derecho para quitarlo."
+L["RADIAL MENU"] = "MENÚ RADIAL"
+L["Create quick access wheels for spells, items, macros, emotes, and interface shortcuts."] =
+  "Crea ruedas de acceso rápido para hechizos, objetos, macros, emociones y atajos de la interfaz."
+L["Radial Menu Keybind"] = "Atajo del menú radial"
+L["Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels."] =
+  "Mantén pulsado para abrir el menú radial, apunta a un sector y suelta para activarlo. Usa la rueda del ratón para cambiar de rueda."
+L["Radial Menu Style"] = "Estilo del menú radial"
+L["Choose the appearance of the Radial Menu wheels."] =
+  "Elige el aspecto de las ruedas del menú radial."
+L["Party Wheel Spells"] = "Hechizos de la rueda de grupo"
+L["Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected."] =
+  "Hechizos beneficiosos que abren una rueda de objetivos de grupo mientras se mantiene su tecla. Desliza hacia un miembro del grupo y suelta para lanzarle el hechizo, o vuelve al centro para lanzártelo a ti. Una pulsación breve lo lanza a tu objetivo amistoso, o a ti si no hay ninguno."
+L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
+  "Edita los sectores de cada rueda, renómbralas y añade o quita ruedas."

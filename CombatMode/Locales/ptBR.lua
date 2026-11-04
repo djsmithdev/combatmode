@@ -339,3 +339,56 @@ L["Share Click Casting binds across all characters."] =
 L["Click Binds"] = "Atalhos de clique"
 L["Base, Shift, Ctrl and Alt each have their own Left and Right Click actions."] =
   "Base, Shift, Ctrl e Alt têm, cada um, as próprias ações de clique esquerdo e direito."
+
+-- TabRadialMenu.lua: Radial Menu tab
+L["Radial Menu Wheels"] = "Rodas do menu radial"
+L["Forever"] = "Forever"
+L["Minimal"] = "Minimalista"
+L["Clear Slice"] = "Limpar fatia"
+L["UI Actions"] = "Ações da interface"
+L["Emotes"] = "Emotes"
+L["Commands"] = "Comandos"
+L["Markers"] = "Marcadores"
+L["Slice"] = "Fatia"
+L["Choose an action"] = "Escolha uma ação"
+L["Presets"] = "Predefinições"
+L["New Wheel"] = "Nova roda"
+L["Wheel"] = "Roda"
+L["You can have up to %d wheels."] = "Você pode ter até %d rodas."
+L["That can't go on a wheel. Use a spell, item, toy, mount or macro."] =
+  "Isso não pode ir em uma roda. Use uma magia, item, brinquedo, montaria ou macro."
+L["Drag a spell, item, toy, mount or macro here, or click to change the action."] =
+  "Arraste uma magia, item, brinquedo, montaria ou macro para cá, ou clique para mudar a ação."
+L["Empty Slice"] = "Fatia vazia"
+L["Drag a spell, item, toy, mount or macro here, or click to set an action. Empty slices are left out of the wheel."] =
+  "Arraste uma magia, item, brinquedo, montaria ou macro para cá, ou clique para definir uma ação. Fatias vazias ficam fora da roda."
+L["A wheel needs at least one slice."] = "Uma roda precisa de pelo menos uma fatia."
+L["Click to rename this wheel"] = "Clique para renomear esta roda"
+L["Previous wheel"] = "Roda anterior"
+L["Next wheel"] = "Próxima roda"
+L["Click to select this wheel, drag to reorder"] =
+  "Clique para selecionar esta roda, arraste para reordenar"
+L["Add Slice"] = "Adicionar fatia"
+L["A wheel holds up to %d slices."] = "Uma roda comporta até %d fatias."
+L["Remove Wheel"] = "Remover roda"
+L["Deletes this wheel and all of its slices."] = "Exclui esta roda e todas as suas fatias."
+L["You need at least one wheel."] = "Você precisa de pelo menos uma roda."
+L["Remove this wheel and all of its slices?"] = "Remover esta roda e todas as suas fatias?"
+L["Add Wheel"] = "Adicionar roda"
+L["Pick a preset wheel or a blank one."] = "Escolha uma roda predefinida ou uma em branco."
+L["Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it.\nDrag a slice to reorder it. Right-click a slice to remove it."] =
+  "Clique em uma fatia para escolher sua ação, ou solte sobre ela uma magia, item, brinquedo, montaria ou macro.\nArraste uma fatia para reordená-la. Clique com o botão direito para removê-la."
+L["RADIAL MENU"] = "MENU RADIAL"
+L["Create quick access wheels for spells, items, macros, emotes, and interface shortcuts."] =
+  "Crie rodas de acesso rápido para magias, itens, macros, emotes e atalhos da interface."
+L["Radial Menu Keybind"] = "Atalho do menu radial"
+L["Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels."] =
+  "Segure para abrir o menu radial, mire em uma fatia e solte para ativá-la. Role o mouse para alternar entre rodas."
+L["Radial Menu Style"] = "Estilo do menu radial"
+L["Choose the appearance of the Radial Menu wheels."] =
+  "Escolha a aparência das rodas do menu radial."
+L["Party Wheel Spells"] = "Magias da roda de grupo"
+L["Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected."] =
+  "Magias benéficas que abrem uma roda de alvos do grupo enquanto a tecla é mantida. Mova para um membro do grupo e solte para lançar nele, ou volte ao centro para lançar em você. Um toque rápido lança no seu alvo amigável, ou em você se não houver nenhum."
+L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
+  "Edite as fatias de cada roda, renomeie rodas e adicione ou remova rodas."

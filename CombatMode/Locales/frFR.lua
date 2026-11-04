@@ -339,3 +339,56 @@ L["Share Click Casting binds across all characters."] =
 L["Click Binds"] = "Raccourcis de clic"
 L["Base, Shift, Ctrl and Alt each have their own Left and Right Click actions."] =
   "Base, Maj, Ctrl et Alt ont chacun leurs propres actions de clic gauche et droit."
+
+-- TabRadialMenu.lua: Radial Menu tab
+L["Radial Menu Wheels"] = "Roues du menu radial"
+L["Forever"] = "Forever"
+L["Minimal"] = "Minimal"
+L["Clear Slice"] = "Vider la part"
+L["UI Actions"] = "Actions d'interface"
+L["Emotes"] = "Emotes"
+L["Commands"] = "Commandes"
+L["Markers"] = "Marqueurs"
+L["Slice"] = "Part"
+L["Choose an action"] = "Choisir une action"
+L["Presets"] = "Préréglages"
+L["New Wheel"] = "Nouvelle roue"
+L["Wheel"] = "Roue"
+L["You can have up to %d wheels."] = "Vous pouvez avoir jusqu'à %d roues."
+L["That can't go on a wheel. Use a spell, item, toy, mount or macro."] =
+  "Cela ne peut pas aller sur une roue. Utilisez un sort, un objet, un jouet, une monture ou une macro."
+L["Drag a spell, item, toy, mount or macro here, or click to change the action."] =
+  "Faites glisser ici un sort, un objet, un jouet, une monture ou une macro, ou cliquez pour changer l'action."
+L["Empty Slice"] = "Part vide"
+L["Drag a spell, item, toy, mount or macro here, or click to set an action. Empty slices are left out of the wheel."] =
+  "Faites glisser ici un sort, un objet, un jouet, une monture ou une macro, ou cliquez pour définir une action. Les parts vides sont omises de la roue."
+L["A wheel needs at least one slice."] = "Une roue a besoin d'au moins une part."
+L["Click to rename this wheel"] = "Cliquez pour renommer cette roue"
+L["Previous wheel"] = "Roue précédente"
+L["Next wheel"] = "Roue suivante"
+L["Click to select this wheel, drag to reorder"] =
+  "Cliquez pour sélectionner cette roue, faites glisser pour réorganiser"
+L["Add Slice"] = "Ajouter une part"
+L["A wheel holds up to %d slices."] = "Une roue contient jusqu'à %d parts."
+L["Remove Wheel"] = "Supprimer la roue"
+L["Deletes this wheel and all of its slices."] = "Supprime cette roue et toutes ses parts."
+L["You need at least one wheel."] = "Il faut au moins une roue."
+L["Remove this wheel and all of its slices?"] = "Supprimer cette roue et toutes ses parts ?"
+L["Add Wheel"] = "Ajouter une roue"
+L["Pick a preset wheel or a blank one."] = "Choisissez une roue prédéfinie ou une roue vierge."
+L["Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it.\nDrag a slice to reorder it. Right-click a slice to remove it."] =
+  "Cliquez sur une part pour choisir son action, ou déposez dessus un sort, un objet, un jouet, une monture ou une macro.\nFaites glisser une part pour la réorganiser. Clic droit pour la supprimer."
+L["RADIAL MENU"] = "MENU RADIAL"
+L["Create quick access wheels for spells, items, macros, emotes, and interface shortcuts."] =
+  "Créez des roues d'accès rapide pour vos sorts, objets, macros, emotes et raccourcis d'interface."
+L["Radial Menu Keybind"] = "Raccourci du menu radial"
+L["Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels."] =
+  "Maintenez pour ouvrir le menu radial, visez une part, puis relâchez pour l'activer. Utilisez la molette pour changer de roue."
+L["Radial Menu Style"] = "Style du menu radial"
+L["Choose the appearance of the Radial Menu wheels."] =
+  "Choisissez l'apparence des roues du menu radial."
+L["Party Wheel Spells"] = "Sorts de la roue de groupe"
+L["Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected."] =
+  "Sorts bénéfiques qui ouvrent une roue de ciblage de groupe tant que leur touche est maintenue. Dirigez-vous vers un membre du groupe et relâchez pour le lancer sur lui, ou revenez au centre pour le lancer sur vous. Une simple pression le lance sur votre cible amie, ou sur vous si aucune n'est sélectionnée."
+L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
+  "Modifiez les parts de chaque roue, renommez-les et ajoutez ou supprimez des roues."

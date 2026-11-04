@@ -161,7 +161,7 @@ local STEPS = {
   },
   {
     tab = "radialmenu",
-    section = "RADIAL MENU",
+    section = L["RADIAL MENU"],
     title = "Radial Menu",
     slides = { "radial", 4 },
     body = "A wheel of your {spells, items, macros and shortcuts} that works in combat.\n\n"
@@ -178,7 +178,7 @@ local STEPS = {
   },
   {
     tab = "radialmenu",
-    label = "Party Wheel Spells",
+    label = L["Party Wheel Spells"],
     title = "Party Wheel",
     slides = { "partywheel", 5 },
     body = "Hold the key of a {helpful spell} listed here to open a wheel of your group members. "

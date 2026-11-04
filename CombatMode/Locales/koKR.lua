@@ -341,3 +341,56 @@ L["Share Click Casting binds across all characters."] =
 L["Click Binds"] = "클릭 단축키"
 L["Base, Shift, Ctrl and Alt each have their own Left and Right Click actions."] =
   "기본, Shift, Ctrl, Alt 각각에 고유한 왼쪽/오른쪽 클릭 동작이 있습니다."
+
+-- TabRadialMenu.lua: Radial Menu tab
+L["Radial Menu Wheels"] = "방사형 메뉴 휠"
+L["Forever"] = "Forever"
+L["Minimal"] = "미니멀"
+L["Clear Slice"] = "칸 비우기"
+L["UI Actions"] = "UI 동작"
+L["Emotes"] = "감정 표현"
+L["Commands"] = "명령어"
+L["Markers"] = "징표"
+L["Slice"] = "칸"
+L["Choose an action"] = "동작 선택"
+L["Presets"] = "프리셋"
+L["New Wheel"] = "새 휠"
+L["Wheel"] = "휠"
+L["You can have up to %d wheels."] = "휠은 최대 %d개까지 만들 수 있습니다."
+L["That can't go on a wheel. Use a spell, item, toy, mount or macro."] =
+  "휠에 넣을 수 없습니다. 주문, 아이템, 장난감, 탈것 또는 매크로를 사용하세요."
+L["Drag a spell, item, toy, mount or macro here, or click to change the action."] =
+  "주문, 아이템, 장난감, 탈것 또는 매크로를 여기로 끌어다 놓거나, 클릭하여 동작을 변경하세요."
+L["Empty Slice"] = "빈 칸"
+L["Drag a spell, item, toy, mount or macro here, or click to set an action. Empty slices are left out of the wheel."] =
+  "주문, 아이템, 장난감, 탈것 또는 매크로를 여기로 끌어다 놓거나, 클릭하여 동작을 지정하세요. 빈 칸은 휠에서 제외됩니다."
+L["A wheel needs at least one slice."] = "휠에는 최소 한 칸이 필요합니다."
+L["Click to rename this wheel"] = "클릭하여 이 휠의 이름 변경"
+L["Previous wheel"] = "이전 휠"
+L["Next wheel"] = "다음 휠"
+L["Click to select this wheel, drag to reorder"] =
+  "클릭하여 이 휠 선택, 끌어서 순서 변경"
+L["Add Slice"] = "칸 추가"
+L["A wheel holds up to %d slices."] = "휠에는 최대 %d칸까지 둘 수 있습니다."
+L["Remove Wheel"] = "휠 제거"
+L["Deletes this wheel and all of its slices."] = "이 휠과 모든 칸을 삭제합니다."
+L["You need at least one wheel."] = "휠이 최소 한 개 필요합니다."
+L["Remove this wheel and all of its slices?"] = "이 휠과 모든 칸을 제거하시겠습니까?"
+L["Add Wheel"] = "휠 추가"
+L["Pick a preset wheel or a blank one."] = "프리셋 휠 또는 빈 휠을 선택하세요."
+L["Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it.\nDrag a slice to reorder it. Right-click a slice to remove it."] =
+  "칸을 클릭해 동작을 고르거나, 주문, 아이템, 장난감, 탈것 또는 매크로를 그 위에 놓으세요.\n칸을 끌어서 순서를 바꿀 수 있습니다. 오른쪽 클릭하면 제거됩니다."
+L["RADIAL MENU"] = "방사형 메뉴"
+L["Create quick access wheels for spells, items, macros, emotes, and interface shortcuts."] =
+  "주문, 아이템, 매크로, 감정 표현, 인터페이스 단축 기능을 위한 빠른 실행 휠을 만듭니다."
+L["Radial Menu Keybind"] = "방사형 메뉴 단축키"
+L["Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels."] =
+  "누르고 있으면 방사형 메뉴가 열립니다. 칸을 조준한 뒤 떼면 실행됩니다. 마우스 휠로 휠을 전환합니다."
+L["Radial Menu Style"] = "방사형 메뉴 스타일"
+L["Choose the appearance of the Radial Menu wheels."] =
+  "방사형 메뉴 휠의 모양을 선택합니다."
+L["Party Wheel Spells"] = "파티 휠 주문"
+L["Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected."] =
+  "키를 누르고 있는 동안 파티 대상 지정 휠을 여는 이로운 주문입니다. 파티원 쪽으로 밀고 떼면 그에게 시전하고, 중앙으로 돌아오면 자신에게 시전합니다. 짧게 누르면 우호적 대상에게, 선택된 대상이 없으면 자신에게 시전합니다."
+L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
+  "각 휠의 칸을 편집하고, 휠 이름을 바꾸고, 휠을 추가하거나 제거합니다."

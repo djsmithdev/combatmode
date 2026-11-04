@@ -329,3 +329,54 @@ L["Share Click Casting binds across all characters."] =
 L["Click Binds"] = "點擊綁定"
 L["Base, Shift, Ctrl and Alt each have their own Left and Right Click actions."] =
   "基礎、Shift、Ctrl 和 Alt 各自擁有獨立的左鍵和右鍵點擊動作。"
+
+-- TabRadialMenu.lua: Radial Menu tab
+L["Radial Menu Wheels"] = "輪盤選單的輪盤"
+L["Forever"] = "Forever"
+L["Minimal"] = "極簡"
+L["Clear Slice"] = "清空扇區"
+L["UI Actions"] = "介面動作"
+L["Emotes"] = "表情"
+L["Commands"] = "指令"
+L["Markers"] = "標記"
+L["Slice"] = "扇區"
+L["Choose an action"] = "選擇動作"
+L["Presets"] = "預設"
+L["New Wheel"] = "新輪盤"
+L["Wheel"] = "輪盤"
+L["You can have up to %d wheels."] = "最多可以有 %d 個輪盤。"
+L["That can't go on a wheel. Use a spell, item, toy, mount or macro."] =
+  "無法放入輪盤。請使用法術、物品、玩具、坐騎或巨集。"
+L["Drag a spell, item, toy, mount or macro here, or click to change the action."] =
+  "將法術、物品、玩具、坐騎或巨集拖到此處，或點擊以變更動作。"
+L["Empty Slice"] = "空扇區"
+L["Drag a spell, item, toy, mount or macro here, or click to set an action. Empty slices are left out of the wheel."] =
+  "將法術、物品、玩具、坐騎或巨集拖到此處，或點擊以設定動作。空扇區不會出現在輪盤中。"
+L["A wheel needs at least one slice."] = "輪盤至少需要一個扇區。"
+L["Click to rename this wheel"] = "點擊重新命名此輪盤"
+L["Previous wheel"] = "上一個輪盤"
+L["Next wheel"] = "下一個輪盤"
+L["Click to select this wheel, drag to reorder"] = "點擊選擇此輪盤，拖曳可重新排序"
+L["Add Slice"] = "新增扇區"
+L["A wheel holds up to %d slices."] = "一個輪盤最多有 %d 個扇區。"
+L["Remove Wheel"] = "移除輪盤"
+L["Deletes this wheel and all of its slices."] = "刪除此輪盤及其所有扇區。"
+L["You need at least one wheel."] = "至少需要一個輪盤。"
+L["Remove this wheel and all of its slices?"] = "要移除此輪盤及其所有扇區嗎？"
+L["Add Wheel"] = "新增輪盤"
+L["Pick a preset wheel or a blank one."] = "選擇預設輪盤或空白輪盤。"
+L["Click a slice to choose its action, or drop a spell, item, toy, mount or macro on it.\nDrag a slice to reorder it. Right-click a slice to remove it."] =
+  "點擊扇區選擇其動作，或將法術、物品、玩具、坐騎或巨集拖放到其上。\n拖曳扇區可重新排序，按右鍵可移除。"
+L["RADIAL MENU"] = "輪盤選單"
+L["Create quick access wheels for spells, items, macros, emotes, and interface shortcuts."] =
+  "為法術、物品、巨集、表情和介面捷徑建立快速存取輪盤。"
+L["Radial Menu Keybind"] = "輪盤選單按鍵"
+L["Hold to open the radial menu, aim at a slice, then release to activate it. Scroll to switch between wheels."] =
+  "按住以開啟輪盤選單，瞄準一個扇區後放開即可觸發。捲動滑鼠滾輪可切換輪盤。"
+L["Radial Menu Style"] = "輪盤選單樣式"
+L["Choose the appearance of the Radial Menu wheels."] = "選擇輪盤選單的外觀。"
+L["Party Wheel Spells"] = "隊伍輪盤法術"
+L["Helpful spells that open a party targeting wheel while their key is held. Flick toward a party member and release to cast on them, or return to the center to cast on yourself. Tap to cast on your friendly target, or yourself if none is selected."] =
+  "按住按鍵時會開啟隊伍選取輪盤的增益法術。向隊友方向滑動並放開即可對其施法，回到中心則對自己施法。輕按則對友方目標施法，未選擇目標時對自己施法。"
+L["Edit the slices of each wheel, rename wheels and add or remove wheels."] =
+  "編輯每個輪盤的扇區、重新命名輪盤，以及新增或移除輪盤。"
