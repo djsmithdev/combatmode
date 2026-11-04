@@ -61,6 +61,12 @@ local BINDING_DISPLAY_NAMES = {
 for _, entry in ipairs(BINDING_DISPLAY_NAMES) do
   _G["BINDING_NAME_Combat Mode - " .. entry.id] = "Action Combat Mode - " .. entry.text
 end
+-- Section headers named by the `header` attribute in Bindings.xml (the client looks the text up as
+-- BINDING_HEADER_<header>; without a global it shows the raw attribute).
+_G["BINDING_HEADER_Action Combat Mode - Mouse Look"] = "Action Combat Mode - " .. L["Mouse Look"]
+_G["BINDING_HEADER_Ally Cycle"] = L["Ally Cycle"]
+_G["BINDING_HEADER_Radial Menu"] = L["Radial Menu"]
+_G["BINDING_HEADER_Reticle Targeting"] = L["Reticle Targeting"]
 
 CM.Constants.BasePrintMsg = CM.METADATA["TITLE"]
   .. " |cff00ff00v."
