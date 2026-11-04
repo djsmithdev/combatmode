@@ -37,6 +37,7 @@ Action-combat controls for World of Warcraft: Mouse Look + a reticle replace tab
 - **Architecture moves** (rename, move responsibility, load order) update `Embeds.xml`, `STRUCTURE.md`, the matching `domain-*.md` and the touched headers in the same change. Prefer API-preserving moves.
 - Keep edits in the owning module; extend existing `CM.*` APIs; preserve slash commands and keybinds unless asked.
 - Use "Action Combat Mode" in anything a player reads.
+- **Localization:** player-facing text goes through `L["English text"]` (`CM.L`), never a raw literal or a concatenated sentence (use `string.format` with placeholders). Whenever you add, change or remove such text, update `Locales/enUS.lua` **and all ten other locale files** (deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW) in the same change, with drafted translations that keep `%s`/`%d`, colour codes and "Action Combat Mode". `check-repo` fails on a missing or stale key. Details: `.claude/rules/localization.md`.
 
 ## Pitfalls
 
