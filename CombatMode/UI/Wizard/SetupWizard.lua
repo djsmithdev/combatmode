@@ -212,7 +212,7 @@ local STEPS = {
   },
   {
     tab = "autocursorunlock",
-    section = "AUTO UNLOCK",
+    section = L["AUTO UNLOCK"],
     title = "Auto Unlock",
     slides = { "autounlock", 5, 0.5 },
     body = "Mouse Look pauses when you open {bags, the map or other windows}, then resumes.\n\n"

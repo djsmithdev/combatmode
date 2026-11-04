@@ -425,3 +425,16 @@ L["Where the Ally HUD sits relative to the crosshair."] =
 L["Scales the size of the Ally HUD."] = "아군 HUD의 크기를 조절합니다."
 L["Distance between the Ally HUD and the crosshair."] =
   "아군 HUD와 조준점 사이의 거리입니다."
+
+-- TabAutoCursorUnlock.lua: Auto Unlock tab
+L["Auto Unlock"] = "자동 해제"
+L["AUTO UNLOCK"] = "자동 해제"
+L["Automatically pauses Mouse Look when windows open and resumes it when they close."] =
+  "창이 열리면 마우스 룩을 자동으로 일시 중지하고, 닫히면 다시 시작합니다."
+L["Release the cursor when UI panels open."] = "UI 창이 열리면 커서를 해제합니다."
+L["Unlock Mounts"] = "해제할 탈것"
+L["Mounts that force a cursor unlock while mounted."] =
+  "탈것을 타고 있는 동안 커서를 강제로 해제하는 탈것입니다."
+L["Extra Frames"] = "추가 프레임"
+L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
+  "자동 해제를 일으키는 추가 프레임 이름입니다. 입력해서 블리자드 및 애드온 프레임을 검색하거나, 검사 버튼으로 화면의 창을 클릭하세요."

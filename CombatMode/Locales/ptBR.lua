@@ -423,3 +423,17 @@ L["Where the Ally HUD sits relative to the crosshair."] =
 L["Scales the size of the Ally HUD."] = "Ajusta o tamanho do HUD de aliados."
 L["Distance between the Ally HUD and the crosshair."] =
   "Distância entre o HUD de aliados e a mira."
+
+-- TabAutoCursorUnlock.lua: Auto Unlock tab
+L["Auto Unlock"] = "Desbloqueio automático"
+L["AUTO UNLOCK"] = "DESBLOQUEIO AUTOMÁTICO"
+L["Automatically pauses Mouse Look when windows open and resumes it when they close."] =
+  "Pausa automaticamente a visão pelo mouse quando janelas são abertas e a retoma quando são fechadas."
+L["Release the cursor when UI panels open."] =
+  "Libera o cursor quando painéis da interface são abertos."
+L["Unlock Mounts"] = "Montarias que desbloqueiam"
+L["Mounts that force a cursor unlock while mounted."] =
+  "Montarias que liberam o cursor enquanto você está montado."
+L["Extra Frames"] = "Quadros adicionais"
+L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
+  "Nomes de quadros adicionais que acionam o desbloqueio automático. Digite para buscar quadros da Blizzard e de addons, ou use o botão de inspeção para clicar em uma janela na tela."

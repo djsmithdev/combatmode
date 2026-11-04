@@ -351,3 +351,14 @@ L["Show a unit frame for the currently selected group member."] = true
 L["Where the Ally HUD sits relative to the crosshair."] = true
 L["Scales the size of the Ally HUD."] = true
 L["Distance between the Ally HUD and the crosshair."] = true
+
+-- TabAutoCursorUnlock.lua: Auto Unlock tab
+L["Auto Unlock"] = true
+L["AUTO UNLOCK"] = true
+L["Automatically pauses Mouse Look when windows open and resumes it when they close."] = true
+L["Release the cursor when UI panels open."] = true
+L["Unlock Mounts"] = true
+L["Mounts that force a cursor unlock while mounted."] = true
+L["Extra Frames"] = true
+L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
+  true

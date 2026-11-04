@@ -408,3 +408,15 @@ L["Show a unit frame for the currently selected group member."] =
 L["Where the Ally HUD sits relative to the crosshair."] = "友方 HUD 相对于准星的位置。"
 L["Scales the size of the Ally HUD."] = "缩放友方 HUD 的大小。"
 L["Distance between the Ally HUD and the crosshair."] = "友方 HUD 与准星之间的距离。"
+
+-- TabAutoCursorUnlock.lua: Auto Unlock tab
+L["Auto Unlock"] = "自动解锁"
+L["AUTO UNLOCK"] = "自动解锁"
+L["Automatically pauses Mouse Look when windows open and resumes it when they close."] =
+  "打开窗口时自动暂停鼠标视角，关闭后恢复。"
+L["Release the cursor when UI panels open."] = "打开界面面板时释放光标。"
+L["Unlock Mounts"] = "解锁坐骑"
+L["Mounts that force a cursor unlock while mounted."] = "骑乘时会强制释放光标的坐骑。"
+L["Extra Frames"] = "额外框体"
+L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
+  "触发自动解锁的额外框体名称。输入以搜索暴雪和插件框体，或使用检查按钮点击屏幕上的窗口。"

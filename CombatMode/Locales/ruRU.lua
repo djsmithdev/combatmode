@@ -446,3 +446,17 @@ L["Scales the size of the Ally HUD."] =
   "Масштабирует размер HUD союзника."
 L["Distance between the Ally HUD and the crosshair."] =
   "Расстояние между HUD союзника и прицелом."
+
+-- TabAutoCursorUnlock.lua: Auto Unlock tab
+L["Auto Unlock"] = "Авторазблокировка"
+L["AUTO UNLOCK"] = "АВТОРАЗБЛОКИРОВКА"
+L["Automatically pauses Mouse Look when windows open and resumes it when they close."] =
+  "Автоматически приостанавливает обзор мышью при открытии окон и возобновляет его при закрытии."
+L["Release the cursor when UI panels open."] =
+  "Освобождает курсор при открытии панелей интерфейса."
+L["Unlock Mounts"] = "Транспорт для разблокировки"
+L["Mounts that force a cursor unlock while mounted."] =
+  "Транспорт, при езде на котором курсор принудительно освобождается."
+L["Extra Frames"] = "Дополнительные окна"
+L["Extra frame names that trigger an auto unlock. Type to search Blizzard and addon frames, or use the inspect button to click a window on screen."] =
+  "Имена дополнительных окон, вызывающих авторазблокировку. Введите текст для поиска окон Blizzard и аддонов или нажмите кнопку проверки и щелкните окно на экране."
