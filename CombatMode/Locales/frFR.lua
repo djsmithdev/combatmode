@@ -160,3 +160,92 @@ L["Darkens the edges of the screen while the checked situations are true."] =
 L["Vignette Match"] = "Condition de la vignette"
 L["Any: one checked situation is enough. All: every checked situation must be true at once."] =
   "N'importe laquelle : une seule situation cochée suffit. Toutes : chaque situation cochée doit être vraie en même temps."
+
+-- TabReticleTargeting.lua: Reticle Targeting tab
+L["Any Hard Target"] = "Toute cible verrouillée"
+L["Locked Target Only"] = "Cible verrouillée uniquement"
+L["Soft Target (Blizzard)"] = "Cible souple (Blizzard)"
+L["Hidden"] = "Masqué"
+L["Toggle"] = "Basculer"
+L["Switch Target"] = "Changer de cible"
+L["A UI Reload is required when making this change. Proceed?"] =
+  "Cette modification nécessite de recharger l'interface. Continuer ?"
+L["Create New Macro"] = "Créer une nouvelle macro"
+L["Write a macro that starts with your Reticle Targeting preline."] =
+  "Écrivez une macro commençant par votre préligne de Ciblage par réticule."
+L["Unavailable in combat."] = "Indisponible en combat."
+L["Drag to a button on your action bars to use."] =
+  "Faites-la glisser sur un bouton de vos barres d'action pour l'utiliser."
+L["Right-click to edit"] = "Clic droit pour modifier"
+L["+%d more in /macro"] = "+%d de plus dans /macro"
+L["Reticle Targeting Macros"] = "Macros de ciblage par réticule"
+L["Action buttons that are macros cannot automatically inherit Reticle Targeting logic. To make them adhere to these rules, create them using the Macro Composer tool, then drag them onto your bars."] =
+  "Les boutons d'action qui sont des macros n'héritent pas automatiquement de la logique du Ciblage par réticule. Pour qu'ils la respectent, créez-les avec l'outil Compositeur de macros, puis faites-les glisser sur vos barres."
+L["Reticle Targeting"] = "Ciblage par réticule"
+L["RETICLE TARGETING"] = "CIBLAGE PAR RÉTICULE"
+L["Enables aim-based unit targeting and precise placement of ground-targeted spells and AoE abilities."] =
+  "Permet de cibler des unités en visant et de placer précisément les sorts au sol et les capacités de zone."
+L["Enable Reticle Targeting"] = "Activer le ciblage par réticule"
+L["Aim the crosshair at units to pick targets instead of tab-targeting."] =
+  "Visez des unités avec le réticule pour choisir vos cibles au lieu du ciblage par tabulation."
+L["Ignore Friendlies"] = "Ignorer les amis"
+L["Ignore friendly NPCs and Players, and only target hostile units."] =
+  "Ignore les PNJ et joueurs amicaux et ne cible que les unités hostiles."
+L["Click Casting Only"] = "Lancement par clic uniquement"
+L["Apply reticle targeting logic only to Click Casting binds."] =
+  "N'applique la logique de ciblage par réticule qu'aux raccourcis de lancement par clic."
+L["Excluded Spells"] = "Sorts exclus"
+L["Spells to skip the reticle targeting logic."] =
+  "Sorts qui ignorent la logique de ciblage par réticule."
+L["Cast at Crosshair"] = "Lancer au réticule"
+L["Ground spells to cast at the crosshair location."] =
+  "Sorts au sol à lancer à l'emplacement du réticule."
+L["TARGET LOCK"] = "VERROUILLAGE DE CIBLE"
+L["Lock onto a target to prevent accidental switching, and cycle between units to prioritize specific enemies."] =
+  "Verrouillez une cible pour éviter les changements accidentels et alternez entre les unités pour prioriser certains ennemis."
+L["Warning: Target Lock uses your Focus Target. Anything else that sets your focus will interfere with it."] =
+  "Attention : le Verrouillage de cible utilise votre cible focalisée. Tout ce qui modifie votre focus le perturbera."
+L["Target Lock Keybind"] = "Touche de verrouillage de cible"
+L["Lock the reticle to a target, preventing it from swapping."] =
+  "Verrouille le réticule sur une cible pour l'empêcher de changer."
+L["Cycle Lock - Next"] = "Cycler le verrouillage – Suivant"
+L["Move Target Lock to the next valid nearby target."] =
+  "Déplace le verrouillage sur la prochaine cible valide à proximité."
+L["Cycle Lock - Previous"] = "Cycler le verrouillage – Précédent"
+L["Move Target Lock to the previous valid nearby target."] =
+  "Déplace le verrouillage sur la cible valide précédente à proximité."
+L["Target Lock Behavior"] = "Comportement du verrouillage de cible"
+L["What the Target Lock key does when you press it."] =
+  "Ce que fait la touche de verrouillage de cible lorsque vous l'appuyez."
+L["Locks your target, or the unit under the crosshair. Tap again to unlock."] =
+  "Verrouille votre cible ou l'unité sous le réticule. Appuyez à nouveau pour déverrouiller."
+L["Locks the unit under the crosshair, replacing any current lock. Tap with nothing under the crosshair to unlock. Aiming at the unit you already locked keeps the lock."] =
+  "Verrouille l'unité sous le réticule en remplaçant tout verrouillage actuel. Appuyez sans rien sous le réticule pour déverrouiller. Viser l'unité déjà verrouillée conserve le verrouillage."
+L["With Ignore Friendlies on, a friendly or dead unit under the crosshair is ignored: the lock stays where it is."] =
+  "Avec « Ignorer les amis » activé, une unité amicale ou morte sous le réticule est ignorée : le verrouillage reste en place."
+L["Auto Target Lock"] = "Verrouillage de cible automatique"
+L["Target Lock engages automatically when attacking units."] =
+  "Le verrouillage de cible s'active automatiquement lorsque vous attaquez des unités."
+L["Target Lock Marker"] = "Marqueur de verrouillage"
+L["Show a crosshair marker on the nameplate of the locked target."] =
+  "Affiche un marqueur de réticule sur la barre de nom de la cible verrouillée."
+L["Focus Locked Target"] = "Focaliser la cible verrouillée"
+L["Pulls the camera toward your locked target, keeping it in focus."] =
+  "Attire la caméra vers votre cible verrouillée pour la garder au centre."
+L["TARGETING INDICATORS"] = "INDICATEURS DE CIBLE"
+L["Visual indicators that highlight targets in the world for easier identification."] =
+  "Indicateurs visuels qui mettent en évidence les cibles dans le monde pour les repérer plus facilement."
+L["Target Outline"] = "Contour de la cible"
+L["Show an outline effect on your target."] = "Affiche un effet de contour sur votre cible."
+L["Only available on Retail"] = "Disponible uniquement sur Retail"
+L["Selection Circle"] = "Cercle de sélection"
+L["Which target gets Blizzard's selection circle underneath their feet."] =
+  "Quelle cible reçoit le cercle de sélection de Blizzard sous ses pieds."
+L["The circle under whatever you have targeted, enemy or friendly."] =
+  "Le cercle sous toute cible, ennemie ou amicale."
+L["The circle only under your Target Lock."] = "Le cercle uniquement sous votre cible verrouillée."
+L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocused."] =
+  "Laisse Blizzard gérer le comportement de ObjectSelectionCircle et UnitNameFocused."
+L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
+  "Blizzard choisit la cible souple dans un arc devant le modèle de votre personnage. Elle ne tient compte ni de la position du réticule ni du décalage d'épaule."
+L["No selection circle."] = "Aucun cercle de sélection."

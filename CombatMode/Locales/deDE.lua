@@ -161,3 +161,92 @@ L["Darkens the edges of the screen while the checked situations are true."] =
 L["Vignette Match"] = "Vignette-Bedingung"
 L["Any: one checked situation is enough. All: every checked situation must be true at once."] =
   "Beliebige: Eine markierte Situation genügt. Alle: Jede markierte Situation muss gleichzeitig zutreffen."
+
+-- TabReticleTargeting.lua: Reticle Targeting tab
+L["Any Hard Target"] = "Jedes feste Ziel"
+L["Locked Target Only"] = "Nur gesperrtes Ziel"
+L["Soft Target (Blizzard)"] = "Weiches Ziel (Blizzard)"
+L["Hidden"] = "Ausgeblendet"
+L["Toggle"] = "Umschalten"
+L["Switch Target"] = "Ziel wechseln"
+L["A UI Reload is required when making this change. Proceed?"] =
+  "Für diese Änderung ist ein Neuladen der Benutzeroberfläche erforderlich. Fortfahren?"
+L["Create New Macro"] = "Neues Makro erstellen"
+L["Write a macro that starts with your Reticle Targeting preline."] =
+  "Schreibe ein Makro, das mit deiner Fadenkreuz-Zielerfassungs-Vorzeile beginnt."
+L["Unavailable in combat."] = "Im Kampf nicht verfügbar."
+L["Drag to a button on your action bars to use."] =
+  "Zum Verwenden auf eine Schaltfläche deiner Aktionsleisten ziehen."
+L["Right-click to edit"] = "Rechtsklick zum Bearbeiten"
+L["+%d more in /macro"] = "+%d weitere in /macro"
+L["Reticle Targeting Macros"] = "Fadenkreuz-Zielerfassungs-Makros"
+L["Action buttons that are macros cannot automatically inherit Reticle Targeting logic. To make them adhere to these rules, create them using the Macro Composer tool, then drag them onto your bars."] =
+  "Aktionsschaltflächen, die Makros sind, übernehmen die Fadenkreuz-Zielerfassung nicht automatisch. Damit sie diese Regeln befolgen, erstelle sie mit dem Makro-Editor und ziehe sie dann auf deine Leisten."
+L["Reticle Targeting"] = "Fadenkreuz-Zielerfassung"
+L["RETICLE TARGETING"] = "FADENKREUZ-ZIELERFASSUNG"
+L["Enables aim-based unit targeting and precise placement of ground-targeted spells and AoE abilities."] =
+  "Ermöglicht zielgerichtete Einheitenauswahl per Fadenkreuz und präzises Platzieren von Bodenzaubern und Flächenfähigkeiten."
+L["Enable Reticle Targeting"] = "Fadenkreuz-Zielerfassung aktivieren"
+L["Aim the crosshair at units to pick targets instead of tab-targeting."] =
+  "Ziele mit dem Fadenkreuz auf Einheiten, um Ziele statt per Tab-Auswahl zu wählen."
+L["Ignore Friendlies"] = "Freundliche ignorieren"
+L["Ignore friendly NPCs and Players, and only target hostile units."] =
+  "Ignoriert freundliche NPCs und Spieler und wählt nur feindliche Einheiten."
+L["Click Casting Only"] = "Nur Klick-Zauber"
+L["Apply reticle targeting logic only to Click Casting binds."] =
+  "Wendet die Fadenkreuz-Zielerfassung nur auf Klick-Zauber-Belegungen an."
+L["Excluded Spells"] = "Ausgeschlossene Zauber"
+L["Spells to skip the reticle targeting logic."] =
+  "Zauber, die die Fadenkreuz-Zielerfassung überspringen."
+L["Cast at Crosshair"] = "Auf Fadenkreuz wirken"
+L["Ground spells to cast at the crosshair location."] =
+  "Bodenzauber, die an der Fadenkreuzposition gewirkt werden."
+L["TARGET LOCK"] = "ZIELSPERRE"
+L["Lock onto a target to prevent accidental switching, and cycle between units to prioritize specific enemies."] =
+  "Sperre ein Ziel, um versehentliches Wechseln zu verhindern, und wechsle zwischen Einheiten, um bestimmte Gegner zu priorisieren."
+L["Warning: Target Lock uses your Focus Target. Anything else that sets your focus will interfere with it."] =
+  "Warnung: Die Zielsperre nutzt dein Fokusziel. Alles andere, was deinen Fokus setzt, stört sie."
+L["Target Lock Keybind"] = "Taste für Zielsperre"
+L["Lock the reticle to a target, preventing it from swapping."] =
+  "Sperrt das Fadenkreuz auf ein Ziel, sodass es nicht wechselt."
+L["Cycle Lock - Next"] = "Sperre wechseln – Nächstes"
+L["Move Target Lock to the next valid nearby target."] =
+  "Verschiebt die Zielsperre auf das nächste gültige Ziel in der Nähe."
+L["Cycle Lock - Previous"] = "Sperre wechseln – Vorheriges"
+L["Move Target Lock to the previous valid nearby target."] =
+  "Verschiebt die Zielsperre auf das vorherige gültige Ziel in der Nähe."
+L["Target Lock Behavior"] = "Verhalten der Zielsperre"
+L["What the Target Lock key does when you press it."] =
+  "Was die Taste für die Zielsperre beim Drücken bewirkt."
+L["Locks your target, or the unit under the crosshair. Tap again to unlock."] =
+  "Sperrt dein Ziel oder die Einheit unter dem Fadenkreuz. Erneutes Antippen hebt die Sperre auf."
+L["Locks the unit under the crosshair, replacing any current lock. Tap with nothing under the crosshair to unlock. Aiming at the unit you already locked keeps the lock."] =
+  "Sperrt die Einheit unter dem Fadenkreuz und ersetzt eine bestehende Sperre. Antippen ohne Einheit unter dem Fadenkreuz hebt die Sperre auf. Zielst du auf die bereits gesperrte Einheit, bleibt die Sperre bestehen."
+L["With Ignore Friendlies on, a friendly or dead unit under the crosshair is ignored: the lock stays where it is."] =
+  "Bei aktivem „Freundliche ignorieren“ wird eine freundliche oder tote Einheit unter dem Fadenkreuz ignoriert: Die Sperre bleibt bestehen."
+L["Auto Target Lock"] = "Automatische Zielsperre"
+L["Target Lock engages automatically when attacking units."] =
+  "Die Zielsperre greift automatisch, wenn du Einheiten angreifst."
+L["Target Lock Marker"] = "Zielsperren-Markierung"
+L["Show a crosshair marker on the nameplate of the locked target."] =
+  "Zeigt eine Fadenkreuz-Markierung auf der Namensplakette des gesperrten Ziels."
+L["Focus Locked Target"] = "Gesperrtes Ziel fokussieren"
+L["Pulls the camera toward your locked target, keeping it in focus."] =
+  "Zieht die Kamera zum gesperrten Ziel und hält es im Fokus."
+L["TARGETING INDICATORS"] = "ZIELANZEIGEN"
+L["Visual indicators that highlight targets in the world for easier identification."] =
+  "Visuelle Anzeigen, die Ziele in der Welt hervorheben, damit sie leichter zu erkennen sind."
+L["Target Outline"] = "Zielumriss"
+L["Show an outline effect on your target."] = "Zeigt einen Umrisseffekt um dein Ziel."
+L["Only available on Retail"] = "Nur auf Retail verfügbar"
+L["Selection Circle"] = "Auswahlkreis"
+L["Which target gets Blizzard's selection circle underneath their feet."] =
+  "Welches Ziel Blizzards Auswahlkreis unter den Füßen erhält."
+L["The circle under whatever you have targeted, enemy or friendly."] =
+  "Der Kreis unter allem, was du anvisiert hast, ob Feind oder Freund."
+L["The circle only under your Target Lock."] = "Der Kreis nur unter deiner Zielsperre."
+L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocused."] =
+  "Blizzard steuert das Verhalten von ObjectSelectionCircle und UnitNameFocused."
+L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
+  "Blizzard wählt das weiche Ziel aus einem Bogen vor deinem Charaktermodell. Fadenkreuzposition und Schulterversatz werden dabei nicht berücksichtigt."
+L["No selection circle."] = "Kein Auswahlkreis."

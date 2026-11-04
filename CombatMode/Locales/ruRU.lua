@@ -170,3 +170,94 @@ L["Darkens the edges of the screen while the checked situations are true."] =
 L["Vignette Match"] = "Условие виньетки"
 L["Any: one checked situation is enough. All: every checked situation must be true at once."] =
   "Любое: достаточно одного отмеченного условия. Все: все отмеченные условия должны выполняться одновременно."
+
+-- TabReticleTargeting.lua: Reticle Targeting tab
+L["Any Hard Target"] = "Любая выбранная цель"
+L["Locked Target Only"] = "Только захваченная цель"
+L["Soft Target (Blizzard)"] = "Мягкая цель (Blizzard)"
+L["Hidden"] = "Скрыто"
+L["Toggle"] = "Переключить"
+L["Switch Target"] = "Сменить цель"
+L["A UI Reload is required when making this change. Proceed?"] =
+  "Для этого изменения требуется перезагрузка интерфейса. Продолжить?"
+L["Create New Macro"] = "Создать новый макрос"
+L["Write a macro that starts with your Reticle Targeting preline."] =
+  "Напишите макрос, начинающийся с вашей преддиректории наведения по прицелу."
+L["Unavailable in combat."] = "Недоступно в бою."
+L["Drag to a button on your action bars to use."] =
+  "Перетащите на кнопку панели команд, чтобы использовать."
+L["Right-click to edit"] = "ПКМ — изменить"
+L["+%d more in /macro"] = "Ещё %d в /macro"
+L["Reticle Targeting Macros"] = "Макросы наведения по прицелу"
+L["Action buttons that are macros cannot automatically inherit Reticle Targeting logic. To make them adhere to these rules, create them using the Macro Composer tool, then drag them onto your bars."] =
+  "Кнопки действий, являющиеся макросами, не наследуют логику наведения по прицелу автоматически. Чтобы они её соблюдали, создайте их в редакторе макросов и перетащите на панели."
+L["Reticle Targeting"] = "Наведение по прицелу"
+L["RETICLE TARGETING"] = "НАВЕДЕНИЕ ПО ПРИЦЕЛУ"
+L["Enables aim-based unit targeting and precise placement of ground-targeted spells and AoE abilities."] =
+  "Включает выбор целей наведением и точное размещение заклинаний по земле и массовых умений."
+L["Enable Reticle Targeting"] = "Включить наведение по прицелу"
+L["Aim the crosshair at units to pick targets instead of tab-targeting."] =
+  "Наводите прицел на цели, чтобы выбирать их вместо перебора клавишей Tab."
+L["Ignore Friendlies"] = "Игнорировать союзников"
+L["Ignore friendly NPCs and Players, and only target hostile units."] =
+  "Игнорирует дружественных NPC и игроков и выбирает только враждебные цели."
+L["Click Casting Only"] = "Только Click Casting"
+L["Apply reticle targeting logic only to Click Casting binds."] =
+  "Применять логику наведения по прицелу только к привязкам Click Casting."
+L["Excluded Spells"] = "Исключённые заклинания"
+L["Spells to skip the reticle targeting logic."] =
+  "Заклинания, для которых логика наведения по прицелу не применяется."
+L["Cast at Crosshair"] = "Применять в прицел"
+L["Ground spells to cast at the crosshair location."] =
+  "Заклинания по земле, применяемые в точку прицела."
+L["TARGET LOCK"] = "ЗАХВАТ ЦЕЛИ"
+L["Lock onto a target to prevent accidental switching, and cycle between units to prioritize specific enemies."] =
+  "Захватывайте цель, чтобы случайно не сменить её, и переключайтесь между целями, чтобы выделять нужных врагов."
+L["Warning: Target Lock uses your Focus Target. Anything else that sets your focus will interfere with it."] =
+  "Внимание: захват цели использует вашу цель фокуса. Всё, что меняет фокус, будет ему мешать."
+L["Target Lock Keybind"] = "Клавиша захвата цели"
+L["Lock the reticle to a target, preventing it from swapping."] =
+  "Фиксирует прицел на цели, не позволяя ему переключаться."
+L["Cycle Lock - Next"] = "Смена захвата — следующая"
+L["Move Target Lock to the next valid nearby target."] =
+  "Переносит захват на следующую подходящую цель поблизости."
+L["Cycle Lock - Previous"] = "Смена захвата — предыдущая"
+L["Move Target Lock to the previous valid nearby target."] =
+  "Переносит захват на предыдущую подходящую цель поблизости."
+L["Target Lock Behavior"] = "Поведение захвата цели"
+L["What the Target Lock key does when you press it."] =
+  "Что делает клавиша захвата цели при нажатии."
+L["Locks your target, or the unit under the crosshair. Tap again to unlock."] =
+  "Захватывает вашу цель или цель под прицелом. Повторное нажатие снимает захват."
+L["Locks the unit under the crosshair, replacing any current lock. Tap with nothing under the crosshair to unlock. Aiming at the unit you already locked keeps the lock."] =
+  "Захватывает цель под прицелом, заменяя текущий захват. Нажатие, когда под прицелом ничего нет, снимает захват. Если навести прицел на уже захваченную цель, захват сохраняется."
+L["With Ignore Friendlies on, a friendly or dead unit under the crosshair is ignored: the lock stays where it is."] =
+  "Если включено «Игнорировать союзников», дружественная или мёртвая цель под прицелом игнорируется: захват остаётся на месте."
+L["Auto Target Lock"] = "Автозахват цели"
+L["Target Lock engages automatically when attacking units."] =
+  "Захват цели включается автоматически при атаке юнитов."
+L["Target Lock Marker"] = "Метка захвата цели"
+L["Show a crosshair marker on the nameplate of the locked target."] =
+  "Показывает метку прицела на индикаторе имени захваченной цели."
+L["Focus Locked Target"] = "Фокус на захваченной цели"
+L["Pulls the camera toward your locked target, keeping it in focus."] =
+  "Притягивает камеру к захваченной цели, удерживая её в фокусе."
+L["TARGETING INDICATORS"] = "ИНДИКАТОРЫ ЦЕЛИ"
+L["Visual indicators that highlight targets in the world for easier identification."] =
+  "Визуальные индикаторы, выделяющие цели в мире для лучшего распознавания."
+L["Target Outline"] = "Контур цели"
+L["Show an outline effect on your target."] =
+  "Показывает контур вокруг вашей цели."
+L["Only available on Retail"] = "Доступно только в Retail"
+L["Selection Circle"] = "Круг выделения"
+L["Which target gets Blizzard's selection circle underneath their feet."] =
+  "У какой цели под ногами отображается круг выделения Blizzard."
+L["The circle under whatever you have targeted, enemy or friendly."] =
+  "Круг под любой выбранной целью, вражеской или дружественной."
+L["The circle only under your Target Lock."] =
+  "Круг только под вашей захваченной целью."
+L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocused."] =
+  "Поведением ObjectSelectionCircle и UnitNameFocused управляет Blizzard."
+L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
+  "Blizzard выбирает мягкую цель из сектора перед моделью персонажа. Положение прицела и смещение через плечо не учитываются."
+L["No selection circle."] = "Круг выделения не показывается."

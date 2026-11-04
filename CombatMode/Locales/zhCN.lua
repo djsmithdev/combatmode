@@ -156,3 +156,88 @@ L["Darkens the edges of the screen while the checked situations are true."] =
 L["Vignette Match"] = "暗角匹配方式"
 L["Any: one checked situation is enough. All: every checked situation must be true at once."] =
   "任一：勾选的情形满足其一即可。全部：所有勾选的情形必须同时成立。"
+
+-- TabReticleTargeting.lua: Reticle Targeting tab
+L["Any Hard Target"] = "任何硬目标"
+L["Locked Target Only"] = "仅锁定的目标"
+L["Soft Target (Blizzard)"] = "软目标（暴雪）"
+L["Hidden"] = "隐藏"
+L["Toggle"] = "切换"
+L["Switch Target"] = "切换目标"
+L["A UI Reload is required when making this change. Proceed?"] =
+  "进行此更改需要重载界面。是否继续？"
+L["Create New Macro"] = "创建新宏"
+L["Write a macro that starts with your Reticle Targeting preline."] =
+  "编写一个以准星瞄准前置行开头的宏。"
+L["Unavailable in combat."] = "战斗中不可用。"
+L["Drag to a button on your action bars to use."] = "拖到动作条按钮上即可使用。"
+L["Right-click to edit"] = "右键编辑"
+L["+%d more in /macro"] = "/macro 中还有 %d 个"
+L["Reticle Targeting Macros"] = "准星瞄准宏"
+L["Action buttons that are macros cannot automatically inherit Reticle Targeting logic. To make them adhere to these rules, create them using the Macro Composer tool, then drag them onto your bars."] =
+  "作为宏的动作按钮不会自动继承准星瞄准逻辑。若要让它们遵循这些规则，请使用宏编写器创建，然后拖到动作条上。"
+L["Reticle Targeting"] = "准星瞄准"
+L["RETICLE TARGETING"] = "准星瞄准"
+L["Enables aim-based unit targeting and precise placement of ground-targeted spells and AoE abilities."] =
+  "启用基于瞄准的单位选取，并可精确放置地面法术和范围技能。"
+L["Enable Reticle Targeting"] = "启用准星瞄准"
+L["Aim the crosshair at units to pick targets instead of tab-targeting."] =
+  "将准星对准单位来选取目标，取代Tab选取。"
+L["Ignore Friendlies"] = "忽略友方"
+L["Ignore friendly NPCs and Players, and only target hostile units."] =
+  "忽略友方NPC和玩家，只选取敌对单位。"
+L["Click Casting Only"] = "仅点击施法"
+L["Apply reticle targeting logic only to Click Casting binds."] =
+  "仅对点击施法绑定应用准星瞄准逻辑。"
+L["Excluded Spells"] = "排除的法术"
+L["Spells to skip the reticle targeting logic."] = "跳过准星瞄准逻辑的法术。"
+L["Cast at Crosshair"] = "在准星处施放"
+L["Ground spells to cast at the crosshair location."] = "在准星位置施放的地面法术。"
+L["TARGET LOCK"] = "目标锁定"
+L["Lock onto a target to prevent accidental switching, and cycle between units to prioritize specific enemies."] =
+  "锁定目标以防止误切换，并在单位间循环以优先处理特定敌人。"
+L["Warning: Target Lock uses your Focus Target. Anything else that sets your focus will interfere with it."] =
+  "警告：目标锁定会使用你的焦点目标。其他任何设置焦点的功能都会与之冲突。"
+L["Target Lock Keybind"] = "目标锁定按键"
+L["Lock the reticle to a target, preventing it from swapping."] =
+  "将准星锁定在目标上，防止其切换。"
+L["Cycle Lock - Next"] = "循环锁定 - 下一个"
+L["Move Target Lock to the next valid nearby target."] =
+  "将目标锁定移至附近下一个有效目标。"
+L["Cycle Lock - Previous"] = "循环锁定 - 上一个"
+L["Move Target Lock to the previous valid nearby target."] =
+  "将目标锁定移至附近上一个有效目标。"
+L["Target Lock Behavior"] = "目标锁定行为"
+L["What the Target Lock key does when you press it."] = "按下目标锁定键时的行为。"
+L["Locks your target, or the unit under the crosshair. Tap again to unlock."] =
+  "锁定你的目标或准星下的单位。再次点按可解除锁定。"
+L["Locks the unit under the crosshair, replacing any current lock. Tap with nothing under the crosshair to unlock. Aiming at the unit you already locked keeps the lock."] =
+  "锁定准星下的单位，并替换当前的锁定。准星下没有目标时点按可解除锁定。瞄准已锁定的单位则保持锁定。"
+L["With Ignore Friendlies on, a friendly or dead unit under the crosshair is ignored: the lock stays where it is."] =
+  "开启“忽略友方”后，准星下的友方或已死亡单位会被忽略：锁定保持不变。"
+L["Auto Target Lock"] = "自动目标锁定"
+L["Target Lock engages automatically when attacking units."] =
+  "攻击单位时自动启用目标锁定。"
+L["Target Lock Marker"] = "目标锁定标记"
+L["Show a crosshair marker on the nameplate of the locked target."] =
+  "在被锁定目标的姓名板上显示准星标记。"
+L["Focus Locked Target"] = "聚焦锁定目标"
+L["Pulls the camera toward your locked target, keeping it in focus."] =
+  "将镜头拉向被锁定的目标，使其保持在焦点中。"
+L["TARGETING INDICATORS"] = "目标指示"
+L["Visual indicators that highlight targets in the world for easier identification."] =
+  "在世界中高亮显示目标的视觉指示，便于辨认。"
+L["Target Outline"] = "目标轮廓"
+L["Show an outline effect on your target."] = "在你的目标上显示轮廓效果。"
+L["Only available on Retail"] = "仅在正式服可用"
+L["Selection Circle"] = "选择圈"
+L["Which target gets Blizzard's selection circle underneath their feet."] =
+  "决定哪个目标脚下显示暴雪的选择圈。"
+L["The circle under whatever you have targeted, enemy or friendly."] =
+  "显示在你选中的任何目标（无论敌友）脚下的圈。"
+L["The circle only under your Target Lock."] = "仅显示在你的锁定目标脚下。"
+L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocused."] =
+  "由暴雪控制 ObjectSelectionCircle 和 UnitNameFocused 的行为。"
+L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
+  "暴雪会从角色模型前方的扇形区域中选取软目标，不会考虑准星位置或越肩偏移。"
+L["No selection circle."] = "不显示选择圈。"

@@ -38,6 +38,7 @@ local PickupMacro = _G.PickupMacro
 
 -- Lua stdlib
 local floor = _G.math.floor
+local format = _G.string.format
 local max = _G.math.max
 local min = _G.math.min
 local strtrim = _G.strtrim
@@ -47,20 +48,20 @@ local UI = CM.UI
 local C = UI.Colors
 
 local SELECTION_CIRCLE_VALUES = {
-  target = "Any Hard Target",
-  locked = "Locked Target Only",
-  soft = "Soft Target (Blizzard)",
-  hidden = "Hidden",
+  target = L["Any Hard Target"],
+  locked = L["Locked Target Only"],
+  soft = L["Soft Target (Blizzard)"],
+  hidden = L["Hidden"],
 }
 local SELECTION_CIRCLE_ORDER = { "target", "locked", "soft", "hidden" }
 
 local TARGET_LOCK_BEHAVIOR_VALUES = {
-  toggle = "Toggle",
-  switch = "Switch Target",
+  toggle = L["Toggle"],
+  switch = L["Switch Target"],
 }
 local TARGET_LOCK_BEHAVIOR_ORDER = { "toggle", "switch" }
 
-local RELOAD_CONFIRM = "A UI Reload is required when making this change. Proceed?"
+local RELOAD_CONFIRM = L["A UI Reload is required when making this change. Proceed?"]
 
 -- Reticle Targeting Macros shelf: icons of the player's ACM-built macros. Dragging (or
 -- clicking) one picks the real WoW macro up so it can be dropped on an action bar slot.
@@ -101,8 +102,8 @@ local function BuildMacroShelf(parent, width, onHeight)
     CM.OpenComposedMacroEditor()
   end)
   UI.AttachTooltip(plus, {
-    title = "Create New Macro",
-    text = "Write a macro that starts with your Reticle Targeting preline.",
+    title = L["Create New Macro"],
+    text = L["Write a macro that starts with your Reticle Targeting preline."],
   })
 
   local more = UI.CreateFontString(shelf, "OVERLAY", UI.Fonts.small, "GameFontNormal")
@@ -157,10 +158,10 @@ local function BuildMacroShelf(parent, width, onHeight)
     UI.AttachTooltip(button, function()
       return {
         title = button.macroName,
-        text = InCombatLockdown() and "Unavailable in combat."
-          or "Drag to a button on your action bars to use.",
+        text = InCombatLockdown() and L["Unavailable in combat."]
+          or L["Drag to a button on your action bars to use."],
         -- Tooltip strips inline colors; a line label is drawn in the dim description grey.
-        lines = not InCombatLockdown() and { { label = "Right-click to edit" } } or nil,
+        lines = not InCombatLockdown() and { { label = L["Right-click to edit"] } } or nil,
       }
     end)
     buttons[i] = button
@@ -197,7 +198,7 @@ local function BuildMacroShelf(parent, width, onHeight)
     local rows = floor(shown / perRow) + 1
     shelf.visibleHeight = rows * rowH - SHELF_ROW_GAP
     local hidden = #list - shown
-    more:SetText(hidden > 0 and ("+" .. hidden .. " more in /macro") or "")
+    more:SetText(hidden > 0 and format(L["+%d more in /macro"], hidden) or "")
     shelf:SetHeight(shelf.visibleHeight)
     if onHeight then
       onHeight(shelf.visibleHeight)
@@ -209,9 +210,9 @@ local function BuildMacroShelf(parent, width, onHeight)
   return shelf
 end
 
-local MACRO_LABEL = "Reticle Targeting Macros"
+local MACRO_LABEL = L["Reticle Targeting Macros"]
 local MACRO_DESC =
-  "Action buttons that are macros cannot automatically inherit Reticle Targeting logic. To make them adhere to these rules, create them using the Macro Composer tool, then drag them onto your bars."
+  L["Action buttons that are macros cannot automatically inherit Reticle Targeting logic. To make them adhere to these rules, create them using the Macro Composer tool, then drag them onto your bars."]
 
 --- Option row (label + description above, full-width shelf below). Returns the row frame and
 --- its height; `onHeight` is called when the shelf grows or shrinks.
@@ -253,15 +254,15 @@ end
 
 UI.Options.AddTab({
   id = "reticle",
-  label = "Reticle Targeting",
+  label = L["Reticle Targeting"],
   build = function(ctx)
-    ctx:Header("RETICLE TARGETING")
+    ctx:Header(L["RETICLE TARGETING"])
     ctx:Description(
-      "Enables aim-based unit targeting and precise placement of ground-targeted spells and AoE abilities."
+      L["Enables aim-based unit targeting and precise placement of ground-targeted spells and AoE abilities."]
     )
     ctx:Toggle({
-      label = "Enable Reticle Targeting",
-      desc = "Aim the crosshair at units to pick targets instead of tab-targeting.",
+      label = L["Enable Reticle Targeting"],
+      desc = L["Aim the crosshair at units to pick targets instead of tab-targeting."],
       charSpecific = true,
       confirm = true,
       confirmText = RELOAD_CONFIRM,
@@ -280,8 +281,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Ignore Friendlies",
-      desc = "Ignore friendly NPCs and Players, and only target hostile units.",
+      label = L["Ignore Friendlies"],
+      desc = L["Ignore friendly NPCs and Players, and only target hostile units."],
       charSpecific = true,
       confirm = true,
       confirmText = RELOAD_CONFIRM,
@@ -298,8 +299,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Click Casting Only",
-      desc = "Apply reticle targeting logic only to Click Casting binds.",
+      label = L["Click Casting Only"],
+      desc = L["Apply reticle targeting logic only to Click Casting binds."],
       charSpecific = true,
       confirm = true,
       confirmText = RELOAD_CONFIRM,
@@ -317,8 +318,8 @@ UI.Options.AddTab({
     })
     ctx:Gap()
     ctx:SpellMultiSelect({
-      label = "Excluded Spells",
-      desc = "Spells to skip the reticle targeting logic.",
+      label = L["Excluded Spells"],
+      desc = L["Spells to skip the reticle targeting logic."],
       charSpecific = true,
       get = function()
         return CM.DB.char.excludeFromTargetingSpells or ""
@@ -334,8 +335,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:SpellMultiSelect({
-      label = "Cast at Crosshair",
-      desc = "Ground spells to cast at the crosshair location.",
+      label = L["Cast at Crosshair"],
+      desc = L["Ground spells to cast at the crosshair location."],
       charSpecific = true,
       get = function()
         return CM.DB.char.castAtCursorSpells or ""
@@ -384,16 +385,15 @@ UI.Options.AddTab({
     end
 
     ctx:Gap()
-    ctx:Header("TARGET LOCK")
+    ctx:Header(L["TARGET LOCK"])
     ctx:Description({
-      text = "Lock onto a target to prevent accidental switching, and cycle between units to prioritize specific enemies.",
-      warning = "Warning: Target Lock uses your Focus Target. "
-        .. "Anything else that sets your focus will interfere with it.",
+      text = L["Lock onto a target to prevent accidental switching, and cycle between units to prioritize specific enemies."],
+      warning = L["Warning: Target Lock uses your Focus Target. Anything else that sets your focus will interfere with it."],
     })
 
     ctx:Keybind({
-      label = "Target Lock Keybind",
-      desc = "Lock the reticle to a target, preventing it from swapping.",
+      label = L["Target Lock Keybind"],
+      desc = L["Lock the reticle to a target, preventing it from swapping."],
       get = function()
         return (GetBindingKey("Combat Mode - Toggle Focus Target"))
       end,
@@ -407,8 +407,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Keybind({
-      label = "Cycle Lock - Next",
-      desc = "Move Target Lock to the next valid nearby target.",
+      label = L["Cycle Lock - Next"],
+      desc = L["Move Target Lock to the next valid nearby target."],
       get = function()
         return GetBindingKey("Combat Mode - Cycle Focus Next")
       end,
@@ -422,8 +422,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Keybind({
-      label = "Cycle Lock - Previous",
-      desc = "Move Target Lock to the previous valid nearby target.",
+      label = L["Cycle Lock - Previous"],
+      desc = L["Move Target Lock to the previous valid nearby target."],
       get = function()
         return GetBindingKey("Combat Mode - Cycle Focus Previous")
       end,
@@ -437,20 +437,20 @@ UI.Options.AddTab({
       end,
     })
     ctx:Dropdown({
-      label = "Target Lock Behavior",
-      desc = "What the Target Lock key does when you press it.",
+      label = L["Target Lock Behavior"],
+      desc = L["What the Target Lock key does when you press it."],
       helpTooltip = {
-        title = "Target Lock Behavior",
+        title = L["Target Lock Behavior"],
         stacked = true,
         lines = {
           {
-            label = "Toggle",
-            value = "Locks your target, or the unit under the crosshair. Tap again to unlock.",
+            label = L["Toggle"],
+            value = L["Locks your target, or the unit under the crosshair. Tap again to unlock."],
           },
           {
-            label = "Switch Target",
-            value = "Locks the unit under the crosshair, replacing any current lock. Tap with nothing under the crosshair to unlock. Aiming at the unit you already locked keeps the lock.",
-            warning = "With Ignore Friendlies on, a friendly or dead unit under the crosshair is ignored: the lock stays where it is.",
+            label = L["Switch Target"],
+            value = L["Locks the unit under the crosshair, replacing any current lock. Tap with nothing under the crosshair to unlock. Aiming at the unit you already locked keeps the lock."],
+            warning = L["With Ignore Friendlies on, a friendly or dead unit under the crosshair is ignored: the lock stays where it is."],
           },
         },
       },
@@ -471,8 +471,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Auto Target Lock",
-      desc = "Target Lock engages automatically when attacking units.",
+      label = L["Auto Target Lock"],
+      desc = L["Target Lock engages automatically when attacking units."],
       charSpecific = true,
       confirm = true,
       confirmText = RELOAD_CONFIRM,
@@ -489,8 +489,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Target Lock Marker",
-      desc = "Show a crosshair marker on the nameplate of the locked target.",
+      label = L["Target Lock Marker"],
+      desc = L["Show a crosshair marker on the nameplate of the locked target."],
       get = function()
         return CM.DB.global.showTargetLockMarker ~= false
       end,
@@ -508,8 +508,8 @@ UI.Options.AddTab({
       end,
     })
     ctx:Toggle({
-      label = "Focus Locked Target",
-      desc = "Pulls the camera toward your locked target, keeping it in focus.",
+      label = L["Focus Locked Target"],
+      desc = L["Pulls the camera toward your locked target, keeping it in focus."],
       watermarkWhenDisabled = function()
         if CM.MotionSicknessProtectionOn and CM.MotionSicknessProtectionOn() == true then
           return "Disabled while Motion Sickness Protection is on"
@@ -532,13 +532,13 @@ UI.Options.AddTab({
     })
 
     ctx:Gap()
-    ctx:Header({ text = "TARGETING INDICATORS" })
+    ctx:Header({ text = L["TARGETING INDICATORS"] })
     ctx:Description(
-      "Visual indicators that highlight targets in the world for easier identification."
+      L["Visual indicators that highlight targets in the world for easier identification."]
     )
     ctx:Toggle({
-      label = "Target Outline",
-      desc = "Show an outline effect on your target.",
+      label = L["Target Outline"],
+      desc = L["Show an outline effect on your target."],
       get = function()
         return CM.DB.global.reticleOutline ~= false
       end,
@@ -551,29 +551,29 @@ UI.Options.AddTab({
       end,
       watermarkWhenDisabled = function()
         if not CM.IsRetailClient then
-          return "Only available on Retail"
+          return L["Only available on Retail"]
         end
         return nil
       end,
     })
     ctx:Dropdown({
-      label = "Selection Circle",
-      desc = "Which target gets Blizzard's selection circle underneath their feet.",
+      label = L["Selection Circle"],
+      desc = L["Which target gets Blizzard's selection circle underneath their feet."],
       helpTooltip = {
-        title = "Selection Circle",
+        title = L["Selection Circle"],
         stacked = true,
         lines = {
           {
-            label = "Any Hard Target",
-            value = "The circle under whatever you have targeted, enemy or friendly.",
+            label = L["Any Hard Target"],
+            value = L["The circle under whatever you have targeted, enemy or friendly."],
           },
-          { label = "Locked Target Only", value = "The circle only under your Target Lock." },
+          { label = L["Locked Target Only"], value = L["The circle only under your Target Lock."] },
           {
-            label = "Soft Target (Blizzard)",
-            value = "Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocused.",
-            warning = "Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account.",
+            label = L["Soft Target (Blizzard)"],
+            value = L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocused."],
+            warning = L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."],
           },
-          { label = "Hidden", value = "No selection circle." },
+          { label = L["Hidden"], value = L["No selection circle."] },
         },
       },
       values = SELECTION_CIRCLE_VALUES,

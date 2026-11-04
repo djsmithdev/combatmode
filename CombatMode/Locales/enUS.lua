@@ -130,3 +130,72 @@ L["Vignette Shows When"] = true
 L["Darkens the edges of the screen while the checked situations are true."] = true
 L["Vignette Match"] = true
 L["Any: one checked situation is enough. All: every checked situation must be true at once."] = true
+
+-- TabReticleTargeting.lua: Reticle Targeting tab
+L["Any Hard Target"] = true
+L["Locked Target Only"] = true
+L["Soft Target (Blizzard)"] = true
+L["Hidden"] = true
+L["Toggle"] = true
+L["Switch Target"] = true
+L["A UI Reload is required when making this change. Proceed?"] = true
+L["Create New Macro"] = true
+L["Write a macro that starts with your Reticle Targeting preline."] = true
+L["Unavailable in combat."] = true
+L["Drag to a button on your action bars to use."] = true
+L["Right-click to edit"] = true
+L["+%d more in /macro"] = true
+L["Reticle Targeting Macros"] = true
+L["Action buttons that are macros cannot automatically inherit Reticle Targeting logic. To make them adhere to these rules, create them using the Macro Composer tool, then drag them onto your bars."] =
+  true
+L["Reticle Targeting"] = true
+L["RETICLE TARGETING"] = true
+L["Enables aim-based unit targeting and precise placement of ground-targeted spells and AoE abilities."] =
+  true
+L["Enable Reticle Targeting"] = true
+L["Aim the crosshair at units to pick targets instead of tab-targeting."] = true
+L["Ignore Friendlies"] = true
+L["Ignore friendly NPCs and Players, and only target hostile units."] = true
+L["Click Casting Only"] = true
+L["Apply reticle targeting logic only to Click Casting binds."] = true
+L["Excluded Spells"] = true
+L["Spells to skip the reticle targeting logic."] = true
+L["Cast at Crosshair"] = true
+L["Ground spells to cast at the crosshair location."] = true
+L["TARGET LOCK"] = true
+L["Lock onto a target to prevent accidental switching, and cycle between units to prioritize specific enemies."] =
+  true
+L["Warning: Target Lock uses your Focus Target. Anything else that sets your focus will interfere with it."] =
+  true
+L["Target Lock Keybind"] = true
+L["Lock the reticle to a target, preventing it from swapping."] = true
+L["Cycle Lock - Next"] = true
+L["Move Target Lock to the next valid nearby target."] = true
+L["Cycle Lock - Previous"] = true
+L["Move Target Lock to the previous valid nearby target."] = true
+L["Target Lock Behavior"] = true
+L["What the Target Lock key does when you press it."] = true
+L["Locks your target, or the unit under the crosshair. Tap again to unlock."] = true
+L["Locks the unit under the crosshair, replacing any current lock. Tap with nothing under the crosshair to unlock. Aiming at the unit you already locked keeps the lock."] =
+  true
+L["With Ignore Friendlies on, a friendly or dead unit under the crosshair is ignored: the lock stays where it is."] =
+  true
+L["Auto Target Lock"] = true
+L["Target Lock engages automatically when attacking units."] = true
+L["Target Lock Marker"] = true
+L["Show a crosshair marker on the nameplate of the locked target."] = true
+L["Focus Locked Target"] = true
+L["Pulls the camera toward your locked target, keeping it in focus."] = true
+L["TARGETING INDICATORS"] = true
+L["Visual indicators that highlight targets in the world for easier identification."] = true
+L["Target Outline"] = true
+L["Show an outline effect on your target."] = true
+L["Only available on Retail"] = true
+L["Selection Circle"] = true
+L["Which target gets Blizzard's selection circle underneath their feet."] = true
+L["The circle under whatever you have targeted, enemy or friendly."] = true
+L["The circle only under your Target Lock."] = true
+L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocused."] = true
+L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
+  true
+L["No selection circle."] = true

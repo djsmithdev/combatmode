@@ -161,3 +161,93 @@ L["Darkens the edges of the screen while the checked situations are true."] =
 L["Vignette Match"] = "비네트 조건 일치"
 L["Any: one checked situation is enough. All: every checked situation must be true at once."] =
   "하나라도: 선택한 상황 중 하나면 충분합니다. 모두: 선택한 모든 상황이 동시에 참이어야 합니다."
+
+-- TabReticleTargeting.lua: Reticle Targeting tab
+L["Any Hard Target"] = "모든 하드 대상"
+L["Locked Target Only"] = "고정된 대상만"
+L["Soft Target (Blizzard)"] = "소프트 대상 (블리자드)"
+L["Hidden"] = "숨김"
+L["Toggle"] = "전환"
+L["Switch Target"] = "대상 교체"
+L["A UI Reload is required when making this change. Proceed?"] =
+  "이 변경을 적용하려면 UI를 다시 불러와야 합니다. 계속하시겠습니까?"
+L["Create New Macro"] = "새 매크로 만들기"
+L["Write a macro that starts with your Reticle Targeting preline."] =
+  "조준선 대상 지정 사전 줄로 시작하는 매크로를 작성합니다."
+L["Unavailable in combat."] = "전투 중에는 사용할 수 없습니다."
+L["Drag to a button on your action bars to use."] =
+  "사용하려면 행동 단축바의 버튼으로 끌어다 놓으세요."
+L["Right-click to edit"] = "우클릭하여 편집"
+L["+%d more in /macro"] = "/macro에 %d개 더 있음"
+L["Reticle Targeting Macros"] = "조준선 대상 지정 매크로"
+L["Action buttons that are macros cannot automatically inherit Reticle Targeting logic. To make them adhere to these rules, create them using the Macro Composer tool, then drag them onto your bars."] =
+  "매크로인 행동 버튼은 조준선 대상 지정 로직을 자동으로 상속하지 않습니다. 이 규칙을 따르게 하려면 매크로 작성기로 만든 뒤 단축바로 끌어다 놓으세요."
+L["Reticle Targeting"] = "조준선 대상 지정"
+L["RETICLE TARGETING"] = "조준선 대상 지정"
+L["Enables aim-based unit targeting and precise placement of ground-targeted spells and AoE abilities."] =
+  "조준 기반 대상 지정과 지면 지정 주문 및 광역 능력의 정밀한 배치를 가능하게 합니다."
+L["Enable Reticle Targeting"] = "조준선 대상 지정 사용"
+L["Aim the crosshair at units to pick targets instead of tab-targeting."] =
+  "탭 대상 지정 대신 조준점을 유닛에 맞춰 대상을 선택합니다."
+L["Ignore Friendlies"] = "아군 무시"
+L["Ignore friendly NPCs and Players, and only target hostile units."] =
+  "우호적인 NPC와 플레이어를 무시하고 적대적인 유닛만 대상으로 지정합니다."
+L["Click Casting Only"] = "클릭 시전만"
+L["Apply reticle targeting logic only to Click Casting binds."] =
+  "조준선 대상 지정 로직을 클릭 시전 단축키에만 적용합니다."
+L["Excluded Spells"] = "제외할 주문"
+L["Spells to skip the reticle targeting logic."] =
+  "조준선 대상 지정 로직을 건너뛸 주문입니다."
+L["Cast at Crosshair"] = "조준점에 시전"
+L["Ground spells to cast at the crosshair location."] =
+  "조준점 위치에 시전할 지면 지정 주문입니다."
+L["TARGET LOCK"] = "대상 고정"
+L["Lock onto a target to prevent accidental switching, and cycle between units to prioritize specific enemies."] =
+  "대상을 고정해 실수로 바뀌는 것을 막고, 유닛을 순환하며 특정 적을 우선 지정합니다."
+L["Warning: Target Lock uses your Focus Target. Anything else that sets your focus will interfere with it."] =
+  "경고: 대상 고정은 주시 대상을 사용합니다. 주시 대상을 바꾸는 다른 기능은 이를 방해합니다."
+L["Target Lock Keybind"] = "대상 고정 단축키"
+L["Lock the reticle to a target, preventing it from swapping."] =
+  "조준점을 대상에 고정하여 바뀌지 않게 합니다."
+L["Cycle Lock - Next"] = "고정 순환 - 다음"
+L["Move Target Lock to the next valid nearby target."] =
+  "대상 고정을 근처의 다음 유효한 대상으로 옮깁니다."
+L["Cycle Lock - Previous"] = "고정 순환 - 이전"
+L["Move Target Lock to the previous valid nearby target."] =
+  "대상 고정을 근처의 이전 유효한 대상으로 옮깁니다."
+L["Target Lock Behavior"] = "대상 고정 동작"
+L["What the Target Lock key does when you press it."] =
+  "대상 고정 키를 눌렀을 때의 동작입니다."
+L["Locks your target, or the unit under the crosshair. Tap again to unlock."] =
+  "현재 대상 또는 조준점 아래의 유닛을 고정합니다. 다시 누르면 해제됩니다."
+L["Locks the unit under the crosshair, replacing any current lock. Tap with nothing under the crosshair to unlock. Aiming at the unit you already locked keeps the lock."] =
+  "조준점 아래의 유닛을 고정하며 기존 고정을 대체합니다. 조준점 아래에 아무것도 없을 때 누르면 해제됩니다. 이미 고정한 유닛을 조준하면 고정이 유지됩니다."
+L["With Ignore Friendlies on, a friendly or dead unit under the crosshair is ignored: the lock stays where it is."] =
+  "'아군 무시'가 켜져 있으면 조준점 아래의 아군이나 죽은 유닛은 무시되며 고정은 그대로 유지됩니다."
+L["Auto Target Lock"] = "자동 대상 고정"
+L["Target Lock engages automatically when attacking units."] =
+  "유닛을 공격할 때 대상 고정이 자동으로 적용됩니다."
+L["Target Lock Marker"] = "대상 고정 표시"
+L["Show a crosshair marker on the nameplate of the locked target."] =
+  "고정된 대상의 이름표에 조준점 표시를 보여줍니다."
+L["Focus Locked Target"] = "고정된 대상에 집중"
+L["Pulls the camera toward your locked target, keeping it in focus."] =
+  "카메라를 고정된 대상 쪽으로 당겨 계속 초점을 맞춥니다."
+L["TARGETING INDICATORS"] = "대상 표시기"
+L["Visual indicators that highlight targets in the world for easier identification."] =
+  "월드의 대상을 강조하여 더 쉽게 식별할 수 있게 하는 시각 표시기입니다."
+L["Target Outline"] = "대상 외곽선"
+L["Show an outline effect on your target."] = "대상에 외곽선 효과를 표시합니다."
+L["Only available on Retail"] = "리테일에서만 사용 가능"
+L["Selection Circle"] = "선택 원"
+L["Which target gets Blizzard's selection circle underneath their feet."] =
+  "어느 대상의 발밑에 블리자드의 선택 원을 표시할지 정합니다."
+L["The circle under whatever you have targeted, enemy or friendly."] =
+  "적이든 아군이든 지정한 모든 대상의 아래에 표시되는 원입니다."
+L["The circle only under your Target Lock."] =
+  "대상 고정 중인 대상의 아래에만 표시되는 원입니다."
+L["Let Blizzard control the behaviour of ObjectSelectionCircle and UnitNameFocused."] =
+  "ObjectSelectionCircle과 UnitNameFocused의 동작을 블리자드가 제어하도록 합니다."
+L["Blizzard picks the soft target from an arc in front of your character model. It does not take the crosshair position or the Shoulder Offset into account."] =
+  "블리자드는 캐릭터 모델 앞쪽 호 안에서 소프트 대상을 고릅니다. 조준점 위치나 어깨 시점 오프셋은 고려하지 않습니다."
+L["No selection circle."] = "선택 원이 표시되지 않습니다."

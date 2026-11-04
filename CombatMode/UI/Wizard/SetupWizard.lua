@@ -103,7 +103,7 @@ local STEPS = {
   },
   {
     tab = "reticle",
-    section = "RETICLE TARGETING",
+    section = L["RETICLE TARGETING"],
     title = "Reticle Targeting",
     slides = { "reticle", 5 },
     body = "Target enemies just by aiming at them, and drop ground-targeted spells and AoE abilities right where your crosshair points, with no tab-targeting.\n\n{Ignore Friendlies} makes it skip allies.",
@@ -111,20 +111,20 @@ local STEPS = {
   },
   {
     tab = "reticle",
-    label = "Cast at Crosshair",
+    label = L["Cast at Crosshair"],
     title = "Cast at Crosshair",
     slides = { "castatcrosshair", 3 },
     body = "Ground-targeted spells that should be cast at the crosshair location.\n\nType a {spell name or ID} to add it.",
   },
   {
     tab = "reticle",
-    label = "Reticle Targeting Macros",
+    label = L["Reticle Targeting Macros"],
     title = "Reticle Targeting Macros",
     body = "{!Action buttons that are macros cannot inherit Reticle Targeting on their own.}\n\nPress {+} to open the {Macro Composer}, write your macro there and it gets the targeting logic added for you.\n\nThen drag it from this list onto your action bars; {right-click} an icon to edit it.",
   },
   {
     tab = "reticle",
-    section = "TARGET LOCK",
+    section = L["TARGET LOCK"],
     title = "Target Lock",
     slides = { "targetlock", 4 },
     body = "Lock onto a target with one tap so the reticle stops swapping. While locked, the cycle keys jump to nearby enemies.\n\n{Target Lock Behavior} decides whether tapping again unlocks ({Toggle}) or moves the lock to whatever is under the crosshair ({Switch Target}).\n\nSet your keys.",
