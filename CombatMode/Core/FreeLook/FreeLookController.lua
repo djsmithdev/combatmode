@@ -12,7 +12,9 @@
 --    • StartFreeLookFresh (crosshair enabled) bounces in one frame: centering 1 + a
 --      cameraYaw/PitchMoveSpeed dip to 0.1 (the engine applies its warp-to-centre as a turn
 --      scaled by those speeds) → MouselookStart → MouselookStop → centering 0 →
---      MouselookStart; speeds restored next frame. The cursor then reappears at the
+--      MouselookStart; speeds restored next frame. The dip writes and saved values are
+--      CVarManager's (CM.BeginCameraSpeedDip / CM.EndCameraSpeedDip); this file only
+--      schedules the restore with one shared callback. The cursor then reappears at the
 --      crosshair on unlock. See the comment above StartFreeLookFresh / issue 189.
 --    • ShouldFreeLookBeOff consults AutoCursorUnlock predicates, SpellIsTargeting,
 --      cinematics, FreeLookOverride, default LMB/RMB held. customLockCondition
@@ -51,7 +53,6 @@ local GetBindingKey = _G.GetBindingKey
 local GetSheathState = _G.GetSheathState
 local GetTime = _G.GetTime
 local GameTooltip_SetDefaultAnchor = _G.GameTooltip_SetDefaultAnchor
-local GetCVar = _G.GetCVar
 local InCinematic = _G.InCinematic
 local InCombatLockdown = _G.InCombatLockdown
 local IsAltKeyDown = _G.IsAltKeyDown
@@ -64,7 +65,6 @@ local IsShiftKeyDown = _G.IsShiftKeyDown
 local MouselookStart = _G.MouselookStart
 local MouselookStop = _G.MouselookStop
 local PlaySound = _G.PlaySound
-local SetCVar = _G.SetCVar
 local SOUNDKIT = _G.SOUNDKIT
 local SpellIsTargeting = _G.SpellIsTargeting
 local ToggleSheath = _G.ToggleSheath
@@ -540,15 +540,23 @@ end
 -- all in one frame: centering 1 + dip → MouselookStart (warps, ~no turn) → MouselookStop
 -- (sticky: cursor stays at the crosshair) → centering 0 → MouselookStart (a normal start that
 -- hides the cursor and remembers the crosshair as the unlock position).
+-- The speed writes and the saved values live in CVarManager (CM.BeginCameraSpeedDip /
+-- CM.EndCameraSpeedDip); this file only schedules the restore. If the client rejects the dip
+-- value (Classic clamps are unmeasured), Begin returns false and the lock is the plain start.
 local CENTERING_DIP_SPEED = 0.1
-local dipRestore -- { yaw, pitch } while a one-frame speed dip is pending
+local cameraSpeedRestoreScheduled = false
+
+-- One shared restore callback: locks are frequent, so no closure per lock.
+local function RestoreCameraSpeedAfterDip()
+  cameraSpeedRestoreScheduled = false
+  CM.EndCameraSpeedDip()
+end
 
 local function StartFreeLookFresh()
-  if CM.IsCrosshairEnabled() then
-    if not dipRestore then
-      dipRestore = { yaw = GetCVar("cameraYawMoveSpeed"), pitch = GetCVar("cameraPitchMoveSpeed") }
-      SetCVar("cameraYawMoveSpeed", CENTERING_DIP_SPEED)
-      SetCVar("cameraPitchMoveSpeed", CENTERING_DIP_SPEED)
+  if CM.IsCrosshairEnabled() and CM.BeginCameraSpeedDip(CENTERING_DIP_SPEED) then
+    if not cameraSpeedRestoreScheduled then
+      cameraSpeedRestoreScheduled = true
+      C_Timer.After(0, RestoreCameraSpeedAfterDip)
     end
     CM.SetCursorFreelookCenteringCVar(true)
     MouselookStart()
@@ -557,16 +565,6 @@ local function StartFreeLookFresh()
   CM.SetCursorFreelookCenteringCVar(false)
   MouselookStart()
   cmMouselookActive = true
-  if dipRestore then
-    C_Timer.After(0, function()
-      if not dipRestore then
-        return
-      end
-      SetCVar("cameraYawMoveSpeed", dipRestore.yaw)
-      SetCVar("cameraPitchMoveSpeed", dipRestore.pitch)
-      dipRestore = nil
-    end)
-  end
   RunLockFreeLookDeferredUI()
   CM.ShowCrosshairLockIn()
   CM.DebugPrint("Free Look Enabled")

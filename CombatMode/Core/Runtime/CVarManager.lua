@@ -4,9 +4,10 @@
 --  What it does: Single owner of Combat Mode CVar writes. Captures/restores
 --  priorCVarSnapshot, merges reticleTargetingCVarOverrides into effective reticle
 --  values, applies Mouse Look camera prefs (shoulder + MS on lock/unlock; sticky
---  dynamic pitch via SetDynamicPitch), Target Focus sync, mouselook turn speed,
---  Interaction HUD SoftTarget subset, and CursorFreelookCentering / CursorCenteredYPos
---  helpers for FreeLook + Crosshair.
+--  dynamic pitch via SetDynamicPitch), Target Focus sync, mouselook turn speed (plus the
+--  one-frame camera speed dip FreeLook uses for cursor centering), Interaction HUD
+--  SoftTarget subset, and CursorFreelookCentering / CursorCenteredYPos helpers for
+--  FreeLook + Crosshair.
 --  Architecture / how it works:
 --    • Always calls live `_G.C_CVar.SetCVar` so Reticle CVar editor attribution hooks see CM.
 --    • CapturePriorCVarSnapshot / EnsurePriorCVarSnapshot once per install over ManagedCVarNames;
@@ -50,6 +51,12 @@
 --      forces MS off while focus+option active unless Motion Sickness Protection).
 --    • ConfigStickyCrosshair: Blizzard-reset helper for Uninstall only.
 --    • SetCursorFreelookCenteringCVar + SetCursorCenteredYPos — FreeLook bounce + Y sync.
+--    • BeginCameraSpeedDip(speed) / EndCameraSpeedDip — FreeLook's centering bounce (issue
+--      189): snapshot first, save cameraYaw/PitchMoveSpeed, write the floor; restore next
+--      frame. A same-frame re-lock keeps the first saved values; Begin returns false (speeds
+--      untouched) when the client rejects the value. While pending, CM.SetCVar on those two
+--      names updates the value to restore instead of writing. RestorePriorCVars cancels a
+--      pending dip.
 --  Does not: Own SoftTarget UI widgets or freelook state machine.
 --  Related: Constants/CVars.lua, Constants/DatabaseDefaults.lua,
 --  Core/FreeLook/FreeLookController.lua, Core/Crosshair/Crosshair.lua,
@@ -95,6 +102,10 @@ local restoringCVars = false
 -- True after CapturePriorCVarSnapshot this login; Ensure becomes a no-op so Rematch
 -- / later SetCVar cannot overwrite the pre-apply snapshot with CM values.
 local sessionSnapshotCaptured = false
+-- Camera speed dip state (see CM.BeginCameraSpeedDip): one shared table, never reallocated.
+local CAMERA_SPEED_DIP_NAMES = { "cameraYawMoveSpeed", "cameraPitchMoveSpeed" }
+local cameraSpeedDipPending = false
+local cameraSpeedDipRestore = {} -- CVar name -> value to restore, valid while pending
 
 local function SnapshotIsPopulated(snap)
   return type(snap) == "table" and next(snap) ~= nil
@@ -176,6 +187,8 @@ function CM.RestorePriorCVars()
   local globalDB = CM.DB and CM.DB.global
   local snap = globalDB and globalDB.priorCVarSnapshot
   restoringCVars = true
+  -- A pending speed dip must not put its saved speeds back over the restored snapshot.
+  cameraSpeedDipPending = false
 
   if SnapshotIsPopulated(snap) then
     for name, value in pairs(snap) do
@@ -386,8 +399,69 @@ function CM.ApplyReticleSelectionCircleCVars()
   end
 end
 
+-- Camera speed dip (FreeLookController's cursor-centering bounce, issue 189). The engine
+-- applies the CursorFreelookCentering warp as a Mouse Look turn scaled by
+-- cameraYaw/PitchMoveSpeed, so the controller dips both to a floor for the one frame its
+-- MouselookStart runs in and restores them on the next frame. The saved values live here and
+-- are kept out of the prior-CVar snapshot (the snapshot is taken before the dip writes). While
+-- a dip is pending, CM.SetCVar on these two names updates the value to restore instead of
+-- writing, so a speed change made in that frame (SetMouseLookSpeed, the speed slider) is not
+-- undone by the deferred restore. State lives at the top of the file (no per-lock allocation).
+local function IsCameraSpeedDipName(name)
+  return name == CAMERA_SPEED_DIP_NAMES[1] or name == CAMERA_SPEED_DIP_NAMES[2]
+end
+
+--- Dips cameraYaw/PitchMoveSpeed to `speed` until EndCameraSpeedDip. Returns true while a dip
+--- is in effect: started now, or already pending from a same-frame re-lock (which keeps the
+--- first saved values rather than reading the dip value back as the value to restore).
+--- Returns false when the client rejected the value (the 0.1 floor was measured on 12.x only;
+--- Classic clamps are unknown): the speeds are left as they were and the caller should skip
+--- the centering bounce, since the warp would then turn the camera at full speed.
+function CM.BeginCameraSpeedDip(speed)
+  if cameraSpeedDipPending then
+    return true
+  end
+  -- Snapshot first so it can never record the dip value as the player's own setting.
+  CM.EnsurePriorCVarSnapshot()
+  for _, name in ipairs(CAMERA_SPEED_DIP_NAMES) do
+    cameraSpeedDipRestore[name] = GetCVar(name)
+  end
+  cameraSpeedDipPending = true
+  for _, name in ipairs(CAMERA_SPEED_DIP_NAMES) do
+    SetCVar(name, speed)
+    if tonumber(GetCVar(name)) ~= speed then
+      CM.DebugPrint(
+        "Camera speed dip rejected by the client for " .. name .. "; skipping bounce."
+      )
+      CM.EndCameraSpeedDip()
+      return false
+    end
+  end
+  return true
+end
+
+--- Restores the speeds saved by BeginCameraSpeedDip (or the value CM.SetCVar was given for
+--- them while the dip was pending). No-op when no dip is pending.
+function CM.EndCameraSpeedDip()
+  if not cameraSpeedDipPending then
+    return
+  end
+  cameraSpeedDipPending = false
+  for _, name in ipairs(CAMERA_SPEED_DIP_NAMES) do
+    local value = cameraSpeedDipRestore[name]
+    cameraSpeedDipRestore[name] = nil
+    if value ~= nil then
+      SetCVar(name, value)
+    end
+  end
+end
+
 function CM.SetCVar(name, value)
   CM.EnsurePriorCVarSnapshot()
+  if cameraSpeedDipPending and IsCameraSpeedDipName(name) then
+    cameraSpeedDipRestore[name] = value
+    return
+  end
   SetCVar(name, value)
 end
 
