@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Auto Cursor Unlock** now watches the panels WoW Forever added, such as the Spellbook & Talents window, Legacy, Transmog, Stable, Guild Bank, Group Finder listings and the housing windows, so Mouse Look releases the cursor while they are open.
 - **Radial Menu** has new **Spellbook** and **Legacy** actions for Forever.
+- **Disable Player Interaction** option in the General tab (off by default). Turn it on to stop the **Interact Keybind** from opening player menus and hide the **Player Interaction Prompt**, which fixes the key doing nothing while aiming at a driver on multi-passenger mounts.
 
 ### Changed
 

@@ -240,6 +240,23 @@ UI.Options.AddTab({
         end
       end,
     })
+    ctx:Toggle({
+      label = L["Disable Player Interaction"],
+      newFeatureFlag = true,
+      desc = L["Disables interaction with players from the Interact Key."],
+      get = function()
+        return not CM.IsPlayerMenuEnabled()
+      end,
+      set = function(value)
+        CM.DB.global.disablePlayerInteract = value
+        if value then
+          CM.DisarmPlayerMenu()
+        end
+        if CM.ApplyCrosshairAssistedHighlightOptions then
+          CM.ApplyCrosshairAssistedHighlightOptions()
+        end
+      end,
+    })
     ctx:Keybind({
       label = L["Flip Camera Keybind"],
       desc = L["Tap to flip the camera 180° around your character. Hold to flip it only while the key is held."],

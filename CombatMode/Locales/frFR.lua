@@ -289,6 +289,9 @@ L["Interactable Indicator"] = "Indicateur d'interaction"
 L["Show an indicator while aiming at an interactable unit or object."] =
   "Affiche un indicateur lorsque vous visez une unité ou un objet avec lequel interagir."
 L["Player Interaction Prompt"] = "Invite d'interaction avec les joueurs"
+L["Disable Player Interaction"] = "Désactiver l'interaction avec les joueurs"
+L["Disables interaction with players from the Interact Key."] =
+  "Maintenez la touche d'interaction sur un joueur pour ouvrir son menu contextuel. Désactivez cette option pour laisser la touche entièrement native, par exemple avec les montures à plusieurs passagers."
 L["Show an indicator while aiming at a player for one second. Holding the Interact Key opens their context menu."] =
   "Affiche un indicateur en visant un joueur pendant une seconde. Maintenir la touche d'interaction ouvre son menu contextuel."
 L["Position"] = "Position"

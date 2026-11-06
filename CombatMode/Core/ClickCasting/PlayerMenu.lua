@@ -27,6 +27,8 @@
 --      HOLD_SECONDS, else empty. No clock is needed in the secure environment.
 --    • The key is the one Interact is bound to in the General tab (global.interactUnit picks
 --      the primary command); rebinding it re-arms on the next tick.
+--    • global.disablePlayerInteract (General tab, default off) turns the whole override off:
+--      UpdatePlayerMenu then only disarms, so the key stays native (multi-passenger mounts).
 --  Does not: Place the menu at the nameplate (Blizzard anchors it at the cursor), open it in
 --  combat, or change the Interact binding itself.
 --  Related: Core/Crosshair/AssistedHighlight/{Assist,Interact}.lua (player prompt),
@@ -229,6 +231,13 @@ local function SetCond(cond)
   RegisterStateDriver(binder, STATE, cond)
 end
 
+--- Whether the Interact key may open the player menu (off when the General tab's
+--- "Disable Player Interaction" toggle is on; default allowed).
+function CM.IsPlayerMenuEnabled()
+  local v = CM.DB and CM.DB.global and CM.DB.global.disablePlayerInteract
+  return not CM.DbBool(v, CM.Constants.DatabaseDefaults.global.disablePlayerInteract)
+end
+
 --- Gives the Interact key back to its normal binding. Safe to call every tick.
 function CM.DisarmPlayerMenu()
   if InCombatLockdown() or armedCond == COND_OFF or armedCond == nil then
@@ -243,6 +252,10 @@ end
 --- (attributes and drivers are protected); in combat the `[nocombat]` driver has already dropped it.
 function CM.UpdatePlayerMenu()
   if InCombatLockdown() then
+    return
+  end
+  if not CM.IsPlayerMenuEnabled() then
+    CM.DisarmPlayerMenu()
     return
   end
   local key = IsMouselooking() and GetInteractKey() or nil

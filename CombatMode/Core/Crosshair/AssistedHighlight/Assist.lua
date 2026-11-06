@@ -953,6 +953,7 @@ function CM.UpdateCrosshairAssistedHighlight()
   if
     CM.IsInteractionHUDEnabled()
     and CM.IsInteractionHUDPlayersEnabled()
+    and CM.IsPlayerMenuEnabled()
     and PassesCrosshairGate()
     and not InCombatLockdown()
   then
