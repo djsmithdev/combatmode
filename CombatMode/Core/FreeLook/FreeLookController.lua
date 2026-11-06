@@ -2,15 +2,20 @@
 --  Core/FreeLook/FreeLookController.lua — FREELOOK — mouselook state machine
 ---------------------------------------------------------------------------------------
 --  What it does: Owns Mouse Look lock/unlock, cursor-mode keybind behavior,
---  ShouldFreeLookBeOff aggregation, CursorFreelookCentering bounce
---  (force CVar 0 → MouselookStart → deferred set to 1), tooltip hide while locked
+--  ShouldFreeLookBeOff aggregation, cursor centering without the 10.2 jolt (centering 1 +
+--  speed dip → Start → Stop → centering 0 → Start), tooltip hide while locked
 --  (Show Tooltips With key peeks it beside the crosshair), optional sheath-with-mouselook (intentional toggle only), and the OPie rematch
 --  latch (NotifyOpieUnlockFrameVisible / RematchFreeLookAfterOpieIfNeeded).
 --  Architecture / how it works:
 --    • LockFreeLook / UnlockFreeLook drive MouselookStart/Stop + crosshair display +
 --      centering helpers via CVarManager.
---    • StartFreeLookFresh forces centering off, starts mouselook, then deferred
---      SetCursorFreelookCentering(true) so the cursor recenters reliably.
+--    • StartFreeLookFresh (crosshair enabled) bounces in one frame: centering 1 + a
+--      cameraYaw/PitchMoveSpeed dip to 0.1 (the engine applies its warp-to-centre as a turn
+--      scaled by those speeds) → MouselookStart → MouselookStop → centering 0 →
+--      MouselookStart; speeds restored next frame. The dip writes and saved values are
+--      CVarManager's (CM.BeginCameraSpeedDip / CM.EndCameraSpeedDip); this file only
+--      schedules the restore with one shared callback. The cursor then reappears at the
+--      crosshair on unlock. See the comment above StartFreeLookFresh / issue 189.
 --    • ShouldFreeLookBeOff consults AutoCursorUnlock predicates, SpellIsTargeting,
 --      cinematics, FreeLookOverride, default LMB/RMB held. customLockCondition
 --      (IsCustomLockConditionTrue) beats tap/hold unlock and the Auto Unlock
@@ -523,10 +528,40 @@ local function RunUnlockFreeLookDeferredUI()
   end
 end
 
--- Force CursorFreelookCentering to 0, then MouselookStart, then deferred set to 1.
--- Required by the 10.2 Blizzard quirk (see Constants/CVars.lua): starting mouselook while
--- the CVar is already 1 (or writing 1 mid-look) can leave the cursor visible.
+-- Cursor centering (issue 189). With CursorFreelookCentering 1 the engine warps the cursor
+-- to the crosshair inside MouselookStart and feeds that warp through Mouse Look as a turn
+-- (the 10.2+ "jolt", WoWUIBugs 504). Measured on 12.x: the turn is linear in
+-- cameraYaw/PitchMoveSpeed, and 0 is rejected (the write is ignored, which is why zeroing
+-- never seemed to help) while 0.1 is accepted. So: drop both speeds to the floor for the one
+-- frame MouselookStart runs in, then put them back. A 975 px offset then turns the character
+-- by ~0.03 degrees instead of ~85, and the cursor reappears at the crosshair on MouselookStop.
+-- Writing the CVar to 1 mid-look does nothing (the warp only happens at start), and a start
+-- made with it already 1 leaves the cursor drawn for the whole look. So the lock is a bounce,
+-- all in one frame: centering 1 + dip → MouselookStart (warps, ~no turn) → MouselookStop
+-- (sticky: cursor stays at the crosshair) → centering 0 → MouselookStart (a normal start that
+-- hides the cursor and remembers the crosshair as the unlock position).
+-- The speed writes and the saved values live in CVarManager (CM.BeginCameraSpeedDip /
+-- CM.EndCameraSpeedDip); this file only schedules the restore. If the client rejects the dip
+-- value (Classic clamps are unmeasured), Begin returns false and the lock is the plain start.
+local CENTERING_DIP_SPEED = 0.1
+local cameraSpeedRestoreScheduled = false
+
+-- One shared restore callback: locks are frequent, so no closure per lock.
+local function RestoreCameraSpeedAfterDip()
+  cameraSpeedRestoreScheduled = false
+  CM.EndCameraSpeedDip()
+end
+
 local function StartFreeLookFresh()
+  if CM.IsCrosshairEnabled() and CM.BeginCameraSpeedDip(CENTERING_DIP_SPEED) then
+    if not cameraSpeedRestoreScheduled then
+      cameraSpeedRestoreScheduled = true
+      C_Timer.After(0, RestoreCameraSpeedAfterDip)
+    end
+    CM.SetCursorFreelookCenteringCVar(true)
+    MouselookStart()
+    MouselookStop()
+  end
   CM.SetCursorFreelookCenteringCVar(false)
   MouselookStart()
   cmMouselookActive = true
