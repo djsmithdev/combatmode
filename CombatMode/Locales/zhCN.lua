@@ -646,6 +646,8 @@ L["Double-click a row to edit. Overrides are account-wide and replace CombatMode
 -- Radial Menu: actions and preset wheels
 L["Character Info"] = "角色信息"
 L["Spellbook & Talents"] = "法术书和天赋"
+L["Spellbook"] = "法术书"
+L["Legacy"] = "传承"
 L["Talents"] = "天赋"
 L["World Map"] = "世界地图"
 L["All Bags"] = "所有背包"

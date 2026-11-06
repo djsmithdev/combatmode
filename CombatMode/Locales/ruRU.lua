@@ -708,6 +708,8 @@ L["Double-click a row to edit. Overrides are account-wide and replace CombatMode
 -- Radial Menu: actions and preset wheels
 L["Character Info"] = "Персонаж"
 L["Spellbook & Talents"] = "Книга заклинаний и таланты"
+L["Spellbook"] = "Книга заклинаний"
+L["Legacy"] = "Наследие"
 L["Talents"] = "Таланты"
 L["World Map"] = "Карта мира"
 L["All Bags"] = "Все сумки"

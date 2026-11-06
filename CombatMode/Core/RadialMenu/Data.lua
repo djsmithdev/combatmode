@@ -165,8 +165,23 @@ local PRESETS = {
       -- Group Finder on Retail / Forever, Friends & Social on the other clients; the tail only fills in
       -- when this client is missing some of the panels.
       local build = _G.GetBuildInfo and select(4, _G.GetBuildInfo()) or 0
-      local modern = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE
-        or (type(build) == "number" and build >= 16000 and build < 20000)
+      local isForever = type(build) == "number" and build >= 16000 and build < 20000
+      local modern = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE or isForever
+      if isForever then
+        return PresetWheel(
+          L["Interface"],
+          AvailableIds({
+            "character",
+            "professions",
+            "bags",
+            "talents",
+            "legacy",
+            "questlog",
+            "groupfinder",
+            "collections",
+          }, 8)
+        )
+      end
       return PresetWheel(
         L["Interface"],
         AvailableIds({

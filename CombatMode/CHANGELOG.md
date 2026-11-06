@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.4.5] - 2026-11-06
+
+### Added
+
+- **Auto Cursor Unlock** now watches the panels WoW Forever added, such as the Spellbook & Talents window, Legacy, Transmog, Stable, Guild Bank, Group Finder listings and the housing windows, so Mouse Look releases the cursor while they are open.
+- **Radial Menu** has new **Spellbook** and **Legacy** actions for Forever.
+
+### Changed
+
+- The **Interface** wheel preset on Forever is now Character Info, Professions, All Bags, Talents, Legacy, Quest Log, Group Finder and Account Collections.
+- **Radial Menu** actions you can't use yet, such as Talents below the unlock level or Legacy before you have renown, now show greyed out and do nothing.
+
+### Fixed
+
+- **Radial Menu** no longer offers Housing Dashboard, Achievements or Great Vault on clients that can't open them, which caused a Lua error on Forever.
+- Fixed a repeated Lua error from **Auto Cursor Unlock** when a watched window was forbidden to addons.
+
 ## [5.4.4] - 2026-11-06
 
 ### Changed
@@ -861,7 +878,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/ThericGames/combatmode/compare/5.4.4...HEAD
+[Unreleased]: https://github.com/ThericGames/combatmode/compare/5.4.5...HEAD
+[5.4.5]: https://github.com/ThericGames/combatmode/compare/5.4.4...5.4.5
 [5.4.4]: https://github.com/ThericGames/combatmode/compare/5.4.3...5.4.4
 [5.4.3]: https://github.com/ThericGames/combatmode/compare/5.4.2...5.4.3
 [5.4.2]: https://github.com/ThericGames/combatmode/compare/5.4.1...5.4.2
