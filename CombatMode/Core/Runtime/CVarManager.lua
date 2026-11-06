@@ -430,9 +430,7 @@ function CM.BeginCameraSpeedDip(speed)
   for _, name in ipairs(CAMERA_SPEED_DIP_NAMES) do
     SetCVar(name, speed)
     if tonumber(GetCVar(name)) ~= speed then
-      CM.DebugPrint(
-        "Camera speed dip rejected by the client for " .. name .. "; skipping bounce."
-      )
+      CM.DebugPrint("Camera speed dip rejected by the client for " .. name .. "; skipping bounce.")
       CM.EndCameraSpeedDip()
       return false
     end
