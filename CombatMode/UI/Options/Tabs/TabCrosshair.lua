@@ -207,7 +207,7 @@ UI.Options.AddTab({
     ctx:Toggle({
       label = L["Player Interaction Prompt"],
       newFeatureFlag = true,
-      desc = L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."],
+      desc = L["Show an indicator while aiming at a player for one second. Holding the Interact Key opens their context menu."],
       get = function()
         return CM.IsInteractionHUDPlayersEnabled()
       end,

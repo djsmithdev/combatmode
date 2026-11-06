@@ -98,11 +98,11 @@ L["Mouse Look Keybind"] = "Tecla de vista con mouse"
 L["Tap to toggle Mouse Look. Hold to unlock the cursor temporarily."] =
   "Toca para alternar la vista con mouse. Mantén presionado para liberar el cursor temporalmente."
 L["Interact Keybind"] = "Tecla de interacción"
-L["Tap to interact with a player or the unit chosen below."] =
-  "Toca para interactuar con un jugador o con la unidad elegida abajo."
+L["Tap to interact with the unit chosen below. Hold on a player to open their context menu."] =
+  "Presiona para interactuar con la unidad elegida abajo. Mantén presionado sobre un jugador para abrir su menú contextual."
 L["Players"] = "Jugadores"
-L["Aim at a player for a second and the Assist HUD shows a prompt. Press the key then to open their context menu."] =
-  "Apunta a un jugador durante un segundo y el HUD de asistencia mostrará un aviso. Presiona entonces la tecla para abrir su menú contextual."
+L["Aim at a player for a second and the Assist HUD shows a prompt. Hold the key then to open their context menu."] =
+  "Apunta a un jugador durante un segundo y el HUD de asistencia mostrará un aviso. Mantén entonces la tecla para abrir su menú contextual."
 L["NPCs and objects"] = "PNJ y objetos"
 L["Interacts as normal with the unit chosen in Interact Unit."] =
   "Interactúa como de costumbre con la unidad elegida en «Unidad de interacción»."
@@ -290,8 +290,8 @@ L["Interactable Indicator"] = "Indicador de interacción"
 L["Show an indicator while aiming at an interactable unit or object."] =
   "Muestra un indicador mientras apuntas a una unidad u objeto con el que se puede interactuar."
 L["Player Interaction Prompt"] = "Aviso de interacción con jugadores"
-L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
-  "Muestra un indicador al apuntar a un jugador durante un segundo. Al presionar la tecla de interacción se abre su menú contextual."
+L["Show an indicator while aiming at a player for one second. Holding the Interact Key opens their context menu."] =
+  "Muestra un indicador al apuntar a un jugador durante un segundo. Mantener la tecla de interacción abre su menú contextual."
 L["Position"] = "Posición"
 L["Which side of the crosshair the HUD appears on."] = "En qué lado de la mira aparece el HUD."
 L["Left"] = "Izquierda"

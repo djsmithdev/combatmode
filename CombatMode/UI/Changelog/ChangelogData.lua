@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [5.4.3] - 2026-11-06
 
+### Changed
+
+- The player context menu on the **Interact Keybind** now opens only when you hold the key while aiming at a player, so a quick tap no longer pops it up. The **Interact Keybind** and **Player Interaction Prompt** descriptions say so.
+
 ### Fixed
 
 - Fixed a Lua error on login that stopped the welcome message from printing.

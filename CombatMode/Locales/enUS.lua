@@ -86,9 +86,9 @@ L["Lock the cursor to the position of the Crosshair and steer by moving the mous
 L["Mouse Look Keybind"] = true
 L["Tap to toggle Mouse Look. Hold to unlock the cursor temporarily."] = true
 L["Interact Keybind"] = true
-L["Tap to interact with a player or the unit chosen below."] = true
+L["Tap to interact with the unit chosen below. Hold on a player to open their context menu."] = true
 L["Players"] = true
-L["Aim at a player for a second and the Assist HUD shows a prompt. Press the key then to open their context menu."] =
+L["Aim at a player for a second and the Assist HUD shows a prompt. Hold the key then to open their context menu."] =
   true
 L["NPCs and objects"] = true
 L["Interacts as normal with the unit chosen in Interact Unit."] = true
@@ -233,7 +233,7 @@ L["Only In Combat"] = true
 L["Interactable Indicator"] = true
 L["Show an indicator while aiming at an interactable unit or object."] = true
 L["Player Interaction Prompt"] = true
-L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
+L["Show an indicator while aiming at a player for one second. Holding the Interact Key opens their context menu."] =
   true
 L["Position"] = true
 L["Which side of the crosshair the HUD appears on."] = true
