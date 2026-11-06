@@ -29,7 +29,14 @@
 --  UI/Changelog/ChangelogPanel.lua
 ---------------------------------------------------------------------------------------
 local addonName, CM = ...
-local L = CM.L
+-- Runtime.lua loads before Locales/Locale.lua (it creates the namespace), so CM.L does not
+-- exist yet at file scope: resolve it on each lookup instead of caching nil.
+local L = setmetatable({}, {
+  __index = function(_, key)
+    local strings = CM.L
+    return strings and strings[key] or key
+  end,
+})
 local _G = _G
 
 -- Debug / WeakAura / macro compatibility only — modules must use `local _, CM = ...`.
