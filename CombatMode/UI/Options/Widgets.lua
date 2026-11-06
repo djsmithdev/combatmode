@@ -3512,11 +3512,14 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
       if e.spellId then
         ids[e.spellId] = true
       end
-      if e.name then
-        names[strlower(e.name)] = true
-      end
-      if e.token then
-        names[strlower(e.token)] = true
+      -- Spells are told apart by ID (ranks share a name); names only dedupe ID-less entries.
+      if not e.spellId then
+        if e.name then
+          names[strlower(e.name)] = true
+        end
+        if e.token then
+          names[strlower(e.token)] = true
+        end
       end
     end
     return ids, names
@@ -3524,8 +3527,8 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
 
   local function IsAlreadySelected(entry)
     local ids, names = SelectedMaps()
-    if entry.spellId and ids[entry.spellId] then
-      return true
+    if entry.spellId then
+      return ids[entry.spellId] == true
     end
     if entry.name and names[strlower(entry.name)] then
       return true
@@ -3601,6 +3604,9 @@ function UI.MakePillMultiSelect(parent, opts, resolver)
       else
         local e = entries[i]
         local name = e.name or e.token or ""
+        if e.rank then
+          name = name .. " (" .. e.rank .. ")"
+        end
         pill.text:SetText(name)
         local hasIcon = e.icon or e.atlas
         if hasIcon then
