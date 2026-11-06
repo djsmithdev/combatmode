@@ -301,6 +301,10 @@ L["Interactable Indicator"] = "Индикатор взаимодействия"
 L["Show an indicator while aiming at an interactable unit or object."] =
   "Показывает индикатор при наведении на юнит или объект, с которым можно взаимодействовать."
 L["Player Interaction Prompt"] = "Подсказка взаимодействия с игроком"
+L["Disable Player Interaction"] =
+  "Меню игрока на клавише взаимодействия"
+L["Disables interaction with players from the Interact Key."] =
+  "Удерживайте клавишу взаимодействия, наведя прицел на игрока, чтобы открыть его контекстное меню. Отключите, чтобы клавиша работала полностью штатно, например на транспорте для нескольких пассажиров."
 L["Show an indicator while aiming at a player for one second. Holding the Interact Key opens their context menu."] =
   "Показывает индикатор, если навести прицел на игрока на секунду. Удержание клавиши взаимодействия откроет его контекстное меню."
 L["Position"] = "Положение"
@@ -708,6 +712,8 @@ L["Double-click a row to edit. Overrides are account-wide and replace CombatMode
 -- Radial Menu: actions and preset wheels
 L["Character Info"] = "Персонаж"
 L["Spellbook & Talents"] = "Книга заклинаний и таланты"
+L["Spellbook"] = "Книга заклинаний"
+L["Legacy"] = "Наследие"
 L["Talents"] = "Таланты"
 L["World Map"] = "Карта мира"
 L["All Bags"] = "Все сумки"

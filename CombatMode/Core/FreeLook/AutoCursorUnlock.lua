@@ -44,7 +44,10 @@ local function CursorUnlockFrameVisible(frameArr)
 
   for _, frameName in ipairs(frameArr) do
     local curFrame = _G[frameName]
-    if curFrame and curFrame.IsVisible and curFrame:IsVisible() then
+    -- A forbidden frame (tainted caller) errors on every method except IsForbidden:
+    -- skip it instead of throwing each tick.
+    local usable = curFrame and not (curFrame.IsForbidden and curFrame:IsForbidden())
+    if usable and curFrame.IsVisible and curFrame:IsVisible() then
       CM.DebugPrintThrottled("cursorUnlock", frameName .. " is visible, preventing re-locking.")
       return true
     end

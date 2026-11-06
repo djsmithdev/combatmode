@@ -291,6 +291,9 @@ L["Interactable Indicator"] = "상호작용 표시기"
 L["Show an indicator while aiming at an interactable unit or object."] =
   "상호작용 가능한 유닛이나 오브젝트를 조준하는 동안 표시기를 보여줍니다."
 L["Player Interaction Prompt"] = "플레이어 상호작용 안내"
+L["Disable Player Interaction"] = "플레이어 상호작용 비활성화"
+L["Disables interaction with players from the Interact Key."] =
+  "플레이어를 조준한 상태에서 상호작용 키를 길게 누르면 해당 플레이어의 메뉴가 열립니다. 다인승 탈것 등에서 키를 기본 동작 그대로 사용하려면 끄세요."
 L["Show an indicator while aiming at a player for one second. Holding the Interact Key opens their context menu."] =
   "플레이어를 1초 동안 조준하면 표시기를 보여줍니다. 상호작용 키를 길게 누르면 해당 플레이어의 컨텍스트 메뉴가 열립니다."
 L["Position"] = "위치"
@@ -667,6 +670,8 @@ L["Double-click a row to edit. Overrides are account-wide and replace CombatMode
 -- Radial Menu: actions and preset wheels
 L["Character Info"] = "캐릭터 정보"
 L["Spellbook & Talents"] = "마법책 및 특성"
+L["Spellbook"] = "마법책"
+L["Legacy"] = "유산"
 L["Talents"] = "특성"
 L["World Map"] = "세계 지도"
 L["All Bags"] = "모든 가방"

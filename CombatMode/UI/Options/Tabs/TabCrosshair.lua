@@ -216,7 +216,7 @@ UI.Options.AddTab({
         RefreshAssist()
       end,
       disabled = function()
-        return CrosshairOff() or not CM.IsInteractionHUDEnabled()
+        return CrosshairOff() or not CM.IsInteractionHUDEnabled() or not CM.IsPlayerMenuEnabled()
       end,
     })
     ctx:Dropdown({

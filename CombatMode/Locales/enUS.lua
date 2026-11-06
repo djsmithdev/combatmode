@@ -233,6 +233,8 @@ L["Only In Combat"] = true
 L["Interactable Indicator"] = true
 L["Show an indicator while aiming at an interactable unit or object."] = true
 L["Player Interaction Prompt"] = true
+L["Disable Player Interaction"] = true
+L["Disables interaction with players from the Interact Key."] = true
 L["Show an indicator while aiming at a player for one second. Holding the Interact Key opens their context menu."] =
   true
 L["Position"] = true
@@ -565,6 +567,8 @@ L["Double-click a row to edit. Overrides are account-wide and replace CombatMode
 -- Radial Menu: actions and preset wheels
 L["Character Info"] = true
 L["Spellbook & Talents"] = true
+L["Spellbook"] = true
+L["Legacy"] = true
 L["Talents"] = true
 L["World Map"] = true
 L["All Bags"] = true

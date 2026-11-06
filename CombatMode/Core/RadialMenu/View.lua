@@ -527,7 +527,9 @@ local function SliceUnusable(entry)
       if
         action
         and (
-          (action.noCombat and _G.InCombatLockdown()) or (action.needsGroup and not _G.IsInGroup())
+          (action.noCombat and _G.InCombatLockdown())
+          or (action.needsGroup and not _G.IsInGroup())
+          or CM.RadialActions.IsLocked(action)
         )
       then
         unusable = true

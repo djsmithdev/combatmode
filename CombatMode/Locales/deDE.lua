@@ -290,6 +290,9 @@ L["Interactable Indicator"] = "Interaktionsanzeige"
 L["Show an indicator while aiming at an interactable unit or object."] =
   "Zeigt eine Anzeige, während du eine interagierbare Einheit oder ein Objekt anvisierst."
 L["Player Interaction Prompt"] = "Spielerinteraktions-Hinweis"
+L["Disable Player Interaction"] = "Spielerinteraktion deaktivieren"
+L["Disables interaction with players from the Interact Key."] =
+  "Halte die Interaktionstaste auf einem Spieler gedrückt, um sein Kontextmenü zu öffnen. Deaktiviere dies, damit die Taste vollständig unverändert bleibt, z. B. für Reittiere mit mehreren Passagieren."
 L["Show an indicator while aiming at a player for one second. Holding the Interact Key opens their context menu."] =
   "Zeigt eine Anzeige, wenn du eine Sekunde lang auf einen Spieler zielst. Hältst du die Interaktionstaste gedrückt, öffnet sich sein Kontextmenü."
 L["Position"] = "Position"
@@ -669,6 +672,8 @@ L["Double-click a row to edit. Overrides are account-wide and replace CombatMode
 -- Radial Menu: actions and preset wheels
 L["Character Info"] = "Charakter"
 L["Spellbook & Talents"] = "Zauberbuch & Talente"
+L["Spellbook"] = "Zauberbuch"
+L["Legacy"] = "Vermächtnis"
 L["Talents"] = "Talente"
 L["World Map"] = "Weltkarte"
 L["All Bags"] = "Alle Taschen"

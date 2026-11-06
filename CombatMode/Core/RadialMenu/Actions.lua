@@ -21,9 +21,12 @@
 --  the addon logo for Action Combat Mode options, and "portrait" (the player's 2D portrait, drawn by
 --  CM.RadialSetIcon) for Character Info.
 --  Client availability: `click = {buttons}` (micro buttons; the first one that exists is clicked, as a
---  secure /click so Blizzard's own handler runs) or `requires = "Global"`; CM.RadialActions.IsAvailable
+--  secure /click so Blizzard's own handler runs) or `requires = "Global"`; Housing, Achievements and
+--  Great Vault also need their Blizzard addon loadable (`loads`) and a global (`needs`), because Forever
+--  has their micro buttons without the panels; CM.RadialActions.IsAvailable
 --  hides what the client lacks from the editor and the default wheels, and a saved slice for a missing
---  action is skipped by the wheel.
+--  action is skipped by the wheel. CM.RadialActions.IsLocked (an action's `locked()` or a disabled micro
+--  button: level / progression gates) makes the wheel draw the slice greyed and ignore its release.
 --  Does not: Own the wheel, draw anything, or touch bindings.
 --  Related: Core/RadialMenu/Data.lua (CM.RadialEntrySecure), UI/Options/Tabs/TabRadialMenu.lua
 ---------------------------------------------------------------------------------------
@@ -71,6 +74,46 @@ local DEFINITIONS = {
     id = "talents",
     label = L["Talents"],
     click = { "PlayerSpellsMicroButton", "TalentMicroButton" },
+    -- Blizzard's micro button knows the level talents unlock at (Forever lowers it with Legacy ranks).
+    locked = function()
+      local button = _G.PlayerSpellsMicroButton
+      if button and button.GetTalentUnlockLevel then
+        return _G.UnitLevel("player") < button:GetTalentUnlockLevel()
+      end
+      return false
+    end,
+  },
+  {
+    -- Opens only the spellbook (Forever and Retail's PlayerSpellsFrame); needs the util global.
+    id = "spellbookonly",
+    label = L["Spellbook"],
+    noCombat = true,
+    requires = "PlayerSpellsUtil",
+    run = function()
+      local util = _G.PlayerSpellsUtil
+      if util and util.ToggleSpellBookFrame then
+        util.ToggleSpellBookFrame()
+      end
+    end,
+  },
+  {
+    -- Forever's Legacy system panel (opens only once the Legacy reward track has renown).
+    id = "legacy",
+    label = L["Legacy"],
+    noCombat = true,
+    requires = "ToggleLegacySystemUI",
+    -- ToggleLegacySystemUI silently does nothing until the Legacy reward track has renown.
+    locked = function()
+      local factions = _G.C_MajorFactions
+      local legacy = _G.Constants and _G.Constants.LegacyConsts
+      if not (factions and factions.GetCurrentRenownLevel and legacy) then
+        return false
+      end
+      return (factions.GetCurrentRenownLevel(legacy.LEGACY_REWARD_TRACK_FACTION_ID) or 0) <= 0
+    end,
+    run = function()
+      Call("ToggleLegacySystemUI")
+    end,
   },
   {
     id = "map",
@@ -622,6 +665,37 @@ for _, def in ipairs(DEFINITIONS) do
   def.requires = def.requires or PANEL_REQUIRES[def.id]
 end
 
+-- Panels whose micro button exists on a client that can't open them (Forever ships the Retail micro
+-- buttons, but not the Housing Dashboard, and its Achievements / Great Vault builds can differ): a click
+-- would error inside Blizzard's handler. `loads` = the load-on-demand Blizzard addon the panel needs
+-- (must be loadable), `needs` = a global it uses that must exist. Both are checked on top of `click` /
+-- `requires`.
+local PANEL_CLIENT_CHECKS = {
+  housing = { loads = "Blizzard_HousingDashboard", needs = "HousingFramesUtil" },
+  achievements = { loads = "Blizzard_AchievementUI", needs = "ToggleAchievementFrame" },
+  greatvault = { loads = "Blizzard_WeeklyRewards" },
+}
+for _, def in ipairs(DEFINITIONS) do
+  local check = PANEL_CLIENT_CHECKS[def.id]
+  if check then
+    def.loads = check.loads
+    def.needs = check.needs
+  end
+end
+
+--- True when a load-on-demand Blizzard addon is loaded or can be loaded on this client.
+local function AddOnUsable(name)
+  local addons = _G.C_AddOns
+  if not (addons and addons.IsAddOnLoadable) then
+    return true -- cannot tell: assume it works
+  end
+  if addons.IsAddOnLoaded and addons.IsAddOnLoaded(name) then
+    return true
+  end
+  local ok, loadable = pcall(addons.IsAddOnLoadable, name)
+  return not ok or loadable == true
+end
+
 local registry = { list = {}, byId = {} }
 CM.RadialActions = registry
 
@@ -643,10 +717,40 @@ function registry.IsAvailable(def)
   if not def then
     return false
   end
+  if def.loads and not AddOnUsable(def.loads) then
+    return false
+  end
+  if def.needs and _G[def.needs] == nil then
+    return false
+  end
   if def.click then
     return ClickButton(def) ~= nil
   end
   return def.requires == nil or _G[def.requires] ~= nil
+end
+
+--- True when the client has the action but this character can't use it yet (a level or progression
+--- lock): the action's own `locked()` check, or a disabled Blizzard micro button.
+function registry.IsLocked(def)
+  if type(def) == "string" then
+    def = registry.byId[def]
+  end
+  if not def then
+    return false
+  end
+  if def.locked then
+    local ok, locked = pcall(def.locked)
+    if ok and locked == true then
+      return true
+    end
+  end
+  if def.click then
+    local button = _G[ClickButton(def) or ""]
+    if button and button.IsEnabled and button:IsEnabled() == false then
+      return true
+    end
+  end
+  return false
 end
 
 --- Secure macro text a slice runs for this action, or nil when the client lacks it.
@@ -664,6 +768,8 @@ end
 local ART = {
   character = "character",
   spellbook = "spellbook",
+  spellbookonly = "spellbook",
+  legacy = "legacy",
   talents = "talents",
   map = "fullmap",
   bags = "bags",

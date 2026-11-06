@@ -280,6 +280,9 @@ L["Interactable Indicator"] = "可互動指示"
 L["Show an indicator while aiming at an interactable unit or object."] =
   "瞄準可互動的單位或物件時顯示指示。"
 L["Player Interaction Prompt"] = "玩家互動提示"
+L["Disable Player Interaction"] = "停用玩家互動"
+L["Disables interaction with players from the Interact Key."] =
+  "瞄準玩家時按住互動鍵可開啟其右鍵選單。關閉後互動鍵將完全維持原生行為，例如用於多人坐騎。"
 L["Show an indicator while aiming at a player for one second. Holding the Interact Key opens their context menu."] =
   "瞄準玩家一秒後顯示指示。長按互動鍵即可開啟其右鍵選單。"
 L["Position"] = "位置"
@@ -646,6 +649,8 @@ L["Double-click a row to edit. Overrides are account-wide and replace CombatMode
 -- Radial Menu: actions and preset wheels
 L["Character Info"] = "角色資訊"
 L["Spellbook & Talents"] = "法術書與天賦"
+L["Spellbook"] = "法術書"
+L["Legacy"] = "傳承"
 L["Talents"] = "天賦"
 L["World Map"] = "世界地圖"
 L["All Bags"] = "所有背包"

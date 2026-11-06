@@ -112,6 +112,9 @@ CM.Constants.DatabaseDefaults = {
     interactionHUD = true,
     -- Interactable Indicator also prompts for other players (portrait + name) after a short aim
     interactionHUDPlayers = true,
+    -- On = the Interact key never opens a player's context menu, so it stays native everywhere
+    -- (e.g. multi-passenger mounts). Off (default) = long press on a player opens their menu.
+    disablePlayerInteract = false,
     -- combat assist
     -- "always" | "combat" | "hidden"
     assistedHighlightMode = "always",
