@@ -202,14 +202,14 @@ UI.Options.AddTab({
     ctx:Keybind({
       label = L["Interact Keybind"],
       newFeatureFlag = true,
-      desc = L["Tap to interact with a player or the unit chosen below."],
+      desc = L["Tap to interact with the unit chosen below. Hold on a player to open their context menu."],
       helpTooltip = {
         title = L["Interact Keybind"],
         stacked = true,
         lines = {
           {
             label = L["Players"],
-            value = L["Aim at a player for a second and the Assist HUD shows a prompt. Press the key then to open their context menu."],
+            value = L["Aim at a player for a second and the Assist HUD shows a prompt. Hold the key then to open their context menu."],
           },
           {
             label = L["NPCs and objects"],

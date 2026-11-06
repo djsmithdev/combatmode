@@ -106,11 +106,11 @@ L["Mouse Look Keybind"] = "Клавиша обзора мышью"
 L["Tap to toggle Mouse Look. Hold to unlock the cursor temporarily."] =
   "Нажмите, чтобы включить или выключить обзор мышью. Удерживайте, чтобы временно освободить курсор."
 L["Interact Keybind"] = "Клавиша взаимодействия"
-L["Tap to interact with a player or the unit chosen below."] =
-  "Нажмите, чтобы взаимодействовать с игроком или с целью, выбранной ниже."
+L["Tap to interact with the unit chosen below. Hold on a player to open their context menu."] =
+  "Нажмите, чтобы взаимодействовать с целью, выбранной ниже. Удерживайте на игроке, чтобы открыть его контекстное меню."
 L["Players"] = "Игроки"
-L["Aim at a player for a second and the Assist HUD shows a prompt. Press the key then to open their context menu."] =
-  "Наведите прицел на игрока на секунду — HUD помощи покажет подсказку. Затем нажмите клавишу, чтобы открыть его контекстное меню."
+L["Aim at a player for a second and the Assist HUD shows a prompt. Hold the key then to open their context menu."] =
+  "Наведите прицел на игрока на секунду — HUD помощи покажет подсказку. Затем удерживайте клавишу, чтобы открыть его контекстное меню."
 L["NPCs and objects"] = "NPC и объекты"
 L["Interacts as normal with the unit chosen in Interact Unit."] =
   "Взаимодействует как обычно с целью, выбранной в пункте «Цель взаимодействия»."
@@ -301,8 +301,8 @@ L["Interactable Indicator"] = "Индикатор взаимодействия"
 L["Show an indicator while aiming at an interactable unit or object."] =
   "Показывает индикатор при наведении на юнит или объект, с которым можно взаимодействовать."
 L["Player Interaction Prompt"] = "Подсказка взаимодействия с игроком"
-L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
-  "Показывает индикатор, если навести прицел на игрока на секунду. Клавиша взаимодействия откроет его контекстное меню."
+L["Show an indicator while aiming at a player for one second. Holding the Interact Key opens their context menu."] =
+  "Показывает индикатор, если навести прицел на игрока на секунду. Удержание клавиши взаимодействия откроет его контекстное меню."
 L["Position"] = "Положение"
 L["Which side of the crosshair the HUD appears on."] =
   "С какой стороны от прицела появляется HUD."

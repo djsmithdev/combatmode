@@ -14,6 +14,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.4.4] - 2026-11-06
+
+### Changed
+
+- The player context menu on the **Interact Keybind** now opens only when you hold the key while aiming at a player, so a quick tap no longer pops it up. The **Interact Keybind** and **Player Interaction Prompt** descriptions say so.
+
 ## [5.4.3] - 2026-11-06
 
 ### Fixed
@@ -864,7 +870,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rapidly toggling OPie rings could leave the cursor stuck and visible while Mouse Look was active.
 - Reloading could leave the cursor visible while still in the Mouse Look state after the loading screen.
 
-[Unreleased]: https://github.com/ThericGames/combatmode/compare/5.4.2...HEAD
+[Unreleased]: https://github.com/ThericGames/combatmode/compare/5.4.4...HEAD
+[5.4.4]: https://github.com/ThericGames/combatmode/compare/5.4.3...5.4.4
 [5.4.3]: https://github.com/ThericGames/combatmode/compare/5.4.2...5.4.3
 [5.4.2]: https://github.com/ThericGames/combatmode/compare/5.4.1...5.4.2
 [5.4.1]: https://github.com/ThericGames/combatmode/compare/5.4.0...5.4.1

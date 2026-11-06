@@ -3,7 +3,8 @@
 ---------------------------------------------------------------------------------------
 --  What it does: With Mouse Look on and the crosshair on another player, the Interact key opens
 --  that player's unit menu (Whisper, Inspect, Invite, Trade...) instead of interacting, once the
---  crosshair has rested on them (Interact.GetDwelledPlayer, 1 s). On NPCs,
+--  crosshair has rested on them (Interact.GetDwelledPlayer, 1 s) and only when the key is held
+--  0.4 s (HOLD_SECONDS; a short press does nothing). On NPCs,
 --  objects, yourself or nothing the key is untouched (INTERACTTARGET / INTERACTMOUSEOVER).
 --  Architecture / how it works:
 --    • CombatModePlayerMenuButton is a SecureUnitButtonTemplate whose `togglemenu` action opens the
@@ -19,9 +20,11 @@
 --      fails closed. The button's `unit` must be a stable token (party/raid, nameplate or
 --      "target"): the menu keeps the id and the crosshair leaves the player once the cursor is
 --      free, so `mouseover` / `softinteract` would break Inspect / Trade. A player with no stable
---      token (not targeted, no nameplate) gets CombatModePlayerTargetButton instead: one press runs
---      a macro that targets them (/target; TargetUnit is protected) and clicks the menu button.
---      Both buttons need useOnKeyDown=false or their AnyUp click is ignored on key-down CVars.
+--      token (not targeted, no nameplate) first runs /target (TargetUnit is protected) in the macro.
+--    • The key is bound to CombatModePlayerMenuHold (SecureActionButton, AnyDown+AnyUp,
+--      useOnKeyDown=false so the action runs on release). PreClick stamps the press time and on
+--      release sets macrotext to the armed macro (`/click CombatModePlayerMenuButton`) if held
+--      HOLD_SECONDS, else empty. No clock is needed in the secure environment.
 --    • The key is the one Interact is bound to in the General tab (global.interactUnit picks
 --      the primary command); rebinding it re-arms on the next tick.
 --  Does not: Place the menu at the nameplate (Blizzard anchors it at the cursor), open it in
@@ -37,6 +40,7 @@ local _G = _G
 local C_NamePlate = _G.C_NamePlate
 local CreateFrame = _G.CreateFrame
 local GetBindingKey = _G.GetBindingKey
+local GetTime = _G.GetTime
 local GetNumGroupMembers = _G.GetNumGroupMembers
 local InCombatLockdown = _G.InCombatLockdown
 local IsInGroup = _G.IsInGroup
@@ -60,7 +64,9 @@ local type = _G.type
 local INTERACT_MOUSEOVER = "INTERACTMOUSEOVER"
 local INTERACT_TARGET = "INTERACTTARGET"
 local BUTTON_NAME = "CombatModePlayerMenuButton"
-local TARGET_NAME = "CombatModePlayerTargetButton"
+local HOLD_NAME = "CombatModePlayerMenuHold"
+-- Seconds the Interact key must be held to open the menu; a shorter press does nothing.
+local HOLD_SECONDS = 0.4
 local NEWLINE = string.char(10)
 local STATE = "cmplayermenu"
 local COND_ON = "[nocombat] on; off"
@@ -105,19 +111,37 @@ menuButton:EnableMouse(false)
 menuButton:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0)
 menuButton:Show()
 
--- Targets the player under the crosshair when no stable unit token names them yet.
-local targetButton = CreateFrame("Button", TARGET_NAME, UIParent, "SecureActionButtonTemplate")
-targetButton:SetAttribute("type", "macro")
-targetButton:SetAttribute("macrotext", "")
-targetButton:RegisterForClicks("AnyUp")
--- Action buttons act on key down while ActionButtonUseKeyDown is on, which an AnyUp-only
--- registration never receives, so the macro would never run.
-targetButton:SetAttribute("useOnKeyDown", false)
-targetButton:SetSize(1, 1)
-targetButton:SetAlpha(0)
-targetButton:EnableMouse(false)
-targetButton:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0)
-targetButton:Show()
+-- The key's button. Press records the time; the action runs on release (useOnKeyDown=false)
+-- and only when the key was held HOLD_SECONDS. PreClick (insecure, out of combat only: the
+-- binder drops the key in combat) swaps the macro: the armed one (/target the player when no
+-- stable token names them yet, then click the menu button) or nothing for a short press.
+local holdButton = CreateFrame("Button", HOLD_NAME, UIParent, "SecureActionButtonTemplate")
+holdButton:SetAttribute("type", "macro")
+holdButton:SetAttribute("macrotext", "")
+holdButton:RegisterForClicks("AnyDown", "AnyUp")
+-- Action buttons act on key down while ActionButtonUseKeyDown is on, which would fire on press.
+holdButton:SetAttribute("useOnKeyDown", false)
+holdButton:SetSize(1, 1)
+holdButton:SetAlpha(0)
+holdButton:EnableMouse(false)
+holdButton:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0)
+holdButton:Show()
+
+local pressedAt = nil
+local armedMacro = ""
+holdButton:SetScript("PreClick", function(_, _, down)
+  if InCombatLockdown() then
+    return
+  end
+  if down then
+    pressedAt = GetTime()
+    holdButton:SetAttribute("macrotext", "")
+    return
+  end
+  local held = pressedAt and (GetTime() - pressedAt) >= HOLD_SECONDS
+  pressedAt = nil
+  holdButton:SetAttribute("macrotext", held and armedMacro or "")
+end)
 
 -- Numeric states arrive as numbers, so the snippet compares the strings "on" / "off".
 local binder =
@@ -237,27 +261,26 @@ function CM.UpdatePlayerMenu()
   -- targets them (a macro /target; TargetUnit is protected) and clicks the menu button, whose
   -- unit is then "target".
   local token = StableToken(unit)
-  local button = BUTTON_NAME
   if token == unit then
-    button = TARGET_NAME
-    -- If the click ever fails, the next tick sees "target" as the stable token and rebinds the
-    -- key straight to the menu button.
-    local macro = "/target " .. unit .. NEWLINE .. "/click " .. BUTTON_NAME
-    if macro ~= armedSetup then
-      armedSetup = macro
+    -- If the click ever fails, the next tick sees "target" as the stable token.
+    armedMacro = "/target " .. unit .. NEWLINE .. "/click " .. BUTTON_NAME
+    if armedSetup ~= armedMacro then
+      armedSetup = armedMacro
       menuButton:SetAttribute("unit", "target")
-      targetButton:SetAttribute("macrotext", macro)
     end
-  elseif token ~= armedSetup then
-    armedSetup = token
-    menuButton:SetAttribute("unit", token)
+  else
+    armedMacro = "/click " .. BUTTON_NAME
+    if armedSetup ~= token then
+      armedSetup = token
+      menuButton:SetAttribute("unit", token)
+    end
   end
 
-  local armed = key .. "|" .. button
+  local armed = key
   if armed ~= armedKey then
     armedKey = armed
     binder:SetAttribute("menukey", key)
-    binder:SetAttribute("menubutton", button)
+    binder:SetAttribute("menubutton", HOLD_NAME)
     -- The snippet only runs on a state change: drop the driver so the new key is bound again.
     if armedCond then
       UnregisterStateDriver(binder, STATE)

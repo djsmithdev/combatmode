@@ -95,11 +95,11 @@ L["Mouse Look Keybind"] = "滑鼠視角按鍵"
 L["Tap to toggle Mouse Look. Hold to unlock the cursor temporarily."] =
   "點按切換滑鼠視角，按住可暫時解鎖游標。"
 L["Interact Keybind"] = "互動按鍵"
-L["Tap to interact with a player or the unit chosen below."] =
-  "點按可與玩家或下方所選單位互動。"
+L["Tap to interact with the unit chosen below. Hold on a player to open their context menu."] =
+  "點按可與下方所選單位互動。對準玩家長按可開啟其右鍵選單。"
 L["Players"] = "玩家"
-L["Aim at a player for a second and the Assist HUD shows a prompt. Press the key then to open their context menu."] =
-  "瞄準玩家一秒後，輔助HUD會顯示提示，此時按下該鍵即可開啟其右鍵選單。"
+L["Aim at a player for a second and the Assist HUD shows a prompt. Hold the key then to open their context menu."] =
+  "瞄準玩家一秒後，輔助HUD會顯示提示，此時長按該鍵即可開啟其右鍵選單。"
 L["NPCs and objects"] = "NPC和物件"
 L["Interacts as normal with the unit chosen in Interact Unit."] =
   "與「互動單位」中選擇的單位正常互動。"
@@ -280,8 +280,8 @@ L["Interactable Indicator"] = "可互動指示"
 L["Show an indicator while aiming at an interactable unit or object."] =
   "瞄準可互動的單位或物件時顯示指示。"
 L["Player Interaction Prompt"] = "玩家互動提示"
-L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
-  "瞄準玩家一秒後顯示指示。按下互動鍵即可開啟其右鍵選單。"
+L["Show an indicator while aiming at a player for one second. Holding the Interact Key opens their context menu."] =
+  "瞄準玩家一秒後顯示指示。長按互動鍵即可開啟其右鍵選單。"
 L["Position"] = "位置"
 L["Which side of the crosshair the HUD appears on."] = "HUD顯示在準星的哪一側。"
 L["Left"] = "左"

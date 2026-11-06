@@ -98,11 +98,11 @@ L["Mouse Look Keybind"] = "마우스 룩 단축키"
 L["Tap to toggle Mouse Look. Hold to unlock the cursor temporarily."] =
   "누르면 마우스 룩을 전환합니다. 길게 누르면 커서를 일시적으로 해제합니다."
 L["Interact Keybind"] = "상호작용 단축키"
-L["Tap to interact with a player or the unit chosen below."] =
-  "눌러서 플레이어 또는 아래에서 선택한 대상과 상호작용합니다."
+L["Tap to interact with the unit chosen below. Hold on a player to open their context menu."] =
+  "아래에서 선택한 대상과 상호작용하려면 짧게 누르세요. 플레이어를 조준한 상태에서 길게 누르면 컨텍스트 메뉴가 열립니다."
 L["Players"] = "플레이어"
-L["Aim at a player for a second and the Assist HUD shows a prompt. Press the key then to open their context menu."] =
-  "플레이어를 1초간 조준하면 보조 HUD에 안내가 표시됩니다. 그때 키를 누르면 해당 플레이어의 메뉴가 열립니다."
+L["Aim at a player for a second and the Assist HUD shows a prompt. Hold the key then to open their context menu."] =
+  "플레이어를 1초 동안 조준하면 보조 HUD에 안내가 표시됩니다. 이때 키를 길게 누르면 해당 플레이어의 컨텍스트 메뉴가 열립니다."
 L["NPCs and objects"] = "NPC 및 오브젝트"
 L["Interacts as normal with the unit chosen in Interact Unit."] =
   "'상호작용 대상'에서 선택한 대상과 평소처럼 상호작용합니다."
@@ -291,8 +291,8 @@ L["Interactable Indicator"] = "상호작용 표시기"
 L["Show an indicator while aiming at an interactable unit or object."] =
   "상호작용 가능한 유닛이나 오브젝트를 조준하는 동안 표시기를 보여줍니다."
 L["Player Interaction Prompt"] = "플레이어 상호작용 안내"
-L["Show an indicator while aiming at a player for one second. Pressing the Interact Key opens their context menu."] =
-  "플레이어를 1초간 조준하면 표시기를 보여줍니다. 상호작용 키를 누르면 해당 플레이어의 메뉴가 열립니다."
+L["Show an indicator while aiming at a player for one second. Holding the Interact Key opens their context menu."] =
+  "플레이어를 1초 동안 조준하면 표시기를 보여줍니다. 상호작용 키를 길게 누르면 해당 플레이어의 컨텍스트 메뉴가 열립니다."
 L["Position"] = "위치"
 L["Which side of the crosshair the HUD appears on."] =
   "HUD가 조준점의 어느 쪽에 표시될지 정합니다."
