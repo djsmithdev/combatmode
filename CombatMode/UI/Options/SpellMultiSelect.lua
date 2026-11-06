@@ -9,6 +9,9 @@
 --      when resolving. Spellbook index build skips when C_SpellBook.GetSpellBookItemInfo
 --      is unavailable (pet-spell scan is guarded — warlock pet books could otherwise
 --      crash options open).
+--    • Spells are told apart by ID, so every rank of a spell can be listed (Forever / Classic).
+--      Entries carry `rank` (client spell subtext, shown in the pill) and `detail` (the same
+--      text, drawn dim on the right of a suggestion row).
 --    • Runtime membership tests live in TargetingMacroBuilder, not here.
 --  Does not: Build click-cast macros or write CVars.
 --  Related: UI/Options/Widgets.lua, UI/Options/Tabs/TabReticleTargeting.lua,
@@ -23,9 +26,12 @@ local CreateFrame = _G.CreateFrame
 local C_Spell = _G.C_Spell
 local C_SpellBook = _G.C_SpellBook
 local Enum = _G.Enum
+local issecretvalue = _G.issecretvalue
 
 -- Lua stdlib
 local ipairs = _G.ipairs
+local pcall = _G.pcall
+local type = _G.type
 local strfind = _G.string.find
 local strlower = _G.string.lower
 local strtrim = _G.string.trim
@@ -46,6 +52,27 @@ local spellByName = {}
 local indexDirty = true
 local indexFrame
 
+--- Rank text of a spell ("Rank 3") on clients that have ranks (Forever, Classic), else nil.
+local function SpellRank(spellId)
+  if not spellId then
+    return nil
+  end
+  local getSubtext = C_Spell and C_Spell.GetSpellSubtext or _G.GetSpellSubtext
+  if not getSubtext then
+    return nil
+  end
+  local ok, text = pcall(getSubtext, spellId)
+  if
+    ok
+    and type(text) == "string"
+    and text ~= ""
+    and not (issecretvalue and issecretvalue(text))
+  then
+    return text
+  end
+  return nil
+end
+
 local function AddSpellToIndex(spellId, name, icon)
   if not spellId or spellId <= 0 or not name or name == "" then
     return
@@ -53,11 +80,14 @@ local function AddSpellToIndex(spellId, name, icon)
   if spellById[spellId] then
     return
   end
+  local rank = SpellRank(spellId)
   local entry = {
     spellId = spellId,
     name = name,
     nameLower = strlower(name),
     icon = icon,
+    rank = rank,
+    detail = rank,
   }
   spellList[#spellList + 1] = entry
   spellById[spellId] = entry
@@ -162,6 +192,14 @@ local function EnsureSpellIndex()
   end
 end
 
+--- Adds the rank text (`rank` for the pill, `detail` for the dim label on the right of a suggestion).
+local function WithRank(entry)
+  local rank = SpellRank(entry.spellId)
+  entry.rank = rank
+  entry.detail = rank
+  return entry
+end
+
 local function ResolveSpellToken(token)
   token = strtrim(token or "")
   if token == "" then
@@ -174,22 +212,22 @@ local function ResolveSpellToken(token)
   if id and id > 0 then
     local fromBook = spellById[id]
     if fromBook then
-      return {
+      return WithRank({
         token = tostring(id),
         spellId = fromBook.spellId,
         name = fromBook.name,
         icon = fromBook.icon,
-      }
+      })
     end
     if C_Spell and C_Spell.GetSpellInfo then
       local si = C_Spell.GetSpellInfo(id)
       if si and si.name then
-        return {
+        return WithRank({
           token = tostring(id),
           spellId = id,
           name = si.name,
           icon = si.iconID,
-        }
+        })
       end
     end
     -- Keep unknown IDs so whitelist/blacklist by id still works.
@@ -198,23 +236,23 @@ local function ResolveSpellToken(token)
 
   local fromBook = spellByName[strlower(token)]
   if fromBook then
-    return {
+    return WithRank({
       token = tostring(fromBook.spellId),
       spellId = fromBook.spellId,
       name = fromBook.name,
       icon = fromBook.icon,
-    }
+    })
   end
   if C_Spell and C_Spell.GetSpellInfo then
     local si = C_Spell.GetSpellInfo(token)
     local spellId = si and (si.spellID or si.spellId)
     if si and si.name and spellId then
-      return {
+      return WithRank({
         token = tostring(spellId),
         spellId = spellId,
         name = si.name,
         icon = si.iconID,
-      }
+      })
     end
   end
   -- Unresolved legacy name: show as text-only until the user removes it.
@@ -264,6 +302,8 @@ local function FilterSuggestions(query, selectedIds, selectedNames)
             spellId = sp.spellId,
             name = sp.name,
             icon = sp.icon,
+            rank = sp.rank,
+            detail = sp.rank,
           }
         end
       end
