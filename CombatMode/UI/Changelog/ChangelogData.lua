@@ -14,6 +14,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.4.2]
+
+### Fixed
+
+- When **Mouse Look** turns off, the cursor now appears on the **Crosshair** instead of wherever it was before locking, so the **Radial Menu** opens with the cursor at its centre. The camera no longer jolts when Mouse Look turns on, which is what kept cursor centering disabled since patch 10.2 ([#189](https://github.com/ThericGames/combatmode/issues/189)).
+
 ## [5.4.1] - 2026-11-06
 
 ### Fixed

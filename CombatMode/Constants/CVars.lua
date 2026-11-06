@@ -71,9 +71,13 @@ CM.Constants.ReticleTargetingCVarValues = {
   -- and name back ("soft"). UnitNameFocused is blocked in combat, so it only follows the mode.
   ["ObjectSelectionCircle"] = 0, -- Blizzard 1
   ["UnitNameFocused"] = 0, -- Blizzard 1
-  -- cursor centering
-  ["CursorFreelookCentering"] = 0, -- !BUG: needs to be set to 0 initially because Blizzard broke something in 10.2, otherwise it wll cause the camera to jolt the equivalent vector to the centered cursor position from where your cursor was before locking.
-  ["CursorStickyCentering"] = 1, -- !BUG: we can't use it due to the issue described above. Fore more info, see: https://github.com/Stanzilla/WoWUIBugs/issues/504
+  -- cursor centering. Preset 0; FreeLookController flips CursorFreelookCentering to 1 for the
+  -- first start of its lock bounce (crosshair on). Since 10.2 the engine applies the
+  -- warp-to-centre as a Mouse Look turn (https://github.com/Stanzilla/WoWUIBugs/issues/504);
+  -- the bounce dips cameraYaw/PitchMoveSpeed to 0.1 for that frame, which makes the turn
+  -- negligible (issue 189).
+  ["CursorFreelookCentering"] = 0,
+  ["CursorStickyCentering"] = 1,
 }
 
 -- Not shown in the Reticle CVar editor; saved overrides for these keys are ignored and pruned.
